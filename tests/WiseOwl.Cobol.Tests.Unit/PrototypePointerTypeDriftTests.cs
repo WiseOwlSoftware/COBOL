@@ -19,14 +19,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ NO RELATION COMPARES A RESTRICTED PROGRAM- OR FUNCTION-POINTER'S PROTOTYPE NAME AS WRITTEN (kb/Work PB2464, PB4107):
 /// each asks one of the pointer's two resolved restrictions.
-/// <para>What such a pointer may CONTAIN is fixed by the SIGNATURE of the prototype it names (ISO §13.18.60.4 GR25 / GR26:
+/// <para>What such a pointer may CONTAIN is fixed by the SIGNATURE of the prototype it names (ISO §2023:13.18.60.4 GR25 / GR26:
 /// "shall contain only … the address of a program with the same signature as that identified by the specified
-/// program-prototype-name"), so §14.9.39.3 SR20 / SR22 admit a SET between pointers restricted to two differently named
-/// prototypes of one signature, and so do the rules that send to SET (§14.8.2.3.3; §9.3.6 4 c), 5 c), 6). Those ask
+/// program-prototype-name"), so §2023:14.9.39.3 SR20 / SR22 admit a SET between pointers restricted to two differently named
+/// prototypes of one signature, and so do the rules that send to SET (§2023:14.8.2.3.3; §2023:9.3.6 4 c), 5 c), 6). Those ask
 /// <c>PrototypeSignatures.SignatureRestriction</c> (the identity of the prototype's signature
 /// <c>PrototypeSignatures.StampContentRestrictions</c> attached) or, with the unit's prototype tables in hand,
-/// <c>PrototypeSignatures.Same</c>. The identity rules — §9.3.6 3 e), §14.8.2.3.2's "of the same type", §14.8.3.3, the
-/// pair-mode checks of §9.3.8.2.3 and the signature graph itself (§13.7.3 SR2, kb/Work PB4491) — compare the USAGE clause's
+/// <c>PrototypeSignatures.Same</c>. The identity rules — §2023:9.3.6 3 e), §2023:14.8.2.3.2's "of the same type", §2023:14.8.3.3, the
+/// pair-mode checks of §2023:9.3.8.2.3 and the signature graph itself (§2023:13.7.3 SR2, kb/Work PB4491) — compare the USAGE clause's
 /// TO phrase by the prototype it NAMES, which is
 /// <c>PrototypeSignatures.NamedRestriction</c>: the folded EXTERNALIZED name, so neither a spelling's case nor a
 /// prototype's local word decides (kb/Work PB4107). A comparison of <c>PicInfo.RestrictedPrototypeName</c> itself is
@@ -72,9 +72,9 @@ public sealed class PrototypePointerTypeDriftTests
         Assert.True(offenders.Count == 0,
             "A source line compares a restricted program- or function-pointer's prototype name AS WRITTEN. A SET-governed "
             + "relation asks what the pointer may contain — PrototypeSignatures.SignatureRestriction, or with the unit's "
-            + "prototype tables in hand PrototypeSignatures.Same (ISO §13.18.60.4 GR25 / GR26; §14.9.39.3 SR20 / SR22; kb/Work "
+            + "prototype tables in hand PrototypeSignatures.Same (ISO §2023:13.18.60.4 GR25 / GR26; §2023:14.9.39.3 SR20 / SR22; kb/Work "
             + "PB2464) — and an identity rule the TO phrase by the prototype it names, PrototypeSignatures.NamedRestriction "
-            + "(§9.3.6 3 e); §14.8.2.3.2; §14.8.3.3; kb/Work PB4107):\n  " + string.Join("\n  ", offenders));
+            + "(§2023:9.3.6 3 e); §2023:14.8.2.3.2; §2023:14.8.3.3; kb/Work PB4107):\n  " + string.Join("\n  ", offenders));
     }
 
     /// <summary>A <c>PicInfo</c> record-equality compare as the type model writes it: a <c>with { EditingRules = null, … }</c>
@@ -90,7 +90,7 @@ public sealed class PrototypePointerTypeDriftTests
     /// <summary>⛔ A <c>PicInfo</c> RECORD COMPARE DOES NOT DECIDE A RESTRICTED POINTER'S TYPE (kb/Work PB3120, PB4107).
     /// <c>StrongTypeModel.SameAnalyzedProfile</c> compares two elementary items' analyzed profiles with <c>PicInfo</c>'s own
     /// record equality, which compares <c>RestrictedPrototypeName</c> and <c>RestrictedTypeName</c> by value — the words as
-    /// WRITTEN, which §8.5.3.1 does not compare: a prototype is named by its externalized name whatever its local word or
+    /// WRITTEN, which §2023:8.5.3.1 does not compare: a prototype is named by its externalized name whatever its local word or
     /// case, and a data-pointer's type is the declaration its type-name resolves to (two declarations of one type-name in
     /// two source elements). Every <c>with { EditingRules = null, … }</c> projection in the compiler must elide BOTH names,
     /// and the comparison reads <c>PrototypeSignatures.NamedRestriction</c> / <c>StrongTypeModel.SameRestriction</c>
@@ -131,8 +131,8 @@ public sealed class PrototypePointerTypeDriftTests
     /// <summary>⛔ EVERY GROUP-LEVEL SIGNATURE CHECK RUNS AFTER THE POINTER RESTRICTIONS ARE RESOLVED (kb/Work PB2495). A
     /// restricted program- or function-pointer formal is described by the EXTERNALIZED name of the prototype its TO phrase
     /// names (kb/Work PB4107, PB4491), which <c>BinderDriver.ResolvePointerRestrictions</c> attaches; a check that runs before
-    /// it reads the word as written, so it refuses an override, an implementation or a §10.6.2 SR2 prototype / definition
-    /// pair whose two units name ONE prototype by two words (a REPOSITORY specifier's AS phrase, §12.3.8.2). Being after the
+    /// it reads the word as written, so it refuses an override, an implementation or a §2023:10.6.2 SR2 prototype / definition
+    /// pair whose two units name ONE prototype by two words (a REPOSITORY specifier's AS phrase, §2023:12.3.8.2). Being after the
     /// program units' DATA phase is not enough: the four OO checks once ran ahead of that phase, but
     /// <c>CheckPrototypeSignaturePairs</c> ran inside the REPOSITORY resolver's builder — after it, and still ahead of
     /// <c>ResolvePointerRestrictions</c> — and refused pairs it had to admit.
@@ -260,7 +260,7 @@ public sealed class PrototypePointerTypeDriftTests
         return at > resolved ? null
             : $"'{check}' runs BEFORE ResolvePointerRestrictions, so it compares restricted prototype-pointers by the word "
               + "each TO phrase WRITES, not by the externalized name of the prototype it names, and refuses two words for one "
-              + "prototype (ISO §12.3.8.2; kb/Work PB2495, PB4491)";
+              + "prototype (ISO §2023:12.3.8.2; kb/Work PB2495, PB4491)";
     }
 
     private static string? CalledName(InvocationExpressionSyntax call) => call.Expression switch
@@ -325,7 +325,7 @@ public sealed class PrototypePointerTypeDriftTests
     /// <summary>A pointer read from ANOTHER group's published record (rendered into a module and read back,
     /// <c>RepositoryReader</c>) and decoded into the importing group (<c>RepositoryCodec.Decode</c>, which stamps it with
     /// the identity of its prototype's decoded signature) may contain what its prototype's SIGNATURE allows, never what its
-    /// name does (ISO §13.18.60.4 GR25: "the address of a program with the same signature as that identified by the
+    /// name does (ISO §2023:13.18.60.4 GR25: "the address of a program with the same signature as that identified by the
     /// specified program-prototype-name"): a prototype named otherwise with the group's signature shares the group
     /// pointer's content restriction, one named like the group's prototype with another signature gets another, and two
     /// such records decoded in turn keep one each.</summary>
@@ -359,12 +359,12 @@ public sealed class PrototypePointerTypeDriftTests
 
     /// <summary>⛔ NO DESCRIPTION OF A SIGNATURE READS WHAT A POINTER MAY CONTAIN (kb/Work PB4442, PB4491). The pair-mode
     /// relation (<c>ActivationRelations.SignatureDifference</c>: an override, IMPLEMENTS, an interface pair, a property
-    /// accessor pair AND §13.7.3 SR2's prototype / definition pair) compares a restricted pointer's USAGE clause, its TO
+    /// accessor pair AND §2023:13.7.3 SR2's prototype / definition pair) compares a restricted pointer's USAGE clause, its TO
     /// phrase by the prototype it names, and the signature's key (<c>PrototypeSignatures.SignatureKey</c> /
     /// <c>DescriptionKey</c>) writes the same; <c>ActivationDescription.ContentRestriction</c> is the SET relation's alone.
     /// Were either to read it again, two prototypes that name each other would need a fixed point to compare, and a
     /// prototype <c>USING TO Q1</c> would be admitted for a definition <c>USING TO Q2</c> — every caller checked against the
-    /// prototype then passing the definition a pointer its formal refuses (§14.8.2.3.2).</summary>
+    /// prototype then passing the definition a pointer its formal refuses (§2023:14.8.2.3.2).</summary>
     [Theory]
     [InlineData("WiseOwl.Cobol.Runtime", "ActivationRelations", "SignatureDifference")]
     [InlineData("WiseOwl.Cobol.Compiler", "PrototypeSignatures", "SignatureKey")]

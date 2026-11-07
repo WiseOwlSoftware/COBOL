@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.57.3 SR11 — "Following CONTROL HEADING or CONTROL
+      *> ISO §2023:13.18.57.3 SR11 — "Following CONTROL HEADING or CONTROL
       *> FOOTING, data-name-1, data-name-2, or FINAL may be omitted only
       *> if the CONTROL clause in the corresponding report description
       *> entry contains exactly one operand." FINAL is itself an operand

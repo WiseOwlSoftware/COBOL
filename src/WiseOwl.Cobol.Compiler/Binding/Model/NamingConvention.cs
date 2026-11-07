@@ -7,14 +7,14 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <summary>
 /// The ONE home for every OO C# / file-key naming convention (P9 R8 — kills the four scattered
 /// <c>__GET_</c>/<c>__SET_</c> accessor-name builders and the loose <c>__FACTORY</c>/band strings).
-/// A LEADING <c>__</c> cannot begin a COBOL-derived name (§8.3.2.1: "The hyphen or underscore shall not appear as the
+/// A LEADING <c>__</c> cannot begin a COBOL-derived name (§2023:8.3.2.1: "The hyphen or underscore shall not appear as the
 /// first or last character in such words", so <see cref="DataItem.Sanitize"/> never yields a leading <c>__</c>), so a
-/// name that BEGINS with one of these tags never collides with a user name — the §8.4.5/§11.7.4 GR1a
+/// name that BEGINS with one of these tags never collides with a user name — the §2023:8.4.5/§2023:11.7.4 GR1a
 /// implementor-defined externalized-name license. ⛔ A <c>__</c> INSIDE or AT THE END of a name is no such guarantee:
 /// the word mapping writes each hyphen as an underscore, so <c>X--FACTORY</c> is <c>X__FACTORY</c> (kb/Work PB2921).
 /// Every name synthesized from a user word is therefore a PREFIX family, never a suffix.
 /// NOTE — the <c>::EXT::</c> band is a WIRE CONTRACT with the runtime: <c>CobolFile.Register*</c> and
-/// <c>ExternalStore</c> recognize the prefix on the emitted key (ISO §13.18.22.4 GR4a run-unit sharing), so the
+/// <c>ExternalStore</c> recognize the prefix on the emitted key (ISO §2023:13.18.22.4 GR4a run-unit sharing), so the
 /// runtime carries its own copy of that spelling; change either side only with the other.
 /// </summary>
 public static class NamingConvention
@@ -52,20 +52,20 @@ public static class NamingConvention
     /// <summary>The <see cref="ClassNamedMethodName"/> family's tag.</summary>
     public const string ClassNamedMethodPrefix = "__method_";
 
-    /// <summary>The factory singleton field (§9.3.14.2 — "created before it is first referenced").</summary>
+    /// <summary>The factory singleton field (§2023:9.3.14.2 — "created before it is first referenced").</summary>
     public const string FactoryInstanceField = "__Instance";
 
-    /// <summary>The run-unit EXTERNAL file-connector key band (§13.18.22.4 GR4a — ONE connector per run unit;
+    /// <summary>The run-unit EXTERNAL file-connector key band (§2023:13.18.22.4 GR4a — ONE connector per run unit;
     /// the runtime recognizes this prefix: the wire contract noted above).</summary>
     public const string ExternalFileBand = "::EXT::";
 
-    /// <summary>The per-object INSTANCE file-connector key band (M2-OO-1i, §9.1.4 — one connector per object).</summary>
+    /// <summary>The per-object INSTANCE file-connector key band (M2-OO-1i, §2023:9.1.4 — one connector per object).</summary>
     public const string InstanceFileBand = "::INST::";
 
     /// <summary>The FACTORY file-connector key band (one connector per class singleton).</summary>
     public const string FactoryFileBand = "::FACT::";
 
-    /// <summary>The pinned accessor-roster name of a property GET method (§11.7.4 GR1a —
+    /// <summary>The pinned accessor-roster name of a property GET method (§2023:11.7.4 GR1a —
     /// <c>__GET_&lt;P&gt;</c>; override/0829/implements machinery applies to accessors unchanged).</summary>
     public static string GetAccessorName(string propertyName) =>
         "__GET_" + AccessorSuffix(propertyName);

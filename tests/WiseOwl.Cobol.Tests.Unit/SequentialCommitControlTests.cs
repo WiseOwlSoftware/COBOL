@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A SEQUENTIAL FILE UNDER APPLY COMMIT THROUGH THE RUN UNIT'S REGISTRY (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2;
 /// kb/Work PB3340): the rows of 2.2.2.12, each run as a program of the run unit's statements — OPEN, WRITE, READ, REWRITE, CLOSE,
 /// DELETE FILE, COMMIT, ROLLBACK — over a record sequential and a line sequential file, fault-free and with every operation of
-/// the fault-injecting <see cref="FaultHostMedium"/> REFUSED (the statement's '30', fatal: §14.6.13.1.3 item 8's ROLLBACK
+/// the fault-injecting <see cref="FaultHostMedium"/> REFUSED (the statement's '30', fatal: §2023:14.6.13.1.3 item 8's ROLLBACK
 /// follows and the program ends), made the point of a DEATH and of a POWER LOSS; then "the next entry" (another run unit's
 /// writable OPEN) settles what is left and the file is read.
-/// <para>Every expected state comes from the rules: §9.1.18.3 and §14.9.7.4 GR3 (a COMMIT <i>"permanently applies any changes
-/// made to the files specified in all the active APPLY COMMIT clauses"</i>), §14.9.36.4 GR3 (a ROLLBACK restores them <i>"to
+/// <para>Every expected state comes from the rules: §2023:9.1.18.3 and §2023:14.9.7.4 GR3 (a COMMIT <i>"permanently applies any changes
+/// made to the files specified in all the active APPLY COMMIT clauses"</i>), §2023:14.9.36.4 GR3 (a ROLLBACK restores them <i>"to
 /// the state they were in at the execution of the last COMMIT statement or the start of the run unit"</i>), the NOTE under
-/// §14.9.10.4 GR15 (a DELETE FILE of such a file is undone by a rollback), §9.1.18.5 (an abnormal termination rolls back) and
-/// §14.9.27.4 GR17 and GR18 (a creation's file is the state "no file" at its start, so its rollback removes it: an OPEN INPUT
+/// §2023:14.9.10.4 GR15 (a DELETE FILE of such a file is undone by a rollback), §2023:9.1.18.5 (an abnormal termination rolls back) and
+/// §2023:14.9.27.4 GR17 and GR18 (a creation's file is the state "no file" at its start, so its rollback removes it: an OPEN INPUT
 /// then answers '35', or '05' for an OPTIONAL file).</para>
 /// <para>It is a file-system race witness (<c>[Trait("Host", "ReFS")]</c>, kb/Work PB3022): its interleaving case drives two run
 /// units' statements from two workers through the host's locks.</para>
@@ -256,7 +256,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
             Ok(a.Open(FileOpenMode.Output));
             Ok(a.Write("X1"));
             OkRollback(a);
-            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            Assert.False(File.Exists(f));   // §2023:14.9.36.4 GR3: the state at the start of the run unit had no file
             Ok(a.Write("X2"));
             var b = new Unit(f, covered: false, sharing: FileSharing.NoOther);
             Assert.Equal("61", b.Open(FileOpenMode.Input));
@@ -270,8 +270,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
 
     /// <summary>⛔ A FILE ANOTHER RUN UNIT MAKES AT THE PATH AFTER A ROLLBACK REMOVED THIS CONNECTOR'S IS NOT THIS WRITE'S TO USE
     /// (kb/Work PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The ROLLBACK released the file lock of a file not
-    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what another run unit
-    /// then creates there is protected from this one (§9.1.17): the WRITE that would create the file again answers '30' (§9.1.13.6
+    /// open at the last COMMIT (§2023:9.1.15) and reversed only this run unit's own changes (§2023:14.9.36.4 GR3), so what another run unit
+    /// then creates there is protected from this one (§2023:9.1.17): the WRITE that would create the file again answers '30' (§2023:9.1.13.6
     /// item 1), never appends to the other's file, and the later ROLLBACK or COMMIT leaves that file as its creator wrote it.</summary>
     [Theory]
     [InlineData(false, false)]
@@ -288,12 +288,12 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
             Ok(a.Open(FileOpenMode.Output));
             Ok(a.Write("A1"));
             OkRollback(a);
-            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            Assert.False(File.Exists(f));   // §2023:14.9.36.4 GR3: the state at the start of the run unit had no file
             var b = new Unit(f, covered: false, line: line);
             Ok(b.Open(FileOpenMode.Output));
             Ok(b.Write("B1"));
             Ok(b.Close());
-            Assert.Equal("30", a.Write("A2"));   // §9.1.13.6 item 1: the file is another run unit's now
+            Assert.Equal("30", a.Write("A2"));   // §2023:9.1.13.6 item 1: the file is another run unit's now
             if (commit) Assert.True(a.Commit()); else Assert.True(a.Rollback());
             a.Reg.CloseAll();
             Assert.Equal(Show(Bytes("B1", line)), Show(State(f)));
@@ -356,7 +356,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     /// <summary>⛔ THE SEQUENTIAL WRITE'S CREATING HANDLE REFUSES A FILE ANOTHER RUN UNIT MADE AFTER THE PRESENCE PROBE (kb/Work PB3635,
     /// review finding R1-2 of the first round): the probe under the entry mutex found no file, and the other run unit's OPEN OUTPUT
     /// (which takes none) made one before this WRITE's handle opened. The handle is opened <see cref="FileMode.CreateNew"/>, so the
-    /// WRITE answers '30' (§9.1.13.6 item 1), the other run unit's file is as it wrote it (§9.1.17), and the journal the WRITE began
+    /// WRITE answers '30' (§2023:9.1.13.6 item 1), the other run unit's file is as it wrote it (§2023:9.1.17), and the journal the WRITE began
     /// is withdrawn (2.2.2.14), with no <c>txn-</c> file left.</summary>
     [Fact]
     public void A_write_creating_the_file_again_meets_a_file_made_between_the_probe_and_the_handle_30()
@@ -386,9 +386,9 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     /// <summary>⛔ AN OPEN THAT CREATES THE FILE TAKES A HANDLE THAT REFUSES A FILE MADE SINCE ITS PRESENCE PROBE, AND IS MADE AGAIN OVER
     /// THE FILE THAT STANDS (kb/Work PB3635, review finding R1-1 of the first round; <c>FileConnector.Open</c>). Another run unit's OPEN
     /// OUTPUT takes no entry mutex, so a file can appear between the probe and the handle. The OPEN of the absent OPTIONAL file
-    /// (§14.9.27.4 GR17) then meets an existing one: it is the OPEN of an existing file — '00', not '05' — and neither truncates the
+    /// (§2023:14.9.27.4 GR17) then meets an existing one: it is the OPEN of an existing file — '00', not '05' — and neither truncates the
     /// other run unit's records (I-O) nor adopts them as its own creation (EXTEND), which a covered run unit's ROLLBACK would remove
-    /// with the file (§14.9.36.4 GR3 restores only this run unit's own changes). Both ends of the order are checked: the records
+    /// with the file (§2023:14.9.36.4 GR3 restores only this run unit's own changes). Both ends of the order are checked: the records
     /// before the ROLLBACK or COMMIT, and the file after.</summary>
     [Theory]
     [InlineData(FileOpenMode.IO, false, false)]
@@ -428,8 +428,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     }
 
     /// <summary>The same window for an OPEN OUTPUT under commit control: the OPEN is made again over the file that stands, so it
-    /// REPLACES it (§14.9.27.4 GR18) after the capture of its records, and the run unit's ROLLBACK restores them
-    /// (§14.9.36.4 GR3: the state at the last COMMIT, which includes the file the other run unit made before this OPEN
+    /// REPLACES it (§2023:14.9.27.4 GR18) after the capture of its records, and the run unit's ROLLBACK restores them
+    /// (§2023:14.9.36.4 GR3: the state at the last COMMIT, which includes the file the other run unit made before this OPEN
     /// replaced it) rather than removing the file as a creation of its own; its COMMIT keeps the replacement.</summary>
     [Theory]
     [InlineData(false)]
@@ -453,7 +453,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>A path that is made again after every attempt's probe answers the last attempt's '30' (§9.1.13.6 item 1): at most
+    /// <summary>A path that is made again after every attempt's probe answers the last attempt's '30' (§2023:9.1.13.6 item 1): at most
     /// <c>FileConnector.MaxPathChangedRetries</c> retries (three attempts), the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
     /// file untouched.</summary>
     [Fact]
@@ -488,7 +488,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
 
     /// <summary>⛔ A DIRECTORY AT THE PATH IS NOT A FILE MADE MEANWHILE (kb/Work PB3635, review finding R2-1): the presence probe answers
     /// Absent for a directory, the creating handle (<see cref="FileMode.CreateNew"/>) is refused with an access error on Windows and
-    /// with <c>EEXIST</c> on Unix, and both hosts answer §14.9.27.4 GR3's '37' on the one attempt, covered or not, leaving no journal.</summary>
+    /// with <c>EEXIST</c> on Unix, and both hosts answer §2023:14.9.27.4 GR3's '37' on the one attempt, covered or not, leaving no journal.</summary>
     [Theory]
     [InlineData(FileOpenMode.Output, false)]
     [InlineData(FileOpenMode.Output, true)]
@@ -546,7 +546,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void The_close_keeps_the_file_lock_until_the_commit()
     {
         // 2.2.2.12 "CLOSE under commit, then COMMIT": the handle kept through the CLOSE — another run unit's NO OTHER OPEN '61'
-        // until the COMMIT (§14.9.6.4 GR9, §14.9.7.4 GR4) — released by the COMMIT.
+        // until the COMMIT (§2023:14.9.6.4 GR9, §2023:14.9.7.4 GR4) — released by the COMMIT.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -572,9 +572,9 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
 
     /// <summary>⛔ AN UNSUCCESSFUL DELETE FILE AFTER A CLOSE UNDER COMMIT CONTROL TAKES BACK WHAT IT GAVE BACK (kb/Work PB3492, review
     /// finding R1-1, the sequential arm; MANDATORY-PRACTICES I11): the kept handle goes for the host's probe and the Table 19 file
-    /// lock for the removal, and a DELETE FILE refused at the capture's write of the before file ('30', §9.1.13.6) or at the
-    /// removal takes both back, so another run unit's NO OTHER OPEN is still '61' (§14.9.6.4 GR9, §14.9.7.4 GR4: the file lock
-    /// stands until the COMMIT), and the COMMIT keeps the record the transaction wrote (§14.9.7.4 GR3).</summary>
+    /// lock for the removal, and a DELETE FILE refused at the capture's write of the before file ('30', §2023:9.1.13.6) or at the
+    /// removal takes both back, so another run unit's NO OTHER OPEN is still '61' (§2023:14.9.6.4 GR9, §2023:14.9.7.4 GR4: the file lock
+    /// stands until the COMMIT), and the COMMIT keeps the record the transaction wrote (§2023:14.9.7.4 GR3).</summary>
     [Theory]
     [InlineData("capture")]
     [InlineData("delete")]
@@ -633,7 +633,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_live_transaction_refuses_another_run_units_write_and_open_output_and_delete_file()
     {
         // 2.2.2.3 and 2.2.2.8: under SHARING WITH ALL OTHER another run unit's WRITE meets the END holding ('51'); an OPEN OUTPUT
-        // needs no other transaction on the file ('61'), and so does a DELETE FILE (its sharing conflict, §9.1.13.9 2): '62').
+        // needs no other transaction on the file ('61'), and so does a DELETE FILE (its sharing conflict, §2023:9.1.13.9 2): '62').
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -663,8 +663,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_read_not_ignoring_lock_meets_the_records_a_live_transaction_holds()
     {
         // 2.2.2.3: a transaction holds every record it appended (those at or past its L) — beside the records its READs lock
-        // under the implicit AUTOMATIC WITH LOCK ON MULTIPLE RECORDS posture (§9.1.16), which are region locks; under SHARING
-        // WITH ALL OTHER another run unit's READ of a held record answers '51' (§9.1.13.8 1)), and of any other record '00'.
+        // under the implicit AUTOMATIC WITH LOCK ON MULTIPLE RECORDS posture (§2023:9.1.16), which are region locks; under SHARING
+        // WITH ALL OTHER another run unit's READ of a held record answers '51' (§2023:9.1.13.8 1)), and of any other record '00'.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -681,12 +681,12 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
                 Assert.Equal(expected, record);
             }
             Assert.Equal("51", b.Read(out _)); // record 4: a's own append, held by its live transaction
-            Assert.Equal("51", b.Read(out _)); // still held: the refused READ moved nothing (§14.9.30.4 GR10)
+            Assert.Equal("51", b.Read(out _)); // still held: the refused READ moved nothing (§2023:14.9.30.4 GR10)
             OkRollback(a);
-            Assert.Equal("10", b.Read(out _)); // the ROLLBACK removed it: at end (§14.9.30.4 GR21 e))
+            Assert.Equal("10", b.Read(out _)); // the ROLLBACK removed it: at end (§2023:14.9.30.4 GR21 e))
             Ok(a.Write("X5"));
             OkCommit(a);
-            Ok(b.Close());                     // after the at end condition a READ is '46' (§9.1.13.7 6)): read it afresh
+            Ok(b.Close());                     // after the at end condition a READ is '46' (§2023:9.1.13.7 6)): read it afresh
             Ok(b.Open(FileOpenMode.Input));
             string committed = "";
             for (int n = 0; n < 4; n++) Ok(b.Read(out committed));
@@ -723,8 +723,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [MemberData(nameof(JournalArms))]
     public void A_statement_meeting_another_run_units_journal_holding_retries_under_its_retry_phrase(string statement)
     {
-        // §14.7.9.3 GR4 b): a statement unsuccessful at its first attempt "because of ... a record operation conflict condition"
-        // ('51', §9.1.13.8 1)) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
+        // §2023:14.7.9.3 GR4 b): a statement unsuccessful at its first attempt "because of ... a record operation conflict condition"
+        // ('51', §2023:9.1.13.8 1)) attempts again as GR1 and GR3 specify, and "If the mass storage control system permits the
         // requested access on one of these attempts, the statement is successful"; otherwise the conflict's own status (the
         // closing paragraph). The journal arm of the lock test is such a conflict (2.2.2.3: "held, '51' (RETRY applies)").
         string dir = ScratchDirectory.Create("scc-");
@@ -761,9 +761,9 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [Fact]
     public void A_holding_of_this_run_units_own_transaction_is_not_waited_for()
     {
-        // §14.7.9.3 GR1 to GR3 wait for a holder that can release: this run unit's own transaction, met through a connector no
+        // §2023:14.7.9.3 GR1 to GR3 wait for a holder that can release: this run unit's own transaction, met through a connector no
         // APPLY COMMIT names (2.2.2.3: "this run unit's through an uncovered connector"), cannot release while the statement
-        // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§9.1.13.8 2), A.1 item 109).
+        // runs, so RETRY n TIMES ends at once with '51' and RETRY FOREVER with the deadlock '52' (§2023:9.1.13.8 2), A.1 item 109).
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
@@ -809,10 +809,10 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [MemberData(nameof(KeptHolds))]
     public void An_open_or_delete_file_refused_by_what_this_run_unit_holds_is_not_waited_for(FileSharing kept, bool replaced)
     {
-        // §14.7.9.3 GR3 waits for a holder that can release (kb/Work PB1163); what a CLOSE under commit control kept stands until
-        // the COMMIT or ROLLBACK (§14.9.7.4 GR4), and the run unit's own transaction until its end, so neither releases while
-        // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§9.1.13.9 1)),
-        // on the DELETE FILE '62' (§9.1.13.9 2)) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
+        // §2023:14.7.9.3 GR3 waits for a holder that can release (kb/Work PB1163); what a CLOSE under commit control kept stands until
+        // the COMMIT or ROLLBACK (§2023:14.9.7.4 GR4), and the run unit's own transaction until its end, so neither releases while
+        // another connector's statement of the same run unit waits: RETRY FOREVER on the OPEN lands '61' at once (§2023:9.1.13.9 1)),
+        // on the DELETE FILE '62' (§2023:9.1.13.9 2)) — DOC-A.1-109's file-conflict rule — and only the COMMIT lets them succeed.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         int pauses = 0;
@@ -860,11 +860,11 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [InlineData(true)]
     public void A_lock_directory_this_process_may_not_list_is_the_authority_an_open_or_delete_file_lacks(bool covered)
     {
-        // §9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §14.9.10.4 GR16 for the DELETE FILE). The
+        // §2023:9.1.13.6 6) b): "insufficient authority exists to access the file" ('37'; §2023:14.9.10.4 GR16 for the DELETE FILE). The
         // entry step cannot tell whether a transaction lives on the file, and no holder is known to conflict, so the answer is
-        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§14.9.27.4 GR25). An OPEN INPUT
+        // the missing authority, never a '61' or '62' sharing conflict; the file is unaffected (§2023:14.9.27.4 GR25). An OPEN INPUT
         // runs the entry step too (kb/Work PB4097): a dead run unit's rewrite is rolled back before any reader meets it
-        // (§9.1.18.5), and a reader that cannot list the lock directory cannot tell that none stands.
+        // (§2023:9.1.18.5), and a reader that cannot list the lock directory cannot tell that none stands.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -884,7 +884,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [Fact]
     public void A_killed_run_units_transaction_is_rolled_back_by_the_next_writable_open()
     {
-        // §9.1.18.5 for the terminations the runtime cannot see (2.2.2.4: the journal is durable for exactly this).
+        // §2023:9.1.18.5 for the terminations the runtime cannot see (2.2.2.4: the journal is durable for exactly this).
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -917,7 +917,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [InlineData(true)]
     public void A_reader_that_opens_after_a_run_unit_was_killed_reads_the_file_as_the_rollback_leaves_it(bool allOther)
     {
-        // §9.1.18.5: "When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
+        // §2023:9.1.18.5: "When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
         // beginning of the run unit are rolled back ...", and only then "all file and record locks are then released": no
         // reader may meet the dead transaction's REWRITE (kb/Work PB4097; the reader's OPEN settles through its own handle).
         string dir = ScratchDirectory.Create("scc-");
@@ -957,9 +957,9 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [InlineData(true)]
     public void A_run_unit_killed_beside_an_open_reader_is_rolled_back_at_the_readers_next_read(bool ignoringLock)
     {
-        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§9.1.13.8 1)).
+        // The owner lives while the reader is open (SHARING WITH ALL OTHER on both): the READ is refused '51' (§2023:9.1.13.8 1)).
         // Killed, its REWRITE is rolled back before the reader's next READ - the plain one and the IGNORING LOCK one alike
-        // (§14.9.30.4 GR12 ignores a live owner's lock, not a rollback §9.1.18.5 owes; kb/Work PB4097).
+        // (§2023:14.9.30.4 GR12 ignores a live owner's lock, not a rollback §2023:9.1.18.5 owes; kb/Work PB4097).
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -992,7 +992,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_reader_that_cannot_write_the_file_is_refused_not_shown_the_dead_change()
     {
         // kb/Work PB4097 (review round 1, R1-3): the settle of a dead run unit's REWRITE is a write the reader's OPEN cannot make
-        // when the file is read-only to this process: the authority it lacks, '37' (§14.9.27.4 GR3; §9.1.13.6 6) b)), as a keyed
+        // when the file is read-only to this process: the authority it lacks, '37' (§2023:14.9.27.4 GR3; §2023:9.1.13.6 6) b)), as a keyed
         // reader is refused (DeadOwnerReaderTests), never the dead change and never a '30' the host's other refusals share.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
@@ -1028,10 +1028,10 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     public void A_reader_whose_settle_of_a_killed_run_units_change_the_host_refuses_answers_30(bool ignoringLock)
     {
         // kb/Work PB4097 (review round 1, R1-1): the reader is open (SHARING WITH ALL OTHER) when the owner dies and the file
-        // becomes read-only to this process, so its next READ cannot make the rollback §9.1.18.5 owes. The entry step's host
-        // failure is a permanent error ('30', §9.1.13.6 1), §9.1.13.1: it stays in effect for the file's later statements), the
+        // becomes read-only to this process, so its next READ cannot make the rollback §2023:9.1.18.5 owes. The entry step's host
+        // failure is a permanent error ('30', §2023:9.1.13.6 1), §2023:9.1.13.1: it stays in effect for the file's later statements), the
         // statement of every organization (KeyedConnector.Enter), never an exception out of the run unit and never the dead
-        // change - the IGNORING LOCK READ (§14.9.30.4 GR12) included, since it ignores a live owner's lock, not a rollback.
+        // change - the IGNORING LOCK READ (§2023:14.9.30.4 GR12) included, since it ignores a live owner's lock, not a rollback.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -1065,8 +1065,8 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     [Fact]
     public void Normal_termination_commits_and_abnormal_termination_rolls_back()
     {
-        // §14.6.11 1): "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
-        // §9.1.18.5: an abnormal termination rolls them back.
+        // §2023:14.6.11 1): "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses";
+        // §2023:9.1.18.5: an abnormal termination rolls them back.
         string dir = ScratchDirectory.Create("scc-");
         string f = Path.Combine(dir, "f.dat");
         try
@@ -1109,11 +1109,11 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     };
 
     /// <summary>⛔ A TRANSACTION WHOSE ROLLBACK THE MEDIUM REFUSED IS NEVER COMMITTED (review finding R1-3 of kb/Work PB3340;
-    /// §14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement"</i>; design 2.2.2.7,
+    /// §2023:14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement"</i>; design 2.2.2.7,
     /// the keyed rule of 2.2.1.10 (5) in its one place, <c>FileRegistry.CommitHolder</c>): C1C2 replaced by an OPEN OUTPUT (the
     /// capture), X1 written, CLOSE, and a ROLLBACK whose restore the medium refuses at the copy of the before file into F, which
     /// its truncation has already emptied ('30'; the program does not test it). The run unit's normal termination (its implicit
-    /// COMMIT, §14.6.11 1)) or a program COMMIT is refused while the rollback is owed — the COMMIT '30', the file's name returned —
+    /// COMMIT, §2023:14.6.11 1)) or a program COMMIT is refused while the rollback is owed — the COMMIT '30', the file's name returned —
     /// and the ROLLBACK that follows restores C1C2; committed, F stayed empty and the before file was retired with it.</summary>
     [Theory]
     [InlineData("termination")]
@@ -1189,7 +1189,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     }
 
     /// <summary>⛔ A DEAD TRANSACTION WHOSE FILE IS SHORTER THAN ITS COMMITTED LENGTH IS SETTLED (review finding R1-4 of kb/Work
-    /// PB3340; design 2.2.2.7, §9.1.18.5 for the terminations the runtime cannot see): L counts what the operating environment
+    /// PB3340; design 2.2.2.7, §2023:9.1.18.5 for the terminations the runtime cannot see): L counts what the operating environment
     /// was handed, another connector's released and never synced appends included, and a power loss takes those; the external
     /// truncation below stands for it (F loses the bytes past C1, the killed run unit's X1 with them). None of the transaction's
     /// appends survived, so the next writable OPEN settles it leaving F as it stands — the settle used to refuse a truncation
@@ -1222,7 +1222,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     }
 
     /// <summary>⛔ AN UNCOVERED WRITER'S RECORD IS NEVER CUT BY A TRANSACTION THAT BEGINS DURING ITS WRITE (review finding R1-1 of
-    /// kb/Work PB3340; design 2.2.2.3, <c>SequentialConnector.UncoveredChangeGuard</c>; §14.9.51.4 GR19, <i>"the added records
+    /// kb/Work PB3340; design 2.2.2.3, <c>SequentialConnector.UncoveredChangeGuard</c>; §2023:14.9.51.4 GR19, <i>"the added records
     /// follow the records present in the physical file when it was opened"</i>, and GR12's release): run unit B, no APPLY COMMIT,
     /// and run unit A, APPLY COMMIT ON F, both OPEN EXTEND under SHARING WITH ALL OTHER. A's first WRITE is run at the instant
     /// B's WRITE releases its record to the medium (the fault-injecting medium's <c>BeforeOperation</c> seam), and B waits until
@@ -1294,7 +1294,7 @@ public sealed class SequentialCommitControlTests : SequentialCommitControlHarnes
     }
 
     /// <summary>⛔ A TRANSACTION'S HOLDER THAT CANNOT BE PUBLISHED REFUSES THE COVERED STATEMENT '30' FOR EITHER CAUSE, WITH THE FILE
-    /// UNAFFECTED (kb/Work PB3675; design 2.2.2.5 R1; §9.1.13.6 item 1 and, for an OPEN, §14.9.27.4 GR25's <i>"the file is not
+    /// UNAFFECTED (kb/Work PB3675; design 2.2.2.5 R1; §2023:9.1.13.6 item 1 and, for an OPEN, §2023:14.9.27.4 GR25's <i>"the file is not
     /// affected"</i>): the publication answers <c>Unavailable</c> (the host takes no lock here) or <c>Held</c> (every try lost its
     /// race), the journal's <c>Begin</c> refuses before the first byte of F changes or F is created, and nothing of the journal is
     /// left behind. The statements are the three that begin a transaction on a sequential file: OPEN OUTPUT of an existing file (a
@@ -1432,7 +1432,7 @@ public sealed class SequentialCommitControlSweepBTests : SequentialCommitControl
 
     [Fact]
     public void Delete_file_then_commit_leaves_the_file_absent() =>
-        // "DELETE FILE then COMMIT": absent, durably; the NOTE under §14.9.10.4 GR15 lets the delete proceed.
+        // "DELETE FILE then COMMIT": absent, durably; the NOTE under §2023:14.9.10.4 GR15 lets the delete proceed.
         Sweep("C1C2", "C1C2", null, line: false, program: u =>
         {
             Ok(u.Open(FileOpenMode.Input));

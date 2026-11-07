@@ -503,7 +503,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// ⛔ Written ONCE on this side and read by <see cref="DerivedState"/> and <see cref="MisanchoredRows"/>, so
     /// the two cannot disagree about what a row's anchor is. The anchor being a FUNCTION of the row is the whole
     /// mechanism: a determination cannot be filed under the wrong item the way <c>kb/Work/A11</c> recorded — the
-    /// §15.3.3.2 fractional-seconds determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's
+    /// §2023:15.3.3.2 fractional-seconds determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's
     /// accuracy, because the NUMBER was inherited and never re-derived.
     /// </remarks>
     private static string? AnchorFor(Row r, Schema s) =>
@@ -1284,23 +1284,23 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // only for a multi-reel/unit file no connector is — and its §8 derivation was retired with it.
             "DOC-A.1-19", "GR-14.9.11.4-11", "GR-14.9.30.4-20", "GR-14.9.30.4-3",
             "GR-14.9.34.4-2", "GR-14.9.5.4-11", "RV-15.50.4-9",
-            // ⚙ The NINTH, GR-14.9.6.4-L2.1 (kb/Work PB235, 2026-09-05) — §14.9.6.4 GR3 symbol e's unit-media
+            // ⚙ The NINTH, GR-14.9.6.4-L2.1 (kb/Work PB235, 2026-09-05) — §2023:14.9.6.4 GR3 symbol e's unit-media
             // branch 1 — LEFT on 2026-10-15 (kb/Work PB55, THE RULE IS THE UNIT): it was a nested sub-item the
             // transcription had flattened into a row of its own. Indented at its printed level it is the body of
             // GR-14.9.6.4-3, which closes on its own spec-derived test, and a derivation stands in place of a
             // WHOLE row's test, never beside one; the owner-signed determination (unit media unreachable, forced by
-            // §9.1.13.2 item 6) moved verbatim into that row's notes, and CloseTable14Tests still reds if the
+            // §2023:9.1.13.2 item 6) moved verbatim into that row's notes, and CloseTable14Tests still reds if the
             // medium placement ever changes.
             // ⚙ The TENTH, ELEVENTH and TWELFTH, added deliberately (owner decisions Q25–Q27, 2026-09-09, after a
             // plain-language brief; DEVLOG 1577). GR-14.9.27.4-12: OPEN's rewindable-medium rule, arm
-            // unpopulatable-antecedent over the SAME closed medium set as §14.9.6.4 GR3 e) 1. (§14.9.27.4 GR11 and GR12
-            // partition the media; every connector answers non-unit, forced by §9.1.13.2 item 6; kb/Work PB317).
+            // unpopulatable-antecedent over the SAME closed medium set as §2023:14.9.6.4 GR3 e) 1. (§2023:14.9.27.4 GR11 and GR12
+            // partition the media; every connector answers non-unit, forced by §2023:9.1.13.2 item 6; kb/Work PB317).
             // GR-14.9.20.4-9 and GR-14.9.28.4-2: the MECHANICAL undefined-A.2 arm — Annex A.2 items 20
             // (INITIALIZE onto overlapping storage) and 37 (overlapping PERFORM ranges) resolve to exactly these
             // rule-ids, so no expected value exists to test for (kb/Work PB370).
             "GR-14.9.27.4-12", "GR-14.9.20.4-9", "GR-14.9.28.4-2",
             // ⚙ The THIRTEENTH, added deliberately (kb/Work PB245, wave 40, 2026-09-19) — and it is the first
-            // whose vacuity is the STANDARD'S rather than this implementation's. RV-15.4.1-4 is §15.4.1 NOTE 1
+            // whose vacuity is the STANDARD'S rather than this implementation's. RV-15.4.1-4 is §2023:15.4.1 NOTE 1
             // item 4, "The result is explicitly implementor-defined", whose normative twin is the same clause's
             // rule 2 c). NOTE 1's own lead-in scopes item 4 to *the result of an equivalent arithmetic
             // expression*, so the set it governs is the §15 functions that HAVE one — closed, enumerable, and
@@ -1317,10 +1317,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // enumeration itself so the argument is re-checkable rather than believed.
             "RV-15.4.1-4",
             // ⚙ The FOURTEENTH and FIFTEENTH, added deliberately (owner decision kb/Work R43 item 4, 2026-09-24,
-            // extending PB386; answers PB468 Q9) — the first rows of the NEW `definitional` arm. §4.4 1) and 2)
+            // extending PB386; answers PB468 Q9) — the first rows of the NEW `definitional` arm. §2023:4.4 1) and 2)
             // DEFINE the conforming run unit, a property of the USER's program: their subject is the run unit,
             // they contain no "shall", and every obligation they allude to is its own inventory row. They are the
-            // only such rows in the catalog (§4.3, the conforming compilation group, has none).
+            // only such rows in the catalog (§2023:4.3, the conforming compilation group, has none).
             "GR-4.4-1", "GR-4.4-2",
             // ⚙ The SIXTEENTH to FORTY-SEVENTH, added deliberately as ONE batch (owner decision kb/Work PB1636,
             // 2026-10-08, answer "Sign all 32", signature `owner: 2026-10-08`): the golden-lane-2 rows no test can
@@ -1333,9 +1333,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // indistinguishable-consequent (each names the rule whose consequent it cannot be told from):
             "GR-14.9.35.4-8", "GR-8.5.1.11.3-3", "DOC-A.1-220",
             // definitional, R43's arm EXTENDED by this signing to a user-program constraint no rule gives a
-            // consequence (§4.4 2) leaves a violation undefined) and to a term definition no other rule reads:
+            // consequence (§2023:4.4 2) leaves a violation undefined) and to a term definition no other rule reads:
             "GR-13.18.16.4-6", "GR-14.9.24.4-10", "GR-14.9.24.4-11", "GR-12.3.5.4-2", "GR-12.3.5.4-3",
-            // unpopulatable-antecedent — listing-only rules under §7.3.18.3 GR1's "Otherwise" (no listing is
+            // unpopulatable-antecedent — listing-only rules under §2023:7.3.18.3 GR1's "Otherwise" (no listing is
             // produced, A.1 item 117):
             "GR-7.2.3.4-4", "GR-7.2.3.4-5", "GR-7.3.18.3-2", "GR-7.3.18.3-3", "GR-7.3.18.3-4", "GR-7.3.18.3-5",
             "GR-7.3.19.4-2",
@@ -1596,8 +1596,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
              Base("X-5j") with { Editions = "2023" }], s));
 
         // A rule of a function whose band starts before the function exists (kb/Work PB3173, branch review round
-        // 1): with ABS introduced at 2014, a 2002 start is refused and a 2014 start passes, and a row of §15.70
-        // is not read as a row of §15.7.
+        // 1): with ABS introduced at 2014, a 2002 start is refused and a 2014 start passes, and a row of §2023:15.70
+        // is not read as a row of §2023:15.7.
         var absOnly = new Dictionary<string, string>(StringComparer.Ordinal) { ["15.7"] = "ABS" };
         Assert.Contains("exists from 2014", Assert.Single(EarlyFunctionBands(
             [Base("X-5l") with { Section = "15.7.3", Editions = "2002,2014,2023" }], s, absOnly, _ => 2014)));
@@ -1742,7 +1742,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
         // ── kind-DOC rows: the register anchor, and what a DOC row costs ─────────────────────────────
         //
-        // A DOC row is an obligation to DOCUMENT an implementor-defined element (ISO §4.2.5), so its evidence is
+        // A DOC row is an obligation to DOCUMENT an implementor-defined element (ISO §2023:4.2.5), so its evidence is
         // a §7 determination filed under its own item PLUS a site in the compiler PLUS a spec-derived test. Each
         // of the three is driven separately below, and each positive control shows the checker discriminating.
         const string Anchor = "docs/CONFORMANCE.md#DOC-A.1-19";
@@ -1765,7 +1765,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // in the file. And the bare path, which is the same defect resolving on File.Exists alone.
         Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = "docs/CONFORMANCE.md#7" }], s));
         Assert.Single(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor[..Anchor.IndexOf('#')] }], s));
-        // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §4.2.16
+        // The controls: every anchor space the document really has stays legal — §7's item rows, §1's §2023:4.2.16
         // summary, §5's Annex A.4 rows — and a file that is not anchored is not policed.
         Assert.Empty(BadAnchorFragments([Doc("DOC-A.1-19") with { CodeLocation = Anchor }], s));
         Assert.Empty(BadAnchorFragments(

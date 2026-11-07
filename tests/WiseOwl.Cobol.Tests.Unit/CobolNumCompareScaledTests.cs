@@ -119,7 +119,7 @@ public sealed class CobolNumCompareScaledTests
         // Receiverless: MIN at the common scale is exact; MAX cannot represent → LOUD, never a wrong value.
         Assert.Equal((Int128)1, CobolIntrinsics.MinAt(15, false, v, s));
         Assert.Throws<CobolSizeError>(() => CobolIntrinsics.MaxAt(15, false, v, s));
-        // Ordinals: pure selection, always defined (§15.71.4/§15.72.4), first-extreme ties.
+        // Ordinals: pure selection, always defined (§2023:15.71.4/§2023:15.72.4), first-extreme ties.
         Assert.Equal(1, CobolIntrinsics.OrdMaxAt(v, s));
         Assert.Equal(2, CobolIntrinsics.OrdMinAt(v, s));
         Assert.Equal(1, CobolIntrinsics.OrdMaxAt([5, 5], [0, 0]));

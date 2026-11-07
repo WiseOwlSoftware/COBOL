@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.65 FUNCTION MODULE-NAME — the running COBOL hierarchy. CURRENT (r7) = the outermost program of
+      *> ISO §2023:15.65 FUNCTION MODULE-NAME — the running COBOL hierarchy. CURRENT (r7) = the outermost program of
       *> the running compilation unit; ACTIVATING (r5) = the activator, a single space in the main program;
       *> TOP-LEVEL (r10) = the run-unit main; NESTED (r8) = the most-recently-nested running program;
       *> STACK (r9) = CURRENT;<activators>;TOP-LEVEL;<space>. MAINMOD is the main; it CALLs NESTPROG (contained)

@@ -16,17 +16,17 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kb/Work PB420 is the measured case. <c>InitializeEmitter</c> carried an arm that intercepted every
 /// <c>InitializeStore</c> into a COMP-1/COMP-2 receiver and emitted "float MOVE path deferred". The premise was
 /// true when written; PB271 then hardened <c>MoveEmitter</c>'s float-receiver store, which presupposes that very
-/// path. From that moment the identical explicit MOVE — the statement ISO §14.9.20.4 GR4 says the implicit one
+/// path. From that moment the identical explicit MOVE — the statement ISO §2023:14.9.20.4 GR4 says the implicit one
 /// IS ("Otherwise, the implicit statement is: MOVE sending-operand TO receiving-operand") — compiled and ran in
 /// the same data division, while <c>INITIALIZE G REPLACING NUMERIC DATA BY 1</c> over a group with one float
 /// leaf aborted the run unit. The same stale premise sat on <c>AcceptDisplayEmitter</c>'s Format-2 arm, where
-/// §14.9.1.4 GR6 is even more explicit ("according to the rules for the MOVE statement").
+/// §2023:14.9.1.4 GR6 is even more explicit ("according to the rules for the MOVE statement").
 /// </para>
 /// <para>
 /// ⛔ A SURVIVING ENTRY IS NOT AUTOMATICALLY A BUG — but the last one was not a survivor either. The Format-1
-/// device arm refused a float receiver on the premise that §14.9.1.4 GR1's implementor-defined conversion had no
+/// device arm refused a float receiver on the premise that §2023:14.9.1.4 GR1's implementor-defined conversion had no
 /// definition for an item with no digit positions. That was a missing DETERMINATION, not a missing path, and it
-/// aborted legal source (§14.9.1.3 SR1 does not exclude a float receiver). kb/Work PB887 made it: one record, read
+/// aborted legal source (§2023:14.9.1.3 SR1 does not exclude a float receiver). kb/Work PB887 made it: one record, read
 /// as the inverse of the DISPLAY image (CONFORMANCE.md §7 DOC-A.1-1). The inventory is now EMPTY, and the test
 /// keeps it explicit so the next entry is a deliberate decision with its clause written beside it.
 /// </para>
@@ -101,7 +101,7 @@ public sealed class StaleDeferralDriftTests
                 $"A pinned 'deferred' loud arm is gone — good news, but the inventory must say so:\n  {p}");
     }
 
-    /// <summary>INITIALIZE HAS EXACTLY ONE STORE PATH. ISO §14.9.20.4 GR4 makes every non-pointer implicit
+    /// <summary>INITIALIZE HAS EXACTLY ONE STORE PATH. ISO §2023:14.9.20.4 GR4 makes every non-pointer implicit
     /// statement a MOVE, so <c>InitializeEmitter</c> renders an <c>InitializeStore</c> through
     /// <c>MoveEmitter</c> and nothing else: no receiver-usage test, no per-category store, no second conversion
     /// seam. That is what makes conversion, editing, JUSTIFIED, truncation and the EC-DATA-OVERFLOW check
@@ -125,7 +125,7 @@ public sealed class StaleDeferralDriftTests
     }
 
     /// <summary>ACCEPT FORMAT 2 HAS EXACTLY ONE STORE PATH, AND IT IS THE MOVE EMITTER (kb/Work PB887). ISO
-    /// §14.9.1.4 GR6 transfers the temporal value "to the data item specified by identifier-2 according to the rules
+    /// §2023:14.9.1.4 GR6 transfers the temporal value "to the data item specified by identifier-2 according to the rules
     /// for the MOVE statement", so the binder binds that transfer as an implicit MOVE from the GR7–GR12 conceptual
     /// item (<c>BoundAccept.Store</c>) and <c>AcceptDisplayEmitter</c> renders it through <c>MoveEmitter</c>. The
     /// emitter used to carry its own numeric / edited / alphanumeric / national / float / group arms — a second copy
@@ -145,7 +145,7 @@ public sealed class StaleDeferralDriftTests
                  })
             Assert.False(code.Contains(primitive, StringComparison.Ordinal),
                 $"AcceptDisplayEmitter calls RuntimeApi.{primitive.TrimEnd('(')} — a MOVE receiver-category store. "
-                + "ACCEPT's temporal transfer IS a MOVE (ISO §14.9.1.4 GR6) and is rendered by MoveEmitter from "
+                + "ACCEPT's temporal transfer IS a MOVE (ISO §2023:14.9.1.4 GR6) and is rendered by MoveEmitter from "
                 + "BoundAccept.Store; a second copy of the MOVE rules here is how the float arm went missing "
                 + "(kb/Work PB420, PB887).");
         Assert.Empty(LoudMessages(code));

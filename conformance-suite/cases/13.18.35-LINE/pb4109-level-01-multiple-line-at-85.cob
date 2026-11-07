@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ⛔ THE MULTIPLE LINE CLAUSE ENTERED AT COBOL-2002 AT EVERY LEVEL, THE FIRST ONE INCLUDED (kb/Work PB4109; the
-*> level-03 twin is pb565-report-multiple-line-at-85). ISO/IEC 1989:2023 §13.18.35.3 SR10: "If more than one
+*> level-03 twin is pb565-report-multiple-line-at-85). ISO/IEC 1989:2023 §2023:13.18.35.3 SR10: "If more than one
 *> integer-1 or integer-2 operand is specified, the clause is referred to as a multiple LINE clause", stated with
 *> no level restriction. The COBOL-85 LINE clause took ONE operand, so a COBOL-85 compilation shall name the
 *> edition rather than print one line: construct `report-multi-line-2002`, diagnostic COBOL0900. Above 85 the

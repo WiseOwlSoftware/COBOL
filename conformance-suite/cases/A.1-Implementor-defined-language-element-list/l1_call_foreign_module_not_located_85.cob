@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.4.4 GR3 b)/h) (Annex A.1 item 16) — CALL of a
+      *> ISO §2023:14.9.4.4 GR3 b)/h) (Annex A.1 item 16) — CALL of a
       *> non-COBOL program at COBOL-85: not located, ON EXCEPTION runs.
       *>   cite.py --check 14.9.4.4 "If the program being called is not a
       *>     COBOL program, the rules for program-name formation and for

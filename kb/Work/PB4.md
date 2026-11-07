@@ -25,7 +25,7 @@ tags: [wiseowl-cobol, work, defect]
 > because the VALUE path had stored the literal's own SOURCE TEXT and truncated it to the picture. PB3's agent
 > report was measured through this same distortion.
 >
-> **§8.3.3.2 makes a hexadecimal literal one FORM of an alphanumeric literal** — "each pair of hexadecimal digits
+> **§2023:8.3.3.2 makes a hexadecimal literal one FORM of an alphanumeric literal** — "each pair of hexadecimal digits
 > represents a single character" — so every position accepting an alphanumeric literal accepts it. Five did not,
 > each failing differently, and the data division disagreed with the procedure division about the same literal:
 >
@@ -52,4 +52,4 @@ tags: [wiseowl-cobol, work, defect]
 > unchanged — into the empty string. The golden pins `XYZ`.
 >
 > **GOLDEN** `conformance:2023/pb4_hex_literal_value` — all five sites plus the guard, expected values from
-> §8.3.3.2 arithmetic.
+> §2023:8.3.3.2 arithmetic.

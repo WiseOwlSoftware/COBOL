@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1370 — a compile-time boolean expression "shall be formed in accordance with 8.8.2, Boolean
-      *> expressions" (ISO §7.3.7.2 SR1) of the TARGETED edition, and the boolean shift operators B-SHIFT-L /
+      *> expressions" (ISO §2023:7.3.7.2 SR1) of the TARGETED edition, and the boolean shift operators B-SHIFT-L /
       *> B-SHIFT-R / B-SHIFT-LC / B-SHIFT-RC are a COBOL-2023 addition (Annex E.2 3)). Below 2023 a shift inside a
       *> >>DEFINE or >>IF expression is therefore the same COBOL0900 its runtime twin (COMPUTE B1 = B1 B-SHIFT-L 1)
       *> draws. It compiled clean at 2002 and 2014: the introduction gate lived only in the compilation-unit walk,

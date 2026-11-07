@@ -24,18 +24,18 @@ using Core = CobolParserCore;
 /// other than 01 and 77 may begin in either area: COBOL-85 lets entries be indented by level.</item>
 /// </list>
 /// ISO/IEC 1989:2002 removed the areas: the program-text area "begins in character position 8 and terminates with the
-/// character position immediately to the left of margin R" (ISO §6.3.1) and an entry is continued "in the
-/// program-text area of a subsequent line" (§6.3.5), so both rows are introductions of 2002 and the pass asks
+/// character position immediately to the left of margin R" (ISO §2023:6.3.1) and an entry is continued "in the
+/// program-text area of a subsequent line" (§2023:6.3.5), so both rows are introductions of 2002 and the pass asks
 /// nothing from COBOL-2002 on. Free form (§6.4.1) has no areas at any edition.
 /// <para>THE CONTINUATION LINE IS THE REFERENCE FORMAT'S (kb/Work PB3168). X3.23-1985 also requires "Area A of a
 /// continuation line [to] be blank" (the hyphen in the indicator area): the same text-in-area-A row, but the text of a
-/// continued literal's tail is no token's start, so this pass cannot place it. The §6.5 logical conversion, which alone
+/// continued literal's tail is no token's start, so this pass cannot place it. The §2023:6.5 logical conversion, which alone
 /// sees the indicator, reports it (<c>ReferenceFormatDiagnostics.OnContinuationTextInAreaA</c>) as a FRONT-END error
 /// at every edition this pass screens (the row is not yet introduced there, an error on both axes), so a compilation
 /// that holds such a line ends before the bind and this pass never sees its token: the line is reported once.</para>
 /// <para>WHY ONE PASS OVER THE TOKENS. The rule has two arms, and each needs the other's knowledge: which tokens head
 /// an area-A item is the GRAMMAR's (the parse tree), where a token begins its line is the REFERENCE FORMAT's
-/// (<see cref="FixedFormAreas"/>, the record the §6.5 logical conversion keeps of where each fixed-form line's text
+/// (<see cref="FixedFormAreas"/>, the record the §2023:6.5 logical conversion keeps of where each fixed-form line's text
 /// begins, read through the source map, so a token from library text or REPLACE text is placed where the user wrote
 /// it). The pass collects the heads (<see cref="AreaItems"/>) and then asks every token once, so a token that is not
 /// a head is screened by the second arm automatically — a new statement, clause or entry needs no change here. It

@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Passes;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The identity of each append-only fact set of <see cref="DataBindState"/> (docs/rearchitecture/DESIGN-architecture-review.md
-/// §8.3 (1), kb/Work PB2352): the name a pass uses to DECLARE that it appends to, reads early or reads whole one of them
+/// §2023:8.3 (1), kb/Work PB2352): the name a pass uses to DECLARE that it appends to, reads early or reads whole one of them
 /// (<see cref="PassViews"/>), which <c>BindPipeline.ValidateDag</c> checks against <see cref="FactSetContract"/> and
 /// <see cref="AppendGate"/> checks against what the pass really does.</summary>
 public enum FactSetKind
@@ -21,7 +21,7 @@ public enum FactSetKind
 }
 
 /// <summary>When each fact set may be appended to, and when it is complete: the contract a pass's declared
-/// <see cref="PassViews"/> is checked against (§8.3 (1): "a fact set is appended only in a phase that declares it, read
+/// <see cref="PassViews"/> is checked against (§2023:8.3 (1): "a fact set is appended only in a phase that declares it, read
 /// early only by a pass that says so, and read whole only after its last appender"). One switch per question, so a new
 /// <see cref="FactSetKind"/> that has no row does not compile.</summary>
 public static class FactSetContract

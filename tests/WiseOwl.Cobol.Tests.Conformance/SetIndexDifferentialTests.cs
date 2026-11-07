@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The SET statement's COBOL-85 table-handling surface (ISO §14.9.39 Formats 1–2; DESIGN §3.5/§12.3):
+/// The SET statement's COBOL-85 table-handling surface (ISO §2023:14.9.39 Formats 1–2; DESIGN §3.5/§12.3):
 /// index-name receivers/senders (a C# <c>long</c> occurrence number), USAGE INDEX data items (unchanged copy,
 /// GR2b), numeric receivers of an index's occurrence number (GR2c), UP/DOWN BY index arithmetic, the once-evaluated
-/// sender (GR2/GR3), and index-names in relation conditions (ISO §13.18.38). Pinned to the committed golden (it is
+/// sender (GR2/GR3), and index-names in relation conditions (ISO §2023:13.18.38). Pinned to the committed golden (it is
 /// NIST-85 green over the whole table series).
 /// </summary>
 public sealed class SetIndexDifferentialTests

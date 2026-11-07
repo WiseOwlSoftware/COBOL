@@ -6,15 +6,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The Format 2 (table) VALUE clause (ISO/IEC 1989:2023 §13.18.63.2, COBOL-2002): a literal list keyed to occurrence
+/// The Format 2 (table) VALUE clause (ISO/IEC 1989:2023 §2023:13.18.63.2, COBOL-2002): a literal list keyed to occurrence
 /// subscripts by a MANDATORY FROM (subscript) phrase with an optional TO. Per-occurrence initialization — the
 /// odometer fill (GR12), cyclic literal reuse under TO (GR13), no-TO = fill to the maximum (GR14), later-FROM-wins on
-/// overlap (GR15), and the dynamic-capacity computation (GR16) — over the WHOLE population §13.18.63.3 SR18 admits:
+/// overlap (GR15), and the dynamic-capacity computation (GR16) — over the WHOLE population §2023:13.18.63.3 SR18 admits:
 /// the subject's own OCCURS entry, an entry SUBORDINATE to an OCCURS entry, and any number of dimensions.
 /// The geometry rules SR18 / SR20 / SR21 / SR22 / SR23 are each asserted here, in both directions (kb/Work PB505:
 /// one staged COBOL0899 used to answer for all of them at once, refusing the conforming shapes alongside the
 /// violations). The paired glued-multi-literal reject (COBOL1585) closes the Format-1 gluing defect.
-/// Per §13.18.63.4 the initial value of occurrences OUTSIDE every FROM..TO range is UNDEFINED — never asserted here.
+/// Per §2023:13.18.63.4 the initial value of occurrences OUTSIDE every FROM..TO range is UNDEFINED — never asserted here.
 /// </summary>
 public sealed class ValueFormat2Tests
 {
@@ -45,7 +45,7 @@ public sealed class ValueFormat2Tests
     }
 
     /// <summary>GR12/GR13 explicit sub-range: only occurrences 2..4 are keyed (AA,BB,AA cyclic); occurrences outside
-    /// the range are NOT asserted (§13.18.63.4 leaves them undefined).</summary>
+    /// the range are NOT asserted (§2023:13.18.63.4 leaves them undefined).</summary>
     [Fact]
     public void FixedTable_ExplicitRange()
     {
@@ -96,7 +96,7 @@ public sealed class ValueFormat2Tests
 
     // ── The glued-multi-literal reject (the paired defect fix) ──
 
-    /// <summary>A Format-1 data-item VALUE takes exactly ONE literal (§13.18.63.2); a bare list with no FROM was
+    /// <summary>A Format-1 data-item VALUE takes exactly ONE literal (§2023:13.18.63.2); a bare list with no FROM was
     /// silently GLUED into one corrupt value. Now rejected loud (COBOL1585).</summary>
     [Theory]
     [InlineData("01 W PIC 9(3) VALUE 1 2 3.")]
@@ -104,7 +104,7 @@ public sealed class ValueFormat2Tests
     public void GluedMultiLiteral_Rejected1585(string ws)
     {
         var (ok, diag) = EditionHarness.Compile(Prog(ws, "    DISPLAY \"X\"."), 2023);
-        Assert.False(ok, "a bare multi-literal Format-1 VALUE must be rejected (ISO §13.18.63.2)");
+        Assert.False(ok, "a bare multi-literal Format-1 VALUE must be rejected (ISO §2023:13.18.63.2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1585");
     }
 
@@ -138,9 +138,9 @@ public sealed class ValueFormat2Tests
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1587");
     }
 
-    // ── The subscript TUPLE: §13.18.63.3 SR18/SR20/SR21/SR22/SR23 and the §13.18.63.4 GR12 odometer ──
+    // ── The subscript TUPLE: §2023:13.18.63.3 SR18/SR20/SR21/SR22/SR23 and the §2023:13.18.63.4 GR12 odometer ──
 
-    /// <summary>§13.18.63.4 GR12's ODOMETER over two dimensions: "Consecutive table elements are referenced by
+    /// <summary>§2023:13.18.63.4 GR12's ODOMETER over two dimensions: "Consecutive table elements are referenced by
     /// incrementing by 1 the subscript that represents the least inclusive dimension of the table. When any
     /// reference to a subscript, prior to incrementing it, is equal to the maximum number of occurrences … that
     /// subscript is set to 1 and the subscript for the next most inclusive dimension of the table is incremented
@@ -159,7 +159,7 @@ public sealed class ValueFormat2Tests
         Assert.Contains("[123|456]", stdout);
     }
 
-    /// <summary>§13.18.63.4 GR13's cyclic reuse ACROSS the odometer's carry: two literals from (1 2) to (2 2) on a
+    /// <summary>§2023:13.18.63.4 GR13's cyclic reuse ACROSS the odometer's carry: two literals from (1 2) to (2 2) on a
     /// 2×3 table visit (1 2) (1 3) (2 1) (2 2) — A B A B. A per-dimension range would have visited four elements
     /// of a rectangle instead, which is not what GR12's fill order is.</summary>
     [Fact]
@@ -196,7 +196,7 @@ public sealed class ValueFormat2Tests
     public void NoOccursAnywhere_Rejected1944(int edition)
     {
         var (ok, diag) = EditionHarness.Compile(Prog("01 X PIC X(2) VALUE \"AB\" FROM (1).", "    DISPLAY \"X\"."), edition);
-        Assert.False(ok, "a Format 2 VALUE on an entry with no OCCURS above it violates §13.18.63.3 SR18");
+        Assert.False(ok, "a Format 2 VALUE on an entry with no OCCURS above it violates §2023:13.18.63.3 SR18");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1944");
         if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
@@ -266,8 +266,8 @@ public sealed class ValueFormat2Tests
         Assert.Contains("[AAA]", stdout);
     }
 
-    /// <summary>A GROUP entry's Format 2 VALUE is a GROUP-LEVEL VALUE per occurrence: §13.18.63.3 SR16 carries
-    /// SR13 onto it and §13.18.63.4 GR5 initializes "the group area … without consideration for the individual
+    /// <summary>A GROUP entry's Format 2 VALUE is a GROUP-LEVEL VALUE per occurrence: §2023:13.18.63.3 SR16 carries
+    /// SR13 onto it and §2023:13.18.63.4 GR5 initializes "the group area … without consideration for the individual
     /// elementary or group items contained within this group", so "ABCD" lands positionally as P="AB", Q="CD" in
     /// BOTH occurrences. It used to be discarded silently at every edition — the group arm read only the Format-1
     /// carrier (kb/Work PB505).</summary>
@@ -282,7 +282,7 @@ public sealed class ValueFormat2Tests
         Assert.Contains("[AB/CD|AB/CD]", stdout);
     }
 
-    /// <summary>§13.18.63.4 GR16 with the DYNAMIC dimension OUTSIDE the VALUE-carrying entry: the subordinate
+    /// <summary>§2023:13.18.63.4 GR16 with the DYNAMIC dimension OUTSIDE the VALUE-carrying entry: the subordinate
     /// item's TO (3) raises G's initial capacity to 3 ("the initial capacity is increased, if necessary, to the
     /// value of the corresponding subscript-2, provided that this value does not lie outside the range defined by
     /// the minimum and expected capacity"), and each of the three occurrences takes its keyed literal.</summary>
@@ -298,8 +298,8 @@ public sealed class ValueFormat2Tests
         Assert.Contains("[0000000003]", stdout);
     }
 
-    /// <summary>A TYPE reference assumes the template's description (ISO §13.18.57.4 GR1), and the VALUE clause is
-    /// in neither that GR's nor §13.18.49 GR1's exclusion list — in EITHER of its two formats. The clone used to
+    /// <summary>A TYPE reference assumes the template's description (ISO §2023:13.18.57.4 GR1), and the VALUE clause is
+    /// in neither that GR's nor §2023:13.18.49 GR1's exclusion list — in EITHER of its two formats. The clone used to
     /// copy only <c>RawValue</c>, so a template member's table VALUE was dropped silently and every occurrence
     /// came back VALUE-less (kb/Work PB505's sibling sweep).</summary>
     [Fact]
@@ -335,7 +335,7 @@ public sealed class ValueFormat2Tests
     private static IReadOnlyList<string> Codes(IEnumerable<string> diagnostics) =>
         [.. diagnostics.SelectMany(d => Regex.Matches(d, @"COBOL\d{4}").Select(m => m.Value)).Distinct().Order()];
 
-    /// <summary>⛔ THE DRIFT TEST FOR "ONE SCREEN, EVERY FORMAT" (kb/Work PB208). §13.18.63.3 SR2 is an ALL FORMATS
+    /// <summary>⛔ THE DRIFT TEST FOR "ONE SCREEN, EVERY FORMAT" (kb/Work PB208). §2023:13.18.63.3 SR2 is an ALL FORMATS
     /// rule — "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
     /// numeric and shall be permissible values within the range indicated by the PICTURE clause or the USAGE
     /// clause" — and SR16 carries SRs 10–15 into format 2 as well, so a literal FORMAT 1 rejects, FORMAT 2 shall
@@ -371,11 +371,11 @@ public sealed class ValueFormat2Tests
     }
 
     /// <summary>⛔ THE SAME DRIFT TEST FOR THE GROUP SUBJECT (kb/Work PB505). A GROUP entry's VALUE has its own
-    /// screen — §13.18.63.3 SR13 sentence 1 ("literal-1 shall be of the same category as the group item or shall
+    /// screen — §2023:13.18.63.3 SR13 sentence 1 ("literal-1 shall be of the same category as the group item or shall
     /// be a figurative constant that is permitted in a MOVE statement to a receiving item of that category") plus
     /// SR4/SR5/SR10's group SIZE sentences — and SR16 carries SR13 onto the format 2 (table) VALUE. That arm read
     /// only the format-1 carrier, which was harmless only while a group entry's table VALUE was DISCARDED: once
-    /// §13.18.63.4 GR5's area deposit reached it, an UNSCREENED literal reached storage. MEASURED before the fix:
+    /// §2023:13.18.63.4 GR5's area deposit reached it, an UNSCREENED literal reached storage. MEASURED before the fix:
     /// <c>05 GT OCCURS 2 VALUE "ABCDEFG" FROM (1) TO (2).</c> over two <c>PIC X(2)</c> members deposited a
     /// silently truncated "ABCD", and <c>VALUE 42 FROM (1) TO (2)</c> deposited spaces — both rejected on the
     /// format-1 spelling of the identical entry.</summary>
@@ -394,7 +394,7 @@ public sealed class ValueFormat2Tests
         Assert.Equal(f1, f2);
     }
 
-    /// <summary>SR2 is EDITION-INDEPENDENT, so the format-2 screen fires at all four (§13.18.63.3 SR2 carries no
+    /// <summary>SR2 is EDITION-INDEPENDENT, so the format-2 screen fires at all four (§2023:13.18.63.3 SR2 carries no
     /// version proviso). At COBOL-85 the COBOL0900 introduction gate fires as well — both, not either.</summary>
     [Theory]
     [InlineData(85)]
@@ -404,7 +404,7 @@ public sealed class ValueFormat2Tests
     public void Format2Sr2Screen_FiresAtEveryEdition(int edition)
     {
         var (ok, diag) = EditionHarness.Compile(Format2("PIC 9(4) COMP", "\"0012\""), edition);
-        Assert.False(ok, "an alphanumeric literal on a numeric item is a §13.18.63.3 SR2 violation at every edition");
+        Assert.False(ok, "an alphanumeric literal on a numeric item is a §2023:13.18.63.3 SR2 violation at every edition");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1657");
         if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOL0900");
     }
@@ -414,8 +414,8 @@ public sealed class ValueFormat2Tests
     /// THE seeder for every image-stored backing since the PB164 consolidation — read only <c>item.RawValue</c>,
     /// which is null for a table VALUE, and its <c>StrRepeat(one, Occurs)</c> then seeded every occurrence with the
     /// VALUE-LESS default, DISCARDING the table VALUE. The REDEFINES alias is what puts B on that lane
-    /// (§13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one, so this is conforming).
-    /// §13.18.63.4 GR12 initializes occurrence 1 to literal-1 and GR13 reuses it for occurrence 2.</summary>
+    /// (§2023:13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one, so this is conforming).
+    /// §2023:13.18.63.4 GR12 initializes occurrence 1 to literal-1 and GR13 reuses it for occurrence 2.</summary>
     [Fact]
     public void ImageStoredLeaf_TakesItsTableValue()
     {
@@ -432,14 +432,14 @@ public sealed class ValueFormat2Tests
     /// declaration is compiled TWICE — once alone (the typed-native record-struct fields) and once with a
     /// REDEFINES alias over it, which moves the whole group onto its IMAGE lane (a Tier-B backing: characters for
     /// an ordinary group, PACKED BOOLEAN POSITIONS for a bit group) — and the two runs must print the same thing,
-    /// and the §13.18.63.4-derived thing.
+    /// and the §2023:13.18.63.4-derived thing.
     /// <para>Comparing the LANES rather than asserting one code is the point. There are THREE — the record-struct
     /// fields, the character image, and the bit carrier — and each has independently dropped the format-2 VALUE:
     /// the image lane in kb/Work PB208, the bit carrier in PB505 (measured `[0000|0000|0000]` where the same
     /// declaration without the alias gave `[1010|0101|1010]`). The shapes below are the ones the old staged
     /// refusal excluded (a subordinate-item VALUE, a two-dimension odometer, a group-level area VALUE) plus that
     /// bit-carrier case, and each lane reaches them through its own recursion, so a future shape wired into only
-    /// one of them reds HERE. §13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one,
+    /// one of them reds HERE. §2023:13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one,
     /// so both spellings are conforming.</para></summary>
     [Theory]
     // A single-dimension table on its own OCCURS entry — the shape that always worked, as the control.
@@ -451,11 +451,11 @@ public sealed class ValueFormat2Tests
     // Two dimensions: GR12's odometer, GR13's cyclic reuse.
     [InlineData("01 G.\n   05 R OCCURS 2.\n      10 T PIC X OCCURS 2 VALUES ARE \"A\" \"B\" \"C\" \"D\" FROM (1 1) TO (2 2).",
                 "T(1 1) T(1 2) \"|\" T(2 1) T(2 2)", 4, "[AB|CD]")]
-    // A GROUP entry's table VALUE — §13.18.63.4 GR5's area, per occurrence.
+    // A GROUP entry's table VALUE — §2023:13.18.63.4 GR5's area, per occurrence.
     [InlineData("01 G.\n   05 GT OCCURS 2 VALUE \"ABCD\" FROM (1) TO (2).\n      10 P PIC X(2).\n      10 Q PIC X(2).",
                 "P(1) \"/\" Q(1) \"|\" P(2) \"/\" Q(2)", 8, "[AB/CD|AB/CD]")]
     // The BIT carrier: a USAGE BIT table inside a bit group. 3 × PIC 1(4) = 12 boolean positions, which
-    // §8.5.1.6.3 packs into ceil(12/8) = 2 character positions, so the alias is PIC X(2).
+    // §2023:8.5.1.6.3 packs into ceil(12/8) = 2 character positions, so the alias is PIC X(2).
     [InlineData("01 G GROUP-USAGE BIT.\n   05 T PIC 1(4) OCCURS 3 VALUES ARE B\"1010\" B\"0101\" FROM (1).",
                 "T(1) \"|\" T(2) \"|\" T(3)", 2, "[1010|0101|1010]")]
     public void AllStorageLanes_SeedTheSameOccurrences(string ws, string reads, int width, string expected)

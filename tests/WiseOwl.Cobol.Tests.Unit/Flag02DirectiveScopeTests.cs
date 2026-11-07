@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SCOPE of a <c>&gt;&gt;FLAG-02</c> option, end to end through the compiler — ISO/IEC 1989:2023 §7.3.14.4
+/// The SCOPE of a <c>&gt;&gt;FLAG-02</c> option, end to end through the compiler — ISO/IEC 1989:2023 §2023:7.3.14.4
 /// General rules 2, 3 and 5 (each validated with <c>scripts/spec/cite.py --check 7.3.14.4</c>):
 /// <list type="bullet">
 /// <item>GR2 — "If ON is explicitly or implicitly specified for an option, the warning mechanism is enabled for that
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// detectors: GR4 c) I-O-STATUS-07 (<c>CLOSE … WITH NO REWIND</c> on a sequential file) and GR4 d)
 /// MOVE-TO-SAME-NAME (<c>MOVE AE TO AE</c>, AE alphanumeric-edited). GR5 ("all options") additionally covers the
 /// other three options, b) EC-PROGRAM-EXCEPTIONS, e) RANGE-EXCEPTION-FOR-INDEX and f) TERMINATE-WITH-VARYING, in a
-/// second program (<c>StateCoupledProgram</c>). FLAG-02 exists at 2014 (introduced, §7.3.14.1)
+/// second program (<c>StateCoupledProgram</c>). FLAG-02 exists at 2014 (introduced, §2023:7.3.14.1)
 /// and 2023 (obsolete element), so every case runs at both.
 /// <para>The GR3 cases are built so they can FAIL: each enables the option BEFORE the OFF line, and its twin in the
 /// GR2 group is the same source without the OFF line and IS flagged. A GR3 test with nothing enabled first passes
@@ -39,7 +39,7 @@ public sealed class Flag02DirectiveScopeTests
 
     /// <summary>One program: CONTINUE, OPEN, the CLOSE site, the MOVE site. <paramref name="pre"/> sits between the
     /// CONTINUE and the OPEN, <paramref name="mid"/> between the OPEN and the CLOSE, <paramref name="post"/> between
-    /// the CLOSE and the MOVE — every directive is between two statements (§7.3.14.3 SR1: "only between statements in
+    /// the CLOSE and the MOVE — every directive is between two statements (§2023:7.3.14.3 SR1: "only between statements in
     /// the procedure division", cite.py OK). The leading CONTINUE flags nothing.</summary>
     private static string Program(string id, string pre, string mid, string post) =>
         "       IDENTIFICATION DIVISION.\n" +
@@ -128,7 +128,7 @@ public sealed class Flag02DirectiveScopeTests
     /// <c>SET IDX TO 1</c>; f) TERMINATE-WITH-VARYING — "A TERMINATE statement shall be flagged if the report being
     /// terminated contains a VARYING clause" (cite.py OK): the report R carries <c>VARYING RV FROM WS-SEQ BY 1</c>.
     /// With <paramref name="flagAll"/>, <c>&gt;&gt;FLAG-02 ALL</c> (GR4 a) precedes both TURN lines, so every site
-    /// follows it (GR2). Every directive sits between two statements (§7.3.14.3 SR1).</summary>
+    /// follows it (GR2). Every directive sits between two statements (§2023:7.3.14.3 SR1).</summary>
     private static string StateCoupledProgram(string id, bool flagAll) =>
         "       IDENTIFICATION DIVISION.\n" +
         "       PROGRAM-ID. " + id + ".\n" +
@@ -172,7 +172,7 @@ public sealed class Flag02DirectiveScopeTests
     [Theory]
     [InlineData(2014, "I-O-STATUS-07 ON")]   // ON explicit
     [InlineData(2023, "I-O-STATUS-07 ON")]
-    [InlineData(2014, "I-O-STATUS-07")]      // ON implied (§7.3.14.2: ON is not underlined)
+    [InlineData(2014, "I-O-STATUS-07")]      // ON implied (§2023:7.3.14.2: ON is not underlined)
     [InlineData(2023, "I-O-STATUS-07")]
     public void Gr2_On_EnablesThatOptionForTheTextThatFollows(int edition, string directive)
     {
@@ -240,7 +240,7 @@ public sealed class Flag02DirectiveScopeTests
     [InlineData(2023, "I-O-STATUS-07 OFF")]
     [InlineData(2014, "ALL OFF")]                               // every option (GR2's second terminator)
     [InlineData(2023, "ALL OFF")]
-    [InlineData(2014, "MOVE-TO-SAME-NAME I-O-STATUS-07 OFF")]   // a list of options (§7.3.14.2 choice indicators)
+    [InlineData(2014, "MOVE-TO-SAME-NAME I-O-STATUS-07 OFF")]   // a list of options (§2023:7.3.14.2 choice indicators)
     [InlineData(2023, "MOVE-TO-SAME-NAME I-O-STATUS-07 OFF")]
     public void Gr3_Off_DisablesAPreviouslyEnabledOption(int edition, string off)
     {

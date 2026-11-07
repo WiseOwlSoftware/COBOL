@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR8: "Identifier-2 shall reference an alphanumeric or
+      *> ISO §2023:14.9.23.3 SR8: "Identifier-2 shall reference an alphanumeric or
       *> national data item." MN is PIC NN0NN, category NATIONAL-EDITED
-      *> (§8.5.2.11), a category of its own in §8.5.2.1 Table 2, so it is not
+      *> (§2023:8.5.2.11), a category of its own in §2023:8.5.2.1 Table 2, so it is not
       *> a national data item and cannot hold the method name. The screen read
       *> the category alone and accepted it (kb/Work PB850).
        IDENTIFICATION DIVISION.

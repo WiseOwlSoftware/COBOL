@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ A PARAMETERIZED DEFINITION AS A SKELETON — written in this group or published by another (ISO §9.3.12, §9.3.13;
+/// ⛔ A PARAMETERIZED DEFINITION AS A SKELETON — written in this group or published by another (ISO §2023:9.3.12, §2023:9.3.13;
 /// DESIGN-external-repository §10.5; kb/Work PB2104). It is the one thing an expansion is made from and the one thing a group
 /// publishes for a parameterized definition: the definition's context (the group's own tree, or the tree the recorded
 /// <see cref="Text"/> was parsed into), its identity, formals, source text after text manipulation and the
@@ -19,7 +19,7 @@ using Core = CobolParserCore;
 /// (<see cref="ToRecord"/>), because a group class a specifier names is known by its externalized name once the table exists.
 /// </summary>
 /// <param name="Name">The definition's declared name.</param>
-/// <param name="Identity">Its externalized name (ISO §11.3.4 GR1: "literal-1, if specified, is the name of the class that is externalized to the operating environment"; else the name).</param>
+/// <param name="Identity">Its externalized name (ISO §2023:11.3.4 GR1: "literal-1, if specified, is the name of the class that is externalized to the operating environment"; else the name).</param>
 /// <param name="IsInterface">An INTERFACE-ID definition.</param>
 /// <param name="Ctx">The definition (a class or an interface context).</param>
 /// <param name="Text">The definition's source text (<see cref="SkeletonText"/>).</param>
@@ -33,7 +33,7 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
     IReadOnlyList<string> Formals, IReadOnlyList<bool> FormalIsInterface, IReadOnlyList<Core.RepositoryEntryContext> ResolutionEntries,
     ImportedFrom? From)
 {
-    /// <summary>The record this skeleton publishes (§6.1 <see cref="SkeletonRecord"/>); <paramref name="resolve"/> says what a
+    /// <summary>The record this skeleton publishes (§2023:6.1 <see cref="SkeletonRecord"/>); <paramref name="resolve"/> says what a
     /// specifier of the definition's REPOSITORY paragraph stands for: its word, whether it is an interface, and its identity.</summary>
     public SkeletonRecord ToRecord(Func<Core.RepositoryEntryContext, ResolutionRecord> resolve) =>
         new(new RecordList<string>([.. Formals]), new RecordList<bool>([.. FormalIsInterface]), Text,
@@ -41,7 +41,7 @@ internal sealed record SkeletonSource(string Name, string Identity, bool IsInter
 }
 
 /// <summary>
-/// WHAT MAKES A CLASS OR AN INTERFACE AN EXPANSION (ISO §12.3.8.4 GR5 / GR8): the skeleton it was made from, the REPOSITORY entry
+/// WHAT MAKES A CLASS OR AN INTERFACE AN EXPANSION (ISO §2023:12.3.8.4 GR5 / GR8): the skeleton it was made from, the REPOSITORY entry
 /// that asked for it (<c>CLASS name [AS literal] EXPANDS definition USING actual …</c>) and the words of its actuals as that entry's
 /// paragraph declares them. The bind session's source map holds it for the expansion's symbol (<c>SourceMap.ExpansionOf</c>, kb/Work PB2401) so the repository can publish the
 /// expansion's identity and the placement pass can name what it means; an actual's IDENTITY is asked of the table once the table

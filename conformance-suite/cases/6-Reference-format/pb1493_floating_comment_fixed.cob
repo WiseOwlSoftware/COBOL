@@ -7,18 +7,18 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1493 (+ PB1491 rule 3) - the floating comment
-      *>   indicator is recognized in ONE place, the §6.5 logical
+      *>   indicator is recognized in ONE place, the §2023:6.5 logical
       *>   conversion, so no later stage sees comment-text.
       *> THE RULES (each run through cite.py --check):
-      *>   §6.2.3.1: *> indicates "a comment line when specified as the
+      *>   §2023:6.2.3.1: *> indicates "a comment line when specified as the
       *>     first character-string in the program-text area" -> OK.
-      *>   §6.2.3.2 1) "a space is implied immediately following a
-      *>     floating comment indicator" -> OK §6.2.3.2 1).
-      *>   §6.5 3) "If the line contains an inline comment, the inline
+      *>   §2023:6.2.3.2 1) "a space is implied immediately following a
+      *>     floating comment indicator" -> OK §2023:6.2.3.2 1).
+      *>   §2023:6.5 3) "If the line contains an inline comment, the inline
       *>     comment is replaced by spaces and processing of that line
-      *>     continues." -> OK §6.5 3) - on EVERY line, a continuation
+      *>     continues." -> OK §2023:6.5 3) - on EVERY line, a continuation
       *>     line included.
-      *>   §6.3.7.3 "All characters following the floating comment
+      *>   §2023:6.3.7.3 "All characters following the floating comment
       *>     indicator up to margin R are comment-text." -> OK.
       *> W-P: a * comment line AND a *> comment line between PIC and
       *>   its character-string (the lexer picture mode never sees

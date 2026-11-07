@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOFF1.
       *> M2-OO-1i inc 3: a FACTORY-paragraph FILE-CONTROL + FILE SECTION.
-      *> The factory (class singleton, ISO §9.3.14.2) owns one file connector,
+      *> The factory (class singleton, ISO §2023:9.3.14.2) owns one file connector,
       *> registered once in the singleton ctor; a factory method round-trips it.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.

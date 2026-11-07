@@ -6,14 +6,14 @@
       *> portable: unverified
       *>---
       *> AN OCCURS ... DEPENDING ON OPERAND IS A QUALIFIED-DATA-NAME (kb/Work PB885, the data-division arm).
-      *> ISO/IEC 1989:2023 §13.18.38.2 Format 2 prints DEPENDING ON data-name-1, and a data-name may be
-      *> QUALIFIED — §8.4.2.2.1: "Identical user-defined names may be specified in a source unit; however,
+      *> ISO/IEC 1989:2023 §2023:13.18.38.2 Format 2 prints DEPENDING ON data-name-1, and a data-name may be
+      *> QUALIFIED — §2023:8.4.2.2.1: "Identical user-defined names may be specified in a source unit; however,
       *> uniqueness shall be established through qualification for each user-defined name explicitly
       *> referenced". The capture used to be the whole reference's text, so CNT OF G1 became the undefined
       *> name CNTOFG1 and this conforming program was REJECTED (COBOL0851 "not defined").
       *>
       *> DERIVATION. CNT OF G1 = 2 and CNT OF G2 = 3, so only the qualifier decides which is data-name-1.
-      *> §13.18.38.4 GR7: "The value of the data item referenced by data-name-1 represents the current
+      *> §2023:13.18.38.4 GR7: "The value of the data item referenced by data-name-1 represents the current
       *> number of occurrences of the subject of the entry." So T1 is TWO
       *> characters long: MOVE ALL "A" fills both, and DISPLAY of the group shows [AA]. Binding CNT OF G2
       *> would show [AAA].

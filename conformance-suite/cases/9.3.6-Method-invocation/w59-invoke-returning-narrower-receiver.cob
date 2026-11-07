@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §9.3.6 match rule 7, first sentence (kb/Work R43 / PB1519, the LIVE half of GR-9.3.6-L3.7): "If the
+      *> ISO §2023:9.3.6 match rule 7, first sentence (kb/Work R43 / PB1519, the LIVE half of GR-9.3.6-L3.7): "If the
       *> invocation specifies a returning item and the returning item is not usage OBJECT REFERENCE, POINTER or
       *> INDEX, there shall be a corresponding specification in the invoked method that may be a sending item in
       *> a MOVE statement with the returning item as the receiving item." Every activation is ALSO held to
-      *> §14.8.3.3's identical-description rule for the returning item ("the receiving operand shall have the
+      *> §2023:14.8.3.3's identical-description rule for the returning item ("the receiving operand shall have the
       *> same ... PICTURE ... clauses"), which is STRICTER than MOVE-ability and which this implementation
       *> enforces for every invocation (COBOL0828). A PIC 9(5) method returning item received into a
       *> PIC 9(3) item is a legal MOVE (it truncates) but not an identical description, so the invocation is

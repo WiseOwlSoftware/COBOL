@@ -6,21 +6,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.12 ABBREVIATED COMBINED RELATION CONDITIONS after the COBOL-2023 EXCLUSIVE-OR / XOR
-      *> connective (kb/Work PB1390, PB1371, PB1392). §8.8.4.12.2 lists AND, OR, EXCLUSIVE-OR and XOR as the
-      *> connective of the ONE repeated group; precedence NOT > AND > XOR > OR (§8.8.4.11.3). Each X case counts
-      *> over all 81 tuples of A..D in 1..3 the TRUE tuples and the disagreements with the §8.8.4.12.4 GR1
-      *> expansion (must be 00), the expansion writing XOR out as §8.8.4.9 defines it ("true if one but not
+      *> ISO §2023:8.8.4.12 ABBREVIATED COMBINED RELATION CONDITIONS after the COBOL-2023 EXCLUSIVE-OR / XOR
+      *> connective (kb/Work PB1390, PB1371, PB1392). §2023:8.8.4.12.2 lists AND, OR, EXCLUSIVE-OR and XOR as the
+      *> connective of the ONE repeated group; precedence NOT > AND > XOR > OR (§2023:8.8.4.11.3). Each X case counts
+      *> over all 81 tuples of A..D in 1..3 the TRUE tuples and the disagreements with the §2023:8.8.4.12.4 GR1
+      *> expansion (must be 00), the expansion writing XOR out as §2023:8.8.4.9 defines it ("true if one but not
       *> both") so the check does not lean on the operator under test; the counts were computed from it:
       *>   X1 A = B XOR < C = (A=B) XOR (A<C)      X2 A = B XOR NOT < C = (A=B) XOR (A NOT < C)
       *>   X3 A = B OR < C XOR = D = (A=B) OR ((A<C) XOR (A=D))
       *>   X4 the GR1 NOTE example NOT (a NOT > b XOR c AND NOT d)
       *>   X5 A = B XOR C (bare object)            X6 A > B XOR < C AND D = (A>B) XOR ((A<C) AND (A<D))
       *>   X7 A = B EXCLUSIVE-OR = C OR > D = ((A=B) XOR (A=C)) OR (A>D)
-      *> P1-P3: EVALUATE partial expressions (§14.9.13.3 SR8 - the object preceded by the subject is an
+      *> P1-P3: EVALUATE partial expressions (§2023:14.9.13.3 SR8 - the object preceded by the subject is an
       *> ordinary condition) with XOR and an OR-led abbreviated tail, counted over A in 1..3.
       *> K1-K5: the >>IF constant-conditional-expression is "a complex condition as specified in 8.8.4.9"
-      *> (§7.3.8.2 SR1 d)), so XOR / EXCLUSIVE-OR are its connectives too (were COBOL1619):
+      *> (§2023:7.3.8.2 SR1 d)), so XOR / EXCLUSIVE-OR are its connectives too (were COBOL1619):
       *>   K1 1 = 2 XOR 1 = 1 = TRUE; K2 1 = 1 EXCLUSIVE-OR 1 = 1 = FALSE;
       *>   K3 1 = 1 OR 1 = 2 XOR 1 = 1 = T OR (F XOR T) = TRUE (OR-first grouping would give FALSE);
       *>   K4 1 = 1 XOR 1 = 1 AND 1 = 2 = T XOR (T AND F) = TRUE (XOR-first grouping would give FALSE);

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB421 — EVERY SPELLING §14.9.25.2's TWO GENERAL FORMATS ADMIT. `moveReceivingPhrase` carried a
+      *> kb/Work PB421 — EVERY SPELLING §2023:14.9.25.2's TWO GENERAL FORMATS ADMIT. `moveReceivingPhrase` carried a
       *> second alternative that composed with `MOVE moveSendingOperand moveReceivingPhrase` to admit
       *> `MOVE <sending-operand> CORRESPONDING id-3 TO id-4`, a shape NEITHER format prints; deleting it could
       *> have taken a legal spelling with it, and this is that guard. The printed formats (PDF page 694):

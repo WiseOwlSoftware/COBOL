@@ -6,7 +6,7 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>⛔ §14.6.13.1.3 ITEM 8's ROLLBACK IS EMITTED BY ONE RULE, IN ONE PLACE (kb/Work PB3542, PB3543, PB3544). Item 8
+/// <summary>⛔ §2023:14.6.13.1.3 ITEM 8's ROLLBACK IS EMITTED BY ONE RULE, IN ONE PLACE (kb/Work PB3542, PB3543, PB3544). Item 8
 /// (<i>"If checking for the exception condition is not enabled, … However, if there is a fatal exception condition for a
 /// file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally."</i>) has three
 /// parts, and each was once wrong at a different call site: the ROLLBACK was written after the hook, so a RESUME AT
@@ -69,7 +69,7 @@ public sealed class Item8RollbackSiteDriftTests
             names.Order(StringComparer.Ordinal).ToArray());
     }
 
-    /// <summary>§14.6.13.1.3 item 2 (<i>"If the executed statement is a MERGE or SORT statement, then the rules for those
+    /// <summary>§2023:14.6.13.1.3 item 2 (<i>"If the executed statement is a MERGE or SORT statement, then the rules for those
     /// statements apply."</i>): every hook the SORT/MERGE emitter writes for its implicit transfers says so with
     /// <c>verbDisposes: true</c>, which is how <c>Item8Applies</c> leaves item 8 out of them.</summary>
     [Fact]

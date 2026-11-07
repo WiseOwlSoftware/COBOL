@@ -6,14 +6,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A FUNCTION'S TYPE IS DECIDED BY ITS ARGUMENTS AS WRITTEN, NEVER BY HOW THEIR EVALUATION ORDER WAS SETTLED
-/// (kb/Work PB4036). ISO §15.59.1's result-type table keys the type of <c>FUNCTION MAX</c> on its arguments ("All
-/// arguments integer" is Integer, "Numeric (some arguments may be integer)" is Numeric), and §8.4.3.2.4 GR2 only
+/// (kb/Work PB4036). ISO §2023:15.59.1's result-type table keys the type of <c>FUNCTION MAX</c> on its arguments ("All
+/// arguments integer" is Integer, "Numeric (some arguments may be integer)" is Numeric), and §2023:8.4.3.2.4 GR2 only
 /// orders their evaluation. A later argument that activates a user-defined function makes the binder hold each
 /// earlier argument in a compiler temporary (<c>ArgumentOrder.Window.Settle</c>), and an arithmetic expression held in
 /// a scale-0 temporary is an integer DATA ITEM where the expression it replaced was not — so a type re-read from the
 /// settled arguments made <c>FUNCTION MAX (A * B, 5)</c> and <c>FUNCTION MAX (A * B, FUNCTION F (A))</c> two different
-/// types, and an integer-only position (§14.9.28.3 SR2, §8.4.3.2.3 SR11) accepted the second and refused the first.
-/// <para>The assertion is deliberately the AGREEMENT of the two forms, whichever way §15.3 type 6 is read for an
+/// types, and an integer-only position (§2023:14.9.28.3 SR2, §2023:8.4.3.2.3 SR11) accepted the second and refused the first.
+/// <para>The assertion is deliberately the AGREEMENT of the two forms, whichever way §2023:15.3 type 6 is read for an
 /// always-integral expression: both are accepted, or both are refused with the same code.</para>
 /// </summary>
 public sealed class FunctionTypeSettlementTests : WiseOwlCobolTestBase
@@ -59,7 +59,7 @@ public sealed class FunctionTypeSettlementTests : WiseOwlCobolTestBase
     /// (so every earlier argument is frozen). Each pair sits in a position that asks the call's type.</summary>
     public static TheoryData<string, string> Pairs() => new()
     {
-        // An integer-only position (§14.9.28.3 SR2): PERFORM ... TIMES.
+        // An integer-only position (§2023:14.9.28.3 SR2): PERFORM ... TIMES.
         { "PERFORM FUNCTION MAX (WS-A * WS-B, 5) TIMES CONTINUE END-PERFORM",
           "PERFORM FUNCTION MAX (WS-A * WS-B, FUNCTION FTSBUMP (WS-A)) TIMES CONTINUE END-PERFORM" },
         { "PERFORM FUNCTION MIN (WS-A - WS-B, 5) TIMES CONTINUE END-PERFORM",
@@ -70,7 +70,7 @@ public sealed class FunctionTypeSettlementTests : WiseOwlCobolTestBase
         // A data item argument is an integer in both forms.
         { "PERFORM FUNCTION MAX (WS-A, 5) TIMES CONTINUE END-PERFORM",
           "PERFORM FUNCTION MAX (WS-A, FUNCTION FTSBUMP (WS-A)) TIMES CONTINUE END-PERFORM" },
-        // A selection function over an expression, as an unsigned-integer function argument (§8.4.3.2.3 SR11/SR12).
+        // A selection function over an expression, as an unsigned-integer function argument (§2023:8.4.3.2.3 SR11/SR12).
         { "MOVE FUNCTION CHAR (FUNCTION MAX (WS-A * WS-B, 5)) TO WS-N",
           "MOVE FUNCTION CHAR (FUNCTION MAX (WS-A * WS-B, FUNCTION FTSBUMP (WS-A))) TO WS-N" },
     };

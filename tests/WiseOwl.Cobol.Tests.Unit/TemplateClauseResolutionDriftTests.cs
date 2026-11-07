@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A POST-BUILD CLAUSE RESOLVER WALKS THE TYPE DECLARATIONS TOO, AND THE LIST IS CLOSED (kb/Work PB2548, PB2071).
-/// A type declaration has no storage (ISO §13.18.58.4 GR2) but its clauses are source, and a clause that names another
+/// A type declaration has no storage (ISO §2023:13.18.58.4 GR2) but its clauses are source, and a clause that names another
 /// entry of the declaration — a RENAMES operand, an OCCURS KEY data-name, a DEPENDING ON counter, a CAPACITY phrase's
 /// FROM / TO — has an answer without any use. Every resolver but REDEFINES used to walk <c>AllItems()</c>, the
 /// storage roots, so an unused template's <c>RENAMES NOSUCH</c> or <c>KEY IS NOSUCH</c> compiled clean while the same
@@ -51,7 +51,7 @@ public sealed class TemplateClauseResolutionDriftTests
     }
 
     /// <summary>The placement-dependent rules stay out of a declaration: its counter may be supplied by the use site
-    /// (ISO §13.18.57.4 GR1, "coded in place"), and it defines no CAPACITY register (§13.18.58.4 GR2).</summary>
+    /// (ISO §2023:13.18.57.4 GR1, "coded in place"), and it defines no CAPACITY register (§2023:13.18.58.4 GR2).</summary>
     [Fact]
     public void TheRulesThatReadPlacement_AskWhetherTheEntryIsInATypeDeclaration()
     {

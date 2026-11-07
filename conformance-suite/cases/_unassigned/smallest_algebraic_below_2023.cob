@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.83 SMALLEST-ALGEBRAIC is NEW-IN-2023 (Annex E.3 item 29 "has been added";
+      *> ISO §2023:15.83 SMALLEST-ALGEBRAIC is NEW-IN-2023 (Annex E.3 item 29 "has been added";
       *> PHASE-11-scout-notes.md spec:concat-smallest). At --std 2014 the D8 catalog window rejects the
       *> reference BY NAME — COBOL1502 (IntrinsicBinder window gate).
        IDENTIFICATION DIVISION.

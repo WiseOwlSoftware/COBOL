@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ THE CARRIER OF A CARRIER-RESIDENT FORMAL PARAMETER, AS A FACT (<see cref="DataItem.ResidentCarrier"/>; kb/Work
-/// PB4320, PB4380). ISO §14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies the same
+/// PB4320, PB4380). ISO §2023:14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies the same
 /// storage area as the argument", so such a formal has no storage of its own and every access reaches the argument through
 /// a <c>ManagedPointer&lt;T&gt;</c> carrier. Where that carrier lives is the one thing the two arms differ in: a PROGRAM's
 /// carrier is a member of its class, which a GLOBAL bridge and the activation entry also name; a METHOD's is a local of

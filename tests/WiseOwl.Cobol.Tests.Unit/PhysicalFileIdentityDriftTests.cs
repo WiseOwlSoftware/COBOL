@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A PHYSICAL FILE'S IDENTITY TO THE RUN UNIT IS ITS ABSOLUTE HOST PATH UNDER THE HOST'S CASE RULE (kb/Work PB2748).
-/// Table 19's arbitration (§9.1.15: <i>"the sharing mode and the open mode of that OPEN statement shall be allowed by
+/// Table 19's arbitration (§2023:9.1.15: <i>"the sharing mode and the open mode of that OPEN statement shall be allowed by
 /// all other file connectors that are currently associated with the physical file"</i>) and the keyed record stores
 /// are keyed on the physical file. They were keyed on the verbatim ASSIGN text compared case-insensitively, so two
 /// spellings of one file (<c>data.dat</c>, <c>./data.dat</c>, the full path) were two physical files, and on a

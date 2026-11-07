@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ONE SYNTAX ERROR IN A PARENTHESIZED GROUP IS ONE DIAGNOSTIC (kb/Work PB2152). ISO §8.3.5 4): "Except in
+/// ⛔ ONE SYNTAX ERROR IN A PARENTHESIZED GROUP IS ONE DIAGNOSTIC (kb/Work PB2152). ISO §2023:8.3.5 4): "Except in
 /// pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses", so the parser's error
 /// recovery consumes a group it skips WHOLE (<c>CobolErrorStrategy.ConsumeUntil</c>) and never deletes one half of a
 /// pair (<c>CobolErrorStrategy.SingleTokenDeletion</c>).
@@ -20,11 +20,11 @@ public sealed class ParseRecoveryParenGroupTests
 {
     public static TheoryData<string, string> OneFaultSources() => new()
     {
-        // §13.18.20.3 SR1: the entry's data-name is subscripted — the '1' inside the group used to resync as a level-number.
+        // §2023:13.18.20.3 SR1: the entry's data-name is subscripted — the '1' inside the group used to resync as a level-number.
         { "entry-name-subscripted", "       01 G.\n          05 A(1) PIC X(3).\n       PROCEDURE DIVISION.\n           STOP RUN.\n" },
-        // §8.3.5 4): a group around a DISPLAY operand delimits nothing — single-token deletion used to drop the '('.
+        // §2023:8.3.5 4): a group around a DISPLAY operand delimits nothing — single-token deletion used to drop the '('.
         { "display-operand-group", "       01 W-S PIC X(5).\n       PROCEDURE DIVISION.\n           DISPLAY (W-S).\n           STOP RUN.\n" },
-        // §7.3.10.4 GR3 (>>COBOL-WORDS UNDEFINE "PICTURE"): `X(3)` is no picture string — the '3' resynced as a level-number.
+        // §2023:7.3.10.4 GR3 (>>COBOL-WORDS UNDEFINE "PICTURE"): `X(3)` is no picture string — the '3' resynced as a level-number.
         { "picture-withdrawn", "       01 X PICTURE X(3).\n       PROCEDURE DIVISION.\n           STOP RUN.\n" },
     };
 

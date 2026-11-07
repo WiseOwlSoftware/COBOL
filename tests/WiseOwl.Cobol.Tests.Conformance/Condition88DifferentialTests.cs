@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// G2c capability checkpoint: <b>level-88 condition-names</b> and <b>sign conditions</b> (DESIGN §3.5 /
-/// §8.8.4.1). An 88 reference is a membership test over its conditional variable (singletons + THRU ranges, multiple
+/// §2023:8.8.4.1). An 88 reference is a membership test over its conditional variable (singletons + THRU ranges, multiple
 /// VALUEs); <c>SET cond TO TRUE</c> moves the first VALUE into the parent. Pinned to the committed golden.
 /// </summary>
 public sealed class Condition88DifferentialTests
@@ -40,7 +40,7 @@ public sealed class Condition88DifferentialTests
             """));
 
     // PIC 9(3), not 9(2): the level-88 literal 100 must be a permissible value of the conditional variable's
-    // PICTURE (ISO §13.18.63.3 SR2; kb/Work PB586) — under 9(2) the program is illegal and draws COBOL1625.
+    // PICTURE (ISO §2023:13.18.63.3 SR2; kb/Work PB586) — under 9(2) the program is illegal and draws COBOL1625.
     [Fact]
     public void NumericRange_Thru()
         => AssertMatchesGolden(Program("""
@@ -82,7 +82,7 @@ public sealed class Condition88DifferentialTests
     // A level-88 over a Tier-B REDEFINES view: an elementary item (BB) redefined by a group (BB-2) whose subordinates
     // (AAA/BBB) carry their own condition-names. The conditional variable must resolve to the shared backing window
     // (the same item→Place builder a verb operand uses), so a condition test — and SET cond TO TRUE — sees the storage
-    // through every view (ISO §13.18.44, §8.8.4.5). The NC211A/NC250A IF-D35 shape.
+    // through every view (ISO §2023:13.18.44, §2023:8.8.4.5). The NC211A/NC250A IF-D35 shape.
     public void ConditionName_OverRedefinesView()
         => AssertMatchesGolden(Program("""
             01 IF-D35.
@@ -106,8 +106,8 @@ public sealed class Condition88DifferentialTests
             """));
 
     [Fact]
-    // A level-88 condition-name on a GROUP conditional variable. Per ISO §8.8.4.5 GR2 the test follows the relation-
-    // condition rules, and §8.8.4.1 treats an alphanumeric group as an elementary alphanumeric item — so the group's
+    // A level-88 condition-name on a GROUP conditional variable. Per ISO §2023:8.8.4.5 GR2 the test follows the relation-
+    // condition rules, and §2023:8.8.4.1 treats an alphanumeric group as an elementary alphanumeric item — so the group's
     // character IMAGE is compared, not the raw struct (the NC211A/NC250A TABLE-86 shape).
     public void ConditionName_OnGroupItem()
         => AssertMatchesGolden(Program("""

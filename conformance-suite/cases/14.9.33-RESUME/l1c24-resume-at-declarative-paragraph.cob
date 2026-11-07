@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.33.3 SR3 — RESUME AT a DECLARATIVE paragraph
+      *> ISO §2023:14.9.33.3 SR3 — RESUME AT a DECLARATIVE paragraph
       *> "Procedure-name-1 shall be a procedure-name in the
       *> nondeclarative portion of the function, method, or program."
       *>   cite.py --check 14.9.33.3 "Procedure-name-1 shall be a
       *>   procedure-name in the nondeclarative portion of the
       *>   function, method, or program."
-      *>     -> OK §14.9.33.3 3) (Syntax rules)
+      *>     -> OK §2023:14.9.33.3 3) (Syntax rules)
       *> The RESUME is inside a (non-GLOBAL) declarative (SR1, SR2
       *> satisfied); its target HZ-Q is a paragraph of that same
       *> declarative section, i.e. in the DECLARATIVE portion. The only

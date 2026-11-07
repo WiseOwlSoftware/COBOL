@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// subordinate spelled <c>AsImage</c> or <c>Equals</c> drew CS0102 in the record struct, and a record spelled
 /// <c>CloseFiles</c> in the program class, because the allocator knew only the COBOL siblings. So the seeds must be
 /// TOTAL: this class reads every member declaration the generator emits under a name that begins with a letter (a
-/// sanitized word begins with a letter, or with <c>_</c> and a digit — never <c>_</c> and a letter: ISO §8.3.2.1, "The
+/// sanitized word begins with a letter, or with <c>_</c> and a digit — never <c>_</c> and a letter: ISO §2023:8.3.2.1, "The
 /// hyphen or underscore shall not appear as the first or last character in such words") and the members C#
 /// synthesizes for a record struct and the
 /// <c>ICobolProgram</c> surface a program class implements, and is red when one is in neither seed.
@@ -150,7 +150,7 @@ public sealed class CsNameReservationDriftTests
                 if (CsNames.Allocate(k, scope) is var got && got != k + "_2") bad.Add($"{kind}: {k} -> {got}");
         }
         Assert.True(bad.Count == 0, "a scope allocated a C# keyword as a CLR name: " + string.Join(", ", bad));
-        // A keyword a COBOL word can spell (letters only; '__arglist' cannot be a word, §8.3.2.1) keeps its spelling as
+        // A keyword a COBOL word can spell (letters only; '__arglist' cannot be a word, §2023:8.3.2.1) keeps its spelling as
         // the base: the scope, not an '@', keeps the allocated name legal.
         foreach (string k in keywords.Where(static k => k.All(char.IsAsciiLetterLower)))
             Assert.Equal(k, DataItem.Sanitize(k));

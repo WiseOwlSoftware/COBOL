@@ -9,15 +9,15 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
 
-/// <summary>⛔ THE SENDING OPERAND OF A <c>SET … TO</c> (ISO §14.9.39.2), AS WHAT IT IS — an identifier — and not as
+/// <summary>⛔ THE SENDING OPERAND OF A <c>SET … TO</c> (ISO §2023:14.9.39.2), AS WHAT IT IS — an identifier — and not as
 /// "a bare data reference or nothing" (kb/Work PB1399 + PB1929).
-/// <para>Every sending brace of §14.9.39.2's To-formats names an <i>identifier</i> (identifier-2, -4, -6, -8, -13),
-/// and §8.4.3.1.3 SR1 makes that "any of the formats for an identifier". Three of those formats are not a data-name
-/// reference: a function-identifier (§8.4.3.1.2 Format 1),
-/// an inline method invocation (§8.4.3.1.2 Format 4) and the keyword-omitted function (§8.4.3.2.3 SR2, which the
-/// grammar parses as a subscripted data reference). §8.4.3.2.1
+/// <para>Every sending brace of §2023:14.9.39.2's To-formats names an <i>identifier</i> (identifier-2, -4, -6, -8, -13),
+/// and §2023:8.4.3.1.3 SR1 makes that "any of the formats for an identifier". Three of those formats are not a data-name
+/// reference: a function-identifier (§2023:8.4.3.1.2 Format 1),
+/// an inline method invocation (§2023:8.4.3.1.2 Format 4) and the keyword-omitted function (§2023:8.4.3.2.3 SR2, which the
+/// grammar parses as a subscripted data reference). §2023:8.4.3.2.1
 /// ("a function-identifier references the unique data item that results from the evaluation of a function") and
-/// §8.4.3.4.4 GR1 ("an inline method invocation references a temporary data item with the same class, category, and
+/// §2023:8.4.3.4.4 GR1 ("an inline method invocation references a temporary data item with the same class, category, and
 /// content as the temp-identifier") make each of them a reference to a DATA ITEM, so the sender's class and category
 /// are properties of that item and every format's sending rule asks them of it. The former classifier —
 /// <c>OoBinder.OoExtractBareReference</c> — answered null for all three, so every format saw "no identifier" and
@@ -33,11 +33,11 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     /// method invocation, an object-view or SELF / SUPER — rather than a literal or an arithmetic expression.</summary>
     public bool IsIdentifierOperand => Ref is not null || Bound is not null || Predefined is not null;
 
-    /// <summary>The sender is SELF (§8.4.3.8). §14.9.39.3 names it in its own rules (SR10 d), SR12 c), SR14 b) — the
+    /// <summary>The sender is SELF (§2023:8.4.3.8). §2023:14.9.39.3 names it in its own rules (SR10 d), SR12 c), SR14 b) — the
     /// SELF sender against each receiving description), so it is carried by name and never bound to a temporary.</summary>
     public bool IsSelf => Predefined?.SELF() is not null;
 
-    /// <summary>The sender is [object-class-name-1 OF] SUPER, which §14.9.39.3 SR9 refuses by name.</summary>
+    /// <summary>The sender is [object-class-name-1 OF] SUPER, which §2023:14.9.39.3 SR9 refuses by name.</summary>
     public bool IsSuper => Predefined?.SUPER() is not null;
 
     /// <summary>The bound operand of a function-identifier / invocation sender (null for a <see cref="Ref"/> or a
@@ -46,12 +46,12 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
     public BoundOperand? Operand => Bound is { } b ? IntrinsicBinder.OperandOf(b, functionValue: false) : null;
 
     /// <summary>The temporary data item a user function or inline invocation RETURNS — the item whose class and
-    /// category §8.4.3.2.1 / §8.4.3.4.4 GR1 give the identifier. Null for an intrinsic function (a computed value
+    /// category §2023:8.4.3.2.1 / §2023:8.4.3.4.4 GR1 give the identifier. Null for an intrinsic function (a computed value
     /// with no item of its own) and for every non-identifier sender.</summary>
     public Place? TemporaryItem => Bound is { } b ? IntrinsicBinder.TemporaryItemOf(b) : null;
 
-    /// <summary>The §8.5.2.1 CLASS of a function-identifier / invocation sender (null when not statically decidable,
-    /// and for a <see cref="Ref"/>, whose class the resolved item answers). An INDEX function (§15.2 item 6) is class
+    /// <summary>The §2023:8.5.2.1 CLASS of a function-identifier / invocation sender (null when not statically decidable,
+    /// and for a <see cref="Ref"/>, whose class the resolved item answers). An INDEX function (§2023:15.2 item 6) is class
     /// index here — the storage model folds it into category numeric, which is why the class, never the category,
     /// answers (<see cref="IntrinsicArgumentRules.ClassOf"/>).</summary>
     public CobolClass? IdentifierClass => Operand is { } o ? IntrinsicArgumentRules.ClassOf(o) : null;
@@ -68,9 +68,9 @@ internal sealed record SetSender(string Text, Core.DataReferenceContext? Ref, Bo
 /// function-identifier / inline invocation / keyword-omitted function once, so the format that takes the sender
 /// asks its own syntax rule of a <see cref="SetSender"/> and never re-reads the tree.
 /// <para>The reading is the relation operand's (<c>ConditionBinder.ComparisonOperandOf</c>): a SOLE identifier is
-/// short-circuited BEFORE the expression spine, because the spine's §8.8.1.1 numeric-class screen would otherwise
+/// short-circuited BEFORE the expression spine, because the spine's §2023:8.8.1.1 numeric-class screen would otherwise
 /// refuse every non-numeric identifier at a position that is not arithmetic at all. A PARENTHESIZED function is
-/// deliberately not a sole identifier — "an arithmetic expression enclosed in parentheses" (§8.8.1.1) — and keeps
+/// deliberately not a sole identifier — "an arithmetic expression enclosed in parentheses" (§2023:8.8.1.1) — and keeps
 /// the arithmetic screen.</para></summary>
 internal sealed class SetSenders(StatementBinder host)
 {
@@ -87,7 +87,7 @@ internal sealed class SetSenders(StatementBinder host)
         // here, through setToSender's arithmeticExpression arm, since the expression tier carries them.
         if (ConditionBinder.SolePredefinedObject(amount) is { } predefined)
         {
-            // Where §8.9 leaves the word free it is an undeclared name, not the predefined object reference (kb/Work
+            // Where §2023:8.9 leaves the word free it is an undeclared name, not the predefined object reference (kb/Work
             // PB4153): reported once here, so no SET format meets a sender of a facility the edition does not have.
             if (host.Oo.UnreservedPredefinedObjectRefusal(predefined) is { } refused)
                 return Identified(predefined, refused);
@@ -97,7 +97,7 @@ internal sealed class SetSenders(StatementBinder host)
         if (ConditionBinder.SoleOoIdentifier(amount) is { } ooId)
             return Identified(ooId, host.Oo.OoBindOoIdentifier(ooId));
         if (OoBinder.OoExtractBareReference(amount) is not { } dref) return SetSender.OfExpression(text);
-        // §8.4.3.2.3 SR2 — a REPOSITORY function name written without the word FUNCTION parses as a subscripted
+        // §2023:8.4.3.2.3 SR2 — a REPOSITORY function name written without the word FUNCTION parses as a subscripted
         // data reference; the binder's ONE detector tells the two apart (a declared data item wins).
         return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof
             ? Identified(dref, kof)

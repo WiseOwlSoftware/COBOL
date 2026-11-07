@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
 *> AN ABSOLUTE LINE IN A REPORT THAT IS NOT DIVIDED INTO PAGES (kb/Work PB1002). ISO/IEC 1989:2023
-*> §13.18.35.3 SR5: "If the report is not divided into pages, all its LINE clauses shall be relative." The RD
-*> has no PAGE clause, so the report is one page of indefinite length (§13.18.39.4 GR2a) and LINE 3 names a
+*> §2023:13.18.35.3 SR5: "If the report is not divided into pages, all its LINE clauses shall be relative." The RD
+*> has no PAGE clause, so the report is one page of indefinite length (§2023:13.18.39.4 GR2a) and LINE 3 names a
 *> line of no page. It compiled clean before PB1002. A rule of every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1002UA.

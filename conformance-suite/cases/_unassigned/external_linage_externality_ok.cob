@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.8.4.2 conjunct 1 positive control: a SINGLE-program external file whose LINAGE data-name operand
+      *> ISO §2023:14.8.4.2 conjunct 1 positive control: a SINGLE-program external file whose LINAGE data-name operand
       *> is IS EXTERNAL compiles clean at 2023 strict; a LITERAL LINAGE operand (WITH FOOTING AT 8) is exempt from
       *> the externality requirement.
        IDENTIFICATION DIVISION.

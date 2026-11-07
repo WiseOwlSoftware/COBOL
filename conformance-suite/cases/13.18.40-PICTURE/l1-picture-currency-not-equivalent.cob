@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.3 SR28 PICTURE clause — "For floating insertion,
+      *> ISO §2023:13.18.40.3 SR28 PICTURE clause — "For floating insertion,
       *> when the currency symbol is used as the floating insertion
       *> symbol, all occurrences of the currency symbol within
       *> character-string-1 shall be equivalent characters."
@@ -12,7 +12,7 @@
       *>   insertion, when the currency symbol is used as the floating
       *>   insertion symbol, all occurrences of the currency symbol
       *>   within character-string-1 shall be equivalent characters."
-      *>   -> OK  §13.18.40.3 28)  (Syntax rules)
+      *>   -> OK  §2023:13.18.40.3 28)  (Syntax rules)
       *>
       *> THE VIOLATED LEG. SR28 is a syntax rule, so source that breaks
       *> it is not a conforming source program and the compiler owes a
@@ -22,7 +22,7 @@
       *>
       *> HOW TWO NON-EQUIVALENT CURRENCY SYMBOLS ARE OBTAINED. The
       *> CURRENCY SIGN clause below makes 'W' a currency symbol, and
-      *> §12.3.7.3 SR25 keeps '$' one as well: "If a source unit does
+      *> §2023:12.3.7.3 SR25 keeps '$' one as well: "If a source unit does
       *> not contain a CURRENCY SIGN clause that specifies '$' as the
       *> currency symbol (either as literal-7 or literal-8), the clause
       *> CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that
@@ -32,11 +32,11 @@
       *>   '$' as the currency symbol (either as literal-7 or
       *>   literal-8), the clause CURRENCY SIGN '$' PICTURE SYMBOL '$'
       *>   is implied for that source unit."
-      *>   -> OK  §12.3.7.3 25)  (Syntax rules)
+      *>   -> OK  §2023:12.3.7.3 25)  (Syntax rules)
       *> So PIC $$W9 is a floating insertion string of THREE currency
       *> symbols, '$', '$' and 'W'. '$' is a basic special character
       *> and 'W' a basic letter, and no case folding relates them
-      *> (§8.1.3.2 GR3 folds letters only), so they are not equivalent
+      *> (§2023:8.1.3.2 GR3 folds letters only), so they are not equivalent
       *> characters and SR28 is violated.
       *>
       *> ⛔ AT THE reject-at EDITIONS, SR28 IS THE ONLY GROUND ON
@@ -47,11 +47,11 @@
       *>   SR26  requires the currency symbol to be leftmost (or
       *>         rightmost) in character-string-1 for fixed editing
       *>         sign control; here it is leftmost.
-      *>   GR13 a) of §13.18.40.4 is satisfied — "at least two
+      *>   GR13 a) of §2023:13.18.40.4 is satisfied — "at least two
       *>         identical symbols from the set '+', '-', currency
       *>         symbol" — so the entry is a well-formed
       *>         numeric-edited item apart from SR28.
-      *>   SR27 of §12.3.7.3 permits 'W' as literal-8: it is not a
+      *>   SR27 of §2023:12.3.7.3 permits 'W' as literal-8: it is not a
       *>         digit and not one of A, B, C, D, E, N, P, R, S, V, X,
       *>         Z or the space.
       *>

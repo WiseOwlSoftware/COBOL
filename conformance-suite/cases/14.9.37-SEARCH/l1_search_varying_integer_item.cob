@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR3 b) 2 — "If identifier-2 references an
+      *> ISO §2023:14.9.37.4 GR3 b) 2 — "If identifier-2 references an
       *> integer data item, that data item is incremented by the value
       *> one at the same time as the search index is incremented."
       *> The amount is the LITERAL one, not the search index's value or

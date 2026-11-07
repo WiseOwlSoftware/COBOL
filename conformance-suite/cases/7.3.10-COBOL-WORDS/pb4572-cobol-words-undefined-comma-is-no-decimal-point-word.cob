@@ -7,7 +7,7 @@
 *> ISO 1989:2023 7.3.10.4 GR3 (kb/Work PB4572): "When the UNDEFINE option is specified, the COBOL word that is the
 *> content of literal-3 shall no longer be reserved or restricted in any way, and may be used as a user-defined
 *> intrinsic name, data-name or any other user-defined word."
-*>   cite.py: OK  §7.3.10.4 3)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 3)  (General rules)
 *> COMMA, undefined, is a user-defined word in this compilation group and the syntax that requires the reserved word
 *> COMMA is not available there: DECIMAL-POINT IS COMMA is refused (COBOL0894) and the comma is no decimal separator.
 *> Before the fix the binder's spelling test of COMMA took the withdrawn word for the clause's word and accepted it.

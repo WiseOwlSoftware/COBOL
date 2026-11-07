@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-EXTERNAL-FORMAT-CONFLICT (ISO §14.8.4.3 / §13.18.22 GR6; raise point §14.9.4.4
+      *> EC-EXTERNAL-FORMAT-CONFLICT (ISO §2023:14.8.4.3 / §2023:13.18.22 GR6; raise point §2023:14.9.4.4
       *> GR3e; VCR 15). MAIN describes external record XFC-SHARED as 4 bytes, the CALLed
       *> sub as 8 bytes — a GR6 byte-count conflict. Checking is enabled in BOTH elements
-      *> (§14.8.4.1: the activating side at the CALL statement, the activated side before
+      *> (§2023:14.8.4.1: the activating side at the CALL statement, the activated side before
       *> its Environment division), so at the CALL the activated element's registration
       *> detects the conflict, the condition is set (Fatal, Table 13), and the program
       *> call is NOT successful — GR3h #1: the ON EXCEPTION phrase takes control (the
       *> sub's MOVE never runs), then FUNCTION EXCEPTION-STATUS reports the level-3 name.
       *> The second CALL activates a CONFORMING describer (4 bytes) — no condition, the
       *> NOT ON EXCEPTION path runs, and the sub's store through the shared cell is
-      *> visible in MAIN (one storage copy per run unit, §8.6.7).
+      *> visible in MAIN (one storage copy per run unit, §2023:8.6.7).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XFCMAIN.
        >>TURN EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON

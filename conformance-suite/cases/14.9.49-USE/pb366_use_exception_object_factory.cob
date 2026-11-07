@@ -7,13 +7,13 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB366A.
-      *> ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "If object-class-name-1 is
+      *> ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 a): "If object-class-name-1 is
       *> specified and the exception object that was raised is a factory
       *> object or instance object of object-class-name-1 or of a subclass
       *> of object-class-name-1, the associated declarative is executed and
       *> no other declaratives are executed".  ONE clause, BOTH object
       *> kinds.  The five RAISEs below walk every arm of that sentence;
-      *> §14.6.13.1.5 supplies the tail ("If there is no associated
+      *> §2023:14.6.13.1.5 supplies the tail ("If there is no associated
       *> declarative, execution continues as specified in the RAISE
       *> statement"), so every arm prints its AFTER-n marker.  kb/Work PB366.
        ENVIRONMENT DIVISION.
@@ -44,7 +44,7 @@
        END DECLARATIVES.
        MAIN SECTION.
        MAIN-P.
-      *> 1. SET U TO PBFBASE is the FACTORY object of PBFBASE (§14.9.39.3
+      *> 1. SET U TO PBFBASE is the FACTORY object of PBFBASE (§2023:14.9.39.3
       *> SR13).  OTH no; SUB no (a superclass is not a subclass); BASE
       *> matches on GR14a's "factory object ... of object-class-name-1".
            SET U TO PBFBASE.
@@ -68,7 +68,7 @@
            RAISE U.
            DISPLAY "AFTER-4".
       *> 5. The FACTORY object of PBFNON: no USE names PBFNON or a
-      *> superclass of it, so no declarative is selected and §14.6.13.1.5
+      *> superclass of it, so no declarative is selected and §2023:14.6.13.1.5
       *> continues at the statement after the RAISE.
            SET U TO PBFNON.
            RAISE U.

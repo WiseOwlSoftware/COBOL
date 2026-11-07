@@ -50,7 +50,7 @@ public sealed record RootFieldSegment(string MemberClrName, OmittedFormalGuard? 
 
 /// <summary>The storage a reference-type CARRIER designates: the step from a carrier-resident formal parameter's
 /// <c>ManagedPointer&lt;T&gt;</c> carrier — the path's root, <see cref="DataItem.ResidentCarrier"/> — to the argument
-/// storage it aliases on every access (ISO §14.2.3 GR8: the activated element operates as if the formal parameter
+/// storage it aliases on every access (ISO §2023:14.2.3 GR8: the activated element operates as if the formal parameter
 /// occupies the same storage area as the argument). A structural step, so each backend lowers the access itself and
 /// no name on the model holds the access text (kb/Work PB4320; DESIGN-backend-abstraction §1.3 L7).</summary>
 public sealed record CarrierValueSegment : AccessSegment
@@ -72,7 +72,7 @@ public sealed record CellBackingSegment : AccessSegment
     private CellBackingSegment() { }
 }
 
-/// <summary>⛔ HOW A CONTAINED PROGRAM REACHES A MEMBER OF A CONTAINING PROGRAM. ISO §13.18.27.4 GR2: "A statement in a
+/// <summary>⛔ HOW A CONTAINED PROGRAM REACHES A MEMBER OF A CONTAINING PROGRAM. ISO §2023:13.18.27.4 GR2: "A statement in a
 /// program contained directly or indirectly within a program that describes a global name may reference that name
 /// without describing it again" — the storage stays the container's. Decided once per member by
 /// <c>BoundUnit.AnchorOf</c> (kb/Work PB1133) and carried as structure on a GLOBAL bridge
@@ -87,17 +87,17 @@ public abstract record ContainerAnchor
     public sealed record Instance(int Depth) : ContainerAnchor;
 
     /// <summary>A STATIC member of a containing program — a RECURSIVE unit's WORKING-STORAGE is "static data" (ISO
-    /// §13.5.4 GR1), one copy on the class, which no instance names — reached through that program's class,
+    /// §2023:13.5.4 GR1), one copy on the class, which no instance names — reached through that program's class,
     /// <paramref name="ClassClrName"/>.</summary>
     public sealed record Static(string ClassClrName) : ContainerAnchor;
 }
 
 /// <summary>A root that is a LOCAL of the generated method, named by its identity, never its name
 /// (<see cref="MethodLocal"/>; DESIGN-backend-abstraction §1.2, §1.3 L8; kb/Work PB4321, PB4380, PB4416): a CORRESPONDING
-/// statement's hoisted group anchor (ISO §14.7.6: "Any item identification associated with a corresponding pair of
+/// statement's hoisted group anchor (ISO §2023:14.7.6: "Any item identification associated with a corresponding pair of
 /// operands is done at the start of the execution of the statement containing the CORRESPONDING phrase"), a METHOD's
 /// carrier-resident formal's carrier (<see cref="FormalCarrier.Local"/>), a METHOD's level-1 data root
-/// (<see cref="MethodDataLocal"/>, ISO §8.6.4) and its Tier-B class backing (<see cref="MethodRedefinesBackingLocal"/>;
+/// (<see cref="MethodDataLocal"/>, ISO §2023:8.6.4) and its Tier-B class backing (<see cref="MethodRedefinesBackingLocal"/>;
 /// kb/Work PB4416), and the backend's own cell locals (a hoisted cell, a recreated dynamic table's element cell). A local is never a containing program's member.</summary>
 public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Guard = null) : RootSegment(Guard);
 
@@ -107,12 +107,12 @@ public sealed record LocalRootSegment(MethodLocal Local, OmittedFormalGuard? Gua
 public sealed record MemberSegment(string MemberClrName) : AccessSegment;
 
 /// <summary>A FIXED OCCURS subscript — the accumulated path is wrapped in <c>CobolTable.At(path, index)</c>
-/// (ISO §8.4.2.3.4 GR2, benign out-of-range). <paramref name="OneBasedIndex"/> is the typed occurrence number.
+/// (ISO §2023:8.4.2.3.4 GR2, benign out-of-range). <paramref name="OneBasedIndex"/> is the typed occurrence number.
 /// <paramref name="Odo"/>, when present, is the level's OCCURS DEPENDING bound that the reference itself must test
 /// (<see cref="OdoReferenceCheck"/>).</summary>
 public sealed record FixedTableSegment(Position OneBasedIndex, OdoReferenceCheck? Odo = null) : AccessSegment;
 
-/// <summary>⛔ §13.18.38.4 GR7 AT AN ELEMENT REFERENCE (kb/Work PB1268): "At the time the subject of entry is
+/// <summary>⛔ §2023:13.18.38.4 GR7 AT AN ELEMENT REFERENCE (kb/Work PB1268): "At the time the subject of entry is
 /// referenced or any data item subordinate or superordinate to the subject of entry is referenced, the value of the
 /// data item referenced by data-name-1 shall fall within the bounds from integer-1 through integer-2. If the value of
 /// the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is set to exist."
@@ -124,7 +124,7 @@ public sealed record FixedTableSegment(Position OneBasedIndex, OdoReferenceCheck
 /// before. <paramref name="Depending"/> is data-name-1's place, resolved in the referencing unit's context.</summary>
 public sealed record OdoReferenceCheck(Place Depending, int MinOccurs, int MaxOccurs);
 
-/// <summary>An OCCURS DYNAMIC subscript (§8.5.1.9.2/.9.3, D9) — the accessor is direction-specific
+/// <summary>An OCCURS DYNAMIC subscript (§2023:8.5.1.9.2/.9.3, D9) — the accessor is direction-specific
 /// (<c>RefSending</c> on a read, <c>RefReceiving</c> on a write), chosen at RENDER time from the operation.
 /// <paramref name="OneBasedIndex"/> is the typed occurrence number.</summary>
 public sealed record DynTableSegment(Position OneBasedIndex) : AccessSegment;
@@ -135,7 +135,7 @@ public sealed record DynTableSegment(Position OneBasedIndex) : AccessSegment;
 /// occurrences are element cells. <paramref name="Ordinal"/> is the typed component ordinal (a
 /// <see cref="PositionOffset"/> carrying a subscript term for each enclosing fixed table level). <paramref name="Min"/> and <paramref name="ElementWidth"/>
 /// are the REFERENCING description's OCCURS facts — its FROM minimum and its element's storage width — which the
-/// runtime asks the shared table to agree with (ISO §14.6.13.2 rule 6).</summary>
+/// runtime asks the shared table to agree with (ISO §2023:14.6.13.2 rule 6).</summary>
 public sealed record CellTableSegment(Position Ordinal, int Min, int ElementWidth) : AccessSegment
 {
     /// <summary>The step to <paramref name="table"/>'s component at <paramref name="ordinal"/>, carrying the table's

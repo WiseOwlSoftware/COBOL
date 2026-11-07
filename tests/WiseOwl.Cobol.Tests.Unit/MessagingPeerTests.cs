@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE MESSAGING PEER OVER REAL SOCKETS (kb/Work PB4742; docs/rearchitecture/DESIGN-message-control.md §5.4 to §5.6, §7.2 "In-process", §9 S2b): each
+/// ⛔ THE MESSAGING PEER OVER REAL SOCKETS (kb/Work PB4742; docs/rearchitecture/DESIGN-message-control.md §5.4 to §2023:5.6, §2023:7.2 "In-process", §9 S2b): each
 /// <see cref="MessagingPeer"/> is one run unit with its own <see cref="MessagingSettings"/> against one fresh MCS directory, a requestor on the test's thread
 /// and a server on another, ordered by the protocol itself, so nothing sleeps. The kill is <see cref="MessagingPeer.Abort"/>. A <see cref="ManualTime"/> supplies
 /// the CONTINUE AFTER deadline, so a deadline passes when the test says so.
@@ -158,7 +158,7 @@ public sealed class MessagingPeerTests : IDisposable
         var served = OnThread(() => server.Receive(default, 40, MessageWait.Forever));
         var sent = requestor.Send("ENDS", MessageBody.Of("Q"));
         Assert.True(Result(served).Successful);
-        server.End(abnormal);                                                         // design 5.6: ISO §14.6.11 item 7, §14.6.12
+        server.End(abnormal);                                                         // design 5.6: ISO §2023:14.6.11 item 7, §2023:14.6.12
         var reply = requestor.Receive(sent.Tag, 100, MessageWait.Forever);
         Assert.Equal(expected, reply.ExceptionName);
         Assert.Equal(new string(' ', 40), reply.Image);                               // spaces of the size the RECEIVE recorded

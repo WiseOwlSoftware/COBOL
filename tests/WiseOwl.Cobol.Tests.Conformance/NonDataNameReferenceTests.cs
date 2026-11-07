@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NEVER "NOT DEFINED" (kb/Work PB1906). ISO §8.4.2.1: "a
+/// ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NEVER "NOT DEFINED" (kb/Work PB1906). ISO §2023:8.4.2.1: "a
 /// statement shall contain a reference that uniquely identifies that resource", so a reference whose word names no data
 /// item is refused — but the word IS declared, and "no declaration in this source element gives the name … Check the
 /// spelling" sends the user hunting a typo. <c>DataBinder.NonDataDeclarationOf</c> is the one answer to what the word
@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// reference (<c>NameResolution.ReportUnidentified</c>), a file clause's data-name operand
 /// (<c>DataBinder.ResolveClauseOperand</c>), an OCCURS DEPENDING ON object and SET Format 4's "not a condition-name"
 /// arm (<c>StatementValidation.RejectSetConditionName</c>). A type-name drew "not defined" at all
-/// three (§13.18.58.4 GR2: "A type declaration has no storage associated with it"), a type declaration's member at all
-/// three (§13.18.58.4 GR1: such data-names "may be referenced only as subordinate items of groups defined using the
+/// three (§2023:13.18.58.4 GR2: "A type declaration has no storage associated with it"), a type declaration's member at all
+/// three (§2023:13.18.58.4 GR1: such data-names "may be referenced only as subordinate items of groups defined using the
 /// type-name"), and every other kind at the two clause sites. One case per kind per site. A file-name is a kind too
 /// (kb/Work PB3557: a visible GLOBAL file of a containing program drew "no declaration in this source element").
 /// </summary>
@@ -76,7 +76,7 @@ public sealed class NonDataNameReferenceTests
     };
 
     /// <summary>The statement site's kinds: a condition-name keeps its one wording (PB567's misqualified-condition text),
-    /// and a constant-name in a RECEIVING position breaks a rule of its own first (COBOL1548, §13.10.4 GR1) — its
+    /// and a constant-name in a RECEIVING position breaks a rule of its own first (COBOL1548, §2023:13.10.4 GR1) — its
     /// data-item-position arm is the conformance negative of kb/Work PB3287.</summary>
     public static TheoryData<string, string> StatementKinds => new()
     {
@@ -124,7 +124,7 @@ public sealed class NonDataNameReferenceTests
         EditionHarness.AssertNoDiagnostic(errors, "is not defined");
     }
 
-    /// <summary>SET Format 4's own "not a condition-name" arm (§14.9.39.3 SR6) asks the same query: a level-88 entry of a
+    /// <summary>SET Format 4's own "not a condition-name" arm (§2023:14.9.39.3 SR6) asks the same query: a level-88 entry of a
     /// type declaration DOES declare the word, so "no level-88 entry declares it" would be false.</summary>
     [Fact]
     public void ASetOperandNamingATypeDeclarationCondition_NamesWhatTheWordIsDeclaredAs()
@@ -136,7 +136,7 @@ public sealed class NonDataNameReferenceTests
         EditionHarness.AssertNoDiagnostic(errors, "no level-88 entry");
     }
 
-    /// <summary>A special register written as SET Format 4's condition-name-1 is no condition-name (§14.9.39.3 SR6) and
+    /// <summary>A special register written as SET Format 4's condition-name-1 is no condition-name (§2023:14.9.39.3 SR6) and
     /// names no user word: its <c>cobolWord</c> is the qualifier or absent, so the declaration query is not asked of it
     /// (<c>ReferenceResolver.WrittenWordOf</c>). The unqualified forms crashed the compiler with a
     /// NullReferenceException (review w20261769b R1-1); the TO FALSE phrase is named as written.</summary>
@@ -157,10 +157,10 @@ public sealed class NonDataNameReferenceTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(errors, $"SET '{operand}' TO {phrase} — '{operand}' is not a condition-name");
-        EditionHarness.AssertHasDiagnostic(errors, "§14.9.39.3 SR6");
+        EditionHarness.AssertHasDiagnostic(errors, "§2023:14.9.39.3 SR6");
     }
 
-    /// <summary>An index-name in a statement operand keeps its category refusal (§13.18.38.3 SR7, COBOL1637, kb/Work
+    /// <summary>An index-name in a statement operand keeps its category refusal (§2023:13.18.38.3 SR7, COBOL1637, kb/Work
     /// PB1266) — the query names its kind; the statement site words the rule it breaks.</summary>
     [Fact]
     public void AnIndexNameStatementOperand_IsTheSr7CategoryRefusal()
@@ -171,7 +171,7 @@ public sealed class NonDataNameReferenceTests
         EditionHarness.AssertNoDiagnostic(errors, "is not defined");
     }
 
-    /// <summary>A FILE-NAME is declared too (kb/Work PB3557, ISO §12.4.5): a file clause's data-name operand and a statement
+    /// <summary>A FILE-NAME is declared too (kb/Work PB3557, ISO §2023:12.4.5): a file clause's data-name operand and a statement
     /// operand that name a file say what the word is, at both sites that ask <c>NonDataDeclarationOf</c>.</summary>
     [Theory]
     [InlineData("           MOVE \"A\" TO F1")]
@@ -198,7 +198,7 @@ public sealed class NonDataNameReferenceTests
         EditionHarness.AssertNoDiagnostic(errors, "no declaration in this source element gives the name");
     }
 
-    /// <summary>A containing program's GLOBAL file-name is visible in the contained program (§13.18.27.4 GR1), so a
+    /// <summary>A containing program's GLOBAL file-name is visible in the contained program (§2023:13.18.27.4 GR1), so a
     /// statement there that wants a data item is told the word is a file-name — and a file with no GLOBAL clause is NOT
     /// visible, so the word is truly undeclared there and the verdict is unchanged.</summary>
     [Theory]

@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Binding.Model;
 
-/// <summary>⛔ THE ISO §8.4.2.2 CANDIDATE SET OF A QUALIFIABLE NAME REFERENCE — AND IT HAS NO INDEXER (kb/Work PB978;
-/// generalized over the name class by kb/Work PB919). §8.4.2.2.1 makes the number of survivors the whole answer
+/// <summary>⛔ THE ISO §2023:8.4.2.2 CANDIDATE SET OF A QUALIFIABLE NAME REFERENCE — AND IT HAS NO INDEXER (kb/Work PB978;
+/// generalized over the name class by kb/Work PB919). §2023:8.4.2.2.1 makes the number of survivors the whole answer
 /// ("uniqueness shall be established through qualification for each user-defined name explicitly referenced";
-/// §8.4.2.2.3 SR1 — "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
+/// §2023:8.4.2.2.3 SR1 — "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
 /// of reference"): one survivor resolves, and zero or several is a resolution failure. Every DATA DIVISION resolver
 /// that returned a <c>List&lt;DataItem&gt;</c> invited its caller to read <c>[0]</c>, and three did — the report
 /// binder's CONTROL / SOURCE / SUM lookup, the OCCURS DEPENDING ON fallback and the file-control key and ASSIGN
@@ -31,13 +31,13 @@ public readonly struct NameCandidates<T> where T : class
     /// <summary>The declaration the reference identifies — non-null only when exactly one survives.</summary>
     public T? Single => Count == 1 ? _items![0] : null;
 
-    /// <summary>The survivors a clause's OWN rule narrows the set to (e.g. §12.4.5.12 SR2's "a record of this
+    /// <summary>The survivors a clause's OWN rule narrows the set to (e.g. §2023:12.4.5.12 SR2's "a record of this
     /// file"); the result is counted like any other set.</summary>
     public NameCandidates<T> Where(Func<T, bool> predicate) =>
         new(_items is null ? [] : _items.Where(predicate).ToList());
 
     /// <summary>The containment depth of the nearest survivor's declaring source element (<paramref name="depthOf"/>,
-    /// <see cref="ForestSlice.DeclaringDepth"/>'s measure), 0 when none survives: the tier ISO §8.4.6.2.1 3) ranks the
+    /// <see cref="ForestSlice.DeclaringDepth"/>'s measure), 0 when none survives: the tier ISO §2023:8.4.6.2.1 3) ranks the
     /// set in against a declaration of another name class (kb/Work PB4219).</summary>
     internal int NearestDepth(Func<T, int> depthOf) => _items is { Count: > 0 } items ? items.Min(depthOf) : 0;
 
@@ -45,7 +45,7 @@ public readonly struct NameCandidates<T> where T : class
     internal bool Any(Func<T, bool> predicate) => _items is not null && _items.Exists(i => predicate(i));
 
     /// <summary>The survivors followed by <paramref name="more"/> — further declarations that COUNT for the
-    /// uniqueness verdict (ISO §8.4.2.2.1 rule 4's lapsed type-declaration members); the existing survivors keep
+    /// uniqueness verdict (ISO §2023:8.4.2.2.1 rule 4's lapsed type-declaration members); the existing survivors keep
     /// their places, so <see cref="FirstDeclaredForPermissive"/> is unchanged.</summary>
     internal NameCandidates<T> Including(IReadOnlyCollection<T> more) =>
         more.Count == 0 ? this : new([.. _items ?? [], .. more]);

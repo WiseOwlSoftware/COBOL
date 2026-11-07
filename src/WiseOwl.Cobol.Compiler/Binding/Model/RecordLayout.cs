@@ -21,9 +21,9 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// REDEFINES whose redefiner is WIDER than its target got a byte offset that disagreed with the emitted record
 /// codec's physical layout — the runtime extracted the WRONG bytes and a same-byte-position operand from a sibling
 /// record description failed to match its key. <see cref="OffsetOf"/> sits on the codec-correct
-/// <see cref="PhysicalWidth"/> basis (ISO §12.4.5.12.4 GR4 — "the identical BYTE POSITIONS ... in any one record
+/// <see cref="PhysicalWidth"/> basis (ISO §2023:12.4.5.12.4 GR4 — "the identical BYTE POSITIONS ... in any one record
 /// description entry are implicitly referenced as keys for all other record description entries";
-/// §14.9.41.3 SR6b — leftmost character position correspondence).</para>
+/// §2023:14.9.41.3 SR6b — leftmost character position correspondence).</para>
 /// </summary>
 internal static class RecordLayout
 {
@@ -32,21 +32,21 @@ internal static class RecordLayout
     /// counted a national leaf ONCE inside an alphanumeric group). Per THIS item's occurrence (a parent multiplies
     /// by this item's own OCCURS count): a leaf's declared image width (digits + separate-sign, or PIC length,
     /// national in POSITIONS); a group's sum over its NON-redefining children of (child contribution × the child's
-    /// own fixed-OCCURS count) — every OCCURS position is part of the group image (ISO §14.9), and a REDEFINING
-    /// child overlays its target and adds no storage (§13.18.44).
+    /// own fixed-OCCURS count) — every OCCURS position is part of the group image (ISO §2023:14.9), and a REDEFINING
+    /// child overlays its target and adds no storage (§2023:13.18.44).
     /// <para>⛔ THE UNIT OF A GROUP'S WIDTH IS ITS OWN CLASS'S. A <c>GROUP-USAGE NATIONAL</c> group is as-if
-    /// <c>PICTURE N(m)</c> (§13.18.29.4 GR2b), so its m is NATIONAL POSITIONS and every item beneath it is counted
-    /// in them. Any other group is an alphanumeric group (§8.5.2.1: "an alphanumeric group item has class and
+    /// <c>PICTURE N(m)</c> (§2023:13.18.29.4 GR2b), so its m is NATIONAL POSITIONS and every item beneath it is counted
+    /// in them. Any other group is an alphanumeric group (§2023:8.5.2.1: "an alphanumeric group item has class and
     /// category alphanumeric"), moved "exactly as if it were an alphanumeric to alphanumeric elementary move"
-    /// (§14.9.25.4 GR4) — a string of STORAGE characters, in which a national position occupies
-    /// <c>CobolBits.BytesPerNational</c> of them (§13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
+    /// (§2023:14.9.25.4 GR4) — a string of STORAGE characters, in which a national position occupies
+    /// <c>CobolBits.BytesPerNational</c> of them (§2023:13.18.60.4 GR8, pinned by D-N1). Counting the national leaf once
     /// there made a group MOVE copy fewer characters than the sending group's image holds, so the trailing
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,
     /// the Tier-B strides — reads this one answer, so none restates the unit.</para></summary>
     public static int ImageWidth(DataItem item) =>
         item.IsElementary ? item.ElementaryImageWidth
-        // D19/PB43 — a bit-bearing subtree is laid out by the ONE §8.5.1.6.3 walk, never summed.
+        // D19/PB43 — a bit-bearing subtree is laid out by the ONE §2023:8.5.1.6.3 walk, never summed.
         : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(item))
         : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => ImageContribution(item, c) * (c.Occurs ?? 1));
 
@@ -60,13 +60,13 @@ internal static class RecordLayout
     }
 
     /// <summary>A national item is an elementary item of usage national or a national group
-    /// (§13.18.29.4 GR2b treats the group as an elementary national item).</summary>
+    /// (§2023:13.18.29.4 GR2b treats the group as an elementary national item).</summary>
     private static bool IsNationalClass(DataItem item) =>
         item.IsElementary ? item.Pic?.Usage is Usage.National : InNationalGroup(item);
 
     /// <summary>The item is a GROUP-USAGE NATIONAL group or beneath one. Asked of the ancestor chain rather than of
     /// the group's own <see cref="DataItem.GroupUsage"/> alone, because usage is propagated to subordinate groups
-    /// by a later bind walk (§13.16.4 GR2's implied clause) and a width is a pure function of the declared shape,
+    /// by a later bind walk (§2023:13.16.4 GR2's implied clause) and a width is a pure function of the declared shape,
     /// callable before it runs.</summary>
     private static bool InNationalGroup(DataItem item)
     {
@@ -80,20 +80,20 @@ internal static class RecordLayout
     /// <see cref="RedefinesTier.StringCanonical"/> class contributes its ONE backing (class-max
     /// <see cref="RedefinesClass.Width"/>) once at the canonical member. For the class-free common subtree this
     /// equals <see cref="ImageWidth"/>. Mirrors <c>OdoModel.PhysicalWidth</c> / <c>SortPhysicalWidth</c> (the ODO
-    /// §13.18.38 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
+    /// §2023:13.18.38 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
     /// redefines class whose redefiner is wider than the redefined item.</summary>
     public static int PhysicalWidth(DataItem item)
     {
         // ⛔ THE CODEC BASIS IS BYTES, NOT CARRIER POSITIONS (kb/Work PB327). This walk is the record/frame
-        // geometry — §12.4.5.12.4 GR4 states key correspondence over "the identical BYTE POSITIONS", §14.9.30.4
+        // geometry — §2023:12.4.5.12.4 GR4 states key correspondence over "the identical BYTE POSITIONS", §2023:14.9.30.4
         // GR14/GR15 state the short/long-record rules over "the number of BYTES in the record", and
-        // §14.9.3.4 GR3 allocates "the number of BYTES required to hold an item". ByteWidth IS ImageWidth for
-        // every leaf kind but NATIONAL, whose §13.18.60.4 GR8 size this implementation pins at two bytes per
+        // §2023:14.9.3.4 GR3 allocates "the number of BYTES required to hold an item". ByteWidth IS ImageWidth for
+        // every leaf kind but NATIONAL, whose §2023:13.18.60.4 GR8 size this implementation pins at two bytes per
         // position (D-N1) — so this read is byte-identical everywhere else and is the whole of the geometry
         // change that admits a national leaf to a file record. <see cref="ImageWidth"/> stays the CARRIER
-        // authority (StorageFormPass's form widths, the §13.18.29.4 GR2b as-if PICTURE N(m) length).
+        // authority (StorageFormPass's form widths, the §2023:13.18.29.4 GR2b as-if PICTURE N(m) length).
         if (!item.IsGroup) return item.ByteWidth;
-        // D19/PB43 — a bit-bearing subtree's extent comes from the §8.5.1.6.3 walk. A REDEFINES class inside such
+        // D19/PB43 — a bit-bearing subtree's extent comes from the §2023:8.5.1.6.3 walk. A REDEFINES class inside such
         // a group is not reachable here: D-N2's byte≠char containment already refuses a sub-byte overlay, and
         // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
         if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
@@ -120,10 +120,10 @@ internal static class RecordLayout
 
     /// <summary>ONE OCCURRENCE of <paramref name="item"/> on the PHYSICAL (codec, byte) basis — the per-child
     /// contribution <see cref="PhysicalWidth"/> multiplies by the child's OCCURS count, written once because three
-    /// walks need it: <see cref="PhysicalWidth"/>'s sum, <see cref="OffsetOf"/>'s advance, and the §13.18.38.4 GR8
+    /// walks need it: <see cref="PhysicalWidth"/>'s sum, <see cref="OffsetOf"/>'s advance, and the §2023:13.18.38.4 GR8
     /// occurs-depending extent (<c>OdoModel.WrapGroup</c>), whose per-occurrence STRIDE has to be in the same unit
     /// as the group image it slices. ⛔ That third reader used to take <c>table.ImageWidth</c> — CHARACTER
-    /// positions, which a national leaf counts once where this basis counts it twice (§13.18.60.4 GR8; D-N1) —
+    /// positions, which a national leaf counts once where this basis counts it twice (§2023:13.18.60.4 GR8; D-N1) —
     /// against a <see cref="PhysicalWidth"/> total in BYTES, so the fixed prefix came out as the difference and a
     /// zero-occurrence national table sent half its maximum image (kb/Work PB943).</summary>
     internal static int PhysicalOccurrenceWidth(DataItem item) =>
@@ -131,22 +131,22 @@ internal static class RecordLayout
 
     /// <summary>The item's character offset within its record AREA on the PHYSICAL (codec) basis: the offset inside
     /// its own 01 root, which IS the area offset because every secondary 01 under an FD is a synthesized REDEFINES
-    /// of the first, starting at position 0 (ISO §13.18.44 GR1). A REDEFINING child takes its TARGET's offset and
+    /// of the first, starting at position 0 (ISO §2023:13.18.44 GR1). A REDEFINING child takes its TARGET's offset and
     /// contributes no width; the running position advances by each preceding sibling's PHYSICAL contribution — the
     /// class-max backing width at a Tier-B canonical (matching the emitted record layout), the plain image extent
-    /// elsewhere. Null when the item or any ancestor carries OCCURS (no single fixed position — §12.4.5.12 SR1 /
-    /// §14.9.40.3 SR6b ban OCCURS subjects; mirrors the Sort walk's bail).</summary>
+    /// elsewhere. Null when the item or any ancestor carries OCCURS (no single fixed position — §2023:12.4.5.12 SR1 /
+    /// §2023:14.9.40.3 SR6b ban OCCURS subjects; mirrors the Sort walk's bail).</summary>
     public static int? OffsetOf(DataItem item) => item.Occurs is null ? FirstOccurrenceOffsetOf(item) : null;
 
     /// <summary>The offset of <paramref name="item"/>'s FIRST occurrence within its record area — <see cref="OffsetOf"/>
-    /// for an item that may itself carry the OCCURS clause, whose first byte position §13.18.38.3 SR20 measures from
+    /// for an item that may itself carry the OCCURS clause, whose first byte position §2023:13.18.38.3 SR20 measures from
     /// ("the first byte position defined by the data description entry containing the OCCURS clause"; kb/Work
     /// PB1261). Null when an ANCESTOR carries OCCURS.</summary>
     public static int? FirstOccurrenceOffsetOf(DataItem item)
     {
         // ⛔ A LEVEL-66 ALIAS HAS NO PLACE IN THE CHILD WALK BELOW — it rides its record's Renames66 list, not Children
         // (kb/Work PB2502) — but it OCCUPIES storage: without THROUGH it is data-name-2's own storage area
-        // (§13.18.45.4 GR1), and with THROUGH it is the area that begins where data-name-2 begins (GR2; SR11 puts
+        // (§2023:13.18.45.4 GR1), and with THROUGH it is the area that begins where data-name-2 begins (GR2; SR11 puts
         // data-name-3 at or after it). So its offset is data-name-2's, which this walk answers. A RECORD KEY naming
         // an alias used to find no offset and abort the run unit at registration.
         if (item.Renames is { From: { } renamed }) return FirstOccurrenceOffsetOf(renamed);
@@ -190,7 +190,7 @@ internal static class RecordLayout
 
     /// <summary>The PHYSICAL width of a RECORD as its frame/area extent: a record that is itself a member of a
     /// REDEFINES class (a secondary 01 of a multi-record SD/FD — the synthesized area class) spans the ONE shared
-    /// backing (class-max width, §9.1.2 records leftmost-aligned in one area); otherwise its own
+    /// backing (class-max width, §2023:9.1.2 records leftmost-aligned in one area); otherwise its own
     /// <see cref="PhysicalWidth"/>. (← <c>SortPhysicalWidth</c>'s item-level rule.)</summary>
     public static int AreaWidth(DataItem record) =>
         record.Class is { Tier: RedefinesTier.StringCanonical } cls && record.IsCanonical
@@ -198,12 +198,12 @@ internal static class RecordLayout
             : PhysicalWidth(record);
 
     /// <summary>The character offset of <paramref name="target"/> within <paramref name="root"/>'s PHYSICAL
-    /// record image — the compile-time key window (ISO §14.9.40.3 SR6e: the same byte positions are the key in
+    /// record image — the compile-time key window (ISO §2023:14.9.40.3 SR6e: the same byte positions are the key in
     /// every record). An item inside a REDEFINES class sits at the class anchor's offset plus its
     /// <see cref="DataItem.ClassOffset"/> (a redefinition begins at the redefined item's first position,
-    /// §13.18.44 GR1; covers keys under a redefining group and keys in a secondary 01 of a multi-01 SD/FD, whose
+    /// §2023:13.18.44 GR1; covers keys under a redefining group and keys in a secondary 01 of a multi-01 SD/FD, whose
     /// synthesized class anchors at the first record). Null when the target does not live in
-    /// <paramref name="root"/>'s area, or sits under an OCCURS (not a legal key, §14.9.40.3 SR6b/SR6f).
+    /// <paramref name="root"/>'s area, or sits under an OCCURS (not a legal key, §2023:14.9.40.3 SR6b/SR6f).
     /// (← <c>SortOffsetInRecord</c>/<c>SortPlainOffset</c>, on the ONE <see cref="OffsetOf"/> walk.)</summary>
     public static int? OffsetInRecord(DataItem root, DataItem target)
     {
@@ -212,8 +212,8 @@ internal static class RecordLayout
         // which is a member of the synthesized REDEFINES class (PB836) — returned the FIRST occurrence's position
         // for an item under OCCURS and a key under a table was accepted with its occurrence discarded. An item
         // subject to OCCURS has no one position in the record whatever its storage form.
-        if (target.IsTableElement) return null;   // §8.4.2.3.3 SR2's own-or-ancestor question, asked of DataItem (PB877)
-        // A level-66 alias is positioned where its data-name-2 is (§13.18.45.4 GR1/GR2; see FirstOccurrenceOffsetOf),
+        if (target.IsTableElement) return null;   // §2023:8.4.2.3.3 SR2's own-or-ancestor question, asked of DataItem (PB877)
+        // A level-66 alias is positioned where its data-name-2 is (§2023:13.18.45.4 GR1/GR2; see FirstOccurrenceOffsetOf),
         // and data-name-2 may itself be a member of a REDEFINES class, which the branch below places.
         if (target.Renames is { From: { } renamed }) return OffsetInRecord(root, renamed);
         if (target.Class is { } cls)
@@ -244,17 +244,17 @@ internal static class RecordLayout
     public readonly record struct KeyWindow(int Offset, int Bytes, bool FollowsVariable, long MaxEnd);
 
     /// <summary>⛔ THE ONE ANSWER TO "WHERE IS THIS KEY IN THE RECORD, AND HOW FAR CAN IT REACH?" — for a SORT/MERGE
-    /// key (§14.9.40.3 SR6 g) / §14.9.24.3 SR4 g)) and an indexed RECORD KEY / ALTERNATE RECORD KEY (§12.4.5.12.3
-    /// SR4 / §12.4.5.6.3 SR5), whose rules are the same sentence: in a file of variable-length records every key
+    /// key (§2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g)) and an indexed RECORD KEY / ALTERNATE RECORD KEY (§2023:12.4.5.12.3
+    /// SR4 / §2023:12.4.5.6.3 SR5), whose rules are the same sentence: in a file of variable-length records every key
     /// "shall be contained within the first n bytes of the record, where n equals the minimum record size".
-    /// <para>A variable-length record is sent and held as its CONTIGUOUS image (§8.5.1.11.2 — "behaves in all
+    /// <para>A variable-length record is sent and held as its CONTIGUOUS image (§2023:8.5.1.11.2 — "behaves in all
     /// respects as though it were in fact contiguous with its neighbors"; determination D-FRA), so a key that a
     /// dynamic-length item PRECEDES has no one position (a dynamic-capacity table cannot be in a record —
-    /// §8.5.1.9.1 3), COBOL1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
+    /// §2023:8.5.1.9.1 3), COBOL1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
     /// record's FIXED run plus whatever those members hold in THIS record. Such a key is
     /// <see cref="KeyWindow.FollowsVariable"/>, its <see cref="KeyWindow.Offset"/> is the FIXED-run offset the
     /// record type's runtime layout (<c>CobolContiguousLayout.Position</c>) starts from, and its
-    /// <see cref="KeyWindow.MaxEnd"/> charges every preceding member its MAXIMUM extent (§13.18.43.4 GR8 b)) — the
+    /// <see cref="KeyWindow.MaxEnd"/> charges every preceding member its MAXIMUM extent (§2023:13.18.43.4 GR8 b)) — the
     /// furthest byte the key can occupy in any record, which is what "contained within the first n bytes" has to
     /// hold for. Every other key keeps <see cref="OffsetInRecord"/>'s fixed window, unchanged.</para>
     /// <para>Null when the key does not lie in <paramref name="root"/>'s area, or is subject to OCCURS.</para></summary>
@@ -267,7 +267,7 @@ internal static class RecordLayout
     }
 
     /// <summary><see cref="KeyWindowOf"/> for a key of <paramref name="file"/>'s own file control entry — the form
-    /// every rule that reads a RECORD KEY or ALTERNATE RECORD KEY asks (§12.4.5.12.3 SR4, §12.4.5.6.3 SR4 and SR5):
+    /// every rule that reads a RECORD KEY or ALTERNATE RECORD KEY asks (§2023:12.4.5.12.3 SR4, §2023:12.4.5.6.3 SR4 and SR5):
     /// the key's window in the record that holds it, null when <paramref name="key"/> is null, is not in a record of
     /// the file (its SR2 reports that), or is subject to OCCURS (its SR1 reports that).</summary>
     public static KeyWindow? KeyWindowInFile(FileModel file, DataItem? key)
@@ -279,14 +279,14 @@ internal static class RecordLayout
     }
 
     /// <summary>The walk behind <see cref="KeyWindowOf"/>: <paramref name="key"/>'s offset in
-    /// <paramref name="root"/>'s FIXED run (every variable-length member contributing ZERO — the §8.5.1.12.3
+    /// <paramref name="root"/>'s FIXED run (every variable-length member contributing ZERO — the §2023:8.5.1.12.3
     /// accounting the emitted layout's <c>FixedAt</c> uses, flattened through nested variable-length groups the
     /// same way), how many variable-length members precede it, and their summed MAXIMUM byte extents. The fixed
     /// members advance exactly as <see cref="OffsetOf"/> advances (the codec basis), so the offset is the one the
     /// layout's take step starts from.</summary>
     private static (int FixedOffset, int Preceding, long PrecedingMaxBytes)? ContiguousPlaceOf(DataItem root, DataItem key)
     {
-        // A level-66 alias is no child of the walk; its storage begins where data-name-2's does (§13.18.45.4).
+        // A level-66 alias is no child of the walk; its storage begins where data-name-2's does (§2023:13.18.45.4).
         if (key.Renames is { From: { } renamed }) key = renamed;
         int preceding = 0;
         long maxBytes = 0;
@@ -309,7 +309,7 @@ internal static class RecordLayout
                 {
                     if (ReferenceEquals(c, key)) { found = cStart; return running; }
                     if (c.RedefinesTargetName is null) { preceding++; maxBytes += FileModel.MaxDynamicExtent(c); }
-                    continue;   // §8.5.1.12.3 — contributes nothing to the fixed run
+                    continue;   // §2023:8.5.1.12.3 — contributes nothing to the fixed run
                 }
                 if (c.IsGroup && DataItem.HasVariableLengthSubordinate(c) && c.RedefinesTargetName is null)
                 {
@@ -332,20 +332,20 @@ internal static class RecordLayout
         }
     }
 
-    // ── Key-of-reference operand screens (ISO §14.9.41.3 SR6 · §14.9.30.3 SR11 · §12.4.5.12.4 GR4) ─────────────
+    // ── Key-of-reference operand screens (ISO §2023:14.9.41.3 SR6 · §2023:14.9.30.3 SR11 · §2023:12.4.5.12.4 GR4) ─────────────
     //
     // ⛔ TWO RULES, TWO ENTRY POINTS (kb/Work PB354). One method used to answer both, with the SR6 b) test —
     // "leftmost position coincides AND no longer than the key" — standing in for BOTH the "this IS a record key"
     // question READ asks and the "this is a legal GENERIC key" question START asks. That conflation is what let
-    // §14.9.41.3 SR6 b) 2.'s class/category/usage condition sit unimplemented behind a doc comment (it has no
-    // meaning for READ, so it could not be added to the shared body), and it made READ's §14.9.30.3 SR11 — which
+    // §2023:14.9.41.3 SR6 b) 2.'s class/category/usage condition sit unimplemented behind a doc comment (it has no
+    // meaning for READ, so it could not be added to the shared body), and it made READ's §2023:14.9.30.3 SR11 — which
     // carries NO generic-key arm at all — accept a short item where the rule names the key itself. The two rules
     // now have one method each, and each names the clause it enforces.
 
-    /// <summary>ISO §14.9.41.3 SR6 a) / §14.9.30.3 SR11 — the operand IS a prime or alternate record key of
+    /// <summary>ISO §2023:14.9.41.3 SR6 a) / §2023:14.9.30.3 SR11 — the operand IS a prime or alternate record key of
     /// <paramref name="file"/> (−1 = prime, i = the i-th alternate, null = it is not a key of this file): the
     /// declared key item itself, or the item occupying the IDENTICAL byte positions in another record
-    /// description entry of the same file. §12.4.5.12.4 GR4 — <i>"the identical byte positions … in any one
+    /// description entry of the same file. §2023:12.4.5.12.4 GR4 — <i>"the identical byte positions … in any one
     /// record description entry are implicitly referenced as keys for all other record description entries"</i>
     /// — is what makes the second form a key, and it is why the positional arm demands the SAME byte width
     /// rather than a smaller one: GR4 promotes the key's whole span, never a prefix of it. A prefix is SR6 b)'s
@@ -355,7 +355,7 @@ internal static class RecordLayout
         if (file.PrimeKey?.Item is { } prime && ReferenceEquals(prime, operand)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
             if (ReferenceEquals(file.AlternateKeys[i].Key.Item, operand)) return i;
-        // §12.4.5.12.4 GR4's implicit keys — the same byte window in ANOTHER record description of the file
+        // §2023:12.4.5.12.4 GR4's implicit keys — the same byte window in ANOTHER record description of the file
         // (a REDEFINES of the key, or a same-position item in a secondary 01). The operand shall live in a
         // record description entry OF THIS FILE: GR4 speaks of the file's own record description entries, and
         // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
@@ -364,7 +364,7 @@ internal static class RecordLayout
         return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth);
     }
 
-    /// <summary>ISO §14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but
+    /// <summary>ISO §2023:14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but
     /// <b>b) 1.</b> whose leftmost character position <i>within a record of the file</i> corresponds to a record
     /// key's leftmost character position, <b>b) 2.</b> which has the same class, category and usage as that
     /// record key, and <b>b) 3.</b> whose length is not greater than that key's. All three conditions are
@@ -374,8 +374,8 @@ internal static class RecordLayout
     /// PB698 transcription repair returned them to their printed level).
     /// <para>b) 1. also requires the key to be <i>"defined without the SOURCE phrase"</i>: a SOURCE-form key
     /// (kb/Work PB1099) has no data item of its own to coincide with, and <see cref="KeyIndexAtOffset"/> passes
-    /// over it — the same exclusion START's §14.9.41.3 SR6 a) and READ's §14.9.30.3 SR11 get, since a SOURCE-form
-    /// key is named only by its record-key-name (§14.9.41.3 SR7).</para></summary>
+    /// over it — the same exclusion START's §2023:14.9.41.3 SR6 a) and READ's §2023:14.9.30.3 SR11 get, since a SOURCE-form
+    /// key is named only by its record-key-name (§2023:14.9.41.3 SR7).</para></summary>
     public static int? GenericKeyIndex(FileModel file, DataItem operand)
     {
         if (!IsInRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;   // b) 1.
@@ -385,15 +385,15 @@ internal static class RecordLayout
     }
 
     /// <summary>True when the item is <i>subject to an OCCURS clause</i> — it or any ancestor carries one. THE
-    /// ONE predicate for that phrase (ISO §14.9.41.3 SR4 <i>"Data-name-1 or record-key-name-1 shall not be
-    /// subject to any OCCURS clauses"</i>; §12.4.5.13.3 SR1, the RELATIVE KEY twin). Kept apart from
+    /// ONE predicate for that phrase (ISO §2023:14.9.41.3 SR4 <i>"Data-name-1 or record-key-name-1 shall not be
+    /// subject to any OCCURS clauses"</i>; §2023:12.4.5.13.3 SR1, the RELATIVE KEY twin). Kept apart from
     /// <see cref="OffsetOf"/>'s own OCCURS bail, which answers a different question ("this item has no single
     /// fixed position") — folding the two is what made an SR4 violation report itself as an SR6 failure under a
     /// sentence that was FALSE of the operand (kb/Work PB354 part 2).</summary>
     public static bool IsSubjectToOccurs(DataItem item) => OccursSubjectOf(item) is not null;
 
     /// <summary>The entry whose OCCURS clause <paramref name="item"/> is subject to — the item itself or its nearest
-    /// ancestor that carries one — or null. ANY format of the clause counts (§13.18.38: fixed, occurs-depending and
+    /// ancestor that carries one — or null. ANY format of the clause counts (§2023:13.18.38: fixed, occurs-depending and
     /// Format-4 dynamic-capacity alike), so the test is <see cref="DataItem.IsTable"/>, never <c>Occurs</c> alone:
     /// <c>Occurs</c> is null for a dynamic-capacity table, and asking it let an item under OCCURS DYNAMIC pass every
     /// "subject to an OCCURS clause" rule (kb/Work PB1273's sweep; the CONTROL SR3 arm fell into the same trap).</summary>
@@ -405,9 +405,9 @@ internal static class RecordLayout
     }
 
     /// <summary>The item's 01 record description entry is one of <paramref name="file"/>'s records — ISO
-    /// §14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>, and the same predicate the file control
-    /// entry's own key rules are stated on: §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2 REQUIRE it of a record key,
-    /// §12.4.5.13.3 SR3 FORBIDS it of the relative key. ONE predicate for all four (<c>FileControlKeyRules</c>).
+    /// §2023:14.9.41.3 SR6 b) 1.'s <i>"within a record of the file"</i>, and the same predicate the file control
+    /// entry's own key rules are stated on: §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2 REQUIRE it of a record key,
+    /// §2023:12.4.5.13.3 SR3 FORBIDS it of the relative key. ONE predicate for all four (<c>FileControlKeyRules</c>).
     /// <para>A null item is NOT in a record of the file — a data-name-1 that referenced nothing describable is a
     /// violation of the two SR2s, and answering "false" is what lets one row state that rule.</para></summary>
     public static bool IsInRecordOfFile(FileModel file, DataItem? item)
@@ -420,19 +420,19 @@ internal static class RecordLayout
 
     /// <summary>The index of the record key whose leftmost byte position is <paramref name="off"/> and which
     /// satisfies the caller's rule (−1 = prime, i = the i-th alternate, null = none). Positions are the PHYSICAL
-    /// codec layout via <see cref="OffsetOf"/> — the basis §12.4.5.12.4 GR4 states the correspondence on.</summary>
+    /// codec layout via <see cref="OffsetOf"/> — the basis §2023:12.4.5.12.4 GR4 states the correspondence on.</summary>
     private static int? KeyIndexAtOffset(FileModel file, int off, Func<DataItem, bool> admits)
     {
         // Only data-name-1 keys: a SOURCE-form key (Item null) is no data item, so no operand's byte positions are
-        // it (§14.9.41.3 SR6 b) 1. "defined without the SOURCE phrase"; kb/Work PB1099).
+        // it (§2023:14.9.41.3 SR6 b) 1. "defined without the SOURCE phrase"; kb/Work PB1099).
         if (file.PrimeKey?.Item is { } prime && OffsetOf(prime) == off && admits(prime)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
             if (file.AlternateKeys[i].Key.Item is { } alt && OffsetOf(alt) == off && admits(alt)) return i;
         return null;
     }
 
-    /// <summary>ISO §14.9.41.3 SR6 b) 2. — <i>"It has the same class, category, and usage as that record key."</i>
-    /// Class comes from the ONE §8.5.2.1 Table-2 classifier (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
+    /// <summary>ISO §2023:14.9.41.3 SR6 b) 2. — <i>"It has the same class, category, and usage as that record key."</i>
+    /// Class comes from the ONE §2023:8.5.2.1 Table-2 classifier (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
     /// never a second copy of that table, and category from the ONE spelling of a Table 2 category
     /// (<see cref="ItemCategory.CategoryName(PicInfo)"/>), which tells alphanumeric-edited and national-edited from
     /// the plain categories the model folds them into (kb/Work PB850: compared as a bare <see cref="PicCategory"/>,
@@ -442,25 +442,25 @@ internal static class RecordLayout
         && CategoryOfItem(operand) == CategoryOfItem(key)
         && UsageOfItem(operand) == UsageOfItem(key);
 
-    /// <summary>The item's §8.5.2.1 Table 2 category name: its PICTURE's (or a bit/national group's as-if
-    /// PICTURE's), else — for an ordinary group, which has no PICTURE at all — category alphanumeric (§13.18.29.4
+    /// <summary>The item's §2023:8.5.2.1 Table 2 category name: its PICTURE's (or a bit/national group's as-if
+    /// PICTURE's), else — for an ordinary group, which has no PICTURE at all — category alphanumeric (§2023:13.18.29.4
     /// GR3, "an alphanumeric group item"). A group key with an elementary operand at its leftmost position is
     /// exactly the generic-key shape SR6 b) is written for, so the group arm may not answer "no category".
     /// <para>⚠ NOT <see cref="Place.CategoryOf"/>, which looks similar and answers a DIFFERENT question: that is
-    /// §8.4.3.3.3 GR6's rule for the category a REFERENCE-MODIFIED view takes (numeric becomes alphanumeric, and
+    /// §2023:8.4.3.3.3 GR6's rule for the category a REFERENCE-MODIFIED view takes (numeric becomes alphanumeric, and
     /// so on). SR6 b) 2. compares the items' OWN categories, so folding the two would import a rule about
     /// reference modification into a rule about record keys.</para></summary>
     private static string CategoryOfItem(DataItem item) =>
         item.OperandPic is { } pic ? ItemCategory.CategoryName(pic) : ActivationCategory.Alphanumeric;
 
-    /// <summary>The item's USAGE (ISO §13.18.60), through THE ONE §8.5.2.1 usage reader
+    /// <summary>The item's USAGE (ISO §2023:13.18.60), through THE ONE §2023:8.5.2.1 usage reader
     /// (<see cref="ItemCategory.UsageOf"/>): the PICTURE's resolved usage for an elementary item, the as-if
     /// PICTURE's for a bit / national group, and DISPLAY for an alphanumeric group — "An alphanumeric group item
     /// is treated as though it had a usage of display" (kb/Work PB411's sibling sweep; the former
-    /// <c>?? item.OwnUsage</c> gave <c>01 G USAGE COMP.</c> the answer BINARY, which §13.18.60.4 GR1 settles
+    /// <c>?? item.OwnUsage</c> gave <c>01 G USAGE COMP.</c> the answer BINARY, which §2023:13.18.60.4 GR1 settles
     /// outright — "Unless the GROUP-USAGE clause is also specified or implied, the USAGE clause applies only to
     /// each elementary item in the group and not to the group itself"). The tail
-    /// survives for the group kinds §3.11 excludes from "alphanumeric group item", where the standard states no
+    /// survives for the group kinds §2023:3.11 excludes from "alphanumeric group item", where the standard states no
     /// usage and SR6 b) 2. still has to compare something: the entry's own keyword, else DISPLAY — GR2's
     /// standard data format, the usage an entry with no clause has.</summary>
     private static Usage UsageOfItem(DataItem item) =>

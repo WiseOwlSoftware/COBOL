@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB2770: SEARCH ALL with no WHEN phrase. ISO §14.9.37.2 Format 2 (all) writes its
+      *> kb/Work PB2770: SEARCH ALL with no WHEN phrase. ISO §2023:14.9.37.2 Format 2 (all) writes its
       *> `WHEN { data-name-1 ... | condition-name-1 }` phrase unbracketed, so the WHEN phrase is required
-      *> and the statement is refused at END-SEARCH. END-SEARCH is SEARCH's explicit scope terminator (ISO §14.5.3.2)
+      *> and the statement is refused at END-SEARCH. END-SEARCH is SEARCH's explicit scope terminator (ISO §2023:14.5.3.2)
       *> and its SEARCH statement is open here, so the refusal is the ordinary syntax error. It used to read
       *> COBOL0306 "END-SEARCH appears without a matching SEARCH statement": the hint built the rule name
       *> searchStatement from the word's spelling and never saw searchAllStatement on the parse stack.

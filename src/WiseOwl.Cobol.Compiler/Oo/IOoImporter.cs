@@ -5,10 +5,10 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
-/// ⛔ WHERE A CLASS OR INTERFACE THE COMPILATION GROUP DOES NOT DEFINE COMES FROM (ISO §12.3.8.3 SR6 b), SR9: "there shall be
-/// information in the external repository for the class" / "the interface"; DESIGN-external-repository §8.4 step 3, §10.1, §10.6).
+/// ⛔ WHERE A CLASS OR INTERFACE THE COMPILATION GROUP DOES NOT DEFINE COMES FROM (ISO §2023:12.3.8.3 SR6 b), SR9: "there shall be
+/// information in the external repository for the class" / "the interface"; DESIGN-external-repository §8.4 step 3, §2023:10.1, §2023:10.6).
 /// The class table asks it for an IDENTITY — the externalized name a class- or interface-specifier states (<c>lit ?? word</c>,
-/// §12.3.8.4 GR2) — after the group's own definitions and the standard class BASE have not claimed it, and registers what it
+/// §2023:12.3.8.4 GR2) — after the group's own definitions and the standard class BASE have not claimed it, and registers what it
 /// answers (<see cref="OoClassTable.ImportClass"/>, <see cref="OoClassTable.ImportInterface"/>). The one implementation is
 /// <c>MetadataRepositoryProvider</c>, which reads the compiled assemblies of the search space; it is an interface because the table
 /// (<c>Compiler.Oo</c>) is built before the provider's binder-side collaborators exist and must not depend on them.
@@ -26,7 +26,7 @@ internal interface IOoImporter
 
     /// <summary>The parameterized class (or, with <paramref name="isInterface"/>, interface) published under <paramref name="identity"/>
     /// — its record and the assembly it came from — or null when nothing answers (the provider has reported a finding of its own when
-    /// it refused one). An expansion of it is made in this compilation from the source the record holds (ISO §12.3.8.4 GR5 / GR8;
+    /// it refused one). An expansion of it is made in this compilation from the source the record holds (ISO §2023:12.3.8.4 GR5 / GR8;
     /// DESIGN-external-repository §10.5).</summary>
     ImportedSkeleton? Skeleton(string identity, bool isInterface);
 
@@ -36,7 +36,7 @@ internal interface IOoImporter
     bool Refused(string identity, bool isInterface);
 
     /// <summary>What REPO-1 says was searched for the class (or interface) <paramref name="identity"/>: every location in order, why
-    /// a file named after the unit was no answer, and the files the directory index skipped for their size (§15.2).</summary>
+    /// a file named after the unit was no answer, and the files the directory index skipped for their size (§2023:15.2).</summary>
     string Searched(string identity, bool isInterface);
 }
 

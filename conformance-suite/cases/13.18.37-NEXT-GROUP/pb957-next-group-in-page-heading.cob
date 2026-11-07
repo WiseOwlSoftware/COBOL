@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A NEXT GROUP CLAUSE IN A PAGE HEADING (kb/Work PB957).
-      *> ISO/IEC 1989:2023 §13.18.37.3 SR4: "The NEXT GROUP clause shall not be specified in a page
+      *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR4: "The NEXT GROUP clause shall not be specified in a page
       *> heading or report footing."
       *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.3.3 SR4 — object-class-name-2 shall not inherit from
+      *> ISO §2023:11.3.3 SR4 — object-class-name-2 shall not inherit from
       *> object-class-name-1 INDIRECTLY.
       *>   cite.py --check 11.3.3 "Object-class-name-2 shall not inherit
       *>     from object-class-name-1 directly or indirectly." -> OK 4)

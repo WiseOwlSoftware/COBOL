@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DRIFT TEST kb/Work R10 (F74) DEMANDED: the HIGHEST/LOWEST-ALGEBRAIC fold and the runtime's
-/// BinaryCapacity discipline are ONE rule — "the item owns its full container range" (§13.18.60.4 GR12 / DOC-A.1-208;
-/// §15.43.4 r2 / §15.58.4 r2 make the fold exactly that range's ends). The fold used to carry its own
+/// BinaryCapacity discipline are ONE rule — "the item owns its full container range" (§2023:13.18.60.4 GR12 / DOC-A.1-208;
+/// §2023:15.43.4 r2 / §2023:15.58.4 r2 make the fold exactly that range's ends). The fold used to carry its own
 /// hand-maintained usage list while <c>PicInfo.Truncation</c> carried the same list again, and the two runtime
 /// halves (<c>WrapBinary</c>/<c>InBinaryRange</c>) disagreed with both at the 16-byte tier (the shift-mask bug:
 /// modulus 2^128 computed as 1). The fold now READS <c>PicInfo.Truncation</c>; this suite pins the residual
@@ -59,7 +59,7 @@ public sealed class AlgebraicFoldContainerAgreementTests
 
     // ── 2. Fold bound == runtime acceptance boundary, for every container tier ─────────────────────────────
     // The fold computes 2^(bits−1)−1 / −2^(bits−1) signed and 2^bits−1 / 0 unsigned from PicInfo.StorageWidth
-    // (§13.18.60.4 GR12 / DOC-A.1-208); the runtime's TryStore must accept exactly that range. Each row derives bits the
+    // (§2023:13.18.60.4 GR12 / DOC-A.1-208); the runtime's TryStore must accept exactly that range. Each row derives bits the
     // same way the fold does and probes the boundary from BOTH sides where a wider carrier can express it.
 
     public static TheoryData<Usage, int, bool> Containers()
@@ -110,7 +110,7 @@ public sealed class AlgebraicFoldContainerAgreementTests
         Assert.True(CobolNum.TryStore((Int128)lowest, 0, prof, CobolRounding.Truncation, out _));
         if (lowest - 1 >= (BigInteger)Int128.MinValue)
         {
-            // ⚠ An UNSIGNED receiver's TryStore applies the §14.9.25.4 GR6d2b magnitude rule, so −1 stores
+            // ⚠ An UNSIGNED receiver's TryStore applies the §2023:14.9.25.4 GR6d2b magnitude rule, so −1 stores
             // as 1 (in range): the "one below zero rejects" leg exists only for a SIGNED container.
             if (signed)
                 Assert.False(CobolNum.TryStore((Int128)(lowest - 1), 0, prof, CobolRounding.Truncation, out _));

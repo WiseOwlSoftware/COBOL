@@ -10,14 +10,14 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1066, the SOURCE FORMAT half — ISO §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is
+/// kb/Work PB1066, the SOURCE FORMAT half — ISO §2023:14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is
 /// assumed at the end of imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit
-/// POP ALL". ALL is every pushable directive (§7.3.22.4 GR2: "all of the directives other than EVALUATE, IF, PAGE,
+/// POP ALL". ALL is every pushable directive (§2023:7.3.22.4 GR2: "all of the directives other than EVALUATE, IF, PAGE,
 /// POP, or PUSH"), and SOURCE FORMAT is one, so a <c>&gt;&gt;SOURCE FORMAT</c> written in a WHEN or FINALLY phrase is
 /// undone before END-PERFORM exactly as a <c>&gt;&gt;DEFINE</c> there is (<see cref="ExceptionPerformDefineScopeTests"/>).
-/// <para><b>The decision these tests pin</b> (a reference format is a PER-LINE property, §6.5, so the op is a boundary
+/// <para><b>The decision these tests pin</b> (a reference format is a PER-LINE property, §2023:6.5, so the op is a boundary
 /// between physical lines): the POP restores the format BEFORE the physical line that holds END-PERFORM, so that line is
-/// itself read in the restored format — the phrase is text FOLLOWING the POP, and §7.3.24.3 1) makes a format govern "the
+/// itself read in the restored format — the phrase is text FOLLOWING the POP, and §2023:7.3.24.3 1) makes a format govern "the
 /// source text … following" the directive. The PUSH takes effect after the line that ends imperative-statement-1.</para>
 /// </summary>
 public sealed class ExceptionPerformSourceFormatScopeTests
@@ -198,7 +198,7 @@ public sealed class ExceptionPerformSourceFormatScopeTests
 
     /// <summary>The PERFORM lives in library text whose handler switches the format and whose END-PERFORM and following
     /// line need the restored one: library text is converted by its own walker with its own format state
-    /// (§7.3.24.3 3 and 5), so the implicit ops reach it keyed to ITS physical lines.</summary>
+    /// (§2023:7.3.24.3 3 and 5), so the implicit ops reach it keyed to ITS physical lines.</summary>
     [Fact]
     public void ThePerformInALibraryText_IsRestoredByTheLibraryTextsOwnWalker()
     {

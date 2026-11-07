@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.2 REWRITE general format — the phrases a COBOL-85
+      *> ISO §2023:14.9.35.2 REWRITE general format — the phrases a COBOL-85
       *> program can write: FROM identifier-1, INVALID KEY, NOT INVALID
       *> KEY, END-REWRITE (retry-phrase, the LOCK phrases, FROM literal-1
       *> and the FILE arm are later additions; they are pinned at 2023 by
@@ -16,16 +16,16 @@
       *>   [ |INVALID KEY imperative-1| |NOT INVALID KEY imperative-2| ]
       *>   [END-REWRITE]
       *>   cite.py --check 14.9.35.2 "retry-phrase is described in
-      *>     14.7.9" -> OK §14.9.35.2 (General format)
+      *>     14.7.9" -> OK §2023:14.9.35.2 (General format)
       *> The 1985 text is not in the repository, so this program writes
       *> the key phrases only in INVALID-then-NOT order (legal under the
-      *> 2023 choice indicators, §5.2.6.4, and in the classic order).
+      *> 2023 choice indicators, §2023:5.2.6.4, and in the classic order).
       *> Semantics (INDEXED, ACCESS DYNAMIC, keys K1..K4):
       *>   FROM identifier-1 = "MOVE identifier-1 TO record-name-1"
-      *>     then the REWRITE without FROM (OK §14.9.35.4 7)).
-      *>   No record with the prime key -> '23' (OK §14.9.35.4 23)).
-      *>   INVALID KEY / NOT INVALID KEY branches (OK §9.1.14 2)).
-      *>   '00' = successful completion (OK §9.1.13.2 1)).
+      *>     then the REWRITE without FROM (OK §2023:14.9.35.4 7)).
+      *>   No record with the prime key -> '23' (OK §2023:14.9.35.4 23)).
+      *>   INVALID KEY / NOT INVALID KEY branches (OK §2023:9.1.14 2)).
+      *>   '00' = successful completion (OK §2023:9.1.13.2 1)).
       *> Legs:
       *>   E1 FROM identifier, INVALID KEY + NOT INVALID KEY,
       *>      END-REWRITE, K1 present                     -> 00 N

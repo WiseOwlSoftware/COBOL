@@ -4,23 +4,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 4 — RETURNING presence differs: the
+      *> ISO §2023:9.3.8.2.3 rule 4 — RETURNING presence differs: the
       *>   implementation has RETURNING and the prototype has none
       *> Rule: "The presence or absence of the procedure division
       *>   RETURNING phrase is the same."
       *> cite.py --check 9.3.8.2.3 "The presence or absence of the
       *>   procedure division RETURNING phrase is the same" -> OK
-      *>   §9.3.8.2.3 4)  (Conformance between interfaces)
+      *>   §2023:9.3.8.2.3 4)  (Conformance between interfaces)
       *> cite.py --check 11.8.3 "Each method prototype in each
       *>   implemented interface shall be such that the object interface
       *>   of this class conforms to all implemented interfaces" -> OK
-      *>   §11.8.3 2)  (Syntax rules)
+      *>   §2023:11.8.3 2)  (Syntax rules)
       *> Interface-1 = the object interface of class L1C05QC,
       *>   interface-2 = L1C05QI (the class IMPLEMENTS it). Method ADDV
       *>   is identical on both sides (one BY REFERENCE PIC 9(4) formal)
       *>   EXCEPT that the implementation has RETURNING and the
       *>   prototype has none, so the object interface does not conform
-      *>   and §11.8.3 SR2 is violated: COBOL0841 (the IMPLEMENTS
+      *>   and §2023:11.8.3 SR2 is violated: COBOL0841 (the IMPLEMENTS
       *>   conformance diagnostic). Control: with RETURNING LK-R on both
       *>   sides the same source compiles.
        IDENTIFICATION DIVISION.

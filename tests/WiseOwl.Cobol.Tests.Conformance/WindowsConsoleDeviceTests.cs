@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// through the code-page setters:
 /// <list type="number">
 /// <item><description><b>Interactive ACCEPT.</b> The input arm only decoded a REDIRECTED standard input, so an
-/// interactive console kept its input code page and every character outside it was stored as <c>?</c>. ISO §14.9.1.4 GR1
+/// interactive console kept its input code page and every character outside it was stored as <c>?</c>. ISO §2023:14.9.1.4 GR1
 /// leaves "any conversion of data required between the device and the data item" to the implementor and A.1 item 1 makes
 /// that conversion a documented one; WiseOwl COBOL's determination (docs/CONFORMANCE.md DOC-A.1-1) is that the device
 /// delivers characters of the UTF-16 repertoire. Typed at a console whose input code page is 437, € (U+20AC) and
@@ -107,7 +107,7 @@ public sealed class WindowsConsoleDeviceTests
 
     private static string Dll(string dir, string name) => $"dotnet \"{Path.Combine(dir, name + ".dll")}\"";
 
-    // §14.9.1.4 GR1 + CONFORMANCE.md DOC-A.1-1: the device delivers characters of the UTF-16 repertoire, and an
+    // §2023:14.9.1.4 GR1 + CONFORMANCE.md DOC-A.1-1: the device delivers characters of the UTF-16 repertoire, and an
     // alphanumeric or national receiver stores them as-is, one per character position. The ordinal position of a
     // character is its code-unit value plus one (item 188): € U+20AC 8364 -> 8365, 中 U+4E2D 20013 -> 20014,
     // E U+0045 69 -> 70, é U+00E9 233 -> 234. Under input code page 437 the first two were stored as '?' (ORD 64).

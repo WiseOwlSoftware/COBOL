@@ -3,12 +3,12 @@
 namespace WiseOwl.Cobol.Runtime.Exceptions;
 
 /// <summary>
-/// The RESUME control-unwind signal (ISO/IEC 1989:2023 §14.9.33): a RESUME statement inside a USE declarative
+/// The RESUME control-unwind signal (ISO/IEC 1989:2023 §2023:14.9.33): a RESUME statement inside a USE declarative
 /// throws it; the generated <c>__RunUse</c> catches it and RETURNS the resume action to the raise site — the
 /// exception-as-control pattern of <c>StopRun</c>/<c>ProgramReturn</c> (the as-built mapping of the deep-dive's
 /// original "declarative returns a ResumeAction" sketch: declaratives are pc ranges run by the bounded
 /// dispatcher, not methods — recorded in CONDITIONS_EXCEPTIONS_DESIGN). The unwind crosses any nested
-/// PERFORM <c>__Dispatch</c> frames inside the declarative; the §14.9.33.4 GR3 NOTE 2 caveat (abandoned PERFORM
+/// PERFORM <c>__Dispatch</c> frames inside the declarative; the §2023:14.9.33.4 GR3 NOTE 2 caveat (abandoned PERFORM
 /// flow is undefined) is inherited deliberately.
 /// </summary>
 public sealed class ResumeSignal(int targetPc) : Exception
@@ -20,21 +20,21 @@ public sealed class ResumeSignal(int targetPc) : Exception
 
 /// <summary>
 /// The SECOND leg of a resume that began at a RUNTIME raise site (kb/Work PB367b): a nonfatal exception condition
-/// detected inside the runtime runs the §14.6.13.1.4 #3 selection there, so <see cref="ResumeSignal"/> has
+/// detected inside the runtime runs the §2023:14.6.13.1.4 #3 selection there, so <see cref="ResumeSignal"/> has
 /// already done its job — the declarative's RESUME unwound to <c>__RunUse</c>, which returned the resume action
 /// to the raise site — and what remains is to leave the INTERRUPTED STATEMENT, whose frames sit between the raise
 /// site and the emitted statement wrapper.
 /// <para>⛔ IT IS A DISTINCT TYPE BECAUSE THE TWO SIGNALS HAVE DIFFERENT LANDING SITES, and sharing one made the
 /// nearer landing site swallow the farther signal: the emitted nonfatal-gate wrapper caught the
 /// <see cref="ResumeSignal"/> that an explicit RESUME statement inside a declarative was throwing AT
-/// <c>__RunUse</c> — so <c>RESUME AT NEXT STATEMENT</c> in a declarative became a CONTINUE (§14.9.33.4 GR2 turned
+/// <c>__RunUse</c> — so <c>RESUME AT NEXT STATEMENT</c> in a declarative became a CONTINUE (§2023:14.9.33.4 GR2 turned
 /// into GR1's global-declarative behaviour) and <c>RESUME AT procedure-name</c> transferred inside the
 /// declarative's own bounded dispatch instead of returning the action. Two landing sites, two types.</para>
 /// </summary>
 public sealed class RaiseResumeSignal(int targetPc) : Exception
 {
     /// <summary>The resume action returned by the declarative that was selected at the raise site: a
-    /// nondeclarative pc (<c>RESUME AT procedure-name</c> ≡ GO TO, §14.9.33.4 GR3), or
+    /// nondeclarative pc (<c>RESUME AT procedure-name</c> ≡ GO TO, §2023:14.9.33.4 GR3), or
     /// <see cref="DispatchResult.ResumeNext"/>.</summary>
     public int TargetPc { get; } = targetPc;
 }

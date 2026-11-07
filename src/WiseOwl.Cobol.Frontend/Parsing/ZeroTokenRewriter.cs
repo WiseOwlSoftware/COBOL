@@ -20,27 +20,27 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///   ZERO between a grouping ( and )    → rewrite (<c>(ZERO)</c>, a parenthesized arithmetic expression)
 ///   ZERO beside the ref-mod :          → rewrite (a reference-modification position or length)
 ///   ALL ZERO in any of those positions → rewrite the ZERO; the ALL stays, and the parser's arm reads it
-///                                        (§8.3.3.6.2 Format 1's optional word; kb/Work PB3846)
+///                                        (§2023:8.3.3.6.2 Format 1's optional word; kb/Work PB3846)
 ///
 /// All other ZERO tokens are left unchanged — they remain figurative constants
 /// for VALUE, MOVE, comparison, and other non-arithmetic contexts. An arithmetic context no neighbour shows — a BARE
-/// ZERO in a slot that takes only an arithmetic expression (<c>SET IX UP BY ZERO</c>, ISO §8.8.1.1) — is the parse's to
+/// ZERO in a slot that takes only an arithmetic expression (<c>SET IX UP BY ZERO</c>, ISO §2023:8.8.1.1) — is the parse's to
 /// find: it fails at the figurative ZERO there, and <see cref="ZeroSignReading"/> then reads it as ZERO_ARITH (kb/Work
 /// PB4120).
 ///
 /// <para>
 /// ⛔ ONE GROUPING PAREN IS NOT AN ARITHMETIC CONTEXT; A PAIR AROUND THE ZERO ALONE IS (kb/Work PB2734). A plain
 /// <c>LPAREN</c>/<c>RPAREN</c> (GROUPING-PAREN-ONLY: the FNARG_ and REF_ twins below never enclose a condition)
-/// also groups a CONDITION (§8.8.4.9: a complex condition's truth value is the same
+/// also groups a CONDITION (§2023:8.8.4.9: a complex condition's truth value is the same
 /// "whether parenthesized or not"), and adjacency cannot tell that '(' from an arithmetic one. The paren arms used
 /// to rewrite a ZERO beside EITHER paren, so <c>IF (WS-A = ZERO)</c> and <c>IF (ZERO = WS-A)</c> bound the numeric
 /// literal 0 where the unparenthesized relation binds the figurative constant: over a <c>PIC X(3) VALUE "000"</c>
 /// item the bare relation answered EQUAL and the parenthesized one NOT EQUAL, a silent wrong branch against
-/// §8.3.3.6.4 GR4 (the zero format is the value 0 or the character '0' "depending on context") and GR2's NOTE 1
+/// §2023:8.3.3.6.4 GR4 (the zero format is the value 0 or the character '0' "depending on context") and GR2's NOTE 1
 /// (the figurative is associated with the item it is "compared with"); and <c>IF (WS-N IS ZERO)</c>, whose ZERO is
 /// the sign condition's keyword, did not parse at all. Inside an arithmetic paren the ZERO's other neighbour is an
 /// arithmetic operator (which its own arm rewrites) or the matching ')': only <c>( ZERO )</c> leaves the parens
-/// as the ZERO's whole context, and only there is the paren the deciding fact (§8.8.1.1: "an arithmetic expression
+/// as the ZERO's whole context, and only there is the paren the deciding fact (§2023:8.8.1.1: "an arithmetic expression
 /// enclosed in parentheses"). A ZERO with a paren on one side and anything else on the other is a relation
 /// operand, an abbreviated object or a sign-condition keyword inside a parenthesized condition, and keeps its
 /// figurative identity.
@@ -48,10 +48,10 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para>
 /// ⛔ THE PAREN ARMS MEAN <b>ARITHMETIC</b> PARENS, AND THAT ONLY BECAME TRUE WITH fix-queue PB48. A FUNCTION
 /// argument list is delimited by <c>FNARG_LPAREN</c>/<c>FNARG_RPAREN</c>, retyped by the lexer from the paren
-/// stack it already maintains (ISO §8.4.3.2.3 SR6 — that '(' is ALWAYS the argument list, never a grouping
+/// stack it already maintains (ISO §2023:8.4.3.2.3 SR6 — that '(' is ALWAYS the argument list, never a grouping
 /// paren). They are deliberately absent from the two sets below, so a bare <c>ZERO</c> argument keeps its
-/// figurative identity all the way to the binder, where the function's own §15.3 argument type decides whether
-/// it is the numeric value 0 or the character '0' (§8.3.3.6.4 GR4 — "depending on context"). Before that, this
+/// figurative identity all the way to the binder, where the function's own §2023:15.3 argument type decides whether
+/// it is the numeric value 0 or the character '0' (§2023:8.3.3.6.4 GR4 — "depending on context"). Before that, this
 /// pass answered the question itself, using adjacency, which cannot know the function: <c>LOWER-CASE(ZERO)</c>
 /// arrived as class numeric and was rejected as illegal.
 /// </para>
@@ -62,7 +62,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// </para>
 /// <para>
 /// The REFERENCE parens <c>REF_LPAREN</c>/<c>REF_RPAREN</c> (kb/Work PB2113) are absent for the same reason: the '('
-/// after a name may open a keyword-omitted function's ARGUMENT list (§8.4.3.2.3 SR2), where <c>LOWER-CASE(ZERO)</c>
+/// after a name may open a keyword-omitted function's ARGUMENT list (§2023:8.4.3.2.3 SR2), where <c>LOWER-CASE(ZERO)</c>
 /// must keep the figurative exactly as the FUNCTION form does — and in a subscript, a sole ZERO keeps it too, while
 /// <c>T(ZERO + 1)</c> is rewritten by its operator like any arithmetic operand.
 /// </para>
@@ -80,7 +80,7 @@ public static class ZeroTokenRewriter
         CobolLexer.STAR,
         CobolLexer.SLASH,
         CobolLexer.POWER,
-        // The reference-modification COLON (§8.4.3.3.3 SR4 — "leftmost-character-position and length shall be
+        // The reference-modification COLON (§2023:8.4.3.3.3 SR4 — "leftmost-character-position and length shall be
         // arithmetic expressions"). Its ONE grammar use is refModSpec, so both neighbours are arithmetic by
         // construction; `FUNCTION CURRENT-DATE (2:ZERO)` needs it because the delimiting parens of a ref-mod
         // written directly after a function name are FNARG_*, which no longer count as arithmetic context.
@@ -120,7 +120,7 @@ public static class ZeroTokenRewriter
         for (int i = 0; i < tokens.Count; i++)
         {
             var token = tokens[i];
-            // All three §8.9 spellings of the figurative zero (§8.3.3.6.2 format 1) — they are distinct tokens since
+            // All three §2023:8.9 spellings of the figurative zero (§2023:8.3.3.6.2 format 1) — they are distinct tokens since
             // kb/Work PB510, and interchangeable exactly here, where the word IS the figurative constant.
             if (!IsFigurativeZero(token))
                 continue;
@@ -132,8 +132,8 @@ public static class ZeroTokenRewriter
         tokenStream.Seek(0);
     }
 
-    /// <summary>The token is one of the three §8.9 spellings of the figurative zero (<c>ZERO</c>, <c>ZEROS</c>,
-    /// <c>ZEROES</c>; §8.3.3.6.2 format 1), still figurative: not yet a <c>ZERO_ARITH</c>.</summary>
+    /// <summary>The token is one of the three §2023:8.9 spellings of the figurative zero (<c>ZERO</c>, <c>ZEROS</c>,
+    /// <c>ZEROES</c>; §2023:8.3.3.6.2 format 1), still figurative: not yet a <c>ZERO_ARITH</c>.</summary>
     internal static bool IsFigurativeZero(IToken token) =>
         token.Type is CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES;
 
@@ -146,7 +146,7 @@ public static class ZeroTokenRewriter
     private static bool AZeroWrittenAtIsArithmetic(IList<IToken> tokens, int index)
     {
         // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
-        // the left, a written ALL is the figurative constant's own optional word (§8.3.3.6.2 Format 1, `[ALL]
+        // the left, a written ALL is the figurative constant's own optional word (§2023:8.3.3.6.2 Format 1, `[ALL]
         // ZERO`), never its context, so the context is the token before it: `1 + ALL ZERO`, `- ALL ZERO` and
         // `(ALL ZERO)` are arithmetic exactly as `1 + ZERO` is, and the parser's `ALL? ZERO_ARITH` arm carries
         // the ALL to the binder's edition gate (kb/Work PB3846). On the right the ZERO is the word's last token.
@@ -162,16 +162,16 @@ public static class ZeroTokenRewriter
 
     /// <summary>
     /// The token at <paramref name="index"/> is a <c>+</c> or <c>-</c> that is the sign of the numeric literal touching
-    /// its right, not an arithmetic operator (kb/Work PB3962). §8.7.1 makes the binary operators characters "that shall
+    /// its right, not an arithmetic operator (kb/Work PB3962). §2023:8.7.1 makes the binary operators characters "that shall
     /// be preceded by a space and followed by a space", so a sign with no space before the digits of the next literal
-    /// is no binary operator, and §8.3.3.3.2 2) makes it the literal's own: "If a sign is used, it shall appear as the
+    /// is no binary operator, and §2023:8.3.3.3.2 2) makes it the literal's own: "If a sign is used, it shall appear as the
     /// leftmost character of the literal". The figurative ZERO before it is therefore not an operand of that sign:
     /// <c>DISPLAY ZERO -1</c>, <c>CALL "P" USING ZERO +1</c> and the VALUE list <c>88 C VALUE ZERO -1</c> are operand
-    /// lists of two operands, and the ZERO keeps its figurative identity (§8.3.3.6.4 GR4: the value 0 or the character
+    /// lists of two operands, and the ZERO keeps its figurative identity (§2023:8.3.3.6.4 GR4: the value 0 or the character
     /// '0' "depending on context"). It is still the operand of an operator written with its space (<c>ZERO - 1</c>,
     /// whose digits are not touched) and of any operator on its LEFT. Where the grammar puts an arithmetic expression
     /// (<c>COMPUTE X = ZERO -1</c>) this operand-list reading fails to parse, and <see cref="ZeroSignReading"/> takes
-    /// the sign for the operator §8.7.1 then refuses, as it refuses <c>Y -1</c> (kb/Work PB3981). The test reads the token positions, the character
+    /// the sign for the operator §2023:8.7.1 then refuses, as it refuses <c>Y -1</c> (kb/Work PB3981). The test reads the token positions, the character
     /// facts the lexer's default mode does not keep (outside a list region it lexes the sign and the digits as two
     /// tokens, <c>SignedLiteralCanStart</c>); the touching digits are an integer, a decimal, a floating-point literal or
     /// the integer part of a DECIMAL-POINT IS COMMA one (<c>-1,5</c>, <c>-,5</c>).
@@ -186,7 +186,7 @@ public static class ZeroTokenRewriter
         int type = tokens[literal].Type;
         if (type is CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT || LiteralTokens.FloatingPointTypes.Contains(type))
             return true;
-        // `-,5`: the DECIMAL-POINT IS COMMA literal that opens with its decimal point (§12.3.7.4 GR14 a)).
+        // `-,5`: the DECIMAL-POINT IS COMMA literal that opens with its decimal point (§2023:12.3.7.4 GR14 a)).
         int fraction = type == CobolLexer.COMMA ? AdjacentIndex(tokens, literal, forward: true) : -1;
         return fraction >= 0 && tokens[fraction].Type == CobolLexer.INTEGERLIT
             && tokens[fraction].StartIndex == tokens[literal].StopIndex + 1;
@@ -194,7 +194,7 @@ public static class ZeroTokenRewriter
 
     /// <summary>
     /// The ZERO is the whole content of a grouping paren pair, <c>( ZERO )</c>: an arithmetic expression enclosed in
-    /// parentheses (§8.8.1.1), which no condition can be, so the pair is an arithmetic context by itself. One paren
+    /// parentheses (§2023:8.8.1.1), which no condition can be, so the pair is an arithmetic context by itself. One paren
     /// alone is not, because it may group a condition (kb/Work PB2734; the class remarks).
     /// GROUPING-PAREN-ONLY: the FNARG_ and REF_ twins are excluded deliberately (PB48, PB2113; the class remarks).
     /// </summary>
@@ -231,7 +231,7 @@ public static class ZeroTokenRewriter
     /// <summary>The word the program wrote for a <c>ZERO_ARITH</c> token — <c>ZERO</c>, <c>ZEROS</c> or <c>ZEROES</c> as
     /// spelled — for a diagnostic: the token's own text is the numeric <c>"0"</c> the rewrite gave it, and the rewrite
     /// keeps the original token's source span (<see cref="ReplaceWithZeroArith"/>). A token with no source span (none
-    /// the lexer produced) is spelled <c>ZERO</c>, the word's §8.9 name: the spelling only words a message.</summary>
+    /// the lexer produced) is spelled <c>ZERO</c>, the word's §2023:8.9 name: the spelling only words a message.</summary>
     public static string WrittenWord(IToken zeroArith) =>
         zeroArith.InputStream is { } input && zeroArith.StartIndex >= 0 && zeroArith.StopIndex >= zeroArith.StartIndex
             ? input.GetText(Antlr4.Runtime.Misc.Interval.Of(zeroArith.StartIndex, zeroArith.StopIndex))

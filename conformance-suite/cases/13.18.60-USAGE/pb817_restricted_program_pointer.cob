@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.4 GR25 + §13.18.60.3 SR19 + §14.9.39.3 SR22 — the RESTRICTED
+      *> ISO/IEC 1989:2023 §2023:13.18.60.4 GR25 + §2023:13.18.60.3 SR19 + §2023:14.9.39.3 SR22 — the RESTRICTED
       *> program-pointer, declared the one way the standard allows and assigned the one way SR22 allows.
       *> kb/Work PB817 (SR-14.9.39.3-22); the declaration half of kb/Work PB609.
       *>
-      *> §13.18.60.3 SR19 — "If program-prototype-name-1 is specified, the TYPEDEF clause shall be specified
+      *> §2023:13.18.60.3 SR19 — "If program-prototype-name-1 is specified, the TYPEDEF clause shall be specified
       *>   for the subject of the entry."  So the restriction is declared as a TYPE DECLARATION (PPT) and
       *>   reached by a TYPE clause; `01 PP USAGE PROGRAM-POINTER TO PBT817.` is itself nonconforming and is
       *>   the negative fixture pb452-program-pointer-to-without-typedef.
-      *> §13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
+      *> §2023:13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
       *>   program-pointer. A restricted program-pointer shall contain only the predefined address NULL or the
       *>   address of a program with the same signature as that identified by the specified
       *>   program-prototype-name."
-      *> §14.9.39.3 SR22 — "If identifier-7 references a restricted program-pointer, identifier-8 shall be the
+      *> §2023:14.9.39.3 SR22 — "If identifier-7 references a restricted program-pointer, identifier-8 shall be the
       *>   predefined address NULL or shall reference a program-pointer and the program-prototypes associated
       *>   with identifier-7 and identifier-8 shall have the same signature."
-      *> §8.4.3.13.4 GR2/GR3 — ADDRESS OF PROGRAM program-prototype-name-1 is the address of the outermost program the
+      *> §2023:8.4.3.13.4 GR2/GR3 — ADDRESS OF PROGRAM program-prototype-name-1 is the address of the outermost program the
       *>   prototype names, and has the characteristics of a program-pointer restricted to that prototype, so SR22
       *>   admits it into PP1. (The vendor SET … TO ENTRY spelling names a program by value, is unrestricted and is
       *>   refused for a restricted receiver, GR25 - kb/Work PB935; negative pb935-set-entry-restricted-program-pointer.)
@@ -28,7 +28,7 @@
       *> EXPECTED OUTPUT, derived line by line:
       *>   PP-SET     PP1 holds PBT817's address after SET … TO ADDRESS OF PROGRAM PBT817, so it is not the predefined NULL.
       *>   PP-SAME    PP2 and PP1 are both restricted to PBT817 — the SAME prototype, hence trivially the same
-      *>              signature — so SR22 admits the copy and §8.8.4.2.16 then makes them equal.
+      *>              signature — so SR22 admits the copy and §2023:8.8.4.2.16 then makes them equal.
       *>   PP-NULL    SR22's first alternative: the predefined address NULL is admissible in a RESTRICTED
       *>              program-pointer whatever its prototype (GR25 says so outright).
       *>   CALLED 0042  The restriction is not decoration: PP2 still addresses PBT817, and a CALL through it

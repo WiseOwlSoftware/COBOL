@@ -10,21 +10,21 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
-// The DISPLAY directive (ISO §7.3.12, kb/Work PB807 + PB1538) — the one directive of the text-manipulation stage that
-// PRODUCES output. Its operands are the compile-time operands every other directive reads (§7.3.12.3 SR2/SR3 point at
-// §7.3.6 and §7.3.7), so they are parsed by the one directive-expression grammar and evaluated by the one shared
+// The DISPLAY directive (ISO §2023:7.3.12, kb/Work PB807 + PB1538) — the one directive of the text-manipulation stage that
+// PRODUCES output. Its operands are the compile-time operands every other directive reads (§2023:7.3.12.3 SR2/SR3 point at
+// §2023:7.3.6 and §2023:7.3.7), so they are parsed by the one directive-expression grammar and evaluated by the one shared
 // evaluator; what is specific to DISPLAY — the PARAMETER phrase, the UPON phrase's choice indicators, the image each
 // value is transferred as — lives here and nowhere else.
 public static partial class ConditionalCompilationProcessor
 {
-    /// <summary>Process one <c>&gt;&gt;DISPLAY</c> line's operand text: parse it (§7.3.12.2), evaluate each operand in
-    /// order (§7.3.12.4 GR4), resolve the destinations (GR5, GR6), and — when nothing is wrong and every PARAMETER value
+    /// <summary>Process one <c>&gt;&gt;DISPLAY</c> line's operand text: parse it (§2023:7.3.12.2), evaluate each operand in
+    /// order (§2023:7.3.12.4 GR4), resolve the destinations (GR5, GR6), and — when nothing is wrong and every PARAMETER value
     /// is available (GR3) — transfer ONE line per destination. A violation is reported and nothing is transferred: a
     /// half-evaluated line is not what the author wrote.</summary>
     private static void ApplyDisplay(string rest, CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag,
         CompilationInputs inputs, DiagnosticBag? bag)
     {
-        if (rest.Length == 0) return;   // §7.3.12.2 writes at least one operand: that PRESENCE is the central check's (COBOL1911)
+        if (rest.Length == 0) return;   // §2023:7.3.12.2 writes at least one operand: that PRESENCE is the central check's (COBOL1911)
         if (ParseDisplayFragment(rest, diag, ">>DISPLAY", compiled: true) is not { } fragment) return;
 
         var images = new List<string>();
@@ -33,13 +33,13 @@ public static partial class ConditionalCompilationProcessor
         {
             if (operand.compileTimeOperand() is { } compileTime)
             {
-                diag.FlagArithmetic(compileTime);          // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b), as every evaluated operand
+                diag.FlagArithmetic(compileTime);          // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b), as every evaluated operand
                 diag.GateBooleanOperators(compileTime);
                 if (evaluator.EvaluateOperand(compileTime, ">>DISPLAY") is { } value) images.Add(DisplayImage(value));
                 else valid = false;                        // already reported by the shared evaluator
                 continue;
             }
-            // PARAMETER compilation-variable-name-1 — §7.3.12.4 GR3: the value comes from the operating environment by the
+            // PARAMETER compilation-variable-name-1 — §2023:7.3.12.4 GR3: the value comes from the operating environment by the
             // implementor-defined method of DOC-A.1-55 (the DEFINE PARAMETER lookup, one rule); "If no value is made
             // available from the operating environment no transfer shall take place".
             if (ParameterText(operand.cobolWord(1).GetText(), inputs) is { } text) images.Add(text);
@@ -53,11 +53,11 @@ public static partial class ConditionalCompilationProcessor
         foreach (var destination in destinations) bag.Transfer(destination, line);
     }
 
-    /// <summary>The value of the PARAMETER phrase's compilation-variable-name from the operating environment (§7.3.11.4
-    /// GR4, §7.3.12.4 GR3), or null when none is made available: the environment variable named by the name in its
+    /// <summary>The value of the PARAMETER phrase's compilation-variable-name from the operating environment (§2023:7.3.11.4
+    /// GR4, §2023:7.3.12.4 GR3), or null when none is made available: the environment variable named by the name in its
     /// canonical UPPER-CASE spelling (DOC-A.1-49, DOC-A.1-55), which is <see cref="CobolNames.UpperFold"/> — the Annex C
-    /// fold of §8.1.3.2 GR3 b) with the basic letters raised, the ONE upper-case key of a COBOL word — and not the
-    /// host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so every spelling of one name (§8.3.1;
+    /// fold of §2023:8.1.3.2 GR3 b) with the basic letters raised, the ONE upper-case key of a COBOL word — and not the
+    /// host's <c>ToUpperInvariant</c>. A compilation-variable-name is a COBOL word, so every spelling of one name (§2023:8.3.1;
     /// an extended letter and its own lowercase) reads ONE variable, and two names Annex C keeps apart (the Kelvin sign
     /// and K, kb/Work PB4420) read two. The ONE lookup of the DEFINE and DISPLAY directives, recorded on the compilation's inputs (kb/Work PB985,
     /// PB1533, PB2990).</summary>
@@ -65,11 +65,11 @@ public static partial class ConditionalCompilationProcessor
         inputs.GetEnvironmentVariable(CobolNames.UpperFold(name));
 
     /// <summary>The streams an UPON phrase names, in the order written, or null (reported) when it breaks its format.
-    /// §7.3.12.4 GR6: no UPON phrase is as if UPON LISTING; GR5 a): LISTING is "the same device as that used for source
+    /// §2023:7.3.12.4 GR6: no UPON phrase is as if UPON LISTING; GR5 a): LISTING is "the same device as that used for source
     /// listings" — none is produced (DOC-A.1-117), so it is the compiler's standard output; GR5 b): compile-time-device-1
     /// is "the device defined by the implementor" — an OUTPUT-capable device-name of the ONE implementor-name table
     /// (<see cref="ImplementorNames"/>, DOC-A.1-54), so the directive and a SPECIAL-NAMES entry cannot disagree about
-    /// what a device-name means. §7.3.12.2's braces carry §5.2.6.4 CHOICE INDICATORS: one or more of the device group
+    /// what a device-name means. §2023:7.3.12.2's braces carry §2023:5.2.6.4 CHOICE INDICATORS: one or more of the device group
     /// (<c>compile-time-device-1 …</c>, itself repeatable) and LISTING, EACH AT MOST ONCE, in any order — so LISTING
     /// twice, or two separate runs of devices, is refused.</summary>
     private static List<CompileOutputStream>? DisplayDestinations(CobolParserCore.DisplayUponPhraseContext? upon, DirectiveDiag diag)
@@ -82,7 +82,7 @@ public static partial class ConditionalCompilationProcessor
             string word = wordNode.GetText();
             if (CobolKeywords.Same(word, "LISTING"))
             {
-                if (listing) { diag.DisplayUpon("LISTING is written twice — the choice indicators of §5.2.6.4 admit each alternative at most once"); valid = false; }
+                if (listing) { diag.DisplayUpon("LISTING is written twice — the choice indicators of §2023:5.2.6.4 admit each alternative at most once"); valid = false; }
                 listing = true;
                 inDeviceRun = false;
                 destinations.Add(CompileOutputStream.Standard);
@@ -91,13 +91,13 @@ public static partial class ConditionalCompilationProcessor
             if (ImplementorNames.Lookup(word) is not { Kind: SystemNameKind.Device } row || !row.Device.HasFlag(DeviceCapability.Output))
             {
                 diag.DisplayUpon($"'{word}' is not an output device this implementation makes available as compile-time-device-1 "
-                    + $"(ISO §7.3.12.4 GR5 b); the device-names are {ImplementorNames.DescribeDevices()}, and LISTING names the listing");
+                    + $"(ISO §2023:7.3.12.4 GR5 b); the device-names are {ImplementorNames.DescribeDevices()}, and LISTING names the listing");
                 valid = false;
                 continue;
             }
             if (!inDeviceRun)
             {
-                if (devices) { diag.DisplayUpon($"a second group of devices begins at '{word}' — the choice indicators of §5.2.6.4 admit each alternative at most once"); valid = false; }
+                if (devices) { diag.DisplayUpon($"a second group of devices begins at '{word}' — the choice indicators of §2023:5.2.6.4 admit each alternative at most once"); valid = false; }
                 devices = true;
                 inDeviceRun = true;
             }
@@ -106,7 +106,7 @@ public static partial class ConditionalCompilationProcessor
         return valid ? destinations : null;
     }
 
-    /// <summary>The image a value is transferred as (DOC-A.1-53, §7.3.12.4 GR1 — "any conversion of data required is
+    /// <summary>The image a value is transferred as (DOC-A.1-53, §2023:7.3.12.4 GR1 — "any conversion of data required is
     /// defined by the implementor"): an alphanumeric or national value as its characters, a boolean value as its
     /// <c>0</c> and <c>1</c> characters, a numeric value in the shortest decimal form — a leading <c>-</c> only when
     /// negative, at least one integer digit, a <c>.</c> and the fraction digits only when the value is not an integer,

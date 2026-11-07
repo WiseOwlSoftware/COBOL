@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.46.4 GR4 — RESUME NEXT: next implicit TERMINATE
+      *> ISO §2023:14.9.46.4 GR4 — RESUME NEXT: next implicit TERMINATE
       *> GR4 sentence 2: "If an implicit TERMINATE statement results in
       *> the execution of a declarative procedure that executes a RESUME
       *> statement with the NEXT STATEMENT phrase, processing resumes at
       *> the next implicit TERMINATE statement, if any."
-      *>   cite.py: OK  §14.9.46.4 4)  (General rules)
-      *> Supporting: §14.9.46.4 GR1 "If the report is not in the active
+      *>   cite.py: OK  §2023:14.9.46.4 4)  (General rules)
+      *> Supporting: §2023:14.9.46.4 GR1 "If the report is not in the active
       *> state, the EC-REPORT-INACTIVE exception condition is set to
-      *> exist" (cite.py: OK  §14.9.46.4 1)); §14.9.33.4 GR2a - without
+      *> exist" (cite.py: OK  §2023:14.9.46.4 1)); §2023:14.9.33.4 GR2a - without
       *> GR4 the implicit CONTINUE "immediately follows the end of the
       *> statement that was executing when control was transferred to
       *> the exception processing procedure unless general rules
       *> associated with the applicable statement specify otherwise"
-      *> (cite.py: OK  §14.9.33.4 2) a)).
-      *> §14.9.46.4 GR4 is that "otherwise".
-      *> §14.9.49.4 GR8 (cite.py: OK  §14.9.49.4 8)) makes each report
+      *> (cite.py: OK  §2023:14.9.33.4 2) a)).
+      *> §2023:14.9.46.4 GR4 is that "otherwise".
+      *> §2023:14.9.49.4 GR8 (cite.py: OK  §2023:14.9.49.4 8)) makes each report
       *> footing's production visible through USE BEFORE REPORTING.
       *> DERIVATION. R-A and R-C are active and have had a GENERATE;
       *> R-B was never initiated. TERMINATE R-C R-B R-A is three

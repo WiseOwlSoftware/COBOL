@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR25 — "For a relative file, if the RELATIVE KEY
+      *> ISO §2023:14.9.30.4 GR25 — "For a relative file, if the RELATIVE KEY
       *> clause is specified for file-name-1, the execution of a READ
       *> statement moves the relative record number of the record made
       *> available to the relative key data item according to the rules

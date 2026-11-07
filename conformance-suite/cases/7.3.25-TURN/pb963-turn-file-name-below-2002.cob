@@ -7,8 +7,8 @@
       *> kb/Work PB963 - THE EDITION FLOOR OF >>TURN's file-name-1 ARM.
       *>   cite.py --check 7.3.25.4 "if file-name-1 is specified,
       *>     checking is enabled only for exception conditions
-      *>     associated with that file-name" -> OK §7.3.25.4 6)
-      *> The TURN directive (§7.3.25) is a COBOL-2002 introduction, so at
+      *>     associated with that file-name" -> OK §2023:7.3.25.4 6)
+      *> The TURN directive (§2023:7.3.25) is a COBOL-2002 introduction, so at
       *> --std 85 the version-conformance pass rejects it (COBOL0900).
       *> Everything else below is legal COBOL-85: delete the directive
       *> line and it compiles at 85, which makes COBOL0900 here

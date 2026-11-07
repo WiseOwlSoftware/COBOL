@@ -8,19 +8,19 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>The kind of the ACTIVATED runtime element whose formal parameter a reference names — the key of the
 /// *-ARG-OMITTED rule, which the standard writes once per kind (kb/Work PB971):
 /// <list type="bullet">
-/// <item><see cref="Program"/> — ISO §14.9.4.4 GR12, "referenced in a called program … EC-PROGRAM-ARG-OMITTED".</item>
-/// <item><see cref="Function"/> — ISO §8.4.3.2.4 GR8, "referenced in an activated function … EC-FUNCTION-ARG-OMITTED".</item>
-/// <item><see cref="Method"/> — ISO §14.9.23.4 GR10, "referenced in an invoked method … EC-OO-ARG-OMITTED".</item>
+/// <item><see cref="Program"/> — ISO §2023:14.9.4.4 GR12, "referenced in a called program … EC-PROGRAM-ARG-OMITTED".</item>
+/// <item><see cref="Function"/> — ISO §2023:8.4.3.2.4 GR8, "referenced in an activated function … EC-FUNCTION-ARG-OMITTED".</item>
+/// <item><see cref="Method"/> — ISO §2023:14.9.23.4 GR10, "referenced in an invoked method … EC-OO-ARG-OMITTED".</item>
 /// </list></summary>
 public enum ActivatedElementKind
 {
-    /// <summary>A called program (§14.9.4.4 GR12).</summary>
+    /// <summary>A called program (§2023:14.9.4.4 GR12).</summary>
     Program,
 
-    /// <summary>An activated user-defined function (§8.4.3.2.4 GR8).</summary>
+    /// <summary>An activated user-defined function (§2023:8.4.3.2.4 GR8).</summary>
     Function,
 
-    /// <summary>An invoked method (§14.9.23.4 GR10).</summary>
+    /// <summary>An invoked method (§2023:14.9.23.4 GR10).</summary>
     Method,
 }
 
@@ -35,7 +35,7 @@ public enum ActivatedElementKind
 /// one of these guards (the structural <c>OmittedFormalGuard</c> on the path's root segment), which is what makes
 /// the two exemptions fall out rather than be listed: the omitted-argument condition reads the presence fact
 /// directly, and a formal forwarded as an argument is recognized as a WHOLE formal and its carrier forwarded
-/// without rendering the path (§8.8.4.8.4 GR1c). The omitted CALL carrier itself (<c>CobolArgAdapt</c>) no longer
+/// without rendering the path (§2023:8.8.4.8.4 GR1c). The omitted CALL carrier itself (<c>CobolArgAdapt</c>) no longer
 /// raises anything: before PB971 it raised EC-PROGRAM-ARG-OMITTED on read, which named the PROGRAM condition in
 /// a function and could not reach a method's copy-in local or a group formal's boundary copy at all.</para>
 /// <para>Checking OFF is lenient by construction: the guard returns the storage unchanged, and the storage holds
@@ -49,9 +49,9 @@ public static class OmittedFormal
     /// statement scope enables the flag the raise below tests.</summary>
     public static string ConditionName(ActivatedElementKind kind) => kind switch
     {
-        ActivatedElementKind.Program => "EC-PROGRAM-ARG-OMITTED",    // §14.9.4.4 GR12
-        ActivatedElementKind.Function => "EC-FUNCTION-ARG-OMITTED",  // §8.4.3.2.4 GR8
-        ActivatedElementKind.Method => "EC-OO-ARG-OMITTED",          // §14.9.23.4 GR10
+        ActivatedElementKind.Program => "EC-PROGRAM-ARG-OMITTED",    // §2023:14.9.4.4 GR12
+        ActivatedElementKind.Function => "EC-FUNCTION-ARG-OMITTED",  // §2023:8.4.3.2.4 GR8
+        ActivatedElementKind.Method => "EC-OO-ARG-OMITTED",          // §2023:14.9.23.4 GR10
         _ => throw new System.ArgumentOutOfRangeException(nameof(kind)),
     };
 
@@ -84,9 +84,9 @@ public static class OmittedFormal
         string detail = $"reference to formal parameter {formal}, for which the omitted-argument condition is true";
         switch (kind)
         {
-            case ActivatedElementKind.Program: exc.ProgramArgOmittedError(detail + " (ISO §14.9.4.4 GR12)"); break;
-            case ActivatedElementKind.Function: exc.FunctionArgOmittedError(detail + " (ISO §8.4.3.2.4 GR8)"); break;
-            case ActivatedElementKind.Method: exc.OoArgOmittedError(detail + " (ISO §14.9.23.4 GR10)"); break;
+            case ActivatedElementKind.Program: exc.ProgramArgOmittedError(detail + " (ISO §2023:14.9.4.4 GR12)"); break;
+            case ActivatedElementKind.Function: exc.FunctionArgOmittedError(detail + " (ISO §2023:8.4.3.2.4 GR8)"); break;
+            case ActivatedElementKind.Method: exc.OoArgOmittedError(detail + " (ISO §2023:14.9.23.4 GR10)"); break;
             default: throw new System.ArgumentOutOfRangeException(nameof(kind));
         }
     }

@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Validation;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ THE ONE SCREEN OF ISO §10.7.3 — every end marker of every source unit, asked once, over the raw parse tree
-/// (kb/Work PB988). The general format (§10.7.2) prints nine alternatives; the syntax rules pair each with the ID
+/// ⛔ THE ONE SCREEN OF ISO §2023:10.7.3 — every end marker of every source unit, asked once, over the raw parse tree
+/// (kb/Work PB988). The general format (§2023:10.7.2) prints nine alternatives; the syntax rules pair each with the ID
 /// paragraph of the definition it ends:
 /// <list type="bullet">
 /// <item>SR1 — "An end marker shall be present in every source unit that contains, is contained in, or precedes
@@ -27,7 +27,7 @@ using Core = CobolParserCore;
 /// omitted."</item>
 /// </list>
 /// <para>WHY ONE WALK, PRE-BIND. The grammar pairs every marker with the innermost open definition, so a wrong
-/// name, a reversed nesting or a missing marker parses — §10.7.4 GR1 ("An end marker indicates the end of the
+/// name, a reversed nesting or a missing marker parses — §2023:10.7.4 GR1 ("An end marker indicates the end of the
 /// specified source unit") then means the program does not say what the parse assumed. Until PB988 the rule was
 /// written in five places (END CLASS and END METHOD twice in <c>OoClassTable.Build</c>, END INTERFACE there and
 /// again for parameterized skeletons in <c>OoExpansion</c>), the interface's method prototypes and every PROPERTY
@@ -36,7 +36,7 @@ using Core = CobolParserCore;
 /// binding — over EVERY definition the source states, parameterized skeletons included (an expansion is renamed
 /// at both ends, so it is never asked again).</para>
 /// <para>The marker's KEYWORD (END PROGRAM versus END FUNCTION) and the presence of the unconditionally printed
-/// markers of the prototype and function formats are §10.6.1's, asked by <c>SourceUnitShape</c>; SR1 here is the
+/// markers of the prototype and function formats are §2023:10.6.1's, asked by <c>SourceUnitShape</c>; SR1 here is the
 /// positional rule a program definition's bracketed marker answers to.</para>
 /// </summary>
 internal static class EndMarkerPass
@@ -80,7 +80,7 @@ internal static class EndMarkerPass
         bool isPrototype = (pid?.prototypePhrase() ?? fid?.prototypePhrase()) is not null;
         string paragraph = pid is not null ? "PROGRAM-ID" : "FUNCTION-ID";
 
-        // SR1 — only a program DEFINITION's format brackets its end marker (§10.6.1), so it is the only kind whose
+        // SR1 — only a program DEFINITION's format brackets its end marker (§2023:10.6.1), so it is the only kind whose
         // marker this positional rule can require; the other three formats print it unconditionally and
         // SourceUnitShape asks that. A contained program always has one (`nestedProgram` requires it).
         if (unit.End is null && pid is not null && !isPrototype && (unit.Nested.Length > 0 || precedesAnother))
@@ -178,6 +178,6 @@ internal static class EndMarkerPass
     private static void Report(ParserRuleContext at, string rule, string message, EditionContext edition)
     {
         using var _ = edition.At(at);
-        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO §10.7.3 {rule})");
+        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO §2023:10.7.3 {rule})");
     }
 }

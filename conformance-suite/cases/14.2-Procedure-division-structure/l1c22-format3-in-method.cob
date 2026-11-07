@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.2.2 SR12 — an object-oriented format (Format 3)
+      *> ISO §2023:14.2.2 SR12 — an object-oriented format (Format 3)
       *> procedure division in a METHOD definition.
       *> RULE (14.2.2 SR12): "Format 3 may be specified in a source
       *> element if and only if that source element is a factory
@@ -14,7 +14,7 @@
       *>   element if and only if that source element is a factory
       *>   definition, an instance definition, or an interface
       *>   definition, but not in a method definition"
-      *>   -> OK  §14.2.2 12)  (Syntax rules)
+      *>   -> OK  §2023:14.2.2 12)  (Syntax rules)
       *> Factory method OUTER of class L1C22R has a Format 3 procedure
       *> division (14.2.1: PROCEDURE DIVISION. { method-definition }
       *> ...): it holds method definition INNER. SR12 excludes Format 3

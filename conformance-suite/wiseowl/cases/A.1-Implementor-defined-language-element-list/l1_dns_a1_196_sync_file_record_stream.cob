@@ -5,16 +5,16 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.55.4 GR11 — records of a file are not synchronized
+      *> ISO §2023:13.18.55.4 GR11 — records of a file are not synchronized
       *> (Annex A.1 item 196, Not provided): three odd-length records
       *> carrying a SYNCHRONIZED item are written with no slack.
       *>
-      *> THE RULE. §13.18.55.4 11): "Any rules for synchronization of
+      *> THE RULE. §2023:13.18.55.4 11): "Any rules for synchronization of
       *>   the records of a file, as this affects the synchronization of
       *>   elementary items, shall be specified by the implementor."
-      *>   OK  §13.18.55.4 11)  (General rules)
+      *>   OK  §2023:13.18.55.4 11)  (General rules)
       *> Annex A.1 196): "SYNCHRONIZED clause (how records of a file are
-      *>   handled). This item is optional."   OK  §A.1 196)
+      *>   handled). This item is optional."   OK  §2023:A.1 196)
       *>
       *> THE DOCUMENTED CHOICE, docs/CONFORMANCE.md DOC-A.1-196: "Not
       *>   provided. WiseOwl COBOL has no rule for synchronizing the
@@ -44,7 +44,7 @@
       *>   4660 give three different two-byte images, so a shifted read
       *>   cannot match by coincidence. After three 5-byte records there
       *>   is no next logical record, so the fourth READ takes AT END
-      *>   (§9.1.13.4 1) a) "NEXT was specified or implied and the end
+      *>   (§2023:9.1.13.4 1) a) "NEXT was specified or implied and the end
       *>   of the physical file has been reached" OK) -> EOF4=YES;
       *>   trailing slack would surface as a fourth (partial) record.
        IDENTIFICATION DIVISION.

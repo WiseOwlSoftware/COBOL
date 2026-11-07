@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reported an error and then returned an ordinary <c>BoundNop</c>, ~110 more returned one after a callee that was
 /// merely TRUSTED to have reported, and the operand-level error nodes (<c>BoundExprError</c>,
 /// <c>BoundOperandError</c>, <c>BoundBoolError</c>) had public constructors, so a refusal could be built with no
-/// report at all: <c>STRING ALL "AB" … INTO X</c> (§14.9.43.3 SR2), <c>INSPECT … FOR ALL 1</c> (§14.9.22.3 SR3),
-/// <c>B-AND SPACE</c> (§8.8.2) and <c>SUM(T(ALL, ALL))</c> over a one-dimensional table (§8.4.2.3.3 SR3) all
+/// report at all: <c>STRING ALL "AB" … INTO X</c> (§2023:14.9.43.3 SR2), <c>INSPECT … FOR ALL 1</c> (§2023:14.9.22.3 SR3),
+/// <c>B-AND SPACE</c> (§2023:8.8.2) and <c>SUM(T(ALL, ALL))</c> over a one-dimensional table (§2023:8.4.2.3.3 SR3) all
 /// compiled clean and aborted the run unit.
 /// <para>The shape now: every refusal node is obtainable only through a factory that puts it on the
 /// <see cref="EditionContext"/> refusal ledger, and <c>StatementBinder.BindStatement</c> fails the compile with
@@ -125,7 +125,7 @@ public sealed class RefusalNodeDriftTests
         const string reportThenNop = """
                     {
                         ctx.Edition.Error("COBOL1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
-                            + "index-name is not an identifier (ISO §8.4.3.1.2)");
+                            + "index-name is not an identifier (ISO §2023:8.4.3.1.2)");
                         return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                     }
             """;
@@ -134,10 +134,10 @@ public sealed class RefusalNodeDriftTests
             """;
         const string genuine = """
                 if (cont.arithmeticExpression() is { } secs) return Timed(secs);
-                return new BoundNop();   // plain CONTINUE — a §14.9.9 no-op
+                return new BoundNop();   // plain CONTINUE — a §2023:14.9.9 no-op
             """;
         const string exempted = """
-                if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // no-op: plain CONTINUE (§14.9.9)
+                if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // no-op: plain CONTINUE (§2023:14.9.9)
             """;
         Assert.Single(Disguised(reportThenNop));
         Assert.Single(Disguised(guardedNop));

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.48.4 GR10 — OR'd delimiters: one match, no shared
+      *> ISO §2023:14.9.48.4 GR10 — OR'd delimiters: one match, no shared
       *>   characters,
       *> applied in the sequence written
       *> "When two or more delimiters are specified in the DELIMITED BY
@@ -20,17 +20,17 @@
       *>   delimiter.
       *> Each delimiter is applied to the sending field in the sequence
       *> specified in the UNSTRING statement."
-      *> OK  §14.9.48.4 10)  (General rules)  [both quoted sentences
+      *> OK  §2023:14.9.48.4 10)  (General rules)  [both quoted sentences
       *>   checked]
-      *> OK  §14.9.48.4 11) b) "the examination proceeds left to right
+      *> OK  §2023:14.9.48.4 11) b) "the examination proceeds left to right
       *>   until
       *>     a delimiter specified by either literal-1 or the value of
       *>       the
       *>     data item referenced by identifier-2 is encountered"
-      *> OK  §14.9.48.4 11) f) "further examined beginning with the
+      *> OK  §2023:14.9.48.4 11) f) "further examined beginning with the
       *>   first
       *>     character position to the right of the delimiter"
-      *> OK  §14.9.48.4 8) two contiguous delimiters space-fill the
+      *> OK  §2023:14.9.48.4 8) two contiguous delimiters space-fill the
       *>   area.
       *> Receivers R1..R3 PIC X(3) preset "***", D1..D3 PIC XX preset
       *>   "##".

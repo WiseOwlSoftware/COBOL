@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §14.9.28.3 SR8 — "The UNTIL EXIT phrase shall not be specified in a PERFORM statement with or under a
+/// ISO §2023:14.9.28.3 SR8 — "The UNTIL EXIT phrase shall not be specified in a PERFORM statement with or under a
 /// PERFORM statement with the VARYING phrase or either the TEST BEFORE or TEST AFTER phrase" (kb/Work PB434;
 /// <c>cite.py --check 14.9.28.3</c> → OK 8)). Every row's verdict is computed from that sentence and from
-/// §14.9.28.4 GR1, "The range includes all statements that are executed as the result of a transfer of control in
+/// §2023:14.9.28.4 GR1, "The range includes all statements that are executed as the result of a transfer of control in
 /// the range of the PERFORM statement" — never from an oracle (GnuCOBOL 3.2.0 enforces neither half).
 ///
 /// <para>Each REFUSED row asserts COBOL2954 exactly ONCE — one statement violates, so one report — which a
@@ -53,13 +53,13 @@ public sealed class PerformUntilExitPlacementTests
     public void UntilExit_WithOrUnderAVaryingOrTestPerform_IsRefusedOnce(string pid, string body, string paragraphs)
     {
         var (ok, diagnostics) = EditionHarness.Compile(Program(pid, body, paragraphs), 2023);
-        Assert.False(ok, $"{pid}: §14.9.28.3 SR8 refuses this program, and it compiled");
+        Assert.False(ok, $"{pid}: §2023:14.9.28.3 SR8 refuses this program, and it compiled");
         Assert.True(diagnostics.Count(d => d.Contains(Sr8, StringComparison.Ordinal)) == 1,
             $"{pid}: expected exactly one {Sr8}; got:\n{string.Join("\n", diagnostics)}");
     }
 
     /// <summary>The SORT arm of the out-of-line half: an INPUT PROCEDURE runs from the SORT statement and returns
-    /// (§14.9.40.4 GR10), so a VARYING PERFORM of the paragraph holding the SORT puts the input procedure, and the
+    /// (§2023:14.9.40.4 GR10), so a VARYING PERFORM of the paragraph holding the SORT puts the input procedure, and the
     /// UNTIL EXIT in it, in its range.</summary>
     [Fact]
     public void UntilExit_InASortInputProcedureUnderAVaryingPerform_IsRefusedOnce()
@@ -94,7 +94,7 @@ public sealed class PerformUntilExitPlacementTests
 
             """;
         var (ok, diagnostics) = EditionHarness.Compile(source, 2023);
-        Assert.False(ok, "PBUX13: §14.9.28.3 SR8 refuses this program, and it compiled");
+        Assert.False(ok, "PBUX13: §2023:14.9.28.3 SR8 refuses this program, and it compiled");
         Assert.True(diagnostics.Count(d => d.Contains(Sr8, StringComparison.Ordinal)) == 1,
             $"PBUX13: expected exactly one {Sr8}; got:\n{string.Join("\n", diagnostics)}");
     }
@@ -111,10 +111,10 @@ public sealed class PerformUntilExitPlacementTests
     public void UntilExit_NotUnderAVaryingOrTestPerform_IsAccepted(string pid, string body, string paragraphs)
     {
         var (ok, diagnostics) = EditionHarness.Compile(Program(pid, body, paragraphs), 2023);
-        Assert.True(ok, $"{pid}: §14.9.28.3 SR8 does not reach this program; got:\n{string.Join("\n", diagnostics)}");
+        Assert.True(ok, $"{pid}: §2023:14.9.28.3 SR8 does not reach this program; got:\n{string.Join("\n", diagnostics)}");
     }
 
-    /// <summary>Below 2023 there is no UNTIL EXIT phrase at all (§14.9.28.4 GR11 is a COBOL-2023 addition), so the
+    /// <summary>Below 2023 there is no UNTIL EXIT phrase at all (§2023:14.9.28.4 GR11 is a COBOL-2023 addition), so the
     /// superset EXIT after a varying-phrase's UNTIL draws the edition's COBOL0900 there, beside SR8.</summary>
     [Theory]
     [InlineData(85)]

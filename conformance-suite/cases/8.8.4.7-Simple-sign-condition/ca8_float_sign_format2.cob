@@ -6,19 +6,19 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1471 (rewrites CA8). A sign condition on a bare IMPLEMENTOR-DEFINED float name
-      *> (FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED) is ISO §8.8.4.7 FORMAT 1, not Format 2:
-      *>   §8.8.4.7.3 SR1: "Arithmetic-expression-1 shall be any single numeric data item described
+      *> (FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED) is ISO §2023:8.8.4.7 FORMAT 1, not Format 2:
+      *>   §2023:8.8.4.7.3 SR1: "Arithmetic-expression-1 shall be any single numeric data item described
       *>     with a usage other than a standard floating-point usage, or any form of arithmetic
-      *>     expression."                                  cite.py: OK  §8.8.4.7.3 1)
-      *>   §8.8.4.7.3 SR2: data-name-1 "described with a standard floating-point usage"
-      *>                                                   cite.py: OK  §8.8.4.7.3 2)
-      *>   §3.166 standard binary float = "usages float-binary-32, float-binary-64, and
-      *>     float-binary-128"; §3.167 standard decimal float = "usages float-decimal-16 and
-      *>     float-decimal-34"                             cite.py: OK  §3.166 / §3.167
-      *> so FLOAT-LONG is outside both, and §8.8.4.7.4 GR1's ALGEBRAIC test applies:
+      *>     expression."                                  cite.py: OK  §2023:8.8.4.7.3 1)
+      *>   §2023:8.8.4.7.3 SR2: data-name-1 "described with a standard floating-point usage"
+      *>                                                   cite.py: OK  §2023:8.8.4.7.3 2)
+      *>   §2023:3.166 standard binary float = "usages float-binary-32, float-binary-64, and
+      *>     float-binary-128"; §2023:3.167 standard decimal float = "usages float-decimal-16 and
+      *>     float-decimal-34"                             cite.py: OK  §2023:3.166 / §2023:3.167
+      *> so FLOAT-LONG is outside both, and §2023:8.8.4.7.4 GR1's ALGEBRAIC test applies:
       *>   GR1 a) POSITIVE "false if the value is zero or less than zero"
       *>   GR1 b) NEGATIVE "false if it is zero or greater than zero"
-      *>   GR1 c) ZERO "true if the value is zero"         cite.py: OK  §8.8.4.7.4 1)
+      *>   GR1 c) ZERO "true if the value is zero"         cite.py: OK  §2023:8.8.4.7.4 1)
       *> The earlier CA8 golden expected the Format-2 sign-BIT answer (+0.0 POSITIVE, -0.0
       *> NEGATIVE) on FLOAT-LONG; that pinned the defect. Format 2 itself (FLOAT-BINARY-64) is
       *> pinned at 2014 by conformance:cases/8.8.4.7-Simple-sign-condition/pb1471_sign_condition_float_partition.

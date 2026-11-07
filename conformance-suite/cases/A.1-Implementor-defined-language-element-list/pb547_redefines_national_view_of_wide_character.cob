@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.1.2 1): "The number of bytes used in the memory of the computer to represent characters in
+      *> ISO/IEC 1989:2023 §2023:8.1.2 1): "The number of bytes used in the memory of the computer to represent characters in
       *> the alphanumeric coded character set shall be the same for all characters in that coded character set", and
-      *> §13.18.44.4 GR1: a REDEFINES entry's storage association is ONE storage area, so the national item N1 below
-      *> reads the very bytes of the alphanumeric item A1 (§13.18.60.4 GR7 / GR8: one byte per DISPLAY position, two per
+      *> §2023:13.18.44.4 GR1: a REDEFINES entry's storage association is ONE storage area, so the national item N1 below
+      *> reads the very bytes of the alphanumeric item A1 (§2023:13.18.60.4 GR7 / GR8: one byte per DISPLAY position, two per
       *> NATIONAL position, UTF-16BE).
       *>
       *> The determination (docs/CONFORMANCE.md DOC-A.1-31, -33, -46; kb/Work PB547): an alphanumeric position holds any
@@ -20,7 +20,7 @@
       *>
       *> Why each leg can fail:
       *>  CTL-A  - "ABCD" are bytes 41 42 43 44: N1 is U+4142 U+4344 (ORD 16707, 17221) and nothing is raised.
-      *>  CTL-HV - HIGH-VALUES is the byte 0xFF (§8.3.3.6.4 GR6 with the storage-byte law): N1 is U+FFFF U+FFFF (ORD 65536
+      *>  CTL-HV - HIGH-VALUES is the byte 0xFF (§2023:8.3.3.6.4 GR6 with the storage-byte law): N1 is U+FFFF U+FFFF (ORD 65536
       *>           twice) and nothing is raised — a character WITH a byte image never trips the condition.
       *>  EURO-N - A1 = euro + "ABC": the euro's byte is 3F, so N1(1) is U+3F41 (ORD 16194) not U+AC41 (ORD 44098), and
       *>           N1(2) is U+4243 (ORD 16964); EC-DATA-CONVERSION is the last exception.

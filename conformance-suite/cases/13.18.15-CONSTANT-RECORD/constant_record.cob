@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.15 CONSTANT RECORD clause (2014) — a STRUCTURED
+      *> ISO §2023:13.18.15 CONSTANT RECORD clause (2014) — a STRUCTURED
       *> constant: the record's content is its normal initial content
-      *> (§13.18.15.4 GR1 — as though the record had been the subject
+      *> (§2023:13.18.15.4 GR1 — as though the record had been the subject
       *> of INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT), and
-      *> the content cannot be modified (§13.18.15.1; SR2's receiving
+      *> the content cannot be modified (§2023:13.18.15.1; SR2's receiving
       *> rejection is the negative twin constant-record-store.cob).
       *> Reads are ordinary: elementary and group DISPLAY, a MOVE
       *> source, and a relation operand.

@@ -3,8 +3,8 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The ISO/IEC 1989:2023 §8.8.4.4.4 GR3 class questions asked of a COMPUTED numeric operand — a LINAGE-COUNTER,
-/// LINE-COUNTER or PAGE-COUNTER register, or a numeric / integer function-identifier (§8.5.2.12 items 3–7): a
+/// The ISO/IEC 1989:2023 §2023:8.8.4.4.4 GR3 class questions asked of a COMPUTED numeric operand — a LINAGE-COUNTER,
+/// LINE-COUNTER or PAGE-COUNTER register, or a numeric / integer function-identifier (§2023:8.5.2.12 items 3–7): a
 /// category-numeric data item that has no storage of its own, only a VALUE (kb/Work PB1401). The operand arrives
 /// lifted into the one decimal form every non-float carrier lifts to exactly (<see cref="CobolDec.From"/>); a
 /// binary64 function result is asked on its raw bits by <see cref="CobolFloatClass"/> instead, the float twin of

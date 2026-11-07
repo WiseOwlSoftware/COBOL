@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE <c>&gt;&gt;COBOL-WORDS</c> RETYPE IS APPLIED BY THE LEXER, AND NO KEYWORD RULE ACTS ON ITS OWN TOKEN (kb/Work
-/// PB1372, PB1915; ISO §7.3.10.4 GR2/GR3/GR4). Every decision <c>CobolLexer</c> takes from a keyword — PIC's switch to
+/// PB1372, PB1915; ISO §2023:7.3.10.4 GR2/GR3/GR4). Every decision <c>CobolLexer</c> takes from a keyword — PIC's switch to
 /// PICMODE, the FUNCTION argument region, the SUBSCRIPT trigger — is frozen at lex time, so a retype that ran after
 /// lexing could reach none of them. <c>NextToken</c> retypes each token FIRST and acts on the EFFECTIVE word, which holds
 /// only while no keyword rule carries a lexer command of its own (a command runs before <c>NextToken</c> can ask the

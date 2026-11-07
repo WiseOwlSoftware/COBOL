@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.5.1 / §12.4.5.5.3 GR3/GR4 — ACCESS MODE
+      *> ISO §2023:12.4.5.5.1 / §2023:12.4.5.5.3 GR3/GR4 — ACCESS MODE
       *>   spellings; random and dynamic access
       *> Format: ACCESS MODE IS { SEQUENTIAL | RANDOM | DYNAMIC },
       *>   only ACCESS and the three modes
@@ -13,32 +13,32 @@
       *>   below: "ACCESS MODE IS SEQUENTIAL",
       *> "ACCESS RANDOM", "ACCESS MODE IS RANDOM", "ACCESS IS
       *>   DYNAMIC", "ACCESS MODE DYNAMIC".
-      *>   cite.py --check 12.4.5.5.1 "ACCESS"  -> OK  §12.4.5.5.1
+      *>   cite.py --check 12.4.5.5.1 "ACCESS"  -> OK  §2023:12.4.5.5.1
       *>     (General format)
       *> GR3: "If the access mode is random: a) For a relative file,
       *>   the value of a relative key data item
       *> indicates the record to be accessed. b) For an indexed file,
       *>   the value of a record key data item
       *> indicates the record to be accessed."
-      *>   cite.py -> OK  §12.4.5.5.3 3) a)  (General rules)
-      *>   cite.py -> OK  §12.4.5.5.3 3) b)  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 3) a)  (General rules)
+      *>   cite.py -> OK  §2023:12.4.5.5.3 3) b)  (General rules)
       *> GR4: "If the access mode is dynamic, records in the file may
       *>   be accessed sequentially, randomly,
       *> or both."
       *>   cite.py --check 12.4.5.5.3 "If the access mode is dynamic,
       *>     records in the file may be accessed
-      *>     sequentially, randomly, or both."  -> OK  §12.4.5.5.3 4)
+      *>     sequentially, randomly, or both."  -> OK  §2023:12.4.5.5.3 4)
       *>       (General rules)
-      *> §14.9.51.4 GR29 b) (WRITE, relative, random/dynamic): "prior
+      *> §2023:14.9.51.4 GR29 b) (WRITE, relative, random/dynamic): "prior
       *>   to the execution of the WRITE
       *> statement the value of the relative key data item shall be
       *>   initialized by the runtime element
       *> with the relative record number to be associated with the
-      *>   record"  -> cite.py OK §14.9.51.4 29)
-      *> §9.1.13.5 3) a): I-O status 23 exists because "an attempt is
+      *>   record"  -> cite.py OK §2023:14.9.51.4 29)
+      *> §2023:9.1.13.5 3) a): I-O status 23 exists because "an attempt is
       *>   made to randomly access a record
       *> that does not exist in the physical file"  -> cite.py OK
-      *>   §9.1.13.5 3) a)
+      *>   §2023:9.1.13.5 3) a)
       *> DERIVATION OF THE EXPECTED OUTPUT:
       *>   SQ  (ACCESS MODE IS SEQUENTIAL): writes Q1,Q2 and reads
       *>     them back in order  => SQ:Q1 / SQ:Q2

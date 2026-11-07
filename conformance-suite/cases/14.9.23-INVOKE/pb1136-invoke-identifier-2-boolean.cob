@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR8: "Identifier-2 shall reference an alphanumeric or
+      *> ISO §2023:14.9.23.3 SR8: "Identifier-2 shall reference an alphanumeric or
       *> national data item."  MB is PIC 1(8), class boolean, so it cannot
       *> hold the method name even through the universal receiver U that
       *> SR7 requires.  kb/Work PB1136 (the national half of SR8 is the

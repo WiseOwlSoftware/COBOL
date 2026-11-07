@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.9.5.1 format — ARITHMETIC IS with NO alternative
+      *> ISO §2023:11.9.5.1 format — ARITHMETIC IS with NO alternative
       *> THE FORMAT: ARITHMETIC IS {NATIVE | STANDARD-BINARY |
       *> STANDARD-DECIMAL}; the braces require one alternative, so
       *> "ARITHMETIC IS." is not a clause. (The 2002 format, ARITHMETIC
       *> IS {NATIVE | STANDARD}, likewise requires one.)
       *>   cite.py --check 11.9.5.1 "STANDARD-DECIMAL"
-      *>     -> OK §11.9.5.1 (General format)
+      *>     -> OK §2023:11.9.5.1 (General format)
       *> The OPTIONS paragraph is otherwise valid; the missing phrase is
       *> a parse error; COBOL5506 names the alternatives expected (PB3428).
        IDENTIFICATION DIVISION.

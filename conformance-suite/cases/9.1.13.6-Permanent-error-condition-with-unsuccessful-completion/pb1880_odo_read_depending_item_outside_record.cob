@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.6 item 4 b) when the DEPENDING ON item LIES OUTSIDE THE RECORD. The rule makes the READ
+      *> ISO 1989:2023 §2023:9.1.13.6 item 4 b) when the DEPENDING ON item LIES OUTSIDE THE RECORD. The rule makes the READ
       *> unsuccessful when "the associated DEPENDING ON item contains a value that makes the number of bytes in the record
       *> exceed the value specified or implied by the file description entry" - it does not require that item to be a
       *> field of the record, and a record whose table is counted by a WORKING-STORAGE item is judged by that item's
       *> value when the READ completes (docs/CONFORMANCE.md D-ODO2). The READ itself does not set
       *> the item, so the program does; the record on the medium is the same 12 bytes in every case.
       *> The record is 2 bytes of header plus a table of 1 TO 10 characters; the file description implies the largest
-      *> description, 12 bytes (§13.18.43.4 GR5 a)), and the record's size at the count N is 2 + N (GR13 c)). So:
+      *> description, 12 bytes (§2023:13.18.43.4 GR5 a)), and the record's size at the count N is 2 + N (GR13 c)). So:
       *>   WS-N = 03  ->  5 bytes   '00'
       *>   WS-N = 10  -> 12 bytes   '00'
       *>   WS-N = 11  -> 13 bytes   '34'
-      *> The permanent error REMAINS IN EFFECT (§9.1.13.1), so the READ after it answers '34' although its own count (03)
+      *> The permanent error REMAINS IN EFFECT (§2023:9.1.13.1), so the READ after it answers '34' although its own count (03)
       *> would fit, and CLOSE ends it (Annex A.1 item 105, DOC-A.1-105). The record area is not used to find the count:
       *> the header "99" read from the medium changes nothing about the verdict.
       *> WHY EACH LEG CAN FAIL: a check that looked only at a count held INSIDE the record would read the header "99" and

@@ -5,42 +5,42 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// ⛔ THE ONE READER of a described data item's ISO/IEC 1989:2023 §8.5.2 CLASS and CATEGORY for a syntax rule
+/// ⛔ THE ONE READER of a described data item's ISO/IEC 1989:2023 §2023:8.5.2 CLASS and CATEGORY for a syntax rule
 /// that is WORDED in one of them, and the ONE English face for it.
 /// <para>WHY IT EXISTS. Three rules of the file control entry are worded the same way and were each about to grow
-/// their own copy of "is this item category alphanumeric?": §12.4.5.2 SR7 (<i>"Data-name-1 shall reference an
-/// alphanumeric data item"</i>, ASSIGN … USING), §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2 (<i>"category alphanumeric
+/// their own copy of "is this item category alphanumeric?": §2023:12.4.5.2 SR7 (<i>"Data-name-1 shall reference an
+/// alphanumeric data item"</i>, ASSIGN … USING), §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2 (<i>"category alphanumeric
 /// or category national"</i>, the record keys). The first was written inline in <c>DataBinder</c>; the second pair
 /// had no site at all (kb/Work PB743). One rule written down in more than one place is this repository's most
 /// reproducible defect shape, so the predicate lives here and the rules cite it.</para>
-/// <para>⛔ IT HAPPENED ANYWAY, AND HERE (kb/Work PB337). The GROUP arm's own definition — §13.18.29.4 GR3, what
+/// <para>⛔ IT HAPPENED ANYWAY, AND HERE (kb/Work PB337). The GROUP arm's own definition — §2023:13.18.29.4 GR3, what
 /// an <i>alphanumeric group item</i> IS — was written down TWICE: as <c>item.IsGroup</c> here (the structural
 /// conjunct alone) and completely, but privately, in <c>DataBinder.GroupValue</c>. The incomplete copy is the
 /// one every rule above reads, so each of them admitted a strongly-typed group and a variable-length group,
 /// which GR3 excludes by name. <see cref="IsAlphanumericGroup"/> is now the ONE spelling and
-/// <c>DataBinder.GroupValue</c> calls it. The INTO-receiver rules of §14.9.30.3 SR1 b) and §14.9.34.3 SR2 b),
+/// <c>DataBinder.GroupValue</c> calls it. The INTO-receiver rules of §2023:14.9.30.3 SR1 b) and §2023:14.9.34.3 SR2 b),
 /// which name the same operand set, were given their first implementation through it rather than through a
 /// fourth copy.</para>
-/// <para>THE GROUP ARM IS §13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group
+/// <para>THE GROUP ARM IS §2023:13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group
 /// item that is not strongly typed and is not a variable-length group, that group item is an alphanumeric group
 /// item"</i> — so a plain group key is category alphanumeric and a <c>GROUP-USAGE NATIONAL</c> group is category
 /// national. Both are read through <see cref="Table16Operand.Of(DataItem)"/>, the compiler's ONE classifier of an
-/// item's category, which already resolves a bit / national group's as-if PICTURE (§13.18.29.4 GR1b/GR2b) and
+/// item's category, which already resolves a bit / national group's as-if PICTURE (§2023:13.18.29.4 GR1b/GR2b) and
 /// answers <see cref="PicCategory.Group"/> for the plain group. Never a second walk of <c>Pic</c> /
 /// <c>AsIfPic</c> / <c>GroupUsage</c>.</para>
 /// <para>⛔ THE EDITED CATEGORIES ARE NOT THE PLAIN ONES (kb/Work PB850). <see cref="PicCategory"/> has no
 /// <c>AlphanumericEdited</c> or <c>NationalEdited</c> member — an alphanumeric-edited item carries category
 /// <see cref="PicCategory.Alphanumeric"/> and a national-edited one category <see cref="PicCategory.National"/>,
-/// each distinguished only by its edit mask (data-model design D-N6; kb/Work PB492) — but §8.5.2.1 Table 2 lists
-/// them as categories of their own, and §8.5.2.1 says <i>"Use of the name of a data class or data category in the
+/// each distinguished only by its edit mask (data-model design D-N6; kb/Work PB492) — but §2023:8.5.2.1 Table 2 lists
+/// them as categories of their own, and §2023:8.5.2.1 says <i>"Use of the name of a data class or data category in the
 /// rules of COBOL refers to the category unless class is specifically indicated"</i>. So a rule worded "category
 /// alphanumeric" or "category national" admits neither edited category, and the screen below reads the edit axis
 /// (<see cref="Table16Operand.IsEdited"/>) beside the category. Until PB850 it did not, and every rule reading it
 /// accepted an edited record key, FILE STATUS item, ASSIGN USING operand, READ / RETURN INTO record or SET …
 /// ADDRESS OF PROGRAM operand without a word. A REFERENCE-MODIFIED view of an edited item is not edited
-/// (§8.4.3.3.4 GR6 a) and b) rewrite both edited categories to the plain one), and
+/// (§2023:8.4.3.3.4 GR6 a) and b) rewrite both edited categories to the plain one), and
 /// <see cref="Table16Operand.Of(Place)"/> answers so. Category ALPHABETIC is visible (<c>PicInfo.IsAlphabetic</c>)
-/// and is excluded: §8.8.4.2.4's <i>"A class alphabetic operand shall be treated as though it were an operand of
+/// and is excluded: §2023:8.8.4.2.4's <i>"A class alphabetic operand shall be treated as though it were an operand of
 /// class alphanumeric"</i> is a COMPARISON rule, not a category identity.</para>
 /// <para>⛔ AND THE ONE SPELLING OF A CATEGORY'S NAME (<see cref="CategoryName(PicInfo)"/>). Five sites each wrote
 /// their own <c>PicCategory → words</c> map, and they had drifted: one printed "category-numericedited", one
@@ -49,30 +49,30 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// </summary>
 public static class ItemCategory
 {
-    /// <summary>Category ALPHANUMERIC (ISO §8.5.2.3): an elementary <c>PIC X</c> item, or an alphanumeric group
-    /// item (§13.18.29.4 GR3). Alphabetic (<c>PIC A</c>) and alphanumeric-edited (§8.5.2.4) are categories of their
+    /// <summary>Category ALPHANUMERIC (ISO §2023:8.5.2.3): an elementary <c>PIC X</c> item, or an alphanumeric group
+    /// item (§2023:13.18.29.4 GR3). Alphabetic (<c>PIC A</c>) and alphanumeric-edited (§2023:8.5.2.4) are categories of their
     /// own and are excluded, as are numeric, numeric-edited, national, boolean and the PICTURE-less pointer /
     /// object-reference usages.</summary>
     public static bool IsAlphanumeric(DataItem item) => Admits(item, national: false);
 
-    /// <summary>Category ALPHANUMERIC or category NATIONAL — the operand set §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2
-    /// name for a record key, and the elementary half of §14.9.30.3 SR1 b) / §14.9.34.3 SR2 b)'s INTO-receiver
-    /// set. A <c>GROUP-USAGE NATIONAL</c> group qualifies through its as-if <c>PIC N(m)</c> — §13.18.29.4 GR2 b)
+    /// <summary>Category ALPHANUMERIC or category NATIONAL — the operand set §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3 SR2
+    /// name for a record key, and the elementary half of §2023:14.9.30.3 SR1 b) / §2023:14.9.34.3 SR2 b)'s INTO-receiver
+    /// set. A <c>GROUP-USAGE NATIONAL</c> group qualifies through its as-if <c>PIC N(m)</c> — §2023:13.18.29.4 GR2 b)
     /// makes a national group "treated as though it were an elementary data item of usage national … described
     /// with PICTURE N(m)", which is exactly the shape those rules name; a <c>GROUP-USAGE BIT</c> group does not
     /// (GR1 makes it category boolean).</summary>
     public static bool IsAlphanumericOrNational(DataItem item) => Admits(item, national: true);
 
     /// <summary>
-    /// ⛔ ISO §13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group item that is
+    /// ⛔ ISO §2023:13.18.29.4 GR3 — <i>"If a GROUP-USAGE clause is not specified or implied for a group item that is
     /// not strongly typed and is not a variable-length group, that group item is an alphanumeric group item."</i>
     /// THE ONE spelling of that definition; the rules worded <i>"an alphanumeric group item"</i> ask it here.
     /// <para>⛔ ALL THREE conjuncts, and the third and fourth are why this is not inlined anywhere. The copy
     /// inside <see cref="Admits"/> carried only the structural half (<c>item.IsGroup</c>) and therefore answered
     /// TRUE for a strongly-typed group and for a variable-length group — two shapes GR3 excludes by name — so
     /// every rule reading this predicate under-rejected them (kb/Work PB337: the DYNAMIC LENGTH <c>LIMIT</c>
-    /// operand of §12.4.5.2 SR7 and the record keys of §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 each admitted a strong
-    /// group). A second, COMPLETE copy lived privately in <c>DataBinder.GroupValue</c> for §13.18.63.3 SR14;
+    /// operand of §2023:12.4.5.2 SR7 and the record keys of §2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2 each admitted a strong
+    /// group). A second, COMPLETE copy lived privately in <c>DataBinder.GroupValue</c> for §2023:13.18.63.3 SR14;
     /// ONE RULE WRITTEN DOWN IN TWO PLACES had already drifted, which is the whole reason it now lives here.</para>
     /// <para><c>IsGroupEntry</c> (subordinates **and** no PICTURE the program wrote — the entry's form, which equals
     /// <c>IsGroup</c> once the usage walk has shed a picture-less usage's synthesized profile from a group header) is the
@@ -83,8 +83,8 @@ public static class ItemCategory
 
     /// <summary>⛔ THE CATEGORY QUESTION "IS THIS A GROUP ITEM?" — any of the five kinds — as a rule worded
     /// <i>"group item"</i> asks it. It differs from the STRUCTURAL <see cref="DataItem.IsGroup"/> ("no PICTURE and
-    /// has subordinates") in exactly one shape: the level-66 THROUGH alias, which §13.18.45.4 GR2 makes an
-    /// alphanumeric group item although it has no subordinate entries (kb/Work PB907 — §14.9.25.4 GR9's
+    /// has subordinates") in exactly one shape: the level-66 THROUGH alias, which §2023:13.18.45.4 GR2 makes an
+    /// alphanumeric group item although it has no subordinate entries (kb/Work PB907 — §2023:14.9.25.4 GR9's
     /// antecedent "both the sending operand and the receiving data item are group items" was asked as
     /// <c>IsGroup</c> and told the user their alias was "not a group item").</summary>
     public static bool IsGroupItem(DataItem item) => GroupKindsOf(item) != GroupKinds.None;
@@ -92,49 +92,49 @@ public static class ItemCategory
     /// <summary>
     /// ⭐ <b>THE ONE ANSWER TO "WHICH KIND OF GROUP ITEM IS THIS?"</b> — the axis every rule worded as a LIST of
     /// group kinds asks about, and <see cref="GroupKinds.None"/> for anything that is not a group item.
-    /// <para>⛔ WHY IT IS A SET AND NOT A BOOLEAN (kb/Work PB392). ADD §14.9.2.3 SR6 and SUBTRACT §14.9.44.3 SR6
+    /// <para>⛔ WHY IT IS A SET AND NOT A BOOLEAN (kb/Work PB392). ADD §2023:14.9.2.3 SR6 and SUBTRACT §2023:14.9.44.3 SR6
     /// read <i>"Identifier-4 and identifier-5 shall be alphanumeric group items, national group items,
     /// variable-length groups, or strongly-typed group items and shall not be described with level-number
     /// 66"</i> — a rule that names FOUR of the five kinds. Asked as <c>item.IsGroup</c> it admitted the fifth: a
     /// <c>GROUP-USAGE BIT</c> group passed, and the statement then executed as a silent no-op, because
-    /// §14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a bit
+    /// §2023:14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a bit
     /// group is category boolean — which is exactly WHY SR6 leaves bit groups out. A scalar predicate where the
     /// rule names a set is <c>feedback_model_the_rule_shape_not_one_case</c>, and it cost in both directions.</para>
     /// <para>⛔ AND IT IS FLAGS, NOT AN ORDERED CLASSIFICATION. Four of the five kinds are mutually exclusive by
-    /// construction — §13.18.29.3 SR1, <i>"The GROUP-USAGE clause may be specified only if the subject of the
+    /// construction — §2023:13.18.29.3 SR1, <i>"The GROUP-USAGE clause may be specified only if the subject of the
     /// entry is a group item that is not strongly typed and not a variable-length group"</i>, keeps BIT and
-    /// NATIONAL apart from the other two, and §3.11 defines an <i>alphanumeric group item</i> as the complement
+    /// NATIONAL apart from the other two, and §2023:3.11 defines an <i>alphanumeric group item</i> as the complement
     /// ("group item except for a bit group item, a national group item, a strongly-typed group item, or a
     /// variable-length group item"). STRONGLY-TYPED and VARIABLE-LENGTH, however, are NOT exclusive: nothing in
-    /// §13.18.58.3 stops a type declaration from containing a dynamic-length elementary item. A scalar enum
+    /// §2023:13.18.58.3 stops a type declaration from containing a dynamic-length elementary item. A scalar enum
     /// would have to pick one of the two and would then answer a rule that admits only the OTHER incorrectly, so
     /// the model is the set of kinds the item IS and a rule is <c>(kinds &amp; admitted) != 0</c>.</para>
     /// <para>The three hand-written copies of this classification that stood in this file — <c>Admits</c>'s
     /// <c>item.IsGroup</c>, <see cref="IsAlphanumericGroup"/>'s four conjuncts and <see cref="Face"/>'s ordered
-    /// group arms — now all read this one. <c>GroupKindDriftTests</c> pins the §3.11 complement and the
-    /// §13.18.29.3 SR1 disjointness.</para>
+    /// group arms — now all read this one. <c>GroupKindDriftTests</c> pins the §2023:3.11 complement and the
+    /// §2023:13.18.29.3 SR1 disjointness.</para>
     /// </summary>
     public static GroupKinds GroupKindsOf(DataItem item)
     {
         // ⛔ A level-66 THROUGH alias IS A GROUP ITEM, and it is the one group item with no subordinates
-        // (kb/Work PB907). §13.18.45.4 GR2: "When the THROUGH phrase is specified, data-name-1 defines an
+        // (kb/Work PB907). §2023:13.18.45.4 GR2: "When the THROUGH phrase is specified, data-name-1 defines an
         // alphanumeric group item that includes all elementary items starting with data-name-2 …" — so the
         // answer is a CATEGORY fact, not the STRUCTURAL `IsGroupEntry` below (the entry rides Renames66 and carries
-        // a composed alphanumeric PICTURE for its carrier). It is ALWAYS the alphanumeric kind: §13.18.45.3
+        // a composed alphanumeric PICTURE for its carrier). It is ALWAYS the alphanumeric kind: §2023:13.18.45.3
         // SR8 bars "a strongly-typed group item … a variable-length data item, or an occurs-depending table"
         // from the range, and a level-66 entry writes no GROUP-USAGE clause. The no-THROUGH alias (GR1) takes
         // data-name-2's own attributes: a place reference to it is forwarded to that item by ReferenceResolver, and
-        // a rule that asks the DataItem itself — a RECORD KEY naming an alias of a group (§12.4.5.12.3 SR2; kb/Work
+        // a rule that asks the DataItem itself — a RECORD KEY naming an alias of a group (§2023:12.4.5.12.3 SR2; kb/Work
         // PB2502) — is answered here, as that item.
         if (item.Renames is { IsAlias: false }) return GroupKinds.Alphanumeric;
         if (item.Renames is { IsAlias: true, From: { } renamed }) return GroupKindsOf(renamed);
-        // The structural half no classifier carries. §8.5.1.3.1 — "The most basic subdivisions of a record,
+        // The structural half no classifier carries. §2023:8.5.1.3.1 — "The most basic subdivisions of a record,
         // that is, those not further subdivided, are called elementary items" — so an entry with NO subordinates
         // is not a group item whatever else it is, and here it is an error-recovery artifact (a refused
         // MESSAGE-TAG entry, a picture-less USAGE NATIONAL awaiting COBOL0881). It has no kind at all;
         // admitting it would let a rule about group items answer about something that is not one.
         if (!item.IsGroupEntry) return GroupKinds.None;
-        // §13.18.29.4 GR1/GR2 — the GROUP-USAGE clause names the kind outright, and SR1 above guarantees such a
+        // §2023:13.18.29.4 GR1/GR2 — the GROUP-USAGE clause names the kind outright, and SR1 above guarantees such a
         // group is neither strongly typed nor variable-length, so these two arms are terminal.
         var groupUsage = GroupUsageInEffect(item);
         if (groupUsage is GroupUsage.Bit) return GroupKinds.Bit;
@@ -142,16 +142,16 @@ public static class ItemCategory
         GroupKinds kinds = GroupKinds.None;
         if (StrongTypeModel.IsStronglyTyped(item)) kinds |= GroupKinds.StronglyTyped;
         if (VariableLengthCompatibility.IsVariableLength(item)) kinds |= GroupKinds.VariableLength;
-        // §13.18.29.4 GR3 — no GROUP-USAGE clause, not strongly typed, not variable-length ⇒ alphanumeric.
+        // §2023:13.18.29.4 GR3 — no GROUP-USAGE clause, not strongly typed, not variable-length ⇒ alphanumeric.
         return kinds is GroupKinds.None ? GroupKinds.Alphanumeric : kinds;
     }
 
-    /// <summary>The GROUP-USAGE a group is "explicitly or implicitly described as" (ISO §13.18.29.3 SR2/SR3: "All
+    /// <summary>The GROUP-USAGE a group is "explicitly or implicitly described as" (ISO §2023:13.18.29.3 SR2/SR3: "All
     /// subordinate group items shall be explicitly or implicitly described as GROUP-USAGE BIT [NATIONAL]") — its
     /// own clause, else the nearest enclosing group's. The usage-inheritance walk WRITES the implied clause down
     /// onto every subordinate group, so after it has run this is the item's own <see cref="DataItem.GroupUsage"/>;
     /// asked PULL-style here so the answer is the same BEFORE that walk too — the SAME AS expansion
-    /// (§13.18.49.4 GR3/GR5, kb/Work PB1300) classifies data-name-1's ancestors in the first bind pass, when a
+    /// (§2023:13.18.49.4 GR3/GR5, kb/Work PB1300) classifies data-name-1's ancestors in the first bind pass, when a
     /// group nested in a <c>GROUP-USAGE NATIONAL</c> group has not been marked yet and would otherwise read as
     /// an alphanumeric group.</summary>
     private static GroupUsage GroupUsageInEffect(DataItem item)
@@ -164,11 +164,11 @@ public static class ItemCategory
     /// <summary>The group kinds <paramref name="kinds"/> names, spelled the way the standard spells them, joined
     /// as a syntax rule joins them — so a diagnostic quoting an admitted SET is generated from the SET rather
     /// than hand-copied beside it (a second copy is how the message and the check come to disagree). The
-    /// declaration order of <see cref="GroupKinds"/> is §14.9.2.3 / §14.9.44.3 SR6's own order, so those two
+    /// declaration order of <see cref="GroupKinds"/> is §2023:14.9.2.3 / §2023:14.9.44.3 SR6's own order, so those two
     /// rules' admitted set renders word for word as the rule reads.</summary>
     public static string Spell(GroupKinds kinds)
     {
-        // A rule that admits every kind is not written as an enumeration — §14.9.25.3 SR12 says "group data
+        // A rule that admits every kind is not written as an enumeration — §2023:14.9.25.3 SR12 says "group data
         // items" — so the whole set is spelled the way the standard spells it rather than as all five names.
         if (kinds is GroupKinds.Any) return "group data items";
         var parts = new List<string>(5);
@@ -188,24 +188,24 @@ public static class ItemCategory
 
     /// <summary>
     /// ⛔ THE ONE READER of the USAGE a data item OPERATES with — the axis every rule worded <i>"a data item
-    /// with usage display or usage national"</i> asks about (ISO §14.9.18.3 SR6 / §14.9.42.3 SR2, the
-    /// termination-status operand; §8.4.3.3.4 GR6's unique data item; §14.9.41.3 SR6 b) 2.'s key comparison).
-    /// <para>⛔ THE GROUP ANSWER IS §8.5.2.1's OWN SENTENCE — <i>"An alphanumeric group item is treated as
+    /// with usage display or usage national"</i> asks about (ISO §2023:14.9.18.3 SR6 / §2023:14.9.42.3 SR2, the
+    /// termination-status operand; §2023:8.4.3.3.4 GR6's unique data item; §2023:14.9.41.3 SR6 b) 2.'s key comparison).
+    /// <para>⛔ THE GROUP ANSWER IS §2023:8.5.2.1's OWN SENTENCE — <i>"An alphanumeric group item is treated as
     /// though it had a usage of display."</i> Every site that instead asked <see cref="DataItem.OperandPic"/>
     /// alone read a NULL for such a group and concluded "no usage", which is not what the standard says: the
     /// group HAS a usage, and it is display. That conclusion was a measured rejects-legal-source defect at the
     /// status operand of both STOP RUN and GOBACK (kb/Work PB411), and a latent one at
-    /// <c>SendingValueTemp.UsageOf</c>, where a reference-modified national or bit group's §14.9.25.4 GR1
+    /// <c>SendingValueTemp.UsageOf</c>, where a reference-modified national or bit group's §2023:14.9.25.4 GR1
     /// intermediate was built with category NATIONAL / BOOLEAN beside usage DISPLAY — one item, two usages.
     /// (Probed: the intermediate's VALUE is unchanged by the correction, so that half is an inconsistency
     /// removed rather than a wrong answer fixed — said plainly rather than claimed as a second repro.)</para>
-    /// <para>⚠ §8.5.2.1's sentence is about an ALPHANUMERIC GROUP ITEM, which §3.11 defines by exclusion —
+    /// <para>⚠ §2023:8.5.2.1's sentence is about an ALPHANUMERIC GROUP ITEM, which §2023:3.11 defines by exclusion —
     /// <i>"group item except for a bit group item, a national group item, a strongly-typed group item, or a
     /// variable-length group item"</i> — so it is asked through <see cref="IsAlphanumericGroup"/>, the ONE
     /// spelling of that definition, never through <c>IsGroup</c>. A bit / national group answers from its
-    /// §13.18.29.4 GR1b/GR2b as-if PICTURE (usage bit / usage national) like any elementary item. A STRONGLY-TYPED
+    /// §2023:13.18.29.4 GR1b/GR2b as-if PICTURE (usage bit / usage national) like any elementary item. A STRONGLY-TYPED
     /// group and a VARIABLE-LENGTH group answer <see langword="null"/>: the standard states a usage for neither
-    /// (§8.5.2.1 gives the first its type-name as class and category and no usage at all, and §8.5.1.12.1 says
+    /// (§2023:8.5.2.1 gives the first its type-name as class and category and no usage at all, and §2023:8.5.1.12.1 says
     /// the second "is not equivalent to an alphanumeric data item"), and a caller that must have an answer says
     /// so at its own site rather than having one invented here.</para>
     /// </summary>
@@ -214,12 +214,12 @@ public static class ItemCategory
 
     /// <summary>
     /// ⛔ THE ONE PREDICATE FOR <i>"described implicitly or explicitly as usage display or national"</i> — the
-    /// sentence ISO §14.9.43.3 SR1 (STRING: "all identifiers, except identifier-4, shall be described implicitly or
-    /// explicitly as usage display or national") and §14.9.22.3 SR1/SR2 (INSPECT: "an elementary item described
+    /// sentence ISO §2023:14.9.43.3 SR1 (STRING: "all identifiers, except identifier-4, shall be described implicitly or
+    /// explicitly as usage display or national") and §2023:14.9.22.3 SR1/SR2 (INSPECT: "an elementary item described
     /// implicitly or explicitly as usage display or national") state in the same words (kb/Work PB3228). It reads
     /// the usage through <see cref="UsageOf"/>, the one reader, so a bit group answers usage bit
-    /// (§13.18.29.4 GR1 b), a national group usage national (GR2 b) and an alphanumeric group display
-    /// (§8.5.2.1); only the STRONGLY-TYPED group, whose class and category are its type-name and which the
+    /// (§2023:13.18.29.4 GR1 b), a national group usage national (GR2 b) and an alphanumeric group display
+    /// (§2023:8.5.2.1); only the STRONGLY-TYPED group, whose class and category are its type-name and which the
     /// standard gives no usage, is read off the elementary items it is made of
     /// (<see cref="UsageOutsideDisplayOrNational"/>). Asked of a rule that also requires an ELEMENTARY item
     /// (INSPECT SR2), the caller adds the group exclusion; it is not part of the usage sentence.
@@ -235,7 +235,7 @@ public static class ItemCategory
     /// (<see cref="UsageOf"/>) is another one (a COMP item, a pointer, a bit group), the first leaf beneath it
     /// when it is a strongly-typed group (declaration order, REDEFINES views excluded: they occupy no storage of
     /// their own) holding one — and <see langword="null"/> when it is described as display or national, OR when
-    /// the standard states NO usage for it (a variable-length group, §8.5.1.12.1: "not equivalent to an
+    /// the standard states NO usage for it (a variable-length group, §2023:8.5.1.12.1: "not equivalent to an
     /// alphanumeric data item"). A rule that REFUSES (STRING SR1) rejects what the standard names and never what
     /// it cannot classify, which is why the two nulls are one answer here; a rule that must ADMIT positively
     /// asks <see cref="IsDisplayOrNationalUsage"/>. No storage-form exemption is asked: a storage form is not a
@@ -261,7 +261,7 @@ public static class ItemCategory
 
     /// <summary>⛔ THE PLACE FORM OF <see cref="IsAlphanumericOrNational(DataItem)"/> — what a rule worded "shall be
     /// of category alphanumeric or national" asks of an operand that may be REFERENCE-MODIFIED (kb/Work PB1417).
-    /// §8.4.3.3.4 GR6 gives the unique data item a reference modifier creates "the same class, category, and usage as
+    /// §2023:8.4.3.3.4 GR6 gives the unique data item a reference modifier creates "the same class, category, and usage as
     /// that defined for identifier-1" with the lettered rewrites, so <c>GRP(7:6)</c> over an alphanumeric GROUP is an
     /// elementary alphanumeric item and a view over a numeric or numeric-edited item is alphanumeric or national —
     /// which only <see cref="Table16Operand.Of(Place)"/>, the ONE reader of that rule, can answer. Asking the INNER
@@ -271,9 +271,9 @@ public static class ItemCategory
 
     private static bool Admits(Table16Operand operand, DataItem item, bool national) => operand switch
     {
-        // §13.18.29.4 GR3's group arm, in its ONE spelling — never `item.IsGroup` alone (see IsAlphanumericGroup).
+        // §2023:13.18.29.4 GR3's group arm, in its ONE spelling — never `item.IsGroup` alone (see IsAlphanumericGroup).
         { Category: PicCategory.Group } => IsAlphanumericGroup(item),
-        // §8.5.2.1 Table 2: alphanumeric-edited (§8.5.2.4) and national-edited (§8.5.2.11) are categories of their
+        // §2023:8.5.2.1 Table 2: alphanumeric-edited (§2023:8.5.2.4) and national-edited (§2023:8.5.2.11) are categories of their
         // own, so a rule naming the plain category admits neither (kb/Work PB850).
         { Category: PicCategory.Alphanumeric, IsAlphabetic: false, IsEdited: false } => true,
         { Category: PicCategory.National, IsEdited: false } => national,
@@ -281,7 +281,7 @@ public static class ItemCategory
     };
 
     /// <summary>
-    /// ⛔ THE ONE SPELLING of an elementary item's §8.5.2.1 Table 2 CATEGORY — <i>"Alphabetic"</i>,
+    /// ⛔ THE ONE SPELLING of an elementary item's §2023:8.5.2.1 Table 2 CATEGORY — <i>"Alphabetic"</i>,
     /// <i>"Alphanumeric-edited"</i>, <i>"Numeric-edited"</i>, <i>"Object-reference"</i>, <i>"Data-pointer"</i> … —
     /// in lower case, as a message, the activation description (<c>ActivationDescriptions</c>) and a category
     /// screen's face print it (kb/Work PB850).
@@ -298,7 +298,7 @@ public static class ItemCategory
         _ => CategoryName(Table16Operand.Of(pic)),
     };
 
-    /// <summary>The Table 2 category of a PLACE — the item's own, or for a REFERENCE-MODIFIED view §8.4.3.3.4 GR6's
+    /// <summary>The Table 2 category of a PLACE — the item's own, or for a REFERENCE-MODIFIED view §2023:8.4.3.3.4 GR6's
     /// (an edited or numeric item's view is alphanumeric or national; <see cref="Table16Operand.Of(Place)"/>).
     /// Null for a group item, whose words are <see cref="Face"/>'s.</summary>
     public static string? CategoryName(Place place) =>
@@ -306,7 +306,7 @@ public static class ItemCategory
         : place.Item.Pic is { } pic ? CategoryName(pic)
         : null;
 
-    /// <summary>Is this one of §8.5.2.1 Table 2's three EDITED categories — numeric-edited, alphanumeric-edited or
+    /// <summary>Is this one of §2023:8.5.2.1 Table 2's three EDITED categories — numeric-edited, alphanumeric-edited or
     /// national-edited? A recovery profile (no analysed category, kb/Work PB960) is none of them.</summary>
     public static bool IsEditedCategory(PicInfo pic) =>
         pic.AnalyzedCategory is PicCategory.NumericEdited || pic.IsCharacterEdited;
@@ -324,58 +324,58 @@ public static class ItemCategory
         PicCategory.ProgramPointer => ActivationCategory.ProgramPointer,
         PicCategory.FunctionPointer => ActivationCategory.FunctionPointer,
         PicCategory.MessageTag => "message-tag",
-        _ => throw new InvalidOperationException($"no ISO §8.5.2.1 Table 2 category for {operand.Category}"),
+        _ => throw new InvalidOperationException($"no ISO §2023:8.5.2.1 Table 2 category for {operand.Category}"),
     };
 
     /// <summary>
-    /// ⛔ CLASS index, message-tag, object or pointer (ISO §8.5.2) — the four-class set that THREE rules name
+    /// ⛔ CLASS index, message-tag, object or pointer (ISO §2023:8.5.2) — the four-class set that THREE rules name
     /// with word-for-word identical text, and which therefore gets ONE predicate:
     /// <list type="bullet">
-    /// <item>§13.16.3 SR24 e) — <i>"A data item of the class index, message-tag, object, or pointer"</i> may not
+    /// <item>§2023:13.16.3 SR24 e) — <i>"A data item of the class index, message-tag, object, or pointer"</i> may not
     /// be a conditional variable;</item>
-    /// <item>§13.18.60.3 SR11 — <i>"An elementary data item of class index, message-tag, object, or pointer shall
+    /// <item>§2023:13.18.60.3 SR11 — <i>"An elementary data item of class index, message-tag, object, or pointer shall
     /// not be a conditional variable"</i>, the same prohibition stated the other way round;</item>
-    /// <item>§14.7.6 rule 4 — <i>"Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of
+    /// <item>§2023:14.7.6 rule 4 — <i>"Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of
     /// class index, message-tag, object, or pointer"</i>, the CORRESPONDING-phrase exclusion (kb/Work PB391,
     /// which found the third asker holding a private one-usage copy: <c>Pic?.Usage is not Usage.Index</c>, so a
     /// POINTER namesake pair was excluded only by the accident of a private Table-16 copy's
     /// <c>_ =&gt; false</c> default, and deleting that copy would have turned the accident into a silent
     /// pointer copy).</item>
     /// </list>
-    /// <para>⛔ IT IS §13.18.60.3 SR4'S POPULATION, resolved through SR4's own phrase reader rather than a
+    /// <para>⛔ IT IS §2023:13.18.60.3 SR4'S POPULATION, resolved through SR4's own phrase reader rather than a
     /// hand-written class list. SR4 names "The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER,
     /// and PROGRAM-POINTER phrases" — exactly the six USAGE phrases that produce exactly these four classes
-    /// (§8.5.2) — and <see cref="Sr4PhraseOf"/> states that list as <see cref="Sr14PhraseOf"/>'s five plus
+    /// (§2023:8.5.2) — and <see cref="Sr4PhraseOf"/> states that list as <see cref="Sr14PhraseOf"/>'s five plus
     /// INDEX. A second copy would drift the moment MESSAGE-TAG or FUNCTION-POINTER gains a bound model;
     /// <c>ConditionNameAssociationDriftTests</c> asserts the two populations are the same set.</para>
     /// <para>The WRITTEN clause is read as well as the resolved one, and both arms are load-bearing: a
-    /// usage acquired by §13.18.60.4 GR1 inheritance, a TYPE clone or a SAME AS copy writes no clause of its own and is
+    /// usage acquired by §2023:13.18.60.4 GR1 inheritance, a TYPE clone or a SAME AS copy writes no clause of its own and is
     /// visible only in the resolved <see cref="DataItem.Pic"/>, while an entry whose binding failed is visible only in its
     /// written clause.</para></summary>
     public static bool IsIndexMessageTagObjectOrPointer(DataItem item) =>
         Sr4PhraseOf(item.OwnUsage) is not null || Sr4PhraseOf(item.Pic?.Usage) is not null;
 
     /// <summary>
-    /// ⛔ CLASS boolean, message-tag, object or pointer (ISO §8.5.2) — the set §13.18.38.3 SR8 names: "The KEY phrase
+    /// ⛔ CLASS boolean, message-tag, object or pointer (ISO §2023:8.5.2) — the set §2023:13.18.38.3 SR8 names: "The KEY phrase
     /// shall not be specified for a data item of class boolean, message-tag, object, or pointer" (kb/Work PB1263).
     /// <para>The three PICTURE-less classes are exactly the population of <see cref="Sr14PhraseOf"/>: MESSAGE-TAG is
     /// class message-tag, OBJECT REFERENCE class object, and POINTER, FUNCTION-POINTER and PROGRAM-POINTER class
     /// pointer — read through BOTH the written clause and the resolved one, for the reason
     /// <see cref="IsIndexMessageTagObjectOrPointer"/> states. Class BOOLEAN is the operand PICTURE's category: an
-    /// elementary <c>PIC 1</c> item, or a bit group through its §13.18.29.4 GR1 as-if PICTURE
+    /// elementary <c>PIC 1</c> item, or a bit group through its §2023:13.18.29.4 GR1 as-if PICTURE
     /// (<see cref="DataItem.OperandPic"/>). Class INDEX is deliberately absent — SR8 does not name it.</para></summary>
     public static bool IsBooleanMessageTagObjectOrPointer(DataItem item) =>
         item.OperandPic is { Category: PicCategory.Boolean }
         || Sr14PhraseOf(item.OwnUsage) is not null || Sr14PhraseOf(item.Pic?.Usage) is not null;
 
-    /// <summary>Is this a MESSAGE-TAG data item? ISO §13.18.60.4 GR9 — <i>"The class and category of a
+    /// <summary>Is this a MESSAGE-TAG data item? ISO §2023:13.18.60.4 GR9 — <i>"The class and category of a
     /// message-tag data item are message-tag"</i> (<c>cite.py --check 13.18.60.4</c> OK).
     /// <para>The category answers (kb/Work PB4740): <see cref="PicInfo"/> carries <see cref="PicCategory.MessageTag"/> for
     /// an entry that wrote the clause and for one that acquired the usage by a TYPE clone or SAME AS copy alike.</para></summary>
     public static bool IsMessageTag(DataItem item) =>
         item.Pic?.Category is PicCategory.MessageTag;
 
-    /// <summary>Which of ISO §13.18.60.3 SR14's phrases a usage names, or null — asked of a
+    /// <summary>Which of ISO §2023:13.18.60.3 SR14's phrases a usage names, or null — asked of a
     /// <see cref="DataItem.OwnUsage"/> (the written clause) and of a resolved <see cref="PicInfo.Usage"/> alike
     /// (<c>CheckUsageDeclarationsPass.Sr14PhraseOf(DataItem)</c> reads both, kb/Work PB819). MESSAGE-TAG (kb/Work PB487) is read by usage like its siblings.
     /// <para>SR14: "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or
@@ -392,7 +392,7 @@ public static class ItemCategory
         _ => null,
     };
 
-    /// <summary>ISO §13.18.60.3 SR4's list stated as what it IS — <see cref="Sr14PhraseOf"/>'s five phrases PLUS
+    /// <summary>ISO §2023:13.18.60.3 SR4's list stated as what it IS — <see cref="Sr14PhraseOf"/>'s five phrases PLUS
     /// INDEX. Written as a union rather than a second hand-copied list so the one-phrase difference between the
     /// two rules is the code's own structure and the drift test can assert it directly
     /// (<c>Sr4 \ Sr14 == {INDEX}</c>). An index data item's <see cref="PicInfo"/> is
@@ -405,7 +405,7 @@ public static class ItemCategory
     /// <summary>A short English face for a diagnostic — WHAT THE OPERAND IS, so a message names the reason
     /// instead of restating the rule it broke.
     /// <para>⛔ The GROUP arms are ordered the way <see cref="IsAlphanumericGroup"/> refuses, and the two
-    /// §13.18.29.4 GR3 exclusions are named OUT LOUD: before kb/Work PB337 a PICTURE-less item with
+    /// §2023:13.18.29.4 GR3 exclusions are named OUT LOUD: before kb/Work PB337 a PICTURE-less item with
     /// <c>GROUP-USAGE NONE</c> fell straight to <i>"not an elementary or group data item"</i>, which is false of
     /// every plain group — harmless only while no group could fail the predicate, and wrong the moment the
     /// strongly-typed and variable-length exclusions began to bite.</para></summary>
@@ -414,24 +414,24 @@ public static class ItemCategory
         : GroupKindsOf(item) switch
         {
             GroupKinds.None => "not an elementary or group data item",
-            GroupKinds.Bit => "a bit group item (ISO §13.18.29.4 GR1)",
-            GroupKinds.National => "a national group item (ISO §13.18.29.4 GR2)",
+            GroupKinds.Bit => "a bit group item (ISO §2023:13.18.29.4 GR1)",
+            GroupKinds.National => "a national group item (ISO §2023:13.18.29.4 GR2)",
             GroupKinds.Alphanumeric => "an alphanumeric group item",
-            // Strongly-typed and variable-length are the one pair §13.18.29.3 SR1 does not keep apart, so the
+            // Strongly-typed and variable-length are the one pair §2023:13.18.29.3 SR1 does not keep apart, so the
             // face names BOTH when an item is both rather than reporting whichever arm happened to run first.
             var k => (k.HasFlag(GroupKinds.StronglyTyped)
-                        ? "a strongly-typed group item (ISO §8.5.3.3)" : "")
+                        ? "a strongly-typed group item (ISO §2023:8.5.3.3)" : "")
                    + (k == (GroupKinds.StronglyTyped | GroupKinds.VariableLength) ? " that is also " : "")
                    + (k.HasFlag(GroupKinds.VariableLength)
-                        ? "a variable-length group (ISO §8.5.1.12.1)" : "")
-                   + ", which §13.18.29.4 GR3 excludes from the alphanumeric group items",
+                        ? "a variable-length group (ISO §2023:8.5.1.12.1)" : "")
+                   + ", which §2023:13.18.29.4 GR3 excludes from the alphanumeric group items",
         };
 
     /// <summary>⛔ THE FACE OF AN OPERAND A CATEGORY-WORDED RULE REFUSED (kb/Work PB3355, PB1417): what the operand
-    /// IS — its Table 2 category (a reference-modified view's is §8.4.3.3.4 GR6's, <see cref="CategoryName(Place)"/>),
+    /// IS — its Table 2 category (a reference-modified view's is §2023:8.4.3.3.4 GR6's, <see cref="CategoryName(Place)"/>),
     /// else the group description <see cref="Face(DataItem)"/> gives, which names a strongly-typed group's
-    /// exclusion out loud. <c>SetBinder.ScreenAddressName</c> (§8.4.3.12.3 SR1 / §8.4.3.13.3 SR1), <c>CALL</c>'s and
-    /// <c>CANCEL</c>'s identifier-1 (§14.9.4.3 SR1, §14.9.5.3 SR1) refuse the same shape and print the same words.</summary>
+    /// exclusion out loud. <c>SetBinder.ScreenAddressName</c> (§2023:8.4.3.12.3 SR1 / §2023:8.4.3.13.3 SR1), <c>CALL</c>'s and
+    /// <c>CANCEL</c>'s identifier-1 (§2023:14.9.4.3 SR1, §2023:14.9.5.3 SR1) refuse the same shape and print the same words.</summary>
     public static string Face(Place place) =>
         CategoryName(place) is { } category ? $"of category {category}" : Face(place.Item);
 }
@@ -439,9 +439,9 @@ public static class ItemCategory
 /// <summary>
 /// ⭐ The FIVE kinds of group item ISO/IEC 1989:2023 distinguishes, as a SET — the shape a syntax rule worded
 /// <i>"shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group
-/// items"</i> (§14.9.2.3 SR6 / §14.9.44.3 SR6) needs in order to be asked as the rule is written.
+/// items"</i> (§2023:14.9.2.3 SR6 / §2023:14.9.44.3 SR6) needs in order to be asked as the rule is written.
 /// <para>The declaration order is those two rules' own order, because <see cref="ItemCategory.Spell"/> renders a
-/// set in it. Four of the five are mutually exclusive by §13.18.29.3 SR1 and §3.11; STRONGLY-TYPED and
+/// set in it. Four of the five are mutually exclusive by §2023:13.18.29.3 SR1 and §2023:3.11; STRONGLY-TYPED and
 /// VARIABLE-LENGTH are not, which is why this is <c>[Flags]</c> rather than a scalar classification — see
 /// <see cref="ItemCategory.GroupKindsOf"/>.</para>
 /// </summary>
@@ -449,24 +449,24 @@ public static class ItemCategory
 public enum GroupKinds
 {
     /// <summary>Not a group item at all — an elementary item, a level-66 RENAMES entry, or a PICTURE-less entry
-    /// with no subordinates (§8.5.1.3.1 reserves "elementary" for a record's undivided subdivisions, and this
+    /// with no subordinates (§2023:8.5.1.3.1 reserves "elementary" for a record's undivided subdivisions, and this
     /// compiler's error recovery leaves such an entry neither).</summary>
     None = 0,
-    /// <summary>ISO §3.11 — <i>"group item except for a bit group item, a national group item, a strongly-typed
-    /// group item, or a variable-length group item"</i>; §13.18.29.4 GR3 states the same thing positively.</summary>
+    /// <summary>ISO §2023:3.11 — <i>"group item except for a bit group item, a national group item, a strongly-typed
+    /// group item, or a variable-length group item"</i>; §2023:13.18.29.4 GR3 states the same thing positively.</summary>
     Alphanumeric = 1 << 0,
-    /// <summary><c>GROUP-USAGE NATIONAL</c> (ISO §13.18.29.4 GR2) — class and category national.</summary>
+    /// <summary><c>GROUP-USAGE NATIONAL</c> (ISO §2023:13.18.29.4 GR2) — class and category national.</summary>
     National = 1 << 1,
-    /// <summary>ISO §8.5.1.12.1 — <i>"a group item whose data description has at least one dynamic-length
+    /// <summary>ISO §2023:8.5.1.12.1 — <i>"a group item whose data description has at least one dynamic-length
     /// elementary item or dynamic-capacity table as a subordinate item"</i>.</summary>
     VariableLength = 1 << 2,
-    /// <summary>ISO §8.5.3.3 — a group described with, or subordinate to nothing but, a <c>TYPEDEF … STRONG</c>
+    /// <summary>ISO §2023:8.5.3.3 — a group described with, or subordinate to nothing but, a <c>TYPEDEF … STRONG</c>
     /// type declaration.</summary>
     StronglyTyped = 1 << 3,
-    /// <summary><c>GROUP-USAGE BIT</c> (ISO §13.18.29.4 GR1) — class and category boolean.</summary>
+    /// <summary><c>GROUP-USAGE BIT</c> (ISO §2023:13.18.29.4 GR1) — class and category boolean.</summary>
     Bit = 1 << 4,
 
-    /// <summary>Every kind — what a rule worded simply <i>"group data items"</i> admits (ISO §14.9.25.3 SR12,
+    /// <summary>Every kind — what a rule worded simply <i>"group data items"</i> admits (ISO §2023:14.9.25.3 SR12,
     /// MOVE CORRESPONDING). Stated as the union so a sixth kind joins it without an edit.</summary>
     Any = Alphanumeric | National | VariableLength | StronglyTyped | Bit,
 }

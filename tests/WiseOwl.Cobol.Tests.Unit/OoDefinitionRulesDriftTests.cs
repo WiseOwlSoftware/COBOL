@@ -17,10 +17,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// shape: (1) every (data-bearing definition kind × data-division section) cell answers — admitted, or the clause that
 /// refuses it — so a section added to the grammar or a definition kind added to the table cannot leave a silent cell;
 /// (2) the table's section list is exactly the grammar's <c>dataDivision</c> alternatives; (3) the table's verdicts are
-/// the standard's (§13.4.3, §13.5.3, §13.6.3, §13.7.3, §13.8.3, §13.9.3 SR1 — each citation run through
+/// the standard's (§2023:13.4.3, §2023:13.5.3, §2023:13.6.3, §2023:13.7.3, §2023:13.8.3, §2023:13.9.3 SR1 — each citation run through
 /// <c>cite.py --check</c>); (4) no site spells a placement refusal of its own: the method arm of
 /// <c>OoDataBinder.BindMethodData</c> and the class driver ask the table, and nothing raises
-/// <c>COBOL1519</c> by literal code; (5) the same screen's GLOBAL-clause walk (§13.18.27.3 SR4, kb/Work PB1045)
+/// <c>COBOL1519</c> by literal code; (5) the same screen's GLOBAL-clause walk (§2023:13.18.27.3 SR4, kb/Work PB1045)
 /// knows every grammar rule that carries the clause, and is the only reporter of <c>COBOL1520</c>.
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -53,24 +53,24 @@ public sealed class OoDefinitionRulesDriftTests
     }
 
     [Theory]
-    // Method definition: LOCAL-STORAGE and LINKAGE only (§13.6.3 SR1, §13.7.3 SR1); the other four are refused.
-    [InlineData("Method", "File", "§13.4.3 SR1")]
-    [InlineData("Method", "WorkingStorage", "§13.5.3 SR1")]
+    // Method definition: LOCAL-STORAGE and LINKAGE only (§2023:13.6.3 SR1, §2023:13.7.3 SR1); the other four are refused.
+    [InlineData("Method", "File", "§2023:13.4.3 SR1")]
+    [InlineData("Method", "WorkingStorage", "§2023:13.5.3 SR1")]
     [InlineData("Method", "LocalStorage", null)]
     [InlineData("Method", "Linkage", null)]
-    [InlineData("Method", "Report", "§13.8.3 SR1")]
-    [InlineData("Method", "Screen", "§13.9.3 SR1")]
+    [InlineData("Method", "Report", "§2023:13.8.3 SR1")]
+    [InlineData("Method", "Screen", "§2023:13.9.3 SR1")]
     // Factory and instance definitions: the four "only in a factory or instance" sections; no LOCAL-STORAGE or LINKAGE.
     [InlineData("Factory", "File", null)]
     [InlineData("Factory", "WorkingStorage", null)]
-    [InlineData("Factory", "LocalStorage", "§13.6.3 SR1")]
-    [InlineData("Factory", "Linkage", "§13.7.3 SR1")]
+    [InlineData("Factory", "LocalStorage", "§2023:13.6.3 SR1")]
+    [InlineData("Factory", "Linkage", "§2023:13.7.3 SR1")]
     [InlineData("Factory", "Report", null)]
     [InlineData("Factory", "Screen", null)]
     [InlineData("Instance", "File", null)]
     [InlineData("Instance", "WorkingStorage", null)]
-    [InlineData("Instance", "LocalStorage", "§13.6.3 SR1")]
-    [InlineData("Instance", "Linkage", "§13.7.3 SR1")]
+    [InlineData("Instance", "LocalStorage", "§2023:13.6.3 SR1")]
+    [InlineData("Instance", "Linkage", "§2023:13.7.3 SR1")]
     [InlineData("Instance", "Report", null)]
     [InlineData("Instance", "Screen", null)]
     public void TheVerdicts_AreTheStandards(string kind, string section, string? refusedBy) =>
@@ -91,10 +91,10 @@ public sealed class OoDefinitionRulesDriftTests
                 $"{file} raises COBOL1519 by literal code — the placement family is DiagnosticCatalog.OoDataDivisionPlacement, asked only through OoDefinitionRules.Screen");
     }
 
-    /// <summary>kb/Work PB1045 — §13.18.27.3 SR4 ("The GLOBAL clause shall not be specified in a factory definition,
+    /// <summary>kb/Work PB1045 — §2023:13.18.27.3 SR4 ("The GLOBAL clause shall not be specified in a factory definition,
     /// an instance definition, or a method definition") is asked of every entry SR1 lets carry the clause because
     /// <c>OoDefinitionRules.GlobalClauseSites</c> IS the grammar's list: the parser rules whose ATN matches the
-    /// GLOBAL token, less the USE statement, whose GLOBAL is the declarative's PHRASE (§14.9.49.2), not this clause.
+    /// GLOBAL token, less the USE statement, whose GLOBAL is the declarative's PHRASE (§2023:14.9.49.2), not this clause.
     /// A GLOBAL clause added to any entry's grammar (a screen-description entry's, SR1 c)) turns this red until it
     /// has a row, so the SR4 walk cannot silently miss it the way the constant entry was missed.</summary>
     [Fact]

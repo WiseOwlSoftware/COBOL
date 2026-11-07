@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.2 Format 3 — the WHEN phrase is a required group of the
+      *> ISO §2023:14.9.28.2 Format 3 — the WHEN phrase is a required group of the
       *> exception-checking PERFORM general format; a PERFORM that carries only
       *> FINALLY is not a Format-3 PERFORM and has no meaning to compile.
-      *>   cite.py: OK  §14.9.28.2   (General formats)
+      *>   cite.py: OK  §2023:14.9.28.2   (General formats)
       *> The statement is the only violation; the program is otherwise legal.
       *> Expected: COBOL1597, positioned at the offending statement (kb/Work PB1154).
       *> ONLY 2023 is named: the exception-checking PERFORM is new in

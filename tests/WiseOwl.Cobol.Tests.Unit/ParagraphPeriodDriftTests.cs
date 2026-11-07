@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY OPTIONAL SEPARATOR PERIOD THE GRAMMAR WRITES IS READ BY THE ONE PARAGRAPH-PERIOD SCREEN (kb/Work PB2727).
 ///
-/// <para><b>Why it exists.</b> ISO §12.4.6.2, §12.3.7.2 and §12.3.8.2 print ONE separator period after the
+/// <para><b>Why it exists.</b> ISO §2023:12.4.6.2, §2023:12.3.7.2 and §2023:12.3.8.2 print ONE separator period after the
 /// I-O-CONTROL, SPECIAL-NAMES and REPOSITORY paragraphs' entries, and the three grammar rules wrote
 /// <c>(entry DOT?)*</c> with nothing reading the periods — so a period after every entry, or none after the last,
 /// compiled clean at every edition. The grammar keeps the punctuation superset so <c>ClosedFormatPass</c> can refuse

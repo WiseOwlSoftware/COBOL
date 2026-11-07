@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.1.2 (A.1 item 44) — the implementor-prohibited non-COBOL
+      *> ISO §2023:8.1.2 (A.1 item 44) — the implementor-prohibited non-COBOL
       *>   currency symbol ſ
       *>   cite.py --check 8.1.2 "the implementor shall specify any such
       *>     additional
       *>   characters that are prohibited from use as a currency symbol"
-      *>   -> OK  §8.1.2 3)  (Computer's coded character set)
+      *>   -> OK  §2023:8.1.2 3)  (Computer's coded character set)
       *>   cite.py --check 12.3.7.3 "alphabetic characters A, B, C, D,
       *>     E, N, P, R, S, V,
-      *>   X, Z, or their lowercase equivalents"  -> OK  §12.3.7.3 22)
+      *>   X, Z, or their lowercase equivalents"  -> OK  §2023:12.3.7.3 22)
       *>     (Syntax rules)
       *> docs/CONFORMANCE.md DOC-A.1-44: exactly one non-COBOL character
       *>   is prohibited, ſ

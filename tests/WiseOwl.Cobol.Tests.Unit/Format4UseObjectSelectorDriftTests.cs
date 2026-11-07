@@ -13,7 +13,7 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB366 + PB365 — the invariants that keep ISO/IEC 1989:2023 §14.9.49.4 GR14 true as the OO emitter
+/// kb/Work PB366 + PB365 — the invariants that keep ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 true as the OO emitter
 /// grows: <b>each of the Format-4 USE selector's two passes covers EVERY C# type the backend emits for the name
 /// that pass's operand alternative wrote, and the class pass precedes the interface pass.</b>
 ///
@@ -156,7 +156,7 @@ public sealed class Format4UseObjectSelectorDriftTests
         Assert.Equal(ifc.ImplementedClrNames.ToHashSet(StringComparer.Ordinal), emitted);
     }
 
-    /// <summary>The generated §14.9.49.4 GR14 selector tests each operand's WHOLE census — for a class, the
+    /// <summary>The generated §2023:14.9.49.4 GR14 selector tests each operand's WHOLE census — for a class, the
     /// instance half AND the factory half, so "a factory object or instance object of object-class-name-1"
     /// selects the declarative for either kind (testing one half is the PB366 wrong answer); for an interface,
     /// the emitted interface every implementing half carries (GR14 b), the PB365 alternative).</summary>

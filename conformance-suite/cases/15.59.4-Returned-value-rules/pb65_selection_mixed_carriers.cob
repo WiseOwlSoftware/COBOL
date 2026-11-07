@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB65 (RV-15.59.4-1 D2). ISO §15.59.4 r1 / §15.63.4 r1: the
+      *> kb/Work PB65 (RV-15.59.4-1 D2). ISO §2023:15.59.4 r1 / §2023:15.63.4 r1: the
       *> returned value of MAX / MIN "is the CONTENT of the argument-1 having
       *> the greatest [least] value", the comparisons "made according to the
-      *> rules for simple conditions"; §15.61.4 r1: MEDIAN over an odd count is
+      *> rules for simple conditions"; §2023:15.61.4 r1: MEDIAN over an odd count is
       *> "the content of the argument-1 that is the middle value" (even: the
-      *> arithmetic mean of the two middle values); §15.71 / §15.72 ORD-MAX /
+      *> arithmetic mean of the two middle values); §2023:15.71 / §2023:15.72 ORD-MAX /
       *> ORD-MIN return the ordinal position. None carries an equivalent
-      *> arithmetic expression, so §15.4.1's native latitude over the
+      *> arithmetic expression, so §2023:15.4.1's native latitude over the
       *> representation of the returned value never reaches the VALUE. A MIXED
-      *> list — a FLOAT-LONG beside a fixed-point item, conforming per §8.5.2.1
+      *> list — a FLOAT-LONG beside a fixed-point item, conforming per §2023:8.5.2.1
       *> Table 2 (both class numeric) — used to route the WHOLE call through
       *> binary64: MAX(F1 N1) with N1 = 999999999999999999 returned 13 (1e18 →
       *> FromDouble at scale 9 → the modular store), MAX(D9 F1) corrupted the
       *> last digit, MEDIAN(F1 N1 N2) returned 0. Now the selected argument is
       *> delivered from its own carrier through the SDIDI (exact for a fixed
-      *> item; a float through the §8.8.1.5.1 conversion). An all-float list
+      *> item; a float through the §2023:8.8.1.5.1 conversion). An all-float list
       *> keeps its double (its content), an all-fixed list its exact lane.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65MIXSEL.

@@ -10,19 +10,19 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   ADVANCING phrase is not used, automatic advancing shall be
       *>   provided by the implementor to act as if the user has
-      *>   specified AFTER ADVANCING 1 LINE."    -> OK  §14.9.51.4 25)
+      *>   specified AFTER ADVANCING 1 LINE."    -> OK  §2023:14.9.51.4 25)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the line is
       *>   presented after the representation of the printed page is
-      *>   advanced"                             -> OK  §14.9.51.4 25) f)
+      *>   advanced"                             -> OK  §2023:14.9.51.4 25) f)
       *> The AFTER write advances, then presents AAAAA on a line it
       *> leaves open; each plain WRITE advances one line FIRST, ending
       *> that line, and presents its record on the next one. So the
       *> file holds four lines: an empty one, AAAAA, BBBBB, CCCCC --
       *> never AAAAABBBBB on one line (the weld PB964 removed).
-      *> LINE SEQUENTIAL is a COBOL-2023 organization (§12.4.5.10.3
+      *> LINE SEQUENTIAL is a COBOL-2023 organization (§2023:12.4.5.10.3
       *> GR2), so the observation lives here. The physical bytes are
       *> read back through a second FD over the same file with a
-      *> ONE-character record sequential record (§12.4.5.10.3 GR3),
+      *> ONE-character record sequential record (§2023:12.4.5.10.3 GR3),
       *> because a same-width line sequential read-back splits a
       *> welded line again and hides the defect. Each byte displays as
       *> itself and LF as "/"; a CR is not shown, because the line

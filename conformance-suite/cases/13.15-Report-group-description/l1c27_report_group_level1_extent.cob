@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.15.4 1) — a level 1 entry and its subordinates = a
+      *> ISO §2023:13.15.4 1) — a level 1 entry and its subordinates = a
       *> group
       *> "Each level 1 entry identifies a report group. The report group
       *> is defined by this entry and all its subordinate entries."
       *> cite.py --check 13.15.4 "Each level 1 entry identifies a report
       *>   group. The report group is defined by this entry and all its
-      *>   subordinate entries" -> OK §13.15.4 1)
+      *>   subordinate entries" -> OK §2023:13.15.4 1)
       *> Supporting rules (each --check OK):
-      *>   §13.18.39.4 2) a) "If integer-1 is not specified, the report
+      *>   §2023:13.18.39.4 2) a) "If integer-1 is not specified, the report
       *>     consists of a single page of indefinite length" (RD R-1 has
       *>     no PAGE clause)
-      *>   §13.18.35.4 5) c) "If the first LINE NUMBER clause of the
+      *>   §2023:13.18.35.4 5) c) "If the first LINE NUMBER clause of the
       *>     report group is relative and the report is not divided into
       *>     pages, the report group's first line number is obtained by
       *>     adding integer-2 to the current value of the report's
       *>     LINE-COUNTER" (cite.py labels it 5) 5. c))
-      *>   §13.18.35.4 7) b) "If the LINE clause is relative, the new
+      *>   §2023:13.18.35.4 7) b) "If the LINE clause is relative, the new
       *>     line number is determined by adding integer-2 to the
       *>     report's LINE-COUNTER"
       *> The first group is written with level-number 1, the second with

@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1405 - ISO §8.3.2.2 1): when an INVOKE statement
+      *> kb/Work PB1405 - ISO §2023:8.3.2.2 1): when an INVOKE statement
       *> references a method-name using a universal object reference and
       *> the COBOL call convention is implied, "that method-name is
       *> treated as a COBOL word that maps to the externalized name of the
       *> method to be invoked" - the name METHOD-ID's AS phrase gives it
-      *> (§11.7.4 GR1 b)), and the same name the typed INVOKE resolves.
+      *> (§2023:11.7.4 GR1 b)), and the same name the typed INVOKE resolves.
       *> So M2 AS "MixedExt" is found by "MixedExt" (as a COBOL word, in
       *> either case) through literal-1 and through identifier-2, exactly
       *> as the typed reference T finds it; its declared word "M2" names
       *> no externalized method, so that INVOKE resolves nothing and sets
-      *> EC-OO-METHOD (§9.3.6 6)), which the declarative selects.
+      *> EC-OO-METHOD (§2023:9.3.6 6)), which the declarative selects.
       >>TURN EC-OO-METHOD CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W67QXN.

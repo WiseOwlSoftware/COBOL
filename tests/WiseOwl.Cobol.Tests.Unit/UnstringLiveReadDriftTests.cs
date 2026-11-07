@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN UNSTRING RE-READS AN OPERAND A STORE OF THE STATEMENT CAN REACH, AND ONLY THAT OPERAND, AND THE QUESTION
-/// "CAN A STORE REACH IT?" IS ANSWERED IN ONE PLACE (kb/Work PB1907). ISO §14.9.48.4 GR18 (Annex A.2 item 61) leaves
+/// "CAN A STORE REACH IT?" IS ANSWERED IN ONE PLACE (kb/Work PB1907). ISO §2023:14.9.48.4 GR18 (Annex A.2 item 61) leaves
 /// an UNSTRING whose sending or delimiter operand shares storage with a receiving, DELIMITER IN or COUNT IN
 /// operand undefined; WiseOwl COBOL runs it in place, as GnuCOBOL does (docs/CONFORMANCE.md D-UNS1/D-UNS2), so the
 /// emitter renders a re-read of the sender or of an identifier delimiter before each later receiving area.

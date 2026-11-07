@@ -15,7 +15,7 @@ internal static class CutRunner
     /// Canonicalize a compiled program's stdout to the <b>NIST acceptance basis</b> — exactly the guard's
     /// <c>guard_normalize_into</c> (<c>scripts/guard-verdict.sh</c>): drop CR, then strip trailing spaces
     /// <i>per line</i>. The committed differential goldens (<c>tests/differential/**/*.out</c>) were recorded on this basis, so every
-    /// comparison against them goes through it. WiseOwl COBOL itself DISPLAYs the full field (ISO §14.9.11.4 GR1);
+    /// comparison against them goes through it. WiseOwl COBOL itself DISPLAYs the full field (ISO §2023:14.9.11.4 GR1);
     /// a case whose meaning depends on <i>internal</i> trailing spaces (e.g. <c>DISPLAY WS-X "]"</c>) is pinned to
     /// its spec-derived value, which keeps the spaces before the bracket.
     /// </summary>
@@ -32,7 +32,7 @@ internal static class CutRunner
 
     /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.
     /// <paramref name="stdinFile"/> (when given) is piped to the program's stdin — ACCEPT device input (ISO
-    /// §14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.</summary>
+    /// §2023:14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.</summary>
     public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir, string? stdinFile = null,
         IReadOnlyDictionary<string, string?>? env = null)
     {
@@ -41,7 +41,7 @@ internal static class CutRunner
     }
 
     /// <summary>Like <see cref="Run"/> but returns the NUMERIC process exit code (the run-unit termination status
-    /// "passed to the operating system" — ISO §14.9.42.4 GR5 / §14.9.18.4 GR10), not just success. The exit-code
+    /// "passed to the operating system" — ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10), not just success. The exit-code
     /// tests assert the value; the golden harness only needs the <c>ok</c> bool.
     ///
     /// <para>⛔ A run that does not COMPLETE no longer returns anything (plan §11 A12). It used to return
@@ -72,7 +72,7 @@ internal static class CutRunner
             foreach (var (k, v) in env)
                 if (v is null) psi.Environment.Remove(k);
                 else psi.Environment[k] = v;
-        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard-run-group.sh parity.
+        // ACCEPT device input (ISO §2023:14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard-run-group.sh parity.
         var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile), runDirectory: workDir);
         return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }
@@ -112,7 +112,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
     ///
     /// <para>⛔ THIS IS THE ONLY WAY TO ASSERT A PHYSICAL FILE LAYOUT. <see cref="CompileAndRun"/> deletes the
     /// run directory in its <c>finally</c>, so every test written through it can observe a program only through
-    /// stdout — and a rule about WHERE ON THE MEDIUM a record lands (ISO §13.18.34.4 GR4/GR5 margins, §14.9.51.4
+    /// stdout — and a rule about WHERE ON THE MEDIUM a record lands (ISO §2023:13.18.34.4 GR4/GR5 margins, §2023:14.9.51.4
     /// GR25 g)'s reposition-not-form-feed) is invisible there. kb/Work PB523 is the defect that proves it: the
     /// LINAGE margins were evaluated and discarded for the whole life of the connector while every LINAGE test
     /// stayed green, because they all read LINAGE-COUNTER and never the file.</para></summary>
@@ -139,10 +139,10 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
 
     /// <summary>Compile each of <paramref name="companions"/> into its OWN assembly beside
     /// <paramref name="source"/>, then compile and run <paramref name="source"/> — the SEPARATELY COMPILED
-    /// module case, resolved at run time by <c>ProgramTable</c>'s sibling-module probe (§8.4.6.3 rule 4).
+    /// module case, resolved at run time by <c>ProgramTable</c>'s sibling-module probe (§2023:8.4.6.3 rule 4).
     ///
     /// <para>This is not a convenience: some rules are only reachable ACROSS a compilation boundary and are
-    /// untestable in a single group. §14.9.18.4 GR1b is the case that forced it — an exception condition
+    /// untestable in a single group. §2023:14.9.18.4 GR1b is the case that forced it — an exception condition
     /// staged by <c>GOBACK … RAISING</c> is raised in the activator only if the ACTIVATOR enabled checking for
     /// it, and within one compilation group any <c>>>TURN</c> anywhere makes the whole group EC-active, so an
     /// unchecked-activator test cannot be written as one program.</para></summary>
@@ -172,7 +172,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
         foreach (string companion in companions)
         {
             // The assembly must be NAMED for its PROGRAM-ID: ProgramTable's sibling-module probe locates a
-            // separately-compiled program by looking for <program-name>.dll beside the caller (§8.4.6.3
+            // separately-compiled program by looking for <program-name>.dll beside the caller (§2023:8.4.6.3
             // rule 4). A generic "companion0.dll" compiles fine and is then never found at run time, which
             // surfaces as EC-PROGRAM-NOT-FOUND rather than as a harness error.
             var m = System.Text.RegularExpressions.Regex.Match(
@@ -190,7 +190,7 @@ public sealed class WiseOwlCobolCompiler(int dialectLevel = 85)
     }
 
     /// <summary>Compile+run and return the NUMERIC process exit code — the STOP RUN / GOBACK termination status
-    /// "passed to the operating system" (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). A compile failure returns
+    /// "passed to the operating system" (ISO §2023:14.9.42.4 GR5 / §2023:14.9.18.4 GR10). A compile failure returns
     /// <c>(-1, "", detail)</c>.</summary>
     public (int exitCode, string stdout, string detail) CompileAndRunExit(string source, params string[] companions)
     {

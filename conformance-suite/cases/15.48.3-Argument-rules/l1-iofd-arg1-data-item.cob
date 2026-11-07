@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.3 r1 — "Argument-1 shall be a national or alphanumeric
+      *> ISO §2023:15.48.3 r1 — "Argument-1 shall be a national or alphanumeric
       *> LITERAL." The LITERAL half: a PIC X(8) data item holding the very same
       *> eight characters is of an admitted class and is still not a literal, so
       *> the class screen alone cannot reject it. Its content is only known at run

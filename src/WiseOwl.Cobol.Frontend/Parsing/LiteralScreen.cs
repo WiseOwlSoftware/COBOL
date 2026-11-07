@@ -6,30 +6,30 @@ using WiseOwl.Cobol.Common;              // CobolLiteral — the ONE literal cod
 using WiseOwl.Cobol.Editions;             // Constructs, ConstructRegistry — the literal-format edition gates
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Common;      // ExpansionToken — the one token-to-cursor rule, the expansion region included
-using WiseOwl.Cobol.Frontend.Expressions; // ArithmeticFormationRules — the ONE §8.3.3.3.2 rule-2 contiguity test
+using WiseOwl.Cobol.Frontend.Expressions; // ArithmeticFormationRules — the ONE §2023:8.3.3.3.2 rule-2 contiguity test
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore contexts of the signed literal slots
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// THE ONE PLACE A LITERAL'S OWN SYNTAX RULES ARE ASKED (kb/Work PB1393) — the §8.3.3 rules that are a property of
+/// THE ONE PLACE A LITERAL'S OWN SYNTAX RULES ARE ASKED (kb/Work PB1393) — the §2023:8.3.3 rules that are a property of
 /// the literal as WRITTEN, whatever position it is written in:
 /// <list type="bullet">
-/// <item>the LENGTH rule — §8.3.3.2.3 SR1 (alphanumeric, both formats), §8.3.3.4.3 SR1 (boolean, both formats),
-/// §8.3.3.5.3 SR1 (national, both formats): at most 8,191 character positions of the literal's class, 160 below COBOL-2014
+/// <item>the LENGTH rule — §2023:8.3.3.2.3 SR1 (alphanumeric, both formats), §2023:8.3.3.4.3 SR1 (boolean, both formats),
+/// §2023:8.3.3.5.3 SR1 (national, both formats): at most 8,191 character positions of the literal's class, 160 below COBOL-2014
 /// (<see cref="CobolLiteral.LengthViolation"/> → <c>COBOL0814</c>; the bound is the edition's, <see cref="CobolLiteral.MaxPositions"/>, kb/Work PB1615);</item>
-/// <item>the hexadecimal GROUPING rule — §8.3.3.2.3 SR6 (<c>X"…"</c>, pairs) and §8.3.3.5.3 SR5 (<c>NX"…"</c>, groups
+/// <item>the hexadecimal GROUPING rule — §2023:8.3.3.2.3 SR6 (<c>X"…"</c>, pairs) and §2023:8.3.3.5.3 SR5 (<c>NX"…"</c>, groups
 /// of four); a <c>BX"…"</c> literal has none (<see cref="CobolLiteral.HexGroupViolation"/> →
 /// <c>COBOL1635</c>);</item>
-/// <item>the content REPERTOIRE rule of the prefixed formats — §8.3.3.2.3 SR5 (<c>X"…"</c>) and §8.3.3.5.3 SR4
-/// (<c>NX"…"</c>) hexadecimal digits, §8.3.3.4.3 SR3 (<c>BX"…"</c>) a hexadecimal digit, §8.3.3.4.3 SR2
+/// <item>the content REPERTOIRE rule of the prefixed formats — §2023:8.3.3.2.3 SR5 (<c>X"…"</c>) and §2023:8.3.3.5.3 SR4
+/// (<c>NX"…"</c>) hexadecimal digits, §2023:8.3.3.4.3 SR3 (<c>BX"…"</c>) a hexadecimal digit, §2023:8.3.3.4.3 SR2
 /// (<c>B"…"</c>) '0' or '1' (<see cref="CobolLiteral.RepertoireViolation"/> → <c>COBOL2630</c>). The lexer delimits
 /// a prefixed literal whatever its content (kb/Work PB1441), so this screen is the only place the rule is asked.</item>
-/// <item>the SIGN rule — §8.3.3.3.2 2), a numeric literal's sign is its leftmost character — over the two grammar
+/// <item>the SIGN rule — §2023:8.3.3.3.2 2), a numeric literal's sign is its leftmost character — over the two grammar
 /// rules that parse a sign as a separate token (<c>signedNumericLiteral</c>, <c>signedIntegerLiteral</c>): a sign
 /// separated from its digits is refused (<c>COBOL2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
 /// literal as written, so it rides the same walk and every future signed slot is screened with no arm.</item>
-/// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§6.3.5 1), §6.4.2;
+/// <item>the CLOSING DELIMITER — a literal its line ends inside, not continued (§2023:6.3.5 1), §2023:6.4.2;
 /// <see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> →
 /// <c>COBOL5563</c>, kb/Work PB3245). Asked of the TOKENS before the parse rather than by this walk, for the reason given
 /// there.</item>
@@ -70,12 +70,12 @@ public static class LiteralScreen
     /// <summary>Screen every literal token of <paramref name="tree"/> against the targeted <paramref name="edition"/>,
     /// reporting to <paramref name="sink"/> at the token's own position (the sink's cursor; a sink that keeps none
     /// carries its own fixed position, like the directive stage's). True when no literal broke one of its own
-    /// §8.3.3 rules or the sign rule — a literal that did has no value, and a caller that would evaluate the tree
+    /// §2023:8.3.3 rules or the sign rule — a literal that did has no value, and a caller that would evaluate the tree
     /// must not (the format-edition gates report too but leave the literal's value intact, so they do not count).
     /// A literal the client wrote into an expansion's text (<paramref name="clientWritten"/>) is not screened again: the written
     /// tree's screen has it.
     /// <paramref name="gateFormats"/> asks the edition question (<see cref="GateFormat"/>) too — false for a directive
-    /// in an OMITTED branch, whose text is held to the syntax of §7.2.1 but is not compiled, so no construct it uses is
+    /// in an OMITTED branch, whose text is held to the syntax of §2023:7.2.1 but is not compiled, so no construct it uses is
     /// introduced by it (the same posture as the directive's own gate and the boolean-operator gate).</summary>
     public static bool Run(IParseTree tree, EditionInfo edition, IDiagnosticSink sink, bool gateFormats, ClientWrittenTokens? clientWritten = null)
     {
@@ -119,7 +119,7 @@ public static class LiteralScreen
         _ => (null, null),
     };
 
-    /// <summary>§8.3.3.3.2 rule 2 over a signed literal slot (kb/Work PB1445, generalizing PB553's one screened slot):
+    /// <summary>§2023:8.3.3.3.2 rule 2 over a signed literal slot (kb/Work PB1445, generalizing PB553's one screened slot):
     /// the sign is the literal's leftmost character only when it ABUTS the digits — the ONE contiguity test,
     /// <see cref="ArithmeticFormationRules.SignAbuts"/>. A separated sign makes two things of one: <c>MOVE - 5 TO A</c>
     /// is refused, where <c>-5</c> is the literal. (<c>IF A = - 5</c> never reaches here: a relation operand is an
@@ -131,7 +131,7 @@ public static class LiteralScreen
         string written = WrittenSource.Of((ParserRuleContext)node);
         Error(sink, DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"the numeric literal `{written}` has its sign "
             + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote}, and a space or line break is a "
-            + $"separator (ISO §8.3.5). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
+            + $"separator (ISO §2023:8.3.5). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
         return false;
     }
 
@@ -152,7 +152,7 @@ public static class LiteralScreen
         return false;
     }
 
-    /// <summary>⛔ THE FLOATING-POINT NUMERIC LITERAL — ISO §8.3.3.3.3 1), "formed from two fixed-point numeric literals
+    /// <summary>⛔ THE FLOATING-POINT NUMERIC LITERAL — ISO §2023:8.3.3.3.3 1), "formed from two fixed-point numeric literals
     /// separated by the letter 'E'", a COBOL-2002 introduction (<see cref="Constructs.FloatingPointLiteral2002"/>; VCR
     /// row 7.37, kb/Work PB674): asked of the TOKEN (<see cref="LiteralTokens.FloatingPointTypes"/>), position-blind, so a
     /// COMPUTE operand, a MOVE source, a VALUE, a relation operand, a FUNCTION argument, a subscript and a CALL argument
@@ -169,7 +169,7 @@ public static class LiteralScreen
 
     /// <summary>⛔ THE LITERAL ITS LINE ENDS INSIDE (kb/Work PB3245) — every token of <paramref name="tokens"/> that is a
     /// delimited literal with no closing delimiter (<see cref="CobolLiteral.IsUnterminated"/>), reported once each to
-    /// <paramref name="report"/> under COBOL5563. True when there is none. ISO §6.3.5 1) and §6.4.2 let a literal stay open
+    /// <paramref name="report"/> under COBOL5563. True when there is none. ISO §2023:6.3.5 1) and §2023:6.4.2 let a literal stay open
     /// at the end of a line only when a continuation line continues it, and the reference-format stage has joined every
     /// one that was; the lexer makes the rest the literal's own token (CobolLexer.g4 STR_BODY).
     /// <para>⚠ ASKED OF THE TOKENS, BEFORE THE PARSE, AND NOT BY <see cref="Run"/>: an unterminated literal is often why
@@ -178,7 +178,7 @@ public static class LiteralScreen
     /// (<c>SeparatorRule</c>, <c>PictureSeparatorPeriodRule</c>), and the conditional-compilation stage of each directive
     /// fragment's tree (<see cref="ReportUnterminated(IParseTree, Action{IToken, DiagnosticDescriptor, string})"/>), whose
     /// lexing is apart from the unit's. <see cref="CobolLiteral.SyntaxViolation"/> never sees one: an open literal is no
-    /// well-formed literal, so it has no content for the §8.3.3 rules to judge and no format to gate.</para>
+    /// well-formed literal, so it has no content for the §2023:8.3.3 rules to judge and no format to gate.</para>
     /// <para>A token on the <c>ABSENT_DEBUG_LINE</c> channel belongs to a debugging line that is a comment (kb/Work
     /// PB1705), and one of an embedded precompiler block's text is another language (kb/Work PB4341), so neither is a
     /// literal (<see cref="ProgramText"/>).</para></summary>
@@ -214,9 +214,9 @@ public static class LiteralScreen
         string closing = literal[literal.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";
         // Shown without the spaces it runs on to its line's end (a fixed-form line's program-text area is space-filled).
         return $"the literal {CobolLiteral.Abbreviated(literal.TrimEnd(' '))} is not closed — its line ends before the closing "
-               + $"{closing}, and no continuation line continues it. ISO §6.4.2: \"When such a literal is incomplete at "
+               + $"{closing}, and no continuation line continues it. ISO §2023:6.4.2: \"When such a literal is incomplete at "
                + "the end of a line, the incomplete portion of the literal shall be terminated by a floating continuation "
-               + "indicator\" (in fixed form, §6.3.5 1) also admits a hyphen in the indicator area of the next line)";
+               + "indicator\" (in fixed form, §2023:6.3.5 1) also admits a hyphen in the indicator area of the next line)";
     }
 
     /// <summary><see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> over
@@ -249,10 +249,10 @@ public static class LiteralScreen
     /// gate to carry it, unlike a national or boolean literal, whose item's category is gated in
     /// <c>VersionConformancePass.GateData</c>):
     /// <list type="bullet">
-    /// <item>the HEXADECIMAL ALPHANUMERIC literal <c>X"…"</c> — §8.3.3.2.2 format 2, a COBOL-2002 introduction
+    /// <item>the HEXADECIMAL ALPHANUMERIC literal <c>X"…"</c> — §2023:8.3.3.2.2 format 2, a COBOL-2002 introduction
     /// (<see cref="Constructs.HexAlphanumericLiteral2002"/>; VCR row 7.29, kb/Work PB1545). Its national and boolean
     /// twins <c>NX"…"</c> / <c>BX"…"</c> arrive with their classes and are gated as those classes are;</item>
-    /// <item>the ZERO-LENGTH literal — §8.3.3.1, "If the opening and closing delimiters are contiguous, the length of
+    /// <item>the ZERO-LENGTH literal — §2023:8.3.3.1, "If the opening and closing delimiters are contiguous, the length of
     /// the literal is zero, and it is known as a zero-length literal", in every one of its spellings
     /// (<see cref="CobolLiteral.IsZeroLength"/>), a COBOL-2014 introduction (<see cref="Constructs.ZeroLengthLiteral2014"/>;
     /// VCR row 7.30, kb/Work PB895).</item>

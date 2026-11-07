@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR16 — the OPEN-FAMILY case, and the one that
+      *> ISO §2023:14.9.28.3 SR16 — the OPEN-FAMILY case, and the one that
       *> separates the rule the standard wrote from the two plausible
       *> substitutes. SR16 tests the WRITTEN NAME's leading characters;
       *> EC-USER-MINE is a legal level-3 user-defined exception-name
-      *> (§14.6.13.1.1: "shall start with the characters 'EC-USER-' and
+      *> (§2023:14.6.13.1.1: "shall start with the characters 'EC-USER-' and
       *> end with a suffix containing only … basic letters, basic
       *> digits, and the hyphen and underscore"), so it resolves — and
       *> it still does not begin with 'EC-I-O', so pairing it with FILE

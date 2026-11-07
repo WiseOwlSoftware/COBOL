@@ -5,35 +5,35 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.4 GR1 — every data description clause of an
+      *> ISO §2023:13.18.38.4 GR1 — every data description clause of an
       *> OCCURS DYNAMIC (format 4) entry applies to each occurrence.
       *>
       *> THE RULES.
-      *> §13.18.38.4 GR1 (FORMATS 1, 2 AND 4): "Except for the OCCURS
+      *> §2023:13.18.38.4 GR1 (FORMATS 1, 2 AND 4): "Except for the OCCURS
       *>   clause itself, all data description clauses associated
       *>   with an item whose description includes an OCCURS clause
       *>   apply to each occurrence of the item described."
-      *>   OK  §13.18.38.4 1)  (General rules)
-      *> §8.5.1.9.2: a receiving reference within the current capacity
+      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *> §2023:8.5.1.9.2: a receiving reference within the current capacity
       *>   behaves "the same as for a fixed-capacity table whose
       *>   number of occurrences is the current capacity".
-      *>   OK  §8.5.1.9.2   (Operations on a single element)
+      *>   OK  §2023:8.5.1.9.2   (Operations on a single element)
       *> The per-clause results applied to EACH occurrence:
-      *> §13.18.40.5 5) + Table 8: '-' gives space for a positive or
+      *> §2023:13.18.40.5 5) + Table 8: '-' gives space for a positive or
       *>   zero value, '-' for a negative value.
-      *>   OK  §13.18.40.5 5)  (Editing rules)
-      *> §13.18.32.4 GR2: JUSTIFIED data "is aligned at the rightmost
+      *>   OK  §2023:13.18.40.5 5)  (Editing rules)
+      *> §2023:13.18.32.4 GR2: JUSTIFIED data "is aligned at the rightmost
       *>   character position ... with ... space fill for the
       *>   leftmost character positions."
-      *>   OK  §13.18.32.4 2)  (General rules)
-      *> §13.18.8.4 GR1: BLANK WHEN ZERO "the content of the data item
+      *>   OK  §2023:13.18.32.4 2)  (General rules)
+      *> §2023:13.18.8.4 GR1: BLANK WHEN ZERO "the content of the data item
       *>   is set to all spaces when the item is a receiving operand
       *>   and the value being stored is zero."
-      *>   OK  §13.18.8.4 1)  (General rules)
-      *> §13.18.52.4 GR6 b) SIGN ... SEPARATE: "The operational signs
+      *>   OK  §2023:13.18.8.4 1)  (General rules)
+      *> §2023:13.18.52.4 GR6 b) SIGN ... SEPARATE: "The operational signs
       *>   for positive and negative are the basic special
       *>   characters '+' and '-', respectively."
-      *>   OK  §13.18.52.4 6) b)  (General rules)
+      *>   OK  §2023:13.18.52.4 6) b)  (General rules)
       *> The companion 85 golden l1c20_occurs_clauses_per_occurrence
       *> pins formats 1 and 2.
       *>

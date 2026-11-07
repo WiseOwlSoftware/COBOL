@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The exception-checking (Format-3) PERFORM RUNTIME interceptor INSIDE AN OO METHOD (ISO/IEC 1989:2023 §14.9.28.4
-/// GR14–GR22; §11.7; design SSOT <c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9.10). Mirrors the program-path
+/// The exception-checking (Format-3) PERFORM RUNTIME interceptor INSIDE AN OO METHOD (ISO/IEC 1989:2023 §2023:14.9.28.4
+/// GR14–GR22; §2023:11.7; design SSOT <c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9.10). Mirrors the program-path
 /// <see cref="PerformFormat3BehaviorTests"/> imp-2..5 matrix, but the F3 PERFORM lives in a method whose handler
 /// bodies reference the method's per-activation LOCAL-STORAGE — so every green case ALSO proves the method-local
 /// machinery (method-local <c>__RunUse</c>/<c>__RunF3</c>, the two-range <c>__MDispatch</c>, and the frame Matcher
@@ -104,7 +104,7 @@ public sealed class PerformFormat3MethodBehaviorTests
                 DISPLAY "DONE"
             """, "EC-SIZE-OVERFLOW", "HANDLED");
 
-    [Fact]   // §14.9.33.4 GR2: RESUME NEXT STATEMENT in a WHEN suppresses the fatal termination and resumes past the raiser.
+    [Fact]   // §2023:14.9.33.4 GR2: RESUME NEXT STATEMENT in a WHEN suppresses the fatal termination and resumes past the raiser.
     public void Fatal_ResumeNext_SuppressesTermination()
         => AssertSpec("""
                 PERFORM
@@ -117,7 +117,7 @@ public sealed class PerformFormat3MethodBehaviorTests
                 DISPLAY "DONE"
             """, "HANDLED\nAFTER\nDONE");
 
-    // ── GR17 → §14.9.49.4 GR3c-g tier ordering (NOT written order) — in a method ─────────────────────────────────
+    // ── GR17 → §2023:14.9.49.4 GR3c-g tier ordering (NOT written order) — in a method ─────────────────────────────────
 
     [Fact]   // A level-3 EC-BOUND-SUBSCRIPT (tier 2) outranks a level-1 EC-ALL (tier 4) though EC-ALL is written FIRST.
     public void Tier_SpecificBeatsEcAll_RegardlessOfSourceOrder()
@@ -195,7 +195,7 @@ public sealed class PerformFormat3MethodBehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nAFTER\nDONE");
 
-    // ── GR16 FINALLY + §14.9.14.4 GR4 EXIT PERFORM — in a method ─────────────────────────────────────────────────
+    // ── GR16 FINALLY + §2023:14.9.14.4 GR4 EXIT PERFORM — in a method ─────────────────────────────────────────────────
 
     [Fact]   // GR16: FINALLY (imp-5) runs on the normal (nonfatal-resume) fall-through — inline in the method body.
     public void Finally_RunsOnNormalPath()
@@ -211,7 +211,7 @@ public sealed class PerformFormat3MethodBehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nAFTER\nFINALLY\nDONE");
 
-    [Fact]   // §14.9.14.4 GR4: an EXIT PERFORM in a handler transfers to the implicit CONTINUE preceding FINALLY —
+    [Fact]   // §2023:14.9.14.4 GR4: an EXIT PERFORM in a handler transfers to the implicit CONTINUE preceding FINALLY —
              // the method-local ExitPerformSignal is caught at THIS PERFORM's boundary (WHEN COMMON + imp-1 skipped).
     public void ExitPerform_InHandler_JumpsToFinally_SkipsCommon()
         => AssertSpec("""
@@ -234,8 +234,8 @@ public sealed class PerformFormat3MethodBehaviorTests
 
     [Fact]   // ⚠ Handler-local >>TURN, for the same reason as the program-level twin in PerformFormat3BehaviorTests:
              // this used to rely on the enclosing `>>TURN EC-ALL CHECKING ON` reaching into the handler, which
-             // §14.9.28.4 GR14 forbids — "an implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
-             // imperative-statement-1", so the ADD raises nothing. An explicit RAISE cannot substitute (§14.9.29.3
+             // §2023:14.9.28.4 GR14 forbids — "an implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
+             // imperative-statement-1", so the ADD raises nothing. An explicit RAISE cannot substitute (§2023:14.9.29.3
              // SR4 bars RAISE outside imp-1, COBOL1611), so re-enabling inside the handler is the legal way to
              // raise there — and it proves a handler-local directive still wins over the GR14 floor.
     public void Gr21_ReRaiseInHandler_NotReCaught_FallsToFatal()
@@ -277,7 +277,7 @@ public sealed class PerformFormat3MethodBehaviorTests
     [Fact]   // An F3 method OUTER whose imp-1 INVOKEs an F3 method INNER: INNER raises EC-USER-DEMO, which INNER's own
              // WHEN (EC-SIZE-OVERFLOW) does NOT match. OUTER's frame belongs to another activation, so INNER's EC is
              // NOT caught by OUTER's WHEN (it falls to INNER's default — a nonfatal RAISE simply continues). Were the walk
-             // not bounded, "OUTER-CAUGHT-LEAK" would print. A method is a separate source element (§14.9.18.3 SR2/SR4a).
+             // not bounded, "OUTER-CAUGHT-LEAK" would print. A method is a separate source element (§2023:14.9.18.3 SR2/SR4a).
     public void CrossInvoke_InnerUnmatchedEc_DoesNotReachOuterWhen()
     {
         string src = """

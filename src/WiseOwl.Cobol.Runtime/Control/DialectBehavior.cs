@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// NOT the same question: the source of a behaviour change is legal at every edition, so no diagnostic can
 /// carry it.
 /// <para>⛔ <b>THE ADMISSION TEST FOR A MEMBER</b> (kb/Work PB344, earned by a member that had to be withdrawn).
-/// Annex E is INFORMATIVE and, per §E.1, lists "the substantive changes between <b>the previous COBOL
+/// Annex E is INFORMATIVE and, per §2023:E.1, lists "the substantive changes between <b>the previous COBOL
 /// standard</b> and this Working Draft International Standard" — ONE prior edition, the 2014 one. An E.2 item is
 /// therefore evidence about a prior edition's RULES only when it says what the prior rule STATED; where its
 /// justification says instead that the previous standard "was not clear or missing processing" — i.e. the prior
@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public enum DialectBehavior
 {
-    /// <summary>ISO/IEC 1989:2023 §14.9.30.4 GR21 indexed rule d) 3 — "If no such record is found or PREVIOUS
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR21 indexed rule d) 3 — "If no such record is found or PREVIOUS
     /// is specified and the previous operation on the file was an OPEN statement, the at end condition exists".
     /// 2023 CHANGED IT: Annex E.2 item 22, "READ PREVIOUS statement following an OPEN statement. Ensure that an
     /// at end condition occurs", whose justification records the PRIOR rule — "the rule itself stated that the
@@ -46,7 +46,7 @@ public enum DialectBehavior
     /// sequential sub-rule blocks print rule b) unamended.</summary>
     IndexedReadPreviousAfterOpenAtEnd = 0,
 
-    /// <summary>ISO/IEC 1989:2023 §7.3.6.3 GR2 — "The implementor shall define and document which mode of
+    /// <summary>ISO/IEC 1989:2023 §2023:7.3.6.3 GR2 — "The implementor shall define and document which mode of
     /// arithmetic is to be used when evaluating compile-time arithmetic." 2023 CHANGED IT: Annex E.2 item 6 says
     /// the mode "is now explicitly implementor defined", and its justification records the PRIOR rule — "The
     /// previous COBOL Standard required the use of an arithmetic mode that is no longer supported" — so it passes
@@ -57,15 +57,15 @@ public enum DialectBehavior
     /// <c>WiseOwl.Cobol.Frontend.Expressions.CompileTimeArithmetic.For</c> — kb/Work PB1592.</summary>
     CompileTimeArithmeticImplementorDefined = 1,
 
-    /// <summary>ISO/IEC 1989:2023 §9.1.15 / §14.9.27.4 Table 19 — the FILE SHARING facility (Annex A.4.7, an OPTIONAL
+    /// <summary>ISO/IEC 1989:2023 §2023:9.1.15 / §2023:14.9.27.4 Table 19 — the FILE SHARING facility (Annex A.4.7, an OPTIONAL
     /// module): the sharing mode, the file lock "thereby preventing other run units from opening that file with
     /// incompatible sharing rules", the OPEN arbitration of Table 19 and the file sharing conflict condition whose I-O
-    /// status is '61' (§9.1.13.9 item 1). It passes the admission test above the other way round: not by an Annex E
-    /// item (Annex E is the 2014 to 2023 window) but by §A.4.1, <i>"Any associated syntax rules, general rules, other
+    /// status is '61' (§2023:9.1.13.9 item 1). It passes the admission test above the other way round: not by an Annex E
+    /// item (Annex E is the 2014 to 2023 window) but by §2023:A.4.1, <i>"Any associated syntax rules, general rules, other
     /// rules, exception conditions, and I-O status values are also optional"</i> — the facility is a 2002 module (the
     /// SHARING and LOCK MODE clauses are COBOL-2002 introductions, <c>COBOL0900</c> below 2002), so a COBOL-85
     /// program is compiled for a processor on which it is not in effect. At <c>--std 85</c> a file connector therefore
-    /// has the implementor-defined sharing mode §9.1.15 allows ("a mode completely specified by the implementor", which
+    /// has the implementor-defined sharing mode §2023:9.1.15 allows ("a mode completely specified by the implementor", which
     /// need not be one of the three): <b>no mode restricts another connector</b>. Two connectors of one run unit open the
     /// same physical file in any combination of modes and every OPEN answers '00' (the owner's determination of
     /// 2026-10-23, kb/Work PB670, option (i): it is GnuCOBOL's measured <c>-std=cobol85</c> behaviour, and it produces no

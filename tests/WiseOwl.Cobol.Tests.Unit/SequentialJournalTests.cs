@@ -15,10 +15,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// POWER LOSS in turn, and the invariants of 2.2.2.12 asserted after "the next entry" (a fresh run unit's entry step):
 /// <b>I1</b> F holds exactly the state at the last COMMIT or exactly the state the COMMIT made durable, never a third, and the
 /// program was told success only in the second case — and, when the fault was a REFUSAL, which the process survives and item
-/// 8's ROLLBACK follows (§14.6.13.1.3 8), exactly the state at the last COMMIT unless the COMMIT answered success; <b>I3</b>
-/// no holder, record, before file or lock directory is left behind. Expected states come from the rules: §9.1.18.3 (a COMMIT
-/// makes the changes permanent), §14.9.36.4 GR3 (a ROLLBACK restores the files <i>"to the state they were in at the execution
-/// of the last COMMIT statement or the start of the run unit"</i>), §9.1.18.5 (an abnormal termination rolls them back).
+/// 8's ROLLBACK follows (§2023:14.6.13.1.3 8), exactly the state at the last COMMIT unless the COMMIT answered success; <b>I3</b>
+/// no holder, record, before file or lock directory is left behind. Expected states come from the rules: §2023:9.1.18.3 (a COMMIT
+/// makes the changes permanent), §2023:14.9.36.4 GR3 (a ROLLBACK restores the files <i>"to the state they were in at the execution
+/// of the last COMMIT statement or the start of the run unit"</i>), §2023:9.1.18.5 (an abnormal termination rolls them back).
 /// </summary>
 public sealed class SequentialJournalTests
 {
@@ -479,7 +479,7 @@ public sealed class SequentialJournalTests
     [Fact]
     public void A_dead_transactions_record_with_a_wrapped_image_length_is_rolled_back_by_the_next_entry()
     {
-        // 2.2.2.7 / §14.9.36.4 GR3: the settle reads the record through ReadRecord, so a tail torn by a length word that wraps an
+        // 2.2.2.7 / §2023:14.9.36.4 GR3: the settle reads the record through ReadRecord, so a tail torn by a length word that wraps an
         // int bound is the end of the records, and the entering run unit restores F to its state at the last COMMIT.
         var (dir, f) = NewFile(C1C2);
         try

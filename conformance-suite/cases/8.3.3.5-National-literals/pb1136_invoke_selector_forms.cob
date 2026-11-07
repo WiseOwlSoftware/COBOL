@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.23 — the INVOKE method SELECTOR in every class the standard admits (kb/Work PB1136).
+      *> ISO 1989:2023 §2023:14.9.23 — the INVOKE method SELECTOR in every class the standard admits (kb/Work PB1136).
       *>   SR2: "Literal-1 shall be of class alphanumeric or national and shall not be a zero-length literal."
       *>   SR8: "Identifier-2 shall reference an alphanumeric or national data item."
       *>   GR2 a): literal-1 or the content of identifier-2 "is the name of the method to be invoked as described in
@@ -15,17 +15,17 @@
       *>   1 HI        identifier-2 of category NATIONAL (PIC N(5) VALUE N"GREET") through the universal U — SR8's
       *>               national half (it was refused "a later refinement").
       *>   2 HI        identifier-2 a NATIONAL GROUP (GROUP-USAGE NATIONAL is class and category national,
-      *>               §13.18.29.4 GR2 b)) holding "GREET".
-      *>   3 HI        literal-1 hexadecimal-NATIONAL: §8.3.3.5.4 GR4 gives one national character per
+      *>               §2023:13.18.29.4 GR2 b)) holding "GREET".
+      *>   3 HI        literal-1 hexadecimal-NATIONAL: §2023:8.3.3.5.4 GR4 gives one national character per
       *>               hex-character-sequence (four digits here, D-N1), so NX"00470052004500450054" is GREET — the
       *>               method-name decoder read it as alphanumeric hex (" G R E E T") and refused it.
-      *>   4 ACCOUNT   the same NX literal-1 as the INLINE form's method name (§8.4.3.4.3 SR3 holds it to
-      *>               §14.9.23's syntax rules), NX"004700450054004E0041004D0045" = GETNAME; the PIC X(8) result
+      *>   4 ACCOUNT   the same NX literal-1 as the INLINE form's method name (§2023:8.4.3.4.3 SR3 holds it to
+      *>               §2023:14.9.23's syntax rules), NX"004700450054004E0041004D0045" = GETNAME; the PIC X(8) result
       *>               "ACCOUNT " is DISPLAYed whole.
-      *>   5 ACCOUNT   an alphanumeric concatenation expression as the INLINE method name: §8.8.3.3 GR3 — it "may
+      *>   5 ACCOUNT   an alphanumeric concatenation expression as the INLINE method name: §2023:8.8.3.3 GR3 — it "may
       *>               be used anywhere a literal of that class may be used" ("GET" & "NAME" = GETNAME).
       *>   6 HI        a concatenation as the INVOKE statement's literal-1 ("GR" & "EET"), the twin of 5.
-      *>   7 HI        identifier-2 an ALPHANUMERIC GROUP ("class and category alphanumeric", §8.5.2.1) holding
+      *>   7 HI        identifier-2 an ALPHANUMERIC GROUP ("class and category alphanumeric", §2023:8.5.2.1) holding
       *>               "GREET" - its content is the group's character positions.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1136SF.

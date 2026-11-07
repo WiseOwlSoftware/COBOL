@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// a COBOL-85 reading asks.</summary>
 public enum AreaPlacement
 {
-    /// <summary>The text has no area: its line was read in free form (§6.4.1), or no source line holds it.</summary>
+    /// <summary>The text has no area: its line was read in free form (§2023:6.4.1), or no source line holds it.</summary>
     None,
 
     /// <summary>The text is the first text of its fixed-form line, and it begins in area A.</summary>

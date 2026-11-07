@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.35.4 14) — an unsuccessful REWRITE updates no record,
+      *> ISO §2023:14.9.35.4 14) — an unsuccessful REWRITE updates no record,
       *> leaves the record area as it was, and sets the I-O status
       *> GR14: "If the execution of the REWRITE statement is
       *>   unsuccessful, no logical record updating takes place, the
       *>   content of the record area is unaffected, and the I-O status
       *>   in the rewrite file connector is updated as indicated in
       *>   General rules 2, 5, 11, 16, 17, 20, 21, 22, 23, and 25."
-      *>   cite.py: OK  §14.9.35.4 14)  (General rules)
+      *>   cite.py: OK  §2023:14.9.35.4 14)  (General rules)
       *> Six unsuccessful paths, each with a distinct record-area value
       *> moved in just before the REWRITE and a read-back of the file:
       *>   L1 GR3 "If the open mode is some other value or the file is
@@ -47,8 +47,8 @@
       *>      a matching prime key, so an update-before-validate would
       *>      show as K1A2ZZ in the file.
       *> Transfer of control: L3-L5 carry INVALID KEY, so the "I" branch
-      *>   runs (OK §9.1.14 2)). L1/L2 are fatal-class '4x' statuses
-      *>   (OK §9.1.13.1 "Certain classes of I-O status values indicate
+      *>   runs (OK §2023:9.1.14 2)). L1/L2 are fatal-class '4x' statuses
+      *>   (OK §2023:9.1.13.1 "Certain classes of I-O status values indicate
       *>   fatal exception conditions"): the implementor decides whether
       *>   the run unit continues; WiseOwl COBOL documents that it continues
       *>   at the end of the statement when a FILE STATUS clause is

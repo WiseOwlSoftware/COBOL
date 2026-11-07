@@ -7,13 +7,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING identifier-3 REMAINDER WHEN IDENTIFIER-3 IS FLOATING-POINT (ISO
-/// §14.9.12.4 6) c), kb/Work PB2923): "a subsidiary quotient is developed that is signed and derived from the quotient by
+/// §2023:14.9.12.4 6) c), kb/Work PB2923): "a subsidiary quotient is developed that is signed and derived from the quotient by
 /// truncation of digits at the least significant end and that has the same number of digits and the same decimal point
 /// location as the data item referenced by identifier-3". A floating-point item has no fixed decimal point, so the
 /// quotient is truncated INTO ITS SHAPE: a floating-point numeric-edited item keeps its significand's digits at the
 /// quotient's own exponent (<see cref="CobolEdit.TruncateToFloatShape"/>), and a binary floating-point item the value of
 /// its format nearest the quotient without passing it - the landing the item's own store performs under implied TRUNCATION
-/// (<see cref="FloatResultant"/>, ISO §14.7.4.3 10)). Expected values are worked from the rule by hand, not read from the code.
+/// (<see cref="FloatResultant"/>, ISO §2023:14.7.4.3 10)). Expected values are worked from the rule by hand, not read from the code.
 /// </summary>
 public sealed class FloatSubsidiaryQuotientTests
 {

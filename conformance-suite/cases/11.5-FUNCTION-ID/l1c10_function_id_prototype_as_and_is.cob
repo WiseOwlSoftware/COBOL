@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.5.2 Format 2 — prototype WITH AS literal-1, IS optional
+      *> ISO §2023:11.5.2 Format 2 — prototype WITH AS literal-1, IS optional
       *>
       *> Row pinned: FMT-11.5.2 (the Format 2 arms no other golden
       *> covers: "[ AS literal-1 ]" present, and "IS" omitted).
       *>  Format 2 (prototype): "FUNCTION-ID. function-prototype-
       *>    name-1 [ AS literal-1 ] IS PROTOTYPE."  AS and PROTOTYPE
-      *>    are underlined; IS is not, so by §5.2.3 it is an optional
+      *>    are underlined; IS is not, so by §2023:5.2.3 it is an optional
       *>    word ("shown in uppercase and not underlined in general
       *>    formats") and may be omitted.
       *>  Format 1 (definition): "FUNCTION-ID. user-function-name-1
       *>    [ AS literal-1 ] ." (with AS, as the definition of L1C10SQ).
-      *>  §11.5.4 GR2: literal-1 "is the name of the function
+      *>  §2023:11.5.4 GR2: literal-1 "is the name of the function
       *>    prototype that is externalized to the operating
-      *>    environment". §12.3.8.4 GR11 b): a REPOSITORY function
+      *>    environment". §2023:12.3.8.4 GR11 b): a REPOSITORY function
       *>    specifier whose externalized name (its AS literal-5)
       *>    matches a prototype definition's takes the details from
       *>    that prototype; the function activated is the one with
@@ -27,11 +27,11 @@
       *>    caller. L1C10CU uses the prototype spelling without IS
       *>    and without AS (externalized name = the name itself).
       *> cite.py --check:
-      *>  OK  §11.5.2   (General format)  Format 2 (prototype)
-      *>  OK  §11.5.2   (General format)  Format 1 (definition)
-      *>  OK  §5.2.3   (Optional words)
-      *>  OK  §11.5.4 2)  (General rules)
-      *>  OK  §12.3.8.4 11) b)  (General rules)
+      *>  OK  §2023:11.5.2   (General format)  Format 2 (prototype)
+      *>  OK  §2023:11.5.2   (General format)  Format 1 (definition)
+      *>  OK  §2023:5.2.3   (Optional words)
+      *>  OK  §2023:11.5.4 2)  (General rules)
+      *>  OK  §2023:12.3.8.4 11) b)  (General rules)
       *> Derivation: both prototypes are legal Format 2 source, so
       *> the group compiles; each reference activates its definition:
       *>  SQ=000049   L1C10SQ(7) = 7 * 7

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// <para>The consumers each turn it into their defined outcome, never a crash: <see cref="CollationEngine.ResolveLocale"/>
 /// records it as <see cref="ResolvedLocaleCollation.Failure"/> over the root order (the nearest available order);
 /// <see cref="CollationEngine.TryGetOrderingTable"/> answers false with its message (the compiler's COBOL1662
-/// warning, EC-ORDER-NOT-SUPPORTED at run time, §15.85.4 r2); <see cref="CollationEngine.IsKnownLocale"/> answers
+/// warning, EC-ORDER-NOT-SUPPORTED at run time, §2023:15.85.4 r2); <see cref="CollationEngine.IsKnownLocale"/> answers
 /// false (the locale is not available in this operating environment); <see cref="Locale.LocaleManager.GetLocale"/>
 /// throws it to its host caller; and <see cref="CollationRuntime.Warmup"/> reports it as its Warning.</para>
 /// </summary>

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.49.3 6) — file-section SAME AS an OBJECT REFERENCE
+      *> ISO §2023:13.18.49.3 6) — file-section SAME AS an OBJECT REFERENCE
       *> item
       *> "When the SAME AS clause is specified in the file section, the
       *> description of data-name-1, including its subordinate data
@@ -14,7 +14,7 @@
       *>   specified in the file section, the description of
       *>   data-name-1, including its subordinate data items, shall not
       *>   contain a data item described with a USAGE OBJECT REFERENCE
-      *>   clause" -> OK §13.18.49.3 6)
+      *>   clause" -> OK §2023:13.18.49.3 6)
       *> THE ELEMENTARY ARM: data-name-1 OREF is itself the OBJECT
       *> REFERENCE item, a level-1 working-storage item (legal there;
       *> SR7 holds). The arm where the object reference is SUBORDINATE

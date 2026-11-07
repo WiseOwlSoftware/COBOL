@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.4.1 r1 / §14.9.25 — the MOVE channel of a STANDARD-DECIMAL function result
+      *> ISO §2023:15.4.1 r1 / §2023:14.9.25 — the MOVE channel of a STANDARD-DECIMAL function result
       *> (fix-queue PB65). MOVE was the one numeric consumer without the Dec-carrier store case, so
       *> MOVE FUNCTION E failed at backend compile (CS1503) while COMPUTE was exact. Now both
       *> channels land through the SDIDI final transfer: MOVE FUNCTION E into 9V9(30) is the
-      *> 31-digit truncation of the exact §15.27.3 r3 constant; EXP10(30)/EXP10(15) is the §15.35.4
+      *> 31-digit truncation of the exact §2023:15.27.3 r3 constant; EXP10(30)/EXP10(15) is the §2023:15.35.4
       *> r1 EAE evaluated in SDIDI form = 10^15 exactly; and COMBINED-DATETIME of a COMP-2 seconds
-      *> value agrees byte-for-byte between MOVE and COMPUTE (the §8.8.1.5.1 lift is the same lift).
+      *> value agrees byte-for-byte between MOVE and COMPUTE (the §2023:8.8.1.5.1 lift is the same lift).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB56RES.
        OPTIONS.

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3605 - the scope of ISO §14.9.25.3 SR5's SPACE arm,
+      *> kb/Work PB3605 - the scope of ISO §2023:14.9.25.3 SR5's SPACE arm,
       *> which holds at every edition (its negative is
       *> pb3605-move-space-numeric): only a NUMERIC or NUMERIC-EDITED
       *> receiving item is refused.
@@ -13,14 +13,14 @@
       *>   alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE,
       *>   LOW-VALUE, ALL "literal", or ALL symbolic-character) to either
       *>   a numeric item or a numeric-edited item is prohibited"
-      *>   -> OK §14.9.25.3 5)
+      *>   -> OK §2023:14.9.25.3 5)
       *>   cite.py --check 8.4.3.3.4 "the categories numeric and
       *>   numeric-edited are considered class and category national if
       *>   the usage is national; otherwise they are considered class and
-      *>   category alphanumeric" -> OK §8.4.3.3.4 6) c)
+      *>   category alphanumeric" -> OK §2023:8.4.3.3.4 6) c)
       *>   cite.py --check 14.9.25.4 "is treated exactly as if it were an
       *>   alphanumeric to alphanumeric elementary move"
-      *>   -> OK §14.9.25.4 4)
+      *>   -> OK §2023:14.9.25.4 4)
       *> EXPECTED OUTPUT, DERIVED FROM THE RULES:
       *>   X=[   ]  an alphanumeric receiver: SR5 does not reach it.
       *>   R=[  3]  a reference-modified view of the numeric item N (123)

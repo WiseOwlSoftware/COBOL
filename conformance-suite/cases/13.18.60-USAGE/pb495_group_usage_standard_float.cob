@@ -11,12 +11,12 @@
       *> and over the SIGNED/UNSIGNED phrase GR21's second sentence governs.
       *>
       *> EXPECTED VALUES, DERIVED:
-      *>   FLOAT-BINARY-32 = 4 bytes and FLOAT-BINARY-64 = 8. §13.18.60.4 GR14/GR15 PIN each to a named
+      *>   FLOAT-BINARY-32 = 4 bytes and FLOAT-BINARY-64 = 8. §2023:13.18.60.4 GR14/GR15 PIN each to a named
       *>     ISO/IEC 60559:2020 basic binary interchange format — binary32 and binary64 — whose widths are 4 and
       *>     8 bytes by that standard, not by an implementor choice. The values pin the FORMAT, not just the
       *>     width: 16777217 = 2**24+1 is not representable in binary32 and rounds to 16777216, while binary64
       *>     holds it exactly, which is the sharpest single discriminator between the two.
-      *>   BINARY-SHORT SIGNED and UNSIGNED are both 2 bytes — §13.18.60.4 GR21 sentence 2: "The length and
+      *>   BINARY-SHORT SIGNED and UNSIGNED are both 2 bytes — §2023:13.18.60.4 GR21 sentence 2: "The length and
       *>     alignment of a data item described with the SIGNED phrase shall be the same as the length and
       *>     alignment of a data item described with the UNSIGNED phrase." The UNSIGNED phrase written on the
       *>     GROUP entry reaches the leaf with the usage, so US holds 65535 (GR12's unsigned range) where the

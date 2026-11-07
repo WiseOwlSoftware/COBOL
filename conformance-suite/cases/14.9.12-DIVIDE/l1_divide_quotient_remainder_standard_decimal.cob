@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.12.4 GR1 second sentence — "When standard-decimal arithmetic, or standard-binary
+      *> ISO §2023:14.9.12.4 GR1 second sentence — "When standard-decimal arithmetic, or standard-binary
       *> arithmetic is in effect, the quotient … is the result of the arithmetic expression
       *> (dividend / divisor)". GR7's second sentence says the same for
       *> (dividend − (subsidiary-quotient * divisor)).
@@ -16,14 +16,14 @@
       *>
       *> WHY THE TWIN EXISTS. GR1 and GR7 each state the operation TWICE — once for native arithmetic and
       *> once for the standard modes — and the two sentences are separate obligations: under a standard
-      *> mode the quotient is the value of an ARITHMETIC EXPRESSION evaluated per §8.8.1.5 on the standard
+      *> mode the quotient is the value of an ARITHMETIC EXPRESSION evaluated per §2023:8.8.1.5 on the standard
       *> decimal intermediate data item, not a division performed at the receiver's own scale. Testing
       *> only the native sentence leaves half of each rule unwitnessed, which is exactly what left these
       *> two inventory rows PARTIAL.
       *>
-      *> DERIVED VALUES — IDENTICAL TO THE NATIVE TWIN, AND THAT IS THE POINT. §8.8.1.5's intermediate
+      *> DERIVED VALUES — IDENTICAL TO THE NATIVE TWIN, AND THAT IS THE POINT. §2023:8.8.1.5's intermediate
       *> carries 34 significant digits, so for these operands the standard-mode expression value and the
-      *> native quotient agree to far beyond the receivers' precision, and §14.7.7 rule 3 then applies the
+      *> native quotient agree to far beyond the receivers' precision, and §2023:14.7.7 rule 3 then applies the
       *> SAME truncation or ROUNDED transfer. A difference on any line would mean the mode had changed the
       *> ANSWER, which neither sentence permits:
       *>   A=3333   10 / 3 truncated at three fraction digits.
@@ -33,7 +33,7 @@
       *>   E=67 020    stored quotient ROUNDED to 6.7; subsidiary quotient TRUNCATED to 6.6 (GR6c);
       *>               remainder 20 − 6.6 × 3 = 0.20.
       *> The native twin is conformance:cases/14.9.12-DIVIDE/l1_divide_quotient_remainder_native, which also carries GR1's
-      *> §14.7.5 division-by-zero leg; the composite-expression consumers of the standard-decimal
+      *> §2023:14.7.5 division-by-zero leg; the composite-expression consumers of the standard-decimal
       *> intermediate are pinned separately by conformance:cases/14.9.12-DIVIDE/pb84_standard_decimal_intermediate_consumers.
       *>
       *> EDITION. ARITHMETIC IS STANDARD-DECIMAL is the 2014 clause of the OPTIONS paragraph

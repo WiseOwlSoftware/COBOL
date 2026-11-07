@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// hint 0i, worded by <c>AdmittedKinds</c>. A context word a text predicate refuses inside a clause it has entered
 /// (MEMORY SIZE's unit, DYNAMIC LENGTH's SHORT and PREFIXED), an operand left out (SEGMENT-LIMIT's integer, MOVE's TO), a
 /// literal of a category the position does not take (SET IX TO "A", whose Format 1 takes a numeric literal or ZERO,
-/// ISO §14.9.39.2 with §8.8.1.1) and a literal where only a user-defined word may stand (CALL … RETURNING 5) each draw
+/// ISO §2023:14.9.39.2 with §2023:8.8.1.1) and a literal where only a user-defined word may stand (CALL … RETURNING 5) each draw
 /// ONE COBOL5506 naming what is expected there. The words a predicate tests are read by running it, through the parser
 /// base's one word funnel, so no table lists them.
 /// <para>The controls pin what the arm must NOT claim: a level-number after a forgotten period stays the missing-period
@@ -29,9 +29,9 @@ public sealed class WrittenKindRefusalTests
         + "       01 W-X PIC X(4).\n       01 TB.\n          05 TE PIC X OCCURS 4 INDEXED BY IX.\n";
     // The rest of the PB4224 sentence (AdmittedKinds.Refusal's statement arm): what a statement position says of the token.
     private const string AStatementIsNoLiteral = "a statement may begin at this position, and a statement begins with the first "
-        + "word of its statement name, which a literal is not (ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
+        + "word of its statement name, which a literal is not (ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
     private const string AStatementIsNoWord = "a statement may begin at this position, and a statement begins with the first "
-        + "word of its statement name, which a user-defined word is not (ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
+        + "word of its statement name, which a user-defined word is not (ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
     private const string Files = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
         + "           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n"
         + "       01 R PIC X(4).\n";
@@ -68,26 +68,26 @@ public sealed class WrittenKindRefusalTests
     [InlineData("call-returning-literal", 2023, Table + "       PROCEDURE DIVISION.\n           CALL \"P\" RETURNING 5.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: no literal is expected at this position")]
     // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the TIMES of `OCCURS 0 TO TIMES` stands where
-    // integer-2 is due (ISO §13.18.38.2), so the element before it is incomplete and the position's own operand is named;
+    // integer-2 is due (ISO §2023:13.18.38.2), so the element before it is incomplete and the position's own operand is named;
     // the user-defined words are one element (the context words cobolWord also takes are spellings of it). The WHEN of
-    // `DISPLAY WHEN OTHER` is the same fault for DISPLAY's operand (§14.9.11.2).
+    // `DISPLAY WHEN OTHER` is the same fault for DISPLAY's operand (§2023:14.9.11.2).
     [InlineData("occurs-to-without-integer-2", 2023,
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
-        + "integer literal (ISO §5.2.1).")]
-    // At COBOL-85 the word the position takes is a constant-name (§13.10.3 SR2: "constant-name-1 may be used anywhere that a
+        + "integer literal (ISO §2023:5.2.1).")]
+    // At COBOL-85 the word the position takes is a constant-name (§2023:13.10.3 SR2: "constant-name-1 may be used anywhere that a
     // format specifies a literal"), and the constant entry is COBOL-2002's, so only the literal is named (kb/Work PB4435).
     [InlineData("occurs-to-without-integer-2-85", 85,
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected an integer literal "
-        + "(ISO §5.2.1).")]
+        + "(ISO §2023:5.2.1).")]
     [InlineData("occurs-to-without-integer-2-2002", 2002,
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected a user-defined word or an "
-        + "integer literal (ISO §5.2.1).")]
+        + "integer literal (ISO §2023:5.2.1).")]
     // The control: at COBOL-85 a position whose word is a DATA-NAME (ADD's first operand) still names the word.
     [InlineData("add-operand-before-to-85", 85,
         Table + "       PROCEDURE DIVISION.\n       MAIN-P.\n           ADD TO W-N.\n           STOP RUN.\n",
@@ -102,34 +102,34 @@ public sealed class WrittenKindRefusalTests
         "COBOL0001: cannot parse construct near 'FROM'")]
     // ⛔ A VERB SHARED WITH ANOTHER CLAUSE IS NO STATEMENT POSITION (kb/Work PB4201). DISPLAY is a statement's opening word
     // AND a USAGE keyword, so the one-token overlap made `USAGE 5` an "open" position and left it the bare COBOL0001; the
-    // usage keywords the edition has (ISO §13.18.60.2: [USAGE IS] followed by the usage) are named instead, the 2002
+    // usage keywords the edition has (ISO §2023:13.18.60.2: [USAGE IS] followed by the usage) are named instead, the 2002
     // words (BIT, NATIONAL, OBJECT, ...) from 2002 and the 2014 floating-point words from 2014.
     [InlineData("usage-literal-85", 85, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, COMP, COMP-1, COMP-2, COMP-3, "
         + "COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, "
-        + "COMPUTATIONAL-5, DISPLAY, INDEX, PACKED-DECIMAL or POINTER (ISO §5.2.1).")]
+        + "COMPUTATIONAL-5, DISPLAY, INDEX, PACKED-DECIMAL or POINTER (ISO §2023:5.2.1).")]
     // ⛔ AN OPTIONAL WORD IS NOT AN ALTERNATIVE (kb/Work PB4225). The IS of [USAGE IS] is not a usage: the word that
-    // changes nothing about what follows it (ISO §8.3.2.4.3) is left out of the list at every edition.
+    // changes nothing about what follows it (ISO §2023:8.3.2.4.3) is left out of the list at every edition.
     [InlineData("usage-literal-2002", 2002, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, BINARY-CHAR, BINARY-DOUBLE, "
         + "BINARY-LONG, BINARY-SHORT, BIT, COMP, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, "
         + "COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, COMPUTATIONAL-5, DISPLAY, FLOAT-EXTENDED, FLOAT-LONG, "
-        + "FLOAT-SHORT, INDEX, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §5.2.1).")]
+        + "FLOAT-SHORT, INDEX, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §2023:5.2.1).")]
     [InlineData("usage-literal-2014", 2014, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, BINARY-CHAR, BINARY-DOUBLE, "
         + "BINARY-LONG, BINARY-SHORT, BIT, COMP, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, "
         + "COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, COMPUTATIONAL-5, DISPLAY, FLOAT-BINARY-128, FLOAT-BINARY-32, "
         + "FLOAT-BINARY-64, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34, FLOAT-EXTENDED, FLOAT-LONG, FLOAT-SHORT, FUNCTION-POINTER, "
-        + "INDEX, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §5.2.1).")]
+        + "INDEX, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §2023:5.2.1).")]
     [InlineData("usage-literal-2023", 2023, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, BINARY-CHAR, BINARY-DOUBLE, "
         + "BINARY-LONG, BINARY-SHORT, BIT, COMP, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, "
         + "COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, COMPUTATIONAL-5, DISPLAY, FLOAT-BINARY-128, FLOAT-BINARY-32, "
         + "FLOAT-BINARY-64, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34, FLOAT-EXTENDED, FLOAT-LONG, FLOAT-SHORT, FUNCTION-POINTER, "
-        + "INDEX, MESSAGE-TAG, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §5.2.1).")]
+        + "INDEX, MESSAGE-TAG, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §2023:5.2.1).")]
     // ⛔ A LITERAL OR A USER-DEFINED WORD WHERE A STATEMENT MUST BEGIN (kb/Work PB4224). A statement may begin at the
-    // position, and a statement begins with the first word of its statement name (ISO §14.5.3.1; Table 12 of §14.5.1), which
-    // a literal (a figurative constant included, §8.3.3.1, the `ALL literal-1` format of §8.3.3.6.2 too) or a user-defined
+    // position, and a statement begins with the first word of its statement name (ISO §2023:14.5.3.1; Table 12 of §2023:14.5.1), which
+    // a literal (a figurative constant included, §2023:8.3.3.1, the `ALL literal-1` format of §2023:8.3.3.6.2 too) or a user-defined
     // word is not. The sentence lists no expected word (review R1-1): a position that follows an operand also takes what
     // would lengthen it, which the parser has left behind, so a list would claim the operators are refused.
     [InlineData("literal-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n",
@@ -168,12 +168,12 @@ public sealed class WrittenKindRefusalTests
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("user-word-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN FOO END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: " + AStatementIsNoWord)]
-    // ⛔ A LITERAL WHERE THE NEXT SENTENCE BEGINS (kb/Work PB4425): the period ends the sentence (ISO §14.5.1), so the
+    // ⛔ A LITERAL WHERE THE NEXT SENTENCE BEGINS (kb/Work PB4425): the period ends the sentence (ISO §2023:14.5.1), so the
     // next one may begin at the literal, wherever the period stood: after a sentence, an END-IF, a paragraph header, a
     // section header, the division header. The parser itself has left the procedure division by then.
     [InlineData("literal-after-a-sentence", 2023, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
-    // (An integer there is not this row: a paragraph-name need not contain a letter, ISO §8.3.2.2 3), so `5 DISPLAY "C".`
+    // (An integer there is not this row: a paragraph-name need not contain a letter, ISO §2023:8.3.2.2 3), so `5 DISPLAY "C".`
     // is a header whose period is missing, which hint 14 says.)
     [InlineData("literal-after-a-sentence-85", 85, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\" DISPLAY \"C\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
@@ -214,34 +214,34 @@ public sealed class WrittenKindRefusalTests
         + "           STOP RUN.\n";
 
     /// <summary>⛔ THE WORDS NAMED ARE THE ONES THE TARGETED EDITION HAS (kb/Work PB4174). The parse is the superset of
-    /// the four editions, so its expected set holds words ISO §8.9 has not reserved at the edition — and §8.3.2.1 1)
+    /// the four editions, so its expected set holds words ISO §2023:8.9 has not reserved at the edition — and §2023:8.3.2.1 1)
     /// ("Reserved words shall not be used as user-defined words or system-names") makes such a word a user-defined
     /// one there. The 2002 boolean operators B-AND, B-OR and B-XOR, the 2023 shift operators (Annex E.2 3), PROTOTYPE
     /// (2002) and EC and EO (2002) are named from the edition that reserves them and not before.</summary>
     [Theory]
     [InlineData("paren-85", 85, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
-        "expected '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-")]
+        "expected '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", "B-")]
     [InlineData("paren-2002", 2002, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
-        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-SHIFT")]
+        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", "B-SHIFT")]
     [InlineData("paren-2014", 2014, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
-        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", "B-SHIFT")]
+        "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", "B-SHIFT")]
     [InlineData("paren-2023", 2023, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
-        "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §5.2.1)", null)]
+        "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", null)]
     [InlineData("program-id-attribute-85", 85, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
-        "expected COMMON or INITIAL (ISO §5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §8.10, PROTOTYPE a 2002 §8.9 word
+        "expected COMMON or INITIAL (ISO §2023:5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2023:8.10, PROTOTYPE a 2002 §2023:8.9 word
     [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
-        "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §5.2.1)", null)]
+        "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §2023:5.2.1)", null)]
     [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, ERROR, EXCEPTION", "EC, EO")]
     [InlineData("use-2002", 2002, UseDeclarative, "expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION", null)]
-    // The §8.10 context-sensitive words follow the same rule, from the edition of their first listing
+    // The §2023:8.10 context-sensitive words follow the same rule, from the edition of their first listing
     // (ContextSensitiveWordEntry.Introduced): STANDARD-BINARY and STANDARD-DECIMAL are 2014's, NATIVE and STANDARD 2002's
-    // (ISO §8.10, whose 2002 list this repository records, and the 2014 words that Annex E.3.3 item 13 does not call new).
-    [InlineData("arithmetic-2002", 2002, Head + Options, "expected NATIVE or STANDARD (ISO §5.2.1)", "STANDARD-")]
-    [InlineData("arithmetic-2014", 2014, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §5.2.1)", null)]
-    [InlineData("arithmetic-2023", 2023, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §5.2.1)", null)]
-    // ROUNDED MODE is a 2014 phrase: its mode names are named from 2014 (§14.7.4; the construct registry's rounded-mode-is-2014).
+    // (ISO §2023:8.10, whose 2002 list this repository records, and the 2014 words that Annex E.3.3 item 13 does not call new).
+    [InlineData("arithmetic-2002", 2002, Head + Options, "expected NATIVE or STANDARD (ISO §2023:5.2.1)", "STANDARD-")]
+    [InlineData("arithmetic-2014", 2014, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §2023:5.2.1)", null)]
+    [InlineData("arithmetic-2023", 2023, Head + Options, "expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL (ISO §2023:5.2.1)", null)]
+    // ROUNDED MODE is a 2014 phrase: its mode names are named from 2014 (§2023:14.7.4; the construct registry's rounded-mode-is-2014).
     [InlineData("rounded-mode-2014", 2014, Head + RoundedMode,
-        "expected AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER or TRUNCATION (ISO §5.2.1)", null)]
+        "expected AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER or TRUNCATION (ISO §2023:5.2.1)", null)]
     public void TheWordsNamedAreTheOnesTheEditionHas(string name, int edition, string source, string expected, string? absent)
     {
         var errors = Compile(source, edition).Where(e => e.Contains("COBOL5506", StringComparison.Ordinal)).ToList();
@@ -255,9 +255,9 @@ public sealed class WrittenKindRefusalTests
     }
 
     /// <summary>The rule itself (<c>ReservedWords.AdmitsAsKeyword</c>): false only for a word a table proves a LATER
-    /// edition introduced (the §8.9 flags, or a §8.10 row's <c>Introduced</c>); true for a reserved word, for one an older
+    /// edition introduced (the §2023:8.9 flags, or a §2023:8.10 row's <c>Introduced</c>); true for a reserved word, for one an older
     /// edition reserved and this one dropped (WORDS at 2023, COBOL and PHYSICAL, which 2023 formats still underline), for
-    /// one in neither table and for one whose §8.9 row may not reject.</summary>
+    /// one in neither table and for one whose §2023:8.9 row may not reject.</summary>
     [Theory]
     [InlineData("B-AND", 85, false)]
     [InlineData("B-AND", 2002, true)]
@@ -270,7 +270,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("PHYSICAL", 2023, true)]
     [InlineData("PHYSICAL", 85, false)]
     [InlineData("NO-SUCH-WORD", 85, true)]
-    // The §8.10 context-sensitive words, from the edition of their first listing (ContextSensitiveWordEntry.Introduced):
+    // The §2023:8.10 context-sensitive words, from the edition of their first listing (ContextSensitiveWordEntry.Introduced):
     // 2002 from the 2002 list (AUTOMATIC, SECONDS), 2014 for the rest of the table that Annex E.3.3 item 13 does not
     // call new (the ROUNDED MODE names, STANDARD-BINARY), 2023 for item 13's additions (BYTES, BACKWARD, HEX).
     [InlineData("AUTOMATIC", 85, false)]
@@ -286,7 +286,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("BYTES", 2023, true)]
     [InlineData("BACKWARD", 2014, false)]
     [InlineData("HEX", 2023, true)]
-    // A word an older edition RESERVED outright is §8.9's, whatever §8.10 says: MULTIPLE is a 1985 reserved word.
+    // A word an older edition RESERVED outright is §2023:8.9's, whatever §2023:8.10 says: MULTIPLE is a 1985 reserved word.
     [InlineData("MULTIPLE", 85, true)]
     public void AKeywordIsNamedUnlessALaterEditionIntroducedIt(string word, int edition, bool expected)
         => Assert.Equal(expected, WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, edition));
@@ -330,7 +330,7 @@ public sealed class WrittenKindRefusalTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>⛔ EVERY WHOLE-LITERAL TOKEN HAS ITS §8.3.3.1 CATEGORY (kb/Work PB3861). The refusal names a literal by
+    /// <summary>⛔ EVERY WHOLE-LITERAL TOKEN HAS ITS §2023:8.3.3.1 CATEGORY (kb/Work PB3861). The refusal names a literal by
     /// <see cref="LiteralTokens.CategoryOf"/>; a literal token the grammar gains tomorrow (FIRST(residueLiteral) and the
     /// unsigned integer, read from the ATN) is red here until it is named there.</summary>
     [Fact]
@@ -340,7 +340,7 @@ public sealed class WrittenKindRefusalTests
             .Where(t => LiteralTokens.CategoryOf(t) is null)
             .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t))
             .ToList();
-        Assert.True(unnamed.Count == 0, $"literal tokens with no §8.3.3.1 category: {string.Join(", ", unnamed)}");
+        Assert.True(unnamed.Count == 0, $"literal tokens with no §2023:8.3.3.1 category: {string.Join(", ", unnamed)}");
     }
 
     private static IReadOnlyList<string> Compile(string source, int edition)

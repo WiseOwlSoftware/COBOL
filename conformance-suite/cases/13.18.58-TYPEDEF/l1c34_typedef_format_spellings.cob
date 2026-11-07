@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.58.2 format — IS TYPEDEF [STRONG]: every spelling
+      *> ISO §2023:13.18.58.2 format — IS TYPEDEF [STRONG]: every spelling
       *> General format: "IS TYPEDEF [ STRONG ]" (TYPEDEF and STRONG
       *>   underlined,
       *> IS not underlined: IS is optional, STRONG is optional).
-      *> cite.py --check 13.18.58.2 "TYPEDEF" -> OK §13.18.58.2
+      *> cite.py --check 13.18.58.2 "TYPEDEF" -> OK §2023:13.18.58.2
       *>   (General format)
       *>   IS <u>TYPEDEF</u> [ <u>STRONG</u> ]
       *> cite.py --check 13.18.58.3 "If the subject of the entry is an
       *>   elementary item, the STRONG phrase shall not be specified"
-      *>   -> OK §13.18.58.3 1) (Syntax rules)
+      *>   -> OK §2023:13.18.58.3 1) (Syntax rules)
       *> cite.py --check 13.18.58.4 "If the TYPEDEF clause is
       *>   specified, the
       *>   data description entry is a type declaration" -> OK
-      *>     §13.18.58.4 1)
+      *>     §2023:13.18.58.4 1)
       *> The four spellings the format admits -- TYPEDEF, IS TYPEDEF,
       *> TYPEDEF STRONG, IS TYPEDEF STRONG -- each declare a type
       *>   (STRONG only

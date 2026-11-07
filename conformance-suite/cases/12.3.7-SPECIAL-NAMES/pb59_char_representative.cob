@@ -7,12 +7,12 @@
 *> portable: unverified
 *>---
       *> PB59 / RV-15.15.4-1, RV-15.15.4-2, AR-15.15.3-2 — CHAR under an ALSO-collapsing alphabet:
-      *> the representative, the tail arithmetic, and the domain bound, all §12.3.7.4 GR7 1.3/1.6.
+      *> the representative, the tail arithmetic, and the domain bound, all §2023:12.3.7.4 GR7 1.3/1.6.
       *> ALPHABET AL IS "C" ALSO "A" ALSO "B": three characters share position 0 (literal-1 "C" is
-      *> "the first character defined" — §15.15.4 r2's CHAR(1), NOT the lowest-coded member); the
+      *> "the first character defined" — §2023:15.15.4 r2's CHAR(1), NOT the lowest-coded member); the
       *> remaining 253 Latin-1 units take positions 1..253 (nextFree 254); every code unit above the
       *> 256-block continues at 254+ in native order, so CHAR(255) = U+0100 (pre-fix: the EC default,
-      *> ORD 34) and the sequence has 254 + 65280 = 65534 positions (§15.15.3 r2: ordinal 65534 legal,
+      *> ORD 34) and the sequence has 254 + 65280 = 65534 positions (§2023:15.15.3 r2: ordinal 65534 legal,
       *> 65535 refused — pre-fix the bound was inverted: 255 refused, 65536 admitted). Every value
       *> derived independently (python oracle, PB59-3 apply plan). ORD legs are the encoding-immune
       *> witnesses; the IF leg proves the comparison arm agrees with ORD about the tail.

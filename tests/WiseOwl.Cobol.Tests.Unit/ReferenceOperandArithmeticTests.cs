@@ -7,11 +7,11 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1425's sweep: ISO §8.8.1.1 admits only a numeric identifier in an arithmetic expression, and the
+/// kb/Work PB1425's sweep: ISO §2023:8.8.1.1 admits only a numeric identifier in an arithmetic expression, and the
 /// <c>--permissive</c> digit-decoding extension reads an alphanumeric item's digit CHARACTERS. An object reference holds
-/// a reference, not characters (§8.5.2.1 Table 2's class object), so under --permissive it is still refused — it used to
+/// a reference, not characters (§2023:8.5.2.1 Table 2's class object), so under --permissive it is still refused — it used to
 /// be "accepted" with a warning and the generated program failed to build (Roslyn CS1503, object → Int128). SELF, which
-/// the expression tier now carries as an identifier (§8.4.3.1.2 Format 6), takes the same verdict.
+/// the expression tier now carries as an identifier (§2023:8.4.3.1.2 Format 6), takes the same verdict.
 /// </summary>
 public sealed class ReferenceOperandArithmeticTests
 {
@@ -56,7 +56,7 @@ public sealed class ReferenceOperandArithmeticTests
             var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "pb1425r.dll"),
                 DialectLevel: 2002, Permissive: permissive, SourceFormat: InitialReferenceFormat.Auto));
             Assert.False(r.Success);
-            // Both operands are refused by §8.8.1.1 itself, as errors — never handed to the back end.
+            // Both operands are refused by §2023:8.8.1.1 itself, as errors — never handed to the back end.
             Assert.Equal(2, r.Errors.Count(e => e.Contains("error COBOL0844:", StringComparison.Ordinal)));
             Assert.DoesNotContain(r.Errors, e => e.Contains("backend compilation failed", StringComparison.Ordinal));
             Assert.DoesNotContain(r.Errors, e => e.Contains("digit-decoding", StringComparison.Ordinal));

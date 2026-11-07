@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> JUSTIFIED OR BLANK WHEN ZERO IN A REPORT ENTRY NEEDS A COLUMN CLAUSE (kb/Work PB853's sweep).
-      *> ISO/IEC 1989:2023 §13.15.3 SR15: "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause
+      *> ISO/IEC 1989:2023 §2023:13.15.3 SR15: "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause
       *> shall also be specified." The 03 below is a legal non-printable SOURCE entry except for JUSTIFIED.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB853JWC.

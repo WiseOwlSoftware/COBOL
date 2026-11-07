@@ -3,12 +3,12 @@
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// ⛔ THE ONE DEFINITION OF A CHARACTER POSITION (kb/Work PB1966; docs/CONFORMANCE.md DOC-A.1-157; §6.1 1) c) "The
+/// ⛔ THE ONE DEFINITION OF A CHARACTER POSITION (kb/Work PB1966; docs/CONFORMANCE.md DOC-A.1-157; §2023:6.1 1) c) "The
 /// implementor shall specify the meaning of lines and character positions"). Reference format is described in terms of
-/// character positions (§6.1 1) a)), and a position is one CHARACTER — one Unicode code point — never one UTF-16 code
+/// character positions (§2023:6.1 1) a)), and a position is one CHARACTER — one Unicode code point — never one UTF-16 code
 /// unit: the decoded text is a .NET string, in which a supplementary-plane letter (an Annex B extended letter such as
-/// an Adlam or Osage one, §8.1.3.2 GR4) is two <see cref="char"/>s but still one position, exactly as it is one
-/// character of a word's length (§8.1.3.2 GR4 c), <c>CobolCharacterRepertoire.LengthInCharacters</c>). A surrogate that
+/// an Adlam or Osage one, §2023:8.1.3.2 GR4) is two <see cref="char"/>s but still one position, exactly as it is one
+/// character of a word's length (§2023:8.1.3.2 GR4 c), <c>CobolCharacterRepertoire.LengthInCharacters</c>). A surrogate that
 /// is not half of a valid pair is a character of its own. Every site that turns a column into an index of a line, an
 /// index into a column, or counts positions asks THIS type (<c>PhysicalLinesDriftTests</c>): a column read as a string
 /// index puts margin R N positions early on a line holding N supplementary characters, so legal source whose text ends

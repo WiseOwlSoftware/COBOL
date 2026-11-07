@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1074 — ISO §12.4.5.7.4 GR3 applies a national alphabet-name-2 to the keys of class national.
+      *> kb/Work PB1074 — ISO §2023:12.4.5.7.4 GR3 applies a national alphabet-name-2 to the keys of class national.
       *> Collating an indexed file's keys by an alphabet defined with literals is a processor-dependent capability
       *> (Annex A.3 item 41) this implementation does not provide, so it is declined BY NAME (COBOL1584) and
       *> refused — never silently ignored, which is what the file-level FOR NATIONAL phrase used to be.

@@ -6,14 +6,14 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3514 (owner adjudication 2026-10-25, DOC-A.1-92): DISPLAY of a numeric or integer FUNCTION's returned value
-      *> shows the value as the data item it is (ISO §15.4: "a temporary elementary data item"), by the description that item
-      *> has. §15.4.1 leaves the description to the implementor under native arithmetic and §14.9.11.4 GR1 leaves the DISPLAY
+      *> shows the value as the data item it is (ISO §2023:15.4: "a temporary elementary data item"), by the description that item
+      *> has. §2023:15.4.1 leaves the description to the implementor under native arithmetic and §2023:14.9.11.4 GR1 leaves the DISPLAY
       *> conversion to the implementor, so the precedence of CLAUDE.md rule 1 gives both to GnuCOBOL 3.2.0, whose temporary is
       *> one of three things, and DISPLAY then shows it as DISPLAY shows any numeric item (DOC-A.1-56):
       *>
-      *> 1. A COPY OF AN ARGUMENT'S ITEM, for the functions that return the CONTENT of an argument: MAX (§15.59.4 r1), MIN
-      *>    (§15.63.4 r1, the FIRST of equal values in both), MEDIAN of an odd count (§15.61) and MEAN of one argument
-      *>    (§15.60). So MAX(U1 S1) is U1's item and shows what DISPLAY U1 shows, and a literal argument is a field of the
+      *> 1. A COPY OF AN ARGUMENT'S ITEM, for the functions that return the CONTENT of an argument: MAX (§2023:15.59.4 r1), MIN
+      *>    (§2023:15.63.4 r1, the FIRST of equal values in both), MEDIAN of an odd count (§2023:15.61) and MEAN of one argument
+      *>    (§2023:15.60). So MAX(U1 S1) is U1's item and shows what DISPLAY U1 shows, and a literal argument is a field of the
       *>    digits written (MAX(3 -14 0 8 -3) is the literal 8; MAX(005 3) the literal 005).
       *> 2. AN UNSIGNED DISPLAY INTEGER OF FIXED WIDTH: DATE-OF-INTEGER eight digits, DAY-OF-INTEGER seven.
       *> 3. THE DESCRIPTION THE VALUE ALONE GIVES, for every other exact function: the trailing zeros of the fraction are

@@ -7,7 +7,7 @@ using Antlr4.Runtime.Tree;
 namespace WiseOwl.Cobol.Compiler.Oo;
 
 /// <summary>
-/// ⛔ A PARAMETERIZED DEFINITION'S SOURCE AS A SKELETON PUBLISHES IT (ISO §9.3.12; DESIGN-external-repository §10.5): the
+/// ⛔ A PARAMETERIZED DEFINITION'S SOURCE AS A SKELETON PUBLISHES IT (ISO §2023:9.3.12; DESIGN-external-repository §10.5): the
 /// on-channel token text from <c>CLASS-ID</c> / <c>INTERFACE-ID</c> to the end marker, after text manipulation (COPY, REPLACE and
 /// the directive stage have already run, so nothing of them is left to repeat), joined the way the text had it. Two tokens that
 /// touched in the source touch here and every other pair is separated by one space: a picture string or a subscript is lexed by its

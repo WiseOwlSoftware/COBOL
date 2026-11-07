@@ -144,7 +144,7 @@ public sealed class CobolBigExactFormTests
             CobolExact.QuotientAtScale(dividend, CobolExact.From(0, 0), 0, CobolRounding.Truncation, false));
     }
 
-    /// <summary>The oracle of a quotient rounded ONCE to an integer in a receiver's mode (§14.7.4.3), from the numerator and denominator.</summary>
+    /// <summary>The oracle of a quotient rounded ONCE to an integer in a receiver's mode (§2023:14.7.4.3), from the numerator and denominator.</summary>
     private static BigInteger RoundQuotient(BigInteger numerator, BigInteger denominator, CobolRounding mode)
     {
         bool negative = (numerator.Sign < 0) != (denominator.Sign < 0);
@@ -252,7 +252,7 @@ public sealed class CobolBigExactFormTests
         CobolDec negRem = CobolIntrinsics.RemExact(CobolRounding.Truncation, CobolExact.Negate(p2), CobolExact.From(1000, 0));
         Assert.Equal((Int128)(-(n % 1000)), negRem.Sig);
     }
-    /// <summary>The oracle of a COMPUTED value's one rounding to 34 significant digits in a §14.7.4.3 mode: the digit dropped (the round
+    /// <summary>The oracle of a COMPUTED value's one rounding to 34 significant digits in a §2023:14.7.4.3 mode: the digit dropped (the round
     /// digit) and everything below it decide, in integers, from the value's definition.</summary>
     private static BigInteger Round34(BigInteger value, CobolRounding mode)
     {
@@ -300,7 +300,7 @@ public sealed class CobolBigExactFormTests
         }
     }
 
-    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§11.9.11.1) raises on a value past the wide form that is inexact in 34 digits and
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§2023:11.9.11.1) raises on a value past the wide form that is inexact in 34 digits and
     /// reduces one that is exact.</summary>
     [Fact]
     public void ToDecRounded_PastTheWideForm_ProhibitedRaisesOnlyOnAnInexactValue()

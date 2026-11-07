@@ -5,7 +5,7 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>⛔ THE FILE CODED CHARACTER SET — the ONE executable copy of the determination ISO/IEC 1989:2023
-/// §8.1.2 requires (<i>"The implementor shall specify the set of characters in and the encoding of each of the
+/// §2023:8.1.2 requires (<i>"The implementor shall specify the set of characters in and the encoding of each of the
 /// computer's alphanumeric character set and the computer's national character set"</i>; Annex A.1 item 31,
 /// docs/CONFORMANCE.md <c>DOC-A.1-31</c>) as it applies to a FILE with no CODE-SET conversion: owner decision
 /// kb/Work R47 — <b>ISO/IEC 8859-1, one byte per character position</b>, a character U+0000–U+00FF being the byte
@@ -35,14 +35,14 @@ public static class FileCharacterSet
     /// <summary>True when <paramref name="record"/> holds at least one character with no byte image in the file
     /// coded character set — a code unit above U+00FF other than the HIGH-VALUE character
     /// (<see cref="StorageByte.HasByte"/>). A national record area's characters reach the connector already as
-    /// their UTF-16BE byte pairs (one char per byte by the storage-byte law, §13.18.60.4 GR8 / D-N1), so the one
+    /// their UTF-16BE byte pairs (one char per byte by the storage-byte law, §2023:13.18.60.4 GR8 / D-N1), so the one
     /// test serves both record-area classes.</summary>
     public static bool HasCharacterWithoutByteImage(ReadOnlySpan<char> record) => StorageByte.AnyWithoutByte(record);
 
     /// <summary>⛔ THE NATIVE → CHANNEL mapping of a record image about to be written — every physical write of
     /// record data passes through here (<c>FileConnector.ToMedium</c>, <see cref="RecordFraming.EncodeFrame"/>).
     /// The HIGH-VALUE character takes its byte 0xFF (<see cref="StorageByte"/>), and a CODE-SET conversion
-    /// (§13.18.13.4 GR6 b) then replaces each native channel character with its coded character; with none
+    /// (§2023:13.18.13.4 GR6 b) then replaces each native channel character with its coded character; with none
     /// (GR7) the channel IS the medium. The output statement has already refused a record holding a character
     /// with no byte image (<see cref="HasCharacterWithoutByteImage"/>, <see cref="CodeSetConversion.HasCharacterWithoutImage"/>).</summary>
     public static string ToChannel(string native, CodeSetConversion? codeSet) =>
@@ -50,7 +50,7 @@ public static class FileCharacterSet
         : native.Replace(NativeCollatingSequence.HighValue, (char)StorageByte.ToByte(NativeCollatingSequence.HighValue));
 
     /// <summary>⛔ THE CHANNEL → NATIVE mapping of a record image just read — the inverse of <see cref="ToChannel"/>:
-    /// a CODE-SET conversion first (§13.18.13.4 GR6 a), then the storage-byte law, which reads 0xFF as the HIGH-VALUE
+    /// a CODE-SET conversion first (§2023:13.18.13.4 GR6 a), then the storage-byte law, which reads 0xFF as the HIGH-VALUE
     /// character.</summary>
     public static string FromChannel(string channel, CodeSetConversion? codeSet) =>
         codeSet is not null ? codeSet.ToNative(channel)
@@ -71,7 +71,7 @@ public enum MediumEncoding
     /// the fixed-record organizations with no CODE-SET clause (DOC-A.1-31; owner decision kb/Work R47).</summary>
     SingleByte,
 
-    /// <summary>The CODE-SET alphabet's coded character set (§13.18.13.4 GR6, <see cref="CodeSetConversion"/>).</summary>
+    /// <summary>The CODE-SET alphabet's coded character set (§2023:13.18.13.4 GR6, <see cref="CodeSetConversion"/>).</summary>
     CodeSet,
 
     /// <summary>UTF-8 text (<see cref="LineSequentialEncoding"/>): a LINE SEQUENTIAL file with no CODE-SET clause

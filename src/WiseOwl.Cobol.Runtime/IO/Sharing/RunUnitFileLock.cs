@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ ISO §9.1.15's FILE LOCK AGAINST OTHER RUN UNITS, AS TABLE 19 ITSELF (kb/Work PB833, PB2484). <i>"The successful
+/// ⛔ ISO §2023:9.1.15's FILE LOCK AGAINST OTHER RUN UNITS, AS TABLE 19 ITSELF (kb/Work PB833, PB2484). <i>"The successful
 /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run units
 /// from opening that file with incompatible sharing rules."</i> The applicable rules are rules 1)–3), which
 /// <see cref="Table19"/> prints cell by cell, and a second run unit is bound to them exactly as a second connector
@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// OPEN request is later judged against (<see cref="Table19.Column"/>) — and then asks whether any OTHER holder
 /// has published a column that its own request row refuses
 /// (<see cref="Table19.Cell(OpenRequestRow, ExistingSharingColumn)"/>). It holds the column for the life of the OPEN and
-/// gives it back with its CLOSE (§9.1.15, <i>"The file lock is removed by an explicit or implicit CLOSE
+/// gives it back with its CLOSE (§2023:9.1.15, <i>"The file lock is removed by an explicit or implicit CLOSE
 /// statement"</i>); a run unit that dies loses it with its descriptors. HOW a column is published and tested is the
 /// host's (<see cref="IColumnLockHost"/>): a shared byte-range lock on the physical file on Linux
 /// (<see cref="OfdColumnLockHost"/>), a lock file per holder beside it on every other Unix
 /// (<see cref="SidecarColumnLockHost"/>), an exclusive byte of a range per column through a read handle of the holder's own
 /// on Windows (<see cref="HandleColumnLockHost"/>, kb/Work PB3482); this class is the POLICY and is the same on all three.</para>
 /// <para><b>Why publish first.</b> Two run units opening at once cannot both pass: whichever publishes second
-/// finds the first already there, and a request against a column it refuses is answered '61' (§9.1.13.9 1)). It
+/// finds the first already there, and a request against a column it refuses is answered '61' (§2023:9.1.13.9 1)). It
 /// is the ordering that makes the test race-free without a mutex, and it needs a test that ignores the asker's
 /// OWN publication — which is what every host is chosen for, because a class that refuses its own kind (NO OTHER,
 /// an OUTPUT) would otherwise refuse itself.</para>
@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// handle — it is the only thing a non-COBOL process meets, and on a host whose <see cref="FileShare"/> is
 /// mandatory and per-access it already carries most of the table; this lock carries the rest, on the hosts that can
 /// hold it. ⚠ It binds RUN UNITS: a process that does not take part in the protocol (a text editor, another
-/// language) meets only the host share mode, which §9.1.15 permits the implementor to define ("Other facilities
+/// language) meets only the host share mode, which §2023:9.1.15 permits the implementor to define ("Other facilities
 /// may specify some degree of file sharing, however, their interaction with COBOL file sharing is defined by the
 /// implementor", Annex A.1 item 75).</para>
 /// <para><b>The protocol is a contract between run units</b> — two versions of this runtime must agree on it — so
@@ -47,7 +47,7 @@ internal sealed class RunUnitFileLock : IDisposable
         ExistingSharingColumn.ReadOnlyInput => 2,
         ExistingSharingColumn.AllOtherNonInput => 3,
         ExistingSharingColumn.AllOtherInput => 4,
-        _ => throw new ArgumentOutOfRangeException(nameof(column), $"{column} is not an ISO §14.9.27.4 Table 19 column"),
+        _ => throw new ArgumentOutOfRangeException(nameof(column), $"{column} is not an ISO §2023:14.9.27.4 Table 19 column"),
     };
 
     private static readonly ExistingSharingColumn[] Columns = Enum.GetValues<ExistingSharingColumn>();
@@ -95,7 +95,7 @@ internal sealed class RunUnitFileLock : IDisposable
     {
         /// <summary>The lock is held; <c>held</c> carries it.</summary>
         Held,
-        /// <summary>Another run unit holds a column Table 19 refuses this request: §9.1.13.9 1)'s '61'.</summary>
+        /// <summary>Another run unit holds a column Table 19 refuses this request: §2023:9.1.13.9 1)'s '61'.</summary>
         Refused,
         /// <summary>This host cannot hold the lock (<see cref="HostOfThisProcess"/>), or the file cannot be reached
         /// for it; the connector has the file lock its <see cref="FileShare"/> gives and nothing more.</summary>
@@ -134,11 +134,11 @@ internal sealed class RunUnitFileLock : IDisposable
 
     /// <summary>⛔ REPLACE THIS LOCK BY THE ONE AN OPEN IN (<paramref name="sharing"/>, <paramref name="mode"/>) ESTABLISHES,
     /// WITH NO INSTANT IN WHICH THE FILE IS UNLOCKED (kb/Work PB3483; <see cref="IColumnLockHost.Establish"/>'s
-    /// <c>supersedes</c>). The one caller is a file lock a CLOSE under commit control KEPT: §14.9.7.4 GR4, <i>"For files
+    /// <c>supersedes</c>). The one caller is a file lock a CLOSE under commit control KEPT: §2023:14.9.7.4 GR4, <i>"For files
     /// specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the
     /// file locks are released"</i>, so the connector's own re-OPEN, which establishes a lock of its own that the kept one
     /// would refuse as another holder's, must not give the kept one back first and take it again if the OPEN fails
-    /// (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>): that
+    /// (§2023:14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>): that
     /// left the file unlocked for two instants, in which another run unit's OPEN against the kept column was admitted.
     /// <see cref="Outcome.Held"/>: this lock now holds the new column, and <see cref="Revert"/> can publish the old one
     /// again. <see cref="Outcome.Refused"/> or <see cref="Outcome.Unavailable"/>: the lock is exactly as it was.
@@ -168,7 +168,7 @@ internal sealed class RunUnitFileLock : IDisposable
     internal bool HoldsAHandle => _hold is IPublishedColumn { HoldsAHandle: true };
 
     /// <summary>Publish again the column this lock held before <see cref="Amend"/>, with no test — the amended OPEN was
-    /// unsuccessful and §14.9.27.4 GR25 leaves the file unaffected, so the kept lock stands as the CLOSE left it. A holder
+    /// unsuccessful and §2023:14.9.27.4 GR25 leaves the file unaffected, so the kept lock stands as the CLOSE left it. A holder
     /// the new column admitted in the meantime was admitted by an OPEN in progress, which is the OPEN's own instant and not a
     /// window. False (and the lock given back) when the host cannot publish it again.</summary>
     internal bool Revert()
@@ -185,7 +185,7 @@ internal sealed class RunUnitFileLock : IDisposable
 
     /// <summary>⛔ GIVE THE PUBLICATION BACK FOR A DELETE FILE'S REMOVAL, KEEPING WHAT THE LOCK WAS ESTABLISHED AS (kb/Work PB3492, review
     /// finding R1-1): a column a host publishes through a handle on the file (<see cref="HoldsAHandle"/>) refuses the removal, so
-    /// it goes for the removal's instant, and <see cref="Resume"/> publishes it again when the removal does not land (§14.9.10.4,
+    /// it goes for the removal's instant, and <see cref="Resume"/> publishes it again when the removal does not land (§2023:14.9.10.4,
     /// an unsuccessful DELETE FILE leaves the file and what holds it as they were). From the removal on the transaction's journal
     /// holding is the lock (DESIGN-runtime-library.md 2.2.2.14). <see cref="Column"/> is null while suspended.</summary>
     internal void Suspend()
@@ -210,7 +210,7 @@ internal sealed class RunUnitFileLock : IDisposable
     /// (<c>FileRegistry.RunUnitHoldsAgainst</c>).</summary>
     internal ExistingSharingColumn? Column => _hold is null ? null : _as.Own;
 
-    /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent.</summary>
+    /// <summary>Remove the file lock — the CLOSE's half of §2023:9.1.15. Idempotent.</summary>
     public void Dispose()
     {
         _hold?.Dispose();

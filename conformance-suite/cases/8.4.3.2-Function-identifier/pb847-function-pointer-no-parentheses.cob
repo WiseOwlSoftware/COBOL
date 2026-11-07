@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.4.3.2.3 SR5 - "If function-pointer-name-1 is specified, the parentheses shall be
+      *> ISO/IEC 1989:2023 §2023:8.4.3.2.3 SR5 - "If function-pointer-name-1 is specified, the parentheses shall be
       *> specified." A prototype or intrinsic function-identifier may omit an empty argument list; one naming a
       *> function-pointer may not, because the bare name is the reference to the POINTER itself. kb/Work PB847.
        IDENTIFICATION DIVISION.

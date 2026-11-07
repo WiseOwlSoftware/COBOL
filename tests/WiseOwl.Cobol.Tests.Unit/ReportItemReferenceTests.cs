@@ -11,10 +11,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A REPORT SECTION ENTRY'S DATA-NAME IS NOT "UNDEFINED" WHERE IT MAY NOT BE REFERENCED (kb/Work PB1046).
-/// ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
+/// ISO §2023:13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
 /// data division or by any other procedure division statements, except in the following cases: 1) Sum counters may
 /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
-/// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
+/// statement", and §2023:13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
 /// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
 /// name the report section declares. One lookup (<c>ReportScope.EntriesNamed</c>) and one refusal
 /// (<c>ReportSectionBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
@@ -65,8 +65,8 @@ public sealed class ReportItemReferenceTests
         "           EXIT PROGRAM.",
         "       END PROGRAM PB1046UI.");
 
-    /// <summary>§13.8.6.2.3 — every procedure division statement shape that names a printable item, a group entry
-    /// or a report group (qualified in every way §8.4.2.2.3 SR4 allows) draws the ONE report-item refusal, never
+    /// <summary>§2023:13.8.6.2.3 — every procedure division statement shape that names a printable item, a group entry
+    /// or a report group (qualified in every way §2023:8.4.2.2.3 SR4 allows) draws the ONE report-item refusal, never
     /// the undefined-name verdict.</summary>
     [Theory]
     [InlineData("MOVE PV TO W")]
@@ -88,7 +88,7 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
     }
 
-    /// <summary>§13.8.6.2.3 1) — "Sum counters may be inspected or altered in the procedure division": the SUM entry's
+    /// <summary>§2023:13.8.6.2.3 1) — "Sum counters may be inspected or altered in the procedure division": the SUM entry's
     /// data-name stays referenceable, and only the printable-item faces around it are refused.</summary>
     [Fact]
     public void ASumCounter_IsStillReferenceableInTheProcedureDivision()
@@ -97,7 +97,7 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("error"));
     }
 
-    /// <summary>§13.8.6.2.3 2) — GENERATE names the DETAIL group, by name and qualified by the report-name.</summary>
+    /// <summary>§2023:13.8.6.2.3 2) — GENERATE names the DETAIL group, by name and qualified by the report-name.</summary>
     [Theory]
     [InlineData("GENERATE DL")]
     [InlineData("GENERATE DL OF RR")]
@@ -108,7 +108,7 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("error"));
     }
 
-    /// <summary>§8.4.2.1 — a name an ordinary item declares resolves THERE: a procedure division reference to a
+    /// <summary>§2023:8.4.2.1 — a name an ordinary item declares resolves THERE: a procedure division reference to a
     /// working-storage item that shares the spelling of a report entry is that item's, not the report item's.</summary>
     [Fact]
     public void AnOrdinaryItemOfTheSameSpelling_TakesTheReference()
@@ -130,7 +130,7 @@ public sealed class ReportItemReferenceTests
         Assert.Contains(d, x => x.Contains("COBOL1639"));
     }
 
-    /// <summary>§13.18.27.4 GR1/GR2 — a GLOBAL report's names are visible to the contained program, so a printable
+    /// <summary>§2023:13.18.27.4 GR1/GR2 — a GLOBAL report's names are visible to the contained program, so a printable
     /// item there is the same refusal; its sum counter and its DETAIL group stay legal. A report WITHOUT the GLOBAL
     /// clause is no name of the contained program at all, so the old verdict is the right one.</summary>
     [Fact]
@@ -153,7 +153,7 @@ public sealed class ReportItemReferenceTests
         Assert.Contains(h, x => x.Contains("COBOL1639"));
     }
 
-    /// <summary>§13.8.6.2.3 — "any clauses in any other section of the data division": the FILE-CONTROL clause that
+    /// <summary>§2023:13.8.6.2.3 — "any clauses in any other section of the data division": the FILE-CONTROL clause that
     /// names a data-name (FILE STATUS) and a working-storage OCCURS … DEPENDING ON each draw the same refusal.</summary>
     [Fact]
     public void AReportEntryNamedByAClauseOfAnotherSection_IsRefusedAsAReportItem()
@@ -167,7 +167,7 @@ public sealed class ReportItemReferenceTests
     }
 
     /// <summary>kb/Work PB3766 — the clauses of a CONTAINED program's own data division reach the container's GLOBAL
-    /// report items (§13.18.27.4 GR1), so a FILE STATUS clause and an OCCURS … DEPENDING ON object that name one are
+    /// report items (§2023:13.18.27.4 GR1), so a FILE STATUS clause and an OCCURS … DEPENDING ON object that name one are
     /// refused as report items too: the GLOBAL reports are inherited before the unit's post-build resolvers run, and
     /// they were inherited after, so both said "not defined". Without the GLOBAL clause the name is no name of the
     /// contained program at all, and the old verdicts stand.</summary>
@@ -253,7 +253,7 @@ public sealed class ReportItemReferenceTests
 
     /// <summary>kb/Work PB4226: a SEARCH ALL Format 2 condition-name operand the written reference does not reach is the
     /// condition binder's verdict, given once: a report entry of a NEARER source element is the referenced item (ISO
-    /// §8.4.6.2.1 3) a)) and draws the report-item refusal alone, and a misqualified condition-name the misqualified
+    /// §2023:8.4.6.2.1 3) a)) and draws the report-item refusal alone, and a misqualified condition-name the misqualified
     /// wording alone. The SEARCH ALL screen used to add its own COBOL1965 to both, calling the report entry a
     /// condition-name.</summary>
     [Theory]
@@ -305,8 +305,8 @@ public sealed class ReportItemReferenceTests
     }
 
     /// <summary>kb/Work PB4226 arm 2: an RD's OCCURS … DEPENDING ON naming a report entry is refused under the rule the
-    /// REPORT SECTION's own clauses break, ISO §13.15.3 SR7 ("The data-name shall not be referenced in any other way"),
-    /// never §13.8.6.2.3 (the other sections' rule) and never COBOL1639's "not declared" / "not under the given
+    /// REPORT SECTION's own clauses break, ISO §2023:13.15.3 SR7 ("The data-name shall not be referenced in any other way"),
+    /// never §2023:13.8.6.2.3 (the other sections' rule) and never COBOL1639's "not declared" / "not under the given
     /// qualifiers" (the report section declares the name). A sum counter is told where the report section admits one;
     /// a working-storage item of another spelling is data-name-1 as written.</summary>
     [Theory]
@@ -319,15 +319,15 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
         if (code is null) { Assert.DoesNotContain(d, x => x.Contains(ReportItemCode)); return; }
         string refusal = Assert.Single(d, x => x.Contains(code));
-        Assert.Contains("§13.15.3 SR7", refusal);
-        Assert.DoesNotContain("§13.8.6.2.3", refusal);
-        Assert.Equal(sumCounter, refusal.Contains("§13.18.53.3 SR4", StringComparison.Ordinal));
+        Assert.Contains("§2023:13.15.3 SR7", refusal);
+        Assert.DoesNotContain("§2023:13.8.6.2.3", refusal);
+        Assert.Equal(sumCounter, refusal.Contains("§2023:13.18.53.3 SR4", StringComparison.Ordinal));
     }
 
     /// <summary>kb/Work PB4226's siblings, the other report-section clauses that name a report entry: an RD CODE clause's
-    /// identifier-1 draws the one report-item refusal under §13.15.3 SR7 (it was "does not resolve to a data item" AND a
-    /// second COBOL5092 from the procedure phase), and a PRESENT WHEN condition draws §13.15.3 SR16's COBOL1559 alone (the
-    /// procedure phase added COBOL5092 under §13.8.6.2.3). An undeclared CODE operand keeps its one COBOL2713.</summary>
+    /// identifier-1 draws the one report-item refusal under §2023:13.15.3 SR7 (it was "does not resolve to a data item" AND a
+    /// second COBOL5092 from the procedure phase), and a PRESENT WHEN condition draws §2023:13.15.3 SR16's COBOL1559 alone (the
+    /// procedure phase added COBOL5092 under §2023:13.8.6.2.3). An undeclared CODE operand keeps its one COBOL2713.</summary>
     [Theory]
     [InlineData("RD  RR CODE IS PV.", "", ReportItemCode)]
     [InlineData("RD  RR CODE IS XQ.", "", "COBOL2713")]
@@ -337,8 +337,8 @@ public sealed class ReportItemReferenceTests
         var d = Bind(Source("", reportExtra, "").Replace("RD  RR.", rd, StringComparison.Ordinal));
         string verdict = Assert.Single(d);
         Assert.Contains(code, verdict);
-        if (code == ReportItemCode) Assert.Contains("§13.15.3 SR7", verdict);
-        Assert.DoesNotContain("§13.8.6.2.3", verdict);
+        if (code == ReportItemCode) Assert.Contains("§2023:13.15.3 SR7", verdict);
+        Assert.DoesNotContain("§2023:13.8.6.2.3", verdict);
     }
 
     private static IReadOnlyList<string> Bind(string source)

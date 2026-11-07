@@ -12,7 +12,7 @@ public enum OverlapStoreKind
     /// snapshot every other MOVE, overlapping or not, performs).</summary>
     None,
     /// <summary>A JUSTIFIED RIGHT receiver's leading <see cref="OverlapStore.Positions"/> positions are
-    /// space-filled before the sender is read (the padding of §14.9.25.4 GR6's right-justified alignment, written
+    /// space-filled before the sender is read (the padding of §2023:14.9.25.4 GR6's right-justified alignment, written
     /// first), and the ordinary store follows.</summary>
     LeadingSpaces,
     /// <summary>The whole store is <c>OverlappingMove.DisplayToDisplay</c>: a numeric DISPLAY sender converted into a
@@ -42,8 +42,8 @@ public readonly record struct OverlapStore(OverlapStoreKind Kind, int Positions 
         or OverlapStoreKind.AlphanumericToDisplay or OverlapStoreKind.DisplayToPacked;
 }
 
-/// <summary>⛔ <b>ISO §14.6.10 1) — "operands … not described by the same data description entry … overlap: the
-/// result is undefined" (Annex A.2 item 36; §4.4 makes a run unit that allows it a conforming one) — WHAT
+/// <summary>⛔ <b>ISO §2023:14.6.10 1) — "operands … not described by the same data description entry … overlap: the
+/// result is undefined" (Annex A.2 item 36; §2023:4.4 makes a run unit that allows it a conforming one) — WHAT
 /// WISEOWL COBOL DOES, WRITTEN ONCE</b> (kb/Work PB1907, PB1910; docs/CONFORMANCE.md §3 D-OVL1/D-OVL2).
 /// <para>The standard defines no result, so the choice is the implementor's and CLAUDE.md rule 1 settles it: where
 /// GnuCOBOL measurably differs from the plain snapshot (the sender is read in full before the receiver is
@@ -74,7 +74,7 @@ public readonly record struct OverlapStore(OverlapStoreKind Kind, int Positions 
 /// <para>⛔ It applies ONLY where the overlap is a COMPILE-TIME FACT (<see cref="StorageExtent"/>), so the
 /// ordinary MOVE — which cannot overlap — carries <see cref="OverlapStore.None"/> and emits exactly what it always
 /// did. Where the overlap is not provable (a run-time reference-modification bound, an OCCURS element) the
-/// snapshot stands. ISO §14.6.10 2) makes operands described by the SAME entry behave as if disjoint, but Annex A.2
+/// snapshot stands. ISO §2023:14.6.10 2) makes operands described by the SAME entry behave as if disjoint, but Annex A.2
 /// item 36 b) — "When one or more of the operands is reference-modified" — makes a reference-modified operand's
 /// overlap undefined whatever its entry, so a move from a slice of the receiver itself is overlap like any other
 /// (GnuCOBOL measured: <c>MOVE JR(1:2) TO JR</c>, JR PIC X(4) JUSTIFIED RIGHT, leaves four spaces). An
@@ -152,7 +152,7 @@ public static class MoveOverlap
         p is RefModPlace r ? IsCharacterPositioned(r.Inner, StorageExtent.Of(r.Inner) ?? e)
                            : p.Item.ImageWidth == e.Length;
 
-    /// <summary>An alphanumeric-family sender: a reference-modified slice (always alphanumeric, §8.4.3.3.4 GR6), an
+    /// <summary>An alphanumeric-family sender: a reference-modified slice (always alphanumeric, §2023:8.4.3.3.4 GR6), an
     /// unedited alphanumeric or alphabetic DISPLAY item, or a group.</summary>
     private static bool IsCharacterSender(Place from) =>
         from is RefModPlace { Inner.Item: var inner } r
@@ -164,7 +164,7 @@ public static class MoveOverlap
     private static bool IsPackedItem(Place from) =>
         from.DenotedItem is not null && from.Item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Packed, IsFloat: false };
 
-    /// <summary>A whole unedited numeric DISPLAY item (not a slice: a slice is alphanumeric, §8.4.3.3.4 GR6).</summary>
+    /// <summary>A whole unedited numeric DISPLAY item (not a slice: a slice is alphanumeric, §2023:8.4.3.3.4 GR6).</summary>
     private static bool IsNumericDisplayItem(Place from) =>
         from.DenotedItem is not null && from.Item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display };
 

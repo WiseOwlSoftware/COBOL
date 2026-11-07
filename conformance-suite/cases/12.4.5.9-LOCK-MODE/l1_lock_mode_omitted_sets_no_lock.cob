@@ -5,9 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.9.4 GR1 a) and b) 1. — LOCK MODE omitted: a
+      *> ISO §2023:12.4.5.9.4 GR1 a) and b) 1. — LOCK MODE omitted: a
       *> SHARING clause, or an OPEN SHARING phrase, sets no record lock.
-      *> RULE §12.4.5.9.4 GR1 (cite.py --check 12.4.5.9.4 OK, 1) a) and
+      *> RULE §2023:12.4.5.9.4 GR1 (cite.py --check 12.4.5.9.4 OK, 1) a) and
       *>   1) b) 1.): "If the LOCK MODE clause is omitted from a file
       *>   control entry, a) If there is a SHARING clause in that file
       *>   control entry, no record locks are set by the execution of
@@ -36,21 +36,21 @@
       *>          FE really does see a lock X sets, so A2/B2 = '00' is
       *>          the absence of a lock and not a blind observer.
       *> The OBSERVER FE: SHARING WITH READ ONLY + LOCK MODE IS MANUAL.
-      *>   Record locking is enabled for it (§9.1.15 2): of the read
+      *>   Record locking is enabled for it (§2023:9.1.15 2): of the read
       *>   only mode "Record locks are in effect"; it has a LOCK MODE),
-      *>   so §14.9.30.4 GR9 applies to its READ: a record "locked by
+      *>   so §2023:14.9.30.4 GR9 applies to its READ: a record "locked by
       *>   another file connector" is a record operation conflict, and
-      *>   with no RETRY phrase the READ gets I-O status 51 (§9.1.13.8
+      *>   with no RETRY phrase the READ gets I-O status 51 (§2023:9.1.13.8
       *>   1): "an attempt to access a record that is currently locked
       *>   by another file connector"). A plain READ on FE sets no lock
-      *>   of its own (§14.9.30.4 GR11 d): manual mode, no LOCK phrase).
-      *> WHY THE READ ONLY MODE EVERYWHERE: §14.9.27.3 SR8 requires a
+      *>   of its own (§2023:14.9.30.4 GR11 d): manual mode, no LOCK phrase).
+      *> WHY THE READ ONLY MODE EVERYWHERE: §2023:14.9.27.3 SR8 requires a
       *>   LOCK MODE clause whenever the ALL phrase is in effect, so a
       *>   LOCK-MODE-less entry cannot use ALL OTHER. Table 19: an INPUT
       *>   open requesting READ ONLY against an existing read only /
       *>   input connector is a "Normal open", so every OPEN succeeds.
       *>   WITH LOCK is legal on FA/FB/FC: none specifies automatic
-      *>   locking (§14.9.30.3 SR4).
+      *>   locking (§2023:14.9.30.3 SR4).
       *> DERIVATION of every output line (records R001, R002 seeded):
       *>   A1=00 R001  FA's READ finds record 1, which nobody locks.
       *>   A2=00 R001  GR1 a): FA set no lock, so FE's READ of record 1
@@ -60,8 +60,8 @@
       *>               set no lock — '00'.
       *>   C1=00 R001  FC's READ WITH LOCK: manual mode, LOCK phrase
       *>               written, locks in effect (read only mode) — the
-      *>               lock on record 1 IS set (§12.4.5.9.4 GR5,
-      *>               §14.9.30.4 GR11 d)).
+      *>               lock on record 1 IS set (§2023:12.4.5.9.4 GR5,
+      *>               §2023:14.9.30.4 GR11 d)).
       *>   C2=51       FE's READ of record 1, locked by FC: GR9 conflict
       *>               no RETRY — '51'; the record area is not shown.
        IDENTIFICATION DIVISION.

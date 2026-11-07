@@ -9,30 +9,30 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 
 /// <summary>
 /// One clause list whose general format prints every element in its OWN bracket with no ellipsis — and so permits
-/// each element at most once (ISO §5.2.6.2: a bracket allows the element "or that portion of the general format may
-/// be omitted"; §5.2.7: only an ellipsis licenses repetition) — keyed in <see cref="ClauseCardinalities.ByClauseContext"/>
+/// each element at most once (ISO §2023:5.2.6.2: a bracket allows the element "or that portion of the general format may
+/// be omitted"; §2023:5.2.7: only an ellipsis licenses repetition) — keyed in <see cref="ClauseCardinalities.ByClauseContext"/>
 /// by the parse-tree context of the alternative list the clauses are written into.
 /// </summary>
-/// <param name="Format">The general format as a diagnostic names it: <c>"ISO §13.16.2"</c> for a figure of
+/// <param name="Format">The general format as a diagnostic names it: <c>"ISO §2023:13.16.2"</c> for a figure of
 /// ISO/IEC 1989:2023, <c>"ANSI X3.23-1985"</c> for an earlier edition's figure that the 2023 text does not carry
 /// (<see cref="Earlier"/>; kb/Work PB2532).</param>
 /// <param name="FormatLabel">"Format 1 " where the subclause prints several formats; the empty string otherwise.</param>
 /// <param name="Subject">The construct as the standard names it ("data description entry").</param>
 /// <param name="Repeatable">The alternatives that ARE allowed to repeat: an ellipsis follows them in the figure
-/// (the file control entry's ALTERNATE RECORD KEY and collating-sequence clauses, §12.4.5.1), or the alternative
-/// is not a clause at all (an error production, or a meta-language term such as §13.16.2's validation-clauses that
+/// (the file control entry's ALTERNATE RECORD KEY and collating-sequence clauses, §2023:12.4.5.1), or the alternative
+/// is not a clause at all (an error production, or a meta-language term such as §2023:13.16.2's validation-clauses that
 /// stands for several clauses some of which carry an ellipsis), or the alternative is not an element of THIS
 /// figure at all — a paragraph of another edition's figure, which that edition's gate refuses here (the identification
 /// division's AUTHOR … SECURITY at 2002+, its OPTIONS paragraph at 85). Every OTHER alternative of the list is
 /// once-only.</param>
-/// <param name="Sequence">⛔ THE ORDER DECISION, which every row makes explicitly (kb/Work PB1508). ISO §5.2.1: "The
+/// <param name="Sequence">⛔ THE ORDER DECISION, which every row makes explicitly (kb/Work PB1508). ISO §2023:5.2.1: "The
 /// words, phrases, clauses, punctuation, and operands in each general format shall be written in the compilation
 /// group in the sequence given in the general format, unless otherwise specified by the rules of that format." Null
-/// when a rule of the format DOES specify otherwise — the row's comment names that syntax rule (§13.16.3 SR4 for the
-/// data description entry, §13.4.5.3 SR2 for the FD, …). Otherwise the once-only elements in the sequence the figure
+/// when a rule of the format DOES specify otherwise — the row's comment names that syntax rule (§2023:13.16.3 SR4 for the
+/// data description entry, §2023:13.4.5.3 SR2 for the FD, …). Otherwise the once-only elements in the sequence the figure
 /// prints them, and <c>ClosedFormatPass</c> refuses an element written after one the figure prints later
-/// (COBOL2987): the OPTIONS paragraph (§11.9.2), the CONFIGURATION SECTION (§12.3.2) and the identification division
-/// (§11.2.1) print a fixed sequence of brackets, and none has a rule that frees it.
+/// (COBOL2987): the OPTIONS paragraph (§2023:11.9.2), the CONFIGURATION SECTION (§2023:12.3.2) and the identification division
+/// (§2023:11.2.1) print a fixed sequence of brackets, and none has a rule that frees it.
 /// <c>ClauseCardinalityDriftTests</c> requires a sequence to hold exactly the list's once-only alternatives, so a
 /// clause added to such a list cannot go unranked.</param>
 /// <param name="KindOf">The element an alternative instance fills, when the grammar folds two figure elements into
@@ -46,9 +46,9 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// comment-entry paragraphs, which the 2023 figure does not print at all.
 /// <c>ClauseCardinalityDriftTests</c> holds every figure of the chain to the same obligations as the row.</param>
 /// <param name="ChoiceIndicators">⛔ WHICH RULE A REPEAT BREAKS: true when the figure encloses its clauses in CHOICE
-/// INDICATORS (ISO §5.2.6.4 — each alternative at most once, in any order; the OBJECT-COMPUTER paragraph's
-/// §12.3.6.2), so <c>ClosedFormatPass</c> reports a repeat through the one choice-indicator reader
-/// (<c>ChoiceIndicators.AtMostOnce</c>, COBOL2104) and not as a bracket without an ellipsis (§5.2.6.2, §5.2.7;
+/// INDICATORS (ISO §2023:5.2.6.4 — each alternative at most once, in any order; the OBJECT-COMPUTER paragraph's
+/// §2023:12.3.6.2), so <c>ClosedFormatPass</c> reports a repeat through the one choice-indicator reader
+/// (<c>ChoiceIndicators.AtMostOnce</c>, COBOL2104) and not as a bracket without an ellipsis (§2023:5.2.6.2, §2023:5.2.7;
 /// COBOL2423). A choice-indicator group is order-free by the same clause, so it carries no
 /// <see cref="Sequence"/> (kb/Work PB3133, ISO review R1-1).</param>
 public sealed record ClauseList(string Format, string FormatLabel, string Subject, IReadOnlySet<Type> Repeatable,
@@ -94,14 +94,14 @@ public sealed record EarlierFigure(int Until, ClauseList Figure);
 /// and the NEXT alternative automatically, because <c>ClauseCardinalityDriftTests</c> requires every alternative
 /// of every listed context to be classified once-only or repeatable — the decision cannot be skipped.</para>
 ///
-/// <para>Rows are the lists whose printed formats were read for ellipses: the §13.16.2 data description entry,
-/// the §13.15.2 report group description entry, the §13.4.5.2 file description entry, the §13.4.6.2 sort-merge
-/// file description entry and the §12.4.5.1 file control entry — each free in ORDER by a syntax rule, or (the SD)
+/// <para>Rows are the lists whose printed formats were read for ellipses: the §2023:13.16.2 data description entry,
+/// the §2023:13.15.2 report group description entry, the §2023:13.4.5.2 file description entry, the §2023:13.4.6.2 sort-merge
+/// file description entry and the §2023:12.4.5.1 file control entry — each free in ORDER by a syntax rule, or (the SD)
 /// printing one element — and the
-/// §11.9.2 OPTIONS paragraph, the §12.3.2 CONFIGURATION SECTION and the §11.2.1 identification division, whose figures
+/// §2023:11.9.2 OPTIONS paragraph, the §2023:12.3.2 CONFIGURATION SECTION and the §2023:11.2.1 identification division, whose figures
 /// fix the order too (<see cref="ClauseList.Sequence"/>, kb/Work PB1508). (The RD entry and its PAGE clause count
-/// their own elements through <c>UnrepeatedElements</c>.) The §12.3.6.2 OBJECT-COMPUTER paragraph is a row too (its
-/// clauses sit in choice indicators, §5.2.6.4, below 2002 in the 1985 figure's fixed sequence; kb/Work PB3133).
+/// their own elements through <c>UnrepeatedElements</c>.) The §2023:12.3.6.2 OBJECT-COMPUTER paragraph is a row too (its
+/// clauses sit in choice indicators, §2023:5.2.6.4, below 2002 in the 1985 figure's fixed sequence; kb/Work PB3133).
 /// SPECIAL-NAMES and I-O-CONTROL lists are not rows: their formats repeat most elements. A row whose list an earlier edition printed differently carries that
 /// figure too (<see cref="ClauseList.Earlier"/>, kb/Work PB2532), and <c>ClosedFormatPass</c> screens the figure of
 /// the edition it compiles for (<see cref="ClauseList.At"/>).</para>
@@ -113,38 +113,38 @@ public static class ClauseCardinalities
     public static readonly FrozenDictionary<Type, ClauseList> ByClauseContext =
         new Dictionary<Type, ClauseList>
         {
-            // §13.16.2 Format 1 prints twenty-one separate brackets, none with an ellipsis. The validation-clauses
-            // meta-term (§13.16.2's own sub-figure) holds `{ INVALID WHEN condition-2 } …` and friends, and the
+            // §2023:13.16.2 Format 1 prints twenty-one separate brackets, none with an ellipsis. The validation-clauses
+            // meta-term (§2023:13.16.2's own sub-figure) holds `{ INVALID WHEN condition-2 } …` and friends, and the
             // facility is declined (Annex A.4.14) — recognized and refused by name, so it is not counted. ORDER: free,
-            // §13.16.3 SR4 ("The remaining clauses may be written in any order").
+            // §2023:13.16.3 SR4 ("The remaining clauses may be written in any order").
             [typeof(Core.DataDescriptionClauseContext)] =
-                new("ISO §13.16.2", "Format 1 ", "data description entry",
+                new("ISO §2023:13.16.2", "Format 1 ", "data description entry",
                     new HashSet<Type> { typeof(Core.ValidationClauseContext), typeof(Core.UnrecognizedDataClauseContext) },
                     Sequence: null),
 
-            // §13.15.2: sixteen brackets and one braced choice {source | sum | value}, no ellipsis. ORDER: free,
-            // §13.15.3 SR2 ("All other clauses may be written in any order").
+            // §2023:13.15.2: sixteen brackets and one braced choice {source | sum | value}, no ellipsis. ORDER: free,
+            // §2023:13.15.3 SR2 ("All other clauses may be written in any order").
             [typeof(Core.ReportGroupClauseContext)] =
-                new("ISO §13.15.2", "", "report group description entry", None, Sequence: null),
+                new("ISO §2023:13.15.2", "", "report group description entry", None, Sequence: null),
 
-            // §13.4.5.2 Formats 1-3: every element in its own bracket (`IS EXTERNAL` and `IS GLOBAL` are two). ORDER:
-            // free, §13.4.5.3 SR2 ("The clauses that follow file-name-1 may appear in any order").
+            // §2023:13.4.5.2 Formats 1-3: every element in its own bracket (`IS EXTERNAL` and `IS GLOBAL` are two). ORDER:
+            // free, §2023:13.4.5.3 SR2 ("The clauses that follow file-name-1 may appear in any order").
             [typeof(Core.FileDescriptionClauseContext)] =
-                new("ISO §13.4.5.2", "", "file description entry",
+                new("ISO §2023:13.4.5.2", "", "file description entry",
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
                     Sequence: null, KindOfFileDescriptionClause),
 
-            // §13.4.6.2: `SD file-name-1 [ record-clause ] .` (and the '85 DATA RECORDS clause, removal-gated at
+            // §2023:13.4.6.2: `SD file-name-1 [ record-clause ] .` (and the '85 DATA RECORDS clause, removal-gated at
             // 2002). ORDER: nothing to order — the figure prints one element.
             [typeof(Core.SortMergeDescriptionClauseContext)] =
-                new("ISO §13.4.6.2", "", "sort-merge file description entry",
+                new("ISO §2023:13.4.6.2", "", "sort-merge file description entry",
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) }, Sequence: null),
 
-            // §12.4.5.1: only `ALTERNATE RECORD KEY … …` and `[ collating-sequence-clause ] …` carry an ellipsis.
-            // ORDER: free after SELECT, §12.4.5.2 SR1 ("The clauses that follow the SELECT clause may appear in any
+            // §2023:12.4.5.1: only `ALTERNATE RECORD KEY … …` and `[ collating-sequence-clause ] …` carry an ellipsis.
+            // ORDER: free after SELECT, §2023:12.4.5.2 SR1 ("The clauses that follow the SELECT clause may appear in any
             // order"; the grammar puts SELECT first).
             [typeof(Core.FileControlClausesContext)] =
-                new("ISO §12.4.5.1", "", "file control entry",
+                new("ISO §2023:12.4.5.1", "", "file control entry",
                     new HashSet<Type>
                     {
                         typeof(Core.AlternateKeyClauseContext), typeof(Core.FileCollatingSequenceClauseContext),
@@ -152,12 +152,12 @@ public static class ClauseCardinalities
                     },
                     Sequence: null),
 
-            // §11.9.2 (RENDERED, PDF p302 / folio 272): `OPTIONS.` then seven separate brackets and an independent
-            // `[.]` — no ellipsis and no choice indicators — and §11.9.3 has one syntax rule (the period), so no rule
-            // frees the ORDER: §5.2.1 binds the printed sequence (kb/Work PB1508). The grammar's order-free
+            // §2023:11.9.2 (RENDERED, PDF p302 / folio 272): `OPTIONS.` then seven separate brackets and an independent
+            // `[.]` — no ellipsis and no choice indicators — and §2023:11.9.3 has one syntax rule (the period), so no rule
+            // frees the ORDER: §2023:5.2.1 binds the printed sequence (kb/Work PB1508). The grammar's order-free
             // `optionsClause+` is the superset this row narrows to the figure.
             [typeof(Core.OptionsClauseContext)] =
-                new("ISO §11.9.2", "", "OPTIONS paragraph", None,
+                new("ISO §2023:11.9.2", "", "OPTIONS paragraph", None,
                     Sequence:
                     [
                         typeof(Core.ArithmeticClauseContext), typeof(Core.DefaultRoundedClauseContext),
@@ -166,12 +166,12 @@ public static class ClauseCardinalities
                         typeof(Core.IntermediateRoundingClauseContext),
                     ]),
 
-            // §12.3.2 (RENDERED, PDF p313 / folio 283): four bracketed paragraphs in a fixed sequence, and §12.3.3's
-            // three syntax rules place the section, never reorder it — so §5.2.1 binds the sequence and each
+            // §2023:12.3.2 (RENDERED, PDF p313 / folio 283): four bracketed paragraphs in a fixed sequence, and §2023:12.3.3's
+            // three syntax rules place the section, never reorder it — so §2023:5.2.1 binds the sequence and each
             // paragraph is written at most once (kb/Work PB1508's sibling arm: `SPECIAL-NAMES.` before
             // `SOURCE-COMPUTER.`, or two SPECIAL-NAMES paragraphs, compiled clean).
             [typeof(Core.ConfigurationParagraphContext)] =
-                new("ISO §12.3.2", "", "CONFIGURATION SECTION",
+                new("ISO §2023:12.3.2", "", "CONFIGURATION SECTION",
                     new HashSet<Type> { typeof(Core.UnrecognizedClauseContext) },
                     Sequence:
                     [
@@ -179,7 +179,7 @@ public static class ClauseCardinalities
                         typeof(Core.SpecialNamesParagraphContext), typeof(Core.RepositoryParagraphContext),
                     ]),
 
-            // §11.2.1: the identification division prints `[ options-paragraph ]` ONCE after the PROGRAM-ID (or other
+            // §2023:11.2.1: the identification division prints `[ options-paragraph ]` ONCE after the PROGRAM-ID (or other
             // identifying) paragraph, which the grammar already places first — so a second OPTIONS paragraph, which
             // OptionsBinder never read (the first one won in silence), is a repeat (kb/Work PB1508's sibling arm).
             // The figure fixes its sequence and ranks one element here. The AUTHOR … SECURITY and REMARKS
@@ -192,13 +192,13 @@ public static class ClauseCardinalities
             // X3.23-1985 prints the PROGRAM-ID paragraph, then `[ AUTHOR. [ comment-entry ] … ]`, `[ INSTALLATION. … ]`,
             // `[ DATE-WRITTEN. … ]`, `[ DATE-COMPILED. … ]` and `[ SECURITY. … ]`: each paragraph in its own bracket,
             // the ellipsis on the comment-entry and never on the paragraph, so each is written at most once and in
-            // that sequence (the same bracket, ellipsis and sequence conventions ISO §5.2.6.2, §5.2.7 and §5.2.1 state).
+            // that sequence (the same bracket, ellipsis and sequence conventions ISO §2023:5.2.6.2, §2023:5.2.7 and §2023:5.2.1 state).
             // Measured against the in-repository corpora (5,958 sources): none repeats or reorders them, and the 38
             // NIST CCVS-85 programs that write them all keep this sequence. Its OPTIONS paragraph is a 2002
             // introduction, refused at 85 (COBOL0804), and REMARKS is the COBOL-74 carryover the 1985 figure does
             // not print, accepted at 85 for the CCVS: neither is counted. Overturn here if a 1985 text says otherwise.
             [typeof(Core.IdentificationParagraphContext)] =
-                new("ISO §11.2.1", "", "identification division",
+                new("ISO §2023:11.2.1", "", "identification division",
                     new HashSet<Type>
                     {
                         typeof(Core.AuthorParagraphContext), typeof(Core.InstallationParagraphContext),
@@ -221,8 +221,8 @@ public static class ClauseCardinalities
                                 typeof(Core.SecurityParagraphContext),
                             ]))),
 
-            // §12.3.6.2 (RENDERED, PDF p315 / folio 285): the OBJECT-COMPUTER paragraph encloses its two clauses, CHARACTER
-            // CLASSIFICATION and PROGRAM COLLATING SEQUENCE, in CHOICE INDICATORS within brackets, which §5.2.6.4 defines as
+            // §2023:12.3.6.2 (RENDERED, PDF p315 / folio 285): the OBJECT-COMPUTER paragraph encloses its two clauses, CHARACTER
+            // CLASSIFICATION and PROGRAM COLLATING SEQUENCE, in CHOICE INDICATORS within brackets, which §2023:5.2.6.4 defines as
             // zero or more of the alternatives, each at most once, in any order: the elements are once-only and the ORDER is
             // free (kb/Work PB3133 — this list's counts used to live in the binder, COBOL1652, beside a table that
             // exempted it; the table counts it, the ONE choice-indicator reader ChoiceIndicators.AtMostOnce reports it as COBOL2104 — ChoiceIndicators: true). The '85 clauses MEMORY SIZE and SEGMENT-LIMIT are not elements of this
@@ -233,13 +233,13 @@ public static class ClauseCardinalities
             // X3.23-1985 prints `OBJECT-COMPUTER. [ computer-name [ MEMORY SIZE integer-1 { WORDS | CHARACTERS | MODULES } ]
             // [ PROGRAM COLLATING SEQUENCE IS alphabet-name-1 ] [ SEGMENT-LIMIT IS segment-number ] ] .` — three clauses,
             // each in its own bracket with no ellipsis and no choice indicators, so each is written at most once and in
-            // that sequence (§5.2.6.2, §5.2.7, §5.2.1 state the conventions); IBM Enterprise COBOL's language reference
+            // that sequence (§2023:5.2.6.2, §2023:5.2.7, §2023:5.2.1 state the conventions); IBM Enterprise COBOL's language reference
             // prints the same figure for the same paragraph (the precedence of CLAUDE.md rule 1, there being no
             // GnuCOBOL arm: its parser takes the clauses in any order and any number). CHARACTER CLASSIFICATION is a 2002
             // introduction, refused at 85 by its own gate, so it is not counted. Overturn here if a 1985 text says
             // otherwise.
             [typeof(Core.ObjectComputerClauseContext)] =
-                new("ISO §12.3.6.2", "", "OBJECT-COMPUTER paragraph",
+                new("ISO §2023:12.3.6.2", "", "OBJECT-COMPUTER paragraph",
                     new HashSet<Type>
                     {
                         typeof(Core.MemorySizeClauseContext), typeof(Core.SegmentLimitClauseContext),

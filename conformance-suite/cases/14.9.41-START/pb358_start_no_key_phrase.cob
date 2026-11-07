@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 §14.9.41.4 GR15 — "If the KEY phrase is not
+      *> ISO 1989:2023 §2023:14.9.41.4 GR15 — "If the KEY phrase is not
       *> specified, the behavior is the same as if KEY IS EQUAL TO
       *> data-name-1 or record-key-name-1 had been specified, with
       *> data-name-1 or record-key-name-1 being the prime record key
-      *> for the file." (cite.py --check 14.9.41.4 → OK, §14.9.41.4 15)
+      *> for the file." (cite.py --check 14.9.41.4 → OK, §2023:14.9.41.4 15)
       *>
       *> THE RULE NAMES TWO SPELLINGS OF THE PRIME KEY.
       *> record-key-name-1 is declared by the SOURCE phrase of the
-      *> RECORD KEY clause (§12.4.5.12.2), a post-1985 form, so at
+      *> RECORD KEY clause (§2023:12.4.5.12.2), a post-1985 form, so at
       *> COBOL-85 this golden covers the data-name-1 spelling; the
       *> record-key-name-1 spelling is the suite test
       *> pb1099_record_key_source's line F1.
@@ -25,21 +25,21 @@
       *> unchanged, because the record whose key EQUALS the operand is
       *> also the first record whose key is >= it. L2 gives the prime
       *> key a value BETWEEN two records ("AB99", strictly after AB02
-      *> and strictly before CD03, §8.8.4.2.7 alphanumeric comparison
+      *> and strictly before CD03, §2023:8.8.4.2.7 alphanumeric comparison
       *> over the native sequence). Under the implied EQUAL no record
-      *> satisfies the comparison, so §14.9.41.4 GR17 e) 2 — "If the
+      *> satisfies the comparison, so §2023:14.9.41.4 GR17 e) 2 — "If the
       *> comparison is not satisfied by any record in the file, the
       *> invalid key condition exists and the execution of the START
       *> statement is unsuccessful" — applies and the INVALID KEY
       *> imperative runs. Under an implied ">=" the START would
       *> SUCCEED and position at CD03. The two readings differ here
       *> and nowhere in L1.
-      *> THE STATUS VALUE IS '23', derived not assumed: §9.1.13.5
+      *> THE STATUS VALUE IS '23', derived not assumed: §2023:9.1.13.5
       *> lists the whole invalid-key family, and '21' (an indexed
       *> WRITE/REWRITE sequence error), '22' (a duplicate key created
       *> by a WRITE or REWRITE) and '24' (a WRITE outside the file's
       *> boundaries) cannot arise from a START, so '23' is the only
-      *> applicable value and §9.1.13.1's "if more than one value
+      *> applicable value and §2023:9.1.13.1's "if more than one value
       *> applies" tie-break is never reached.
       *>
       *> L3 IS THE COMPLEMENT: the SAME file and the SAME operand
@@ -48,7 +48,7 @@
       *> operand or the START verb being broken rather than as the
       *> implied relation being EQUAL.
       *>
-      *> L1N ALSO PINS §14.9.41.4 GR16's second sentence — "If the
+      *> L1N ALSO PINS §2023:14.9.41.4 GR16's second sentence — "If the
       *> execution of the START statement is successful, this key of
       *> reference is used for subsequent sequential READ statements
       *> referencing file-name-1" — for the OMITTED-KEY-phrase case:
@@ -60,7 +60,7 @@
       *> for L1N.
       *>
       *> EDITION: --std 85. GR15 and GR16 carry no edition marker and
-      *> Annex E lists no §14.9.41 change, so the data-name-1 spelling
+      *> Annex E lists no §2023:14.9.41 change, so the data-name-1 spelling
       *> is live at 85/2002/2014/2023; the oldest edition is where a
       *> mis-gated construct would show first.
        IDENTIFICATION DIVISION.

@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>How a SET-family AMOUNT landed — the answer to §14.9.39.4's single recurring question, "does
+/// <summary>How a SET-family AMOUNT landed — the answer to §2023:14.9.39.4's single recurring question, "does
 /// arithmetic-expression-n evaluate to an integer", plus the one extra answer a typed carrier has to be able to
 /// give. It names NO exception condition: the condition is the FORMAT's, never the amount's (kb/Work PB465).</summary>
 public enum SetAmountLanding
@@ -18,15 +18,15 @@ public enum SetAmountLanding
     /// <summary>The amount IS an integer but is too large in magnitude for the widest integer carrier
     /// (<see cref="System.Int128"/>), so no exact integer value can be handed back. ⛔ This is NOT GR19's /
     /// GR3's case: the amount evaluates to an integer and those rules' antecedents are FALSE. It is the
-    /// format's RANGE rule — §14.9.39.4 GR20 for a data pointer, GR2 a) 1. b / GR4 a) for an index, GR30 for a
+    /// format's RANGE rule — §2023:14.9.39.4 GR20 for a data pointer, GR2 a) 1. b / GR4 a) for an index, GR30 for a
     /// capacity — because no receiver in this implementation has a range that wide.</summary>
     BeyondCarrier,
 }
 
 /// <summary>
-/// ⛔ THE ONE PLACE the SET-family integrality rule is written (ISO §14.9.39.4 GR2 a) 1. a · GR3 · GR19 · GR29).
+/// ⛔ THE ONE PLACE the SET-family integrality rule is written (ISO §2023:14.9.39.4 GR2 a) 1. a · GR3 · GR19 · GR29).
 ///
-/// <para><b>Why this type exists.</b> §14.9.39.4 states the SAME test four times, once per amount-taking format,
+/// <para><b>Why this type exists.</b> §2023:14.9.39.4 states the SAME test four times, once per amount-taking format,
 /// with the same three consequents (the condition is set to exist · the SET is unsuccessful · the receiving
 /// operand is unchanged) and only the exception-condition NAME differing. kb/Work PB459 wrote the test once for
 /// the three INDEX formats inside <see cref="CobolIndex"/>; the data-pointer format (GR19) kept its own copy in
@@ -39,7 +39,7 @@ public enum SetAmountLanding
 /// would put the format's rule back inside the shared test — the very shape PB465 is about. Both entry points
 /// are pure functions of their argument.</para>
 ///
-/// <para><b>Outside SET.</b> §14.9.41.4 GR14 asks the same integrality question of a START statement's WITH LENGTH
+/// <para><b>Outside SET.</b> §2023:14.9.41.4 GR14 asks the same integrality question of a START statement's WITH LENGTH
 /// arithmetic-expression-1 ("does not evaluate to a positive nonzero integer …"), so <c>IO.StartKeyLength</c> lands
 /// through here too and maps <see cref="SetAmountLanding.NotAnInteger"/> onto START's own '23' leg (kb/Work PB357).
 /// </para>
@@ -58,7 +58,7 @@ public static class SetAmount
     /// <para>⛔ A NEGATIVE <paramref name="scale"/> is a trailing-P amount (<c>PIC 9PP</c> stores 1 for the value
     /// 100), and its VALUE is <paramref name="scaled"/> × 10^−<paramref name="scale"/>: "the symbol 'P' specifies
     /// the location of an assumed decimal point when that point is not within the number that appears in the data
-    /// item" (ISO §13.18.40.4 GR14). Handing back the stored digits moved <c>SET IX UP BY</c> such an item by 1,
+    /// item" (ISO §2023:13.18.40.4 GR14). Handing back the stored digits moved <c>SET IX UP BY</c> such an item by 1,
     /// not 100, and fed the same wrong count to SET pointer UP BY, SET capacity and START … WITH LENGTH
     /// (kb/Work PB2697). That widening is the one way an exact amount can be an integer too large for the
     /// <see cref="Int128"/> carrier, so it is the one way this lane answers

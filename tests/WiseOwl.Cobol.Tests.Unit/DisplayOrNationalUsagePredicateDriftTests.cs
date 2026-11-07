@@ -13,17 +13,17 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ "DESCRIBED IMPLICITLY OR EXPLICITLY AS USAGE DISPLAY OR NATIONAL" IS ONE PREDICATE, AND IT LIVES IN
-/// <c>ItemCategory</c> BESIDE <c>UsageOf</c> (kb/Work PB3228). ISO §14.9.43.3 SR1 (STRING: "all identifiers, except
-/// identifier-4, shall be described implicitly or explicitly as usage display or national") and §14.9.22.3 SR1/SR2
+/// <c>ItemCategory</c> BESIDE <c>UsageOf</c> (kb/Work PB3228). ISO §2023:14.9.43.3 SR1 (STRING: "all identifiers, except
+/// identifier-4, shall be described implicitly or explicitly as usage display or national") and §2023:14.9.22.3 SR1/SR2
 /// (INSPECT: "an elementary item described implicitly or explicitly as usage display or national") state one sentence.
 /// STRING used to re-derive it from <c>Pic.Usage</c> guarded by <c>!IsGroup</c> beside a post-bind <c>StoreAsImage</c>
-/// exemption, which is why a <c>GROUP-USAGE BIT</c> group — an elementary item of usage bit by §13.18.29.4 GR1 b) —
+/// exemption, which is why a <c>GROUP-USAGE BIT</c> group — an elementary item of usage bit by §2023:13.18.29.4 GR1 b) —
 /// compiled clean as a STRING operand while INSPECT refused it.
 /// <para><b>What this can and cannot see.</b> It pins the SHAPE: each rule's binder reaches the shared predicate, the
 /// strongly-typed leaf walk exists once, and STRING no longer reads a storage form as a usage. The behaviour (a bit
 /// group refused at identifier-1, -2 and -3, the alphanumeric and national groups still admitted) is the conformance
 /// goldens <c>pb3228-string-bit-group-*</c> and <c>pb3228_string_group_usage_controls</c>.</para>
-/// <para>The sentence is stated a third time by §8.8.4.2.5 for the numeric integer operand of a relation with a
+/// <para>The sentence is stated a third time by §2023:8.8.4.2.5 for the numeric integer operand of a relation with a
 /// character operand (kb/Work PB3691), asked of the same function reader.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -54,7 +54,7 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
             "INSPECT's elementary arm reads the usage itself again; ask ItemCategory.IsDisplayOrNationalUsage.");
     }
 
-    /// <summary>kb/Work PB3665: the same sentence reaches a FUNCTION-IDENTIFIER, which §15.2 describes by its type (an
+    /// <summary>kb/Work PB3665: the same sentence reaches a FUNCTION-IDENTIFIER, which §2023:15.2 describes by its type (an
     /// alphanumeric function is usage display, a national one usage national, a boolean one usage bit, and the numeric,
     /// integer and index functions state none). STRING SR1 and INSPECT SR2 ask the ONE function reader beside the
     /// data-item predicate, and the usage-by-type table is written once, in <c>IntrinsicSig</c>; a binder that
@@ -77,13 +77,13 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
         Assert.Contains("IntrinsicSig.ImplicitUsageOf(", Code("Binding", "IntrinsicArgumentRules.cs"));
     }
 
-    /// <summary>kb/Work PB3691 (owner 2026-10-25): §8.8.4.2.5 — "The numeric integer operand shall be an integer literal
+    /// <summary>kb/Work PB3691 (owner 2026-10-25): §2023:8.8.4.2.5 — "The numeric integer operand shall be an integer literal
     /// or an integer numeric data item of usage display or national" — is the same sentence a third time. The relation
     /// checkpoint's admission of item 6's numeric operand asks the ONE function reader FIRST (before the literal arm,
     /// which the folded FUNCTION LENGTH would otherwise take), and never reads an implementor returned-value
     /// description (<c>SendingValueTemp.FunctionValuePic</c> and its siblings state the usage DISPLAY the implementor
-    /// represents the value in, §15.4.1; they are no §15.2 description). An INTEGER function was once admitted "as the
-    /// temporary §15.4 makes it", which is how <c>IF FUNCTION INTEGER(N) = "0007"</c> compiled and answered not equal.</summary>
+    /// represents the value in, §2023:15.4.1; they are no §2023:15.2 description). An INTEGER function was once admitted "as the
+    /// temporary §2023:15.4 makes it", which is how <c>IF FUNCTION INTEGER(N) = "0007"</c> compiled and answered not equal.</summary>
     [Fact]
     public void RelationItem6NumericOperand_AsksTheOneFunctionReader_AndNoReturnedValueDescription()
     {

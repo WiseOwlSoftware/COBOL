@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.4 GR1 (Annex A.1 item 56; kb/Work PB3505, owner decision PB3467) under the default
+      *> ISO §2023:14.9.11.4 GR1 (Annex A.1 item 56; kb/Work PB3505, owner decision PB3467) under the default
       *> `--numeric-display decimal` and DECIMAL-POINT IS COMMA: the separator of the shown value is
-      *> the PROGRAM'S, the comma, exactly as a numeric literal's is (§12.3.7.4 GR14 a: the comma is
+      *> the PROGRAM'S, the comma, exactly as a numeric literal's is (§2023:12.3.7.4 GR14 a: the comma is
       *> "the character written in numeric literals to represent the decimal separator"; DISPLAY of a
       *> literal shows it as written, kb/Work PB1643). Expected values from the declarations:
       *> -1,5 in S9(3)V99 is -001,50; 1,5 in 9(3)V99 COMP is 001,50; a V9(3) item holding ,5 shows

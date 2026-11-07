@@ -6,7 +6,7 @@
 *>---
       *> The REJECT half of conformance:cases/15.4.1-Numeric-and-integer-functions/pb620_combined_datetime_eae — the EDITION half of the same
       *> reference that golden compiles and runs.
-      *> ISO §15.17 COMBINED-DATETIME is one of the date/time functions ISO/IEC 1989:2014 added to clause 15;
+      *> ISO §2023:15.17 COMBINED-DATETIME is one of the date/time functions ISO/IEC 1989:2014 added to clause 15;
       *> it is absent from ISO/IEC 1989:2002 and from ISO 1989:1985, whose intrinsic-function set contains no
       *> such function-name. A reference to it below 2014 names an undefined function and shall be rejected
       *> (COBOL1502, the §15 edition band), which is also what keeps the PB620 standard-mode fix from

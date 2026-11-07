@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.63.3 SR28 — "The words THROUGH and THRU are
+      *> ISO §2023:13.18.63.3 SR28 — "The words THROUGH and THRU are
       *> equivalent." — THE EDITION-FLOOR COPY, compiled at --std 85.
       *>
       *> The condition-name range is a FORMAT 3 construct present in
@@ -18,12 +18,12 @@
       *> equivalence itself drifts.
       *>
       *> DERIVED EXPECTATIONS — from the rule text, not from a run.
-      *> §13.18.63.4 GR18 sends the range to §14.7.8, whose rule 1
+      *> §2023:13.18.63.4 GR18 sends the range to §2023:14.7.8, whose rule 1
       *> makes a numeric range include "literal-1, literal-2, and all
-      *> algebraic values between literal-1 and literal-2"; §8.8.4.5.3
+      *> algebraic values between literal-1 and literal-2"; §2023:8.8.4.5.3
       *> GR1 tests the conditional variable "within the specified range
       *> or ranges, including the end values" and GR3 makes the test
-      *> true when one of the values equals the variable. §13.18.63.3
+      *> true when one of the values equals the variable. §2023:13.18.63.3
       *> SR26 a) requires literal-2 < literal-3, which 1 < 5, 1 < 2 and
       *> 8 < 9 satisfy. Position p of each image is the verdict for
       *> CV = p - 1, so with CV walking 0 … 9:

@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.51.3 SR17: "The BEFORE and AFTER phrases shall not both be specified if the PAGE phrase is
-*> specified." The pair of words is otherwise legal from COBOL-2023 (Annex §E.3.3 item 2) and §14.9.51.4
+*> ISO §2023:14.9.51.3 SR17: "The BEFORE and AFTER phrases shall not both be specified if the PAGE phrase is
+*> specified." The pair of words is otherwise legal from COBOL-2023 (Annex §2023:E.3.3 item 2) and §2023:14.9.51.4
 *> GR25 f) gives it a defined advance; PAGE is the one operand it cannot carry, because GR25 g) and h)
 *> position the record "before or after (depending on the phrase used) the device is repositioned to the
 *> next logical page" and with both words written there is no phrase to depend on.

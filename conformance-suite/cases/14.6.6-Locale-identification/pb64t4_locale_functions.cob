@@ -41,7 +41,7 @@
       *>              decimal separator (France: "13:05:09,25").
       *>   HANDLED/MISSING — 15.52.4 r1: a locale-name whose locale is unavailable sets EC-LOCALE-MISSING; with
       *>              checking on the declarative observes it and the statement is interrupted (R keeps "?").
-      *>   ARG      — 15.52.3 r2: an invalid date is EC-ARGUMENT-FUNCTION (checking off here → the §15.3 default,
+      *>   ARG      — 15.52.3 r2: an invalid date is EC-ARGUMENT-FUNCTION (checking off here → the §2023:15.3 default,
       *>              an empty result, shown as "[]").
       *> Non-ASCII appears only inside literals (UTF-8 source); every DISPLAY is ASCII.
        >>TURN EC-LOCALE-MISSING CHECKING ON

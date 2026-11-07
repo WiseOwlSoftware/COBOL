@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.4 GR9 — a format 2 OCCURS record under RECORD
+      *> ISO §2023:13.18.38.4 GR9 — a format 2 OCCURS record under RECORD
       *> VARYING without DEPENDING: WRITE, REWRITE and RELEASE size the
       *> record from data-name-1 of the OCCURS clause.
       *>
       *> THE RULES.
-      *> §13.18.38.4 GR9: "If format 2 is specified in a record
+      *> §2023:13.18.38.4 GR9: "If format 2 is specified in a record
       *>   description entry and the associated file description or
       *>   sort-merge description entry contains the VARYING phrase of
       *>   the RECORD clause, the records are variable length. If the
@@ -20,28 +20,28 @@
       *>   to be written before the execution of any RELEASE,
       *>   REWRITE, or WRITE statement referencing that record
       *>   description entry."
-      *>   OK  §13.18.38.4 9)  (General rules)
-      *> §13.18.43.4 GR13 c): with no data-name-1 and a
+      *>   OK  §2023:13.18.38.4 9)  (General rules)
+      *> §2023:13.18.43.4 GR13 c): with no data-name-1 and a
       *>   variable-occurrence item, the size is "the sum of the fixed
       *>   portion and that portion of the table described by the
       *>   number of occurrences at the time of execution of the
       *>   output statement".
-      *>   OK  §13.18.43.4 13) c)  (General rules)
-      *> §13.18.43.4 GR15: with data-name-1, after a READ "the
+      *>   OK  §2023:13.18.43.4 13) c)  (General rules)
+      *> §2023:13.18.43.4 GR15: with data-name-1, after a READ "the
       *>   contents of the data item referenced by data-name-1 will
       *>   indicate the number of bytes in the record just read".
-      *>   OK  §13.18.43.4 15)  (General rules)
-      *> §14.9.35.4 GR16 (record sequential): if the record's size "is
+      *>   OK  §2023:13.18.43.4 15)  (General rules)
+      *> §2023:14.9.35.4 GR16 (record sequential): if the record's size "is
       *>   not equal to the number of bytes in the record being
       *>   replaced, the execution of the REWRITE statement is
       *>   unsuccessful and the I-O status in the rewrite file
       *>   connector is set to '44'".
-      *>   OK  §14.9.35.4 16)  (General rules)
-      *> §14.9.40.4 GR15 b): with GIVING, "the size of any record
+      *>   OK  §2023:14.9.35.4 16)  (General rules)
+      *> §2023:14.9.40.4 GR15 b): with GIVING, "the size of any record
       *>   written to file-name-3 is the size of that record when it
       *>   was read from file-name-1" (the sort file, here fed by
       *>   RELEASE).
-      *>   OK  §14.9.40.4 15)  (General rules)
+      *>   OK  §2023:14.9.40.4 15)  (General rules)
       *>
       *> DERIVATION (size = 1 byte of FN/SN + 1 byte per occurrence).
       *> WRITE FN=1 "A" -> 2 bytes; FN=3 "BBB" -> 4; FN=6 "CCCCCC" -> 7.

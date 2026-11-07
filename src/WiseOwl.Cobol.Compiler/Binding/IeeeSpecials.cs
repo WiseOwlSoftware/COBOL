@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The three non-finite values ISO §14.9.39.4 GR33 / GR34 / GR35 name — "a canonical representation of
+/// <summary>The three non-finite values ISO §2023:14.9.39.4 GR33 / GR34 / GR35 name — "a canonical representation of
 /// infinity" / "of a quiet NaN" / "of a signaling NaN … as described in ISO/IEC 60559:2020, Clause 3, for the
 /// basic interchange format corresponding to the usage of identifier-14".</summary>
 public enum IeeeSpecial
@@ -17,11 +17,11 @@ public enum IeeeSpecial
 
 /// <summary>⛔ THE ONE PLACE the ISO/IEC 60559:2020 Clause 3 canonical encodings are written down, and the
 /// implementing site of the Annex A.1 item 176 determination published in <c>docs/CONFORMANCE.md</c> §7 under
-/// <c>DOC-A.1-176</c> (kb/Work PB452). ISO §14.9.39.4 GR34/GR35 leave the NaN PAYLOAD to the implementor and
+/// <c>DOC-A.1-176</c> (kb/Work PB452). ISO §2023:14.9.39.4 GR34/GR35 leave the NaN PAYLOAD to the implementor and
 /// A.1 item 176 makes documenting the choice mandatory, so the values below are a published conformance claim,
 /// not an incidental encoding — which is why they live in one testable function rather than inline in the
 /// emitter, and why <c>IeeeSpecialsTests</c> asserts what each one decodes to.
-/// <para>The receiver of a Format-15 float word is confined by §14.9.39.3 SR32 to a STANDARD floating-point
+/// <para>The receiver of a Format-15 float word is confined by §2023:14.9.39.3 SR32 to a STANDARD floating-point
 /// usage; of those, the two WiseOwl COBOL provides map EXACTLY onto the CLR's IEEE types — FLOAT-BINARY-32 →
 /// <c>float</c> = binary32, FLOAT-BINARY-64 → <c>double</c> = binary64 — so the interchange format GR33–GR35
 /// name IS the carrier and nothing is approximated here. FLOAT-BINARY-128 and the two FLOAT-DECIMAL usages are

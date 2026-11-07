@@ -5,9 +5,9 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>One RESOLVED object-property reference awaiting its statement-level desugar (deep-dive
-/// D-P2; ISO §8.4.3.9.4): the synthesized temp the statement bound over, the accessors' invocation
+/// D-P2; ISO §2023:8.4.3.9.4): the synthesized temp the statement bound over, the accessors' invocation
 /// <paramref name="Form"/> and receiver (an object-reference Place for the instance form; null for the
-/// <c>prop OF Class-name</c> factory form and for SELF / SUPER, which invoke on the current object — §8.4.3.8.4), the
+/// <c>prop OF Class-name</c> factory form and for SELF / SUPER, which invoke on the current object — §2023:8.4.3.8.4), the
 /// accessor symbols found on the pinned-name roster (either may be null — SR3/SR4 checked against the CLASSIFIED
 /// polarity, not eagerly), and the source names for diagnostics. Registered by ReferenceResolver at resolution time,
 /// drained by StatementBinder.OoWrapPropertyOps after the carrying statement binds. <paramref name="InterfaceClrName"/>
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para><paramref name="Prelude"/> is what EVALUATES identifier-3 when it is a computed identifier (kb/Work PB1425 —
 /// an object-view, a function-identifier, a subscript that activates a function): the statement pre-ops its
 /// binding registered, taken off the statement's pending list so they run immediately before THIS property's
-/// accessor — §8.4.3.1.4 GR1 applies identifier-3 (a)–c)) before the property (d)), and the property's GET is
+/// accessor — §2023:8.4.3.1.4 GR1 applies identifier-3 (a)–c)) before the property (d)), and the property's GET is
 /// hoisted ahead of every pre-op of the statement (<c>OoWrapPropertyOps</c>), so left on that list they would run
 /// after the accessor that reads their result.</para></summary>
 internal sealed record OoPendingPropertyOp(
@@ -35,7 +35,7 @@ internal sealed record OoPendingPropertyOp(
     public bool Interleaved { get; set; }
 
     /// <summary>Identifier-3 when a RECEIVING use of this property evaluates it into the identified-object
-    /// temporary, so that the GET and the SET reach the one object identified (§14.6.4; §8.4.3.9.4 GR3; kb/Work
+    /// temporary, so that the GET and the SET reach the one object identified (§2023:14.6.4; §2023:8.4.3.9.4 GR3; kb/Work
     /// PB2078): identifier-3 written as an object-reference data item and invoked on as an instance. Null when the
     /// accessors invoke on identifier-3 as it stands: a FACTORY OF or class receiver, or a computed object, whose
     /// evaluation is the <see cref="Prelude"/>.</summary>
@@ -44,8 +44,8 @@ internal sealed record OoPendingPropertyOp(
             ? Receiver : null;
 
     /// <summary>Whether a use of the property whose store polarity is <paramref name="kind"/> invokes the GET before
-    /// the statement stores it (§8.4.3.9.4 GR1 for a sending use and GR3 for a read-modify-write one; for a part store,
-    /// §14.9.43.4 GR7 and §8.4.3.3.4 GR5, the GET supplies the kept positions where the class has one, kb/Work PB2618).</summary>
+    /// the statement stores it (§2023:8.4.3.9.4 GR1 for a sending use and GR3 for a read-modify-write one; for a part store,
+    /// §2023:14.9.43.4 GR7 and §2023:8.4.3.3.4 GR5, the GET supplies the kept positions where the class has one, kb/Work PB2618).</summary>
     public bool GetsBefore(Bound.StoreKind kind) =>
         kind is Bound.StoreKind.None or Bound.StoreKind.ReadWrite || (kind == Bound.StoreKind.WriteInPart && Get is not null);
 }

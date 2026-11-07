@@ -15,20 +15,20 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE FORMAT-2 <c>SEARCH ALL</c> OPERAND MODEL and the seven syntax rules written over it (ISO §14.9.37.3
+/// ⛔ THE FORMAT-2 <c>SEARCH ALL</c> OPERAND MODEL and the seven syntax rules written over it (ISO §2023:14.9.37.3
 /// SR7–SR13; kb/Work PB445). The rules are not seven independent screens: every one of them reads one of exactly
 /// TWO things — the OCCURS KEY phrase of identifier-1 <b>in its own order</b>, and the WHEN phrase decomposed into
 /// its Format-2 operands — and because neither existed as a model, all seven were unenforced together. The model
 /// is built once here and each rule is a predicate over it, so the next Format-2 rule is a predicate rather than
 /// another tree walk.
 /// <list type="bullet">
-///   <item>The KEY half is <see cref="OccursSpec.Keys"/> (phrase order — §13.18.38.4 GR3 makes that the order of
+///   <item>The KEY half is <see cref="OccursSpec.Keys"/> (phrase order — §2023:13.18.38.4 GR3 makes that the order of
 ///   significance) resolved through <see cref="OdoModel.KeyItems"/>.</item>
 ///   <item>The WHEN half is the <c>condition</c> parse tree decomposed into conjuncts, each carrying a KEY side
 ///   and a SENDING side.</item>
 /// </list>
 /// <para>⛔ IT IS A COMPILE-TIME MODEL AND IT IS NOT PUT ON THE BOUND NODE. Nothing at run time would consume it:
-/// §14.9.37.4 GR9 leaves the search TECHNIQUE to the implementor ("A non serial type of search operation may take
+/// §2023:14.9.37.4 GR9 leaves the search TECHNIQUE to the implementor ("A non serial type of search operation may take
 /// place"), and this implementation's scan is serial, so a field on <c>BoundSearch</c> would be exactly the
 /// write-only lookup kb/Work PB445 is about (feedback_a_dead_lookup_is_also_unverified).</para>
 /// <para>⛔ AND IT IS SCREENED AT BIND, NOT IN THE GRAMMAR. The <c>searchAllWhenClause</c> rule carries the
@@ -51,13 +51,13 @@ using WiseOwl.Cobol.Runtime;
 internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolver refs, StatementValidation validation,
                                               ConditionBinder conditions)
 {
-    /// <summary>Screen one <c>SEARCH ALL</c> against ISO §14.9.37.3 SR7–SR13. Pure in the check-catalog sense:
+    /// <summary>Screen one <c>SEARCH ALL</c> against ISO §2023:14.9.37.3 SR7–SR13. Pure in the check-catalog sense:
     /// every verdict is reported to the ONE sink and the caller's bind is unaffected (a Format-2 violation is the
-    /// SOURCE's error and §4.2.2 ¶2 puts its indication at compile time — the statement still binds, so one
+    /// SOURCE's error and §2023:4.2.2 ¶2 puts its indication at compile time — the statement still binds, so one
     /// compile reports every violation it can see rather than only the first).</summary>
     /// <param name="s">The statement.</param>
     /// <param name="table">identifier-1's resolved table item — the caller has already established that it is a
-    /// table with an INDEXED phrase (§14.9.37.3 SR2), which is what makes <c>IndexNames[0]</c> answerable.</param>
+    /// table with an INDEXED phrase (§2023:14.9.37.3 SR2), which is what makes <c>IndexNames[0]</c> answerable.</param>
     /// <returns>true when the statement satisfies every rule this screens.</returns>
     public bool Check(Core.SearchAllStatementContext s, DataItem table)
     {
@@ -69,7 +69,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         {
             data.Edition.Error(DiagnosticCatalog.SearchAllTableNoKeyPhrase,
                 $"SEARCH ALL '{table.CobolName}': the OCCURS clause associated with identifier-1 shall contain "
-                + "the KEY phrase (ISO §14.9.37.3 SR7). Declare ASCENDING/DESCENDING KEY on the OCCURS clause, or "
+                + "the KEY phrase (ISO §2023:14.9.37.3 SR7). Declare ASCENDING/DESCENDING KEY on the OCCURS clause, or "
                 + "use the serial SEARCH (Format 1), whose WHEN admits any conditional expression (SR6).");
             return false;
         }
@@ -89,9 +89,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(cond)} — the Format-2 WHEN phrase "
                 + "is `data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a "
-                + $"bare condition-name, repeated with AND (ISO §14.9.37.2 Format 2); this WHEN specifies "
+                + $"bare condition-name, repeated with AND (ISO §2023:14.9.37.2 Format 2); this WHEN specifies "
                 + $"{why}. The serial SEARCH (Format 1) is the form whose WHEN takes any conditional "
-                + "expression (§14.9.37.3 SR6).");
+                + "expression (§2023:14.9.37.3 SR6).");
         bool ok = true;
         foreach (var ce in conjuncts)
             ok &= CheckConjunct(ce, table, keys, keyItems, firstIndex, referenced);
@@ -103,7 +103,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
 
     /// <summary>Decompose a WHEN's <c>condition</c> into the Format-2 conjuncts — the <c>WHEN …</c> operand and
     /// every repetition of the <c>AND …</c> phrase. False, with <paramref name="why"/> naming the construct, for
-    /// any shape the printed Format 2 does not admit: OR, XOR, NOT, an abbreviated combined relation (§8.8.4.12 —
+    /// any shape the printed Format 2 does not admit: OR, XOR, NOT, an abbreviated combined relation (§2023:8.8.4.12 —
     /// Format 2 writes data-name-2 out in full in every AND phrase), or a boolean condition. A PARENTHESIZED
     /// condition is unwrapped silently: whether Format 2 admits parentheses at all is a question about its general
     /// format, and unwrapping keeps the SR7–SR13 screens applying to what is inside.</summary>
@@ -142,7 +142,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         why = null;
         // GROUPING-PAREN-ONLY: this is the `LPAREN condition RPAREN` ALTERNATIVE of the primaryCondition parse
         // rule, tested through its own context accessor — not a token-type match over a stream. A function
-        // argument list's '(' (FNARG_LPAREN, ISO §8.4.3.2.3 SR6) belongs to the separate functionCall rule and
+        // argument list's '(' (FNARG_LPAREN, ISO §2023:8.4.3.2.3 SR6) belongs to the separate functionCall rule and
         // can never be this node's paren, so there is no twin to consider here.
         if (p.LPAREN() is not null && p.condition() is { } inner) return TryConjuncts(inner, into, out why);
         if (p.booleanExpression().Length > 0 || p.booleanLiteral() is not null)
@@ -166,8 +166,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(ce)} — the Format-2 WHEN phrase is "
                 + "`data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a bare "
-                + $"condition-name (ISO §14.9.37.2 Format 2); this operand specifies {shape}. The serial SEARCH "
-                + "(Format 1) is the form whose WHEN takes any conditional expression (§14.9.37.3 SR6).");
+                + $"condition-name (ISO §2023:14.9.37.2 Format 2); this operand specifies {shape}. The serial SEARCH "
+                + "(Format 1) is the form whose WHEN takes any conditional expression (§2023:14.9.37.3 SR6).");
 
         var ops = ce.comparisonOperand();
         if (ops.Length == 0) return true;   // an error node — every comparisonExpression alternative has one
@@ -193,7 +193,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             : $"the relational operator '{op?.GetText() ?? "?"}' where Format 2 prints IS EQUAL TO";
     }
 
-    /// <summary>The "equal to" relational operator of ISO §8.8.4.2.2, in any of its spellings — the ONE operator
+    /// <summary>The "equal to" relational operator of ISO §2023:8.8.4.2.2, in any of its spellings — the ONE operator
     /// Format 2's general format prints (<c>IS EQUAL TO</c> and <c>IS =</c>). Every other cell of the operator
     /// table, and every negated form, is excluded BY NAME rather than by absence, so a new operator alternative in
     /// the grammar cannot silently become "equality" here.</summary>
@@ -212,20 +212,20 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (SoleDataReference(operand) is not { } dref)
             return Key(table, $"the WHEN phrase's receiving operand '{DataBinder.WrittenText(operand)}' is not a data-name; "
                 + "data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
-                + "the OCCURS clause associated with identifier-1\" (ISO §14.9.37.3 SR8)");
+                + "the OCCURS clause associated with identifier-1\" (ISO §2023:14.9.37.3 SR8)");
 
         var item = refs.Probe(dref)?.Item;
         int pos = KeyPositionOf(item, keyItems);
         // The next test asks EXISTENCE in the condition-name namespace — "is this spelling declared as a
         // condition-name at all", which chooses between two MESSAGES — and the base word is the right key for
-        // that: a namespace is keyed by the name, and §8.4.2.2 qualification decides only WHICH declaration.
+        // that: a namespace is keyed by the name, and §2023:8.4.2.2 qualification decides only WHICH declaration.
         // (The SELECTION, where the qualifier is load-bearing, is CheckConditionNameSide's, through the one
-        // §8.4.2.2 Format-2 resolution — kb/Work PB443.)
+        // §2023:8.4.2.2 Format-2 resolution — kb/Work PB443.)
         // A CONDITION-NAME written on the receiving side of a comparison is a FORMAT verdict, not SR8's: Format 2
         // prints condition-name-1 as an alternative to the whole comparison, so `WHEN cond-name (IX) = 05` is a
         // shape the format does not print. Without this arm it drew SR8's "not referenced in the KEY phrase",
         // which sends a reader looking for a KEY phrase edit that would not help. A level-88 that a NEARER data item of
-        // the spelling hides is not what the operand names (ISO §8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
+        // the spelling hides is not what the operand names (ISO §2023:8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
         // operand is that data item, and SR8 is its verdict.
         string word = dref.cobolWord()?.GetText() ?? "";
         if (item is null
@@ -236,15 +236,15 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{word}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
-                + "`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO §14.9.37.2 "
+                + "`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO §2023:14.9.37.2 "
                 + $"Format 2). Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");
         if (pos < 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not referenced in the KEY phrase of the OCCURS clause "
                 + $"associated with '{table.CobolName}' — data-name-1 and all repetitions of data-name-2 \"shall "
-                + $"be referenced in the KEY phrase\" (ISO §14.9.37.3 SR8). The KEY phrase declares {KeyList(keys)}.");
+                + $"be referenced in the KEY phrase\" (ISO §2023:14.9.37.3 SR8). The KEY phrase declares {KeyList(keys)}.");
         referenced[pos] = true;
 
-        // §14.9.37.2 Format 2 prints data-name-1 / data-name-2, and §8.4.3.3.3's NOTE says "where data-name-n is used
+        // §2023:14.9.37.2 Format 2 prints data-name-1 / data-name-2, and §2023:8.4.3.3.3's NOTE says "where data-name-n is used
         // in a general format or syntax rule, then reference-modification is not permitted". The subscript is the
         // one suffix this operand MUST carry (SR8), so the shared data-name-n screen's reference-modifier arm is
         // asked on its own: `WHEN TK(IX)(1:2) = "AB"` otherwise resolved to the base item TK and ran a search on
@@ -253,10 +253,10 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                                                      data.Edition);
         ok &= CheckKeySubscript(dref, item!, table, firstIndex, "SR8");
         // SR12 — "Data-name-1, data-name-2, identifier-3, or identifier-4 shall not specify a variable-length
-        // group." The predicate is the ONE VariableLengthCompatibility module (§8.5.1.12), never a second walk.
+        // group." The predicate is the ONE VariableLengthCompatibility module (§2023:8.5.1.12), never a second walk.
         if (VariableLengthCompatibility.IsVariableLength(item!))
             ok &= Key(table, $"'{DataBinder.WrittenText(dref)}' specifies a variable-length group; data-name-1 and data-name-2 "
-                + "\"shall not specify a variable-length group\" (ISO §14.9.37.3 SR12)");
+                + "\"shall not specify a variable-length group\" (ISO §2023:14.9.37.3 SR12)");
         return ok;
     }
 
@@ -270,16 +270,16 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — a WHEN phrase written without a "
                 + "relational operator is Format 2's condition-name-1 alternative, and this operand is not a "
-                + "condition-name (ISO §14.9.37.2 Format 2)");
+                + "condition-name (ISO §2023:14.9.37.2 Format 2)");
 
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
         if (!data.Symbols.TryResolveCondition(name, data.ActiveScope, out var conds) || conds.Count == 0)
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — '{name}' is not a condition-name, and "
                 + "a WHEN phrase written without a relational operator is Format 2's condition-name-1 alternative "
-                + "(ISO §14.9.37.2 Format 2). Write `data-name-1 IS EQUAL TO …` to compare a key.");
+                + "(ISO §2023:14.9.37.2 Format 2). Write `data-name-1 IS EQUAL TO …` to compare a key.");
 
-        // ⛔ WHICH level-88 THIS REFERENCE NAMES IS §8.4.2.2 FORMAT 2's QUESTION, AND IT IS ANSWERED IN ONE PLACE
+        // ⛔ WHICH level-88 THIS REFERENCE NAMES IS §2023:8.4.2.2 FORMAT 2's QUESTION, AND IT IS ANSWERED IN ONE PLACE
         // (kb/Work PB443). This used to pick `conds.FirstOrDefault(c => IsWithin(c.Parent, table)) ?? conds[0]` —
         // a base-word lookup with a tie broken by DECLARATION ORDER, the condition-name twin of the identifier-1
         // defect — so the qualifier was read by the condition BINDER and ignored by this SCREEN, and the two
@@ -289,7 +289,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
         // A declared condition-name the written reference does not reach is the CONDITION binder's verdict, given once
         // per reference by its one wording (kb/Work PB4226): a misqualified condition-name, or — when a report entry or a
-        // data item of a NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)) — the report-item refusal or
+        // data item of a NEARER source element is the referenced item (ISO §2023:8.4.6.2.1 3) a)) — the report-item refusal or
         // the "names a data item, not a condition-name" verdict (kb/Work PB4219 review R1-1). For a report entry or a
         // misqualified name the bind's bare-operand analysis has already asked it; asking again here reports nothing
         // twice. For a nearer data item the bare operand is the data item's (kb/Work PB4433), so this call is the first
@@ -308,7 +308,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             ok &= Key(table, $"the condition-name '{name}' is defined with "
                 + (cond.Values.Count != 1 ? $"{cond.Values.Count} values" : "a THRU range")
                 + "; all referenced condition-names \"shall be defined as having only a single value\" "
-                + "(ISO §14.9.37.3 SR9)");
+                + "(ISO §2023:14.9.37.3 SR9)");
 
         // SR9 third clause — "The data-name associated with each condition-name shall be specified in the KEY
         // phrase in the OCCURS clause associated with identifier-1."
@@ -318,7 +318,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             Key(table, $"the condition-name '{name}' is defined on '{cond.Parent.CobolName}', which is not "
                 + $"specified in the KEY phrase of the OCCURS clause associated with '{table.CobolName}' — \"the "
                 + "data-name associated with each condition-name shall be specified in the KEY phrase\" "
-                + $"(ISO §14.9.37.3 SR9). The KEY phrase declares {KeyList(keys)}.");
+                + $"(ISO §2023:14.9.37.3 SR9). The KEY phrase declares {KeyList(keys)}.");
             return false;
         }
         referenced[pos] = true;
@@ -332,13 +332,13 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                                   IReadOnlyList<DataItem?> keyItems, string firstIndex)
     {
         // literal-1 / literal-2 — SR13 is the only rule about them, and only the non-numeric formats have a
-        // zero-length spelling (ISO §3.178: "alphanumeric, boolean, or national literal that contains zero
-        // characters"). A concatenation expression is zero-length exactly when its folded value is (§8.8.3.3 GR2),
+        // zero-length spelling (ISO §2023:3.178: "alphanumeric, boolean, or national literal that contains zero
+        // characters"). A concatenation expression is zero-length exactly when its folded value is (§2023:8.8.3.3 GR2),
         // asked of the diagnostic-free fold so ConcatFolder's own reporting does not run a second time here.
         if (operand.valueOperand()?.nonNumericLiteral() is { } nn)
             return !IsZeroLengthLiteral(nn) || Sending(table,
                 $"the sending operand {nn.GetText()} is a zero-length literal; \"neither literal-1 nor literal-2 "
-                + "shall be zero-length literals\" (ISO §14.9.37.3 SR13)");
+                + "shall be zero-length literals\" (ISO §2023:14.9.37.3 SR13)");
 
         if (operand.valueOperand()?.arithmeticExpression() is not { } ae) return true;
         if (SoleDataReference(ae) is { } sole)
@@ -351,7 +351,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             // arithmetic expression are named by SR10 alone and SR12 does not reach them.
             if (item is { } si && VariableLengthCompatibility.IsVariableLength(si))
                 ok &= Sending(table, $"'{sole.GetText()}' specifies a variable-length group; identifier-3 and "
-                    + "identifier-4 \"shall not specify a variable-length group\" (ISO §14.9.37.3 SR12)");
+                    + "identifier-4 \"shall not specify a variable-length group\" (ISO §2023:14.9.37.3 SR12)");
             return ok;
         }
         // arithmetic-expression-1 / -2: SR10 names "identifiers specified in" it, so EVERY data reference the
@@ -376,19 +376,19 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is referenced in the KEY phrase of the "
                 + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
                 + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
-                + "index-name associated with identifier-1\" (ISO §14.9.37.3 SR10)");
+                + "index-name associated with identifier-1\" (ISO §2023:14.9.37.3 SR10)");
         if (table.Indexes.Count > 0 && refs.Subscripts.SubscriptNamesIndex(dref, table.Indexes[0]))
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
                 + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
                 + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
-                + "first index-name associated with identifier-1\" (ISO §14.9.37.3 SR10) — the search varies that "
+                + "first index-name associated with identifier-1\" (ISO §2023:14.9.37.3 SR10) — the search varies that "
                 + "index, so such an operand moves with the probe instead of being compared against it");
         return ok;
     }
 
     /// <summary>SR11 — "When a data-name in the KEY phrase … is referenced …, all preceding data-names in that
     /// KEY phrase or their associated condition-names shall also be referenced." The KEY phrase's own order IS
-    /// its order of significance (§13.18.38.4 GR3), which is why <see cref="OccursSpec.Keys"/> is ONE ordered
+    /// its order of significance (§2023:13.18.38.4 GR3), which is why <see cref="OccursSpec.Keys"/> is ONE ordered
     /// list rather than a list per direction word.</summary>
     private bool CheckPrecedingKeys(DataItem table, IReadOnlyList<OccursKey> keys, bool[] referenced)
     {
@@ -400,8 +400,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 ok &= Key(table, $"the WHEN phrase references the key '{keys[last].Written}' but not the more "
                     + $"significant key '{keys[i].Written}' that precedes it in the KEY phrase; when a key is "
                     + "referenced, \"all preceding data-names in that KEY phrase or their associated "
-                    + "condition-names shall also be referenced\" (ISO §14.9.37.3 SR11). The KEY phrase declares "
-                    + $"{KeyList(keys)}, in descending order of significance (§13.18.38.4 GR3).");
+                    + "condition-names shall also be referenced\" (ISO §2023:14.9.37.3 SR11). The KEY phrase declares "
+                    + $"{KeyList(keys)}, in descending order of significance (§2023:13.18.38.4 GR3).");
         return ok;
     }
 
@@ -409,7 +409,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
 
     /// <summary>The position of <paramref name="item"/> in the KEY phrase, or −1. IDENTITY against the resolved
     /// key items, never a name comparison: a key may be written qualified in the WHEN (<c>K OF E (IX)</c>) while
-    /// the KEY phrase records only the base name (§13.18.38.3 SR3 confines data-name-2 to the table).</summary>
+    /// the KEY phrase records only the base name (§2023:13.18.38.3 SR3 confines data-name-2 to the table).</summary>
     private static int KeyPositionOf(DataItem? item, IReadOnlyList<DataItem?> keyItems)
     {
         if (item is null) return -1;
@@ -429,8 +429,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (toks.Count == 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
-                + $"required to uniquely identify the data item\" (ISO §14.9.37.3 {rule})");
-        // The index-name may be written QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6), and must be when another
+                + $"required to uniquely identify the data item\" (ISO §2023:14.9.37.3 {rule})");
+        // The index-name may be written QUALIFIED (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6), and must be when another
         // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
         int next = 1;
@@ -448,21 +448,21 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
-                + $"(ISO §14.9.37.3 {rule})");
+                + $"(ISO §2023:14.9.37.3 {rule})");
         if (toks.Count == next) return true;
         toks = [toks[0], .. toks.Skip(next)];
         return toks[1].Type is Core.PLUS or Core.MINUS
                              or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
-                + $"followed by a '+' or a '–'\" (ISO §14.9.37.3 {rule})")
+                + $"followed by a '+' or a '–'\" (ISO §2023:14.9.37.3 {rule})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
-                + $"first index-name '{firstIndex}' alone is required (ISO §14.9.37.3 {rule})");
+                + $"first index-name '{firstIndex}' alone is required (ISO §2023:14.9.37.3 {rule})");
     }
 
-    /// <summary>ISO §3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
-    /// (§8.3.3.6.4 GR3 b) — "when a figurative constant is other than ALL literal-1, the length of the string is
-    /// one character" — and the ALL form's literal-1 cannot be zero-length either, §8.3.3.6.3 SR2), a
-    /// concatenation expression is zero-length exactly when its value is (§8.8.3.3 GR2 — asked of the diagnostic-free
+    /// <summary>ISO §2023:3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
+    /// (§2023:8.3.3.6.4 GR3 b) — "when a figurative constant is other than ALL literal-1, the length of the string is
+    /// one character" — and the ALL form's literal-1 cannot be zero-length either, §2023:8.3.3.6.3 SR2), a
+    /// concatenation expression is zero-length exactly when its value is (§2023:8.8.3.3 GR2 — asked of the diagnostic-free
     /// <see cref="ConcatFolder.Peek"/>, so a constant-name operand counts by the literal it stands for, kb/Work
     /// PB1406), and each plain format answers <see cref="CobolLiteral.IsZeroLength"/>.</summary>
     private bool IsZeroLengthLiteral(Core.NonNumericLiteralContext nn)

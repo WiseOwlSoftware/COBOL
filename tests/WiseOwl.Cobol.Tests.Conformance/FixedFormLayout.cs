@@ -6,13 +6,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// Lays a program out in FIXED-form reference format, for a test whose subject is a literal (or any token) too long
-/// for one line. ISO §6.1 3) a) bounds a FREE-form line at 255 character positions ("ranging from a minimum of 0 to a
+/// for one line. ISO §2023:6.1 3) a) bounds a FREE-form line at 255 character positions ("ranging from a minimum of 0 to a
 /// maximum of 255"; kb/Work PB1496, COBOL2653), so an 8,192-position literal written on one free-form line is not
 /// a program the standard allows — the tests that build one programmatically must continue it, as fixed form does
-/// (§6.3.5 / §6.5 4) and 8)): the continued line fills to margin R and ends in the floating literal continuation
-/// indicator, and the continuation line resumes the literal at a quotation symbol. §6.1 2) b): after logical conversion
+/// (§2023:6.3.5 / §2023:6.5 4) and 8)): the continued line fills to margin R and ends in the floating literal continuation
+/// indicator, and the continuation line resumes the literal at a quotation symbol. §2023:6.1 2) b): after logical conversion
 /// the line may be as long as it
-/// likes, which is exactly what the literal-length rule (§8.3.3.2.3 SR1 and its siblings) is asked about.
+/// likes, which is exactly what the literal-length rule (§2023:8.3.3.2.3 SR1 and its siblings) is asked about.
 /// </summary>
 internal static class FixedFormLayout
 {
@@ -23,7 +23,7 @@ internal static class FixedFormLayout
     /// fixed-form source that starts with its own <c>&gt;&gt;SOURCE FORMAT FIXED</c> directive, so no reference-format
     /// detection is involved. With <paramref name="classic"/> the layout is COBOL-85's own: no directive (the
     /// <c>&gt;&gt;</c> facility is a COBOL-2002 introduction) and a literal continued by the HYPHEN in position 7 of the
-    /// continuation line (the fixed continuation indicator of §6.2.2, whose use §6.2.2 NOTE 1 calls obsolete from 2023; the continuation of §6.3.5 1)): the continued
+    /// continuation line (the fixed continuation indicator of §2023:6.2.2, whose use §2023:6.2.2 NOTE 1 calls obsolete from 2023; the continuation of §2023:6.3.5 1)): the continued
     /// line is filled to position 72 with no closing quotation symbol and the next resumes the literal at a quotation
     /// symbol in position 12 — the one continuation a program targeting COBOL-85 can write (kb/Work PB1615).</summary>
     public static string Source(string logicalProgram, bool classic = false)
@@ -63,9 +63,9 @@ internal static class FixedFormLayout
             }
 
             // A token longer than a line is a literal: fill the line to margin R and continue it with the FLOATING
-            // literal continuation indicator — the opening quotation symbol and a hyphen end the line (§6.2.3.1, §6.5
-            // 4)), and the next line begins with the quotation symbol (§6.2.3.2 SR6, §6.5 8)). It is the one form that
-            // continues EVERY literal kind: a national literal may be continued only so (§6.3.5 2)), and the fixed
+            // literal continuation indicator — the opening quotation symbol and a hyphen end the line (§2023:6.2.3.1, §2023:6.5
+            // 4)), and the next line begins with the quotation symbol (§2023:6.2.3.2 SR6, §2023:6.5 8)). It is the one form that
+            // continues EVERY literal kind: a national literal may be continued only so (§2023:6.3.5 2)), and the fixed
             // indicator is obsolete at 2023 (Annex F.2 item 4). A continued line never ends in content that is a
             // quotation symbol, which would read as the first half of a doubled one.
             char quote = token[token.IndexOfAny(['"', '\''])];
@@ -74,7 +74,7 @@ internal static class FixedFormLayout
             {
                 if (classic)
                 {
-                    // §6.3.5 1) (fixed continuation indicator): fill to position 72, no closing quotation symbol; the continuation line carries the
+                    // §2023:6.3.5 1) (fixed continuation indicator): fill to position 72, no closing quotation symbol; the continuation line carries the
                     // hyphen in position 7 and resumes the literal at a quotation symbol in position 12.
                     int fill = MarginR - cur.Length;
                     lines.Add(cur + rest[..fill]);

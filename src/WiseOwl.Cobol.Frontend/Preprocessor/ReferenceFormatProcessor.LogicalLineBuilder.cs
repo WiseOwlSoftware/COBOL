@@ -9,24 +9,24 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 public static partial class ReferenceFormatProcessor
 {
     /// <summary>
-    /// THE RESULTANT COMPILATION GROUP of the ISO §6.5 logical conversion (kb/Work PB1804): ONE builder both reference
+    /// THE RESULTANT COMPILATION GROUP of the ISO §2023:6.5 logical conversion (kb/Work PB1804): ONE builder both reference
     /// formats feed, each supplying only its per-line classifier (<see cref="FixedFormConverter"/> reads the indicator
-    /// area, <see cref="FreeFormConverter"/> takes the whole line). It owns what §6.5 makes STATE of the in-order walk —
-    /// the resultant line list with its origins, the LATEST LOGICAL LINE (the join target of §6.5 6) and 8)) and the
+    /// area, <see cref="FreeFormConverter"/> takes the whole line). It owns what §2023:6.5 makes STATE of the in-order walk —
+    /// the resultant line list with its origins, the LATEST LOGICAL LINE (the join target of §2023:6.5 6) and 8)) and the
     /// literal state that line ends in — so a continuation rule is written once for both formats:
     /// <list type="bullet">
-    /// <item>§6.5 2) a comment line or blank line is logically discarded: it keeps its slot as an EMPTY line, is never the
+    /// <item>§2023:6.5 2) a comment line or blank line is logically discarded: it keeps its slot as an EMPTY line, is never the
     /// join target and never touches the literal state ("Comment lines and blank lines may be interspersed among
-    /// lines containing the parts of a literal", §6.3.5 / §6.4.2).</item>
-    /// <item>§6.5 3) an inline comment is replaced by spaces, on every line, a continuation line included.</item>
-    /// <item>§6.5 4) a line ending in a floating literal continuation indicator ends its program text before the
-    /// indicator; §6.5 8) the next line that is not a comment or blank line is its continuation line, whose content
+    /// lines containing the parts of a literal", §2023:6.3.5 / §2023:6.4.2).</item>
+    /// <item>§2023:6.5 3) an inline comment is replaced by spaces, on every line, a continuation line included.</item>
+    /// <item>§2023:6.5 4) a line ending in a floating literal continuation indicator ends its program text before the
+    /// indicator; §2023:6.5 8) the next line that is not a comment or blank line is its continuation line, whose content
     /// after its initial quotation symbol is appended to the latest logical line. Free form has no other way to continue a
     /// literal.</item>
-    /// <item>§6.5 6) a fixed-form continuation line (hyphen in column 7) appends to the latest logical line — for a
+    /// <item>§2023:6.5 6) a fixed-form continuation line (hyphen in column 7) appends to the latest logical line — for a
     /// continued literal from the character after the continuation's initial quotation symbol, otherwise from its first
     /// non-space character.</item>
-    /// <item>§6.2.3.2 SR4-SR6 and §6.3.5 2) are checks of this state: one form of continuation per literal, no floating
+    /// <item>§2023:6.2.3.2 SR4-SR6 and §2023:6.3.5 2) are checks of this state: one form of continuation per literal, no floating
     /// indicator on a fixed continuation line, the first nonblank character of a continuation line is the opening
     /// quotation symbol, a national literal only by the floating form, no multiple-character token split by a join.</item>
     /// </list>
@@ -36,20 +36,20 @@ public static partial class ReferenceFormatProcessor
         private readonly List<string> _lines = [];
         private readonly List<List<OriginSpan>> _origins = [];   // per resultant line, where its characters came from (PB1801)
 
-        /// <summary>The index in <see cref="_lines"/> of the latest logical line — the §6.5 6) / 8) join target — or -1
+        /// <summary>The index in <see cref="_lines"/> of the latest logical line — the §2023:6.5 6) / 8) join target — or -1
         /// before the first one.</summary>
         private int _latest = -1;
 
         /// <summary>The literal state at the end of the latest logical line (carried across discarded lines).</summary>
         private LiteralState _literal;
 
-        /// <summary>Whether the latest logical line is a COMPILER DIRECTIVE line — the §7.3.3 SR2 indicator, then a
-        /// compiler-directive word the catalog knows (the SAME recognition every directive stage uses). §7.3.3 SR1: a
+        /// <summary>Whether the latest logical line is a COMPILER DIRECTIVE line — the §2023:7.3.3 SR2 indicator, then a
+        /// compiler-directive word the catalog knows (the SAME recognition every directive stage uses). §2023:7.3.3 SR1: a
         /// directive is specified on ONE line, so such a line is never a join target (kb/Work PB1360).</summary>
         private bool _latestIsDirective;
 
         /// <summary>Whether the latest logical line ended in a floating literal continuation indicator, so the next line
-        /// that is not a comment or blank line is its continuation line (§6.5 8)), never a line a classifier reads.</summary>
+        /// that is not a comment or blank line is its continuation line (§2023:6.5 8)), never a line a classifier reads.</summary>
         public bool AwaitsFloatingContinuation => _latest >= 0 && _literal.AwaitsFloating;
 
         /// <summary>How many resultant lines <see cref="ReadInto"/> has handed to the division cursor.</summary>
@@ -57,7 +57,7 @@ public static partial class ReferenceFormatProcessor
 
         /// <summary>Whether the program text of a line holds TEXT: its first non-space character begins at
         /// <paramref name="first"/> and is not the floating comment indicator. A blank line or a comment line is "logically
-        /// discarded" (§6.5 2)): it keeps its slot, is never the join target of §6.5 6) or 8) and adds nothing to the latest
+        /// discarded" (§2023:6.5 2)): it keeps its slot, is never the join target of §2023:6.5 6) or 8) and adds nothing to the latest
         /// logical line, so only a line that holds text can begin a new logical line or continue the latest one.</summary>
         public static bool TryFirstText(string programText, out int first)
         {
@@ -65,14 +65,14 @@ public static partial class ReferenceFormatProcessor
             return first >= 0 && !CobolSourceText.CommentIndicatorAt(programText, first);
         }
 
-        /// <summary>Hand <paramref name="division"/> the resultant lines it has not read — the LOGICAL text, after §6.5 has
+        /// <summary>Hand <paramref name="division"/> the resultant lines it has not read — the LOGICAL text, after §2023:6.5 has
         /// joined a continued word or literal and removed the comments — so the one rule for which division the text is in
         /// (<see cref="DivisionCursor"/>, kb/Work PB4241) never reads a half of a continued <c>PROCEDURE DIVI</c> /
         /// <c>-SION.</c> header. Call it where the next physical line, one <see cref="TryFirstText"/> says holds text, is
         /// about to be classified as a NEW logical line: every line read so far is then complete, unless the latest one
-        /// still awaits its floating-indicator continuation (§6.5 8)), whose join the classifiers never ask the division
+        /// still awaits its floating-indicator continuation (§2023:6.5 8)), whose join the classifiers never ask the division
         /// about. ⛔ NEVER for a blank or comment line: it is discarded, and a continuation line that follows it still
-        /// joins the latest logical line (§6.3.6 "A blank line may be written as any line of a compilation group"; §6.5 6)
+        /// joins the latest logical line (§2023:6.3.6 "A blank line may be written as any line of a compilation group"; §2023:6.5 6)
         /// b)), which is therefore not yet complete. A debugging line is not read: it is source or commentary as the unit's
         /// WITH DEBUGGING MODE clause says, which is known only later.</summary>
         public void ReadInto(DivisionCursor division)
@@ -104,7 +104,7 @@ public static partial class ReferenceFormatProcessor
             }
         }
 
-        /// <summary>A logically discarded line (§6.5 2)): its slot stays, empty, so later lines keep their numbers; the
+        /// <summary>A logically discarded line (§2023:6.5 2)): its slot stays, empty, so later lines keep their numbers; the
         /// latest logical line and its literal state are untouched.</summary>
         public void Discard(TextSite site)
         {
@@ -123,7 +123,7 @@ public static partial class ReferenceFormatProcessor
         }
 
         /// <summary>A new logical line the classifier built itself (a comment-entry paragraph header) from the program text
-        /// at <paramref name="site"/>: the §6.5 6) join target from now on, outside any literal.</summary>
+        /// at <paramref name="site"/>: the §2023:6.5 6) join target from now on, outside any literal.</summary>
         public void Emit(string text, TextSite site) => Emit(text, site.Spans(file, 0, 0, text.Length), LiteralState.Outside, isDirective: false);
 
         /// <summary>A DEBUGGING line — the fixed indicator <c>D</c> or the floating indicator <c>&gt;&gt;D</c>, the one
@@ -132,11 +132,11 @@ public static partial class ReferenceFormatProcessor
         /// per source unit (docs/CONFORMANCE.md D-DEBUG; kb/Work PB1705). Which of the two it is is decided after this
         /// walk, so the walk must read the line so that BOTH readings agree on every OTHER line:
         /// <list type="bullet">
-        /// <item>a line of spaces is a blank line (§6.5 2)): discarded, never a join target, but its slot holds the bare
+        /// <item>a line of spaces is a blank line (§2023:6.5 2)): discarded, never a join target, but its slot holds the bare
         /// carrier so the rewriter can decide the line (kb/Work PB4412);</item>
         /// <item>a line written while the latest logical line is inside a literal that needs its continuation (an open
         /// literal, or one a floating indicator continues) is passed over like a comment line — "Comment lines and blank
-        /// lines may be interspersed among lines containing the parts of a literal" (§6.3.5 2)) — so the continuation line
+        /// lines may be interspersed among lines containing the parts of a literal" (§2023:6.3.5 2)) — so the continuation line
         /// after it still continues the literal (kb/Work PB1914; GnuCOBOL reads the line as a comment unless
         /// <c>-fdebugging-line</c>). It stays in the output as a logical line of its own, after the line it interrupts, and
         /// is NOTED to the gates: once the unit's WITH DEBUGGING MODE is known, a line that is source there is a source
@@ -146,14 +146,14 @@ public static partial class ReferenceFormatProcessor
         /// </list></summary>
         public void EmitDebugging(string carrier, string programText, TextSite site, int indicatorColumn)
         {
-            // The line is read like any source line (§6.5 3) and 4): an inline comment is removed, a floating literal
+            // The line is read like any source line (§2023:6.5 3) and 4): an inline comment is removed, a floating literal
             // continuation indicator ends it, and the literal state it ends in is tracked), so a continuation line after
             // it finds the literal it left open.
             var state = LiteralState.Outside;
             string kept = Scan(programText, 0, ref state, site, fixedContinuation: false);
             if (CobolSpace.IsBlank(kept))
             {
-                // A blank line, logically discarded (§6.5 2): its slot stays and it touches neither the join target nor the
+                // A blank line, logically discarded (§2023:6.5 2): its slot stays and it touches neither the join target nor the
                 // literal state. The slot holds the BARE carrier and not an empty line (kb/Work PB4412): whether the line is
                 // source or commentary is still the unit's WITH DEBUGGING MODE to say, and a blank debugging line may hold
                 // text past margin R that only the mode tells apart (a statement that vanished, or the commentary of a
@@ -178,7 +178,7 @@ public static partial class ReferenceFormatProcessor
         /// followed by at least one space character"; clause 6.3.4 "A debugging line consists of a debugging indicator,
         /// optionally preceded by one or more space characters, followed by all successive character positions on the
         /// line"; clause 6.1.2.1 SR7 "preceded on a line only by zero or more space characters"): where it stands in
-        /// <paramref name="programText"/>, in either reference format — ISO/IEC 1989:2023 §6.2.3.1 "Floating indicators
+        /// <paramref name="programText"/>, in either reference format — ISO/IEC 1989:2023 §2023:6.2.3.1 "Floating indicators
         /// may be used in fixed-form or free-form reference format". The 2002 text is not in the repository (read from
         /// the archived draft, docs/CONFORMANCE.md D-DEBUG), so those clauses are no <c>cite.py</c> citation.
         /// <paramref name="spaceFilled"/> is a fixed-form program-text area, which is space-filled to margin R
@@ -223,20 +223,20 @@ public static partial class ReferenceFormatProcessor
         /// <paramref name="site"/> where its first character stands in its physical line.
         /// <paramref name="fixedContinuation"/> is a fixed-form line whose indicator area holds the fixed continuation
         /// indicator; every other line is a source line, which is a continuation line all the same when the latest
-        /// logical line ended in a floating literal continuation indicator (§6.5 8)).</summary>
+        /// logical line ended in a floating literal continuation indicator (§2023:6.5 8)).</summary>
         public void Add(string text, TextSite site, bool fixedContinuation)
         {
             if (fixedContinuation) gates?.OnContinuation(file, site.Line);
             int first = FirstNonSpace(text);
             if (first < 0)
             {
-                if (!fixedContinuation) Discard(site);   // a blank line (§6.3.6): discarded; a blank continuation has no text to append
+                if (!fixedContinuation) Discard(site);   // a blank line (§2023:6.3.6): discarded; a blank continuation has no text to append
                 return;
             }
             if (CobolSourceText.CommentIndicatorAt(text, first))
             {
                 ReportComment(text, first, site);
-                Discard(site);                           // a comment line (§6.2.3.1 1)): discarded, never a join
+                Discard(site);                           // a comment line (§2023:6.2.3.1 1)): discarded, never a join
                 return;
             }
             // X3.23-1985: "Area A of a continuation line must be blank" (kb/Work PB3168). A continuation line that continues
@@ -250,7 +250,7 @@ public static partial class ReferenceFormatProcessor
             else NewLine(text, site);
         }
 
-        /// <summary>§7.3.3 SR1: a line that would continue a compiler directive line — a fixed-form hyphen in column 7, or
+        /// <summary>§2023:7.3.3 SR1: a line that would continue a compiler directive line — a fixed-form hyphen in column 7, or
         /// the line after a floating literal continuation indicator that ended the directive — is diagnosed and NOT
         /// joined, so the directive keeps exactly what its own line says; the line takes its discarded slot, like a
         /// comment. A literal the directive left open is closed with it.</summary>
@@ -261,9 +261,9 @@ public static partial class ReferenceFormatProcessor
             Discard(site);
         }
 
-        /// <summary>§6.5 5) / 7): the program text is copied to the resultant group as a NEW logical line — after §6.5 3)
-        /// (an inline comment is removed) and §6.5 4) (a floating literal continuation indicator ends it). Trailing
-        /// spaces are kept only while a literal is left open, where they are part of it (§6.3.5).</summary>
+        /// <summary>§2023:6.5 5) / 7): the program text is copied to the resultant group as a NEW logical line — after §2023:6.5 3)
+        /// (an inline comment is removed) and §2023:6.5 4) (a floating literal continuation indicator ends it). Trailing
+        /// spaces are kept only while a literal is left open, where they are part of it (§2023:6.3.5).</summary>
         private void NewLine(string text, TextSite site)
         {
             var state = LiteralState.Outside;
@@ -277,19 +277,19 @@ public static partial class ReferenceFormatProcessor
             Emit(line, site.Spans(file, 0, 0, line.Length), state, IsDirectiveLine(kept));
         }
 
-        /// <summary>Whether program text is a compiler directive line (§7.3.3 SR2): the indicator preceded only by
+        /// <summary>Whether program text is a compiler directive line (§2023:7.3.3 SR2): the indicator preceded only by
         /// spaces, then a compiler-directive word.</summary>
         private static bool IsDirectiveLine(string text)
             => CompilerDirectiveLine.TryParse(text, out var directive) && CompilerDirectiveCatalog.IsDirective(directive.Word);
 
-        /// <summary>§6.5 8): the continuation line of a literal continued with a floating indicator. Its first nonblank
-        /// character shall be the quotation symbol of the opening delimiter (§6.2.3.2 SR6); the content after it is
+        /// <summary>§2023:6.5 8): the continuation line of a literal continued with a floating indicator. Its first nonblank
+        /// character shall be the quotation symbol of the opening delimiter (§2023:6.2.3.2 SR6); the content after it is
         /// appended immediately to the right of the latest logical line, whose trailing spaces are literal content.</summary>
         private void ContinueFloating(string text, int first, TextSite site, bool fixedContinuation)
         {
             var state = _literal with { AwaitsFloating = false };
             // A hyphen in column 7 on the continuation line of a floating-continued literal is the SECOND form of
-            // continuation of that literal (§6.2.3.2 SR4).
+            // continuation of that literal (§2023:6.2.3.2 SR4).
             if (fixedContinuation) gates?.OnTwoContinuationForms(file, site.Line, FixedFormLine.IndicatorColumn);
             int contentAt = AfterOpeningQuote(text, first, state.Quote, site);
             string content = text[contentAt..];
@@ -298,7 +298,7 @@ public static partial class ReferenceFormatProcessor
             Join(_lines[_latest], content, 0, state, site.At(contentAt), fixedContinuation);
         }
 
-        /// <summary>§6.5 6): a fixed-form continuation line identified by the fixed continuation indicator.</summary>
+        /// <summary>§2023:6.5 6): a fixed-form continuation line identified by the fixed continuation indicator.</summary>
         private void ContinueFixed(string area, int first, TextSite site)
         {
             string head = _lines[_latest];
@@ -310,14 +310,14 @@ public static partial class ReferenceFormatProcessor
 
             if (!state.InLiteral)
             {
-                // §6.5 6) b): "the content of the program-text area, beginning with the first non-space character, is
+                // §2023:6.5 6) b): "the content of the program-text area, beginning with the first non-space character, is
                 // appended immediately to the right of the last character in the latest logical line". The WORD-
                 // continuation shape (removed 2023, VCR row 2) is a splice joining two COBOL word characters;
                 // literal continuation and non-word splices (after a period or parenthesis) are not word continuation.
                 if (gates is not null && LastNonSpace(head) is { } prev)
                 {
                     if (IsCobolWordChar(prev) && IsCobolWordChar(firstChar)) gates.OnWordContinuation(file, site.Line);
-                    // §6.2.3.2 SR3 / §6.3.5 2): "All characters composing any multiple-character separator or
+                    // §2023:6.2.3.2 SR3 / §2023:6.3.5 2): "All characters composing any multiple-character separator or
                     // multiple-character indicator shall be specified on the same line" — the join would SPELL a
                     // token nobody wrote on one line.
                     foreach (var indicator in MultipleCharacterFloatingIndicators)
@@ -331,8 +331,8 @@ public static partial class ReferenceFormatProcessor
                 return;
             }
 
-            // A continued literal. §6.3.5 2): "National literals may be continued only with a floating literal
-            // continuation indicator"; §6.2.3.2 SR4: one form of continuation per literal.
+            // A continued literal. §2023:6.3.5 2): "National literals may be continued only with a floating literal
+            // continuation indicator"; §2023:6.2.3.2 SR4: one form of continuation per literal.
             if (state.Opening.IsNational) gates?.OnNationalFixedContinuation(file, site.Line);
             if (state.Form == ContinuationForm.Floating) gates?.OnTwoContinuationForms(file, site.Line, FixedFormLine.IndicatorColumn);
             state = state with { Form = ContinuationForm.Fixed };
@@ -354,8 +354,8 @@ public static partial class ReferenceFormatProcessor
         }
 
         /// <summary>The index in <paramref name="text"/> of the first character of a literal's continuation: the one after
-        /// the continuation line's initial quotation symbol, which shall be <paramref name="quote"/> (§6.2.3.2 SR6; §6.3.5
-        /// 2); §6.4.2). A different first character is diagnosed (COBOL2684) and read the way the standard's rule would
+        /// the continuation line's initial quotation symbol, which shall be <paramref name="quote"/> (§2023:6.2.3.2 SR6; §2023:6.3.5
+        /// 2); §2023:6.4.2). A different first character is diagnosed (COBOL2684) and read the way the standard's rule would
         /// have it were it correct: another quotation symbol is dropped like the right one, anything else is content.</summary>
         private int AfterOpeningQuote(string text, int first, char quote, TextSite site)
         {
@@ -365,7 +365,7 @@ public static partial class ReferenceFormatProcessor
             return CobolSourceText.IsQuotationSymbol(c) ? first + 1 : first;
         }
 
-        /// <summary>Append <paramref name="content"/> to <paramref name="head"/> (the latest logical line) after §6.5 3)
+        /// <summary>Append <paramref name="content"/> to <paramref name="head"/> (the latest logical line) after §2023:6.5 3)
         /// and 4) have been applied to the appended text, scanned from <paramref name="scanFrom"/> with
         /// <paramref name="state"/> carried in. <paramref name="site"/> is where the content's first character stands —
         /// the appended text keeps its own physical line and column (kb/Work PB1801) — and <paramref name="seam"/>, when
@@ -389,10 +389,10 @@ public static partial class ReferenceFormatProcessor
             _literal = state;
         }
 
-        /// <summary>§6.5 3) and 4) over a piece of program text, scanned from <paramref name="scanFrom"/> with
+        /// <summary>§2023:6.5 3) and 4) over a piece of program text, scanned from <paramref name="scanFrom"/> with
         /// <paramref name="state"/> carried in and left as it is at the end of the piece: an inline comment is removed,
         /// and a floating literal continuation indicator ends the program text before it (the literal stays open for the
-        /// next line, §6.5 8)). Returns the text that remains.</summary>
+        /// next line, §2023:6.5 8)). Returns the text that remains.</summary>
         private string Scan(string text, int scanFrom, ref LiteralState state, TextSite site, bool fixedContinuation)
         {
             var stop = ScanProgramText(text.AsSpan(scanFrom), ref state);
@@ -407,7 +407,7 @@ public static partial class ReferenceFormatProcessor
                     // ReportComment): free form is itself a 2002 introduction and this is its only continuation.
                     if (fixedForm) gates?.OnFloatingLiteralContinuation(file, site.Line, site.Col(at));
                     if (stop.CommentFollows) gates?.OnCommentAfterFloatingContinuation(file, site.Line, site.Col(at));
-                    // Never on a fixed continuation line (§6.2.3.2 SR5). A literal continued BOTH ways (SR4) is found where
+                    // Never on a fixed continuation line (§2023:6.2.3.2 SR5). A literal continued BOTH ways (SR4) is found where
                     // the second form is written: by ContinueFloating (a hyphen in column 7 after a floating indicator) and
                     // by ContinueFixed (a hyphen after a literal a floating indicator continued before).
                     if (fixedContinuation) gates?.OnFloatingOnFixedContinuation(file, site.Line, site.Col(at));
@@ -418,7 +418,7 @@ public static partial class ReferenceFormatProcessor
                     state = state with { AwaitsFloating = true, Form = ContinuationForm.Floating };
                     return text[..at];
                 case ScanStopKind.Directive:
-                    // §7.3.3 SR2: a compiler directive is preceded only by spaces. The directive and the rest of the line
+                    // §2023:7.3.3 SR2: a compiler directive is preceded only by spaces. The directive and the rest of the line
                     // are not program text — they are what the author meant as a directive — so they are cut, and the
                     // parser does not add a second, nameless error for the stray indicator (kb/Work PB1690).
                     gates?.OnDirectiveAfterProgramText(file, site.Line, site.Col(at));
@@ -429,10 +429,10 @@ public static partial class ReferenceFormatProcessor
         }
 
         /// <summary>A comment indicator recognized at <paramref name="at"/> of <paramref name="text"/> (whose first
-        /// character is at 0-based <paramref name="column"/> of the physical line): the introduction gate, and §6.2.3.2
+        /// character is at 0-based <paramref name="column"/> of the physical line): the introduction gate, and §2023:6.2.3.2
         /// SR2 "The floating comment indicator of an inline comment shall be preceded by a separator space". The start of
-        /// the program text is preceded by an implied space — §6.3.5 "If there is no fixed continuation indicator in a
-        /// line, a space is implied before the first nonblank character in the line", and in free form §6.4.2 "The last
+        /// the program text is preceded by an implied space — §2023:6.3.5 "If there is no fixed continuation indicator in a
+        /// line, a space is implied before the first nonblank character in the line", and in free form §2023:6.4.2 "The last
         /// nonblank character of each line is treated as if it were followed by a space".
         /// <para>The introduction gate is asked in FIXED form only. Fixed form is the one reference format a COBOL-85
         /// source can be written in, and there the fixed indicators <c>*</c> and <c>/</c> are its comments; free form is
@@ -447,7 +447,7 @@ public static partial class ReferenceFormatProcessor
             if (at > 0 && text[at - 1] != ' ') gates.OnUnseparatedFloatingComment(file, site.Line, site.Col(at));
         }
 
-        /// <summary>A new logical line: the §6.5 6) / 8) join target from now on.</summary>
+        /// <summary>A new logical line: the §2023:6.5 6) / 8) join target from now on.</summary>
         private void Emit(string text, List<OriginSpan> spans, LiteralState state, bool isDirective)
         {
             _lines.Add(text);
@@ -497,27 +497,27 @@ public static partial class ReferenceFormatProcessor
         }
     }
 
-    /// <summary>The multiple-character floating indicators whose characters are never literal content (§6.2.3.1): the
-    /// comment indicator and the compiler directive indicator. §6.2.3.2 SR3 requires each on one line.</summary>
+    /// <summary>The multiple-character floating indicators whose characters are never literal content (§2023:6.2.3.1): the
+    /// comment indicator and the compiler directive indicator. §2023:6.2.3.2 SR3 requires each on one line.</summary>
     private static readonly string[] MultipleCharacterFloatingIndicators =
         [CobolSourceText.CommentIndicator, CompilerDirectiveLine.Indicator];
 
-    /// <summary>The multiple-character separator and the invocation operator (§8.3.5 6) the pseudo-text delimiter, §8.3.5
-    /// 7) the invocation operator <c>::</c>) that §6.3.5 2) requires on one line.</summary>
+    /// <summary>The multiple-character separator and the invocation operator (§2023:8.3.5 6) the pseudo-text delimiter, §2023:8.3.5
+    /// 7) the invocation operator <c>::</c>) that §2023:6.3.5 2) requires on one line.</summary>
     private static readonly string[] MultipleCharacterSeparators = ["==", "::"];
 
-    /// <summary>The form of continuation a literal has been continued with so far (§6.2.3.2 SR4: "A given literal shall
+    /// <summary>The form of continuation a literal has been continued with so far (§2023:6.2.3.2 SR4: "A given literal shall
     /// not be continued with more than one form of continuation").</summary>
     private enum ContinuationForm { None, Fixed, Floating }
 
     /// <summary>The literal state at a point of program text: outside any literal (<see cref="Quote"/> is NUL), or inside
-    /// one whose opening delimiter was <see cref="Opening"/>, with quotation symbol <see cref="Quote"/> (§8.3.5 5); the
-    /// opening delimiter says whether it is a national literal, which §6.3.5 2) lets only the floating form continue).
+    /// one whose opening delimiter was <see cref="Opening"/>, with quotation symbol <see cref="Quote"/> (§2023:8.3.5 5); the
+    /// opening delimiter says whether it is a national literal, which §2023:6.3.5 2) lets only the floating form continue).
     /// <see cref="PendingClose"/> is set when the last character
     /// scanned was that quotation symbol, which either closes the literal or is the first half of a doubled quotation
     /// symbol — the next character decides, and in fixed form it may be on the continuation line.
     /// <see cref="AwaitsFloating"/> is set when the line ended in a floating literal continuation indicator, so the
-    /// next line that is not a comment or blank line is the literal's continuation line (§6.5 8)).</summary>
+    /// next line that is not a comment or blank line is the literal's continuation line (§2023:6.5 8)).</summary>
     private readonly record struct LiteralState(char Quote, bool PendingClose, OpeningDelimiter Opening, ContinuationForm Form,
         bool AwaitsFloating)
     {
@@ -525,9 +525,9 @@ public static partial class ReferenceFormatProcessor
         public bool InLiteral => Quote != '\0';
     }
 
-    /// <summary>What ended a literal-aware scan of program text: its end, a floating comment indicator (§6.2.3.1), a
-    /// floating literal continuation indicator (§6.2.3.1), or a compiler directive written after program text
-    /// (§7.3.3 SR2).</summary>
+    /// <summary>What ended a literal-aware scan of program text: its end, a floating comment indicator (§2023:6.2.3.1), a
+    /// floating literal continuation indicator (§2023:6.2.3.1), or a compiler directive written after program text
+    /// (§2023:7.3.3 SR2).</summary>
     private enum ScanStopKind { End, Comment, FloatingContinuation, Directive }
 
     /// <summary>Where and why <see cref="ScanProgramText"/> stopped. <see cref="At"/> is the index of the comment
@@ -538,10 +538,10 @@ public static partial class ReferenceFormatProcessor
     private readonly record struct ScanStop(ScanStopKind Kind, int At, bool CommentFollows = false, int LiteralStart = 0);
 
     /// <summary>
-    /// The §6.5 conversion's literal-aware scan of a piece of program text (kb/Work PB1491): starting in
+    /// The §2023:6.5 conversion's literal-aware scan of a piece of program text (kb/Work PB1491): starting in
     /// <paramref name="state"/>, find the first floating comment indicator <c>*&gt;</c> that begins an inline comment
-    /// or comment line (§6.2.3.1) outside any literal, the floating literal continuation indicator — the opening
-    /// quotation symbol followed by a hyphen — that ends the line inside a literal (§6.2.3.1, §6.5 4)), or a compiler
+    /// or comment line (§2023:6.2.3.1) outside any literal, the floating literal continuation indicator — the opening
+    /// quotation symbol followed by a hyphen — that ends the line inside a literal (§2023:6.2.3.1, §2023:6.5 4)), or a compiler
     /// directive written after program text; leaving <paramref name="state"/> as it is at that point (or at the end of
     /// the text). Where a literal opens and closes, and what a comment indicator is, are
     /// <see cref="CobolSourceText"/>'s (kb/Work PB2621): a literal ends only at the quotation symbol that opened it, a
@@ -596,14 +596,14 @@ public static partial class ReferenceFormatProcessor
     }
 
     /// <summary>Whether the compiler directive indicator at <paramref name="indicator"/> follows program text on its line
-    /// and heads a compiler directive: the §6.2.3.1 indicator "followed by a compiler-directive word - with or without an
+    /// and heads a compiler directive: the §2023:6.2.3.1 indicator "followed by a compiler-directive word - with or without an
     /// intervening space", the word being one the directive catalog knows (the SAME recognition every directive stage uses,
     /// <see cref="CompilerDirectiveLine"/>). A directive line proper — the indicator preceded only by spaces — is left
-    /// alone: it is §7.3's, not this pass's.</summary>
+    /// alone: it is §2023:7.3's, not this pass's.</summary>
     private static bool DirectiveAfterText(ReadOnlySpan<char> text, int indicator)
     {
         // Program text before the indicator — but a line that BEGINS with a directive is a directive line: what follows
-        // its word is that directive's operand or comment-text (§7.3.19.3 SR1: PAGE's "may contain any character"), so a
+        // its word is that directive's operand or comment-text (§2023:7.3.19.3 SR1: PAGE's "may contain any character"), so a
         // `>>` inside it is text, not a second directive.
         var before = text[..indicator].TrimStart(' ');
         return !before.IsEmpty && !before.StartsWith(CompilerDirectiveLine.Indicator, StringComparison.Ordinal)
@@ -612,9 +612,9 @@ public static partial class ReferenceFormatProcessor
     }
 
     /// <summary>Whether the quotation symbol at <paramref name="quote"/> and the hyphen after it are the floating literal
-    /// continuation indicator that ends the line (§6.4.2: "The continuation indicator may optionally be followed by one
-    /// or more spaces" — and, only to be diagnosed, by an inline comment, §6.3.7.3). A hyphen followed by anything else
-    /// is a closed literal and a minus sign, which the separator rule of §8.3.5 5) reports.</summary>
+    /// continuation indicator that ends the line (§2023:6.4.2: "The continuation indicator may optionally be followed by one
+    /// or more spaces" — and, only to be diagnosed, by an inline comment, §2023:6.3.7.3). A hyphen followed by anything else
+    /// is a closed literal and a minus sign, which the separator rule of §2023:8.3.5 5) reports.</summary>
     private static bool ContinuationIndicatorEnds(ReadOnlySpan<char> text, int quote, out bool commentFollows)
     {
         commentFollows = false;
@@ -625,7 +625,7 @@ public static partial class ReferenceFormatProcessor
     }
 
     /// <summary>Whether a continuation line's content (the text after its initial quotation symbol) holds no literal
-    /// content: it ends the literal at once, or continues it with the indicator at once (§6.4.2 "At least one … of the
+    /// content: it ends the literal at once, or continues it with the indicator at once (§2023:6.4.2 "At least one … of the
     /// literal content shall be specified on the continued line and on each continuation line").</summary>
     private static bool PartIsEmpty(string content, char quote)
     {
@@ -642,7 +642,7 @@ public static partial class ReferenceFormatProcessor
         return -1;
     }
 
-    /// <summary>A COBOL word-forming character (§8.3.2.1 — basic letters, digits, hyphen, the underscore joined at
+    /// <summary>A COBOL word-forming character (§2023:8.3.2.1 — basic letters, digits, hyphen, the underscore joined at
     /// 2002, and the extended letters): the ONE lexical word class the lexer's NAME_BODY shares (kb/Work PB1402 — this
     /// read char.IsLetterOrDigit, which a combining mark of a word is not).</summary>
     private static bool IsCobolWordChar(char c) => Editions.CobolCharacterRepertoire.IsWordCharacter(c);

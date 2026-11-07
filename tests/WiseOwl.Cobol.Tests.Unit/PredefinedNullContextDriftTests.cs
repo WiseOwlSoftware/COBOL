@@ -12,9 +12,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE PREDEFINED NULL HAS ONE OPERAND MODEL, AND ONLY A §8.4.3.10.3 SR1 CONTEXT MAY PRODUCE IT (kb/Work PB1427).
-/// NULL is an IDENTIFIER — §8.4.3.1.2 Format 8 (predefined-address) and the NULL arm of Format 6 (predefined-object)
-/// — and §8.4.3.10.3 SR1 enumerates every context it may be written in: "as a sending operand in an INITIALIZE or a
+/// ⛔ THE PREDEFINED NULL HAS ONE OPERAND MODEL, AND ONLY A §2023:8.4.3.10.3 SR1 CONTEXT MAY PRODUCE IT (kb/Work PB1427).
+/// NULL is an IDENTIFIER — §2023:8.4.3.1.2 Format 8 (predefined-address) and the NULL arm of Format 6 (predefined-object)
+/// — and §2023:8.4.3.10.3 SR1 enumerates every context it may be written in: "as a sending operand in an INITIALIZE or a
 /// SET statement; as an argument in a program-prototype format CALL statement, a function-prototype format function
 /// activation, or a method invocation; or in a pointer-or-object-reference relation condition". While the grammar
 /// carried it as a <c>figurativeConstant</c> arm it bound to <c>BoundFigurative('N')</c>, which every generic
@@ -29,15 +29,15 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class PredefinedNullContextDriftTests
 {
-    /// <summary>Each file that calls <c>NullAdmittingOperand</c>, with the §8.4.3.10.3 SR1 a) context it binds.</summary>
+    /// <summary>Each file that calls <c>NullAdmittingOperand</c>, with the §2023:8.4.3.10.3 SR1 a) context it binds.</summary>
     private static readonly Dictionary<string, string> Sr1Callers = new()
     {
         ["CallBinder.cs"] = "an argument in a program-prototype format CALL statement",
         ["OoBinder.cs"] = "an argument in a method invocation",
-        // EVALUATE's selection subject/object pair (§14.9.13.3 SR7 a)) binds through ConditionBinder's one comparison
+        // EVALUATE's selection subject/object pair (§2023:14.9.13.3 SR7 a)) binds through ConditionBinder's one comparison
         // operand dispatch since kb/Work PB1935 deleted EvaluateBinder's copy of it.
         ["ConditionBinder.cs"] = "a pointer-or-object-reference relation condition, including an EVALUATE selection "
-            + "subject/object pair (§14.9.13.3 SR7 a))",
+            + "subject/object pair (§2023:14.9.13.3 SR7 a))",
         ["InitializeBinder.cs"] = "a sending operand in an INITIALIZE statement",
         ["IntrinsicBinder.cs"] = "an argument in a function-prototype format function activation (BindArgOperand's "
             + "activationArgument leg, which only UdfBinder sets)",
@@ -76,7 +76,7 @@ public sealed class PredefinedNullContextDriftTests
         }
         Assert.True(inPredefinedNull == 1, $"expected the ONE `predefinedNull : NULL_ ;` rule, found {inPredefinedNull} "
             + "NULL_ references in it — the scan no longer sees the rule; fix the scan, not the assertion");
-        Assert.True(offenders.Count == 0, "NULL_ is spelled outside `predefinedNull` (§8.4.3.1.2 makes NULL an "
+        Assert.True(offenders.Count == 0, "NULL_ is spelled outside `predefinedNull` (§2023:8.4.3.1.2 makes NULL an "
             + "identifier; a second spelling — a figurativeConstant arm above all — re-opens kb/Work PB1427): "
             + string.Join("; ", offenders));
     }
@@ -98,14 +98,14 @@ public sealed class PredefinedNullContextDriftTests
         Assert.Equal(["ExpressionBinder.cs"], producers);
         var unlisted = callers.Except(Sr1Callers.Keys).Order().ToList();
         var stale = Sr1Callers.Keys.Except(callers).Order().ToList();
-        Assert.True(unlisted.Count == 0, "NullAdmittingOperand is called from a file that names no §8.4.3.10.3 SR1 "
+        Assert.True(unlisted.Count == 0, "NullAdmittingOperand is called from a file that names no §2023:8.4.3.10.3 SR1 "
             + "context: " + string.Join(", ", unlisted) + ". NULL may be written only in the contexts SR1 a)/b) "
             + "enumerate; bind every other slot through NonNumericLiteralOperand, which refuses it (COBOL2576).");
         Assert.True(stale.Count == 0, "an SR1 allowance has no caller any more — remove it: " + string.Join(", ", stale));
         Assert.Equal(["UdfBinder.cs"], activationArgumentSetters);
     }
 
-    /// <summary>The §8.4.3.10.3 SR1 refusal has ONE text: every COBOL2576 report goes through
+    /// <summary>The §2023:8.4.3.10.3 SR1 refusal has ONE text: every COBOL2576 report goes through
     /// <c>PredefinedNullRule.Report</c> (kb/Work PB1427's wave-69 finisher — the operand binder and the concatenation
     /// folder each carried their own wording, and the literal decoders outside the operand model carried none).</summary>
     [Fact]
@@ -125,7 +125,7 @@ public sealed class PredefinedNullContextDriftTests
     /// and stored LOW-VALUE (kb/Work PB1427).</summary>
     private static readonly Dictionary<string, string> LiteralDecodersExempt = new()
     {
-        ["OptionsBinder.cs"] = "the INITIALIZE fill literal must be a one-byte X\"nn\" (§11.9.10.3 SR1); NULL is not one",
+        ["OptionsBinder.cs"] = "the INITIALIZE fill literal must be a one-byte X\"nn\" (§2023:11.9.10.3 SR1); NULL is not one",
         ["SearchAllFormat2Rules.cs"] = "a PROCEDURE DIVISION operand: the WHEN relation binds NULL through the relation "
             + "checkpoint (COBOL0869), and this file only asks whether a literal is zero-length",
     };
@@ -186,7 +186,7 @@ public sealed class PredefinedNullContextDriftTests
                                             && !LiteralClassifiersExempt.ContainsKey(s.Name))
             .Select(s => s.Name).Order().ToList();
         Assert.True(silent.Count == 0, "these PROCEDURE DIVISION files take the presence of a nonNumericLiteral node "
-            + "for 'a literal' but never decide its predefinedNull arm, which is an identifier (ISO §8.4.3.1.2 Format "
+            + "for 'a literal' but never decide its predefinedNull arm, which is an identifier (ISO §2023:8.4.3.1.2 Format "
             + "8): " + string.Join(", ", silent));
         var staleExempt = LiteralClassifiersExempt.Keys.Except(classifiers.Select(s => s.Name)).Order().ToList();
         Assert.True(staleExempt.Count == 0, "an exemption names a file that no longer classifies by a "

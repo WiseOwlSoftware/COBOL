@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.4 GR6 — any storage-position adjustment the
+      *> ISO §2023:13.18.55.4 GR6 — any storage-position adjustment the
       *> SYNCHRONIZED clause causes does NOT change the SIZE of the
       *> synchronized item itself.
       *>
-      *> THE RULE. §13.18.55.4 GR6: "Any adjustment in storage position
+      *> THE RULE. §2023:13.18.55.4 GR6: "Any adjustment in storage position
       *> resulting from the SYNCHRONIZED clause does not affect the size of
       *> the synchronized data item."
       *> GR2 is what makes the rule non-trivial: it reserves the bytes
@@ -25,9 +25,9 @@
       *> WHAT THIS MEASURES, AND WHY IT IS NOT THE EXISTING WITNESS. The
       *> shipped golden conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler
       *> measures the GROUP's byte length around a synchronized item (its
-      *> SYNC=3 leg, §13.18.55.4 GR9 b). GR6 is about the synchronized ITEM's
+      *> SYNC=3 leg, §2023:13.18.55.4 GR9 b). GR6 is about the synchronized ITEM's
       *> own length, so every leg below applies FUNCTION BYTE-LENGTH
-      *> (§15.14.1, "an integer equal to the length of the argument in bytes")
+      *> (§2023:15.14.1, "an integer equal to the length of the argument in bytes")
       *> to the ELEMENTARY item, never to its group.
       *>
       *> THE SHAPE OF EACH LEG. Each pair is the same description twice, once
@@ -37,10 +37,10 @@
       *> numbers to agree; the no-clause twin is the reference GR6 names.
       *>
       *> THE ABSOLUTE NUMBERS, DERIVED.
-      *> COMP  — docs/CONFORMANCE.md DOC-A.1-205 (the §13.18.60.4 GR4
+      *> COMP  — docs/CONFORMANCE.md DOC-A.1-205 (the §2023:13.18.60.4 GR4
       *>         determination): a BINARY/COMP item of 3-4 digits occupies
       *>         2 bytes. So 2, with the clause and without it.
-      *> SEP   — §13.18.52.4 GR6 a): with SEPARATE CHARACTER the operational
+      *> SEP   — §2023:13.18.52.4 GR6 a): with SEPARATE CHARACTER the operational
       *>         sign "is presumed to be the leading ... character position of
       *>         the data item ...; this character position is not a digit
       *>         position", so PIC S9(4) SIGN IS LEADING SEPARATE is 4 digit
@@ -48,7 +48,7 @@
       *>         per character position (DOC-A.1-209). So 5 and 5 — the
       *>         separate sign position is not disturbed by the clause.
       *> ALNUM — DOC-A.1-209, one byte per character position: PIC X(3) is 3.
-      *>         §13.18.55.3 SR1 permits the clause on any elementary item, so
+      *>         §2023:13.18.55.3 SR1 permits the clause on any elementary item, so
       *>         an alphanumeric carrier is in scope.
       *> LR    — GR4 ("SYNCHRONIZED LEFT ... will begin at the left byte of
       *>         the natural boundary") and GR5 ("SYNCHRONIZED RIGHT ... will

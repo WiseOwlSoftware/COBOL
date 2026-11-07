@@ -12,11 +12,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// it is asserted here through a separate process.
 /// <list type="bullet">
 /// <item>A RETURN written in an input procedure (14.9.40.4 GR10) or a RELEASE written in an output procedure (GR13) is a
-/// statement that is neither a SORT nor a MERGE, so §14.6.13.1.3 2) does not apply and the general fatal disposition does
-/// (5) and 7), "Fatal exception conditions"): the run unit terminates abnormally (§14.6.12) naming the condition the
+/// statement that is neither a SORT nor a MERGE, so §2023:14.6.13.1.3 2) does not apply and the general fatal disposition does
+/// (5) and 7), "Fatal exception conditions"): the run unit terminates abnormally (§2023:14.6.12) naming the condition the
 /// order chose — EC-SORT-MERGE-ACTIVE where it is enabled, the EC-FLOW name where only that is.</item>
 /// <item>A format 1 SORT executed in an output procedure raises the same EC-SORT-MERGE-ACTIVE, but the executed statement
-/// IS a SORT, so §14.6.13.1.3 2) hands the condition to the SORT's own rules: the inner SORT terminates and the run unit
+/// IS a SORT, so §2023:14.6.13.1.3 2) hands the condition to the SORT's own rules: the inner SORT terminates and the run unit
 /// continues.</item>
 /// </list></summary>
 public sealed class SortMergeActiveUndeclaredDispositionTests
@@ -128,7 +128,7 @@ public sealed class SortMergeActiveUndeclaredDispositionTests
     }
 
     /// <summary>A format 1 SORT executed (PERFORMed) in the output procedure with no USE procedure: EC-SORT-MERGE-ACTIVE
-    /// is disposed of by the verb (§14.6.13.1.3 2)): the inner SORT ends without running its procedures, the output
+    /// is disposed of by the verb (§2023:14.6.13.1.3 2)): the inner SORT ends without running its procedures, the output
     /// procedure carries on and the run unit continues to a normal end, the outer SORT's record still returned.</summary>
     [Fact]
     public void NestedSortInTheOutputProcedure_NoUse_TerminatesOnlyTheInnerSort()

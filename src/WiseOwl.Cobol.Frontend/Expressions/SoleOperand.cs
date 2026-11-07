@@ -10,9 +10,9 @@ using Core = CobolParserCore;
 /// <summary>⛔ THE ONE "is this arithmetic expression a single unparenthesized primary?" DESCENT, for BOTH
 /// assemblies (kb/Work PB172, completed by PB224).
 ///
-/// <para>The reduction is load-bearing in three different rules at once: §8.8.4.7.3 SR2's "a single data item …
-/// and that name shall not be enclosed in parentheses", §8.8.1.1's sole-vs-compound operand boundary, and the
-/// compile-time-directive operand of §7.3.11 / §13.10.3. Any operator, unary sign, or enclosing parenthesis
+/// <para>The reduction is load-bearing in three different rules at once: §2023:8.8.4.7.3 SR2's "a single data item …
+/// and that name shall not be enclosed in parentheses", §2023:8.8.1.1's sole-vs-compound operand boundary, and the
+/// compile-time-directive operand of §2023:7.3.11 / §2023:13.10.3. Any operator, unary sign, or enclosing parenthesis
 /// gives some node on the way down more than one child and stops the descent — which is exactly what all three
 /// rules mean by "single".</para>
 ///
@@ -42,14 +42,14 @@ public static class SoleOperand
     /// <summary>The expression INSIDE the enclosing parentheses of <paramref name="expr"/> — through any number of
     /// them, <c>((X))</c> giving <c>X</c> — or <paramref name="expr"/> itself when it is not wholly enclosed. It is the
     /// one reading of a parenthesized operand for a caller whose rule says the parentheses change nothing:
-    /// §8.8.4.2.1 — "The inclusion in parentheses of simple conditions does not change the simple condition truth
+    /// §2023:8.8.4.2.1 — "The inclusion in parentheses of simple conditions does not change the simple condition truth
     /// value" — makes <c>(X1)</c>, <c>(S1-OFF)</c> and <c>(BW)</c> the simple conditions <c>X1</c>, <c>S1-OFF</c> and
-    /// <c>BW</c> (kb/Work PB1464). <see cref="Primary"/> is deliberately the OPPOSITE reading (§8.8.4.7.3 SR2's "not
+    /// <c>BW</c> (kb/Work PB1464). <see cref="Primary"/> is deliberately the OPPOSITE reading (§2023:8.8.4.7.3 SR2's "not
     /// enclosed in parentheses"), so the two are separate members and a caller names the rule it asks.</summary>
     public static Core.ArithmeticExpressionContext? Unparenthesized(Core.ArithmeticExpressionContext? expr)
     {
         // GROUPING-PAREN-ONLY: a primaryExpression parenthesis is always the arithmetic grouping one, never the
-        // §8.4.3.2.3 SR6 argument-list twin, which belongs to functionCall (its tokens are FNARG_LPAREN/RPAREN).
+        // §2023:8.4.3.2.3 SR6 argument-list twin, which belongs to functionCall (its tokens are FNARG_LPAREN/RPAREN).
         while (Primary(expr) is { } p && p.LPAREN() is not null && p.arithmeticExpression() is { } inner)
             expr = inner;
         return expr;
@@ -63,8 +63,8 @@ public static class SoleOperand
     /// text INCLUDING a leading sign, or <see langword="null"/> when the operand is anything else.
     ///
     /// <para><b>It is deliberately NOT <see cref="Primary"/>.</b> Every other member of this class answers
-    /// §8.8.4.7.3 SR2's question ("a single data item … not enclosed in parentheses"), for which a leading sign
-    /// makes the operand compound. THIS one answers a different question, and §8.3.3.3.2 rule 2 gives it the
+    /// §2023:8.8.4.7.3 SR2's question ("a single data item … not enclosed in parentheses"), for which a leading sign
+    /// makes the operand compound. THIS one answers a different question, and §2023:8.3.3.3.2 rule 2 gives it the
     /// opposite answer: "A literal shall not contain more than one sign character. If a sign is used, it shall
     /// appear as the leftmost character of the literal" — so a sign written ADJACENT to the digits is INSIDE the
     /// literal, and <c>-5</c> consists of a single literal. (There is no signed data reference and no signed
@@ -73,11 +73,11 @@ public static class SoleOperand
     /// accepting non-conforming source on one side of Table 15 and crashing conforming source on the other
     /// (kb/Work PB400).</para>
     ///
-    /// <para><b>Three clauses ask it, in three subsystems, in the same words.</b> §7.3.11.4 GR5 — "If the operand
+    /// <para><b>Three clauses ask it, in three subsystems, in the same words.</b> §2023:7.3.11.4 GR5 — "If the operand
     /// of the DEFINE directive consists of a single numeric literal, that operand is treated as a literal, not as
-    /// an arithmetic-expression"; §13.10.3 SR1 for the CONSTANT clause; §14.9.13.4 GR1 — "If an operand of the
+    /// an arithmetic-expression"; §2023:13.10.3 SR1 for the CONSTANT clause; §2023:14.9.13.4 GR1 — "If an operand of the
     /// EVALUATE statement consists of a single literal, that operand is treated as a literal, not as an
-    /// expression". §8.8.4.2.1 asks it once more of a relation operand, where a sole numeric literal against an
+    /// expression". §2023:8.8.4.2.1 asks it once more of a relation operand, where a sole numeric literal against an
     /// alphanumeric operand participates as its WRITTEN character form.</para>
     ///
     /// <para>The contiguity half is <see cref="ArithmeticFormationRules.SignIsPartOfLiteral"/>, so the spelling
@@ -100,7 +100,7 @@ public static class SoleOperand
     }
 
     /// <summary>The same question asked of a unary-tier operand directly — the VALUE clause's
-    /// <c>valueClauseOperand : unaryExpression</c> slot, whose every format writes <i>literal-n</i> (§13.18.63.2), so
+    /// <c>valueClauseOperand : unaryExpression</c> slot, whose every format writes <i>literal-n</i> (§2023:13.18.63.2), so
     /// its operand is a literal only when it IS one: unsigned, or ONE sign abutting a bare numeric literal
     /// (<c>-5</c>). <c>--5</c>, <c>+-5</c> and <c>- 5</c> answer null (kb/Work PB1445: the VALUE reader used to strip
     /// any number of signs, and <c>VALUE --5</c> reached the C# backend as a decrement operator).</summary>

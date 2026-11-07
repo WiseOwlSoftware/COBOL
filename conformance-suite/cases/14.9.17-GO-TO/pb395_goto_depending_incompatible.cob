@@ -5,29 +5,29 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.17.4 GR2 (GO TO, Format 2), whole: "If the value of identifier-1 is 1, 2, …, or n, control is
+      *> ISO §2023:14.9.17.4 GR2 (GO TO, Format 2), whole: "If the value of identifier-1 is 1, 2, …, or n, control is
       *> transferred to the first statement of the procedure named by procedure-name-1, procedure-name-2, …, or
       *> procedure-name-n, respectively. If the content of identifier-1 is not numeric, the EC-DATA-INCOMPATIBLE
       *> exception condition is set to exist. If the value of identifier-1 is anything other than the positive or
       *> unsigned integers 1 through n, no transfer occurs and control passes to the next statement."
       *> All three halves are measured here, in that order.
       *>
-      *> The condition is the §14.6.13.2 rule 2 sibling — "When the content of a numeric sending item … is
+      *> The condition is the §2023:14.6.13.2 rule 2 sibling — "When the content of a numeric sending item … is
       *> referenced during the execution of a statement and the content of that sending operand would evaluate to
       *> false in a numeric class condition, the result of the reference is undefined and an EC-DATA-INCOMPATIBLE
       *> exception condition is set to exist" — reached here through a REDEFINES window holding "AB". Table 13
-      *> makes it FATAL, so the declarative's RESUME AT NEXT STATEMENT (§14.9.33.4 GR2) is what keeps the run unit
+      *> makes it FATAL, so the declarative's RESUME AT NEXT STATEMENT (§2023:14.9.33.4 GR2) is what keeps the run unit
       *> alive past it; GR2 leaves the RESULT of the reference undefined, so nothing here displays a selected
       *> paragraph — only that the condition was raised and that control resumed at the statement after the GO TO.
       *>
-      *> 2002 is the introducing edition of the OBSERVABLE: the §7.3 compiler-directive facility (>>TURN) and the
+      *> 2002 is the introducing edition of the OBSERVABLE: the §2023:7.3 compiler-directive facility (>>TURN) and the
       *> exception-condition declaratives are COBOL-2002 introductions, so the EC half cannot be written at 85 —
       *> see conformance:cases/14.9.17-GO-TO/pb395-turn-data-incompatible-below-2002. The transfer and fall-through halves
       *> are edition-independent.
       *>
       *> kb/Work PB395 / PB230: EC-DATA-INCOMPATIBLE used to be armed by a STATEMENT-KIND test (`node is
       *> BoundMove`) where the clause hangs it on a SENDING-OPERAND reference, so GO TO … DEPENDING read the
-      *> incompatible item in silence. No golden covered the §14.6.13.2 leg for any verb; this is that golden.
+      *> incompatible item in silence. No golden covered the §2023:14.6.13.2 leg for any verb; this is that golden.
        >>TURN EC-DATA-INCOMPATIBLE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB395GOTODEP.

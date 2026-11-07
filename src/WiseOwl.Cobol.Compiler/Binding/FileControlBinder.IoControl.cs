@@ -11,16 +11,16 @@ using WiseOwl.Cobol.Runtime;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The I-O-CONTROL paragraph (ISO §12.4.6): the SAME clause's membership model, its syntax rules
-/// (§12.4.6.4.3 SR2-SR10) and the record-area sharing it links (§12.4.6.4.4 GR2). A partial of
-/// <see cref="FileControlBinder"/>: the paragraph is the input-output section's second half (§12.4), bound against the
+/// The I-O-CONTROL paragraph (ISO §2023:12.4.6): the SAME clause's membership model, its syntax rules
+/// (§2023:12.4.6.4.3 SR2-SR10) and the record-area sharing it links (§2023:12.4.6.4.4 GR2). A partial of
+/// <see cref="FileControlBinder"/>: the paragraph is the input-output section's second half (§2023:12.4), bound against the
 /// files the FILE-CONTROL paragraph declared.
 /// </summary>
 public sealed partial class FileControlBinder
 {
-    /// <summary>Bind the I-O-CONTROL paragraph (ISO §12.4.6). A record-area SAME clause (Format 2) makes the listed
+    /// <summary>Bind the I-O-CONTROL paragraph (ISO §2023:12.4.6). A record-area SAME clause (Format 2) makes the listed
     /// files "share a memory area for processing the current logical record … equivalent to an implicit redefinition
-    /// of the area with records aligned on the leftmost byte position" (§12.4.6.4 GR2) — modeled by chaining each
+    /// of the area with records aligned on the leftmost byte position" (§2023:12.4.6.4 GR2) — modeled by chaining each
     /// listed file's FIRST record as a synthesized REDEFINES of the first LISTED file's first record, exactly the
     /// multi-01-under-one-FD mechanism (the singular-pattern rule): the tier machinery then aliases every record of
     /// every listed file over ONE backing, and READ/WRITE/RELEASE image distribution gives the
@@ -32,12 +32,12 @@ public sealed partial class FileControlBinder
     /// <see cref="ScreenMultipleFileClause"/> has asked for its file list (kb/Work PB4307), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
     /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
-    /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§12.4.6.3) is the one
+    /// both skip SAME's screens through a <c>continue</c> below by design. The APPLY COMMIT clause (§2023:12.4.6.3) is the one
     /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
     /// EVERY SAME format also records its MEMBERSHIP on its files
     /// (<see cref="FileModel.SameClauses"/>, kb/Work PB1139), which the SORT and MERGE statements read for
-    /// §14.9.40.3 SR10 / §14.9.24.3 SR11 (<c>SortBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
-    /// the arity its format prints and §12.4.6.4.3 SR2, SR3 and SR5-SR10 — are <see cref="ScreenSameOperands"/> and
+    /// §2023:14.9.40.3 SR10 / §2023:14.9.24.3 SR11 (<c>SortBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
+    /// the arity its format prints and §2023:12.4.6.4.3 SR2, SR3 and SR5-SR10 — are <see cref="ScreenSameOperands"/> and
     /// <see cref="ScreenSameClauses"/> (kb/Work PB1087).</summary>
     internal void BindIoControl(Core.ProgramUnitContext program)
     {
@@ -59,10 +59,10 @@ public sealed partial class FileControlBinder
             }
             if (clause.sameClause() is not { } same) continue;
             // ⛔ EVERY SAME FORMAT IS RECORDED ON ITS FILES (kb/Work PB1139): the clause's membership is what
-            // §14.9.40.3 SR10 and §14.9.24.3 SR11 ask the SORT and MERGE statements about — "No pair of file-names in
+            // §2023:14.9.40.3 SR10 and §2023:14.9.24.3 SR11 ask the SORT and MERGE statements about — "No pair of file-names in
             // the same SORT statement may be specified in the same SAME SORT AREA or SAME SORT-MERGE AREA clause" —
             // and until then only the RECORD AREA format was modelled (as a peer list), so those rules had nothing to read.
-            // §12.4.6.4.3 SR1: SORT and SORT-MERGE are equivalent — ONE format, the written words kept for messages.
+            // §2023:12.4.6.4.3 SR1: SORT and SORT-MERGE are equivalent — ONE format, the written words kept for messages.
             var kind = same.RECORD() is not null ? SameClauseKind.RecordArea
                 : same.SORT_MERGE() is not null || same.SORT() is not null ? SameClauseKind.SortMergeArea
                 : SameClauseKind.Area;
@@ -74,7 +74,7 @@ public sealed partial class FileControlBinder
             sites.Add(new SameSite(same, recorded, complete));
         }
         ScreenSameClauses(sites);
-        // §12.4.6.4.3 SR11 — asked after the WHOLE paragraph, because an APPLY COMMIT clause may follow the SAME
+        // §2023:12.4.6.4.3 SR11 — asked after the WHOLE paragraph, because an APPLY COMMIT clause may follow the SAME
         // clause it constrains. One clause mixing the two kinds is one violation, reported at the clause.
         foreach (var site in sites)
             if (site.Clause.Members.FirstOrDefault(f => f.SubjectToApplyCommit) is { } subject
@@ -83,7 +83,7 @@ public sealed partial class FileControlBinder
                 using var _ = Edition.At(site.Ctx);
                 ScreenApplyCommitSubject(subject, true,
                     $"{site.Clause.Written} naming '{subject.CobolName}' and '{other.CobolName}'",
-                    "ISO §12.4.6.4.3 SR11: \"A file or record area that is subject to an APPLY COMMIT clause shall not be "
+                    "ISO §2023:12.4.6.4.3 SR11: \"A file or record area that is subject to an APPLY COMMIT clause shall not be "
                     + "specified with another file or record area that is not subject to an APPLY COMMIT clause\"");
             }
         foreach (var site in sites)
@@ -104,23 +104,23 @@ public sealed partial class FileControlBinder
             + "{file-name [POSITION integer]} ..., so at least one file-name is required (X3.23-1985; VCR Table 7 row 7.6)");
     }
 
-    /// <summary>The source element's APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL
-    /// paragraph writes none. The code generator registers it at the runtime element's activation (§12.4.6.3.4 GR5).</summary>
+    /// <summary>The source element's APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL
+    /// paragraph writes none. The code generator registers it at the runtime element's activation (§2023:12.4.6.3.4 GR5).</summary>
     public ApplyCommitModel? ApplyCommit { get; private set; }
 
-    /// <summary>Bind one APPLY COMMIT clause (ISO §12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
+    /// <summary>Bind one APPLY COMMIT clause (ISO §2023:12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
     /// and the syntax rules that need no data division: SR1/SR2 (the files), SR4 (an operand at all), SR5 (a recursive
     /// source element). SR6 (a factory or instance definition, the only class-side definitions with an I-O-CONTROL
     /// paragraph) is <c>OoEnvironmentRules</c>'s alone.
     /// The identifier-1 operands are resolved, and SR3 and SR7-SR10 asked, by <see cref="ResolveApplyCommit"/> once the
     /// data division is bound.
     /// <para>The operand list repeats an all-optional pair, so the symbol table is the only discriminator: a BARE word
-    /// naming a file of THIS element's FILE-CONTROL paragraph is file-name-1 (SR1; §8.4.2.2.2 gives a file-name no
+    /// naming a file of THIS element's FILE-CONTROL paragraph is file-name-1 (SR1; §2023:8.4.2.2.2 gives a file-name no
     /// qualified format, kb/Work PB2040), anything else is identifier-1. A file of a CONTAINING element — a GLOBAL one,
     /// which SR1 and SR11 both keep out of a contained element's clause, or one with no GLOBAL clause, which SR1 keeps
     /// out — is therefore screened by <see cref="ResolveApplyCommit"/>, which decides by the element that declares what the word names,
     /// and is refused under its own rule (<see cref="ScreenEnclosingFileOperand"/>, kb/Work PB3557).</para>
-    /// <para>A file of any organization on a mass storage device but a sort-merge or report file is accepted (§9.1.18.2:
+    /// <para>A file of any organization on a mass storage device but a sort-merge or report file is accepted (§2023:9.1.18.2:
     /// <i>"Apart from sort-merge files and report writer files, any type of file on a mass storage device may be
     /// specified"</i>): the keyed organizations keep the transaction in their store (DESIGN-runtime-library.md 2.2.1.10)
     /// and the sequential ones — record sequential, line sequential and the print stream — in the transaction journal
@@ -130,7 +130,7 @@ public sealed partial class FileControlBinder
         var clause = ApplyCommit ??= new ApplyCommitModel { At = Edition.Cursor };
         if (_host.UnitIsRecursive || _host.UnitIsFunction)
             ApplyCommitRule("the clause is written in a recursive source element"
-                + (_host.UnitIsFunction ? " (a function is always recursive, ISO §8.6.6)" : ""),
+                + (_host.UnitIsFunction ? " (a function is always recursive, ISO §2023:8.6.6)" : ""),
                 "SR5", "This clause shall not be specified in a recursive source element.");
         // SR6 (a class, factory or interface definition) is OoEnvironmentRules', which sees the definition's kind: one
         // violation, one diagnostic.
@@ -152,9 +152,9 @@ public sealed partial class FileControlBinder
                 if (clause.Files.Contains(file)) continue;   // a repeated file-name adds nothing (GR1 is about the set)
                 clause.Files.Add(file);
                 file.SubjectToApplyCommit = true;
-                // §12.4.5.9.3 SR1 — the LOCK MODE clause of the file control entry, bound before this paragraph.
+                // §2023:12.4.5.9.3 SR1 — the LOCK MODE clause of the file control entry, bound before this paragraph.
                 ScreenApplyCommitSubject(file, file.LockMode is not null, "LOCK MODE clause",
-                    "ISO §12.4.5.9.3 SR1: \"This clause shall not be specified for a file that is the subject of "
+                    "ISO §2023:12.4.5.9.3 SR1: \"This clause shall not be specified for a file that is the subject of "
                     + "an APPLY COMMIT clause for which there is an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON "
                     + "MULTIPLE RECORDS applied automatically\"");
                 continue;
@@ -165,7 +165,7 @@ public sealed partial class FileControlBinder
     }
 
     /// <summary>Post-build (the data division is bound and indexed), resolve the APPLY COMMIT clause's identifier-1
-    /// operands and collect what §12.4.6.3.3 SR9 makes subject to it, asking the syntax rules that need a resolved
+    /// operands and collect what §2023:12.4.6.3.3 SR9 makes subject to it, asking the syntax rules that need a resolved
     /// item: SR3 (an unreferenced-modified, distinct, non-overlapping 01 or 77 item of the LINKAGE, WORKING-STORAGE or
     /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="DataBinder.ClauseDataName"/>), SR7 (no
     /// object reference), SR8 (both or neither of two 01/77 items one of which depends on the other), SR9 (the
@@ -218,7 +218,7 @@ public sealed partial class FileControlBinder
         // SR9 — "the file status data items and data-items specified in the linage or record clauses of those file
         // descriptions are automatically subject to the APPLY COMMIT clause … and they shall only be specified in the
         // linkage, working-storage or local-storage sections, or in the case of the record clause also in the file section".
-        // Over every file the clause names, sequential and keyed alike (§9.1.18.2; kb/Work PB3340).
+        // Over every file the clause names, sequential and keyed alike (§2023:9.1.18.2; kb/Work PB3340).
         foreach (var file in clause.Files)
         {
             using var _ = Edition.At(clause.At);
@@ -246,7 +246,7 @@ public sealed partial class FileControlBinder
         }
     }
 
-    /// <summary>§12.4.6.3.3 SR11, quoted (cite.py --check 12.4.6.3.3).</summary>
+    /// <summary>§2023:12.4.6.3.3 SR11, quoted (cite.py --check 12.4.6.3.3).</summary>
     private const string Sr11Text = "Where a file or record area is declared with the GLOBAL clause, it may only be "
         + "specified in the APPLY COMMIT clause of the same source element.";
 
@@ -254,27 +254,27 @@ public sealed partial class FileControlBinder
     /// VIOLATION, never an undefined data-name nor an SR3 item (kb/Work PB3557). <see cref="BindApplyCommitClause"/> takes
     /// a bare word for file-name-1 only when this element's own FILE-CONTROL paragraph selects it; every other word is
     /// identifier-1. A container's GLOBAL file used to draw COBOL1639 "no declaration in this source element gives the
-    /// name" — false: it is visible here (§13.18.27.4 GR1) — and the clause's own rule went unreported.
+    /// name" — false: it is visible here (§2023:13.18.27.4 GR1) — and the clause's own rule went unreported.
     /// <para>⛔ THE OPERAND IS DECIDED BY THE ELEMENT THAT DECLARES WHAT IT NAMES, never by whether a name table holds it
     /// (review R2-1): a container's GLOBAL record is inherited into this unit's data-name index with its depth
     /// (<see cref="DataBinder.InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
     /// data-name lookup (<see cref="DataBinder.QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
     /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
-    /// (§8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
+    /// (§2023:8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>
     /// <list type="bullet">
     /// <item>A data item this element declares, or another kind of name (a constant, an alphabet, an index, a
     /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="NonDataDeclaration.Depth"/>,
     /// kb/Work PB4219): identifier-1 as written.</item>
     /// <item>A report entry nearer than any data item or file of the spelling (this element's own, against a container's
-    /// GLOBAL record): the report-item refusal, §13.8.6.2.3 (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>; review R2-2, the
+    /// GLOBAL record): the report-item refusal, §2023:13.8.6.2.3 (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>; review R2-2, the
     /// kb/Work PB4196 order on this arm).</item>
     /// <item>A container's GLOBAL file, bare and no farther than any data item of the spelling: SR11 — <i>"Where a file or
     /// record area is declared with the GLOBAL clause, it may only be specified in the APPLY COMMIT clause of the same
     /// source element"</i>; the file is outside this element's FILE-CONTROL paragraph too, so SR1 is broken with it, in
     /// the one report.</item>
     /// <item>The one data item the lookup identifies is a container's GLOBAL record area
-    /// (<see cref="InheritedGlobals.RecordAreas"/>), bare or with its file-report-qualifier (§8.4.2.2.2 Format 1): SR11's
+    /// (<see cref="InheritedGlobals.RecordAreas"/>), bare or with its file-report-qualifier (§2023:8.4.2.2.2 Format 1): SR11's
     /// other noun. Two GLOBAL files' records of one name are told apart by that qualifier, as any data-name is.</item>
     /// <item>No visible declaration, and a container's file with no GLOBAL clause of the spelling: SR1 — <i>"File-name-1
     /// shall be specified in the FILE-CONTROL paragraph of the source element that contains this clause"</i>.</item>
@@ -288,7 +288,7 @@ public sealed partial class FileControlBinder
         if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
         FileModel? global = quals.Count == 0 && _host.State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
         int fileDepth = global is null ? int.MaxValue : _host.State.Inherited.FileDepth(global);
-        // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§8.4.6.2.1 3)), and
+        // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§2023:8.4.6.2.1 3)), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
         if (_host.NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
@@ -321,8 +321,8 @@ public sealed partial class FileControlBinder
         return false;
     }
 
-    /// <summary>SR7 and SR10 over one item the clause saves: no object reference within it (ISO §12.4.6.3.3 SR7, and
-    /// §9.1.18.6: "Data items containing object references are not permitted in APPLY COMMIT clauses") and no BASED
+    /// <summary>SR7 and SR10 over one item the clause saves: no object reference within it (ISO §2023:12.4.6.3.3 SR7, and
+    /// §2023:9.1.18.6: "Data items containing object references are not permitted in APPLY COMMIT clauses") and no BASED
     /// item (SR10). Returns whether both hold.</summary>
     private bool ScreenApplyCommitItem(DataItem item, string what)
     {
@@ -343,26 +343,26 @@ public sealed partial class FileControlBinder
     }
 
     /// <summary>Whether two 01/77 items occupy any storage in common — the one 01-level way to overlap is a REDEFINES
-    /// (§13.18.44), so the test follows each item's redefinition chain to the storage it starts.</summary>
+    /// (§2023:13.18.44), so the test follows each item's redefinition chain to the storage it starts.</summary>
     private static bool SharesStorage(DataItem a, DataItem b)
     {
         static DataItem Base(DataItem i) { while (i.RedefinesTarget is { } t) i = t; return i; }
         return ReferenceEquals(Base(a), Base(b));
     }
 
-    /// <summary>⛔ THE ONE REPORT of the APPLY COMMIT clause's own syntax rules (COBOL4709; ISO §12.4.6.3.3).</summary>
+    /// <summary>⛔ THE ONE REPORT of the APPLY COMMIT clause's own syntax rules (COBOL4709; ISO §2023:12.4.6.3.3).</summary>
     private void ApplyCommitRule(string what, string rule, string quoted) =>
-        Edition.Error(DiagnosticCatalog.ApplyCommitClauseRule, $"APPLY COMMIT: {what} — ISO §12.4.6.3.3 {rule}: \"{quoted}\"");
+        Edition.Error(DiagnosticCatalog.ApplyCommitClauseRule, $"APPLY COMMIT: {what} — ISO §2023:12.4.6.3.3 {rule}: \"{quoted}\"");
 
     /// <summary>⛔ THE ONE REPORT FOR THE APPLY COMMIT ANTECEDENT FAMILY (kb/Work PB666) — the syntax rules of CLAIMED
-    /// clauses and statements whose antecedent is "a file subject to an APPLY COMMIT clause": §12.4.5.9.3 SR1 (the
-    /// LOCK MODE clause), §12.4.6.4.3 SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN's
-    /// sharing phrase), §14.9.30.3 SR5 / §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2
+    /// clauses and statements whose antecedent is "a file subject to an APPLY COMMIT clause": §2023:12.4.5.9.3 SR1 (the
+    /// LOCK MODE clause), §2023:12.4.6.4.3 SR11 (a SAME clause mixing subject and non-subject files), §2023:14.9.27.3 SR7 (OPEN's
+    /// sharing phrase), §2023:14.9.30.3 SR5 / §2023:14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §2023:14.9.47.3 SR2
     /// (UNLOCK). Each caller passes its own rule quoted with its citation; the fact is
     /// <see cref="FileModel.SubjectToApplyCommit"/>, recorded off this paragraph.
     /// <para>Each rule is enforced here in its own right (COBOL2974): since kb/Work PB3338 the APPLY COMMIT clause is
     /// accepted for the keyed organizations, so every one of these forbidden shapes is a program a user can write.
-    /// (§12.4.6.4.4 GR3, the family's seventh member, is a general rule about an ACTIVE clause's sharing at run time,
+    /// (§2023:12.4.6.4.4 GR3, the family's seventh member, is a general rule about an ACTIVE clause's sharing at run time,
     /// not a syntax rule.)</para></summary>
     /// <param name="file">The file the clause or statement names.</param>
     /// <param name="written">Whether the source wrote the construct the rule forbids for such a file.</param>
@@ -379,7 +379,7 @@ public sealed partial class FileControlBinder
 
     /// <summary>Only SAME RECORD AREA shares storage (Format 2) — SORT/SORT-MERGE AREA is Format 3, and SAME AREA
     /// (Format 1) gives no record-area effect either (docs/CONFORMANCE.md §7, A.1 items 168-169).
-    /// <para>⛔ THE GROUP IS ONE STORAGE AREA FOR THE WHOLE RUNTIME ELEMENT, and that is also §14.9.6.4 GR7's
+    /// <para>⛔ THE GROUP IS ONE STORAGE AREA FOR THE WHOLE RUNTIME ELEMENT, and that is also §2023:14.9.6.4 GR7's
     /// answer for CLOSE. GR7: "If file-name-1 is specified in a SAME RECORD AREA clause, the record area
     /// is available to the runtime element if any of the file connectors referenced by the other
     /// file-names in that SAME RECORD AREA clause are open." The area emitted here is a live typed field
@@ -402,7 +402,7 @@ public sealed partial class FileControlBinder
             // (FileModel.SameRecordAreaPeers, derived from the clause just recorded).
             if (f.CharacterAnchor is not { } fAnchor) continue;
             if (anchor is null) { anchor = fAnchor; continue; }
-            // §12.4.6.4.4 GR2: "equivalent to an implicit redefinition of the area with records aligned on the
+            // §2023:12.4.6.4.4 GR2: "equivalent to an implicit redefinition of the area with records aligned on the
             // leftmost byte position" — implicit, like the FD's own records (kb/Work PB836).
             if (!ReferenceEquals(fAnchor, anchor) && fAnchor.RedefinesTarget is null)
                 fAnchor.SetRedefinition(anchor, RedefinitionKind.SameRecordArea);
@@ -416,8 +416,8 @@ public sealed partial class FileControlBinder
 
     /// <summary>⛔ THE OPERAND RULES OF ONE SAME CLAUSE (kb/Work PB1087), returning the files its operands resolve
     /// to and whether all of them did.
-    /// <para>The format prints <c>file-name-1 { file-name-2 } …</c> in all three formats (§12.4.6.4.2), the braces
-    /// REQUIRING a file-name-2, and §12.4.6.4.4 GR1/GR2 define the clause over "two or more files referenced by
+    /// <para>The format prints <c>file-name-1 { file-name-2 } …</c> in all three formats (§2023:12.4.6.4.2), the braces
+    /// REQUIRING a file-name-2, and §2023:12.4.6.4.4 GR1/GR2 define the clause over "two or more files referenced by
     /// file-name-1, file-name-2" — so a clause naming fewer than two distinct files is not a legal form (the
     /// grammar admits it, superset-parse / bind-narrow). SR2: each operand "shall be specified in the FILE-CONTROL
     /// paragraph of the source element that contains this SAME clause" — <see cref="FileSlice.FilesByName"/> holds exactly
@@ -439,7 +439,7 @@ public sealed partial class FileControlBinder
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
                     $"{written}: '{name}' is not a file specified in the FILE-CONTROL paragraph of this source element "
-                    + "(ISO §12.4.6.4.3 SR2: \"File-name-1 and file-name-2 shall be specified in the FILE-CONTROL "
+                    + "(ISO §2023:12.4.6.4.3 SR2: \"File-name-1 and file-name-2 shall be specified in the FILE-CONTROL "
                     + "paragraph of the source element that contains this SAME clause.\")");
                 continue;
             }
@@ -447,7 +447,7 @@ public sealed partial class FileControlBinder
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
-                    $"{written}: file '{name}' references an external file connector (ISO §12.4.6.4.3 SR3: "
+                    $"{written}: file '{name}' references an external file connector (ISO §2023:12.4.6.4.3 SR3: "
                     + "\"File-name-1 and file-name-2 shall not reference an external file connector.\")");
                 continue;
             }
@@ -458,20 +458,20 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(same);
             Edition.Error(DiagnosticCatalog.SameClauseRule,
                 $"{written} names {(seenNames.Count == 0 ? "no file" : "only one file")}: every SAME format prints "
-                + "\"file-name-1 { file-name-2 } …\" (ISO §12.4.6.4.2) and the clause is defined over \"two or more "
-                + "files referenced by file-name-1, file-name-2\" (ISO §12.4.6.4.4 GR1, GR2)");
+                + "\"file-name-1 { file-name-2 } …\" (ISO §2023:12.4.6.4.2) and the clause is defined over \"two or more "
+                + "files referenced by file-name-1, file-name-2\" (ISO §2023:12.4.6.4.4 GR1, GR2)");
         }
         return (members, complete);
     }
 
-    /// <summary>What a file IS to the SAME clause (§12.4.6.4.3 SR5-SR7 sort the file-names into three kinds).</summary>
+    /// <summary>What a file IS to the SAME clause (§2023:12.4.6.4.3 SR5-SR7 sort the file-names into three kinds).</summary>
     private enum SameFileKind { Report, SortMerge, Other }
 
     private static SameFileKind SameKindOf(FileModel f) =>
         f.IsSortMerge ? SameFileKind.SortMerge : f.IsReportFile ? SameFileKind.Report : SameFileKind.Other;
 
     /// <summary>⛔ THE OCCURRENCE TABLE: how many SAME clauses of one format a file of one kind may be named in
-    /// (§12.4.6.4.3 SR5, SR6, SR7 — one rule shape, three rows) and the rule's own words. Both axes are switched
+    /// (§2023:12.4.6.4.3 SR5, SR6, SR7 — one rule shape, three rows) and the rule's own words. Both axes are switched
     /// BY AN UNREACHABLE-THROW arm only, so a new <see cref="SameFileKind"/> or <see cref="SameClauseKind"/> member
     /// fails loudly on its first SAME clause instead of falling into a silently unlimited cell.</summary>
     private static (int Max, int Sr, string Text) SameOccurrenceRule(SameFileKind kind, SameClauseKind format) => kind switch
@@ -521,7 +521,7 @@ public sealed partial class FileControlBinder
     };
 
     /// <summary>⛔ THE CROSS-CLAUSE RULES OF THE SAME CLAUSES OF ONE I-O-CONTROL PARAGRAPH (kb/Work PB1087;
-    /// §12.4.6.4.3 SR5-SR10), over the membership every clause recorded: the per-file occurrence limits
+    /// §2023:12.4.6.4.3 SR5-SR10), over the membership every clause recorded: the per-file occurrence limits
     /// (<see cref="SameOccurrenceRule"/> — SR5, SR6, SR7), SR8 (a sort-merge-area clause names a sort or merge
     /// file), SR9 (a file-area clause that shares a file with a record-area clause is wholly inside it) and SR10 (a
     /// file-area clause is wholly inside every sort-merge-area clause that names one of its non-sort files). Both
@@ -542,10 +542,10 @@ public sealed partial class FileControlBinder
                     $"{site.Clause.Written}: {SameKindName(role)} '{f.CobolName}' "
                     + (max == 0 ? $"is named in a {SameFormatName(site.Clause.Kind)} format clause, which its kind bars"
                                 : $"is named in more than one {SameFormatName(site.Clause.Kind)} format clause")
-                    + $" (ISO §12.4.6.4.3 SR{sr}: {text})");
+                    + $" (ISO §2023:12.4.6.4.3 SR{sr}: {text})");
             }
 
-        // §13.18.27.3 SR2 (kb/Work PB1242): the GLOBAL clause is written on neither the file description entry nor a
+        // §2023:13.18.27.3 SR2 (kb/Work PB1242): the GLOBAL clause is written on neither the file description entry nor a
         // record description entry of any file the record-area clause shares.
         foreach (var site in sites.Where(s => s.Clause.Kind == SameClauseKind.RecordArea))
             foreach (var f in site.Clause.Members)
@@ -555,7 +555,7 @@ public sealed partial class FileControlBinder
                 if (where is null) continue;
                 using var _ = Edition.At(site.Ctx);
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
-                    $"{site.Clause.Written}: the {where} of file '{f.CobolName}' includes the GLOBAL clause (ISO §13.18.27.3 "
+                    $"{site.Clause.Written}: the {where} of file '{f.CobolName}' includes the GLOBAL clause (ISO §2023:13.18.27.3 "
                     + "SR2: \"If the SAME RECORD AREA clause is specified for several files, the record description "
                     + "entries or the file description entries for these files shall not include the GLOBAL clause.\")");
             }
@@ -566,7 +566,7 @@ public sealed partial class FileControlBinder
                 || site.Clause.Members.Any(m => m.IsSortMerge)) continue;
             using var _ = Edition.At(site.Ctx);
             Edition.Error(DiagnosticCatalog.SameClauseRule,
-                $"{site.Clause.Written} names no sort or merge file (ISO §12.4.6.4.3 SR8: \"At least one file-name "
+                $"{site.Clause.Written} names no sort or merge file (ISO §2023:12.4.6.4.3 SR8: \"At least one file-name "
                 + "specified in a sort-merge-area format SAME clause shall represent a sort or merge file.\")");
         }
 
@@ -579,7 +579,7 @@ public sealed partial class FileControlBinder
                 using var _ = Edition.At(record.Ctx);
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
                     $"{record.Clause.Written} shares files with {area.Clause.Written} but omits {SameNames(missing)} "
-                    + "(ISO §12.4.6.4.3 SR9: \"If one or more file-names specified in a file-area format SAME clause "
+                    + "(ISO §2023:12.4.6.4.3 SR9: \"If one or more file-names specified in a file-area format SAME clause "
                     + "are also specified in a record-area format SAME clause, all of the file-names specified in the "
                     + "file-area format SAME clause shall also be specified in the record-area format SAME clause.\")");
             }
@@ -592,7 +592,7 @@ public sealed partial class FileControlBinder
                     using var _ = Edition.At(sm.Ctx);
                     Edition.Error(DiagnosticCatalog.SameClauseRule,
                         $"{sm.Clause.Written} names '{f.CobolName}', which {area.Clause.Written} also names, but omits "
-                        + $"{SameNames(missing)} (ISO §12.4.6.4.3 SR10: \"If a file-name that represents a file other "
+                        + $"{SameNames(missing)} (ISO §2023:12.4.6.4.3 SR10: \"If a file-name that represents a file other "
                         + "than a sort or merge file is specified in a file-area format SAME clause and in one or more "
                         + "sort-merge-area format SAME clauses, all of the file-names specified in that file-area "
                         + "format SAME clause shall also be specified in those sort-merge-area format SAME clause(s).\")");

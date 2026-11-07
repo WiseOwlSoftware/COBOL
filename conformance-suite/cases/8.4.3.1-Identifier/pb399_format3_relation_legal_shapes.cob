@@ -5,18 +5,18 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The ISO §8.8.4.2.2 FORMAT 3 relation shapes that are LEGAL, pinned at every surface that lowers to
+      *> The ISO §2023:8.8.4.2.2 FORMAT 3 relation shapes that are LEGAL, pinned at every surface that lowers to
       *> a relation — so moving that band out of ConditionBinder's relation arm and into the ONE
       *> BoundRelational checkpoint (kb/Work PB399) widened it to EVALUATE without rejecting legal source.
       *>
-      *> §8.8.4.2.1: "a relation condition involving operands of class message-tag, object, or pointer is a
+      *> §2023:8.8.4.2.1: "a relation condition involving operands of class message-tag, object, or pointer is a
       *> message-tag-object-or-pointer-reference relation condition."  Format 3 admits IS [NOT] EQUAL TO /
-      *> = / <>, and §8.8.4.2.3 SR5 requires both operands to be of one of those classes AND of the same
-      *> category.  §8.8.4.2.16: "The operands are equal if they reference the same address."
-      *> §8.4.3.10.1 makes NULL "a predefined address of class pointer", and §8.4.3.10.3 SR1 a) admits it
+      *> = / <>, and §2023:8.8.4.2.3 SR5 requires both operands to be of one of those classes AND of the same
+      *> category.  §2023:8.8.4.2.16: "The operands are equal if they reference the same address."
+      *> §2023:8.4.3.10.1 makes NULL "a predefined address of class pointer", and §2023:8.4.3.10.3 SR1 a) admits it
       *> "in a pointer-or-object-reference relation condition" by name — so NULL rides on either side and
       *> is exempt from SR5's same-category test, having no category of its own.
-      *> §14.9.13.4 GR2 makes an EVALUATE selection pair a comparison "as if the corresponding relation
+      *> §2023:14.9.13.4 GR2 makes an EVALUATE selection pair a comparison "as if the corresponding relation
       *> condition were written", which is why the same four legs are written under EVALUATE.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB399FMT3.
@@ -31,8 +31,8 @@
            SET WS-P TO NULL.
            SET WS-Q TO NULL.
            SET WS-PP TO NULL.
-      *> Two operands of class pointer, of the SAME category (§8.8.4.2.1 item 11) — both set to the one
-      *> predefined address, so they reference the same address and are equal (§8.8.4.2.16).
+      *> Two operands of class pointer, of the SAME category (§2023:8.8.4.2.1 item 11) — both set to the one
+      *> predefined address, so they reference the same address and are equal (§2023:8.8.4.2.16).
            IF WS-P = WS-Q
                DISPLAY "PTR-EQ"
            ELSE
@@ -57,7 +57,7 @@
            ELSE
                DISPLAY "PTR-EQ-NULL"
            END-IF.
-      *> The same two relations written as EVALUATE selection pairs (§14.9.13.4 GR2).
+      *> The same two relations written as EVALUATE selection pairs (§2023:14.9.13.4 GR2).
            EVALUATE WS-P
                WHEN WS-Q
                    DISPLAY "EV-PTR-EQ"

@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A RULE THAT SAYS "BASIC LETTER" ASKS ONE PREDICATE, <see cref="CobolCharacterRepertoire.IsBasicLetter"/>
-/// (kb/Work PB533; ISO §8.1.3.1 Table 1, §13.18.40.3 SR8). The basic letters are A-Z and a-z; an extended letter
-/// (Annex B, §8.1.3.2 GR4) is a distinct row of the same table. <see cref="char.IsLetter(char)"/> admits every Unicode
+/// (kb/Work PB533; ISO §2023:8.1.3.1 Table 1, §2023:13.18.40.3 SR8). The basic letters are A-Z and a-z; an extended letter
+/// (Annex B, §2023:8.1.3.2 GR4) is a distinct row of the same table. <see cref="char.IsLetter(char)"/> admits every Unicode
 /// letter, so a syntax rule that asked it let the extended letters through where the standard names only the basic
 /// ones — the PICTURE EDITING phrase's character-1 compiled with an E-acute for exactly that reason. The compiler
 /// assembly therefore asks neither <c>char.IsLetter</c> nor <c>char.IsLetterOrDigit</c> of a character it holds as

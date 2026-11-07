@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <summary>
 /// ⛔ <b>THE INTRINSIC CARRIER RULES TWO LAYERS ASK</b> (kb/Work PB3268, review R1-2): which carrier a numeric function's
 /// value is computed on is decided by <c>IntrinsicRenderer.RenderNum</c> (compiler.codegen) and PREDICTED at bind time
-/// by <c>FunctionValueLane</c> (compiler.binding), which describes the §14.9.25.4 GR1 intermediate result item for it.
+/// by <c>FunctionValueLane</c> (compiler.binding), which describes the §2023:14.9.25.4 GR1 intermediate result item for it.
 /// The facts both read are pure functions of a function's identity and of operand digit bounds, so they live in the
 /// layer both may reach (DESIGN-architecture-review.md §8.1: compiler.codegen reaches compiler.bound, compiler.binding
 /// reaches compiler.bound, and neither reaches the other) — written once, never restated by either side.
@@ -29,9 +29,9 @@ internal static class IntrinsicCarrierRules
     /// evaluating.
     /// </summary>
     /// <remarks>
-    /// <para>Under a standard mode §15.4.1 r1 makes each of these equal its equivalent arithmetic expression
-    /// (§15.61.4 MEDIAN, §15.62.4 MIDRANGE, §15.64.4 MOD, §15.76.4 RANGE, §15.77.4 REM, §15.88.4 SUM; MEAN, §15.60.4, is
-    /// the SDIDI quotient in EVERY mode, so it belongs to <see cref="SdidiQuotientFunctions"/> and not to this set), and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1) — so no common scale is
+    /// <para>Under a standard mode §2023:15.4.1 r1 makes each of these equal its equivalent arithmetic expression
+    /// (§2023:15.61.4 MEDIAN, §2023:15.62.4 MIDRANGE, §2023:15.64.4 MOD, §2023:15.76.4 RANGE, §2023:15.77.4 REM, §2023:15.88.4 SUM; MEAN, §2023:15.60.4, is
+    /// the SDIDI quotient in EVERY mode, so it belongs to <see cref="SdidiQuotientFunctions"/> and not to this set), and each argument converts to the SDIDI INDIVIDUALLY (§2023:8.8.1.5.2 r1) — so no common scale is
     /// ever formed. The NATIVE arms instead align first, on the Int128 carrier, and alignment MULTIPLIES: a
     /// 31-digit integer beside a scale-18 item needs 49 digits, so <c>NumericRenderer.Align</c>'s per-argument
     /// escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly. That makes "does this arm
@@ -46,15 +46,15 @@ internal static class IntrinsicCarrierRules
     /// name. A new aligning arm is therefore routed automatically or the build goes red — it can no longer be
     /// forgotten.</para>
     /// <para>MAX / MIN / ORD-MAX / ORD-MIN are deliberately ABSENT: <c>IntrinsicRenderer.RawArgPairs</c> aligns each argument
-    /// to its OWN scale (an identity rescale), because §15.59.4 / §15.63.4 / §15.71.4 / §15.72.4 return the
+    /// to its OWN scale (an identity rescale), because §2023:15.59.4 / §2023:15.63.4 / §2023:15.71.4 / §2023:15.72.4 return the
     /// CONTENT or the ORDINAL of an argument — pure selection, no cross-argument arithmetic, no common scale to
     /// escape (kb/Work PB65).</para>
     /// </remarks>
     internal static readonly FrozenSet<string> CrossAligningFunctions = new[]
     {
-        "MOD", "REM",                                               // §15.64.4 / §15.77.4 — Align(a, s), Align(b, s)
-        "SUM", "RANGE",                                             // §15.88.4 / §15.76.4 — AlignedArgs
-        "MEDIAN", "MIDRANGE",                                       // §15.61.4 / §15.62.4 — AlignedArgs
+        "MOD", "REM",                                               // §2023:15.64.4 / §2023:15.77.4 — Align(a, s), Align(b, s)
+        "SUM", "RANGE",                                             // §2023:15.88.4 / §2023:15.76.4 — AlignedArgs
+        "MEDIAN", "MIDRANGE",                                       // §2023:15.61.4 / §2023:15.62.4 — AlignedArgs
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
@@ -64,8 +64,8 @@ internal static class IntrinsicCarrierRules
     /// </summary>
     /// <remarks>
     /// <para>MEAN's equivalent arithmetic expression ends in a division, <c>((argument-11 + … + argument-1n) / n)</c>
-    /// (§15.60.4 r1), and a quotient is the one operation whose digits are not finite: under a standard mode §15.4.1 r1 makes
-    /// the value that expression's SDIDI value, and under native arithmetic §15.4.1 makes it "an implementor-defined
+    /// (§2023:15.60.4 r1), and a quotient is the one operation whose digits are not finite: under a standard mode §2023:15.4.1 r1 makes
+    /// the value that expression's SDIDI value, and under native arithmetic §2023:15.4.1 makes it "an implementor-defined
     /// approximation of the value of that expression". The native arm chose that approximation from the RECEIVER - the
     /// quotient was cut at max(receiver scale, sum scale + 1, 6) places and the receiver's own ROUNDED phrase then rounded
     /// the cut - so one reference held two values: <c>MEAN(1E-8 and nineteen zeros)</c> is 5E-10 and
@@ -89,11 +89,11 @@ internal static class IntrinsicCarrierRules
     /// <c>IntrinsicRenderer.RenderNum</c> BEFORE the arithmetic-mode dispatch, and by <c>FunctionValueLane</c>.
     /// </summary>
     /// <remarks>
-    /// <para>⛔ THE SET IS THREE: TWO BY DEFINITION AND ONE BY THE IMPLEMENTOR'S DETERMINATION. NUMVAL §15.67.4 r1 and
-    /// NUMVAL-C §15.68.4 r1 are specifications "otherwise" in §15.4.1's closing conditional ("implementor-defined unless
+    /// <para>⛔ THE SET IS THREE: TWO BY DEFINITION AND ONE BY THE IMPLEMENTOR'S DETERMINATION. NUMVAL §2023:15.67.4 r1 and
+    /// NUMVAL-C §2023:15.68.4 r1 are specifications "otherwise" in §2023:15.4.1's closing conditional ("implementor-defined unless
     /// otherwise specified in the function definition"): "The returned value is the numeric value represented by
     /// argument-1", with no arithmetic-mode qualification, so the latitude is withdrawn. NUMVAL-F is the opposite
-    /// case: §15.69.4 r2 makes the native and standard-binary value "an approximation of the numeric value represented
+    /// case: §2023:15.69.4 r2 makes the native and standard-binary value "an approximation of the numeric value represented
     /// by argument-1" and r3 gives standard-decimal arithmetic the value itself, so the approximation is the
     /// implementor's to choose. WiseOwl COBOL chooses the one approximation that is also r3's value, the EXACT parse
     /// (owner, 2026-10-26, kb/Work PB3839: "We should always be consistent with ourself barring an explicit requirement
@@ -102,8 +102,8 @@ internal static class IntrinsicCarrierRules
     /// <para>The sweep that derived the first two members screened clause 15 for a "Returned value rules" clause that
     /// mentions NEITHER an arithmetic mode, NOR "implementor", NOR "approximation", NOR an equivalent arithmetic
     /// expression. Over clause 15 that yields 38 functions, and every one but NUMVAL and NUMVAL-C returns an INTEGER, a
-    /// STRING, or a selected argument's own content, shapes no fraction-digit working scale can damage. E (§15.27.3) and
-    /// PI (§15.73.3) return, under native arithmetic, "an implementor-defined approximation of the arithmetic expression" and SQRT (§15.84.4) the absolute value of an approximation, all of values with no finite decimal
+    /// STRING, or a selected argument's own content, shapes no fraction-digit working scale can damage. E (§2023:15.27.3) and
+    /// PI (§2023:15.73.3) return, under native arithmetic, "an implementor-defined approximation of the arithmetic expression" and SQRT (§2023:15.84.4) the absolute value of an approximation, all of values with no finite decimal
     /// spelling, which is why they keep the float lane; NUMVAL-F is the one approximating function whose exact value is
     /// a decimal its argument already spells. <c>IntrinsicRenderer.RenderDec</c> holds the SDIDI arms, so this predicate
     /// only decides WHEN that lane is taken, never what it does. If it ever returned <c>null</c> there the switch's
@@ -114,15 +114,15 @@ internal static class IntrinsicCarrierRules
     /// <summary>
     /// ⛔ IS A FUNCTION'S BINARY64 RETURNED VALUE AN ENGINE APPROXIMATION, OR A FLOAT ITEM'S CONTENT (kb/Work PB4622)? Asked
     /// by <c>FunctionValueLane.Of</c> (bind time) and <c>IntrinsicRenderer.RenderFloat</c> (the renderer) alike, so the two
-    /// cannot disagree. It is an APPROXIMATION exactly when the function is in the §15.4.1 floating-math family
+    /// cannot disagree. It is an APPROXIMATION exactly when the function is in the §2023:15.4.1 floating-math family
     /// (<paramref name="floatFamily"/>: SIN, SQRT, EXP, LOG, ...: no finite decimal spells its value, the implementor's
-    /// approximation is the whole of §15.4.1's native latitude), or when no binary64 argument is a float ITEM's content
+    /// approximation is the whole of §2023:15.4.1's native latitude), or when no binary64 argument is a float ITEM's content
     /// (<paramref name="anyFloatItemArgument"/>: every binary64 argument is itself an approximation, so the value of a
     /// value-preserving function of it is one too: ABS (FUNCTION EXP10 (-6)) stays 0.000001). Otherwise the value is
     /// derived from a float ITEM's exact binary64 by the function's own definition: MAX, MIN and an odd MEDIAN return "the
-    /// content of the argument" (§15.59.4 1), §15.63.4 1), §15.61.1), INTEGER the greatest integer not above it (§15.44.4
+    /// content of the argument" (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.61.1), INTEGER the greatest integer not above it (§2023:15.44.4
     /// 1)), and ABS, INTEGER-PART, FRACTION-PART, SIGN, REM, SUM, MEAN, RANGE and MIDRANGE have an equivalent arithmetic
-    /// expression (§15.4.1) that a float item's binary64 evaluates exactly or as the written-out expression itself does
+    /// expression (§2023:15.4.1) that a float item's binary64 evaluates exactly or as the written-out expression itself does
     /// (D16). It lands by its exact binary value, as <c>COMPUTE R = F</c> and <c>MOVE F</c> land the item.
     /// </summary>
     internal static bool Binary64ResultIsApproximation(bool floatFamily, bool anyFloatItemArgument) =>
@@ -131,7 +131,7 @@ internal static class IntrinsicCarrierRules
     /// <summary>
     /// ⛔ DOES A SELECTION LIST (MAX, MIN, ORD-MAX, ORD-MIN, an odd MEDIAN) NEED THE EXACT LANE TO DELIVER THE SELECTED ARGUMENT FROM ITS OWN
     /// CARRIER (kb/Work PB65 RV-15.59.4-1 D2, PB4622)? Asked by <c>IntrinsicRenderer.RenderNum</c> and <c>FunctionValueLane.Of</c> alike.
-    /// §15.59.4 1), §15.63.4 1) and §15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
+    /// §2023:15.59.4 1), §2023:15.63.4 1) and §2023:15.61.1 return "the content of the argument" selected, so the value is the selected argument's own:
     /// <list type="bullet">
     ///   <item>a list that mixes a binary64 with a fixed-point item (<paramref name="allBinary64"/> false), as the PB65 finding found;</item>
     ///   <item>a list whose binary64 arguments are of TWO KINDS (<paramref name="anyFloatItem"/> and <paramref name="anyApproximation"/>):
@@ -143,7 +143,7 @@ internal static class IntrinsicCarrierRules
     /// </list>
     /// A list of one kind of binary64 stays on the float lane: its content IS the double. So does an even-count MEDIAN of two kinds
     /// (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753): the mean of the two middle values is a NEW value, evaluated as its
-    /// equivalent expression is (§15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low. A MIXED
+    /// equivalent expression is (§2023:15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low. A MIXED
     /// even list keeps the exact lane because WHICH values are the middle pair is a run-time fact: its body
     /// (<c>CobolIntrinsics.MedianBinary64Exact</c>, kb/Work PB4859) forms the binary64 mean when a MIDDLE value is binary64 and the
     /// exact mean when both are fixed-point (a binary64 elsewhere in the list is not an operand of the mean).
@@ -153,7 +153,7 @@ internal static class IntrinsicCarrierRules
         anyBinary64 && (!allBinary64 || (!meanOfMiddlePair && anyFloatItem && anyApproximation));
 
     /// <summary>Is the value of the call of <paramref name="functionName"/> over <paramref name="arguments"/> the arithmetic MEAN of the two middle arguments and not a selected argument
-    /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§15.61.4 r2). A table(ALL) argument stands for as many
+    /// (kb/Work PB4753, PB4791)? True for MEDIAN over an even count of arguments (§2023:15.61.4 r2). A table(ALL) argument stands for as many
     /// arguments as its ranges hold (<see cref="TableAllPlace.StaticCount"/>, the product of a fixed OCCURS's counts), so a list of
     /// fixed tables has a bind-time count and a bind-time parity. A table(ALL) over an OCCURS DEPENDING or dynamic-capacity range has a
     /// RUN-TIME count (<see cref="MedianParityIsRunTime"/>): the parity is not a bind-time fact, so this answers false and the list is
@@ -171,8 +171,8 @@ internal static class IntrinsicCarrierRules
 
     /// <summary>Is the count of arguments of a MEDIAN a RUN-TIME fact (kb/Work PB4827)? True when an argument is a table(ALL) with no
     /// bind-time element count (<see cref="TableAllPlace.StaticCount"/> null: an OCCURS DEPENDING or dynamic-capacity range), whose
-    /// number of elements is "as if each table element associated with that subscript position were specified" (§15.3 14)) at the
-    /// time of the call. Whether the value is a selection (§15.61.4 1)) or the mean of the middle pair (§15.61.4 2)) is then decided
+    /// number of elements is "as if each table element associated with that subscript position were specified" (§2023:15.3 14)) at the
+    /// time of the call. Whether the value is a selection (§2023:15.61.4 1)) or the mean of the middle pair (§2023:15.61.4 2)) is then decided
     /// at run time, by the body, and not by the lane the binder or renderer picks.</summary>
     internal static bool MedianParityIsRunTime(string functionName, IReadOnlyList<BoundOperand> arguments) =>
         functionName == "MEDIAN"

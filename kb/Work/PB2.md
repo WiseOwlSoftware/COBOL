@@ -37,16 +37,16 @@ tags: [wiseowl-cobol, work, defect]
 > that never touched a float**. The real bodies therefore carry a `…Real` name, by a CONVENTION rather than a
 > table (`XxxScaled` → `XxxReal`, else a `Real` suffix — one string transform in `IntrinsicRenderer.RealMethod`).
 >
-> **AND THE DRIFT TEST FOUND A GAP THE PROBE MISSED**: `COMBINED-DATETIME`, whose argument-2 §15.6 types `Num2`
+> **AND THE DRIFT TEST FOUND A GAP THE PROBE MISSED**: `COMBINED-DATETIME`, whose argument-2 §2023:15.6 types `Num2`
 > and which may therefore legitimately be a float. Its body is `argument-1 + (argument-2 / 100000)` exactly as
-> §15.17.4 r1 writes it (the exact twin encodes the same expression as a scale shift, so the two agree by
+> §2023:15.17.4 r1 writes it (the exact twin encodes the same expression as a scale shift, so the two agree by
 > construction).
 >
 > **RESIDUE — the rows this did NOT fix, each still recorded PARTIAL:** `RV-15.75.4-1` RANDOM, whose defect is
-> the fixed-point RECEIVER path (`FromDouble(call, ws)` re-rounding a value §15.75.4 r1 already places in
+> the fixed-point RECEIVER path (`FromDouble(call, ws)` re-rounding a value §2023:15.75.4 r1 already places in
 > `[0,1)`), not the argument path; the standard-arithmetic legs `RV-15.73.3-2` / `-3` (PI under
 > standard-binary/standard-decimal) and `RV-15.74.4-1`; and the EC-ARGUMENT-FUNCTION **value** rules
-> (`AR-15.74.3-2`, `AR-15.75.3-2`, `AR-15.77.3-2`), which §15.3 makes a RUN-TIME condition and which this
+> (`AR-15.74.3-2`, `AR-15.75.3-2`, `AR-15.77.3-2`), which §2023:15.3 makes a RUN-TIME condition and which this
 > compile-time change deliberately does not touch.
 >
 > **GOLDEN:** `conformance:2023/pb2_float_argument_exact_family` — 17 lines, every expected value derived from
@@ -62,7 +62,7 @@ tags: [wiseowl-cobol, work, defect]
 > ALLOWS is not handled".
 >
 > The intrinsic result path is written for fixed-point operands. A float argument — legal for every one of these
-> functions, since §15.71.3 r1 and its siblings bar only boolean/message-tag/object/pointer/strongly-typed-group —
+> functions, since §2023:15.71.3 r1 and its siblings bar only boolean/message-tag/object/pointer/strongly-typed-group —
 > variously produces no value at all, a Roslyn `CS1503`, or a silent requantization. Reported instances span
 > ORD-MAX/ORD-MIN (`RenderNum`'s `OrdMax or OrdMin` arm calls the scale-aligning path), RANGE, REM, ABS with a
 > COMP-2 operand, and RANDOM's fixed-point RECEIVER leg (`FromDouble(call, ws)` re-rounds a value the spec says is

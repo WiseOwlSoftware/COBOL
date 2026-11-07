@@ -5,46 +5,46 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.51.4 6) — WRITE record-name-1 FROM SPACE: one alphanumeric space, moved to an alphanumeric and a national record
+      *> ISO §2023:14.9.51.4 6) — WRITE record-name-1 FROM SPACE: one alphanumeric space, moved to an alphanumeric and a national record
       *> THE RULE: "The figurative constant SPACE when specified in the
       *>   WRITE statement references one alphanumeric space character."
       *>   cite.py --check 14.9.51.4 "The figurative constant SPACE when
       *>     specified in the WRITE statement references one
-      *>     alphanumeric space character" -> OK §14.9.51.4 6)
+      *>     alphanumeric space character" -> OK §2023:14.9.51.4 6)
       *> The only place SPACE can appear in a WRITE is literal-1 of the
       *> FROM phrase, and with the FILE phrase a figurative constant is
       *> forbidden (cite.py --check 14.9.51.3 "literal-1 shall be an
       *> alphanumeric, boolean, or national literal and shall not be a
-      *> figurative constant" -> OK §14.9.51.3 7) b)), so the rule's
+      *> figurative constant" -> OK §2023:14.9.51.3 7) b)), so the rule's
       *> branch is exactly WRITE record-name-1 FROM SPACE, which GR5
       *> makes a MOVE:
       *>   cite.py --check 14.9.51.4 "The result of the execution of a
       *>     WRITE statement specifying record-name-1 and the FROM phrase
       *>     is equivalent to the execution of the following statements
-      *>     in the order specified" -> OK §14.9.51.4 5) (a) MOVE
+      *>     in the order specified" -> OK §2023:14.9.51.4 5) (a) MOVE
       *>     literal-1 TO record-name-1; b) the WRITE without FROM)
       *>   cite.py --check 14.9.51.3 "If record-name-1 is specified,
       *>     identifier-1 or literal-1 shall be valid as a sending
       *>     operand in a MOVE statement specifying record-name-1 as the
-      *>     receiving operand" -> OK §14.9.51.3 6)
+      *>     receiving operand" -> OK §2023:14.9.51.3 6)
       *>   cite.py --check 8.3.3.6.4 "the string of characters is
       *>     repeated character by character until the size of the
       *>     resultant string is greater than or equal to the number of
       *>     character positions in the associated data item"
-      *>     -> OK §8.3.3.6.4 2)
+      *>     -> OK §2023:8.3.3.6.4 2)
       *>   cite.py --check 9.1.13.2 "I-O status = 00. The input-output
       *>     statement is successfully executed and no further
       *>     information is available concerning the input-output
-      *>     operation" -> OK §9.1.13.2 1)
+      *>     operation" -> OK §2023:9.1.13.2 1)
       *>   cite.py --check 14.9.25.4 "The category of figurative
       *>     constants when used in the MOVE statement depends on the
-      *>     category of the receiving operand" -> OK §14.9.25.4 7)
+      *>     category of the receiving operand" -> OK §2023:14.9.25.4 7)
       *>   cite.py --check 14.9.25.4 "Any necessary conversion from
       *>     alphanumeric character to national character representation
       *>     shall be performed, before any alignment" -> OK 14.9.25.4 6)
       *>   cite.py --check 14.9.25.4 "alignment and any necessary space
       *>     filling shall take place as defined in 14.6.8"
-      *>     -> OK §14.9.25.4 6) a)
+      *>     -> OK §2023:14.9.25.4 6) a)
       *> TWO RECORDS, TWO CATEGORIES. R1 is an alphanumeric group, so the
       *> one alphanumeric space fills all 8 positions (8.3.3.6.4 2)).
       *> NR is PIC N(4): GR6 overrides MOVE's Table 17 (which would make

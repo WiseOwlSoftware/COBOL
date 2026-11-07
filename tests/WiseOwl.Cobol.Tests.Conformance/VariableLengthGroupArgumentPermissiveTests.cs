@@ -5,13 +5,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB3424 — the <c>--permissive</c> lane for a VARIABLE-LENGTH GROUP (ISO §8.5.1.12.1: a group with a
+/// kb/Work PB3424 — the <c>--permissive</c> lane for a VARIABLE-LENGTH GROUP (ISO §2023:8.5.1.12.1: a group with a
 /// dynamic-length elementary item or dynamic-capacity table subordinate) where a character or numeric operand is
 /// wanted: a FUNCTION string argument and a group in a numeric position (a numeric-argument function, an arithmetic
 /// operand).
 /// <para>
-/// Strict conformance refuses both (§15.3 "A variable-length group shall be referenced as an argument to a function
-/// only when explicitly permitted in the function definition" — only LENGTH and BYTE-LENGTH are; §8.8.1.1 for the
+/// Strict conformance refuses both (§2023:15.3 "A variable-length group shall be referenced as an argument to a function
+/// only when explicitly permitted in the function definition" — only LENGTH and BYTE-LENGTH are; §2023:8.8.1.1 for the
 /// arithmetic operand), and <c>--permissive</c> accepts them with a warning "with the existing coercion". The coercion
 /// the compiler chose used to compile clean and abort at run time with the Tier-C island
 /// (<c>NotImplementedCobolFeatureException</c>): the group's character image was the one DISPLAY already shows
@@ -24,8 +24,8 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 {
     /// <summary>Four groups: a FIXED group (the control, an ordinary alphanumeric argument), a scalar variable-length
     /// group (one dynamic-length member), one holding an OCCURS DEPENDING table beside a dynamic-length member (the
-    /// table at its CURRENT count, §13.18.38.4 GR8), and one holding a dynamic-capacity table (every occurrence at
-    /// its current capacity, §8.5.1.9.1).</summary>
+    /// table at its CURRENT count, §2023:13.18.38.4 GR8), and one holding a dynamic-capacity table (every occurrence at
+    /// its current capacity, §2023:8.5.1.9.1).</summary>
     private const string StringProgram = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3424STR.
@@ -76,7 +76,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
        """;
 
     /// <summary>The numeric position: a numeric-argument function (ABS), a string-argument function with a numeric
-    /// result (NUMVAL), and the two arithmetic verbs that decode a group operand's digit characters (§8.8.1.1 bars the
+    /// result (NUMVAL), and the two arithmetic verbs that decode a group operand's digit characters (§2023:8.8.1.1 bars the
     /// operand; COBOL0844 is the warning).</summary>
     private const string NumericProgram = """
        IDENTIFICATION DIVISION.
@@ -180,7 +180,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
        END CLASS PB3424D.
        """;
 
-    /// <summary>The CONVERT ANY-source argument (the raw-storage channel, §15.19.3) over a FIXED control group and a
+    /// <summary>The CONVERT ANY-source argument (the raw-storage channel, §2023:15.19.3) over a FIXED control group and a
     /// variable-length one: the storage image of the variable-length group is its current-extent image too.</summary>
     private const string ConvertProgram = """
        IDENTIFICATION DIVISION.
@@ -233,7 +233,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 
     private static string[] Lines(string stdout) => stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
 
-    /// <summary>Strict conformance refuses the argument (§15.3) and the arithmetic operand (§8.8.1.1); the refusal
+    /// <summary>Strict conformance refuses the argument (§2023:15.3) and the arithmetic operand (§2023:8.8.1.1); the refusal
     /// is what makes the permissive coercion an extension.</summary>
     [Theory]
     [InlineData(nameof(StringProgram), "COBOL1627")]
@@ -344,7 +344,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
             Lines(stdout));
     }
 
-    /// <summary>The CONVERT ANY source takes the group's bits (§15.19.3 rule 7: argument-1 of any usage; §15.19.4 rule 2: the digits of the bits of argument-1), and the current-extent image IS
+    /// <summary>The CONVERT ANY source takes the group's bits (§2023:15.19.3 rule 7: argument-1 of any usage; §2023:15.19.4 rule 2: the digits of the bits of argument-1), and the current-extent image IS
     /// the storage (kb/Work PB3441). A FIXED national member is composed as its UTF-16BE byte pairs (D-N1), so the group
     /// "ab" + N"cd" + COMP 258 is 61 62 | 00 63 00 64 | 01 02 (hand-derived: a=61 b=62 c=63 d=64, 258 = 0x0102); the
     /// dynamic-length item beside it is one byte a character.</summary>
@@ -366,7 +366,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 
     /// <summary>A DYNAMIC-LENGTH NATIONAL member (and a dynamic-capacity table of national elements) rides the current-extent
     /// image as the UTF-16BE bytes its positions occupy, exactly as a fixed national member does (CONFORMANCE.md A.1 items
-    /// 57 and 63; kb/Work PB3441), so the image is the group's storage and CONVERT ANY reads it (§15.19.3 rule 7; §15.19.4 rule 2).
+    /// 57 and 63; kb/Work PB3441), so the image is the group's storage and CONVERT ANY reads it (§2023:15.19.3 rule 7; §2023:15.19.4 rule 2).
     /// Hand-derived: x=0x78 y=0x79 '0'=0x30 '6'=0x36, a position is two bytes high-order first (D-N1).</summary>
     [Theory]
     [InlineData("""

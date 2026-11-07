@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE CONTENT-ADDRESSED COMPILED-PROGRAM CACHE of the Conformance runner (kb/Work PB985;
-/// <c>docs/rearchitecture/DESIGN-test-build-ci.md</c> §3.12). EVERY compilation this assembly performs goes through
+/// <c>docs/rearchitecture/DESIGN-test-build-ci.md</c> §2023:3.12). EVERY compilation this assembly performs goes through
 /// <see cref="Compile"/> (<c>CompiledProgramCacheDriftTests</c> forbids a direct <c>CompilerDriver.Compile</c>
 /// anywhere else in it), so a re-gate after a TEST-ONLY fix — a probe template, a stale test-ref, a pinned
 /// expectation — reuses every compiled program instead of recompiling ~7,900 of them. A hit still RUNS the program:
@@ -317,7 +317,7 @@ internal static class CompiledProgramCache
     // ───────────────────────────── the store ─────────────────────────────
 
     /// <summary>A stored compilation. <paramref name="CompileOutput"/> is what the compilation itself transferred
-    /// (the DISPLAY directive's lines, ISO §7.3.12.4 1)): part of the result, so a hit replays it. <paramref name="Library"/>
+    /// (the DISPLAY directive's lines, ISO §2023:7.3.12.4 1)): part of the result, so a hit replays it. <paramref name="Library"/>
     /// is the result's <see cref="CompilerDriver.Result.Library"/>.</summary>
     private sealed record Entry(int Format, string Status, List<string> Errors, List<string> Warnings,
         string? GeneratedSource, List<StoredFile> Files, List<ReadInput> Reads, List<InputProbe> Probes,
@@ -356,7 +356,7 @@ internal static class CompiledProgramCache
 
             string outDir = options.OutputDirectory()!;
             // --repository-check compares the group with the PREVIOUS BUILD at the output path (DESIGN-external-repository
-            // §9.2 (a)), and a compilation that read one is never stored (CompilationInputs.ReadsRepository). A stored entry
+            // §2023:9.2 (a)), and a compilation that read one is never stored (CompilationInputs.ReadsRepository). A stored entry
             // therefore replays only where a cold compile would find nothing to report: no previous build, or one that IS this
             // entry's output byte for byte.
             string previous = options.OutputDll();

@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>tests/version-matrix/annex-a2-undefined.json</c> is the mechanical half of §1.1's derivation evidence kind
 /// (owner decision <c>kb/Work/PB386</c>, 2026-09-03): an inventory row may close on "A.2 item <c>n</c>" only if
 /// item <c>n</c>'s OWN citation in the standard resolves to that row. The resolution is generated rather than
-/// parsed twice — see <c>DESIGN-spec-conformance-review.md</c> §8.2 — and a generated artifact that nothing
+/// parsed twice — see <c>DESIGN-spec-conformance-review.md</c> §2023:8.2 — and a generated artifact that nothing
 /// re-derives is a snapshot of what the spec said the day someone ran a script.
 /// </para>
 /// <para>

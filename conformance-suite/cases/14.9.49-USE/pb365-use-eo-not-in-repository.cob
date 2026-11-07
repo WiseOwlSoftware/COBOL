@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.49.3 SR16: "Object-class-name-1 shall be the name of a class specified in the REPOSITORY
-*> paragraph."  ISO §8.4.6.4 is the general rule it instantiates: "The object-class-name of an object class
+*> ISO §2023:14.9.49.3 SR16: "Object-class-name-1 shall be the name of a class specified in the REPOSITORY
+*> paragraph."  ISO §2023:8.4.6.4 is the general rule it instantiates: "The object-class-name of an object class
 *> referenced within a source element shall be either the name of the containing object class definition or
 *> declared in the REPOSITORY paragraph of that or a containing source element."
 *>

@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 
 /// <summary>
 /// The assembly-level record every compiled COBOL module carries (docs/rearchitecture/DESIGN-external-repository.md
-/// §6.2; kb/Work PB2097): the versions it was compiled against and the registrar that registers its programs into a
+/// §2023:6.2; kb/Work PB2097): the versions it was compiled against and the registrar that registers its programs into a
 /// run unit. The run-time probe reads it to find the module's one registration member,
 /// <c>__CobolModule.EnsureRegistered()</c>, without guessing a type name, and refuses a module whose versions differ
 /// from the running runtime's (<see cref="RuntimeAbi.Skew"/>).
@@ -36,23 +36,23 @@ public sealed class CobolRepositoryAttribute(int schemaVersion, string runtimeVe
     public int CallAbi { get; } = callAbi;
 
     /// <summary>The full CLR name of the module's registrar type (<c>Cobol.&lt;S&gt;.__CobolModule</c>), whose public
-    /// static <c>EnsureRegistered()</c> registers the module's programs into the current run unit (§4.5, §11.2).</summary>
+    /// static <c>EnsureRegistered()</c> registers the module's programs into the current run unit (§2023:4.5, §2023:11.2).</summary>
     public string? Registrar { get; set; }
 
-    /// <summary>The version of the compiler that wrote the module. Named in diagnostics, never compared (§5.4 item 2).</summary>
+    /// <summary>The version of the compiler that wrote the module. Named in diagnostics, never compared (§2023:5.4 item 2).</summary>
     public string? CompilerVersion { get; set; }
 
     /// <summary>The ISO edition the module was compiled for (85, 2002, 2014 or 2023); 0 when the record does not say.
-    /// Named in diagnostics, never compared (§5.4 item 2).</summary>
+    /// Named in diagnostics, never compared (§2023:5.4 item 2).</summary>
     public int Edition { get; set; }
 
-    /// <summary>Whether the module carries the signature attributes a later compilation binds against (§7.1): true only
+    /// <summary>Whether the module carries the signature attributes a later compilation binds against (§2023:7.1): true only
     /// for a build with <c>--repository-update on</c>. A module without them still runs and is locatable by name through
     /// <see cref="Units"/>; no later compilation can bind against it (REPO-8).</summary>
     public bool HasSignatures { get; set; }
 
-    /// <summary>The index of every unit the assembly publishes, one element per unit in the record order of §6.5, each
-    /// <c>&lt;kind&gt;:&lt;externalized name&gt;:&lt;word&gt;</c> (§5.4 item 3; <see cref="RepositoryIndex.EncodeUnit"/> writes it and
+    /// <summary>The index of every unit the assembly publishes, one element per unit in the record order of §2023:6.5, each
+    /// <c>&lt;kind&gt;:&lt;externalized name&gt;:&lt;word&gt;</c> (§2023:5.4 item 3; <see cref="RepositoryIndex.EncodeUnit"/> writes it and
     /// <see cref="RepositoryIndex.TryDecodeUnit"/> reads it, the one definition of the encoding). A null array is an index
     /// that lists nothing.</summary>
     public string[]? Units { get; set; }

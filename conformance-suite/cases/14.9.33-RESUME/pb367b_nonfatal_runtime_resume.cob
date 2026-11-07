@@ -37,7 +37,7 @@
       >>TURN EC-RANGE-INVALID CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB367BNFR.
-      *> INV-RANGE is ordered IN a LOCALE alphabet: §13.18.63.3 SR26 refuses an inverted range whose runtime
+      *> INV-RANGE is ordered IN a LOCALE alphabet: §2023:13.18.63.3 SR26 refuses an inverted range whose runtime
       *> collating sequence is known (COBOL2961, kb/Work PB552), and a locale's is not.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.

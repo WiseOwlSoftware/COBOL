@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.10 2) — overlapping operands described by the same
+      *> ISO §2023:14.6.10 2) — overlapping operands described by the same
       *> data description entry give the no-sharing result.
       *> Rule: "When the data items are described by the same data
       *> description entry, the result of the statement is the same as
       *> if the data items shared no part of their respective storage
       *> areas."
-      *> cite.py: OK  §14.6.10 2)  (Overlapping operands)
-      *> cite.py: OK  §14.9.2.4 1)  (General rules) ADD format 1: "the
+      *> cite.py: OK  §2023:14.6.10 2)  (Overlapping operands)
+      *> cite.py: OK  §2023:14.9.2.4 1)  (General rules) ADD format 1: "the
       *>          sum of such operands. The sum of the initial
       *>            evaluation
       *>          and the value of the data item referenced by

@@ -148,7 +148,7 @@ and `CobolErrorListener._errorCount` accumulate. `ConditionalCompilationProcesso
 `ZeroTokenRewriter` are pure/static over their inputs. No global mutable state.
 
 **Ungated cross-edition surface.** `ConditionalCompilationProcessor` implements a COBOL-2002 feature
-(`>>DEFINE/IF`, ISO §7.3) but takes no `dialectLevel` and emits no diagnostic when used below 2002
+(`>>DEFINE/IF`, ISO §2023:7.3) but takes no `dialectLevel` and emits no diagnostic when used below 2002
 (`Process :45`) — an edition-gating hole in the preprocessor (the four-editions invariant is not
 enforced for CC directives). `TurnDirectiveProcessor` *does* gate (`:48-55`), so the two CC stages
 are inconsistent.

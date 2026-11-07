@@ -7,8 +7,8 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The file control entry's key syntax rules, screened AT THE ENTRY (ISO/IEC 1989:2023 §12.4.5.1 Format 1 ·
-/// §12.4.5.2 SR10 · §12.4.5.6.3 · §12.4.5.12.3 · §12.4.5.13.3; kb/Work PB699).
+/// The file control entry's key syntax rules, screened AT THE ENTRY (ISO/IEC 1989:2023 §2023:12.4.5.1 Format 1 ·
+/// §2023:12.4.5.2 SR10 · §2023:12.4.5.6.3 · §2023:12.4.5.12.3 · §2023:12.4.5.13.3; kb/Work PB699).
 /// <para>⛔ THE DISCRIMINATOR THESE TESTS EXIST FOR is the one the negative corpus cannot state on its own: the
 /// SAME entry, once with a keyed verb and once with nothing but OPEN and CLOSE, has to produce the SAME
 /// diagnostics. The rules used to be screened by <c>KeyedIoBinder.KeyedValidateFile</c> on the first keyed verb
@@ -101,43 +101,43 @@ public sealed class FileControlKeyRuleSpecTests
     {
         var d = new TheoryData<string, string, string>();
 
-        // §12.4.5.12.3 SR1 — the prime key under OCCURS.
-        d.Add("ix-record-key-occurs", "§12.4.5.12.3 SR1", "        RECORD KEY IS F-KEY.|"
+        // §2023:12.4.5.12.3 SR1 — the prime key under OCCURS.
+        d.Add("ix-record-key-occurs", "§2023:12.4.5.12.3 SR1", "        RECORD KEY IS F-KEY.|"
             + "01 F-REC.\n   05 F-KG.\n      10 F-KEY PIC X(3) OCCURS 2 TIMES.\n   05 F-D PIC X(4).|");
-        // §12.4.5.6.3 SR1 — an alternate key under OCCURS, the prime key legal.
-        d.Add("ix-alternate-key-occurs", "§12.4.5.6.3 SR1",
+        // §2023:12.4.5.6.3 SR1 — an alternate key under OCCURS, the prime key legal.
+        d.Add("ix-alternate-key-occurs", "§2023:12.4.5.6.3 SR1",
             "        RECORD KEY IS F-KEY\n        ALTERNATE RECORD KEY IS F-ALT.|"
             + "01 F-REC.\n   05 F-KEY PIC X(3).\n   05 F-AG.\n      10 F-ALT PIC X(2) OCCURS 2 TIMES.|");
-        // §12.4.5.12.3 SR2 — the prime key names an item outside the file's records.
-        d.Add("ix-record-key-outside-record", "§12.4.5.12.3 SR2", "        RECORD KEY IS W-OUT.|"
+        // §2023:12.4.5.12.3 SR2 — the prime key names an item outside the file's records.
+        d.Add("ix-record-key-outside-record", "§2023:12.4.5.12.3 SR2", "        RECORD KEY IS W-OUT.|"
             + "01 F-REC.\n   05 F-KEY PIC X(3).|WORKING-STORAGE SECTION.\n01 W-OUT PIC X(3).");
-        // §12.4.5.6.3 SR2 — an alternate key names an item outside the file's records (silently dropped before).
-        d.Add("ix-alternate-key-outside-record", "§12.4.5.6.3 SR2",
+        // §2023:12.4.5.6.3 SR2 — an alternate key names an item outside the file's records (silently dropped before).
+        d.Add("ix-alternate-key-outside-record", "§2023:12.4.5.6.3 SR2",
             "        RECORD KEY IS F-KEY\n        ALTERNATE RECORD KEY IS W-OUT.|"
             + "01 F-REC.\n   05 F-KEY PIC X(3).|WORKING-STORAGE SECTION.\n01 W-OUT PIC X(3).");
-        // §12.4.5.1 Format 1 — the RECORD KEY clause is unbracketed, so it is required for an indexed file.
-        d.Add("ix-no-record-key", "ISO §12.4.5.1 Format 1", "        .|01 F-REC.\n   05 F-KEY PIC X(3).|");
-        // §12.4.5.12.3 SR2's CATEGORY arm — the prime key is inside the record (so the location arm is
+        // §2023:12.4.5.1 Format 1 — the RECORD KEY clause is unbracketed, so it is required for an indexed file.
+        d.Add("ix-no-record-key", "ISO §2023:12.4.5.1 Format 1", "        .|01 F-REC.\n   05 F-KEY PIC X(3).|");
+        // §2023:12.4.5.12.3 SR2's CATEGORY arm — the prime key is inside the record (so the location arm is
         // satisfied) but is category NUMERIC (kb/Work PB743). The two arms share a rule-id, so a case that
         // satisfied only one of them could not tell them apart; this one satisfies the location arm exactly.
         d.Add("ix-record-key-numeric", "category alphanumeric or category national", "        RECORD KEY IS F-KEY.|"
             + "01 F-REC.\n   05 F-KEY PIC 9(3).\n   05 F-D PIC X(4).|");
-        // §12.4.5.6.3 SR2's CATEGORY arm, with a LEGAL prime key beside it so the count of 1 is the alternate's.
+        // §2023:12.4.5.6.3 SR2's CATEGORY arm, with a LEGAL prime key beside it so the count of 1 is the alternate's.
         d.Add("ix-alternate-key-numeric", "category alphanumeric or national",
             "        RECORD KEY IS F-KEY\n        ALTERNATE RECORD KEY IS F-ALT.|"
             + "01 F-REC.\n   05 F-KEY PIC X(3).\n   05 F-ALT PIC 9(2).|");
-        // §12.4.5.12.3 SR3 / §12.4.5.6.3 SR3 — a key that is a dynamic-length elementary item (kb/Work PB1073). The
+        // §2023:12.4.5.12.3 SR3 / §2023:12.4.5.6.3 SR3 — a key that is a dynamic-length elementary item (kb/Work PB1073). The
         // alternate key is the LAST item, so the minimum-record-size rule has nothing to add and SR3 is the only
         // rule this entry breaks.
-        d.Add("ix-record-key-dynamic-length", "§12.4.5.12.3 SR3", "        RECORD KEY IS F-KEY.|"
+        d.Add("ix-record-key-dynamic-length", "§2023:12.4.5.12.3 SR3", "        RECORD KEY IS F-KEY.|"
             + "01 F-REC.\n   05 F-KEY PIC X DYNAMIC LENGTH.\n   05 F-D PIC X(4).|");
-        d.Add("ix-alternate-key-dynamic-length", "§12.4.5.6.3 SR3",
+        d.Add("ix-alternate-key-dynamic-length", "§2023:12.4.5.6.3 SR3",
             "        RECORD KEY IS F-KEY\n        ALTERNATE RECORD KEY IS F-ALT.|"
             + "01 F-REC.\n   05 F-KEY PIC X(3).\n   05 F-D PIC X(2).\n   05 F-ALT PIC X DYNAMIC LENGTH.|");
         return d;
     }
 
-    /// <summary>A file control entry whose ORGANIZATION is written by the caller — the axis §12.4.5.2 SR8 and
+    /// <summary>A file control entry whose ORGANIZATION is written by the caller — the axis §2023:12.4.5.2 SR8 and
     /// SR9 are stated on, and the one every other template here holds fixed.</summary>
     private static string Organized(string organization, string clauses, string record, string working, string body) => $"""
         IDENTIFICATION DIVISION.
@@ -156,9 +156,9 @@ public sealed class FileControlKeyRuleSpecTests
         {body}
         """;
 
-    /// <summary>⛔ §12.4.5.2 SR8 / SR9, SENTENCE 1 — <i>"Format 1 shall be specified only for an indexed
+    /// <summary>⛔ §2023:12.4.5.2 SR8 / SR9, SENTENCE 1 — <i>"Format 1 shall be specified only for an indexed
     /// file"</i> / <i>"Format 2 shall be specified only for a relative file"</i>, over EVERY organization the
-    /// clause is illegal on, INCLUDING the omitted ORGANIZATION clause that §12.4.5.10.3 GR6 makes record
+    /// clause is illegal on, INCLUDING the omitted ORGANIZATION clause that §2023:12.4.5.10.3 GR6 makes record
     /// sequential — the shape the defect was actually reported on (kb/Work PB742).
     /// <para>⚠ THE AXIS IS FLIPPED DELIBERATELY. Every other test in this file holds the organization at INDEXED
     /// or RELATIVE and varies the operand; this one holds the CLAUSE fixed and varies the organization, which is
@@ -167,19 +167,19 @@ public sealed class FileControlKeyRuleSpecTests
     [Theory]
     // The Format-1 key clauses, on each organization that is not indexed. The "" organization is the ABSENT
     // ORGANIZATION clause — the GR6 default, and the reason the message names the omission.
-    [InlineData("", "        RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
-    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
-    [InlineData("        ORGANIZATION IS LINE SEQUENTIAL", "        RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
-    [InlineData("        ORGANIZATION IS RELATIVE", "        RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
-    [InlineData("", "        ALTERNATE RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
-    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        ALTERNATE RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", true)]
+    [InlineData("", "        RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
+    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
+    [InlineData("        ORGANIZATION IS LINE SEQUENTIAL", "        RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
+    [InlineData("        ORGANIZATION IS RELATIVE", "        RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
+    [InlineData("", "        ALTERNATE RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
+    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        ALTERNATE RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", true)]
     // …and the boundary: on an INDEXED file the very same clause is the format's own required member.
-    [InlineData("        ORGANIZATION IS INDEXED", "        RECORD KEY IS F-KEY.", "§12.4.5.2 SR8", false)]
+    [InlineData("        ORGANIZATION IS INDEXED", "        RECORD KEY IS F-KEY.", "§2023:12.4.5.2 SR8", false)]
     // The Format-2 key clause, on each organization that is not relative, and its own boundary.
-    [InlineData("", "        RELATIVE KEY IS W-RK.", "§12.4.5.2 SR9", true)]
-    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        RELATIVE KEY IS W-RK.", "§12.4.5.2 SR9", true)]
-    [InlineData("        ORGANIZATION IS LINE SEQUENTIAL", "        RELATIVE KEY IS W-RK.", "§12.4.5.2 SR9", true)]
-    [InlineData("        ORGANIZATION IS RELATIVE", "        RELATIVE KEY IS W-RK.", "§12.4.5.2 SR9", false)]
+    [InlineData("", "        RELATIVE KEY IS W-RK.", "§2023:12.4.5.2 SR9", true)]
+    [InlineData("        ORGANIZATION IS SEQUENTIAL", "        RELATIVE KEY IS W-RK.", "§2023:12.4.5.2 SR9", true)]
+    [InlineData("        ORGANIZATION IS LINE SEQUENTIAL", "        RELATIVE KEY IS W-RK.", "§2023:12.4.5.2 SR9", true)]
+    [InlineData("        ORGANIZATION IS RELATIVE", "        RELATIVE KEY IS W-RK.", "§2023:12.4.5.2 SR9", false)]
     public void AKeyClauseOutsideItsFormat_IsRefusedAtEveryEdition(
         string organization, string clauses, string citation, bool expectRefusal)
     {
@@ -205,9 +205,9 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             int entryOnly = Diagnostics(Organized("", "        RECORD KEY IS F-KEY.", record, "", EntryOnlyBody), edition)
-                .Count(e => e.Contains("§12.4.5.2 SR8", StringComparison.Ordinal));
+                .Count(e => e.Contains("§2023:12.4.5.2 SR8", StringComparison.Ordinal));
             int withVerb = Diagnostics(Organized("", "        RECORD KEY IS F-KEY.", record, "", WithKeyedVerbBody), edition)
-                .Count(e => e.Contains("§12.4.5.2 SR8", StringComparison.Ordinal));
+                .Count(e => e.Contains("§2023:12.4.5.2 SR8", StringComparison.Ordinal));
             Assert.Equal(1, entryOnly);
             Assert.Equal(1, withVerb);
         }
@@ -231,9 +231,9 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>§12.4.5.2 SR10 — <i>"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of
+    /// <summary>§2023:12.4.5.2 SR10 — <i>"The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of
     /// the ACCESS clause is specified."</i> ⚠ THE CITATION IS THE ASSERTION: this rejection used to cite
-    /// §12.4.5.13, which has no syntax rules at all, and §12.4.5.1 Format 2 BRACKETS the RELATIVE KEY clause, so
+    /// §2023:12.4.5.13, which has no syntax rules at all, and §2023:12.4.5.1 Format 2 BRACKETS the RELATIVE KEY clause, so
     /// neither the clause nor the format requires it — SR10 is the one sentence that does.</summary>
     [Theory]
     [InlineData("RANDOM")]
@@ -243,12 +243,12 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             var entryOnly = Diagnostics(Relative(access, "        .", "01 F-REC PIC X(8).", "", EntryOnlyBody), edition);
-            Assert.Contains(entryOnly, e => e.Contains("§12.4.5.2 SR10", StringComparison.Ordinal));
-            Assert.DoesNotContain(entryOnly, e => e.Contains("§12.4.5.13 —", StringComparison.Ordinal));
+            Assert.Contains(entryOnly, e => e.Contains("§2023:12.4.5.2 SR10", StringComparison.Ordinal));
+            Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 —", StringComparison.Ordinal));
         }
     }
 
-    /// <summary>ACCESS SEQUENTIAL does NOT require the clause: §12.4.5.2 SR10 names only DYNAMIC and RANDOM, and
+    /// <summary>ACCESS SEQUENTIAL does NOT require the clause: §2023:12.4.5.2 SR10 names only DYNAMIC and RANDOM, and
     /// the Format 2 diagram brackets it. The rule's own boundary, measured — not merely the violation.</summary>
     [Fact]
     public void RelativeKeyOmitted_UnderAccessSequential_IsLegal()
@@ -260,13 +260,13 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>§12.4.5.13.3's three syntax rules, each on an entry-only program: SR1 (OCCURS), SR2 (an unsigned
+    /// <summary>§2023:12.4.5.13.3's three syntax rules, each on an entry-only program: SR1 (OCCURS), SR2 (an unsigned
     /// integer without 'P'), SR3 (not defined in a record description entry subordinate to the file-name).
-    /// SR2 and SR3 were cited as "§12.4.5.13 SR2/SR3" before PB699 — a clause that carries no syntax rules.</summary>
+    /// SR2 and SR3 were cited as "§2023:12.4.5.13 SR2/SR3" before PB699 — a clause that carries no syntax rules.</summary>
     [Theory]
-    [InlineData("§12.4.5.13.3 SR1", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-T.\n   05 W-RK PIC 9(4) OCCURS 3 TIMES.")]
-    [InlineData("§12.4.5.13.3 SR2", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-RK PIC S9(4).")]
-    [InlineData("§12.4.5.13.3 SR3", "01 F-REC.\n   05 W-RK PIC 9(4).\n   05 F-D PIC X(4).", "")]
+    [InlineData("§2023:12.4.5.13.3 SR1", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-T.\n   05 W-RK PIC 9(4) OCCURS 3 TIMES.")]
+    [InlineData("§2023:12.4.5.13.3 SR2", "01 F-REC PIC X(8).", "WORKING-STORAGE SECTION.\n01 W-RK PIC S9(4).")]
+    [InlineData("§2023:12.4.5.13.3 SR3", "01 F-REC.\n   05 W-RK PIC 9(4).\n   05 F-D PIC X(4).", "")]
     public void RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition(string citation, string record, string working)
     {
         foreach (int edition in AllEditions)
@@ -274,13 +274,13 @@ public sealed class FileControlKeyRuleSpecTests
             var entryOnly = Diagnostics(
                 Relative("DYNAMIC", "        RELATIVE KEY IS W-RK.", record, working, EntryOnlyBody), edition);
             Assert.Contains(entryOnly, e => e.Contains(citation, StringComparison.Ordinal));
-            Assert.DoesNotContain(entryOnly, e => e.Contains("§12.4.5.13 SR", StringComparison.Ordinal));
+            Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 SR", StringComparison.Ordinal));
         }
     }
 
-    /// <summary>THE OVER-REJECTION GUARD. A legal indexed entry — a GROUP prime key (§13.18.29.4 GR3 makes a
-    /// group with no GROUP-USAGE clause an alphanumeric group item, which §12.4.5.12.3 SR2 admits), reached
-    /// through an IN qualifier (§8.4.2.2), plus an alternate key WITH DUPLICATES — draws no key diagnostic at
+    /// <summary>THE OVER-REJECTION GUARD. A legal indexed entry — a GROUP prime key (§2023:13.18.29.4 GR3 makes a
+    /// group with no GROUP-USAGE clause an alphanumeric group item, which §2023:12.4.5.12.3 SR2 admits), reached
+    /// through an IN qualifier (§2023:8.4.2.2), plus an alternate key WITH DUPLICATES — draws no key diagnostic at
     /// any edition. The screen's within-a-record test walks to the 01 root, and a qualified reference has to
     /// survive it.</summary>
     [Fact]
@@ -294,7 +294,7 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.DoesNotContain(Diagnostics(source, edition), e => e.Contains("COBOL0863", StringComparison.Ordinal));
     }
 
-    /// <summary>A sort-merge entry, whose SELECT is the caller's — §12.4.5.1 Format 4 admits ASSIGN and an
+    /// <summary>A sort-merge entry, whose SELECT is the caller's — §2023:12.4.5.1 Format 4 admits ASSIGN and an
     /// optional <c>[ ORGANIZATION IS ] SEQUENTIAL</c> and nothing else.</summary>
     private static string SortMerge(string clauses) => $"""
         IDENTIFICATION DIVISION.
@@ -318,7 +318,7 @@ public sealed class FileControlKeyRuleSpecTests
             STOP RUN.
         """;
 
-    /// <summary>⛔ §12.4.5.2 SR8 / SR9, SENTENCE 2 — <i>"The associated file description entry shall not be a
+    /// <summary>⛔ §2023:12.4.5.2 SR8 / SR9, SENTENCE 2 — <i>"The associated file description entry shall not be a
     /// sort-merge file description entry"</i>, printed verbatim in both rules (COBOL1900, kb/Work PB742).
     /// <para>The entry may specify its format by a key clause OR by the ORGANIZATION clause ALONE, and the
     /// ORGANIZATION-only rows are the ones no per-key-clause screen could ever reach — they are why the table has
@@ -342,7 +342,7 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>⛔ ISO §12.4.5.1 PRINTS THE ASSIGN CLAUSE WITH NO BRACKET IN ALL FOUR FORMATS, so a SELECT entry of any
+    /// <summary>⛔ ISO §2023:12.4.5.1 PRINTS THE ASSIGN CLAUSE WITH NO BRACKET IN ALL FOUR FORMATS, so a SELECT entry of any
     /// kind that omits it is refused at every edition (COBOL5701, kb/Work PB4236). The entry used to compile and
     /// run, bound to an invented <c>&lt;file-name&gt;.txt</c>. One row per kind of file — Format 3 twice, because
     /// the record-sequential and LINE SEQUENTIAL organizations are two kinds of one format — and every row but one
@@ -387,7 +387,7 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.All(hits, hit =>
             {
                 Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
-                Assert.Contains("ISO §12.4.5.1", hit, StringComparison.Ordinal);
+                Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
             });
         }
     }
@@ -407,8 +407,8 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>⛔ §12.4.5.2 SR11 SENTENCE 2 AND SR13 — every clause a sort-merge file's entry writes beyond
-    /// §12.4.5.1 Format 4 (SELECT, ASSIGN, <c>[ [ ORGANIZATION IS ] SEQUENTIAL ]</c>) is refused by exactly ONE
+    /// <summary>⛔ §2023:12.4.5.2 SR11 SENTENCE 2 AND SR13 — every clause a sort-merge file's entry writes beyond
+    /// §2023:12.4.5.1 Format 4 (SELECT, ASSIGN, <c>[ [ ORGANIZATION IS ] SEQUENTIAL ]</c>) is refused by exactly ONE
     /// row, under the rule that fits it (COBOL1900, kb/Work PB773): a clause only Format 3 prints names that
     /// format (SR11), one that several formats print names none (SR13). The minimum edition is where the clause
     /// itself exists, because an edition error for the clause would otherwise be what the case measures.</summary>
@@ -416,7 +416,7 @@ public sealed class FileControlKeyRuleSpecTests
     [InlineData("        FILE STATUS IS F-FS.", "SR13", 85)]
     [InlineData("        ACCESS MODE IS SEQUENTIAL.", "SR13", 85)]
     [InlineData("        RESERVE 2 AREAS.", "SR13", 85)]
-    [InlineData("        ACCESS MODE IS RANDOM.", "SR13", 85)]   // also a §12.4.5.5.2 SR2 error: two rules, two sentences
+    [InlineData("        ACCESS MODE IS RANDOM.", "SR13", 85)]   // also a §2023:12.4.5.5.2 SR2 error: two rules, two sentences
     [InlineData("        LOCK MODE IS MANUAL.", "SR13", 2002)]
     [InlineData("        LOCK MODE IS MANUAL WITH LOCK ON MULTIPLE RECORDS.", "SR13", 2002)]
     [InlineData("        SHARING WITH NO OTHER.", "SR13", 2002)]
@@ -428,7 +428,7 @@ public sealed class FileControlKeyRuleSpecTests
         {
             int hits = Diagnostics(SortMerge(clauses), edition)
                 .Count(e => e.Contains("COBOL1900", StringComparison.Ordinal)
-                    && e.Contains($"(ISO §12.4.5.2 {rule})", StringComparison.Ordinal));
+                    && e.Contains($"(ISO §2023:12.4.5.2 {rule})", StringComparison.Ordinal));
             Assert.True(hits == 1, $"[SD + {clauses.Trim()}] @ {edition}: {rule} reported {hits}×, expected 1");
         }
     }
@@ -441,12 +441,12 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             var d = Diagnostics(SortMerge("        FILE STATUS IS F-FS\n        RECORD DELIMITER IS STANDARD-1."), edition);
-            Assert.Equal(1, d.Count(e => e.Contains("(ISO §12.4.5.2 SR13)", StringComparison.Ordinal)));
-            Assert.Equal(1, d.Count(e => e.Contains("(ISO §12.4.5.2 SR11)", StringComparison.Ordinal)));
+            Assert.Equal(1, d.Count(e => e.Contains("(ISO §2023:12.4.5.2 SR13)", StringComparison.Ordinal)));
+            Assert.Equal(1, d.Count(e => e.Contains("(ISO §2023:12.4.5.2 SR11)", StringComparison.Ordinal)));
         }
     }
 
-    /// <summary>§12.4.5.2 SR11 SENTENCE 1 — <i>"Format 3 shall be specified only for a sequential file or a report
+    /// <summary>§2023:12.4.5.2 SR11 SENTENCE 1 — <i>"Format 3 shall be specified only for a sequential file or a report
     /// file"</i> — over every organization (COBOL2912): the RECORD DELIMITER clause is Format 3's alone, so it
     /// is refused on an indexed or relative file, and the BOUNDARY rows are the same clause on the sequential
     /// files it is for, and the clauses that Formats 1 to 3 share on an indexed file, which are not Format 3's.</summary>
@@ -489,16 +489,16 @@ public sealed class FileControlKeyRuleSpecTests
             foreach (string body in new[] { EntryOnlyBody, WithKeyedVerbBody })
             {
                 int hits = Diagnostics(Indexed(keyClauses, record, "", body), edition)
-                    .Count(e => e.Contains("§12.4.5.6.3 SR4", StringComparison.Ordinal));
+                    .Count(e => e.Contains("§2023:12.4.5.6.3 SR4", StringComparison.Ordinal));
                 Assert.True(hits == expected,
                     $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: SR4 reported {hits}×, expected {expected}");
             }
     }
 
-    /// <summary>THE OVER-REJECTION GUARD ON THE CATEGORY ARM (kb/Work PB743). §12.4.5.12.3 SR2 and §12.4.5.6.3
-    /// SR2 admit <i>category alphanumeric</i>, and §13.18.29.4 GR3 makes a group with no GROUP-USAGE clause an
+    /// <summary>THE OVER-REJECTION GUARD ON THE CATEGORY ARM (kb/Work PB743). §2023:12.4.5.12.3 SR2 and §2023:12.4.5.6.3
+    /// SR2 admit <i>category alphanumeric</i>, and §2023:13.18.29.4 GR3 makes a group with no GROUP-USAGE clause an
     /// ALPHANUMERIC GROUP ITEM — so a group key is legal and a category screen written as an elementary-PICTURE
-    /// test would refuse it. The relative key beside it is the cross-role boundary: §12.4.5.13.3 SR2 REQUIRES the
+    /// test would refuse it. The relative key beside it is the cross-role boundary: §2023:12.4.5.13.3 SR2 REQUIRES the
     /// unsigned integer the record-key rules forbid, so the two category rules must not leak into each other.</summary>
     [Fact]
     public void LegalCategories_AGroupRecordKeyAndANumericRelativeKey_AreAccepted()
@@ -517,9 +517,9 @@ public sealed class FileControlKeyRuleSpecTests
     }
 
     // ── The SECOND key form: record-key-name-1 SOURCE IS { data-name-2 } … (kb/Work PB1099 Q1) ─────────────────
-    //    ISO §12.4.5.12.2 / §12.4.5.6.2 print a required choice of TWO key forms; Annex A.3 item 40 makes the
+    //    ISO §2023:12.4.5.12.2 / §2023:12.4.5.6.2 print a required choice of TWO key forms; Annex A.3 item 40 makes the
     //    SOURCE phrase processor-dependent and this implementation PROVIDES it (owner rule R65): the key is "the
-    //    concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2 / §12.4.5.6.4
+    //    concatenation of all occurrences of data-name-2 in the order specified" (§2023:12.4.5.12.4 GR2 / §2023:12.4.5.6.4
     //    GR2). It is a post-1985 form (VCR row 7.36, provisional 2002 edge, COBOL0900 at 85). The run-time
     //    behaviour is pinned by conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; what lives HERE is the compile-time
     //    rule set the phrase brings with it — each stated of data-name-2 as well as data-name-1 — and the
@@ -531,10 +531,10 @@ public sealed class FileControlKeyRuleSpecTests
         + "   05 F-W PIC N(2).\n   05 F-T.\n      10 F-TE PIC X OCCURS 2 TIMES.";
 
     /// <summary>The conforming spellings compile clean from 2002 — the printed form, the optional-word minimum
-    /// (§8.3.2.4.3: KEY and both IS are not underlined), a SOURCE alternate beside a data-name-1 prime and with
-    /// WITH DUPLICATES, a SOURCE prime beside a data-name-1 alternate at the SAME leftmost byte (§12.4.5.6.3 SR4's
+    /// (§2023:8.3.2.4.3: KEY and both IS are not underlined), a SOURCE alternate beside a data-name-1 prime and with
+    /// WITH DUPLICATES, a SOURCE prime beside a data-name-1 alternate at the SAME leftmost byte (§2023:12.4.5.6.3 SR4's
     /// last sentence exempts the pair), and a COLLATING SEQUENCE naming the key by its record-key-name
-    /// (§12.4.5.7.3 SR5) — and draw COBOL0900 at 85, the edition that prints only data-name-1. ⛔ The absence of
+    /// (§2023:12.4.5.7.3 SR5) — and draw COBOL0900 at 85, the edition that prints only data-name-1. ⛔ The absence of
     /// "has no RECORD KEY clause" is asserted at EVERY edition: a clause that names a record-key-name was once
     /// reported missing (kb/Work PB358), and a count of "at least one error" at 85 would hide it.</summary>
     [Theory]
@@ -562,15 +562,15 @@ public sealed class FileControlKeyRuleSpecTests
 
     /// <summary>Every operand rule the clauses state of "data-name-1 and data-name-2" reaches EACH data-name-2 — and
     /// is reported once, at that operand, naming it as data-name-2 under its record-key-name. The last two rows are
-    /// SR2's third obligation, "All occurrences of data-name-2 shall be of the same category" (§12.4.5.12.3 SR2,
-    /// §12.4.5.6.3 SR2): an alphanumeric and a national operand under one record-key-name.</summary>
+    /// SR2's third obligation, "All occurrences of data-name-2 shall be of the same category" (§2023:12.4.5.12.3 SR2,
+    /// §2023:12.4.5.6.3 SR2): an alphanumeric and a national operand under one record-key-name.</summary>
     [Theory]
-    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-N.", "§12.4.5.12.3 SR2", "'F-PK' SOURCE operand 'F-N'")]
-    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-TE.", "§12.4.5.12.3 SR1", "'F-PK' SOURCE operand 'F-TE'")]
-    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-W.", "all occurrences of data-name-2 shall be of the same category (ISO §12.4.5.12.3 SR2)", "'F-W'")]
-    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-N.", "§12.4.5.6.3 SR2", "'F-AK' SOURCE operand 'F-N'")]
-    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-TE.", "§12.4.5.6.3 SR1", "'F-AK' SOURCE operand 'F-TE'")]
-    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-W.", "all occurrences of data-name-2 shall be of the same category (ISO §12.4.5.6.3 SR2)", "'F-W'")]
+    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-N.", "§2023:12.4.5.12.3 SR2", "'F-PK' SOURCE operand 'F-N'")]
+    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-TE.", "§2023:12.4.5.12.3 SR1", "'F-PK' SOURCE operand 'F-TE'")]
+    [InlineData("        RECORD KEY IS F-PK SOURCE IS F-K1 F-W.", "all occurrences of data-name-2 shall be of the same category (ISO §2023:12.4.5.12.3 SR2)", "'F-W'")]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-N.", "§2023:12.4.5.6.3 SR2", "'F-AK' SOURCE operand 'F-N'")]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-TE.", "§2023:12.4.5.6.3 SR1", "'F-AK' SOURCE operand 'F-TE'")]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-AK SOURCE IS F-D F-W.", "all occurrences of data-name-2 shall be of the same category (ISO §2023:12.4.5.6.3 SR2)", "'F-W'")]
     public void SourcePhraseOperandRules_ReachEachDataName2_Once(string keyClauses, string citation, string operand)
     {
         string source = Indexed(keyClauses, SourceRecord, "", EntryOnlyBody);
@@ -583,13 +583,13 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>§14.9.30.3 SR11 and §14.9.41.3 SR7: a KEY phrase may name record-key-name-1 only when the SOURCE
+    /// <summary>§2023:14.9.30.3 SR11 and §2023:14.9.41.3 SR7: a KEY phrase may name record-key-name-1 only when the SOURCE
     /// phrase of a key clause of file-name-1 declares it. A record-key-name that only ANOTHER file declares is
-    /// refused naming the rule; the same name qualified by its own file (§8.4.2.2.2 Format 6) and used on that file
+    /// refused naming the rule; the same name qualified by its own file (§2023:8.4.2.2.2 Format 6) and used on that file
     /// is the complement and compiles.</summary>
     [Theory]
-    [InlineData("READ F KEY IS G-PK INVALID KEY CONTINUE END-READ", "ISO §14.9.30.3 SR11", true)]
-    [InlineData("START F KEY IS = G-PK INVALID KEY CONTINUE END-START", "ISO §14.9.41.3 SR7", true)]
+    [InlineData("READ F KEY IS G-PK INVALID KEY CONTINUE END-READ", "ISO §2023:14.9.30.3 SR11", true)]
+    [InlineData("START F KEY IS = G-PK INVALID KEY CONTINUE END-START", "ISO §2023:14.9.41.3 SR7", true)]
     [InlineData("READ G KEY IS G-PK OF G INVALID KEY CONTINUE END-READ", "", false)]
     [InlineData("START G KEY IS >= G-PK IN G WITH LENGTH 1 INVALID KEY CONTINUE END-START", "", false)]
     public void KeyPhraseRecordKeyName_MustBeDeclaredForTheStatementsFile(string statement, string citation, bool refused)
@@ -632,10 +632,10 @@ public sealed class FileControlKeyRuleSpecTests
         }
     }
 
-    /// <summary>§12.4.5.7.3 SR5 — <i>"Record-key-name-1 shall be a name specified as a record-key-name in an
+    /// <summary>§2023:12.4.5.7.3 SR5 — <i>"Record-key-name-1 shall be a name specified as a record-key-name in an
     /// ALTERNATE RECORD KEY clause or in a RECORD KEY clause in the file control entry."</i> A key-level COLLATING
     /// SEQUENCE naming the record-key-name ANOTHER entry declares is refused under SR4/SR5's one message; the same
-    /// clause naming its own entry's record-key-name — bare, or qualified by its own file-name (§8.4.2.2.2
+    /// clause naming its own entry's record-key-name — bare, or qualified by its own file-name (§2023:8.4.2.2.2
     /// Format 6) — is the complement and compiles. The ALTERNATE rows are kb/Work PB1099 review R1-1: a SOURCE-form
     /// alternate's record-key-name qualified by ANOTHER file-name names no key of this entry and is refused too —
     /// it was dropped unreported, because a resolved SOURCE alternate read as an unresolved clause (its data-name-1
@@ -685,21 +685,21 @@ public sealed class FileControlKeyRuleSpecTests
         {
             var d = Diagnostics(source, edition);
             if (refused)
-                Assert.Contains(d, e => e.Contains("is not a RECORD KEY or ALTERNATE RECORD KEY of this file (ISO §12.4.5.7.3 SR4/SR5)",
+                Assert.Contains(d, e => e.Contains("is not a RECORD KEY or ALTERNATE RECORD KEY of this file (ISO §2023:12.4.5.7.3 SR4/SR5)",
                     StringComparison.Ordinal));
             else
                 Assert.True(d.Count == 0, $"[{operand}] @ {edition}: {string.Join(" | ", d)}");
         }
     }
 
-    /// <summary>§8.4.2.2.3 SR1 — <i>"For each non unique user-defined name that is explicitly referenced, uniqueness
+    /// <summary>§2023:8.4.2.2.3 SR1 — <i>"For each non unique user-defined name that is explicitly referenced, uniqueness
     /// shall be established through a sequence of qualifiers that precludes any ambiguity of reference."</i> A
     /// position that admits data-name-1 OR record-key-name-1 (the READ and START KEY phrases, the key-level COLLATING
     /// SEQUENCE clause) counts every reading in one set (kb/Work PB1099 review R1-2): the same record-key-name
     /// declared by two clauses of ONE entry (no Format 6 qualifier can separate them — the reference bound silently
-    /// to the prime key), by two FILES (unqualified), or also declared as a data-name (§8.3.2.2 rule 3 allows it).
+    /// to the prime key), by two FILES (unqualified), or also declared as a data-name (§2023:8.3.2.2 rule 3 allows it).
     /// Each is refused naming SR1 and counting every declaration that matches; the complement — qualification that
-    /// leaves one reading — compiles. DATA2 is the review R2-1 shape: TWO same-spelled data items (§8.4.2.2.1 rule 1,
+    /// leaves one reading — compiles. DATA2 is the review R2-1 shape: TWO same-spelled data items (§2023:8.4.2.2.1 rule 1,
     /// "No other name has the identical spelling") must make the reference MORE ambiguous, never resolve it — the
     /// data-name readings used to be probed (unique only), so a second data item dropped both out of the count and
     /// the READ bound silently to the record key.</summary>
@@ -772,14 +772,14 @@ public sealed class FileControlKeyRuleSpecTests
             if (refused)
                 Assert.True(d.Count(e => e.Contains("does not uniquely identify a record key or data item", StringComparison.Ordinal)
                     && e.Contains($"{matches} declarations match", StringComparison.Ordinal)
-                    && e.Contains("ISO §8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
+                    && e.Contains("ISO §2023:8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
                     $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");
             else
                 Assert.True(d.Count == 0, $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");
         }
     }
 
-    /// <summary>§12.4.5.12.3 SR4 — <i>"If the indexed file contains variable-length records, data-name-1 and each
+    /// <summary>§2023:12.4.5.12.3 SR4 — <i>"If the indexed file contains variable-length records, data-name-1 and each
     /// data-name-2 shall be contained within the first n bytes of the record, where n equals the minimum record
     /// size specified for the file."</i> The SOURCE phrase's operands are measured ONE BY ONE (kb/Work PB1099 review
     /// R1-3: the inventory row still said data-name-2 had no operand to measure): with a 2-byte minimum, F-K1
@@ -792,7 +792,7 @@ public sealed class FileControlKeyRuleSpecTests
             .Replace("FD F.", "FD F RECORD IS VARYING IN SIZE FROM 2 TO 8 CHARACTERS.", StringComparison.Ordinal);
         foreach (int edition in SourceEditions)
         {
-            var hits = Diagnostics(source, edition).Where(e => e.Contains("§12.4.5.12.3 SR4", StringComparison.Ordinal)).ToList();
+            var hits = Diagnostics(source, edition).Where(e => e.Contains("§2023:12.4.5.12.3 SR4", StringComparison.Ordinal)).ToList();
             Assert.True(hits.Count == 1, $"@ {edition}: SR4 reported {hits.Count}×: {string.Join(" | ", hits)}");
             Assert.Contains("'F-K2'", hits[0], StringComparison.Ordinal);
             Assert.DoesNotContain("'F-K1'", hits[0], StringComparison.Ordinal);
@@ -801,7 +801,7 @@ public sealed class FileControlKeyRuleSpecTests
 
     /// <summary>⛔ THE COMPLEMENT — what the SOURCE form's gate and rules must NOT reach
     /// (feedback_measure_the_selectors_complement). The ordinary data-name-1 clauses — the optional-word spellings
-    /// included, since §12.4.5.12.2's KEY and IS carry no underline — draw neither the introduction gate nor a key
+    /// included, since §2023:12.4.5.12.2's KEY and IS carry no underline — draw neither the introduction gate nor a key
     /// rule at any edition, COBOL-85 included.</summary>
     [Theory]
     [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-K2 WITH DUPLICATES.")]

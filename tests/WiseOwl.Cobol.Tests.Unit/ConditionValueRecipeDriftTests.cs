@@ -15,9 +15,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A LEVEL-88 LITERAL IS PLACED BY THE VALUE-CLAUSE RECIPE, NOT BY A RECIPE OF THE SET EMITTER'S OWN
 /// (kb/Work PB560) — and this keeps that true.
 ///
-/// <para>ISO §14.9.39.4 GR6 does not describe a store: it says the literal "is placed in the conditional
+/// <para>ISO §2023:14.9.39.4 GR6 does not describe a store: it says the literal "is placed in the conditional
 /// variable according to the rules for the VALUE clause", and GR7 says the same of the FALSE phrase's
-/// literal-4. §8.8.4.5.3 GR3 then makes the condition true exactly when the stored value is one of the
+/// literal-4. §2023:8.8.4.5.3 GR3 then makes the condition true exactly when the stored value is one of the
 /// condition's values, so the STORE and the TEST are required to answer identically — a SET followed by its
 /// own IF is an identity. When the rule is written down twice they drift, and they did: the SET emitter's
 /// private recipe stored the raw literal text where the VALUE clause composes an edited image (PIC ZZ9.99
@@ -63,10 +63,10 @@ public sealed class ConditionValueRecipeDriftTests
     }
 
     /// <summary>⛔ THE REGRESSION THAT WAS THE BUG. The SET emitter may not spell any part of the VALUE-clause
-    /// composition for itself — the numeric-edited image (§13.18.63.3 SR6), the figurative / ALL fold
-    /// (§8.3.3.6.4 GR2), the float approximation (§13.18.63.4 GR17 → GR1), the category stores, the locale
-    /// compose (§13.18.40.5 editing rule 11). Every one of them belongs to <c>ValueInitializer.InitializerFrom</c>,
-    /// which §14.9.39.4 GR6 names by reference.</summary>
+    /// composition for itself — the numeric-edited image (§2023:13.18.63.3 SR6), the figurative / ALL fold
+    /// (§2023:8.3.3.6.4 GR2), the float approximation (§2023:13.18.63.4 GR17 → GR1), the category stores, the locale
+    /// compose (§2023:13.18.40.5 editing rule 11). Every one of them belongs to <c>ValueInitializer.InitializerFrom</c>,
+    /// which §2023:14.9.39.4 GR6 names by reference.</summary>
     [Fact]
     public void TheSetEmitter_SpellsNoPartOfTheValueRecipe()
     {
@@ -85,21 +85,21 @@ public sealed class ConditionValueRecipeDriftTests
         var hits = primitives.Where(p => code.Contains(p, StringComparison.Ordinal)).ToList();
         Assert.True(hits.Count == 0,
             "SetEmitter is composing a VALUE again instead of calling DataEmitter.ValueImageOf — ISO "
-            + "§14.9.39.4 GR6 places a level-88 literal 'according to the rules for the VALUE clause', and a "
+            + "§2023:14.9.39.4 GR6 places a level-88 literal 'according to the rules for the VALUE clause', and a "
             + "second copy of those rules is how the STORE and the TEST stopped agreeing (kb/Work PB560): "
             + string.Join(", ", hits));
     }
 
     /// <summary>The numeric-edited VALUE image has exactly THREE readers, and the list is EXHAUSTIVE — a fourth
-    /// caller is a fourth copy of §13.18.63.3 SR6 (feedback_one_rule_one_place); the SET store used to be
+    /// caller is a fourth copy of §2023:13.18.63.3 SR6 (feedback_one_rule_one_place); the SET store used to be
     /// exactly such a site, spelled differently.
     /// <para>The three are the recipe that composes the image (<c>ValueInitializer</c>), the membership test
-    /// that compares against it (<c>ConditionRenderer</c> — §8.8.4.5.3 GR2 compares by the relation-condition
+    /// that compares against it (<c>ConditionRenderer</c> — §2023:8.8.4.5.3 GR2 compares by the relation-condition
     /// rules, so the store and the test must see the same image), and, since kb/Work PB920, the BINDER's
-    /// §13.18.63.3 SR26 / SR27 screens (<c>DataBinder.ConditionValueOf</c>). The third was added
+    /// §2023:13.18.63.3 SR26 / SR27 screens (<c>DataBinder.ConditionValueOf</c>). The third was added
     /// DELIBERATELY and is named here rather than worked around: those two syntax rules compare "<i>the value
     /// of</i>" two VALUE-clause operands, and on a numeric-edited subject that value IS the edited image —
-    /// §8.8.4.2.1's NOTE, "<i>All comparisons involving numeric-edited data items are alphanumeric or national
+    /// §2023:8.8.4.2.1's NOTE, "<i>All comparisons involving numeric-edited data items are alphanumeric or national
     /// comparisons, including when the associated VALUE clause is a numeric literal</i>". A screen that composed
     /// its own image would be the very drift this test exists to catch.</para></summary>
     [Fact]
@@ -130,9 +130,9 @@ public sealed class ConditionValueRecipeDriftTests
 
     /// <summary>The recipe reads the receiver's description through THE ONE category reader
     /// (<c>DataItem.OperandPic</c>, D20) — never raw <c>Pic</c>, which is null for every group and made a
-    /// group conditional variable a null-reference the moment the SET store started calling it. §14.9.39.4 GR6
+    /// group conditional variable a null-reference the moment the SET store started calling it. §2023:14.9.39.4 GR6
     /// names group conditional variables explicitly, so the group arms are the recipe's own business, and
-    /// §13.18.63.3 SR4 is what describes an ORDINARY one (alphanumeric literals, bounded by the size of the
+    /// §2023:13.18.63.3 SR4 is what describes an ORDINARY one (alphanumeric literals, bounded by the size of the
     /// group item).</summary>
     [Fact]
     public void TheValueRecipe_ReadsTheOperandDescription()

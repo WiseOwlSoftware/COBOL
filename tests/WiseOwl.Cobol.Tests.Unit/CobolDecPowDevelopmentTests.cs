@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §8.8.1.5.4 r2e DEVELOPMENT (owner decision D-C, 2026-08-30; kb/Work PB167). r2e leaves the equivalent
+/// The §2023:8.8.1.5.4 r2e DEVELOPMENT (owner decision D-C, 2026-08-30; kb/Work PB167). r2e leaves the equivalent
 /// arithmetic expression for a non-integer exponent to the implementor but constrains how it is developed:
 /// "Operands used in the development of that value shall be in SDIDI form. All additions, subtractions,
 /// multiplications and divisions performed in the development of the result shall be performed in accordance
@@ -18,9 +18,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para>WHAT IS PINNED HERE. (1) The structural fact — no binary64 bridge is reachable from the development
 /// at all. (2) The identities the choice of equivalent expression BUYS: at |operand-2| = ½ the expression is
-/// <c>FUNCTION SQRT(operand-1)</c>, whose standard-decimal value §15.84.4 r2 fixes EXACTLY, so <c>b ** 0.5</c>
+/// <c>FUNCTION SQRT(operand-1)</c>, whose standard-decimal value §2023:15.84.4 r2 fixes EXACTLY, so <c>b ** 0.5</c>
 /// and <c>SQRT(b)</c> agree digit-for-digit by construction. (3) Agreement with the true value to the digits an
-/// SDIDI development can carry — NOT 34: §8.8.1.5.2 rounds every operation to 34 digits, so a development of N
+/// SDIDI development can carry — NOT 34: §2023:8.8.1.5.2 rounds every operation to 34 digits, so a development of N
 /// operations accumulates N roundings. The published determination (CONFORMANCE.md §7) is an r2e-conforming
 /// SDIDI development, and the tolerances below are stated in those terms, never as "34 correct digits".</para>
 /// </summary>
@@ -38,14 +38,14 @@ public sealed class CobolDecPowDevelopmentTests
     /// enforce: that a binary64 step would be spelled one of these ways (`Math.Log2(` slips through
     /// `Math.Log10(`+`Math.Log(`; `using M = System.Math;` slips through all of them), and that the
     /// development lives entirely in this one file — <c>CobolIntrinsics.RealArgs.cs</c> already contains
-    /// <c>CobolDec.FromApproximation(Math.Pow(…))</c>, legitimately, as the §8.8.1.3 NATIVE arm, in a file this scan
+    /// <c>CobolDec.FromApproximation(Math.Pow(…))</c>, legitimately, as the §2023:8.8.1.3 NATIVE arm, in a file this scan
     /// does not read. What the scan IS is a tripwire on the shapes that actually shipped and were deleted,
     /// widened to the near-miss spellings; the reachability audit is the sweep recorded in kb/Work PB167, and
     /// the value pins below are the guard with teeth — a binary64 reintroduction gives
     /// 1.0618366495807028 where <see cref="PastLoopBoundEscape_KeepsTheNegativeBasesParitySign"/> needs
     /// 1.061836649543504…, whichever file it sits in.</para>
     /// <para>⛔ <c>ToDouble</c>/<c>FromBinary64</c>/<c>FromApproximation</c> ARE DELIBERATELY NOT BANNED. Both are <c>CobolDec</c>'s own
-    /// §8.8.1.5.1 conversion API, defined in this file by necessity and called from six sites outside it;
+    /// §2023:8.8.1.5.1 conversion API, defined in this file by necessity and called from six sites outside it;
     /// banning their spelling would ban the type's public surface, not a development step.</para>
     /// <para>Whole-line comments are stripped first — the file's forensic remarks NAME the calls they
     /// replaced, and a guard that cannot tell code from prose would force the history out of the
@@ -65,7 +65,7 @@ public sealed class CobolDecPowDevelopmentTests
                      "double.Pow(", "double.Log(", "double.Log10(", "double.Exp(", "double.Sqrt(",
                  })
             Assert.False(src.Contains(banned, StringComparison.Ordinal),
-                $"CobolDec.cs spells {banned} — the §8.8.1.5.4 r2e development must stay in SDIDI form "
+                $"CobolDec.cs spells {banned} — the §2023:8.8.1.5.4 r2e development must stay in SDIDI form "
                 + "(operands in SDIDI form; every add/sub/mul/div an ISO/IEC 60559:2020 decimal operation)");
         // The one premise that CAN be made mechanical: the type is not partial, so "this file" is the whole
         // type — the scan's scope is the development's scope for anything declared on CobolDec itself.
@@ -82,7 +82,7 @@ public sealed class CobolDecPowDevelopmentTests
     [InlineData(7)]
     public void HalfExponent_IsExactlyTheSquareRoot(int b)
     {
-        // §8.8.1.5.4 r2e's chosen expression at ½ IS §15.84.4 r2's SQRT — so this is equality, not closeness.
+        // §2023:8.8.1.5.4 r2e's chosen expression at ½ IS §2023:15.84.4 r2's SQRT — so this is equality, not closeness.
         var value = new CobolDec(b, 0);
         Assert.Equal(CobolDec.Sqrt(value, Mode), CobolDec.Pow(value, CobolDec.From(5, 1), Mode));
     }
@@ -90,16 +90,16 @@ public sealed class CobolDecPowDevelopmentTests
     [Fact]
     public void MinusHalfExponent_IsR3sReciprocalOfTheSquareRoot()
     {
-        // §8.8.1.5.4 r3: operand-2 < 0 ⇒ 1 / (operand-1 ** ABS(operand-2)).
+        // §2023:8.8.1.5.4 r3: operand-2 < 0 ⇒ 1 / (operand-1 ** ABS(operand-2)).
         var two = new CobolDec(2, 0);
         Assert.Equal(CobolDec.Div(new CobolDec(1, 0), CobolDec.Sqrt(two, Mode), Mode),
             CobolDec.Pow(two, CobolDec.From(-5, 1), Mode));
     }
 
-    /// <summary>⛔ §8.8.1.5.4 r3 FOR EVERY NEGATIVE EXPONENT, NOT ONLY −½ (kb/Work PB266). r3 is not
+    /// <summary>⛔ §2023:8.8.1.5.4 r3 FOR EVERY NEGATIVE EXPONENT, NOT ONLY −½ (kb/Work PB266). r3 is not
     /// implementor latitude — r2's latitude is scoped "When the value of operand-2 is greater than zero" —
     /// and it is an EQUIVALENCE, not a tolerance: "the result shall be equivalent to the evaluation of the
-    /// arithmetic expression (1 / (operand-1 ** FUNCTION ABS (operand-2)))". Under §8.8.1.5.2's per-operation
+    /// arithmetic expression (1 / (operand-1 ** FUNCTION ABS (operand-2)))". Under §2023:8.8.1.5.2's per-operation
     /// 34-digit rounding that expression is a division whose divisor is this same development at |operand-2|,
     /// and it is a DIFFERENT value from exp(−|p| × ln b): before the reciprocal was hoisted to one place,
     /// 2 ** −0.25 answered …4762332146 where 1 / (2 ** 0.25) is …4762332141. The assertion is exact equality
@@ -148,7 +148,7 @@ public sealed class CobolDecPowDevelopmentTests
         Assert.NotEqual(0, CobolDec.Compare(Parse("1.0000000000000092233720368547758"), got));
     }
 
-    /// <summary>The same escape's two out-of-range dispositions, by §8.8.1.5.2 r2's own names. With the
+    /// <summary>The same escape's two out-of-range dispositions, by §2023:8.8.1.5.2 r2's own names. With the
     /// clamped probe both were wrong: 1.0000000000000001 ** 10²⁵ answered a finite 3.68E+400 (out of range
     /// only for the receiver, under a different name) and 0.9999999999999999 ** 10²⁵ answered a silent
     /// 2.71E−401 where the value is below the decimal128 range entirely.</summary>

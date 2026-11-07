@@ -5,44 +5,44 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.3.13.3 SR8 — EVALUATE directive text-1 / text-2 holding
+      *> ISO §2023:7.3.13.3 SR8 — EVALUATE directive text-1 / text-2 holding
       *>   compiler directives and spanning several lines
       *> Rule: "Text-1 and text-2 may be any kind of source lines,
       *>   including compiler directives. Text-1 and text-2 may consist
       *>   of multiple lines."
       *>   cite.py --check 7.3.13.3 "Text-1 and text-2 may be any kind
       *>     of source lines, including compiler directives. ..." -> OK
-      *>     §7.3.13.3 8)  (Syntax rules)
+      *>     §2023:7.3.13.3 8)  (Syntax rules)
       *> Selection rules (each -> OK under cite.py --check):
-      *>   §7.3.13.4 GR4 (trailing paragraph; cite.py labels it 4) b))
+      *>   §2023:7.3.13.4 GR4 (trailing paragraph; cite.py labels it 4) b))
       *>     "If a WHEN phrase evaluates to TRUE, all lines of text-1
       *>     associated with that WHEN phrase are included in the
       *>     resultant text." - and all other text-1 / text-2 omitted.
-      *>   §7.3.13.4 GR4 b) "If the THROUGH phrase is specified, a TRUE
+      *>   §2023:7.3.13.4 GR4 b) "If the THROUGH phrase is specified, a TRUE
       *>     result is returned if the selection subject lies in the
       *>     inclusive range ..."
-      *>   §7.3.13.4 GR8 "For each WHEN phrase in turn, the
+      *>   §2023:7.3.13.4 GR8 "For each WHEN phrase in turn, the
       *>     constant-conditional-expression is evaluated in accordance
       *>     with 7.3.8".
-      *>   §7.3.13.4 GR9 "If no WHEN phrase evaluates to TRUE,
+      *>   §2023:7.3.13.4 GR9 "If no WHEN phrase evaluates to TRUE,
       *>     all lines of text-2 associated with the WHEN OTHER phrase,
       *>     if specified, are included in the resultant text. All lines
       *>     of text-1 associated with other WHEN phrases are omitted
       *>     from the resultant text."
-      *>   §7.3.13.3 SR9 "A nested EVALUATE directive specified in
+      *>   §2023:7.3.13.3 SR9 "A nested EVALUATE directive specified in
       *>     text-1 or in text-2 is considered a new EVALUATE directive."
       *>     - so the inner >>WHEN OTHER / >>END-EVALUATE close the INNER
       *>     directive, not the outer one.
-      *>   §7.2.1 Step 2: "the expanded compilation group is read and
+      *>   §2023:7.2.1 Step 2: "the expanded compilation group is read and
       *>     the following compiler directives and substitutions are
       *>     processed in the order encountered" - a >>DEFINE inside
       *>     OMITTED text is not in the group read, so it has no effect;
       *>     one inside INCLUDED text does.
-      *>   §7.3.8.4.4 GR2 "A defined condition using the IS NOT DEFINED
+      *>   §2023:7.3.8.4.4 GR2 "A defined condition using the IS NOT DEFINED
       *>     syntax evaluates TRUE if compilation-variable-name-1 is not
       *>     currently defined."
       *> Every nested directive below is complete and well formed
-      *>   (§7.2.1: compiler directives shall be syntactically correct in
+      *>   (§2023:7.2.1: compiler directives shall be syntactically correct in
       *>   the initial source text, false paths included).
       *> DERIVATION (L1G2SW = 2):
       *> EVALUATE #1, format 1, subject 2: WHEN 1 is FALSE, WHEN 2 is
@@ -80,7 +80,7 @@
       *>   TRUE, or no WHEN OTHER encountered).
       *>   cite.py --check E.2 "have been changed to ensure that the
       *>     whole condition is now true only when both of the
-      *>     constituent conditions are true" -> OK  §E.2 8)
+      *>     constituent conditions are true" -> OK  §2023:E.2 8)
       *>   EVERY EVALUATE here carries a >>WHEN OTHER, so under either
       *>   wording GR6/GR10 omit nothing GR4/GR9 would include and
       *>   never decide an output line: the .out is the same at

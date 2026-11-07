@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither
+      *> ISO §2023:8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither
       *> the predefined object reference NULL nor a universal object reference
       *> shall be specified."  BOTH excluded receivers are written here, and
       *> both are syntactically REACHABLE on purpose: the inline form reuses
-      *> INVOKE's own `objectReference` receiver rule so that §8.4.3.4.4 GR1's
+      *> INVOKE's own `objectReference` receiver rule so that §2023:8.4.3.4.4 GR1's
       *> equivalence cannot be broken by the two forms disagreeing about what
       *> a receiver is (the superset parse).  SR2 is therefore enforced by a
       *> NAMED bind-time diagnostic, COBOL2138, never by the construct's

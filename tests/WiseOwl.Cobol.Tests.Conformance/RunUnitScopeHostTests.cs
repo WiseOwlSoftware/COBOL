@@ -12,14 +12,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <c>RunUnit.Begin()</c>), and the second run unit must inherit nothing from the first.
 /// <para>The rules, each through <c>cite.py --check</c>:</para>
 /// <list type="bullet">
-/// <item>§14.6.1 — "A run unit is an independent entity that may be executed without communicating with, or being
-/// coordinated with, any other run unit" — with §12.3.7.4 4) "The implementor defines the scope (program, run unit,
+/// <item>§2023:14.6.1 — "A run unit is an independent entity that may be executed without communicating with, or being
+/// coordinated with, any other run unit" — with §2023:12.3.7.4 4) "The implementor defines the scope (program, run unit,
 /// etc.) of each external switch", which this implementation defines as the RUN UNIT (NOTE 1's case; SwitchStore).
 /// So SET SW1 TO ON in run unit 1 is not visible to run unit 2, whose switch starts from its external setting:
 /// none, i.e. OFF.</item>
-/// <item>§9.3.14.2 — "A factory object is created before it is first referenced by a run unit" and "deleted after
+/// <item>§2023:9.3.14.2 — "A factory object is created before it is first referenced by a run unit" and "deleted after
 /// it is last referenced by a run unit" (so run unit 2 references a NEW factory object, whose factory data is
-/// again its VALUE-initialized state), which is also what §14.6.11 4) "All instance objects are destroyed" needs
+/// again its VALUE-initialized state), which is also what §2023:14.6.11 4) "All instance objects are destroyed" needs
 /// of every object reachable from factory data.</item>
 /// </list>
 /// <para>Expected output, derived: each run unit prints "SW1 OFF" (no external setting, and the previous run

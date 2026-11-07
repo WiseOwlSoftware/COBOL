@@ -5,30 +5,30 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.40.3 r5 — FORMATTED-DATETIME's argument-4 MAGNITUDE bound, both arms.
+      *> ISO §2023:15.40.3 r5 — FORMATTED-DATETIME's argument-4 MAGNITUDE bound, both arms.
       *> "Argument-4 is an integer specifying the offset from UTC expressed in minutes. If argument-4 is
       *> specified, the magnitude of the value shall be less than or equal to 1439."
       *> (cite.py --check 15.40.3 "the magnitude of the value shall be less than or equal to 1439" -> OK,
-      *> §15.40.3 rule 5.) The clause's own NOTE explains the number: "The offset value 1439 represents
+      *> §2023:15.40.3 rule 5.) The clause's own NOTE explains the number: "The offset value 1439 represents
       *> 23 hours 59 minutes, which is one minute less than a day."
       *>
-      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §15.3 item 14: an argument that "results in
+      *> ⛔ THE RULE'S OBLIGATION IS THE EXCEPTION, NOT A VALUE. §2023:15.3 item 14: an argument that "results in
       *> an incorrect value for that argument ... according to the rules specified in the function
       *> definition" sets EC-ARGUMENT-FUNCTION; the RESULT is implementor-defined and only when checking is
       *> not enabled. So this program turns checking ON and asserts the exception. Enforced NOWHERE before
       *> kb/Work PB11 landed CobolDate.OffsetOutOfRange: 2000 minutes rendered offset-hours 33 and 9999
-      *> rendered 166, both violating §15.3.3.6.2 ("The offset-hours subfield ... shall contain a value from
+      *> rendered 166, both violating §2023:15.3.3.6.2 ("The offset-hours subfield ... shall contain a value from
       *> 00 to 23 inclusive") and the second one overflowing the width the format describes — a fabricated
       *> value with no exception condition, never mere over-acceptance.
       *>
-      *> THE FORMAT IS AN OFFSET FORMAT, which is what §15.40.3 r6 requires before argument-4 may be written
-      *> at all (its violation is conformance:cases/15.40.3-Argument-rules/l1-formatted-datetime-offset-local-format). §15.40.4
+      *> THE FORMAT IS AN OFFSET FORMAT, which is what §2023:15.40.3 r6 requires before argument-4 may be written
+      *> at all (its violation is conformance:cases/15.40.3-Argument-rules/l1-formatted-datetime-offset-local-format). §2023:15.40.4
       *> r3 then fixes the expectation without any arithmetic: "the value in argument-3 is reflected DIRECTLY
       *> in the time portion of the returned value, and the offset in argument-4 is reflected DIRECTLY in the
       *> offset portion" — so the time never moves and only the offset field changes across the five probes.
       *>
-      *> Hand-derived values. Integer date 153569 is 2021-06-16 (§15.5.2 epoch 1601-01-01 = 1, as
-      *> 2014/formatted_datetime pins); 45296 seconds is 12:34:56 (§15.5.5). §15.3.3.6.1 gives the EXTENDED
+      *> Hand-derived values. Integer date 153569 is 2021-06-16 (§2023:15.5.2 epoch 1601-01-01 = 1, as
+      *> 2014/formatted_datetime pins); 45296 seconds is 12:34:56 (§2023:15.5.5). §2023:15.3.3.6.1 gives the EXTENDED
       *> offset subformat as "six characters: a plus sign; two lowercase 'h' characters representing the
       *> offset-hours subfield; a colon character; and two lowercase 'm' characters representing the
       *> offset-minutes subfield", and its later paragraph fixes probe 3's sign: "If the values contained in

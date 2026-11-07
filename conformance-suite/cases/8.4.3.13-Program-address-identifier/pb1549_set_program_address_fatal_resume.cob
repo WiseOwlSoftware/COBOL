@@ -12,25 +12,25 @@
       *> FatalRaiseSelectionTests; a corpus golden must exit 0.)
       *>
       *> THE RULES.
-      *> §8.4.3.13.4 GR4: "If the runtime system cannot locate the
+      *> §2023:8.4.3.13.4 GR4: "If the runtime system cannot locate the
       *>   program, the EC-PROGRAM-NOT-FOUND exception condition is set
       *>   to exist and the value of the address-identifier is the
       *>   predefined address NULL."
-      *>   OK  §8.4.3.13.4 4)  (General rules)
-      *> §14.6.13.1.3 5): with checking enabled and an applicable USE
+      *>   OK  §2023:8.4.3.13.4 4)  (General rules)
+      *> §2023:14.6.13.1.3 5): with checking enabled and an applicable USE
       *>   statement "the associated declarative is executed. If
       *>   execution of the declarative completes normally the
       *>   execution of the run unit is terminated abnormally" - NOTE 2:
       *>   "The user is able to continue by using a RESUME statement".
-      *>   OK  §14.6.13.1.3 5)  (Fatal exception conditions)
-      *> §14.9.33.4 GR2: NEXT STATEMENT transfers control to an
+      *>   OK  §2023:14.6.13.1.3 5)  (Fatal exception conditions)
+      *> §2023:14.9.33.4 GR2: NEXT STATEMENT transfers control to an
       *>   implicit CONTINUE that "immediately follows the end of the
       *>   statement that was executing" - here, the failed SET.
-      *>   OK  §14.9.33.4 2) a)  (General rules)
-      *> §14.9.33.4 GR3: "If procedure-name-1 is specified, control is
+      *>   OK  §2023:14.9.33.4 2) a)  (General rules)
+      *> §2023:14.9.33.4 GR3: "If procedure-name-1 is specified, control is
       *>   transferred to procedure-name-1 as if a GO TO
       *>   procedure-name-1 were executed."
-      *>   OK  §14.9.33.4 3)  (General rules)
+      *>   OK  §2023:14.9.33.4 3)  (General rules)
       *>
       *> DERIVATION.
       *> PQ=SET -- PB1549B is a program of this run unit, so ADDRESS OF
@@ -41,7 +41,7 @@
       *> PP=NULL -- ... so the IF after the SET runs, and GR4 made the
       *>   address-identifier NULL.
       *> EC1=EC-PROGRAM-NOT-FOUND -- the last exception status (checking
-      *>   is enabled, §14.6.13.1.1).
+      *>   is enabled, §2023:14.6.13.1.1).
       *> NF-HANDLED -- the second failed SET runs the declarative again;
       *>   WS-MODE = "P" now takes RESUME AT M-AFTER (GR3), so the
       *>   DISPLAY "NOT-REACHED" after the SET never runs ...

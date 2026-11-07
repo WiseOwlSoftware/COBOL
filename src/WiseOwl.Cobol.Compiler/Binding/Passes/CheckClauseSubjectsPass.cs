@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// The BLANK WHEN ZERO / JUSTIFIED SUBJECT screen (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3; kb/Work PB507). After CheckPictureRequired, whose ElementaryOnly rows have already cleared both clauses from every GROUP, and after UsageInheritancePass because SR2's usage may be INHERITED (§13.18.60.4 GR1). Before everything that reads the flags (the edit/store emitters), so a refused clause is never applied.
+/// The BLANK WHEN ZERO / JUSTIFIED SUBJECT screen (§2023:13.18.8.3 SR1/SR2, §2023:13.18.32.3 SR3; kb/Work PB507). After CheckPictureRequired, whose ElementaryOnly rows have already cleared both clauses from every GROUP, and after UsageInheritancePass because SR2's usage may be INHERITED (§2023:13.18.60.4 GR1). Before everything that reads the flags (the edit/store emitters), so a refused clause is never applied.
 /// </para>
 /// </remarks>
 internal sealed class CheckClauseSubjectsPass : IBindPass
@@ -29,19 +29,19 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
 
     /// <summary>The SUBJECT rules of BLANK WHEN ZERO and JUSTIFIED — what the elementary item they are written on
     /// may BE (kb/Work PB507). Runs after <c>UsageInheritancePass</c> and <see cref="CheckPictureRequiredPass.Run"/>, because
-    /// §13.18.8.3 SR2 reads the usage the subject is "implicitly or explicitly described as", and §13.18.60.4 GR1
+    /// §2023:13.18.8.3 SR2 reads the usage the subject is "implicitly or explicitly described as", and §2023:13.18.60.4 GR1
     /// inheritance supplies the implicit half: <c>01 G COMP. 05 A PIC 999 BLANK WHEN ZERO.</c> violates SR2 as
     /// surely as the direct spelling.
     /// <list type="bullet">
-    /// <item>§13.18.8.3 SR1 — category numeric-edited, or numeric without 'S'. The category is the one the
-    /// PICTURE character-string gives, which §13.18.8.4 GR2 then re-defines as numeric-edited for a display /
-    /// national numeric subject; so both categories are admitted here. The 'S' half is §13.18.40.3's own
+    /// <item>§2023:13.18.8.3 SR1 — category numeric-edited, or numeric without 'S'. The category is the one the
+    /// PICTURE character-string gives, which §2023:13.18.8.4 GR2 then re-defines as numeric-edited for a display /
+    /// national numeric subject; so both categories are admitted here. The 'S' half is §2023:13.18.40.3's own
     /// SR22 (COBOL1934, PictureComposition) — the same fact, reported once, at the picture.</item>
-    /// <item>§13.18.8.3 SR2 — usage display or national, written or inherited.</item>
-    /// <item>§13.18.32.3 SR3 — category alphabetic, alphanumeric, boolean or national (never an EDITED
+    /// <item>§2023:13.18.8.3 SR2 — usage display or national, written or inherited.</item>
+    /// <item>§2023:13.18.32.3 SR3 — category alphabetic, alphanumeric, boolean or national (never an EDITED
     /// category: <see cref="PicInfo.EditMask"/> is what makes one, see its doc).</item>
-    /// <item>§13.18.32.3 SR4 — "shall not be specified for a dynamic-length elementary item" — has NO arm here,
-    /// deliberately: §13.16.3 SR18 already refuses JUSTIFIED beside DYNAMIC LENGTH (the only other clauses it
+    /// <item>§2023:13.18.32.3 SR4 — "shall not be specified for a dynamic-length elementary item" — has NO arm here,
+    /// deliberately: §2023:13.16.3 SR18 already refuses JUSTIFIED beside DYNAMIC LENGTH (the only other clauses it
     /// permits are level-number, entry-name, PICTURE, USAGE and VALUE — COBOL1563, BindEntry), which is the
     /// same fact reported once. No TYPE / SAME AS path can compose the pair either: both copy from an entry that
     /// SR18 has already screened.</item>

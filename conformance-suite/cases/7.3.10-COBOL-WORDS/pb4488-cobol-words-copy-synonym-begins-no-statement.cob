@@ -9,8 +9,8 @@
 *> Compiler directives." The compiler directing statements are the
 *> COPY statement and the REPLACE statement (7.2.2.2), found in
 *> Step 1 of 7.2.1, before the actions of the directive in Step 4.
-*>   cite.py: OK  §7.3.10.4 6)  (General rules)
-*>   cite.py: OK  §7.2.2.2   (Compiler directing statements)
+*>   cite.py: OK  §2023:7.3.10.4 6)  (General rules)
+*>   cite.py: OK  §2023:7.2.2.2   (Compiler directing statements)
 *> EQUATE "COPY" WITH "CPY" is a legal directive (7.3.10.3 SR3 admits
 *> any reserved word as literal-1), and it changes nothing the COPY
 *> statement reads. So CPY BOOK. begins no COPY statement, and after

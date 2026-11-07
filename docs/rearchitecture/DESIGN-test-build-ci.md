@@ -388,7 +388,7 @@ IX999Z  IX     pending        -                                        none     
   from the manifest — three writings, no comparison — and the string had drifted a program behind (`SQ212A`).
   That exemption list was retired with the legacy engine (kb/Work PB2109); the one-reader rule stays.
 - ⛔ **A `divergent` row whose note begins `TERMINATES EC-<NAME>` is the other kind** (kb/Work PB1955): its golden
-  records a run that continued past a fatal I-O status nothing covers, and WiseOwl COBOL's ISO §9.1.13.1 choice
+  records a run that continued past a fatal I-O status nothing covers, and WiseOwl COBOL's ISO §2023:9.1.13.1 choice
   (Annex A.1 item 103) ends the run unit there. The run must exit non-zero naming that whole exception-name
   (`TERMINATES <EC>`, scored by `guard-verdict.sh#guard_termination_verdict`, called by both runners). The shell
   reader is `guard-population.sh` (`GUARD_TERMINATES_MARKER`, `guard_terminating`), which the audit also asks; the
@@ -419,10 +419,10 @@ program that writes a second file is graded with no change anywhere.
   twins that make every way of being wrong red; each was shown RED against the code before it.
 - **Bytes, not text.** The files are compared byte-for-byte (`-text` in `.gitattributes`): a sequential or relative
   file has no line terminator, an indexed store is binary. They pin WiseOwl COBOL's own file format (the standard
-  leaves the storage layout to the implementor, ISO §13.18.43.4 GR2); the standard-defined content is what the CCVS
+  leaves the storage layout to the implementor, ISO §2023:13.18.43.4 GR2); the standard-defined content is what the CCVS
   program reads back and reports in its print file. Two exceptions, each because the HOST decides the bytes: a TEXT
   file (only tab, line feed, form feed, carriage return and printable ASCII) is compared with each CR LF taken as LF,
-  because a line sequential file ends its records with the host's newline (DOC-A.1-114; ISO §12.4.5.10.3 GR2, "an
+  because a line sequential file ends its records with the host's newline (DOC-A.1-114; ISO §2023:12.4.5.10.3 GR2, "an
   implementor-defined line delimiter") — RW101A to RW104A's report files are CR LF on Windows and LF on Linux, and the
   goldens hold LF — while a lone CR is record data and still counts, and a BINARY file is never normalized, so a
   newline translation in a record file is a difference. And `(stdout)` is compared on the acceptance basis (the
@@ -465,7 +465,7 @@ rule has a `DiagnosticDescriptor` (`Code`, a stable `Id`, `Severity`, `Title`, `
 - The diagnostic goldens of gate (2) key on these stable codes.
 
 **The wire encoding of a diagnostic is part of the diagnostic** (kb/Work PB899). A message carries its ISO citation, so it
-carries non-ASCII (`(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013). `WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8()` is
+carries non-ASCII (`(ISO §2023:11.10.3 SR5–6)` holds U+00A7 and U+2013). `WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8()` is
 the ONE place that rule is written, and BOTH process entries call it: `Program.Main` in the CLI before it parses an argument,
 and `ProgramTable.RunModule` for a compiled program's `Main` (never a host entry such as `RunMain`, whose host owns its
 console: kb/Work PB3193). No golden can see a violation: the corpus runner matches `.err` files on a pure-ASCII code
@@ -798,7 +798,7 @@ than three run one after another. The review's bound for three overlapped gates 
 **What the gate runs now** (`scripts/gate.py`; §3.14.1–3.14.3): the inert lane runs the audits alone (§3.18); every other
 change builds once and runs the three populations whole, three hosts at once, the audits beside them, the population
 checked by name (§3.14.4). Ordering is the one lever left (§3.14.2): the classes red at the previous run first, then
-longest first by the committed weights file. The growth trigger of PB4323 §3.4 (step 10, kb/Work PB4333) reads the
+longest first by the committed weights file. The growth trigger of PB4323 §2023:3.4 (step 10, kb/Work PB4333) reads the
 `timings.tests_s` of every GREEN code-lane gate, kept beyond its worktree (§3.14.13).
 
 ### 3.14 THE WHOLE-POPULATION GATE, WHOLE-SUITE SPEED AND THE GATE CAP (kb/Work PB1708, PB4328)
@@ -953,7 +953,7 @@ scaling probe), never by assuming.
   `System.GC.Server`.
 - **M7 — the long poles.** `pb505-table-value-dynamic-span-levels` (266 s; 29.6 s alone through the CLI for a 26-line
   program) and `DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946` (116 s) were one product defect: `TableValueOdometer.Resolve`
-  filled up to 64,000,000 elements before reaching the SR23 violation that `COBOL1946` reports (ISO §13.18.63.3 SR23). The
+  filled up to 64,000,000 elements before reaching the SR23 violation that `COBOL1946` reports (ISO §2023:13.18.63.3 SR23). The
   fix (kb/Work PB1716, PB1722) computes the phrase's element count as the mixed-radix distance from subscript-1 to
   subscript-2 BEFORE anything is read, returns none for a phrase SR20/SR21/SR23 reject, and keeps the PHRASES instead of an
   element map; the SR23 shape lives once in `TableValueOdometer.UnboundedBelow`. The pb505 program now rejects in 0.49 s. The

@@ -15,16 +15,16 @@
       *> R-S - THE SIZE ERROR INDICATOR (checking OFF for SUM-SIZE).
       *> "Each entry containing a SUM clause establishes an independent
       *> sum counter and size error indicator."
-      *>   cite.py: OK  §13.18.54.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 1)  (General rules)
       *> "Each addition is tested for size error"
-      *>   cite.py: OK  §13.18.54.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 3)  (General rules)
       *> "If the associated size error indicator is set, an
       *> EC-REPORT-SUM-SIZE exception condition is set to exist and the
       *> printable item is filled with spaces"
-      *>   cite.py: OK  §13.18.54.4 4)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 4)  (General rules)
       *> "All sum counters and all size error indicators are set to
       *> zero"   (INITIATE)
-      *>   cite.py: OK  §14.9.21.4 1) a)  (General rules)
+      *>   cite.py: OK  §2023:14.9.21.4 1) a)  (General rules)
       *> DERIVATION. The counter has the two digits of PIC 99 (GR1).
       *> The first GENERATE adds 60; the second adds 60 again, and 120
       *> does not fit: a size error, so the counter keeps 60 and its
@@ -37,14 +37,14 @@
       *> R-O - A NONFATAL EXCEPTION RAISED BY GENERATE, AND ITS RESUME.
       *> "If this rule is violated the EC-REPORT-LINE-OVERLAP exception
       *> condition is set to exist and the results are undefined."
-      *>   cite.py: OK  §13.18.35.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 3)  (General rules)
       *> "execution resumes at the next report item, line, or report
       *> group"   (GENERATE)
-      *>   cite.py: OK  §14.9.16.4 8)  (General rules)
+      *>   cite.py: OK  §2023:14.9.16.4 8)  (General rules)
       *> "If any two or more absolute lines are defined using line
       *> numbers that are not in increasing numerical order, they shall
       *> each be subject to a different PRESENT WHEN clause."
-      *>   cite.py: OK  §13.18.35.3 6) a)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.35.3 6) a)  (Syntax rules)
       *> DERIVATION. DET-O's LINE 5 and LINE 3 are legal (each has its
       *> own PRESENT WHEN), and with WS-K = 2 both are present, so the
       *> group violates GR3 at run time. "O5" prints on line 5 (the
@@ -54,7 +54,7 @@
       *> EXCEPTION-STATUS name), and GENERATE resumes at the next line
       *> - there is none in DET-O, so "O3" is never printed, and
       *> LINE-COUNTER still names line 5, the last line printed
-      *> (§13.18.35.4 GR1). DET-P (LINE PLUS 1) passes the page fit
+      *> (§2023:13.18.35.4 GR1). DET-P (LINE PLUS 1) passes the page fit
       *> test and prints "P" on line 6. The defect raised nothing,
       *> pushed "O3" down to line 6, and "P" to line 7.
       *> Only non-blank lines are displayed, with their line number.

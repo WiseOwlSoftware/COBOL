@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.6.4 GR5/GR8/GR1 — SPACE QUOTE ZERO char values
+      *> ISO §2023:8.3.3.6.4 GR5/GR8/GR1 — SPACE QUOTE ZERO char values
       *>
       *> Rows pinned: GR-8.3.3.6.4-5, GR-8.3.3.6.4-8 (first
       *> sentence), DOC-A.1-74 (alphanumeric half, --std 85).
@@ -23,13 +23,13 @@
       *>    SPACE U+0020, ZERO U+0030, QUOTE U+0022; with no PROGRAM
       *>    COLLATING SEQUENCE, FUNCTION ORD gives 33 / 49 / 35.
       *> cite.py --check:
-      *>  OK  §8.3.3.6.4 5)  (General rules)
-      *>  OK  §8.3.3.6.4 8)  (General rules)
-      *>  OK  §8.3.3.6.4 1)  (General rules)
-      *>  OK  §8.3.3.6.4 2)  (General rules)   fill fixed-length item
-      *>  OK  §8.3.3.6.4 3)  (General rules)   b) one char in DISPLAY
-      *>  OK  §8.3.3.5.3 3)  (Syntax rules)    "" in a literal is one "
-      *>  OK  §15.70.4 1)  (Returned value rules)  ORD position
+      *>  OK  §2023:8.3.3.6.4 5)  (General rules)
+      *>  OK  §2023:8.3.3.6.4 8)  (General rules)
+      *>  OK  §2023:8.3.3.6.4 1)  (General rules)
+      *>  OK  §2023:8.3.3.6.4 2)  (General rules)   fill fixed-length item
+      *>  OK  §2023:8.3.3.6.4 3)  (General rules)   b) one char in DISPLAY
+      *>  OK  §2023:8.3.3.5.3 3)  (Syntax rules)    "" in a literal is one "
+      *>  OK  §2023:15.70.4 1)  (Returned value rules)  ORD position
       *>
       *> Derivation of each expected line:
       *>  SP=[   ]   MOVE SPACE to X(3): GR2 repeats the one-char

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A NUMERIC FUNCTION'S VALUE MAY NOT DEPEND ON THE SHAPE OF ITS RECEIVER, AND THE PLACES THAT READ THE RECEIVER ARE A
 /// CLOSED, JUSTIFIED SET (kb/Work PB3839).
 /// <para>
-/// The standard states the rule for the standard modes only: §15.4.1 "the returned value is the same for all instances of a
+/// The standard states the rule for the standard modes only: §2023:15.4.1 "the returned value is the same for all instances of a
 /// given function within a single execution of the runtime element so long as the value and order of the arguments, the
 /// collating sequence, and the locale are unchanged" opens "When standard-decimal arithmetic or standard-binary arithmetic is
 /// in effect", and for native arithmetic it leaves "the characteristics and representation of the returned value" to the
@@ -66,7 +66,7 @@ public sealed class ReceiverShapeReaderDriftTests
         Assert.True(unjustified.Count == 0,
             "IntrinsicRenderer now reads ReceiverContext member(s) [" + string.Join(", ", unjustified) + "] with no entry in "
             + "ReceiverShapeReaderDriftTests.Readers. A function's value must not depend on its receiver (the PB3839 owner "
-            + "determination, self-consistency: §15.4.1 leaves the NATIVE returned value implementor-defined, and the "
+            + "determination, self-consistency: §2023:15.4.1 leaves the NATIVE returned value implementor-defined, and the "
             + "implementor's choice is one value per reference); write down why this read decides a LANDING and not a "
             + "value, or remove it (kb/Work PB3839).");
         var stale = Readers.Keys.Except(read).OrderBy(x => x, StringComparer.Ordinal).ToList();

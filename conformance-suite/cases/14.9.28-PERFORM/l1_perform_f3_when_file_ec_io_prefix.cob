@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR16 — "If file-name-2 is specified,
+      *> ISO §2023:14.9.28.3 SR16 — "If file-name-2 is specified,
       *> exception-name-2 shall begin with the COBOL characters
       *> 'EC-I-O'."
       *>
@@ -22,7 +22,7 @@
       *> tests/conformance/negative/l1-perform-f3-sr16-*, which pairs
       *> FILE with a non-I-O catalogued name AND with an open-family
       *> EC-USER- name; the latter is the case a catalog-membership
-      *> implementation cannot decide, because §14.6.13.1.1's
+      *> implementation cannot decide, because §2023:14.6.13.1.1's
       *> EC-USER- family is open and cannot be enumerated.
       *>
       *> The antecedent is read correctly too: it is conditioned on
@@ -37,8 +37,8 @@
       *>
       *> The observable is a third WHEN on a user-defined exception
       *> raised by imperative-statement-1, so no file is ever opened
-      *> and the run is deterministic (§14.6.13.1.1 makes user-defined
-      *> exceptions nonfatal; §14.9.28.4 GR20 then reaches SR16-AFTER).
+      *> and the run is deterministic (§2023:14.6.13.1.1 makes user-defined
+      *> exceptions nonfatal; §2023:14.9.28.4 GR20 then reaches SR16-AFTER).
       *>
       *> EDITION: the exception-checking PERFORM is new in COBOL-2023
       *> (Annex E.3.3 item 36).

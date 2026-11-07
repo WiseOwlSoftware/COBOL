@@ -5,20 +5,20 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE RUN UNIT'S COMMIT AND ROLLBACK (ISO §9.1.18; DESIGN-runtime-library.md 2.2.1.10, "The compiler half"; kb/Work
-/// PB3338) — the one place the COMMIT and ROLLBACK statements, the activation of an APPLY COMMIT clause and §14.6.13.1.3
+/// ⛔ THE RUN UNIT'S COMMIT AND ROLLBACK (ISO §2023:9.1.18; DESIGN-runtime-library.md 2.2.1.10, "The compiler half"; kb/Work
+/// PB3338) — the one place the COMMIT and ROLLBACK statements, the activation of an APPLY COMMIT clause and §2023:14.6.13.1.3
 /// item 8's unconditional ROLLBACK meet. The FILES' half is the keyed store engine's, reached through
 /// <see cref="FileRegistry.Commit"/> and <see cref="FileRegistry.Rollback"/> (kb/Work PB3337); the DATA ITEMS' half is
 /// here: every activated APPLY COMMIT clause is a <see cref="Participant"/> whose emitted <c>save</c> and <c>restore</c>
-/// copy the clause's data items (its identifier-1 operands and §12.4.6.3.3 SR9's file status, LINAGE and RECORD items)
+/// copy the clause's data items (its identifier-1 operands and §2023:12.4.6.3.3 SR9's file status, LINAGE and RECORD items)
 /// to and from an image the runtime element keeps.
-/// <para><b>Active, and deactivated.</b> A clause becomes active when its runtime element is activated (§12.4.6.3.4
+/// <para><b>Active, and deactivated.</b> A clause becomes active when its runtime element is activated (§2023:12.4.6.3.4
 /// GR5) and is a participant from then on. A CANCEL of the element, or the return of an INITIAL program (whose
 /// implicit CANCEL ends the instance), RETIRES it (<see cref="Retire"/>): its data items are no longer restored
-/// (§14.9.36.4 GR4/GR5) and the next COMMIT or ROLLBACK deactivates it (§14.9.7.4 GR3, §14.9.36.4 GR6). An EXTERNAL item
+/// (§2023:14.9.36.4 GR4/GR5) and the next COMMIT or ROLLBACK deactivates it (§2023:14.9.7.4 GR3, §2023:14.9.36.4 GR6). An EXTERNAL item
 /// still described by another active clause is restored through that clause, which is GR4/GR5's exception.</para>
 /// <para><b>Run-unit scope.</b> A COMMIT or ROLLBACK acts on every active clause of the run unit whichever element
-/// executes it (§14.9.7.1, §14.9.36.1), so the statement emits a call here and nothing of its own element's clause.</para>
+/// executes it (§2023:14.9.7.1, §2023:14.9.36.1), so the statement emits a call here and nothing of its own element's clause.</para>
 /// </summary>
 internal sealed class TransactionControl(FileRegistry files, ModuleStack modules, SortFileTable sorts, ExceptionEngine exceptions)
 {
@@ -40,12 +40,12 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     /// <summary>Per refused file, whether its last refusal reached a FILE STATUS item (<see cref="HasStatusItem"/>).</summary>
     private readonly Dictionary<string, bool> _toldByStatusItem = [];
 
-    /// <summary>Whether a clause is active in the run unit — §14.9.7.4 GR1 / §14.9.36.4 GR1's "no active APPLY COMMIT
+    /// <summary>Whether a clause is active in the run unit — §2023:14.9.7.4 GR1 / §2023:14.9.36.4 GR1's "no active APPLY COMMIT
     /// clause" is its negation.</summary>
     public bool AnyActive => _participants.Count > 0;
 
-    /// <summary>§9.1.18.7's "under the control of a recursive runtime element, or … the MERGE or SORT file statements".
-    /// A recursive runtime element (§8.6.6) is a RECURSIVE program, a function or a method, and the run unit's module
+    /// <summary>§2023:9.1.18.7's "under the control of a recursive runtime element, or … the MERGE or SORT file statements".
+    /// A recursive runtime element (§2023:8.6.6) is a RECURSIVE program, a function or a method, and the run unit's module
     /// stack holds the frame of each kind while it runs (<see cref="ModuleStack.AnyRecursive"/>; kb/Work PB3540: a method
     /// is no <see cref="ProgramTable"/> node, so asking the table missed it).</summary>
     private bool FlowForbidden(out string why)
@@ -60,13 +60,13 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         return false;
     }
 
-    /// <summary>⛔ ACTIVATE an APPLY COMMIT clause (§12.4.6.3.4 GR5) — emitted at the activation of a runtime element that
+    /// <summary>⛔ ACTIVATE an APPLY COMMIT clause (§2023:12.4.6.3.4 GR5) — emitted at the activation of a runtime element that
     /// contains one, once per element instance. <paramref name="fileNames"/> are the file connectors the clause names (every
-    /// organization §9.1.18.2 admits: the keyed ones and, kb/Work PB3340, the sequential ones),
+    /// organization §2023:9.1.18.2 admits: the keyed ones and, kb/Work PB3340, the sequential ones),
     /// put under commit control here (<see cref="FileRegistry.RegisterCommitControl"/>); <paramref name="save"/> runs at
-    /// once, because a ROLLBACK before the first COMMIT restores the state "at the start of the run unit" (§14.9.36.4 GR3),
+    /// once, because a ROLLBACK before the first COMMIT restores the state "at the start of the run unit" (§2023:14.9.36.4 GR3),
     /// which for an element activated later is its state at activation. Returns false — and activates nothing — when
-    /// the activation is one §12.4.6.3.4 GR3/GR4 forbids: EC-FLOW-APPLY-COMMIT is raised when checking is enabled
+    /// the activation is one §2023:12.4.6.3.4 GR3/GR4 forbids: EC-FLOW-APPLY-COMMIT is raised when checking is enabled
     /// (Table 13's row for "Invocation of a runtime element with an APPLY COMMIT clause in effect by a runtime element for
     /// which commit and rollback is not permitted") — the ACTIVATING element's checking, which the activation boundary
     /// latched (<see cref="ExceptionEngine.ActivatorFlowApplyCommit"/>) — and with checking off the clause stays
@@ -79,7 +79,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
             // activator's latched answer is put in force for this one raise and the scope's value handed back.
             bool scoped = exceptions.FlowApplyCommitChecking;
             exceptions.FlowApplyCommitChecking = exceptions.ActivatorFlowApplyCommit;
-            try { exceptions.FlowApplyCommitError($"an APPLY COMMIT clause activated {why} (ISO §12.4.6.3.4 GR3/GR4)"); }
+            try { exceptions.FlowApplyCommitError($"an APPLY COMMIT clause activated {why} (ISO §2023:12.4.6.3.4 GR3/GR4)"); }
             finally { exceptions.FlowApplyCommitChecking = scoped; }
             return false;
         }
@@ -90,7 +90,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     }
 
     /// <summary>The element instance <paramref name="owner"/> has been canceled or, an INITIAL program, has returned
-    /// (§14.9.7.4 GR3, §14.9.36.4 GR4-GR6): its data items are no longer restored, and the next COMMIT or ROLLBACK
+    /// (§2023:14.9.7.4 GR3, §2023:14.9.36.4 GR4-GR6): its data items are no longer restored, and the next COMMIT or ROLLBACK
     /// deactivates its clause. Its files stay under commit control until then (a CLOSE under commit control keeps the
     /// transaction, kb/Work PB3480).</summary>
     public void Retire(object owner)
@@ -99,19 +99,19 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
             if (ReferenceEquals(p.Owner, owner)) p.Retired = true;
     }
 
-    /// <summary>⛔ THE COMMIT STATEMENT (§14.9.7.4). Returns the connector name of the file whose COMMIT the medium
+    /// <summary>⛔ THE COMMIT STATEMENT (§2023:14.9.7.4). Returns the connector name of the file whose COMMIT the medium
     /// refused, with '30' already in its I-O status and in its FILE STATUS item (<see cref="Refused"/>), or null.
-    /// A COMMIT §9.1.18.7 forbids raises EC-FLOW-COMMIT (GR2) or, with checking off, does nothing.
+    /// A COMMIT §2023:9.1.18.7 forbids raises EC-FLOW-COMMIT (GR2) or, with checking off, does nothing.
     /// GR1: with no active clause the statement is CONTINUE — the registry has no transaction and there is nothing to
     /// save. GR3: the files' changes are made permanent and their record locks released (the registry's half), and the
     /// clauses of exited initial programs and canceled elements are deactivated; GR5: the remaining clauses' data items
-    /// are saved. A refused COMMIT saves nothing and deactivates nothing: §14.6.13.1.3 item 8's ROLLBACK follows it.</summary>
+    /// are saved. A refused COMMIT saves nothing and deactivates nothing: §2023:14.6.13.1.3 item 8's ROLLBACK follows it.</summary>
     public string? Commit()
     {
         if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
         if (FlowForbidden(out string why))
         {
-            exceptions.FlowCommitError($"COMMIT executed {why} (ISO §14.9.7.4 GR2)");
+            exceptions.FlowCommitError($"COMMIT executed {why} (ISO §2023:14.9.7.4 GR2)");
             return null;
         }
         if (files.Commit() is { } refused) return Refused(refused);
@@ -120,24 +120,24 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         return null;
     }
 
-    /// <summary>⛔ THE ROLLBACK STATEMENT (§14.9.36.4). The files first (the registry's half, GR3: every change of the run
+    /// <summary>⛔ THE ROLLBACK STATEMENT (§2023:14.9.36.4). The files first (the registry's half, GR3: every change of the run
     /// unit since the last COMMIT reversed, its record locks released), then the data items of every clause that is not
     /// retired (GR3's second sentence; GR4/GR5 exclude the canceled and exited ones), then the retired clauses are
     /// deactivated (GR6). Returns the refused file's connector name as <see cref="Commit"/> does, or null; a ROLLBACK
-    /// §9.1.18.7 forbids raises EC-FLOW-ROLLBACK (GR2) or, with checking off, does nothing. The data items are restored
+    /// §2023:9.1.18.7 forbids raises EC-FLOW-ROLLBACK (GR2) or, with checking off, does nothing. The data items are restored
     /// even when a file's ROLLBACK is refused: every other file was rolled back, and the program is told of the one that
     /// was not by its '30'.</summary>
     public string? Rollback() => Execute() is { } refused ? Refused(refused) : null;
 
-    /// <summary>The ROLLBACK statement's general rules (§14.9.36.4 GR1-GR6), shared by the program's ROLLBACK
-    /// (<see cref="Rollback"/>) and §14.6.13.1.3 item 8's (<see cref="RollbackOnFatal"/>): returns the connector name of
+    /// <summary>The ROLLBACK statement's general rules (§2023:14.9.36.4 GR1-GR6), shared by the program's ROLLBACK
+    /// (<see cref="Rollback"/>) and §2023:14.6.13.1.3 item 8's (<see cref="RollbackOnFatal"/>): returns the connector name of
     /// the file whose ROLLBACK the medium refused, not yet told to the program, or null.</summary>
     private string? Execute()
     {
         if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
         if (FlowForbidden(out string why))
         {
-            exceptions.FlowRollbackError($"ROLLBACK executed {why} (ISO §14.9.36.4 GR2)");
+            exceptions.FlowRollbackError($"ROLLBACK executed {why} (ISO §2023:14.9.36.4 GR2)");
             return null;
         }
         string? refused = files.Rollback();
@@ -145,7 +145,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         return refused;
     }
 
-    /// <summary>⛔ §14.6.13.1.3 ITEM 8's QUESTION: <i>"If checking for the exception condition is not enabled, … However,
+    /// <summary>⛔ §2023:14.6.13.1.3 ITEM 8's QUESTION: <i>"If checking for the exception condition is not enabled, … However,
     /// if there is a fatal exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK
     /// statement is executed unconditionally."</i> True when <paramref name="checkingEnabled"/> is false (the emitter's
     /// fact: the raised condition's bit in the statement's checking — with checking enabled items 4-7 decide, and a
@@ -156,8 +156,8 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
     public bool RollbackDueOnFatal(string name, bool checkingEnabled) =>
         !checkingEnabled && files.IsCommitControlled(name) && ExceptionCatalog.IsFatalIoStatus(files.Status(name));
 
-    /// <summary>⛔ §14.6.13.1.3 ITEM 8's ROLLBACK: <i>"a ROLLBACK statement is executed"</i>, so it is the ROLLBACK
-    /// statement's general rules (<see cref="Execute"/>): with no active clause it is CONTINUE (§14.9.36.4 GR1), and under
+    /// <summary>⛔ §2023:14.6.13.1.3 ITEM 8's ROLLBACK: <i>"a ROLLBACK statement is executed"</i>, so it is the ROLLBACK
+    /// statement's general rules (<see cref="Execute"/>): with no active clause it is CONTINUE (§2023:14.9.36.4 GR1), and under
     /// the control of a recursive runtime element or a file SORT or MERGE statement it raises EC-FLOW-ROLLBACK and rolls
     /// nothing back (GR2) — an input-output statement in a SORT input or output procedure reaches it. Files and data
     /// items are restored alike. Its own refusal is not told to the program (the connector's I-O status keeps the '30',
@@ -178,7 +178,7 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
 
     /// <summary>Whether the refusal <see cref="Refused"/> last told of <paramref name="name"/> reached an element's FILE
     /// STATUS item — false when no element describing the file writes a FILE STATUS clause for it, which is DOC-A.1-103's
-    /// "nothing covers this status". A QUESTION, so it stores nothing: asked after §14.6.13.1.3 item 8's ROLLBACK has
+    /// "nothing covers this status". A QUESTION, so it stores nothing: asked after §2023:14.6.13.1.3 item 8's ROLLBACK has
     /// restored the FILE STATUS items (kb/Work PB3542), a second store would put the refusal's '30' back over the
     /// restored value, and a participant the ROLLBACK deactivated would no longer be asked.</summary>
     public bool HasStatusItem(string name) => _toldByStatusItem.GetValueOrDefault(name);
@@ -190,11 +190,11 @@ internal sealed class TransactionControl(FileRegistry files, ModuleStack modules
         DeactivateRetired();
     }
 
-    /// <summary>⛔ DEACTIVATE the retired clauses — §14.9.7.4 GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT
-    /// clauses in exited initial programs and canceled runtime elements"</i>, and §14.9.36.4 GR6 for the ROLLBACK — and take
+    /// <summary>⛔ DEACTIVATE the retired clauses — §2023:14.9.7.4 GR3, <i>"The COMMIT statement also deactivates any APPLY COMMIT
+    /// clauses in exited initial programs and canceled runtime elements"</i>, and §2023:14.9.36.4 GR6 for the ROLLBACK — and take
     /// out of commit control every file connector a deactivated clause named that no remaining active clause names
-    /// (<see cref="FileRegistry.ReleaseCommitControl"/>; kb/Work PB3541): §12.4.6.3.4 GR5 makes a clause active only
-    /// until that deactivation, so the file's later changes are no ROLLBACK's and §14.6.13.1.3 item 8 no longer applies to
+    /// (<see cref="FileRegistry.ReleaseCommitControl"/>; kb/Work PB3541): §2023:12.4.6.3.4 GR5 makes a clause active only
+    /// until that deactivation, so the file's later changes are no ROLLBACK's and §2023:14.6.13.1.3 item 8 no longer applies to
     /// it. An EXTERNAL file connector another active clause still names stays under commit control through that clause.</summary>
     private void DeactivateRetired()
     {

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 7 through §11.4.3 SR2 — a FACTORY that
+      *> ISO §2023:9.3.8.2.3 rule 7 through §2023:11.4.3 SR2 — a FACTORY that
       *>   IMPLEMENTS a prototype whose strong type it redeclares
       *>   WITHOUT the STRONG phrase
       *> Rule: "If either of the corresponding formal parameters or
@@ -13,24 +13,24 @@
       *> cite.py --check 9.3.8.2.3 "If either of the corresponding
       *>   formal parameters or returning items in interface-1 or
       *>   interface-2 is a strongly-typed group item, both are of the
-      *>   same type" -> OK  §9.3.8.2.3 7)  (Conformance between
+      *>   same type" -> OK  §2023:9.3.8.2.3 7)  (Conformance between
       *>   interfaces)
       *> cite.py --check 8.5.3.1 "both have the same presence or
       *>   absence of the EXTERNAL clause and the STRONG phrase" -> OK
-      *>   §8.5.3.1   (General)
+      *>   §2023:8.5.3.1   (General)
       *> cite.py --check 11.4.3 "Each method prototype in each
       *>   implemented interface shall be such that the factory
       *>   interface of this class conforms to all implemented
-      *>   interfaces" -> OK  §11.4.3 2)  (Syntax rules)
+      *>   interfaces" -> OK  §2023:11.4.3 2)  (Syntax rules)
       *> Interface-2 = PB1012NI (SWAPT USING LK-P, TYPE TT, TT a
       *>   TYPEDEF STRONG group of one PIC X(4)); interface-1 = the
       *>   factory interface of PB1012NC, which IMPLEMENTS PB1012NI.
       *>   The factory method's TT has the same type-name and layout
       *>   but no STRONG phrase, so the two declarations are not
-      *>   equivalent (§8.5.3.1): the prototype's formal is a
+      *>   equivalent (§2023:8.5.3.1): the prototype's formal is a
       *>   strongly-typed group item and the method's is not of its
       *>   type, so the factory interface does not conform and
-      *>   §11.4.3 SR2 is violated: COBOL0841.
+      *>   §2023:11.4.3 SR2 is violated: COBOL0841.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. PB1012NI.
        PROCEDURE DIVISION.

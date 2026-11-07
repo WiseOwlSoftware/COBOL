@@ -5,9 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1284 — ISO/IEC 1989:2023 §13.18.45.3 SR8 bars an occurs-depending table WITHIN a RENAMES range
+      *> kb/Work PB1284 — ISO/IEC 1989:2023 §2023:13.18.45.3 SR8 bars an occurs-depending table WITHIN a RENAMES range
       *> ("None of the items within the range, including data-name-2 and data-name-3, if specified, shall be ...
-      *> a variable-length data item, or an occurs-depending table"); the range is §13.18.45.4 GR2's, "all
+      *> a variable-length data item, or an occurs-depending table"); the range is §2023:13.18.45.4 GR2's, "all
       *> elementary items starting with data-name-2 ... and concluding with data-name-3". The record below ENDS in
       *> an occurs-depending table, and every range here stops before it, so each
       *> alias is legal and is the storage window it names:

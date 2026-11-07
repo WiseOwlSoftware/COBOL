@@ -5,28 +5,28 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ §14.9.18.2's GENERAL FORMAT, READ FROM THE PRINTED FIGURE — the spellings the grammar owes, and the two
+/// ⛔ §2023:14.9.18.2's GENERAL FORMAT, READ FROM THE PRINTED FIGURE — the spellings the grammar owes, and the two
 /// controls that prove the relaxation did not simply open the rule up (kb/Work PB407).
 ///
 /// <para><b>The three facts, measured on the page</b> (PDF page 661 / printed folio 631 and PDF page 653 /
 /// printed folio 623, rendered at 300 dpi):
 /// <list type="number">
-///   <item>The tail bracket carries CHOICE INDICATORS — the `|` bars just inside `⎡ … ⎤`. §5.2.6.4: "When
+///   <item>The tail bracket carries CHOICE INDICATORS — the `|` bars just inside `⎡ … ⎤`. §2023:5.2.6.4: "When
 ///         enclosed by brackets, zero or more of the alternatives contained within the choice indicators shall
 ///         be specified, but any single alternative may be specified only once", and "The alternatives may be
 ///         specified in any order." The grammar said <c>(raisingPhrase | statusPhrase)?</c> — an ORDERED
 ///         at-most-one stack — so BOTH phrases together was a syntax error in either order.</item>
-///   <item>`STATUS` is NOT underlined, so §5.2.3 makes it an OPTIONAL word; the grammar required it before an
+///   <item>`STATUS` is NOT underlined, so §2023:5.2.3 makes it an OPTIONAL word; the grammar required it before an
 ///         operand, and `GOBACK WITH ERROR 5.` was <c>COBOL0001: no viable alternative at input '5'</c>. The
-///         rule is SHARED with STOP (§14.9.42.2 prints the same underlining), so the defect was two verbs
+///         rule is SHARED with STOP (§2023:14.9.42.2 prints the same underlining), so the defect was two verbs
 ///         wide.</item>
 ///   <item>In `LAST EXCEPTION` only `LAST` is underlined, so the trailing `EXCEPTION` is an optional word too —
 ///         on the GOBACK figure AND on EXIT Format 2, which shares the grammar's one <c>raisingPhrase</c> rule.
-///         §7.3.21.4 rule 2 writes the phrase back as "as though a GOBACK RAISING LAST statement were
+///         §2023:7.3.21.4 rule 2 writes the phrase back as "as though a GOBACK RAISING LAST statement were
 ///         executed", which is the standard citing itself.</item>
 /// </list></para>
 ///
-/// <para>The "only once" half of §5.2.6.4 cannot be a parser rule without enumerating the orderings, so it is a
+/// <para>The "only once" half of §2023:5.2.6.4 cannot be a parser rule without enumerating the orderings, so it is a
 /// bind-time screen (COBOL2104) and is asserted here beside the spellings it bounds.</para>
 /// </summary>
 public sealed class GobackGeneralFormatTests
@@ -34,7 +34,7 @@ public sealed class GobackGeneralFormatTests
     private const string ChoiceRepeated = "COBOL2104";
 
     /// <summary>A main program whose one paragraph is <paramref name="body"/>. The PD header carries
-    /// RAISING EC-USER-X so an `EXCEPTION EC-USER-X` operand satisfies §14.9.18.3 SR2's second sentence.</summary>
+    /// RAISING EC-USER-X so an `EXCEPTION EC-USER-X` operand satisfies §2023:14.9.18.3 SR2's second sentence.</summary>
     private static string Prog(string pid, string body) => $"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {pid}.
@@ -44,7 +44,7 @@ public sealed class GobackGeneralFormatTests
 
         """;
 
-    /// <summary>A program whose declarative paragraph is <paramref name="body"/> — §14.9.18.3 SR5 / §14.9.14.3
+    /// <summary>A program whose declarative paragraph is <paramref name="body"/> — §2023:14.9.18.3 SR5 / §2023:14.9.14.3
     /// SR6 admit the LAST phrase there, so a RAISING LAST spelling can be tested for its SYNTAX alone.</summary>
     private static string InDeclarative(string pid, string body) => $"""
         IDENTIFICATION DIVISION.
@@ -80,7 +80,7 @@ public sealed class GobackGeneralFormatTests
     }
 
     /// <summary>Fact 2, THE OTHER VERB. <c>statusPhrase</c> is ONE grammar rule shared by GOBACK and STOP
-    /// (§14.9.42.2 / §14.9.18.2 print the same un-underlined WITH and STATUS), so the required-STATUS defect was
+    /// (§2023:14.9.42.2 / §2023:14.9.18.2 print the same un-underlined WITH and STATUS), so the required-STATUS defect was
     /// two verbs wide and the repair is inherited rather than repeated — this row is what holds that true.</summary>
     [Theory]
     [InlineData("PBFM09", "STOP RUN WITH ERROR 5")]
@@ -135,7 +135,7 @@ public sealed class GobackGeneralFormatTests
         EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL0001");
     }
 
-    /// <summary>⛔ FACT 3'S THIRD SITE, AND THE ARM PB407's REPAIR DID NOT REACH (kb/Work PB402). §14.9.38.2
+    /// <summary>⛔ FACT 3'S THIRD SITE, AND THE ARM PB407's REPAIR DID NOT REACH (kb/Work PB402). §2023:14.9.38.2
     /// Format 2 prints the same <c>RAISING { EXCEPTION exception-name-1 | LAST EXCEPTION }</c> brace, measured
     /// on canonical PDF page 756 / printed folio 726 with LAST underlined and the following EXCEPTION not — a
     /// THIRD page carrying the typesetting. <c>messagingSendStatement</c> spells that brace INLINE (it has two
@@ -143,7 +143,7 @@ public sealed class GobackGeneralFormatTests
     /// relaxing the shared rule left this one requiring the word, and <c>SEND … RAISING LAST</c> was
     /// <c>COBOL0001: missing token before '.'</c> — measured on this tree before the fix.
     /// <para>The MCS facility is declined ACCEPT-INERT (Annex A.3 item 4), so the contract here is that the
-    /// program COMPILES and the decline rides the warning channel: a parse error would deny §4.2.6 ¶3's named
+    /// program COMPILES and the decline rides the warning channel: a parse error would deny §2023:4.2.6 ¶3's named
     /// warning entirely, which is the conformance obligation the decline rests on.</para></summary>
     [Theory]
     [InlineData("PBFM31", "SEND TO D-NAME FROM MSG-OUT RAISING LAST END-SEND")]
@@ -169,7 +169,7 @@ public sealed class GobackGeneralFormatTests
         EditionHarness.AssertHasDiagnostic(warnings, "COBOL1578");   // the A.3 item 4 decline, still named
     }
 
-    /// <summary>§5.2.6.4's "only once" half — the part a parser rule cannot state. Relaxing the tail to a
+    /// <summary>§2023:5.2.6.4's "only once" half — the part a parser rule cannot state. Relaxing the tail to a
     /// repetition without this screen would ACCEPT a doubled phrase, which is the opposite error.</summary>
     [Theory]
     [InlineData("PBFM17", "GOBACK RAISING EXCEPTION EC-USER-X RAISING EXCEPTION EC-USER-X")]

@@ -29,7 +29,7 @@ public enum EvaluateObjectOperand
 }
 
 /// <summary>
-/// ⛔ ISO §14.9.13.3 SR10 + <b>Table 15, "Combination of operands in the EVALUATE statement"</b> — which pairings
+/// ⛔ ISO §2023:14.9.13.3 SR10 + <b>Table 15, "Combination of operands in the EVALUATE statement"</b> — which pairings
 /// of a selection subject with a selection object are permissible. "The letter 'Y' indicates a permissible
 /// combination. A space indicates an invalid combination."
 ///
@@ -41,7 +41,7 @@ public enum EvaluateObjectOperand
 /// silently diverging.</para>
 ///
 /// <para>⚠ <b>What this table does NOT decide is which KIND an operand is.</b> That classification is
-/// <c>EvaluateBinder.ClassifyPair</c>'s, and it is a JOINT question, not two independent ones: §14.9.13.3 SR6
+/// <c>EvaluateBinder.ClassifyPair</c>'s, and it is a JOINT question, not two independent ones: §2023:14.9.13.3 SR6
 /// changes a boolean operand's kind "for a particular WHEN phrase" according to the OTHER side of the pair. The
 /// classifier still declines rather than guess where it cannot name a shape — a null on either side means no
 /// diagnostic — but that is now the Partial-expression row alone, which no operand can reach while the partial
@@ -65,14 +65,14 @@ public static class EvaluateOperandCombinations
         "Y      Y      Y      Y      Y      Y");     // ANY
 
     /// <summary>True when Table 15 marks this subject/object pairing permissible ('Y'); false for a blank cell,
-    /// which §14.9.13.3 SR10 makes a SYNTAX RULE violation — a compile-time diagnostic, never a run-time fault.
+    /// which §2023:14.9.13.3 SR10 makes a SYNTAX RULE violation — a compile-time diagnostic, never a run-time fault.
     /// </summary>
     public static bool IsPermitted(EvaluateSubjectOperand subject, EvaluateObjectOperand obj) =>
         Permitted[(int)obj, (int)subject];
 
     /// <summary>Table 15's ROW named as its COLUMN — the same operand kind on the other axis — or null for the
     /// three rows the table prints with no column of their own (range-expression, partial-expression, ANY are
-    /// selection-OBJECT forms; §14.9.13.2's general format admits no such selection subject).
+    /// selection-OBJECT forms; §2023:14.9.13.2's general format admits no such selection subject).
     /// <para>⛔ THIS EXISTS SO THE BINDER CAN CLASSIFY A SELECTION SUBJECT AND A SELECTION OBJECT WITH ONE
     /// FUNCTION (kb/Work PB400). Two independently written classifiers is the two-arm-dispatch shape, and it
     /// produced exactly that defect: the object classifier recognised a switch-status condition-name and the

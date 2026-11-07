@@ -14,11 +14,11 @@ public sealed class StorageCell
     /// <summary>The storage's character image (its full width; every view windows it).</summary>
     public string Ref = "";
 
-    /// <summary>True for a cell obtained by ALLOCATE (ISO §14.9.3) — the only cells FREE releases (§14.9.15.4 GR1a).</summary>
+    /// <summary>True for a cell obtained by ALLOCATE (ISO §2023:14.9.3) — the only cells FREE releases (§2023:14.9.15.4 GR1a).</summary>
     public bool Allocated;
 
     /// <summary>⛔ THE ONE LIFETIME STATE OF A CELL (kb/Work PB1216): how many lives of this storage have ENDED. A data
-    /// pointer (<see cref="CellPointer"/>) records the generation it was taken in, and ISO §13.18.5.4 GR4 makes a
+    /// pointer (<see cref="CellPointer"/>) records the generation it was taken in, and ISO §2023:13.18.5.4 GR4 makes a
     /// reference through one whose generation is no longer the cell's current one a reference to "an address [that is]
     /// not a valid address of storage" — EC-BOUND-PTR. A counter rather than a flag because a STATIC cell is
     /// re-seeded IN PLACE at CANCEL (<see cref="Reinitialize"/>): a flag would come back to 'live' and resurrect every
@@ -30,9 +30,9 @@ public sealed class StorageCell
     public StorageEnd LastEnd { get; private set; }
 
     /// <summary>End the cell's current life for <paramref name="reason"/> — the ONE way storage stops existing. FREE
-    /// (§14.9.15.4 GR1a: "the contents of any data items located within the released storage area become undefined")
+    /// (§2023:14.9.15.4 GR1a: "the contents of any data items located within the released storage area become undefined")
     /// also releases the image and the managed slots, which are one storage area with it; the activation and CANCEL
-    /// ends (§8.6.4) leave the image to its owner, who re-seeds or drops it. Every pointer taken before this call
+    /// ends (§2023:8.6.4) leave the image to its owner, who re-seeds or drops it. Every pointer taken before this call
     /// now fails its dereference loud (<c>CobolPtr.Deref</c>).</summary>
     public void End(StorageEnd reason)
     {
@@ -49,14 +49,14 @@ public sealed class StorageCell
     /// (kb/Work PB231 — the pointer third). A data item of class pointer or class object holds a managed
     /// REFERENCE, which is not a byte sequence and therefore has no VALUE in <see cref="Ref"/>; its bytes
     /// there are reserved positions (a pointer's hold its storage image, which <c>CobolPtr.SlotWrite</c> keeps equal
-    /// to the slot's value, kb/Work PB1071; an object's are placeholders) so that §14.9.3.4 GR3's "the amount of storage to be
+    /// to the slot's value, kb/Work PB1071; an object's are placeholders) so that §2023:14.9.3.4 GR3's "the amount of storage to be
     /// allocated is the number of bytes required to hold an item as described by data-name-1" — and every
     /// following member's offset — stay exactly what a byte-addressed area says they are.
     /// <para>⛔ THE SLOTS BELONG TO THE CELL, NOT TO THE ITEM, and that is the whole reason they are here:
     /// EXTERNAL sharing, ADDRESS OF aliasing and <c>SET ADDRESS OF</c> re-pointing all mean "two descriptions
     /// of ONE storage area", so a pointer member re-pointed through one description must be visible through
     /// every other. A per-instance field could not do that.</para>
-    /// <para>⛔ AN UNWRITTEN SLOT READS NULL, AND THAT *IS* §14.9.3.4 GR9 — "data items of class object or
+    /// <para>⛔ AN UNWRITTEN SLOT READS NULL, AND THAT *IS* §2023:14.9.3.4 GR9 — "data items of class object or
     /// class pointer in the allocated storage are initialized to null" — realized by construction rather
     /// than by a seeding loop that a future allocation path could forget. The table is allocated lazily, so
     /// a cell with no managed member costs one null field.</para></summary>
@@ -69,7 +69,7 @@ public sealed class StorageCell
     private ReceivingReferences.Scope? _received;
 
     /// <summary>⛔ A STORE THROUGH A VIEW OF THIS CELL (kb/Work PB2690): the activated element referenced the
-    /// <paramref name="width"/> positions from <paramref name="at"/> as a receiving item (ISO §8.5.1.9.3). The emitted
+    /// <paramref name="width"/> positions from <paramref name="at"/> as a receiving item (ISO §2023:8.5.1.9.3). The emitted
     /// store through every view of a pointer-located class (a LINKAGE formal, a BASED item) calls it; it records only while
     /// a boundary watches the cell (<see cref="WatchReceiving"/>).</summary>
     public void Received(long at, int width) => _received?.Mark([], at, width);
@@ -93,7 +93,7 @@ public sealed class StorageCell
         _received is { } scope ? ReceivingReferences.Of(scope, (int)offset, dynBase) : null;
 
     /// <summary>The managed value at <paramref name="byteOffset"/>, or <see langword="null"/> when nothing
-    /// has been stored there (ISO §14.9.3.4 GR9's null initial state — see <see cref="_slots"/>).</summary>
+    /// has been stored there (ISO §2023:14.9.3.4 GR9's null initial state — see <see cref="_slots"/>).</summary>
     public object? SlotAt(int byteOffset) =>
         _slots is { } m && m.TryGetValue(byteOffset, out object? v) ? v : null;
 
@@ -103,7 +103,7 @@ public sealed class StorageCell
 
     /// <summary>⛔ A DETACHED COPY OF THE AREA <paramref name="width"/> positions from <paramref name="offset"/> (kb/Work
     /// PB1940): a new cell holding those characters of <see cref="Ref"/> and the managed slots keyed inside them, each
-    /// shifted to the same position of the copy. It is ISO §14.2.3 GR9's record "allocated by the activating runtime
+    /// shifted to the same position of the copy. It is ISO §2023:14.2.3 GR9's record "allocated by the activating runtime
     /// element" for a group whose values ride the slots (a strongly-typed group with an object-reference or pointer
     /// leaf): the copy keeps every reference, which a character image would drop, and "does not occupy the same storage
     /// area as the argument".
@@ -175,13 +175,13 @@ public sealed class StorageCell
     //
     // A cell-backed area (an EXTERNAL record, an EXTERNAL file's out-of-line record, an ADDRESS-OF-taken record) may
     // hold VARIABLE-LENGTH COMPONENTS, and neither kind has fixed character positions:
-    //  * a dynamic-length elementary item — ISO §8.5.1.10.3: "Dynamic-length elementary items may be physically
+    //  * a dynamic-length elementary item — ISO §2023:8.5.1.10.3: "Dynamic-length elementary items may be physically
     //    located in memory within the record they are subordinate to, or they may be located elsewhere in the
     //    computer's memory";
-    //  * a dynamic-capacity table — ISO §8.5.1.9.1 3): "it may be defined in any place, other than the file section,
+    //  * a dynamic-capacity table — ISO §2023:8.5.1.9.1 3): "it may be defined in any place, other than the file section,
     //    in which a fixed-capacity table may be defined", and an EXTERNAL or ADDRESS-OF-taken record is such a place.
     // Each rides a managed slot of the SAME cell, so every description that shares the cell shares the component too
-    // (§13.18.22.4 GR1 / GR4 b)). Components are numbered once per OCCURRENCE in storage order (the compiler's
+    // (§2023:13.18.22.4 GR1 / GR4 b)). Components are numbered once per OCCURRENCE in storage order (the compiler's
     // ordinal; a component under a fixed table has one per occurrence). A dynamic-length item's slot holds its
     // content; a dynamic-capacity table's slot holds a CobolDynTable whose every occurrence is an ELEMENT CELL — the
     // element's fixed run in its Ref and the element's own components in its own slots, so a table inside a table
@@ -191,7 +191,7 @@ public sealed class StorageCell
     // In the fixed run a dynamic-length item occupies ZERO positions (its ByteWidth) and a table RESERVES its
     // one-element extent (its ByteWidth) as placeholder positions — the D-SLOT reason a pointer reserves its bytes:
     // every following member's offset stays what the byte-addressed walk says. The group composers below cut the
-    // reservations out, which is §8.5.1.12.3's accounting ("all dynamic-length elementary items are considered to be
+    // reservations out, which is §2023:8.5.1.12.3's accounting ("all dynamic-length elementary items are considered to be
     // of zero length") applied to a table, whose CURRENT occurrences are the component.
 
     private static int DynKey(int ordinal) => -1 - ordinal;
@@ -199,15 +199,15 @@ public sealed class StorageCell
     private static int TableKey(int ordinal) => int.MinValue + ordinal;
 
     /// <summary>The current content of the area's <paramref name="ordinal"/>-th component, a dynamic-length item —
-    /// empty until one is stored — ISO §8.6.4: "If no VALUE clause is specified, the length of that item in its initial state is zero".</summary>
+    /// empty until one is stored — ISO §2023:8.6.4: "If no VALUE clause is specified, the length of that item in its initial state is zero".</summary>
     public string DynAt(int ordinal) => SlotAt(DynKey(ordinal)) as string ?? "";
 
     /// <summary>Store the <paramref name="ordinal"/>-th dynamic-length item's new content. The caller has already
-    /// applied §8.5.1.10.4's receiving rule (<c>CobolDynString.Store</c>), exactly as it does for a declared
+    /// applied §2023:8.5.1.10.4's receiving rule (<c>CobolDynString.Store</c>), exactly as it does for a declared
     /// field.</summary>
     public void SetDynAt(int ordinal, string content) => SetSlotAt(DynKey(ordinal), content);
 
-    /// <summary>Seed a dynamic-length item's INITIAL content (its VALUE clause, §8.6.4) and return this cell — the
+    /// <summary>Seed a dynamic-length item's INITIAL content (its VALUE clause, §2023:8.6.4) and return this cell — the
     /// fluent form the generated cell initializers chain onto <c>new StorageCell { Ref = … }</c> and
     /// <see cref="Reinitialize"/>.</summary>
     public StorageCell SeedDyn(int ordinal, string content)
@@ -218,9 +218,9 @@ public sealed class StorageCell
 
     /// <summary>The area's <paramref name="ordinal"/>-th component, a dynamic-capacity table (kb/Work PB1042): one
     /// <see cref="StorageCell"/> per occurrence. Every reference to the table and to its elements goes through it —
-    /// the element accessors (<c>RefSending</c> / <c>RefReceiving</c>, §8.5.1.9.2 / §8.5.1.9.3), the CAPACITY
+    /// the element accessors (<c>RefSending</c> / <c>RefReceiving</c>, §2023:8.5.1.9.2 / §2023:8.5.1.9.3), the CAPACITY
     /// register, SET Format 14 — so the table's capacity rules are <see cref="CobolDynTable{T}"/>'s, written once.
-    /// <para>⛔ ISO §14.6.13.2 rule 6 IS ASKED HERE: "When the internal format of a dynamic-capacity table, as defined by
+    /// <para>⛔ ISO §2023:14.6.13.2 rule 6 IS ASKED HERE: "When the internal format of a dynamic-capacity table, as defined by
     /// the implementor, is not correctly formed or does not agree with the corresponding OCCURS clause an
     /// EC-DATA-INCOMPATIBLE exception condition is set to exist." A shared area is the one place a table is read
     /// through a description other than the one that built it (two programs describing one EXTERNAL record), so the
@@ -228,20 +228,20 @@ public sealed class StorageCell
     /// <paramref name="elementWidth"/> arrive with every reference — the twin of <c>CobolDynString.Agree</c>, rule 5.
     /// The table disagrees when its current capacity is below the minimum or its elements are another width, and is
     /// not correctly formed when the area holds no table at this component at all; with checking enabled the fatal
-    /// condition is raised, with it off the result is undefined (§14.6.13.1.1) and the reference proceeds — on a table
+    /// condition is raised, with it off the result is undefined (§2023:14.6.13.1.1) and the reference proceeds — on a table
     /// built from this description when the area had none.</para></summary>
     public CobolDynTable<StorageCell> DynTableAt(int ordinal, int min, int elementWidth)
     {
         if (SlotAt(TableKey(ordinal)) is CobolDynTable<StorageCell> table)
         {
             if (ExceptionState.DataIncompatibleChecking && Disagreement(table, min, elementWidth) is { } why)
-                ExceptionState.DataIncompatibleError($"a dynamic-capacity table {why} (ISO §14.6.13.2 rule 6)");
+                ExceptionState.DataIncompatibleError($"a dynamic-capacity table {why} (ISO §2023:14.6.13.2 rule 6)");
             return table;
         }
         if (ExceptionState.DataIncompatibleChecking)
             ExceptionState.DataIncompatibleError(
                 $"the storage area holds no dynamic-capacity table at component {ordinal}: the area was created by a "
-                + "description that does not agree with this one (ISO §14.6.13.2 rule 6)");
+                + "description that does not agree with this one (ISO §2023:14.6.13.2 rule 6)");
         var formed = new CobolDynTable<StorageCell>(() => new StorageCell { Ref = new string(' ', elementWidth) }, min, null, null);
         SetSlotAt(TableKey(ordinal), formed);
         return formed;
@@ -256,7 +256,7 @@ public sealed class StorageCell
         : null;
 
     /// <summary>Seed the area's <paramref name="ordinal"/>-th component with its dynamic-capacity table and return
-    /// this cell — the table's initial state (§8.5.1.9.1: the FROM capacity, each occurrence its element's initial
+    /// this cell — the table's initial state (§2023:8.5.1.9.1: the FROM capacity, each occurrence its element's initial
     /// image), chained onto the cell initializer exactly as <see cref="SeedDyn"/> is.</summary>
     public StorageCell SeedDynTable(int ordinal, CobolDynTable<StorageCell> table)
     {
@@ -278,7 +278,7 @@ public sealed class StorageCell
 
     /// <summary>The current content of component <paramref name="ordinal"/>: a dynamic-length item's content, or a
     /// table's occurrences at its current capacity (<paramref name="tableWidth"/> &gt; 0 is its element width) —
-    /// §14.9.11.4 GR7's "every occurrence at its current capacity", the declared group's <c>CurrentImage</c> arm.
+    /// §2023:14.9.11.4 GR7's "every occurrence at its current capacity", the declared group's <c>CurrentImage</c> arm.
     /// A table whose ELEMENTS are variable-length groups (<paramref name="element"/>, kb/Work PB244) contributes each
     /// occurrence at ITS current extent - the element cell composed with the element's own shape, exactly the
     /// declared table's <c>CurrentImage(static __e =&gt; __e.CurrentImage())</c>.</summary>
@@ -295,10 +295,10 @@ public sealed class StorageCell
 
     /// <summary>Make the <paramref name="k"/>-th carried component the content of component <paramref name="ordinal"/>
     /// — the declared group's <c>FromVarImage</c> arm for arm: a dynamic-length item takes it truncated on the right at
-    /// its maximum size (§8.5.1.10.4); a table is RECREATED from it (§14.6.9.2) when it was carried and space-filled
-    /// at its unaffected capacity (§14.6.9.4) when the sender had no corresponding component. A table whose ELEMENTS are
+    /// its maximum size (§2023:8.5.1.10.4); a table is RECREATED from it (§2023:14.6.9.2) when it was carried and space-filled
+    /// at its unaffected capacity (§2023:14.6.9.4) when the sender had no corresponding component. A table whose ELEMENTS are
     /// variable-length groups (<paramref name="element"/>, kb/Work PB2496) is recreated from its carried occurrence
-    /// carriers, each stored into its element cell by the element's own shape — §14.6.9.2's "Correspondingly numbered
+    /// carriers, each stored into its element cell by the element's own shape — §2023:14.6.9.2's "Correspondingly numbered
     /// elements are moved according to the rules of the MOVE statement". <paramref name="storage"/> is the formal
     /// copy-in that keeps every dynamic-length item's whole content (kb/Work PB1937), one level down too.</summary>
     private void StoreComponentAt(int ordinal, int tableWidth, int max, int layout, CobolVarGroup v, int k,
@@ -323,7 +323,7 @@ public sealed class StorageCell
             return;
         }
         if (v.HasDyn(k)) table.FromCurrentImage(v.Dyn(k), tableWidth, ElementStore);
-        // §14.6.9.4: each element is space-filled - in the element's own unit, so a NATIONAL element holds the national
+        // §2023:14.6.9.4: each element is space-filled - in the element's own unit, so a NATIONAL element holds the national
         // space (the UTF-16BE pair 00, 20), never the byte 0x20 twice, which is U+2020 (kb/Work PB3441).
         else table.SpaceFillElements(CobolVarGroup.SpacesFor(tableWidth, CobolDynStructure.UnitOf(layout)), ElementStore);
     }
@@ -332,21 +332,21 @@ public sealed class StorageCell
     private static int[] Unlimited(int[] dynMax) => Array.ConvertAll(dynMax, static _ => int.MaxValue);
 
     /// <summary>Component <paramref name="ordinal"/> — a dynamic-capacity table whose elements are variable-length groups
-    /// of <paramref name="shape"/> (kb/Work PB2496) — as its occurrences' own §8.5.1.12 carriers, up to its current
+    /// of <paramref name="shape"/> (kb/Work PB2496) — as its occurrences' own §2023:8.5.1.12 carriers, up to its current
     /// capacity: the nested component of <see cref="CobolVarGroup.Elements"/>, each element cell read by the element's
     /// shape (an element cell is a scope of its own, its slots numbered from zero). <paramref name="byReference"/> is
     /// <see cref="VarGroupAt"/>'s, one level down.</summary>
     private CobolVarGroup[] ElementCarriersAt(int ordinal, int tableWidth, CellGroupShape shape, bool byReference = false) =>
         DynTableAt(ordinal, 0, tableWidth).CurrentOccurrencesAs(ElementCarrier(shape, byReference));
 
-    /// <summary>A variable-length group of this area as its §8.5.1.12 component carrier: the group's fixed run (its
+    /// <summary>A variable-length group of this area as its §2023:8.5.1.12 component carrier: the group's fixed run (its
     /// <paramref name="width"/> positions of <see cref="Ref"/> from <paramref name="fixedAt"/>, each table's
     /// reservation cut out) and its components from ordinal <paramref name="dynBase"/>, sitting at
     /// <paramref name="dynFixedAt"/> (relative to the group; <paramref name="dynTable"/> is each one's table element
     /// width, 0 for a dynamic-length item) — the same carrier a declared group's generated <c>AsVarImage()</c>
     /// builds. A group that holds an OCCURS DEPENDING table (<paramref name="tail"/>, kb/Work PB244) has it cut to
-    /// <paramref name="count"/> occurrences: the table is the run's trailing storage (§13.18.38.3 SR22), and the
-    /// activation boundary passes the table's maximum count (§14.8.2.2); the other helpers below take the same pair.
+    /// <paramref name="count"/> occurrences: the table is the run's trailing storage (§2023:13.18.38.3 SR22), and the
+    /// activation boundary passes the table's maximum count (§2023:14.8.2.2); the other helpers below take the same pair.
     /// <paramref name="elems"/> is each table component's element shape when its elements are variable-length groups
     /// (kb/Work PB2496): that component is carried nested, as its occurrences' own carriers. <paramref name="byReference"/>
     /// marks the carrier of a BY REFERENCE crossing, which states each table's creation of an element
@@ -371,7 +371,7 @@ public sealed class StorageCell
             }
             else dyn[k] = ComponentAt(dynBase + k, dynTable[k]);
             // Storage states the element each INITIALIZED table creates (kb/Work PB2690): what a BY REFERENCE view shows
-            // past the capacity, and what a store there creates (CobolVarGroup.Reshape / Overlay; ISO §8.5.1.9.5). A table
+            // past the capacity, and what a store there creates (CobolVarGroup.Reshape / Overlay; ISO §2023:8.5.1.9.5). A table
             // without the phrase states none (CobolDynTable.CreatedAs), and then nothing is allocated for it.
             if (byReference && dynTable[k] > 0
                 && DynTableAt(dynBase + k, 0, dynTable[k])
@@ -383,7 +383,7 @@ public sealed class StorageCell
     }
 
     /// <summary>An element cell of a table whose elements are variable-length groups of <paramref name="shape"/> as its
-    /// §8.5.1.12 carrier (an element cell is a scope of its own, its slots numbered from zero).</summary>
+    /// §2023:8.5.1.12 carrier (an element cell is a scope of its own, its slots numbered from zero).</summary>
     private static Func<StorageCell, CobolVarGroup> ElementCarrier(CellGroupShape shape, bool byReference) =>
         e => e.VarGroupAt(0, shape.Width, 0, shape.DynFixedAt, shape.DynTable, default, 0, shape.Elems, byReference);
 
@@ -392,10 +392,10 @@ public sealed class StorageCell
 
     /// <summary>Distribute a component carrier into the group — the receiving twin of <see cref="VarGroupAt"/>,
     /// and the twin of a declared group's <c>FromVarImage</c>: the fixed run is stored at its width (padded or
-    /// truncated, §14.9.25.4 GR9's fixed part) around the tables' reservations, and each component takes its
+    /// truncated, §2023:14.9.25.4 GR9's fixed part) around the tables' reservations, and each component takes its
     /// carried part (<see cref="StoreComponentAt"/>).
     /// <para>A group that holds an OCCURS DEPENDING table (<paramref name="tail"/>, kb/Work PB244) uses only
-    /// <paramref name="count"/> of its occurrences (ISO §13.18.38.4 GR8 a: "only that part of the table area that is
+    /// <paramref name="count"/> of its occurrences (ISO §2023:13.18.38.4 GR8 a: "only that part of the table area that is
     /// specified by the value of the data item referenced by data-name-1 at the start of the operation will be
     /// used"): the table's remaining occurrences keep their fixed run AND their components. The maximum count - GR8 b)
     /// for a depending item inside the group, a record read back, the activation boundary - stores them all.</para>
@@ -420,7 +420,7 @@ public sealed class StorageCell
     }
 
     /// <summary>A variable-length group of this area as its CONTIGUOUS image at its current extent — ISO
-    /// §8.5.1.11.2: "a variable-length data item behaves in all respects as though it were in fact contiguous with
+    /// §2023:8.5.1.11.2: "a variable-length data item behaves in all respects as though it were in fact contiguous with
     /// its neighbors whenever a procedural operation is applied to a group containing it". Each component sits at its
     /// fixed-run position — the declared group's <c>CurrentImage()</c>, composed from the cell.</summary>
     public string ContiguousAt(int fixedAt, int width, int dynBase, ReadOnlySpan<int> dynFixedAt,
@@ -439,8 +439,8 @@ public sealed class StorageCell
             at = pos[k];
             sb.Append(ComponentAt(dynBase + k, dynTable[k], elems?[k]));
         }
-        // The OCCURS DEPENDING table is the TRAILING storage (§13.18.38.3 SR22) of the run, so the group's current
-        // extent is its maximum image less the occurrences beyond the count (§13.18.38.4 GR8).
+        // The OCCURS DEPENDING table is the TRAILING storage (§2023:13.18.38.3 SR22) of the run, so the group's current
+        // extent is its maximum image less the occurrences beyond the count (§2023:13.18.38.4 GR8).
         sb.Append(run, at, run.Length - at - tail.CutAt(count));
         return sb.ToString();
     }
@@ -474,9 +474,9 @@ public sealed class StorageCell
     /// declared group's generated layout gives the same members (<c>GroupImageCodec.ContiguousLayout</c>).
     /// <paramref name="dynStructure"/> is each component's layout code (<see cref="CobolDynStructure.Code"/>, or its unit
     /// alone, <see cref="CobolDynStructure.PlainCode"/>; 0 = a one-character unit and no structure; ISO
-    /// §12.3.7.4 GR18/GR19; kb/Work PB1094) — constant data the compiler read off the same item, so this layout and a
+    /// §2023:12.3.7.4 GR18/GR19; kb/Work PB1094) — constant data the compiler read off the same item, so this layout and a
     /// declared group's cannot disagree. A group that holds an OCCURS DEPENDING table (<paramref name="tail"/>) of
-    /// fixed-image elements has it as the LAST component (§13.18.38.3 SR22; <see cref="CobolContiguousLayout"/>'s
+    /// fixed-image elements has it as the LAST component (§2023:13.18.38.3 SR22; <see cref="CobolContiguousLayout"/>'s
     /// <c>Odo</c>), taken out of the fixed run: <paramref name="runWidth"/> includes it at its maximum, the layout's
     /// fixed total does not. A table of VARIABLE-LENGTH elements (<c>tail.Comps</c> above zero) stays in the fixed run
     /// at its maximum, its components already among <paramref name="pos"/>, and the layout cuts both to the count a
@@ -496,7 +496,7 @@ public sealed class StorageCell
             // A table's unit is its element width and its maximum its capacity; a dynamic-length item's unit is the image
             // characters of one position (its layout code, CobolDynStructure.UnitOf: two for a national item, whose slot
             // holds its UTF-16BE image, kb/Work PB3441) and its maximum - an image-character count, what a store into the
-            // slot truncates at - is that many positions of it (§8.5.1.10.1).
+            // slot truncates at - is that many positions of it (§2023:8.5.1.10.1).
             int unit = dynTable[k] > 0 ? dynTable[k] : CobolDynStructure.UnitOf(dynStructure[k]);
             units[k] = unit;
             max[k] = dynTable[k] > 0 ? dynMax[k] : dynMax[k] / unit;
@@ -570,21 +570,21 @@ public sealed class StorageCell
         CobolString.Store(fixedAt >= Ref.Length ? "" : Ref.Substring(fixedAt, Math.Min(fixedWidth, Ref.Length - fixedAt)),
             fixedWidth);
 
-    /// <summary>Drop every managed slot — FREE (§14.9.15.4 GR1a, "the contents of any data items located
+    /// <summary>Drop every managed slot — FREE (§2023:14.9.15.4 GR1a, "the contents of any data items located
     /// within the released storage area become undefined"): the byte image and the managed slots are one
     /// storage area and are released together, so a released cell cannot keep a dangling pointer alive.</summary>
     internal void ClearSlots() => _slots = null;
 
-    /// <summary>Return a STATIC cell to its initial state IN PLACE (ISO §14.6.2.3.2 action 2 — kb/Work PB234):
+    /// <summary>Return a STATIC cell to its initial state IN PLACE (ISO §2023:14.6.2.3.2 action 2 — kb/Work PB234):
     /// the byte image becomes <paramref name="image"/> (the declaration's own VALUE-honoring seed) and every
-    /// managed slot reads null again, which is §13.18.63's initial state for a pointer or object member with no
+    /// managed slot reads null again, which is §2023:13.18.63's initial state for a pointer or object member with no
     /// VALUE. IN PLACE, never a fresh cell, because the cell IS the storage a <c>ManagedPointer.At</c> window
-    /// aliases: a RECURSIVE unit's WORKING-STORAGE is ONE static copy (§13.5.4 GR1) and the window keeps naming it —
+    /// aliases: a RECURSIVE unit's WORKING-STORAGE is ONE static copy (§2023:13.5.4 GR1) and the window keeps naming it —
     /// but the window's generation (<see cref="Generation"/>) no longer matches, so a pointer taken BEFORE the CANCEL
-    /// is an invalid address (§8.6.5, §13.18.5.4 GR4) and one taken after is live.</summary>
+    /// is an invalid address (§2023:8.6.5, §2023:13.18.5.4 GR4) and one taken after is live.</summary>
     public StorageCell Reinitialize(string image)
     {
-        End(StorageEnd.Cancelled);   // §8.6.4: the static item persisted "to … the execution of a CANCEL statement" — every pointer taken into the old life is dead (kb/Work PB1216)
+        End(StorageEnd.Cancelled);   // §2023:8.6.4: the static item persisted "to … the execution of a CANCEL statement" — every pointer taken into the old life is dead (kb/Work PB1216)
         Ref = image;
         _slots = null;
         return this;   // a dynamic-length item's VALUE is re-seeded by a chained SeedDyn (kb/Work PB1026)

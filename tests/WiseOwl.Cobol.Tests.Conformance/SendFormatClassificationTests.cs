@@ -6,10 +6,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A WRITTEN SEND HAS ONE FORMAT, AND THE BINDER ASSIGNS IT ONCE (kb/Work PB4090, PB4085).
-/// <para>ISO §14.9.38.2 prints Format 1 (to-message-server) as <c>SEND TO { literal-1 | message-server-name-1 } FROM
+/// <para>ISO §2023:14.9.38.2 prints Format 1 (to-message-server) as <c>SEND TO { literal-1 | message-server-name-1 } FROM
 /// identifier-1 RETURNING data-name-1</c> and Format 2 (message-server-response) as <c>SEND TO data-name-2 FROM
 /// identifier-1 [ RAISING … ]</c>. The name after TO is a bare word in both, so which format a statement is depends on
-/// its phrases AND on what the name IS: a message-tag data item (§14.9.38.3 SR4) is Format 2's, any other name is a
+/// its phrases AND on what the name IS: a message-tag data item (§2023:14.9.38.3 SR4) is Format 2's, any other name is a
 /// message-server-name-1 (SR2). <c>MessagingBinder.ClassifySend</c> reads them in one place. The conformance
 /// cases (<c>conformance-suite/wiseowl/cases/14.9.38-SEND/pb4090-*</c>) pin the refusals through the harness; this
 /// class pins the part a golden cannot — the ABSENCE of a diagnostic — and the MESSAGE-TAG arm, whose item binds since
@@ -113,8 +113,8 @@ public sealed class SendFormatClassificationTests
     }
 
     /// <summary>⛔ A NAME OPERAND IS ASKED HOW IT WAS WRITTEN (kb/Work PB4118). The operand after TO is
-    /// message-server-name-1 or data-name-2 (§14.9.38.2), RETURNING prints data-name-1 and RECEIVE prints data-name-1 and
-    /// data-name-2 (§14.9.31.2): names, so a subscript, a reference modifier or a special register is refused
+    /// message-server-name-1 or data-name-2 (§2023:14.9.38.2), RETURNING prints data-name-1 and RECEIVE prints data-name-1 and
+    /// data-name-2 (§2023:14.9.31.2): names, so a subscript, a reference modifier or a special register is refused
     /// (COBOL2024) whatever format the rest of the statement is. The refusal is ONE diagnostic: a refused TO operand
     /// says nothing about the format, so the statement is not also asked for the RETURNING it may not have (COBOL1850),
     /// and a refused name is not also resolved (COBOL1639).</summary>
@@ -138,7 +138,7 @@ public sealed class SendFormatClassificationTests
         EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
     }
 
-    /// <summary>The legal side of the same screen: a qualifier is a name's own form (§8.4.2.2.2 Format 1), identifier-1
+    /// <summary>The legal side of the same screen: a qualifier is a name's own form (§2023:8.4.2.2.2 Format 1), identifier-1
     /// (FROM, GIVING) may be subscripted or reference-modified, and a bare name is untouched. A qualified TO name is a
     /// data-name-2, so the statement is Format 2 and needs no RETURNING.</summary>
     [Theory]

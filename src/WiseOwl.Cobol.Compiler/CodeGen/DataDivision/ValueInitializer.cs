@@ -10,12 +10,12 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <summary>WHICH RULE a data-division seed is composed by (kb/Work PB1267). The same composition — one element,
 /// its members in order, the VALUE recipe at each leaf — serves two occasions the standard words differently:
 /// <list type="bullet">
-/// <item><see cref="InitialState"/> — §14.6.2.3.2's initial state: the OPTIONS-paragraph background first
-/// (action 1), then every VALUE clause, a group-level VALUE included (§13.18.63.4 GR5).</item>
+/// <item><see cref="InitialState"/> — §2023:14.6.2.3.2's initial state: the OPTIONS-paragraph background first
+/// (action 1), then every VALUE clause, a group-level VALUE included (§2023:13.18.63.4 GR5).</item>
 /// <item><see cref="Initialize"/> — the new element of a dynamic-capacity table whose OCCURS carries INITIALIZED:
-/// §8.5.1.9.5, "as though they had been the subject of a statement of the form INITIALIZE … WITH FILLER ALL TO
-/// VALUE THEN TO DEFAULT" — and the whole content of a CONSTANT RECORD, §13.18.15.4 GR1 (kb/Work PB1233,
-/// chosen once at the root by <see cref="ValueInitializer.RecipeFor"/>). §14.9.20.4 GR5 c) 1. b qualifies a leaf by "a data-item format VALUE clause … in the
+/// §2023:8.5.1.9.5, "as though they had been the subject of a statement of the form INITIALIZE … WITH FILLER ALL TO
+/// VALUE THEN TO DEFAULT" — and the whole content of a CONSTANT RECORD, §2023:13.18.15.4 GR1 (kb/Work PB1233,
+/// chosen once at the root by <see cref="ValueInitializer.RecipeFor"/>). §2023:14.9.20.4 GR5 c) 1. b qualifies a leaf by "a data-item format VALUE clause … in the
 /// data description entry of the ELEMENTARY data item" (so a group-level VALUE is not an INITIALIZE sender), GR6
 /// a) 3. makes that leaf's sender "a literal that, when moved to the receiving-operand with a MOVE statement,
 /// produces the same result as the initial value of the data item as produced by the application of the VALUE
@@ -25,9 +25,9 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </list></summary>
 internal enum SeedRecipe
 {
-    /// <summary>§14.6.2.3.2 — the background, then every VALUE clause.</summary>
+    /// <summary>§2023:14.6.2.3.2 — the background, then every VALUE clause.</summary>
     InitialState,
-    /// <summary>§8.5.1.9.5 — INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT.</summary>
+    /// <summary>§2023:8.5.1.9.5 — INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT.</summary>
     Initialize,
 }
 
@@ -39,7 +39,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <summary>The group-VALUE positional distributor (set once by <see cref="DataEmitter"/>).</summary>
     public GroupValueSlicer Slicer { get; set; } = null!;
 
-    /// <summary>THE §14.6.2.3.2 action-1 background (kb/Work PB152) — shared with <see cref="GroupImageCodec"/>
+    /// <summary>THE §2023:14.6.2.3.2 action-1 background (kb/Work PB152) — shared with <see cref="GroupImageCodec"/>
     /// so the native-field arm and the Tier-B image arm cannot answer "what fills a VALUE-less item" differently.
     /// One instance per emitter so its section-root sets are built once.</summary>
     public InitialStateBackground Background { get; } = new(ctx);
@@ -49,8 +49,8 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// (the image lane), so the lanes cannot answer it differently. A record described with CONSTANT RECORD has
     /// the content "as though the clause had been omitted and the record had been the subject of an INITIALIZE
     /// statement that is specified with" the FILLER phrase, the VALUE phrase with ALL and the DEFAULT phrase
-    /// (§13.18.15.4 GR1) — i.e. <see cref="SeedRecipe.Initialize"/>, not the initial state: a VALUE-less numeric-
-    /// edited item takes the edited ZERO of §14.9.20.4 GR6 c), no OPTIONS INITIALIZE background reaches it (the
+    /// (§2023:13.18.15.4 GR1) — i.e. <see cref="SeedRecipe.Initialize"/>, not the initial state: a VALUE-less numeric-
+    /// edited item takes the edited ZERO of §2023:14.9.20.4 GR6 c), no OPTIONS INITIALIZE background reaches it (the
     /// INITIALIZE overwrites it), and a group-level VALUE is no sender (GR5 c) 1. b). The flag lives on the
     /// level-01 root (<see cref="DataItem.IsConstantRecord"/>) and a root is where every seed starts, so the
     /// choice is made once here and rides the <paramref name="requested"/> recipe down the subtree.</summary>
@@ -61,7 +61,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.
     /// <para><paramref name="outer"/> is the OCCURRENCE CONTEXT — the subscripts of every OCCURS level already
     /// entered on the way down from the record root, most inclusive first. It is empty for a level-01/77 field and
-    /// grows by one at each OCCURS entry, so at any leaf it is exactly the tuple §13.18.63.3 SR20 keys a Format 2
+    /// grows by one at each OCCURS entry, so at any leaf it is exactly the tuple §2023:13.18.63.3 SR20 keys a Format 2
     /// (table) VALUE by, and <see cref="DataItem.ValueAt"/> can answer "what initializes THIS occurrence" without
     /// the caller knowing which entry in the chain wrote the clause (kb/Work PB505). Threading it is what lets a
     /// table VALUE live on an entry SUBORDINATE to the OCCURS (SR18) and span several dimensions (GR12's
@@ -71,12 +71,12 @@ internal sealed class ValueInitializer(EmitContext ctx)
     public string FieldInit(DataItem item, Subscripts outer = default, SeedRecipe recipe = SeedRecipe.InitialState)
     {
         recipe = RecipeFor(item, recipe);
-        // A DYNAMIC-capacity table (§13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
+        // A DYNAMIC-capacity table (§2023:13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
         // the SAME one-occurrence initializer the fixed path repeats (heed DEVLOG 643 — seed EVERY occurrence). Opens
-        // at FROM (min), raised to the §13.18.63.4 GR16 initial capacity when a table VALUE applies; TO is the
+        // at FROM (min), raised to the §2023:13.18.63.4 GR16 initial capacity when a table VALUE applies; TO is the
         // expected capacity.
         // ⛔ TWO SEEDS WHEN INITIALIZED IS WRITTEN (kb/Work PB1267). The occurrences the table OPENS with belong to
-        // the initial state (this call's own recipe); an element a STATEMENT creates later belongs to §8.5.1.9.5 —
+        // the initial state (this call's own recipe); an element a STATEMENT creates later belongs to §2023:8.5.1.9.5 —
         // "any elementary items not referenced as receiving operands in a statement that creates new elements in
         // that table are first initialized as though they had been the subject of a statement of the form
         // INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT" — so it takes the SeedRecipe.Initialize
@@ -99,7 +99,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
 
     /// <summary>ONE table element / one non-table field at <paramref name="subs"/>: a group composes its members
-    /// (or takes its own §13.18.63.4 GR5 area VALUE), an elementary item takes the literal its VALUE clause gives
+    /// (or takes its own §2023:13.18.63.4 GR5 area VALUE), an elementary item takes the literal its VALUE clause gives
     /// this occurrence.</summary>
     private string ElementInit(DataItem item, Subscripts subs, SeedRecipe recipe) =>
         item.IsGroup ? Slicer.ComposedInit(item, subs, recipe) : InitializerFor(item, subs, recipe);
@@ -108,14 +108,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// invariant, <c>DynamicCapacityAgreementDriftTests</c>) — for both storage lanes: a record struct's typed
     /// <c>CobolDynTable&lt;T&gt;</c> (<see cref="FieldInit"/>) and a cell-backed area's table of element cells
     /// (<c>GroupImageCodec.CellDynSeeds</c>; kb/Work PB1042). <paramref name="elementAt"/> composes occurrence
-    /// <c>o</c>'s element under a recipe. It opens at FROM (min), raised to the §13.18.63.4 GR16 initial capacity when
+    /// <c>o</c>'s element under a recipe. It opens at FROM (min), raised to the §2023:13.18.63.4 GR16 initial capacity when
     /// a table VALUE seeds the initial state (<paramref name="valuesSeedInitialState"/> false only for a PLAIN external
-    /// record, §13.18.63.4 GR4 a) — "If more than one VALUE clause applies, the maximum value thus calculated becomes
+    /// record, §2023:13.18.63.4 GR4 a) — "If more than one VALUE clause applies, the maximum value thus calculated becomes
     /// the initial capacity"; occurrences within it take their keyed element, and growth beyond re-seeds through the
     /// same function to the VALUE-less default); TO is the expected capacity; an occurrence a statement creates takes
     /// the INITIALIZED phrase's composition when the phrase is written — keyed to ITS occurrence whatever the initial state did,
-    /// because §8.5.1.9.5's INITIALIZE … TO VALUE sends "the literal in the VALUE clause that corresponds to the
-    /// occurrence being initialized" (§14.9.20.4 GR6 a) 3.).</summary>
+    /// because §2023:8.5.1.9.5's INITIALIZE … TO VALUE sends "the literal in the VALUE clause that corresponds to the
+    /// occurrence being initialized" (§2023:14.9.20.4 GR6 a) 3.).</summary>
     /// <param name="outer">The occurrence context above the table (one subscript per enclosing OCCURS level), from
     /// which <see cref="TableValueRuns.Of"/> reads the runs the per-occurrence seed switch is built over.</param>
     internal static string DynTableNew(DataItem item, string elementType, Func<int, SeedRecipe, string> elementAt,
@@ -126,7 +126,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         string expected = s.ExpectedMax is int e ? e.ToString() : "null";
         bool openingKeyed = valuesSeedInitialState && item.ContainsTableValue;
         // The INITIALIZED seed is passed exactly when the phrase is written, even when it composes the opening element:
-        // it also tells the table that §8.5.1.9.5 DEFINES a created element, which a BY REFERENCE formal's view past the
+        // it also tells the table that §2023:8.5.1.9.5 DEFINES a created element, which a BY REFERENCE formal's view past the
         // capacity shows (CobolDynTable.CreatedAs, kb/Work PB2690); without the phrase that content is undefined.
         if (!openingKeyed && !(s.Initialized && item.ContainsTableValue))
         {
@@ -145,7 +145,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// composes the element of occurrence <c>o</c> — the record-struct lane's typed element, or a cell-backed area's
     /// element cell (<c>GroupImageCodec.CellDynSeeds</c>) — once per run period over the table's opening capacity
     /// (<paramref name="runs"/>, kb/Work PB1722), and <see cref="OccurrenceRunEmit.Switch"/> writes one arm per run.
-    /// Occurrence 0 identifies no table element (§13.18.63.3 SR20 admits none below 1), so it is the tuple that
+    /// Occurrence 0 identifies no table element (§2023:13.18.63.3 SR20 admits none below 1), so it is the tuple that
     /// deliberately matches no FROM..TO range: the element as it stands with no table VALUE keyed to it, which every
     /// occurrence outside the runs takes.</summary>
     internal static string OccurrenceSwitch(IReadOnlyList<OccurrenceRun> runs, Func<int, string> elementAt) =>
@@ -153,14 +153,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
     public string InitializerFor(DataItem item, Subscripts subs = default, SeedRecipe recipe = SeedRecipe.InitialState)
         // ⛔ THE ONE READER for "what initializes this item at this occurrence" — DataItem.ValueAt: the Format-1
-        // VALUE (the same for every occurrence, §13.18.63.4 GR9) or the Format-2 literal keyed to this subscript
+        // VALUE (the same for every occurrence, §2023:13.18.63.4 GR9) or the Format-2 literal keyed to this subscript
         // tuple (GR12–GR15). The image lane asks the same property, so the two cannot disagree.
         => InitializerFrom(item, item.ValueAt(subs), recipe);
 
     /// <summary>⛔ THE ONE NO-VALUE SEED, both lanes, both recipes (kb/Work PB1267 over PB152's choke point): what
     /// a VALUE-less elementary item starts as, or null for the caller's own category baseline (spaces / zero /
-    /// boolean zeros / null — which IS §14.9.20.4 GR6 c)'s figurative constant for every category but one).
-    /// <see cref="SeedRecipe.InitialState"/> asks the §14.6.2.3.2 background; <see cref="SeedRecipe.Initialize"/>
+    /// boolean zeros / null — which IS §2023:14.9.20.4 GR6 c)'s figurative constant for every category but one).
+    /// <see cref="SeedRecipe.InitialState"/> asks the §2023:14.6.2.3.2 background; <see cref="SeedRecipe.Initialize"/>
     /// never does (an INITIALIZE sends GR6 c)'s constant, not the OPTIONS fill) and answers the one category whose
     /// constant the baseline does not already spell: a numeric-edited item receives "Figurative constant ZEROES"
     /// by MOVE, i.e. the EDITED image of zero (BLANK WHEN ZERO included) — the compile-time compose
@@ -171,25 +171,25 @@ internal sealed class ValueInitializer(EmitContext ctx)
         if (recipe is SeedRecipe.InitialState) return Background.Seed(item, pic);
         if (pic.Category is not PicCategory.NumericEdited) return null;
         if (pic.LocaleEdit is not null) return RuntimeApi.LocaleEditCompose(pic, Int128.Zero, 0, item.BlankWhenZero);
-        // A figurative ZERO moved to a numeric-edited item is the numeric value zero (§14.9.25.4), at every
+        // A figurative ZERO moved to a numeric-edited item is the numeric value zero (§2023:14.9.25.4), at every
         // edition — hence the literal "0" at the 2023 level, where the VALUE rule treats the two identically.
         return EditedImageOfNumericValue(2023, item, pic, "0") is { } z
             ? EmitText.CsLiteral(z) : null;
     }
 
-    /// <summary>⛔ THE ONE §13.18.63 VALUE RECIPE, with the operand handed in rather than read off the item —
+    /// <summary>⛔ THE ONE §2023:13.18.63 VALUE RECIPE, with the operand handed in rather than read off the item —
     /// the arm the REPORT SECTION needs (kb/Work PB506). A format-4 VALUE operand lives on the report field
     /// model, not on the synthetic printable item, and a multi-operand clause gives a DIFFERENT operand to each
-    /// repetition (§13.18.63.4 GR23), so there is no single <see cref="DataItem.ValueAt"/> to ask; everything
+    /// repetition (§2023:13.18.63.4 GR23), so there is no single <see cref="DataItem.ValueAt"/> to ask; everything
     /// after that lookup — alignment, figuratives, ALL, the numeric-edited compose, the image encodings — is the
     /// same rule and is therefore the same code.
-    /// <para>That identity is the POINT, not a convenience. §13.18.63.4 GR21 imports GR7 into format 4 ("Each
+    /// <para>That identity is the POINT, not a convenience. §2023:13.18.63.4 GR21 imports GR7 into format 4 ("Each
     /// literal is aligned in the associated data item in accordance with 14.6.8 … except that initialization is
     /// not affected by a JUSTIFIED clause and no editing takes place") and GR8 (BLANK WHEN ZERO has no effect
-    /// when the literal is alphanumeric or national), and §13.18.63.3 SR34 imports SR11 ("Editing characters in
+    /// when the literal is alphanumeric or national), and §2023:13.18.63.3 SR34 imports SR11 ("Editing characters in
     /// a picture character-string for an alphanumeric-edited or national-edited data item do not cause editing
     /// of the initial value"). The report emitter used to push a VALUE operand through the SOURCE clause's
-    /// implicit MOVE (§13.18.53.4 GR1) instead, which applies exactly the three transforms those rules exclude:
+    /// implicit MOVE (§2023:13.18.53.4 GR1) instead, which applies exactly the three transforms those rules exclude:
     /// `PIC XXBXX VALUE "AB CD"` printed `AB  C`, `PIC X(5) JUSTIFIED VALUE "AB"` printed `   AB`, and
     /// `PIC ZZZ9 BLANK WHEN ZERO VALUE "0000"` printed spaces — each while the IDENTICAL working-storage entry,
     /// through this method, was right.</para></summary>
@@ -198,23 +198,23 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ⛔ THE ONE CATEGORY/WIDTH READER (DataItem.OperandPic, D20), never raw `Pic` — which is NULL for every
         // GROUP. An elementary item reads identically (OperandPic IS Pic there), and the two group shapes the
         // standard admits as VALUE-clause receivers arrive described rather than crashing: a bit / national group
-        // through its §13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m), an ORDINARY group through the VALUE
-        // clause's OWN rule for that subject — §13.18.63.3 SR4. §14.9.39.4 GR6 places a
+        // through its §2023:13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m), an ORDINARY group through the VALUE
+        // clause's OWN rule for that subject — §2023:13.18.63.3 SR4. §2023:14.9.39.4 GR6 places a
         // level-88 literal in the conditional variable "according to the rules for the VALUE clause" and names a
         // group conditional variable explicitly, so the group arms are THIS recipe's business and not a second
         // copy of it in the SET emitter (kb/Work PB560).
         var pic = item.OperandPic ?? AsIfAlphanumericGroup(item);
 
-        // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
-        // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no
-        // padding); ABSENT a VALUE the initial length is zero (§8.6.4 second sentence — never a fixed-width fill).
-        // A figurative VALUE other than `ALL literal` has length ONE (§8.3.3.6.4 GR3b — FigurativeInitializer fills
+        // A DYNAMIC LENGTH item (ISO §2023:8.5.1.10 / §2023:13.18.19): the field is a native string. §2023:8.6.4 — a VALUE clause
+        // defines the initial length (MOVE-like, §2023:13.18.63.4 GR7; stored truncated on the right to the LIMIT, no
+        // padding); ABSENT a VALUE the initial length is zero (§2023:8.6.4 second sentence — never a fixed-width fill).
+        // A figurative VALUE other than `ALL literal` has length ONE (§2023:8.3.3.6.4 GR3b — FigurativeInitializer fills
         // pic.Length = 1 for the single-symbol X/N picture), so it initializes to a single fill character, NOT "".
         if (item.IsDynamicLength)
         {
-            // ⛔ §13.4.4 GR1 (kb/Work PB1241): "A data-item format or table format VALUE clause specified in the file
+            // ⛔ §2023:13.4.4 GR1 (kb/Work PB1241): "A data-item format or table format VALUE clause specified in the file
             // section is ignored except in the execution of the INITIALIZE statement", and "the initial length of a
-            // dynamic-length elementary item is zero". §8.6.4 is the general rule, and the file section overrides it —
+            // dynamic-length elementary item is zero". §2023:8.6.4 is the general rule, and the file section overrides it —
             // an INITIALIZE ... TO VALUE reaches its own recipe, not this initial-state reader.
             if (effRaw is not { } dv || InFileSection(item)) return "\"\"";
             if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
@@ -222,7 +222,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         }
 
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO
-        // §13.18.63.3 SR2 asked for (the 85 corpus writes `PIC 999 VALUE "000"` — NC107A's DATA-P; DataBinder's
+        // §2023:13.18.63.3 SR2 asked for (the 85 corpus writes `PIC 999 VALUE "000"` — NC107A's DATA-P; DataBinder's
         // ValidateValueCategory diagnoses it, COBOL1657, and rewrites it to the number under --permissive).
         // ⛔ ONE RECIPE FOR BOTH STORAGE AXES (kb/Work PB188). The image arm used to hand-spell
         // `StrStore(chars, pic.Length)` — the PICTURE's DIGIT COUNT — which was right only while every
@@ -250,7 +250,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // A WINDOWED FLOAT member (the Step D arm-1 dissolution) seeds its IEEE window bytes from the
             // (float-literal or zero) VALUE through the ONE literal recipe (RawValueAsFloat) — the integer
             // lane would throw NoByteImage on an Ieee profile.
-            // No VALUE: §14.6.2.3.2 action 1's background first (owner decision R53, kb/Work PB1134).
+            // No VALUE: §2023:14.6.2.3.2 action 1's background first (owner decision R53, kb/Work PB1134).
             if (effRaw is null && NoValueSeed(item, pic, recipe) is { } background) return background;
             if (pic.IsFloat)
                 return RuntimeApi.NumFormatImageFloat(
@@ -262,7 +262,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             return RuntimeApi.NumFormatImage(unscaled, item.ProfileName);
         }
 
-        // ⛔ THE NO-VALUE BRANCH — §14.6.2.3.2 action 1, the BACKGROUND. `pic.DefaultInitializer` is the
+        // ⛔ THE NO-VALUE BRANCH — §2023:14.6.2.3.2 action 1, the BACKGROUND. `pic.DefaultInitializer` is the
         // NO-CLAUSE baseline and stays exactly that; when the OPTIONS paragraph wrote an INITIALIZE clause whose
         // section list selects this item, the background is the specified-fill-character instead. Action 1
         // precedes action 2 (the VALUE seed) and this is the only place that ordering has to appear, because a
@@ -270,10 +270,10 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // ONE choke point, shared with the Tier-B image arm — see InitialStateBackground.
         if (effRaw is not { } raw) return NoValueSeed(item, pic, recipe) ?? pic.DefaultInitializer;
 
-        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §13.18.40.5 r11 + §14.6.6 r6 make
+        // A FORMAT-2 (LOCALE) item's numeric VALUE has NO compile-time image — §2023:13.18.40.5 r11 + §2023:14.6.6 r6 make
         // the locale the one current AT THE TIME of editing — so the initializer is a RUNTIME CobolLocaleEdit
         // call (the ONE producer, RuntimeApi.LocaleEditCompose; PB64 T6). A quoted literal falls through to the
-        // verbatim store below (§13.18.63.3 SR7 — the programmer supplies the edited form).
+        // verbatim store below (§2023:13.18.63.3 SR7 — the programmer supplies the edited form).
         if (pic.LocaleEdit is not null && !raw.StartsWith('"') && !raw.StartsWith('\'')
             && TryParseNumeric(FigurativeKind(raw) == 'Z' ? "0" : raw, out var luv, out int lsc)
             && (FigurativeKind(raw) != 'Z' || ctx.Data.DialectLevel >= 2023))
@@ -296,16 +296,16 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
 
-        // ALL "literal" (§8.3.3.6.2 Format 6, where ALL is REQUIRED): the literal repeated to the item width
-        // (ISO §8.3.3.6.4 GR2; §8.3.3.6.3 SR3 forbids a multi-character literal-1 on a numeric item). Read through
+        // ALL "literal" (§2023:8.3.3.6.2 Format 6, where ALL is REQUIRED): the literal repeated to the item width
+        // (ISO §2023:8.3.3.6.4 GR2; §2023:8.3.3.6.3 SR3 forbids a multi-character literal-1 on a numeric item). Read through
         // THE one operand classifier, so this arm and the SET store see the same spellings (kb/Work PB461).
         if (AllLiteralInitializer(raw, pic) is { } allFill) return allFill;
 
         return pic.Category switch
         {
             // A numeric-edited item's NUMERIC VALUE was composed above (EditedImageOfNumericValue); an alphanumeric
-            // literal stores verbatim (§13.18.63.3 SR7 / NOTE 3: the programmer supplies the edited form).
-            // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
+            // literal stores verbatim (§2023:13.18.63.3 SR7 / NOTE 3: the programmer supplies the edited form).
+            // National VALUE stores like alphanumeric on the char substrate (§2023:13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString). The BOOLEAN arm returned above, through
             // <see cref="BooleanCarrierOf"/>.
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
@@ -318,7 +318,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>Cast a numeric VALUE literal to the item's CARRIER type where C# has no implicit conversion: an
     /// unsigned BinaryCapacity item carries <c>ulong</c> / <c>UInt128</c> (kb/Work R10), and its VALUE literal —
-    /// a non-negative source literal of ≤31 digits (ISO §8.3.3.3.2), rendered as <c>…L</c> or <c>Int128.Parse</c> —
+    /// a non-negative source literal of ≤31 digits (ISO §2023:8.3.3.3.2), rendered as <c>…L</c> or <c>Int128.Parse</c> —
     /// converts exactly.</summary>
     private static string CarrierInit(string literal, PicInfo pic) =>
         pic.IsUnsignedWideBinary ? $"(UInt128)({literal})"
@@ -326,7 +326,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         : literal;
 
     /// <summary>The compile-time EDITED IMAGE of a numeric-edited item's numeric VALUE — a numeric literal converted
-    /// "according to the rules for the MOVE statement" (ISO §13.18.63.3 SR6; formats 1, 2 and 4, so the item VALUE
+    /// "according to the rules for the MOVE statement" (ISO §2023:13.18.63.3 SR6; formats 1, 2 and 4, so the item VALUE
     /// and a level-88 condition-name value alike), or the figurative ZERO / ZEROES (with or without ALL) at
     /// >= 2023, where SR6 treats it identically to the literal zero (VCR 35 — Annex E.2 item 28: pre-2023 it was
     /// a left-justified zero-fill, which the caller keeps). Null when <paramref name="raw"/> is anything else (an
@@ -336,9 +336,9 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// fixed-point one through <see cref="RuntimeApi.EditCompose"/> — the SAME runtime the MOVE uses, so the baked
     /// image is what MOVE literal TO item would store (BLANK WHEN ZERO included, NOTE 2).</summary>
     /// <param name="dialectLevel">The compilation's edition (<c>EditionContext.DialectLevel</c>).</param>
-    /// <param name="decimalPointIsComma">ISO §12.3.7 GR14a's DECIMAL-POINT IS COMMA.</param>
+    /// <param name="decimalPointIsComma">ISO §2023:12.3.7 GR14a's DECIMAL-POINT IS COMMA.</param>
     /// <remarks>⛔ THE PARAMETERS ARE THE TWO FACTS THE RULE NEEDS, NOT AN <c>EmitContext</c>, and that is
-    /// deliberate (kb/Work PB920). §13.18.63.3 SR6 is not only a code-generation rule: SR26 and SR27 compare
+    /// deliberate (kb/Work PB920). §2023:13.18.63.3 SR6 is not only a code-generation rule: SR26 and SR27 compare
     /// "<i>the value of</i>" two VALUE-clause operands, and on a numeric-edited subject that value IS this
     /// edited image — so <c>DataBinder</c> has to ask the same question during BINDING, where no
     /// <c>EmitContext</c> exists. An emit-context parameter would have forced a second copy of SR6 into the
@@ -346,7 +346,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// (<c>ConditionValueRecipeDriftTests</c> names every reader).</remarks>
     internal static string? EditedImageOfNumericValue(int dialectLevel, DataItem item, PicInfo pic, string raw)
     {
-        bool decimalPointIsComma = pic.DecimalPointIsComma;   // the DESCRIBING unit's mode (§12.3.7.4 GR14 b; kb/Work PB2554)
+        bool decimalPointIsComma = pic.DecimalPointIsComma;   // the DESCRIBING unit's mode (§2023:12.3.7.4 GR14 b; kb/Work PB2554)
         // A format-2 (LOCALE) item has NO compile-time image (the locale is runtime data) — the callers carry
         // their own runtime arm (RuntimeApi.LocaleEditCompose); returning null here keeps the EditMask derefs
         // below unreachable for it (PB64 T6).
@@ -371,16 +371,16 @@ internal sealed class ValueInitializer(EmitContext ctx)
         static int ParsedExp(string r) { TryParseFloatLiteral(r, out _, out int e); return e; }
     }
 
-    /// <summary>Parse a numeric literal — the FLOATING-POINT form too (ISO §8.3.3.3.3: two fixed-point literals joined by
+    /// <summary>Parse a numeric literal — the FLOATING-POINT form too (ISO §2023:8.3.3.3.3: two fixed-point literals joined by
     /// E, e.g. <c>-1.5E+3</c>) — to a significand and a power of ten (kb/Work PB66); a fixed-point literal is its unscaled
     /// value at −scale, the figurative ZERO / a zero literal 0E0.</summary>
     private static bool TryParseFloatLiteral(string raw, out Int128 sig, out int exp10)
     {
         sig = 0; exp10 = 0;
         string t = raw.Trim().ToUpperInvariant();
-        // ⛔ THE §8.3.3.6.2 VOCABULARY IS ASKED, NEVER RESPELLED (kb/Work PB461, PB933 — this was a private copy
+        // ⛔ THE §2023:8.3.3.6.2 VOCABULARY IS ASKED, NEVER RESPELLED (kb/Work PB461, PB933 — this was a private copy
         // of the Format-1 word list inside the very recipe that owns the clause). The WORD map is asked rather
-        // than Classify because §8.3.3.6.3 SR1a restricts this context to "ZERO (ZEROS, ZEROES) without the ALL
+        // than Classify because §2023:8.3.3.6.3 SR1a restricts this context to "ZERO (ZEROS, ZEROES) without the ALL
         // phrase", which is exactly the strip Classify performs and this site must not.
         if (FigurativeConstants.KindOf(t) is 'Z') return true;
         return WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(t, out sig, out exp10);   // the ONE exact parser (PB99)
@@ -405,35 +405,35 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
 
     /// <summary>An ORDINARY (alphanumeric) group's as-if elementary description, taken from the VALUE clause's
-    /// OWN rule for that subject — ISO §13.18.63.3 SR4: "If the item is of category alphabetic, alphanumeric,
+    /// OWN rule for that subject — ISO §2023:13.18.63.3 SR4: "If the item is of category alphabetic, alphanumeric,
     /// or alphanumeric-edited literals in the VALUE clause shall be alphanumeric literals. … Alphanumeric
     /// literals in the VALUE clause of an alphanumeric group item shall not exceed the size of the group item."
     /// That one sentence gives BOTH halves this needs: the literal's category is alphanumeric, and the bound is
     /// the SIZE OF THE GROUP ITEM, which is <see cref="DataItem.ImageWidth"/>.
-    /// <para>⚠ NOT §8.8.4.2.1. That clause does say an alphanumeric group item is "treated as an elementary
+    /// <para>⚠ NOT §2023:8.8.4.2.1. That clause does say an alphanumeric group item is "treated as an elementary
     /// alphanumeric data item", but its sentence opens "For comparison" — it is the COMPARISON rule, and a
     /// VALUE store is not a comparison. It was inherited from the SET emitter's comment when the private
     /// recipe there was deleted (kb/Work PB560), and re-deriving it is what caught that.</para>
-    /// <para>The bit / national group case is NOT here: those carry a real as-if PICTURE (§13.18.29.4 GR1b/GR2b)
+    /// <para>The bit / national group case is NOT here: those carry a real as-if PICTURE (§2023:13.18.29.4 GR1b/GR2b)
     /// that <see cref="DataItem.OperandPic"/> already answers, and duplicating it would be a second width
     /// rule.</para></summary>
     private static PicInfo AsIfAlphanumericGroup(DataItem item) =>
         new(PicCategory.Alphanumeric, Usage.Display, item.ImageWidth, Digits: 0, Scale: 0, Signed: false);
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
-    /// and width; otherwise null (ISO §8.3.3.6; native HIGH/LOW = U+FFFF/U+0000, owner R52).</summary>
+    /// and width; otherwise null (ISO §2023:8.3.3.6; native HIGH/LOW = U+FFFF/U+0000, owner R52).</summary>
     /// <summary>⛔ THE ONE INITIAL BOOLEAN CARRIER of an elementary boolean item with a VALUE clause — its
     /// <c>pic.Length</c> boolean positions, in the SAME three arms the standard writes them in, for every lane
-    /// that needs them (the record-struct field, the §8.5.1.6.3 bit-run carrier, and the character-image seed —
+    /// that needs them (the record-struct field, the §2023:8.5.1.6.3 bit-run carrier, and the character-image seed —
     /// kb/Work PB584).
     /// <list type="bullet">
-    /// <item>A FIGURATIVE constant fills the positions: ISO §8.3.3.6.4 GR4 makes the zero format "one or more of
+    /// <item>A FIGURATIVE constant fills the positions: ISO §2023:8.3.3.6.4 GR4 makes the zero format "one or more of
     /// the boolean character '0'", and GR2 repeats the string "until the size of the resultant string is greater
     /// than or equal to the number of character positions in the associated data item".</item>
-    /// <item>A Format-6 <c>ALL literal-1</c> (§8.3.3.6.2, where ALL is REQUIRED) is the literal repeated to the
+    /// <item>A Format-6 <c>ALL literal-1</c> (§2023:8.3.3.6.2, where ALL is REQUIRED) is the literal repeated to the
     /// item's positions by that same GR2 — THE arm the bit-carrier lane did not have, so
     /// <c>VALUE ALL B"1"</c> came back all zeros through a REDEFINES alias and all ones without one.</item>
-    /// <item>A plain boolean literal zero-pads on the right (§13.18.63.3 SR10; §14.6.8.6).</item>
+    /// <item>A plain boolean literal zero-pads on the right (§2023:13.18.63.3 SR10; §2023:14.6.8.6).</item>
     /// </list>
     /// The USAGE is NOT this method's business: whether those positions are then PACKED is
     /// <c>GroupImageCodec.BooleanImageOf</c>'s single decision.</summary>
@@ -443,10 +443,10 @@ internal sealed class ValueInitializer(EmitContext ctx)
         ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
                                       justifiedRight: false);
 
-    /// <summary>⛔ THE ONE READER OF A FORMAT-6 <c>ALL literal-1</c> VALUE (ISO §8.3.3.6.2 Format 6, where ALL is
-    /// REQUIRED; §8.3.3.6.4 GR2: the literal repeated to the associated item's size) — the literal repeated to the
+    /// <summary>⛔ THE ONE READER OF A FORMAT-6 <c>ALL literal-1</c> VALUE (ISO §2023:8.3.3.6.2 Format 6, where ALL is
+    /// REQUIRED; §2023:8.3.3.6.4 GR2: the literal repeated to the associated item's size) — the literal repeated to the
     /// item's <see cref="PicInfo.Length"/> positions, or null when <paramref name="raw"/> is not an ALL-literal or
-    /// the item is numeric (§8.3.3.6.3 SR3 forbids a multi-character literal-1 there; a digit-only ALL on a numeric
+    /// the item is numeric (§2023:8.3.3.6.3 SR3 forbids a multi-character literal-1 there; a digit-only ALL on a numeric
     /// item is the numeric recipe's). It is asked by this initializer, by the boolean carrier AND by
     /// <c>GroupImageCodec</c>'s character-image seed — the third asker was missing, so a record that was the base of a
     /// REDEFINES (a Tier-B image-backed record) seeded `PIC X(6) VALUE ALL "."` with the parse text `ALL"."`
@@ -465,9 +465,9 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
 
     /// <summary>The figurative KIND of a VALUE text — Formats 1–5, where the word <c>ALL</c> is OPTIONAL
-    /// (ISO §8.3.3.6.2) — or null when it is not one of those (a Format-6 <c>ALL literal-1</c> is the literal
+    /// (ISO §2023:8.3.3.6.2) — or null when it is not one of those (a Format-6 <c>ALL literal-1</c> is the literal
     /// path below). The ONE detector shared by <see cref="FigurativeInitializer"/>, the VCR 35 numeric-edited
-    /// figurative-ZERO branch, and the §13.18.63.4 GR5 group-area rule
+    /// figurative-ZERO branch, and the §2023:13.18.63.4 GR5 group-area rule
     /// (<see cref="GroupValueSlicer.AreaTextOf"/> — internal for that third rider, kb/Work PB184); it reads the
     /// operand through <see cref="FigurativeConstants.Classify"/>, THE one classifier the SET store and the
     /// condition test read it through as well (kb/Work PB461).</summary>
@@ -479,7 +479,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         pic.IsSingle ? $"{raw.Trim().TrimStart('+')}f" : $"{raw.Trim().TrimStart('+')}d";   // COMP-1/FLOAT-SHORT → float literal, else double
 
     /// <summary>Whether <paramref name="item"/> belongs to a FILE SECTION record (its root is some FD / SD record) —
-    /// the section fact §13.4.4 GR1 keys on. File-section records emit as unit fields through the same initial-state
+    /// the section fact §2023:13.4.4 GR1 keys on. File-section records emit as unit fields through the same initial-state
     /// path as WORKING-STORAGE, so the section has to be asked of the ROOT (kb/Work PB1241).</summary>
     private bool InFileSection(DataItem item)
     {

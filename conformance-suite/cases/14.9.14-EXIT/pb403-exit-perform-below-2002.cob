@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> The edition floor under the §14.9.14.3 SR8 placement rule (kb/Work PB403). EXIT PERFORM is a COBOL-2002
+*> The edition floor under the §2023:14.9.14.3 SR8 placement rule (kb/Work PB403). EXIT PERFORM is a COBOL-2002
 *> introduction (Annex E; ConstructRegistry row exit-perform-2002), so BELOW 2002 the statement is refused by
 *> the introduction gate COBOL0900 before any placement question can be asked -- which is why the SR8
 *> placement fixture (pb403-exit-perform-outside-perform) names 2002 2014 2023 and not 85.

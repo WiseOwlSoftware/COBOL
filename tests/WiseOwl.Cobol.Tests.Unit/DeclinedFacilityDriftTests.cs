@@ -99,7 +99,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The set of contexts the pass refuses WHOLE — which other passes consult through
-    /// <c>DeclinedFacilityPass.EnclosingDeclinedConstruct</c> (the §8.9 funnel since kb/Work PB764) — is exactly
+    /// <c>DeclinedFacilityPass.EnclosingDeclinedConstruct</c> (the §2023:8.9 funnel since kb/Work PB764) — is exactly
     /// the grammar's entry points, so a new declined construct cannot be refused here yet diagnosed inside
     /// by another pass.</summary>
     [Fact]
@@ -185,7 +185,7 @@ public sealed class DeclinedFacilityDriftTests
 
     /// <summary>Every COBOL word printed in a general format's figure (the transcription's <c>&lt;pre&gt;</c>
     /// blocks; <c>Format k (…):</c> selects one of several), underlined or not: a keyword and an optional word
-    /// are both the format's OWN words (§5.2.2, §5.2.3), never a user-defined word. A lowercase metavariable
+    /// are both the format's OWN words (§2023:5.2.2, §2023:5.2.3), never a user-defined word. A lowercase metavariable
     /// (<c>identifier-1</c>, <c>alphabet-name-1</c>) is not a word here.</summary>
     private static HashSet<string> PrintedWords(string clause, string? format)
     {
@@ -250,9 +250,9 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>⛔ A KEYWORD THE ARMS OMIT DOES NOT FALL INTO "PERMISSIVE INSIDE": IT FALLS TO <c>cobolWord</c>.
-    /// The declined grammar is permissive inside its constructs (§4.2.7, A.4.1), and that posture was read as
+    /// The declined grammar is permissive inside its constructs (§2023:4.2.7, A.4.1), and that posture was read as
     /// licence to leave a printed keyword out of an operand group. It is not one: a word with its own lexer token
-    /// that no arm names reaches only the <c>cobolWord</c> sink, which refuses a §8.9-reserved word, so the parse
+    /// that no arm names reaches only the <c>cobolWord</c> sink, which refuses a §2023:8.9-reserved word, so the parse
     /// fails INSIDE the declined construct and the error listener answers COBOL0901, "is a reserved word …
     /// cannot be used as a user-defined word" — false, because the format prints it as the clause's own word —
     /// where the declined-facility refusal COBOL1708 belongs. Three keywords did it, one at a time: the class
@@ -269,7 +269,7 @@ public sealed class DeclinedFacilityDriftTests
         Assert.True(missing.Count == 0,
             "printed keyword(s) with a lexer token that no arm of the declined rule names — each falls to cobolWord, "
             + "which refuses a reserved word, so the declined clause draws a false COBOL0901 instead of COBOL1708. "
-            + "Add the arm (ISO §5.2.2): " + string.Join("; ", missing));
+            + "Add the arm (ISO §2023:5.2.2): " + string.Join("; ", missing));
     }
 
     /// <summary>Every rule of the declined grammar that writes a keyword is covered by the fact above: it cites a
@@ -301,12 +301,12 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>Prove the guard can FAIL on the very defect it was written for: the real grammar with the CLASS
-    /// clause's BOOLEAN arm removed is reported, naming BOOLEAN and §13.18.11.2 — and nothing else is. The second
+    /// clause's BOOLEAN arm removed is reported, naming BOOLEAN and §2023:13.18.11.2 — and nothing else is. The second
     /// leg removes the VALID arm of the format-5 TAIL, whose host's tokens are also counted, and proves the host's
     /// reach does not hide it.</summary>
     [Theory]
-    [InlineData(@"(?m)^(\s*)\|\s*BOOLEAN\s*$", "validateClassClause: §13.18.11.2 prints BOOLEAN (token BOOLEAN)")]
-    [InlineData(@"\(VALID \| INVALID\)", "validateValidPhrase: §13.18.63.2 Format 5 prints VALID (token VALID)")]
+    [InlineData(@"(?m)^(\s*)\|\s*BOOLEAN\s*$", "validateClassClause: §2023:13.18.11.2 prints BOOLEAN (token BOOLEAN)")]
+    [InlineData(@"\(VALID \| INVALID\)", "validateValidPhrase: §2023:13.18.63.2 Format 5 prints VALID (token VALID)")]
     public void ThePrintedKeywordGuard_ReportsAnOmittedArm(string arm, string expected)
     {
         string text = File.ReadAllText(GrammarPath);
@@ -326,7 +326,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
-    /// the whole band different from the §4.2.6 processor-dependent band (COBOL1578/1579/1580, Warning).
+    /// the whole band different from the §2023:4.2.6 processor-dependent band (COBOL1578/1579/1580, Warning).
     /// Annex A.4.1: an implementation "shall accept the syntax … for an optional element ONLY when support for
     /// that language element is claimed", so accepting a declined element's syntax is itself the
     /// non-conformance. It is also what makes the rows WITNESSABLE: the negative corpus asserts a failing

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.92.3 1) — TEST-FORMATTED-DATETIME, national argument-1
+      *> ISO §2023:15.92.3 1) — TEST-FORMATTED-DATETIME, national argument-1
       *> with the alphanumeric arm beside it as the control.
       *>
       *> "Argument-1 shall be a national or alphanumeric literal."

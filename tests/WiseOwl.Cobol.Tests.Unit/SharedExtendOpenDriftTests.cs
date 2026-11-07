@@ -10,12 +10,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN <c>OPEN</c> HAS ONLY I-O STATUSES AS OUTCOMES — never an escaping exception (kb/Work PB713).
-/// ISO §14.9.27.4 GR1 makes every OPEN <i>"cause the value of the I-O status associated with file-name-1 to be
-/// updated to one of the values in 9.1.13"</i>, §14.9.27.4 GR25 makes an unsuccessful one leave <i>"the file … not
-/// affected"</i>, and §9.1.13.6 item 1 gives the residual host failure its value ('30'). §9.1.15 says which
+/// ISO §2023:14.9.27.4 GR1 makes every OPEN <i>"cause the value of the I-O status associated with file-name-1 to be
+/// updated to one of the values in 9.1.13"</i>, §2023:14.9.27.4 GR25 makes an unsuccessful one leave <i>"the file … not
+/// affected"</i>, and §2023:9.1.13.6 item 1 gives the residual host failure its value ('30'). §2023:9.1.15 says which
 /// opens are ALLOWED — <i>"the sharing with all other mode allows concurrent access to a physical file through
 /// other file connectors specifying input, I-O, or extend mode"</i> — and it puts the gate on the FILE
-/// CONNECTORS and §14.9.27.4 Table 19, not on the operating environment's handle.
+/// CONNECTORS and §2023:14.9.27.4 Table 19, not on the operating environment's handle.
 ///
 /// <para><b>What PB713 was.</b> A sharing-active <c>OPEN EXTEND</c> opened its append writer and THEN measured
 /// the file's existing record count from a SECOND handle on the same path: <c>File.ReadLines</c> for the
@@ -28,37 +28,37 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// tested.</para>
 ///
 /// <para>So the guard is the WHOLE MATRIX, not the reported arm: every organization × framing a shared
-/// <c>OPEN EXTEND</c> can take, in every spelling that makes a connector a §9.1.15 participant. A shape added
+/// <c>OPEN EXTEND</c> can take, in every spelling that makes a connector a §2023:9.1.15 participant. A shape added
 /// later — a fourth framing, a fourth organization — fails here the day it is registered rather than the day a
 /// user writes <c>SHARING</c> on it.</para>
 /// </summary>
 public sealed class SharedExtendOpenDriftTests
 {
-    /// <summary>How a connector comes to be opened under §9.1.15 sharing. The first two carry a LOCK MODE clause,
+    /// <summary>How a connector comes to be opened under §2023:9.1.15 sharing. The first two carry a LOCK MODE clause,
     /// so they are record-locking participants (<c>FileRegistry.RecordLocksSetUnder</c>, which is what
     /// <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived from); the
-    /// third has none, sets no record locks (§12.4.5.9.4 GR1 b) 1.) and is a non-participant
+    /// third has none, sets no record locks (§2023:12.4.5.9.4 GR1 b) 1.) and is a non-participant
     /// (<c>RecordLockingParticipationDriftTests</c>, kb/Work PB3372), so only its OPEN and append are asserted.
-    /// (The OS share mode is NOT derived from it: that is the §9.1.15 file lock, and
+    /// (The OS share mode is NOT derived from it: that is the §2023:9.1.15 file lock, and
     /// <c>FileLockPosture</c> takes it from the arbitrated sharing MODE and the admitted connector set —
     /// kb/Work PB740.)</summary>
     public enum Spelling
     {
-        /// <summary>SHARING WITH ALL OTHER + LOCK MODE IS MANUAL (§14.9.27.3 SR8 requires the LOCK MODE clause
+        /// <summary>SHARING WITH ALL OTHER + LOCK MODE IS MANUAL (§2023:14.9.27.3 SR8 requires the LOCK MODE clause
         /// for the ALL spelling, which is why the corpus under-covers this band).</summary>
         AllOtherClause,
 
         /// <summary>A LOCK MODE clause and NO SHARING clause, with the sharing mode given by the OPEN
-        /// statement's SHARING WITH ALL OTHER phrase (§14.9.27.4 GR23: the phrase overrides the file control
-        /// entry; the LOCK MODE clause is what §14.9.27.3 SR8 requires beside an ALL phrase). The file control
+        /// statement's SHARING WITH ALL OTHER phrase (§2023:14.9.27.4 GR23: the phrase overrides the file control
+        /// entry; the LOCK MODE clause is what §2023:14.9.27.3 SR8 requires beside an ALL phrase). The file control
         /// entry registers a null sharing mode (kb/Work PB322); on its own a LOCK MODE clause is not a sharing
         /// specification, so without the phrase the connector would be NO OTHER while open for output, I-O or
-        /// extend and its record locks would be ignored (§9.1.15 1)).</summary>
+        /// extend and its record locks would be ignored (§2023:9.1.15 1)).</summary>
         LockModeAndAllOtherPhrase,
 
         /// <summary>No file-control clause at all; the OPEN statement itself carries the SHARING phrase
-        /// (§14.9.27 — <c>FileRegistry.OpenShared</c>, which registers no posture). The phrase is READ
-        /// ONLY rather than ALL because §14.9.27.3 SR8 admits the ALL spelling only when <i>"the LOCK MODE
+        /// (§2023:14.9.27 — <c>FileRegistry.OpenShared</c>, which registers no posture). The phrase is READ
+        /// ONLY rather than ALL because §2023:14.9.27.3 SR8 admits the ALL spelling only when <i>"the LOCK MODE
         /// clause … is specified in the file control entry"</i>, which this spelling by construction has not
         /// got — an ALL phrase here would be non-conforming source, and a guard built on non-conforming source
         /// measures nothing.</summary>
@@ -84,7 +84,7 @@ public sealed class SharedExtendOpenDriftTests
                 return reg.Status(name);
             case Spelling.OpenPhrase:
                 // No SELECT clause: the phrase on the OPEN is what makes it a participant. READ ONLY, not ALL
-                // — §14.9.27.3 SR8, see the enum member.
+                // — §2023:14.9.27.3 SR8, see the enum member.
                 reg.OpenShared(name, mode, hasSharingOverride: true, FileSharing.ReadOnly,
                     FileRetryKind.None, 0, tape: OpenTapePhrase.None, reg.HostPathOf(name), assignDynamic: false, page: null);
                 return reg.Status(name);
@@ -93,7 +93,7 @@ public sealed class SharedExtendOpenDriftTests
         return reg.Status(name);
     }
 
-    // ── Sequential organization: the three framings §9.1.7.2's two file types give it ────────────────────────
+    // ── Sequential organization: the three framings §2023:9.1.7.2's two file types give it ────────────────────────
 
     /// <summary>The framings a sequential connector can carry on disk. Named, not booleans, so a fourth one
     /// cannot be added without landing in this matrix.</summary>
@@ -106,7 +106,7 @@ public sealed class SharedExtendOpenDriftTests
         /// control that proves the matrix is measuring the difference and not the harness.</summary>
         FixedRecordSequential,
 
-        /// <summary>Record sequential, RECORD IS VARYING — length-prefixed frames (§13.18.43 GR2). PB713's
+        /// <summary>Record sequential, RECORD IS VARYING — length-prefixed frames (§2023:13.18.43 GR2). PB713's
         /// confirmed sibling: it crashed through <c>RecordFraming.ReadStore</c> for the identical reason.</summary>
         VaryingRecordSequential,
     }
@@ -121,7 +121,7 @@ public sealed class SharedExtendOpenDriftTests
     }
 
     /// <summary>The subset of <see cref="SequentialShapes"/> whose connector carries a LOCK MODE clause, so
-    /// §12.4.5.9.4 GR3 gives the clause its effects, so record locking is in effect and the write ordinal has an observable
+    /// §2023:12.4.5.9.4 GR3 gives the clause its effects, so record locking is in effect and the write ordinal has an observable
     /// (<see cref="SharedExtend_WriteOrdinalContinuesTheExistingRecords"/> says why).</summary>
     public static TheoryData<Framing, Spelling> LockBearingSequentialShapes()
     {
@@ -139,8 +139,8 @@ public sealed class SharedExtendOpenDriftTests
             varyMax: framing == Framing.VaryingRecordSequential ? 8 : -1);
 
     /// <summary>⛔ THE REGRESSION. Every (framing × sharing spelling) opens EXTEND over a seeded file, appends,
-    /// and reads both records back — no exception, a success-family status at every step (§9.1.13.2), and the
-    /// appended record following the existing one (§14.9.51.4 GR18: <i>"the first record written after the
+    /// and reads both records back — no exception, a success-family status at every step (§2023:9.1.13.2), and the
+    /// appended record following the existing one (§2023:14.9.51.4 GR18: <i>"the first record written after the
     /// execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the
     /// physical file"</i>).</summary>
     [Theory]
@@ -177,15 +177,15 @@ public sealed class SharedExtendOpenDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>The VALUE the seeding exists for, not merely its survival: §9.1.16 makes a sequential record's
-    /// lock identity its ordinal in the physical file, and §14.9.51.4 GR19 fixes the base at <i>"the records
+    /// <summary>The VALUE the seeding exists for, not merely its survival: §2023:9.1.16 makes a sequential record's
+    /// lock identity its ordinal in the physical file, and §2023:14.9.51.4 GR19 fixes the base at <i>"the records
     /// present in the physical file when it was opened"</i>. One record exists, so the record the EXTEND session
     /// writes WITH LOCK is ordinal <b>2</b> — measured through a sibling connector's view of the lock table, the
     /// only thing that can tell 2 from 1.
     /// <para>A green here with a broken seed is impossible in the direction that matters: a base of 0 would lock
     /// ordinal 1, which the assertions below reject explicitly rather than by omission.</para>
     /// <para>⛔ ONLY THE TWO LOCK-MODE-BEARING SPELLINGS APPEAR, and the omission is a fact about the standard
-    /// rather than a convenience: §12.4.5.9.4 GR1 b) 2. makes a connector with no LOCK MODE clause take the implementor
+    /// rather than a convenience: §2023:12.4.5.9.4 GR1 b) 2. makes a connector with no LOCK MODE clause take the implementor
     /// default, which for WiseOwl COBOL is no record locking, so a <see cref="Spelling.OpenPhrase"/> connector sets
     /// no lock and its write ordinal has no observable at all. Asserting over it would assert the absence of a
     /// lock that the standard never asked for. Its OPEN and its append are still covered, by
@@ -211,7 +211,7 @@ public sealed class SharedExtendOpenDriftTests
             Assert.Equal(FileStatusCode.Success,
                 reg.WriteShared("W", "BBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
             Assert.True(reg.IsLockedByOther("O", "2"),
-                "§14.9.51.4 GR19 — the record appended by a shared EXTEND is the successor of the records "
+                "§2023:14.9.51.4 GR19 — the record appended by a shared EXTEND is the successor of the records "
                 + "present when the file was opened, so its ordinal is 2. The write-ordinal base was not seeded.");
             Assert.False(reg.IsLockedByOther("O", "1"),
                 "Ordinal 1 is the record that already existed; locking it means the base was 0.");
@@ -222,7 +222,7 @@ public sealed class SharedExtendOpenDriftTests
 
     // ── The keyed organizations: no write-ordinal base, but the same OPEN contract ───────────────────────────
 
-    /// <summary>RELATIVE and INDEXED reach the same shared <c>OPEN EXTEND</c> (§14.9.27.3 SR2 admits it for any
+    /// <summary>RELATIVE and INDEXED reach the same shared <c>OPEN EXTEND</c> (§2023:14.9.27.3 SR2 admits it for any
     /// organization at sequential access; Table 20 lists WRITE under the extend column for all three). They keep
     /// their records in the keyed store engine's paged store, whose pages travel only through the connector's own
     /// handle (kb/Work PB771). Its whole-file load and persist, the old store's, were the other two share-mode-assuming
@@ -276,7 +276,7 @@ public sealed class SharedExtendOpenDriftTests
                 reg.WriteShared("F", "K002AAA", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
             reg.Close("F");
 
-            // §14.9.51.4 GR38 — under extend the first released record's prime key must exceed the highest key
+            // §2023:14.9.51.4 GR38 — under extend the first released record's prime key must exceed the highest key
             // present, so K006 is the conforming append over K002.
             Assert.Equal(FileStatusCode.Success, ShareAndOpen(reg, "F", spelling, FileOpenMode.Extend));
             Assert.Equal(FileStatusCode.Success,
@@ -300,7 +300,7 @@ public sealed class SharedExtendOpenDriftTests
     /// <summary>Every way the runtime can open a host PATH. The .NET defaults are the trap: the three-argument
     /// <c>FileStream</c> is <see cref="FileShare.Read"/>, the two-argument one is <see cref="FileShare.None"/>,
     /// and every <c>File.*</c> content helper is <see cref="FileShare.Read"/> — so a site that says nothing has
-    /// silently declared that no other handle on this path may write, which is a statement about §9.1.15 that no
+    /// silently declared that no other handle on this path may write, which is a statement about §2023:9.1.15 that no
     /// call site is entitled to make.</summary>
     private static readonly Regex PathOpen = new(
         @"\bnew\s+FileStream\s*\(|\bFile\.(?:ReadLines|ReadAllLines|ReadAllText|ReadAllBytes|WriteAllText"
@@ -317,7 +317,7 @@ public sealed class SharedExtendOpenDriftTests
 
     /// <remarks>
     /// <c>Console.OpenStandard…</c> is admitted by NAME and by argument shape: it takes no path at all — it
-    /// hands back the process's already-open standard handle — so there is no share mode to state and §9.1.15
+    /// hands back the process's already-open standard handle — so there is no share mode to state and §2023:9.1.15
     /// has nothing to say about it. <c>StandardStreams.EnsureUtf8</c> (kb/Work PB899, PB3193) wraps those handles in
     /// UTF-8 writers on a host where the <c>Console.OutputEncoding</c> setter is unavailable, and a redirected
     /// standard input in a UTF-8 reader. The allowlist
@@ -338,7 +338,7 @@ public sealed class SharedExtendOpenDriftTests
         || Regex.IsMatch(line.Trim(), @"(?:^|[,(])\s*share\s*[,)]");
 
     /// <summary>⛔ NO FILE UNDER <c>WiseOwl.Cobol.Runtime/IO</c> OPENS A HOST PATH EXCEPT <c>HostFile</c>. The share
-    /// mode is not a per-site decision: it is §9.1.15's answer to "what may the other file connectors of this
+    /// mode is not a per-site decision: it is §2023:9.1.15's answer to "what may the other file connectors of this
     /// run unit do while this handle is open?", and it has exactly two answers (the connector's own posture and
     /// the permissive bookkeeping one), both derived inside <c>HostFile</c> from the ROLE. PB713 is what the
     /// per-site form cost: four hand-written share ternaries, two implicit constructor defaults, and a crash on
@@ -372,9 +372,9 @@ public sealed class SharedExtendOpenDriftTests
         Assert.True(offenders.Count == 0,
             "A host-path open outside HostFile. The .NET path constructors default to FileShare.Read (three "
             + "arguments) or FileShare.None (two), which forbids a handle another file connector of this run "
-            + "unit legitimately holds — and ISO §9.1.15 puts that gate on the file connectors and §14.9.27.4 "
-            + "Table 19, not on the operating environment's handle. An OPEN's only outcomes are the §9.1.13 I-O "
-            + "statuses (§14.9.27.4 GR1/GR25), never an escaping IOException (kb/Work PB713). Call "
+            + "unit legitimately holds — and ISO §2023:9.1.15 puts that gate on the file connectors and §2023:14.9.27.4 "
+            + "Table 19, not on the operating environment's handle. An OPEN's only outcomes are the §2023:9.1.13 I-O "
+            + "statuses (§2023:14.9.27.4 GR1/GR25), never an escaping IOException (kb/Work PB713). Call "
             + "HostFile.OpenConnectorStream / OpenConnectorWriteStream / OpenConnectorStore (a connector's own "
             + "long-lived handles) or HostFile.OpenAuxiliary "
             + "(short-lived bookkeeping over a path a connector may hold). Offending sites:\n  "
@@ -419,8 +419,8 @@ public sealed class SharedExtendOpenDriftTests
             + "every open through here (kb/Work PB713, PB740). Sites:\n  " + string.Join("\n  ", shareless));
     }
 
-    /// <summary>⛔ §9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedPhysical</c> is what the EXTEND
-    /// release ordinal is minted from and what every §9.1.16 record lock is identified against;
+    /// <summary>⛔ §2023:9.1.15 PARTICIPATION HAS ONE ANSWER. <c>FileConnector.SharedPhysical</c> is what the EXTEND
+    /// release ordinal is minted from and what every §2023:9.1.16 record lock is identified against;
     /// <c>FileRegistry._connectorShares</c> is the register that records the SHARING/LOCK MODE posture — two
     /// names for one fact. They must not be maintained separately: it is assigned in exactly ONE place,
     /// immediately before the sole <c>c.Open(mode)</c> call, so it is derived from the register at the one
@@ -429,14 +429,14 @@ public sealed class SharedExtendOpenDriftTests
     /// <para>kb/Work PB739 gave the fact the TYPE of the thing it grants access to — the physical file's own
     /// shared state — so no separate bit could hold it. kb/Work PB740 finished that by DELETING
     /// <c>SharedStreams</c> outright: participation is a question about the run unit's shared state, and the
-    /// HOST HANDLE's share mode is a different question (the §9.1.15 file lock, derived by
+    /// HOST HANDLE's share mode is a different question (the §2023:9.1.15 file lock, derived by
     /// <c>FileLockPosture.For</c> and carried on <c>HostShare</c>), so one boolean could not honestly answer
     /// both. Its ABSENCE is asserted below.</para>
     /// <para>kb/Work PB753 SPLIT the two questions that one field had been answering, and the invariant is
     /// unchanged because the split is a DERIVATION rather than a second field to maintain: the physical file's
     /// state now reaches EVERY connector (the read-coherence rule written on it is a rule about the MEDIUM, and
     /// kb/Work PB740 let two CLAUSE-LESS connectors share one physical file), while <c>SharedPhysical</c> — the
-    /// §9.1.16 record-locking view the release-ordinal mint reads — is a computed view of it and the flag the
+    /// §2023:9.1.16 record-locking view the release-ordinal mint reads — is a computed view of it and the flag the
     /// SAME call sets. So the one-writer assertion below is now written over <c>AssociatePhysical</c>, which
     /// writes both facts at once; <c>SharedReadCoherenceDriftTests</c> holds the other half, that the state
     /// itself is handed over unconditionally.</para></summary>
@@ -458,8 +458,8 @@ public sealed class SharedExtendOpenDriftTests
         }
 
         Assert.True(writes.Count == 1,
-            $"§9.1.15 participation must have exactly one writer; found {writes.Count}. Two writers are "
-            + "two answers to §9.1.15's participation question, and the streams and the release-ordinal mint "
+            $"§2023:9.1.15 participation must have exactly one writer; found {writes.Count}. Two writers are "
+            + "two answers to §2023:9.1.15's participation question, and the streams and the release-ordinal mint "
             + "read it from opposite ends of an OPEN (kb/Work PB713, PB739). Sites:\n  " + string.Join("\n  ", writes));
         Assert.Contains("RecordLocksSetUnder(posture, sharing)", writes[0], StringComparison.Ordinal);   // kb/Work PB3372
 
@@ -477,7 +477,7 @@ public sealed class SharedExtendOpenDriftTests
 
         // kb/Work PB739 derived participation from the shared state so no second bit could hold it; kb/Work
         // PB740 finished the job by DELETING the bit that had also been standing in for the OS share mode.
-        // `SharedStreams` answered "did this SELECT write a clause?" and was spent on §9.1.15's file lock,
+        // `SharedStreams` answered "did this SELECT write a clause?" and was spent on §2023:9.1.15's file lock,
         // which is a question about the arbitrated sharing MODE — so a connector declaring the exclusive mode
         // got the most permissive handle. Its absence is the fact: a boolean cannot come back to conflate them.
         Assert.Null(typeof(FileConnector).GetProperty("SharedStreams",
@@ -513,7 +513,7 @@ public sealed class SharedExtendOpenDriftTests
             Assert.Equal(FileStatusCode.Success,
                 reg.WriteShared("P", "AAAA", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
             Assert.True(reg.IsLockedByOther("Q", "1"),
-                "The connector was a §9.1.15 participant before this OPEN, so the OPEN had to seed its write "
+                "The connector was a §2023:9.1.15 participant before this OPEN, so the OPEN had to seed its write "
                 + "base; an unseeded base (−1) leaves LastWrittenRecordId empty and nothing is locked.");
             reg.Close("P");
         }

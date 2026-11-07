@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §7.3.17.4 GR3 OFF specified at the 2002 floor — live-clock LAYOUT witness for three seconds positions
+      *> ISO §2023:7.3.17.4 GR3 OFF specified at the 2002 floor — live-clock LAYOUT witness for three seconds positions
        >>LEAP-SECOND OFF
       *> ROLE: a LAYOUT witness only. On a live clock no line here can
       *>   fail on a seconds value > 59, so it is NOT GR3 evidence for
@@ -19,15 +19,15 @@
       *>   returned from: the ACCEPT statement with the TIME phrase, the
       *>   CURRENT-DATE intrinsic function, the FORMATTED-CURRENT-DATE
       *>   intrinsic function, the WHEN-COMPILED intrinsic function."
-      *>   cite.py --check 7.3.17.4 -> OK §7.3.17.4 3)
+      *>   cite.py --check 7.3.17.4 -> OK §2023:7.3.17.4 3)
       *> The 2023 twin l1g4_leap_second_off_reported_seconds covers the
       *>   IMPLIED OFF (GR1) with all four sources; this one covers the
       *>   SPECIFIED OFF at --std 2002, where FORMATTED-CURRENT-DATE does
       *>   not exist (a COBOL-2014 intrinsic, IntrinsicCatalog 2014), so
       *>   the source set differs: three sources.
-      *> §7.3.17.3 SR1: the directive precedes the compilation unit.
-      *> Seconds positions: ACCEPT TIME 5-6 (§14.9.1.4 11)), CURRENT-DATE
-      *>   13-14 (§15.21.3 1)), WHEN-COMPILED 13-14 (§15.99.3 1)); the
+      *> §2023:7.3.17.3 SR1: the directive precedes the compilation unit.
+      *> Seconds positions: ACCEPT TIME 5-6 (§2023:14.9.1.4 11)), CURRENT-DATE
+      *>   13-14 (§2023:15.21.3 1)), WHEN-COMPILED 13-14 (§2023:15.99.3 1)); the
       *>   OFF range is "00 through 59". Live clock => SHAPE pin: each
       *>   pair is two digits in 00..59 (=> Y); position 17 is '+', '-'
       *>   or '0' (=> Y), the anchor proving the position arithmetic.

@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A STAGE-OWNED DIRECTIVE OPERAND ENDS WHERE ITS GENERAL FORMAT ENDS (kb/Work PB1365). ISO §7.3.3 SR3 (fixed form) and
+/// ⛔ A STAGE-OWNED DIRECTIVE OPERAND ENDS WHERE ITS GENERAL FORMAT ENDS (kb/Work PB1365). ISO §2023:7.3.3 SR3 (fixed form) and
 /// SR4 (free form): a compiler directive "may be followed only by space characters and an optional inline comment".
 /// <see cref="CompilerDirectiveCatalog.CheckOperand"/> enforces that centrally for every closed-word row, but a
 /// <see cref="DirectiveOperandForm.Stage"/> row is skipped by it BY DESIGN, so the stage that owns the operand must consume it
@@ -52,13 +52,13 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
         var stale = Witness.Keys.Where(w => !words.Contains(w)).Order(StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0,
             $"these directive words belong to a Stage row but have no witness line: [{string.Join(", ", missing)}] — add one, "
-            + "so the stage that owns the operand is proven to consume it whole (ISO §7.3.3 SR3/SR4)");
+            + "so the stage that owns the operand is proven to consume it whole (ISO §2023:7.3.3 SR3/SR4)");
         Assert.True(stale.Count == 0, $"these witness lines name no Stage-row directive word: [{string.Join(", ", stale)}]");
     }
 
     [Theory]
-    [InlineData(InitialReferenceFormat.Fixed)]   // §7.3.3 SR3
-    [InlineData(InitialReferenceFormat.Free)]    // §7.3.3 SR4
+    [InlineData(InitialReferenceFormat.Fixed)]   // §2023:7.3.3 SR3
+    [InlineData(InitialReferenceFormat.Free)]    // §2023:7.3.3 SR4
     public void EveryStageDirectiveWord_RejectsAWordAfterItsOperand_AndAcceptsItsOperandAndAComment(InitialReferenceFormat format)
     {
         var bad = new List<string>();
@@ -68,9 +68,9 @@ public sealed class StageOwnedDirectiveOperandDriftTests : WiseOwlCobolTestBase
             if (Errors(lines!, "", format) is { Count: > 0 } conforming)
                 bad.Add($">>{word}: its conforming operand is rejected — {conforming[0]}");
             if (Errors(lines!, "   *> why", format) is { Count: > 0 } commented)
-                bad.Add($">>{word}: an inline comment after the operand is rejected — {commented[0]} (§7.3.3 SR3/SR4)");
+                bad.Add($">>{word}: an inline comment after the operand is rejected — {commented[0]} (§2023:7.3.3 SR3/SR4)");
             if (Errors(lines!, " ZZJUNK", format).Count == 0)
-                bad.Add($">>{word}: a word after the operand is accepted in silence (§7.3.3 SR3/SR4)");
+                bad.Add($">>{word}: a word after the operand is accepted in silence (§2023:7.3.3 SR3/SR4)");
         }
 
         Assert.True(bad.Count == 0, string.Join("\n", bad));

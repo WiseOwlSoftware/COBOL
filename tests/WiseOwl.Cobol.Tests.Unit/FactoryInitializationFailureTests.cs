@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE ONE RESOURCE AN INVOKE CHECKS: THE CLASS'S TYPE INITIALIZATION (ISO §14.9.23.4 GR7 b; Annex A.1 item 102,
+/// ⛔ THE ONE RESOURCE AN INVOKE CHECKS: THE CLASS'S TYPE INITIALIZATION (ISO §2023:14.9.23.4 GR7 b; Annex A.1 item 102,
 /// docs/CONFORMANCE.md DOC-A.1-102; kb/Work PB1422). The standard gives "the resources necessary to execute the method are
 /// not available" the same EC-OO-METHOD as "the method is not found" and leaves the checked resources to the implementor;
 /// this implementation checks that the class initializes, which the first reference to its factory object triggers
@@ -53,7 +53,7 @@ public sealed class FactoryInitializationFailureTests
     }
 
     /// <summary>The check costs a class that initializes nothing: its factory object is created once and is the same
-    /// object on every later reference (§9.3.14.2).</summary>
+    /// object on every later reference (§2023:9.3.14.2).</summary>
     [Fact]
     public void ClassThatInitializes_IsTheSameFactoryObjectEveryTime()
     {

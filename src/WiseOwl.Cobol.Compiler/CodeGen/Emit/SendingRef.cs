@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.CodeGen.Emit;
 
 /// <summary>
-/// ⛔ <b>ISO §14.6.13.2's EXEMPTION TABLE, AS A STRUCTURE.</b> The clause states five sibling conditions over one
+/// ⛔ <b>ISO §2023:14.6.13.2's EXEMPTION TABLE, AS A STRUCTURE.</b> The clause states five sibling conditions over one
 /// subject — the content of a sending operand that is not valid — and each carries its OWN list of contexts in
 /// which the reference is exempt from raising. This value names the context ONCE at the reference site; every
 /// rule then reads its own list off it.
@@ -24,13 +24,13 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// </list>
 /// <para>So a SIGN condition and a same-usage MOVE are exempt for a float operand and <b>NOT</b> for a
 /// fixed-point one — a distinction no single flag can express, and the exact distinction the standard draws
-/// deliberately: §8.8.4.7.4 GR2 gives a float sign test a well-defined answer for NaN (it reads the IEEE sign
-/// bit), and §14.9.25.4 GR6c makes a same-usage MOVE a verbatim transfer with no conversion. Fixed-point has
+/// deliberately: §2023:8.8.4.7.4 GR2 gives a float sign test a well-defined answer for NaN (it reads the IEEE sign
+/// bit), and §2023:14.9.25.4 GR6c makes a same-usage MOVE a verbatim transfer with no conversion. Fixed-point has
 /// neither special rule, so neither exemption.</para>
 /// <para>Rule 1 (a boolean sending item) shares rule 2's two-entry list; when it is wired it reads
 /// <see cref="FixedPointChecked"/>'s sibling off this same value rather than growing a third flag.</para>
-/// <para><b>And one rule that is not §14.6.13.2's at all.</b> §14.9.25.4 GR6 d) 1's closing sentence raises
-/// EC-DATA-INCOMPATIBLE for an ALPHANUMERIC sending operand whose content is not numeric — a rule §14.6.13.2
+/// <para><b>And one rule that is not §2023:14.6.13.2's at all.</b> §2023:14.9.25.4 GR6 d) 1's closing sentence raises
+/// EC-DATA-INCOMPATIBLE for an ALPHANUMERIC sending operand whose content is not numeric — a rule §2023:14.6.13.2
 /// cannot state, because such content is perfectly valid for the SENDER's own data description; it is the MOVE
 /// into a numeric receiver that asks a numeric question of it. That makes it the one rule here whose list is an
 /// opt-IN of a single context rather than an opt-OUT of several (<see cref="SendingRef.MoveToNumeric"/> /
@@ -43,30 +43,30 @@ internal enum SendingRef
     /// <summary>An ordinary sending reference — no exemption applies and every rule's raise is emitted.</summary>
     Normal = 0,
 
-    /// <summary>The operand of a CLASS condition (§8.8.4.4). Exempt from rules 1, 2 AND 3 — the first dash of
+    /// <summary>The operand of a CLASS condition (§2023:8.8.4.4). Exempt from rules 1, 2 AND 3 — the first dash of
     /// each list. The class test inspects the content precisely in order to CATEGORIZE it, so raising on the
     /// very content it was asked to report would make the test unable to answer.</summary>
     ClassCondition,
 
-    /// <summary>The operand of a SIGN condition (§8.8.4.7). Exempt from rule 3 ONLY (its second dash).</summary>
+    /// <summary>The operand of a SIGN condition (§2023:8.8.4.7). Exempt from rule 3 ONLY (its second dash).</summary>
     SignCondition,
 
     /// <summary>The source of a MOVE whose sending and receiving items share one standard floating-point usage
-    /// specification, endianness aside (§14.9.25.4 GR6c — a verbatim transfer). Exempt from rule 3 ONLY (its
+    /// specification, endianness aside (§2023:14.9.25.4 GR6c — a verbatim transfer). Exempt from rule 3 ONLY (its
     /// third dash); it is unreachable for a fixed-point sender, which never takes this path.</summary>
     SameUsageMove,
 
-    /// <summary>An operand processed by a VALIDATE statement (§14.9.50). Exempt from rules 1, 2 AND 3 — the last
-    /// dash of each list; §14.6.13.2 rule 1 instead sets the condition "when invalid data is detected during item
-    /// identification", which is VALIDATE's own stage discipline (§14.9.50.4 GR6).</summary>
+    /// <summary>An operand processed by a VALIDATE statement (§2023:14.9.50). Exempt from rules 1, 2 AND 3 — the last
+    /// dash of each list; §2023:14.6.13.2 rule 1 instead sets the condition "when invalid data is detected during item
+    /// identification", which is VALIDATE's own stage discipline (§2023:14.9.50.4 GR6).</summary>
     Validate,
 
     /// <summary>A sending operand read under the MOVE rules with a NUMERIC or NUMERIC-EDITED receiving item and
-    /// §14.9.25.4 GR6 c) not applying — the scope of GR6 d), and therefore the ONE context in which GR6 d) 1's
+    /// §2023:14.9.25.4 GR6 c) not applying — the scope of GR6 d), and therefore the ONE context in which GR6 d) 1's
     /// closing sentence can raise EC-DATA-INCOMPATIBLE for an alphanumeric or national sender. Exempt from
-    /// nothing: §14.6.13.2's five conditions all apply to a MOVE sender exactly as to any other reference. Set by
+    /// nothing: §2023:14.6.13.2's five conditions all apply to a MOVE sender exactly as to any other reference. Set by
     /// MOVE itself and by every statement whose own rules transfer "according to the rules for the MOVE
-    /// statement" with such a receiver (§14.9.48.4 GR11 c) — UNSTRING INTO).</summary>
+    /// statement" with such a receiver (§2023:14.9.48.4 GR11 c) — UNSTRING INTO).</summary>
     MoveToNumeric,
 }
 
@@ -74,12 +74,12 @@ internal enum SendingRef
 /// once, next to the other. A rule added here states its list beside these two rather than growing a flag.</summary>
 internal static class SendingRefRules
 {
-    /// <summary>§14.6.13.2 <b>rule 2</b>: emit the EC-DATA-INCOMPATIBLE checked read of a FIXED-POINT numeric
+    /// <summary>§2023:14.6.13.2 <b>rule 2</b>: emit the EC-DATA-INCOMPATIBLE checked read of a FIXED-POINT numeric
     /// sending operand? Exempt in a class condition and in VALIDATE — and in nothing else.</summary>
     public static bool FixedPointChecked(this SendingRef r) =>
         r is not (SendingRef.ClassCondition or SendingRef.Validate);
 
-    /// <summary>§14.6.13.2 <b>rule 3</b>: emit the EC-DATA-NOT-FINITE checked read of a STANDARD-FLOAT sending
+    /// <summary>§2023:14.6.13.2 <b>rule 3</b>: emit the EC-DATA-NOT-FINITE checked read of a STANDARD-FLOAT sending
     /// operand? Exempt in a class condition, a sign condition, a same-usage MOVE and VALIDATE — and in nothing
     /// else.
     /// <para>⛔ WRITTEN AS THE EXCLUSION LIST THE STANDARD WRITES, not as <c>r is Normal</c>. The two are equal
@@ -96,7 +96,7 @@ internal static class SendingRefRules
         UsageFamilies.IsStandardFloat(pic.Usage)
         && r is not (SendingRef.ClassCondition or SendingRef.SignCondition or SendingRef.SameUsageMove or SendingRef.Validate);
 
-    /// <summary>§14.9.25.4 <b>GR6 d) 1</b>: emit the EC-DATA-INCOMPATIBLE checked read of an ALPHANUMERIC or
+    /// <summary>§2023:14.9.25.4 <b>GR6 d) 1</b>: emit the EC-DATA-INCOMPATIBLE checked read of an ALPHANUMERIC or
     /// NATIONAL sending operand? The rule lives inside GR6 d), whose scope IS "when a numeric or numeric-edited
     /// item is the receiving item, and General rule 6c does not apply", so it is true in that one context and
     /// false everywhere else — an arithmetic operand, a subscript, a ref-mod position and a comparison are not

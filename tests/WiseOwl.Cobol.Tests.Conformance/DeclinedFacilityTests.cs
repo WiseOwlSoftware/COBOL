@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The WITNESSES for the two DECLINED facilities' STATEMENT halves — and the first assertions in this
-/// repository that the §4.2.6 recognize-and-warn band fires at all.
+/// repository that the §2023:4.2.6 recognize-and-warn band fires at all.
 ///
 /// <para>⛔ WHY THESE HAD TO BE WRITTEN AS xUnit FACTS. The negative corpus can only assert a FAILING compile
 /// (<c>ConformanceSuiteTestsBase{TSlot}.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic</c> asserts the refusal
@@ -33,11 +33,11 @@ public sealed class DeclinedFacilityTests
                                            PROCEDURE DIVISION.
                                        """;
 
-    /// <summary>ISO §14.9.50, Annex A.4.14 item 9 — the VALIDATE STATEMENT is recognized and NAMED. It is
+    /// <summary>ISO §2023:14.9.50, Annex A.4.14 item 9 — the VALIDATE STATEMENT is recognized and NAMED. It is
     /// accepted-inert with a Warning rather than refused, which is the posture PHASE-13 Wave H landed and
     /// <c>docs/CONFORMANCE.md</c> §4 item 3 documents; the assertion here is that the WARNING IS ACTUALLY
     /// EMITTED, once per site, and that the compile still SUCCEEDS.
-    /// <para>This is the covering witness for the seventeen §14.9.50 rows (SR-14.9.50.3-1..-6,
+    /// <para>This is the covering witness for the seventeen §2023:14.9.50 rows (SR-14.9.50.3-1..-6,
     /// GR-14.9.50.4-1..-10, FMT-14.9.50.2) and for the rules that describe what a SUPPORTED clause does inside a
     /// VALIDATE statement and therefore cannot fire at all — GR-13.18.40.4-15/-19 (PICTURE "takes effect during
     /// the format validation stage"), GR-13.18.44.4-3 (REDEFINES under a VALIDATE operand), GR-13.18.60.4-3
@@ -51,13 +51,13 @@ public sealed class DeclinedFacilityTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(
             Prologue + "\n           VALIDATE WS-REC.\n           STOP RUN.\n", edition);
-        Assert.True(ok, "the VALIDATE statement is accepted-inert (§4.2.6 ¶3), never a compile error: "
+        Assert.True(ok, "the VALIDATE statement is accepted-inert (§2023:4.2.6 ¶3), never a compile error: "
             + string.Join("\n", errors));
         EditionHarness.AssertHasDiagnostic(warnings, "COBOL1580");
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL. At <c>--std 85</c> VALIDATE is a USER-DEFINED WORD
-    /// (§8.9 reserves it "added 2002"), so the statement arm must NOT fire and no COBOL1580 may appear — the
+    /// (§2023:8.9 reserves it "added 2002"), so the statement arm must NOT fire and no COBOL1580 may appear — the
     /// same fact <c>conformance:cases/_unassigned/user-word-validate</c> pins from the other side. Without this leg the
     /// theory above would pass just as well against a compiler that warned unconditionally.</summary>
     [Fact]
@@ -75,13 +75,13 @@ public sealed class DeclinedFacilityTests
                        STOP RUN.
 
                """, 85);
-        Assert.True(ok, "VALIDATE is a legal user-defined word at COBOL-85 (ISO §8.9)");
+        Assert.True(ok, "VALIDATE is a legal user-defined word at COBOL-85 (ISO §2023:8.9)");
         EditionHarness.AssertNoDiagnostic(warnings, "COBOL1580");
     }
 
-    /// <summary>ISO §14.9.7 / §14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are the
+    /// <summary>ISO §2023:14.9.7 / §2023:14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are the
     /// run unit's commit control (kb/Work PB3338): with no APPLY COMMIT clause written they compile clean, with no
-    /// facility warning, and behave as CONTINUE (§14.9.7.4 GR1 / §14.9.36.4 GR1: "If this statement is executed when
+    /// facility warning, and behave as CONTINUE (§2023:14.9.7.4 GR1 / §2023:14.9.36.4 GR1: "If this statement is executed when
     /// there is no active APPLY COMMIT clause, then it has the same effect as a CONTINUE statement"). The runtime half
     /// is <c>conformance:cases/14.9.7-COMMIT/pb137_commit_inert</c>.</summary>
     [Fact]
@@ -95,7 +95,7 @@ public sealed class DeclinedFacilityTests
     }
 
     /// <summary>The edition arm for commit and rollback: the facility is a COBOL-2023 addition (Annex E.3.2
-    /// item 2) and §8.9 reserves COMMIT and ROLLBACK at 2023 only, so at <c>--std 2014</c> the word is a
+    /// item 2) and §2023:8.9 reserves COMMIT and ROLLBACK at 2023 only, so at <c>--std 2014</c> the word is a
     /// user-defined word a data-name may be. The failure this catches is a reservation that leaked below 2023.</summary>
     [Fact]
     public void CommitAt2014_IsAUserWord()
@@ -117,7 +117,7 @@ public sealed class DeclinedFacilityTests
     /// <summary>The <c>--permissive</c> arm of the declined-optional-element band. All three codes route
     /// through the ONE <c>EditionContext.Removed</c> severity seam, so the migration mode downgrades them to
     /// warnings and the program compiles with the declined element simply absent — the same seam every removed
-    /// construct uses. Asserted on a §13.16.2 validation clause (DEFAULT).</summary>
+    /// construct uses. Asserted on a §2023:13.16.2 validation clause (DEFAULT).</summary>
     [Fact]
     public void DeclinedBand_IsAWarningUnderPermissive()
     {
@@ -157,10 +157,10 @@ public sealed class DeclinedFacilityTests
 
     /// <summary>⛔ THE GRAMMAR CONTRACT <c>DeclinedFacilityPass.ClauseName</c> RESTS ON, made observable. The
     /// namer takes the LEADING TERMINAL RUN of the matched alternative, which is what lets a new alternative of
-    /// <c>validationClause</c> be named with no code change. Every alternative before the §13.18.11 CLASS clause
+    /// <c>validationClause</c> be named with no code change. Every alternative before the §2023:13.18.11 CLASS clause
     /// took operands that were already sub-rules (<c>literal</c> / <c>dataReference</c> / <c>condition</c>), so
     /// the contract had never been exercised and could not fail. CLASS's operands are the RESERVED WORDS
-    /// NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§13.18.11.2, rendered at PDF p412), so an
+    /// NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§2023:13.18.11.2, rendered at PDF p412), so an
     /// inlined alternation would make the leading terminal run "CLASS NUMERIC" and the diagnostic would rename
     /// the clause after whatever the user wrote. <c>validateClassOperand</c> is why it does not.
     /// <para>Make it fail once: inline the operand alternation into <c>validateClassClause</c> and the
@@ -176,7 +176,7 @@ public sealed class DeclinedFacilityTests
         Assert.DoesNotContain("CLASS NUMERIC clause", message, StringComparison.Ordinal);
     }
 
-    /// <summary>⛔ EVERY OPERAND §13.18.11.2 PRINTS DRAWS THE SAME REFUSAL (kb/Work PB3831). The brace group offers
+    /// <summary>⛔ EVERY OPERAND §2023:13.18.11.2 PRINTS DRAWS THE SAME REFUSAL (kb/Work PB3831). The brace group offers
     /// NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name-1 and class-name-1, and
     /// the clause is declined whichever is written, so each draws COBOL1708 and nothing else. BOOLEAN drew
     /// COBOL0901 ("'BOOLEAN' is a reserved word … cannot be used as a user-defined word") because the operand
@@ -222,9 +222,9 @@ public sealed class DeclinedFacilityTests
     /// every other declined validation clause has — "the word is a legal user-defined word at COBOL-85, so
     /// <c>01 CLASS PIC X.</c> must still compile". MEASURED against
     /// <c>tests/version-matrix/reserved-words.json</c>, that premise is FALSE: CLASS is reserved at all four
-    /// editions ("continuous since 1985"), because §12.3.7's SPECIAL-NAMES CLASS clause has always existed.
+    /// editions ("continuous since 1985"), because §2023:12.3.7's SPECIAL-NAMES CLASS clause has always existed.
     /// <para>The fact the <c>{is2002()}?</c> gate actually carries is this one: the DATA-DESCRIPTION CLASS
-    /// clause (§13.18.11) arrived with VALIDATE at COBOL-2002, so at <c>--std 85</c> the entry is a construct
+    /// clause (§2023:13.18.11) arrived with VALIDATE at COBOL-2002, so at <c>--std 85</c> the entry is a construct
     /// that does not exist in the targeted edition — an ordinary syntax error — and naming the declined
     /// VALIDATE facility there would be the wrong answer under the four-editions mandate. Without this leg the
     /// theory above would pass just as well against an ungated arm.</para></summary>
@@ -232,13 +232,13 @@ public sealed class DeclinedFacilityTests
     public void ClassClauseAt85_IsNotTheDeclinedFacility_ButAPlainSyntaxError()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 85);
-        Assert.False(ok, "the §13.18.11 CLASS clause does not exist at COBOL-85");
+        Assert.False(ok, "the §2023:13.18.11 CLASS clause does not exist at COBOL-85");
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1708");
     }
 
     /// <summary>⛔ THE NEIGHBOURING HAZARD, which is a SUPPORTED construct sharing the same word — the shape
     /// <c>conformance:cases/_unassigned/declined-validate-entry-name-still-0901</c> exists for on the DESTINATION side.
-    /// §12.3.7's SPECIAL-NAMES CLASS clause (<c>CLASS class-name IS literal THRU literal</c>) is claimed,
+    /// §2023:12.3.7's SPECIAL-NAMES CLASS clause (<c>CLASS class-name IS literal THRU literal</c>) is claimed,
     /// implemented and reachable through the class condition; adding a data-description arm on the same leading
     /// token must not disturb it. Asserted by RUNNING it, not merely compiling it, because a decline that fired
     /// in the environment division would still let the program compile with the class condition mis-bound.</summary>
@@ -262,7 +262,7 @@ public sealed class DeclinedFacilityTests
                        STOP RUN.
 
                """, 2023);
-        Assert.True(ok, "the §12.3.7 SPECIAL-NAMES CLASS clause is CLAIMED and must keep compiling: "
+        Assert.True(ok, "the §2023:12.3.7 SPECIAL-NAMES CLASS clause is CLAIMED and must keep compiling: "
             + string.Join("\n", errors));
         EditionHarness.AssertNoDiagnostic(errors, "COBOL1708");
     }

@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime.Exceptions;
 
 /// <summary>
-/// An implementor-defined fatal stop that raises NO exception condition — the §14.6.13.1.1 NOTE 3
+/// An implementor-defined fatal stop that raises NO exception condition — the §2023:14.6.13.1.1 NOTE 3
 /// undefined-results latitude, exercised where continuing would be worse than stopping.
 ///
 /// <para><b>Why a distinct type, and why it carries no EC name.</b> Every other runtime exception here names
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// attribute a condition cannot reuse any of them, and <see cref="CobolFatalException"/> with an empty name
 /// would silently defeat the guard's match rather than express the intent.</para>
 ///
-/// <para><b>The case that forced it</b> is §14.9.23.4 GR7c: EC-OO-UNIVERSAL "is set to exist IF CHECKING FOR
+/// <para><b>The case that forced it</b> is §2023:14.9.23.4 GR7c: EC-OO-UNIVERSAL "is set to exist IF CHECKING FOR
 /// IT IS ENABLED IN BOTH the activated method and the activating runtime element". When it is not enabled in
 /// both, no exception condition exists — yet a nonconforming universal INVOKE still cannot be allowed to
 /// cross into typed-native code with mismatched descriptors. This type is that stop: loud, greppable, and

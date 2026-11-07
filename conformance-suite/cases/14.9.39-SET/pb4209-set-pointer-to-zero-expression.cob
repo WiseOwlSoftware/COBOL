@@ -6,7 +6,7 @@
 *>---
       *> ISO 14.9.39.3 SR17: "Identifier-5 shall reference a data item of
       *> category data-pointer. Identifier-6 shall be of category data-pointer."
-      *> (cite.py: OK  §14.9.39.3 17)). A ZERO + 1 sender is an arithmetic
+      *> (cite.py: OK  §2023:14.9.39.3 17)). A ZERO + 1 sender is an arithmetic
       *> expression, not a data-pointer. kb/Work PB4209: the refusal quotes
       *> the sender AS THE PROGRAMMER WROTE IT, 'ZERO + 1'; it used to print
       *> TO 0+1 (the rewritten ZERO token glued to its neighbours).

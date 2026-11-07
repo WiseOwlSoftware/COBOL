@@ -7,7 +7,7 @@
       *> The REJECT half of
       *> conformance:cases/14.9.25-MOVE/pb370_move_first_condition
       *> (kb/Work PB370). Which declarative a MOVE whose two operands
-      *> both raise selects is ISO §14.9.49.4 GR11's question, and it
+      *> both raise selects is ISO §2023:14.9.49.4 GR11's question, and it
       *> exists only through the exception-condition facility: the
       *> >>TURN directive (ISO 7.3.25) and USE AFTER EXCEPTION CONDITION
       *> are ISO/IEC 1989:2002 introductions, so at COBOL-85 this source

@@ -6,15 +6,15 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// The fully-parsed content of a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §11.9), captured once at bind
+/// The fully-parsed content of a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9), captured once at bind
 /// time and exposed program-wide so every later pass can read it. Every field has a consumer: ARITHMETIC +
 /// INTERMEDIATE ROUNDING drive the numeric engine's standard-decimal SDIDI path (NumericRenderer.StandardDecimal
-/// → CobolDec, §8.8.1.5), DEFAULT ROUNDED sets the bare-ROUNDED mode (§11.9.6), FLOAT-BINARY supplies the implied
-/// endianness of a standard binary floating-point item (DataBinder → PicInfo.FloatItem, §11.9.8) and INITIALIZE
-/// sets the section-background fill (StorageFormPass / InitialStateBackground, §11.9.10).
+/// → CobolDec, §2023:8.8.1.5), DEFAULT ROUNDED sets the bare-ROUNDED mode (§2023:11.9.6), FLOAT-BINARY supplies the implied
+/// endianness of a standard binary floating-point item (DataBinder → PicInfo.FloatItem, §2023:11.9.8) and INITIALIZE
+/// sets the section-background fill (StorageFormPass / InitialStateBackground, §2023:11.9.10).
 /// <para>⛔ A clause that cannot change a program has NO field (kb/Work PB298): ENTRY-CONVENTION is screened by
 /// <c>OptionsBinder.ScreenEntryConvention</c> down to its one admissible value, COBOL, which is also the implied
-/// convention (§11.9.7.4 GR4 c), and FLOAT-DECIMAL is declined (COBOL2424). A producer-only field is a clause
+/// convention (§2023:11.9.7.4 GR4 c), and FLOAT-DECIMAL is declined (COBOL2424). A producer-only field is a clause
 /// the program wrote, accepted in silence, that changes nothing; <c>OptionsModelConsumerDriftTests</c> fails on
 /// one.</para>
 /// </summary>
@@ -23,33 +23,33 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// consuming feature's concern.</remarks>
 public sealed record OptionsModel
 {
-    /// <summary>ARITHMETIC clause (§11.9.5). Default <see cref="ArithmeticMode.Native"/> when absent (§11.9.5.2 r4).</summary>
+    /// <summary>ARITHMETIC clause (§2023:11.9.5). Default <see cref="ArithmeticMode.Native"/> when absent (§2023:11.9.5.2 r4).</summary>
     public ArithmeticMode Arithmetic { get; init; } = ArithmeticMode.Native;
 
-    /// <summary>DEFAULT ROUNDED clause (§11.9.6) — the rounding mode applied to a bare <c>ROUNDED</c> phrase that omits
-    /// its own MODE. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.6.3 r2).</summary>
+    /// <summary>DEFAULT ROUNDED clause (§2023:11.9.6) — the rounding mode applied to a bare <c>ROUNDED</c> phrase that omits
+    /// its own MODE. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§2023:11.9.6.3 r2).</summary>
     public CobolRounding DefaultRounding { get; init; } = CobolRounding.NearestAwayFromZero;
 
-    /// <summary>FLOAT-BINARY clause endianness (§11.9.8). <see cref="FloatEndianness.Unspecified"/> when absent (the
+    /// <summary>FLOAT-BINARY clause endianness (§2023:11.9.8). <see cref="FloatEndianness.Unspecified"/> when absent (the
     /// implementor default applies).</summary>
     public FloatEndianness FloatBinaryEndianness { get; init; } = FloatEndianness.Unspecified;
 
-    // No FLOAT-DECIMAL clause fields (§11.9.9): the clause is declined and accepted inert (COBOL2424,
+    // No FLOAT-DECIMAL clause fields (§2023:11.9.9): the clause is declined and accepted inert (COBOL2424,
     // OptionsBinder.DeclineFloatDecimal) because the standard decimal floating-point usages it configures are not
     // provided (Annex A.3 items 13 and 19).
 
-    /// <summary>INTERMEDIATE ROUNDING clause (§11.9.11) — rounding for intermediate results under standard
-    /// arithmetic. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.11.2 r3a).</summary>
+    /// <summary>INTERMEDIATE ROUNDING clause (§2023:11.9.11) — rounding for intermediate results under standard
+    /// arithmetic. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§2023:11.9.11.2 r3a).</summary>
     public CobolRounding IntermediateRounding { get; init; } = CobolRounding.NearestAwayFromZero;
 
-    /// <summary>INITIALIZE clause (§11.9.10) — the section-background fill applied at allocation; null when absent.</summary>
+    /// <summary>INITIALIZE clause (§2023:11.9.10) — the section-background fill applied at allocation; null when absent.</summary>
     public OptionsInitialize? Initialize { get; init; }
 
     /// <summary>The all-defaults model used when a source unit has no OPTIONS paragraph (every ISO-implied default).</summary>
     public static readonly OptionsModel Default = new();
 }
 
-/// <summary>The ARITHMETIC clause mode (§11.9.5.1). <see cref="Standard"/> is the ISO/IEC 1989:2002 standardized
+/// <summary>The ARITHMETIC clause mode (§2023:11.9.5.1). <see cref="Standard"/> is the ISO/IEC 1989:2002 standardized
 /// mode (NATIVE|STANDARD was the 2002 clause), designated obsolete by 2014 and removed by 2023 (Annex E.2
 /// item 21) in favor of <see cref="StandardBinary"/>/<see cref="StandardDecimal"/>; the CCVS still writes it.</summary>
 public enum ArithmeticMode { Native, Standard, StandardBinary, StandardDecimal }
@@ -59,7 +59,7 @@ public enum ArithmeticMode { Native, Standard, StandardBinary, StandardDecimal }
 /// fall-through to whatever the old ternary's else-branch happened to be.</summary>
 public static class ArithmeticModes
 {
-    /// <summary>The NUMVAL-family digit cap — the number of digits beyond which §15.93.4 r1b / §15.94.4 r1b
+    /// <summary>The NUMVAL-family digit cap — the number of digits beyond which §2023:15.93.4 r1b / §2023:15.94.4 r1b
     /// report the next digit's position as the first character in error. The standard states it per mode, in
     /// three sub-notes of the same rule: <b>2)</b> "If native arithmetic is in effect, because the character in
     /// error for an argument that is greater than 31 digits is the 32nd digit…"; <b>3)</b> "If standard-binary
@@ -79,11 +79,11 @@ public static class ArithmeticModes
     /// <c>ArithmeticModeTableTests</c> asserts the table is exhaustive over the enum.</para></summary>
     public static int NumvalDigitCap(ArithmeticMode mode) => mode switch
     {
-        ArithmeticMode.Native => 31,            // §15.93.4 r1b sub-note 2
+        ArithmeticMode.Native => 31,            // §2023:15.93.4 r1b sub-note 2
         ArithmeticMode.Standard => 34,          // routes to the SDIDI decimal engine (see the remark above)
-        ArithmeticMode.StandardBinary => 35,    // §15.93.4 r1b sub-note 3 — unreachable; declined at bind
-        ArithmeticMode.StandardDecimal => 34,   // §15.93.4 r1b sub-note 4
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no §15.93.4 r1b digit cap for this mode"),
+        ArithmeticMode.StandardBinary => 35,    // §2023:15.93.4 r1b sub-note 3 — unreachable; declined at bind
+        ArithmeticMode.StandardDecimal => 34,   // §2023:15.93.4 r1b sub-note 4
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no §2023:15.93.4 r1b digit cap for this mode"),
     };
 
     /// <summary>The cap the runtime assumes when the emitted call omits the argument — the native one. Kept
@@ -106,13 +106,13 @@ public static class ArithmeticModes
     {
         ArithmeticMode.Native => false,
         ArithmeticMode.Standard => true,         // the 2002 mode — the SAME SDIDI engine (see the remark)
-        ArithmeticMode.StandardBinary => false,  // SBIDI, §8.8.1.4.2 — unreachable; declined at bind (COBOL0806)
-        ArithmeticMode.StandardDecimal => true,  // SDIDI, §8.8.1.5.2
+        ArithmeticMode.StandardBinary => false,  // SBIDI, §2023:8.8.1.4.2 — unreachable; declined at bind (COBOL0806)
+        ArithmeticMode.StandardDecimal => true,  // SDIDI, §2023:8.8.1.5.2
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no engine classification for this mode"),
     };
 
-    /// <summary>The DECIMAL EXPONENT bounds of the mode's intermediate data item, as the §8.8.4.4.4 GR3 l
-    /// IN-ARITHMETIC-RANGE test (§15.43.4 r1 / §15.58.4 r1 / §15.83.4 r1) measures a data description's extremes
+    /// <summary>The DECIMAL EXPONENT bounds of the mode's intermediate data item, as the §2023:8.8.4.4.4 GR3 l
+    /// IN-ARITHMETIC-RANGE test (§2023:15.43.4 r1 / §2023:15.58.4 r1 / §2023:15.83.4 r1) measures a data description's extremes
     /// against them.
     /// <para>⛔ <c>Farthest</c> IS A STRICT UPPER DECADE BOUND, NOT THE LARGEST MAGNITUDE'S OWN EXPONENT — it is
     /// the largest f for which every magnitude the caller can present below 10^f is in range, which is what the
@@ -125,8 +125,8 @@ public static class ArithmeticModes
     /// SDIDI rows do not obey, and no single floor/ceil rule describes all four (kb/Work PB275).</para>
     /// <para>⚠ AND THE COLUMN IS READ UNDER TWO CONVENTIONS. <c>IntrinsicBinder</c>'s float-EDITED arm supplies
     /// <c>intDigits + fm.MaxExp</c> (the strict upper bound above); its float-ITEM arm supplies the carrier's
-    /// EXACT magnitude exponent ({28, 38, 308}). Nothing separates them today — §13.18.40.4 GR13 b caps the
-    /// exponent part at four digit positions and §13.18.40.3 SR15 the significand at 36, so the edited arm's
+    /// EXACT magnitude exponent ({28, 38, 308}). Nothing separates them today — §2023:13.18.40.4 GR13 b caps the
+    /// exponent part at four digit positions and §2023:13.18.40.3 SR15 the significand at 36, so the edited arm's
     /// reachable values are confined to [9,45] ∪ [99,135] ∪ [999,1035] ∪ [9999,10035] and 6144/6145 (and
     /// 308/309) are behaviourally interchangeable. If the ITEM arm ever gains a TRUE decimal128 carrier row it
     /// must be written 6144, its exact magnitude exponent, NOT 6145.</para>
@@ -135,9 +135,9 @@ public static class ArithmeticModes
     /// <list type="bullet">
     /// <item>NATIVE — the implementor-defined intermediate is IEEE binary64 (numeric design D16): 1.797E+308 down
     /// to 4.94E−324.</item>
-    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI. §8.8.1.5.2 NOTE 2: the range is ±9.999…E+6144 "with a maximum
+    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI. §2023:8.8.1.5.2 NOTE 2: the range is ±9.999…E+6144 "with a maximum
     /// precision of 34 decimal digits; the smallest positive nonzero value is 1.0E-6176".</item>
-    /// <item>STANDARD-BINARY — the SBIDI. §8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271) ≈ 1.19E+4932, and "the smallest
+    /// <item>STANDARD-BINARY — the SBIDI. §2023:8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271) ≈ 1.19E+4932, and "the smallest
     /// positive nonzero value is 2**-16494" ≈ 6.5E−4966. UNREACHABLE (declined at bind), recorded anyway for the
     /// same reason <see cref="NumvalDigitCap"/> records its 35: a table with a hole answers a question it has never
     /// been asked, and the shape this replaced was a two-state ternary whose else-branch silently gave every
@@ -147,14 +147,14 @@ public static class ArithmeticModes
     {
         ArithmeticMode.Native => (308, -324),           // binary64 (numeric design D16)
         ArithmeticMode.Standard => (6145, -6176),       // the SDIDI — same engine as STANDARD-DECIMAL
-        ArithmeticMode.StandardBinary => (4932, -4966), // SBIDI, §8.8.1.4.2 NOTE 3 — unreachable; declined at bind
-        ArithmeticMode.StandardDecimal => (6145, -6176),// SDIDI, §8.8.1.5.2 NOTE 2
+        ArithmeticMode.StandardBinary => (4932, -4966), // SBIDI, §2023:8.8.1.4.2 NOTE 3 — unreachable; declined at bind
+        ArithmeticMode.StandardDecimal => (6145, -6176),// SDIDI, §2023:8.8.1.5.2 NOTE 2
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate exponent range for this mode"),
     };
 
     /// <summary>The mode's intermediate data item's own extreme MAGNITUDES, as exact decimal literal text — "the
     /// value farthest away from zero permitted by the specifications appropriate to the mode of arithmetic" and
-    /// its nearest-to-zero twin, which ISO §14.9.39.4 GR32 b) and GR36 b) compare an item's extremes against for
+    /// its nearest-to-zero twin, which ISO §2023:14.9.39.4 GR32 b) and GR36 b) compare an item's extremes against for
     /// the SET Format 15 IN-ARITHMETIC-RANGE phrase.
     /// <para>⛔ DISTINCT FROM <see cref="IntermediateExponentRange"/>, and the pair must not be conflated: that
     /// one is a strict DECADE BOUND for a well-formedness SCREEN (its SDIDI row reads 6145 precisely because no
@@ -170,9 +170,9 @@ public static class ArithmeticModes
     /// <list type="bullet">
     /// <item>NATIVE — IEEE binary64 (numeric design D16): ±1.7976931348623157E+308, smallest nonzero (subnormal)
     /// 4.94…E−324.</item>
-    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI, §8.8.1.5.2 NOTE 2: ±9.999…E+6144 at 34 digits of precision,
+    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI, §2023:8.8.1.5.2 NOTE 2: ±9.999…E+6144 at 34 digits of precision,
     /// smallest positive nonzero 1.0E−6176.</item>
-    /// <item>STANDARD-BINARY — the SBIDI, §8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271), smallest positive nonzero
+    /// <item>STANDARD-BINARY — the SBIDI, §2023:8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271), smallest positive nonzero
     /// 2**−16494. Declined at bind (COBOL0806), recorded for the same reason as above.</item>
     /// </list></summary>
     public static (string Farthest, string Nearest) IntermediateExtremes(ArithmeticMode mode) => mode switch
@@ -199,24 +199,24 @@ public static class ArithmeticModes
     };
 }
 
-/// <summary>Endianness of a standard binary floating-point usage (the OPTIONS FLOAT-BINARY clause, §11.9.8, and the
-/// USAGE clause's own endianness-phrase, §13.18.60.2).</summary>
+/// <summary>Endianness of a standard binary floating-point usage (the OPTIONS FLOAT-BINARY clause, §2023:11.9.8, and the
+/// USAGE clause's own endianness-phrase, §2023:13.18.60.2).</summary>
 public enum FloatEndianness { Unspecified, HighOrderLeft, HighOrderRight }
 
 /// <summary>Encoding of a standard decimal floating-point usage, as the USAGE clause's own encoding-phrase states it
-/// (§13.18.60.2). The OPTIONS FLOAT-DECIMAL clause's phrase is not read: the clause is declined (COBOL2424).</summary>
+/// (§2023:13.18.60.2). The OPTIONS FLOAT-DECIMAL clause's phrase is not read: the clause is declined (COBOL2424).</summary>
 public enum FloatEncoding { Unspecified, BinaryEncoding, DecimalEncoding }
 
-/// <summary>The INITIALIZE clause (§11.9.10): which sections' background is set, and to what fill character.</summary>
-/// <param name="Sections">The sections to initialize (ALL ⇒ all three, §11.9.10.4 GR1).</param>
+/// <summary>The INITIALIZE clause (§2023:11.9.10): which sections' background is set, and to what fill character.</summary>
+/// <param name="Sections">The sections to initialize (ALL ⇒ all three, §2023:11.9.10.4 GR1).</param>
 /// <param name="Fill">The fill kind.</param>
 /// <param name="FillLiteral">The literal text when <paramref name="Fill"/> is <see cref="OptionsFill.Literal"/>.</param>
 /// <param name="LiteralFillChar">
-/// The BYTE of literal-1 (§11.9.10.4 GR5 c), decoded and validated ONCE at bind time; null for every other
-/// fill kind. Bind time is where this belongs because §11.9.10.3 SR1 — "Literal-1 shall specify a one-byte
+/// The BYTE of literal-1 (§2023:11.9.10.4 GR5 c), decoded and validated ONCE at bind time; null for every other
+/// fill kind. Bind time is where this belongs because §2023:11.9.10.3 SR1 — "Literal-1 shall specify a one-byte
 /// hexadecimal-alphanumeric literal" — is a SYNTAX rule, and this is its diagnostic site.
 /// <para>⛔ ONLY the literal arm is resolved here. GR5's four FIGURATIVE arms are NOT, because HIGH-VALUES and
-/// LOW-VALUES are not compile-time constants: §8.3.3.6.4 GR6 makes the high-value format "the character … that
+/// LOW-VALUES are not compile-time constants: §2023:8.3.3.6.4 GR6 makes the high-value format "the character … that
 /// has the highest ordinal position in the program collating sequence", so the character depends on
 /// OBJECT-COMPUTER's PROGRAM COLLATING SEQUENCE. The compiler already has exactly one definition of that fact —
 /// <c>FigurativeConstants.FillChar</c> — and <c>InitialStateBackground</c> resolves GR5 a/b/d/e through it.
@@ -227,17 +227,17 @@ public enum FloatEncoding { Unspecified, BinaryEncoding, DecimalEncoding }
 public sealed record OptionsInitialize(OptionsSections Sections, OptionsFill Fill, string? FillLiteral,
                                        char? LiteralFillChar)
 {
-    /// <summary>False when literal-1 was rejected by §11.9.10.3 SR1 — a rejected clause behaves as an absent one.</summary>
+    /// <summary>False when literal-1 was rejected by §2023:11.9.10.3 SR1 — a rejected clause behaves as an absent one.</summary>
     public bool HasFill => Fill is not OptionsFill.Literal || LiteralFillChar is not null;
 
-    /// <summary>⛔ THE ONE §11.9.10.4 section predicate for a record ROOT (kb/Work PB152, PB1134): GR2/GR3/GR4 route
+    /// <summary>⛔ THE ONE §2023:11.9.10.4 section predicate for a record ROOT (kb/Work PB152, PB1134): GR2/GR3/GR4 route
     /// LOCAL-STORAGE / SCREEN / WORKING-STORAGE separately and GR1 folds ALL into all three; GR7 — "External items in
     /// the Working-storage section are not initialized when runtime elements are put into the initial state, except
     /// for those with the CONSTANT RECORD clause" — excludes an EXTERNAL root. Asked by the bind-time storage
     /// decision (<c>StorageFormPass</c>, which gives a fillable numeric item image storage) and by the codegen seed
     /// (<c>InitialStateBackground</c>), so the two cannot disagree about which items the background reaches.
     /// Section MEMBERSHIP is the caller's (root membership in the binder's own section lists, never "not a file
-    /// record": §13.18.63.4 GR2/GR3 put the file and linkage sections outside this rule's reach).</summary>
+    /// record": §2023:13.18.63.4 GR2/GR3 put the file and linkage sections outside this rule's reach).</summary>
     public bool Governs(DataItem root, bool workingStorageRoot, bool localStorageRoot) =>
         ((Sections.HasFlag(OptionsSections.WorkingStorage) && workingStorageRoot)
          || (Sections.HasFlag(OptionsSections.LocalStorage) && localStorageRoot))
@@ -248,5 +248,5 @@ public sealed record OptionsInitialize(OptionsSections Sections, OptionsFill Fil
 [Flags]
 public enum OptionsSections { None = 0, LocalStorage = 1, Screen = 2, WorkingStorage = 4, All = LocalStorage | Screen | WorkingStorage }
 
-/// <summary>The fill character of an INITIALIZE OPTIONS clause (§11.9.10.4 r5).</summary>
+/// <summary>The fill character of an INITIALIZE OPTIONS clause (§2023:11.9.10.4 r5).</summary>
 public enum OptionsFill { BinaryZeroes, HighValues, LowValues, Spaces, Literal }

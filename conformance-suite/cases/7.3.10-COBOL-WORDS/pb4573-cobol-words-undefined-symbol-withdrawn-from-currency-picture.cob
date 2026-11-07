@@ -8,7 +8,7 @@
 *> content of literal-3 shall no longer be reserved or restricted in any way, and may be used as a user-defined
 *> intrinsic name, data-name or any other user-defined word, and any syntax requiring the use of the COBOL word that is
 *> the content of literal-3 shall not be available for use in this compilation group."
-*>   cite.py: OK  §7.3.10.4 3)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 3)  (General rules)
 *> SYMBOL (a context-sensitive word, 8.10; 7.3.10.3 SR3 admits it as literal-3), undefined, is a user-defined word in
 *> this compilation group, and the WITH PICTURE SYMBOL phrase of the CURRENCY SIGN clause (12.3.7.2) requires it, so the
 *> phrase is not available and this program is refused. The refusal read "expected 'WITH PICTURE SYMBOL', found 'PICTURE

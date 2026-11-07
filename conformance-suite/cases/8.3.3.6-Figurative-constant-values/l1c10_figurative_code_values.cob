@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.6.4 GR1 — documented code values of ZERO SPACE QUOTE
+      *> ISO §2023:8.3.3.6.4 GR1 — documented code values of ZERO SPACE QUOTE
       *>
       *> Row pinned: DOC-A.1-74 (both coded character sets); also
       *> GR-8.3.3.6.4-5 (space) and GR-8.3.3.6.4-8 (quote, first
@@ -25,13 +25,13 @@
       *>  ORD 33/49/35 for PIC X and PIC N alike (no PROGRAM
       *>  COLLATING SEQUENCE).
       *> cite.py --check:
-      *>  OK  §8.3.3.6.4 1)  (General rules)
-      *>  OK  §8.3.3.6.4 5)  (General rules)
-      *>  OK  §8.3.3.6.4 8)  (General rules)
-      *>  OK  §8.3.3.2.4 4)  (General rules)   X"hh" bit configuration
-      *>  OK  §8.3.3.5.4 4)  (General rules)   NX"hhhh" bit config.
-      *>  OK  §15.70.4 1)  (Returned value rules)  ORD alphanumeric
-      *>  OK  §15.70.4 2)  (Returned value rules)  ORD national
+      *>  OK  §2023:8.3.3.6.4 1)  (General rules)
+      *>  OK  §2023:8.3.3.6.4 5)  (General rules)
+      *>  OK  §2023:8.3.3.6.4 8)  (General rules)
+      *>  OK  §2023:8.3.3.2.4 4)  (General rules)   X"hh" bit configuration
+      *>  OK  §2023:8.3.3.5.4 4)  (General rules)   NX"hhhh" bit config.
+      *>  OK  §2023:15.70.4 1)  (Returned value rules)  ORD alphanumeric
+      *>  OK  §2023:15.70.4 2)  (Returned value rules)  ORD national
       *>
       *> Derivation of each expected line (8.3.3.2.4 GR4 / 8.3.3.5.4
       *> GR4 make X"20" etc. exactly the documented bit patterns, so

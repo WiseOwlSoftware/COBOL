@@ -5,10 +5,10 @@
 *> portable: unverified
 *>---
 *> A BARE `ON NEXT PAGE` LINE OPERAND IN A REPORT THAT IS NOT DIVIDED INTO PAGES (kb/Work PB1001 + PB1002).
-*> ISO/IEC 1989:2023 §13.18.35.3 SR5: "If the report is not divided into pages, all its LINE clauses shall be
+*> ISO/IEC 1989:2023 §2023:13.18.35.3 SR5: "If the report is not divided into pages, all its LINE clauses shall be
 *> relative." The relative FORM is `{PLUS|+} integer-2` (SR3: "Integer-2 specifies a relative line number"), and
-*> the bare operand is not it - the reading §13.18.37.3 SR3 gives NEXT GROUP NEXT PAGE ("only the relative form of
-*> the clause may be specified"); a report of one page of indefinite length (§13.18.39.4 GR2a) has no next page
+*> the bare operand is not it - the reading §2023:13.18.37.3 SR3 gives NEXT GROUP NEXT PAGE ("only the relative form of
+*> the clause may be specified"); a report of one page of indefinite length (§2023:13.18.39.4 GR2a) has no next page
 *> to begin. A DETERMINATION (docs/CONFORMANCE.md, the LINE NEXT PAGE block). Rejected at every edition: the
 *> report writer is not edition-gated (docs/VERSION_CHANGE_REFERENCE.md row 130d).
        IDENTIFICATION DIVISION.

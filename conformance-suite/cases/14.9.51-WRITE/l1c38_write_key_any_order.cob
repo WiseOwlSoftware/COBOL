@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 37) 39) — key set before WRITE; any order
+      *> ISO §2023:14.9.51.4 37) 39) — key set before WRITE; any order
       *> RULE 37): "The data item specified as the prime record key
       *>   shall be set by the runtime element to the desired value
       *>   prior to the execution of the WRITE statement."
       *>   cite.py --check 14.9.51.4 "The data item specified as the
       *>     prime record key shall be set by the runtime element to
       *>     the desired value prior to the execution of the WRITE
-      *>     statement" -> OK §14.9.51.4 37)
+      *>     statement" -> OK §2023:14.9.51.4 37)
       *> RULE 39): "If the access mode of the write file connector is
       *>   random or dynamic, WRITE statements may release records to
       *>   the operating environment through that connector in any
@@ -20,22 +20,22 @@
       *>   cite.py --check 14.9.51.4 "If the access mode of the write
       *>     file connector is random or dynamic, WRITE statements may
       *>     release records to the operating environment through that
-      *>     connector in any order" -> OK §14.9.51.4 39)
+      *>     connector in any order" -> OK §2023:14.9.51.4 39)
       *> SIBLING (the sequential arm this golden contrasts with):
       *>   cite.py --check 14.9.51.4 "If the record is not in the
       *>     sequence above, the execution of the WRITE statement is
       *>     unsuccessful, the invalid key condition exists, and the
       *>     I-O status for the write file connector is set to '21'"
-      *>     -> OK §14.9.51.4 38)
+      *>     -> OK §2023:14.9.51.4 38)
       *> FROM phrase (the key is set by FROM's MOVE, before release):
       *>   cite.py --check 14.9.51.4 "The result of the execution of a
       *>     WRITE statement specifying record-name-1 and the FROM
       *>     phrase is equivalent to the execution of the following
-      *>     statements in the order specified" -> OK §14.9.51.4 5)
+      *>     statements in the order specified" -> OK §2023:14.9.51.4 5)
       *> Random READ of an absent key:
       *>   cite.py --check 9.1.13.5 "an attempt is made to randomly
       *>     access a record that does not exist in the physical file"
-      *>     -> OK §9.1.13.5 3) a)   (I-O status 23)
+      *>     -> OK §2023:9.1.13.5 3) a)   (I-O status 23)
       *> NOTE: cite.py ignores operator symbols and can mislabel list
       *>   items (PB1554); every clause number above was re-read in
       *>   specs/ISO_COBOL_2023.md.

@@ -5,39 +5,39 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Editions;
 
-/// <summary>The three types of system-name a SPECIAL-NAMES implementor-name entry may name (ISO §12.3.7.2:
+/// <summary>The three types of system-name a SPECIAL-NAMES implementor-name entry may name (ISO §2023:12.3.7.2:
 /// <c>switch-name-1 …</c> | <c>feature-name-1 IS mnemonic-name-2</c> | <c>device-name-1 IS mnemonic-name-3</c>).
-/// §8.3.2.3.1: "<i>Within an implementation, a given system-name shall not belong to more than one of the following
+/// §2023:8.3.2.3.1: "<i>Within an implementation, a given system-name shall not belong to more than one of the following
 /// types of system-names: device-name, feature-name, and switch-name.</i>" — so the KIND of an entry is a property
 /// of the NAME, never of how the entry is spelled.</summary>
 public enum SystemNameKind
 {
-    /// <summary>device-name-1 — its mnemonic-name-3 may be specified only in ACCEPT and DISPLAY (§12.3.7.3 SR7).</summary>
+    /// <summary>device-name-1 — its mnemonic-name-3 may be specified only in ACCEPT and DISPLAY (§2023:12.3.7.3 SR7).</summary>
     Device,
-    /// <summary>feature-name-1 — its mnemonic-name-2 may be specified only in WRITE (§12.3.7.3 SR6).</summary>
+    /// <summary>feature-name-1 — its mnemonic-name-2 may be specified only in WRITE (§2023:12.3.7.3 SR6).</summary>
     Feature,
-    /// <summary>switch-name-1 — an external switch (§12.3.7.4 GR2); its mnemonic-name-1 may be specified only in
-    /// SET (§12.3.7.3 SR5), and only the switch arm may carry ON/OFF STATUS condition-names.</summary>
+    /// <summary>switch-name-1 — an external switch (§2023:12.3.7.4 GR2); its mnemonic-name-1 may be specified only in
+    /// SET (§2023:12.3.7.3 SR5), and only the switch arm may carry ON/OFF STATUS condition-names.</summary>
     Switch,
 }
 
-/// <summary>What a device-name can do — the §14.9.1.3 SR2 / §14.9.11.3 SR2 capability the ACCEPT FROM and
+/// <summary>What a device-name can do — the §2023:14.9.1.3 SR2 / §2023:14.9.11.3 SR2 capability the ACCEPT FROM and
 /// DISPLAY UPON binders screen a mnemonic against.</summary>
 [Flags]
 public enum DeviceCapability
 {
     /// <summary>Not a device (a feature-name or switch-name row).</summary>
     None = 0,
-    /// <summary>A device ACCEPT may take input from (§14.9.1.3 SR2) — the process standard input.</summary>
+    /// <summary>A device ACCEPT may take input from (§2023:14.9.1.3 SR2) — the process standard input.</summary>
     Input = 1,
-    /// <summary>A device DISPLAY may transfer data to (§14.9.11.3 SR2) — the process standard output…</summary>
+    /// <summary>A device DISPLAY may transfer data to (§2023:14.9.11.3 SR2) — the process standard output…</summary>
     Output = 2,
     /// <summary>…or, with this flag, the process standard ERROR stream.</summary>
     StandardError = 4,
 }
 
 /// <summary>How a feature-name positions the printed page when its mnemonic is the ADVANCING operand of a WRITE
-/// (§14.9.51.4 GR25 d): "<i>the representation of the printed page is advanced according to the rules specified
+/// (§2023:14.9.51.4 GR25 d): "<i>the representation of the printed page is advanced according to the rules specified
 /// by the implementor for that hardware device.</i>"</summary>
 public enum FeatureAdvance
 {
@@ -51,16 +51,16 @@ public enum FeatureAdvance
 
 /// <summary>ONE ROW of the implementor system-name table: a name this implementation makes available in the
 /// switch-name-1 / feature-name-1 / device-name-1 position of the SPECIAL-NAMES paragraph, and what it means.</summary>
-/// <param name="Name">The canonical spelling (upper case); matched case-insensitively (§8.1.3.2 GR3 a — "COBOL basic
+/// <param name="Name">The canonical spelling (upper case); matched case-insensitively (§2023:8.1.3.2 GR3 a — "COBOL basic
 /// letters appearing elsewhere within the compilation group are treated in a case-insensitive manner").</param>
-/// <param name="Kind">The ONE system-name type the name belongs to (§8.3.2.3.1).</param>
+/// <param name="Kind">The ONE system-name type the name belongs to (§2023:8.3.2.3.1).</param>
 /// <param name="Device">For a device-name, its input/output capability; <see cref="DeviceCapability.None"/> otherwise.</param>
 /// <param name="Advance">For a feature-name, its WRITE ADVANCING positioning rule; <see cref="FeatureAdvance.None"/> otherwise.</param>
 public sealed record ImplementorName(string Name, SystemNameKind Kind,
     DeviceCapability Device = DeviceCapability.None, FeatureAdvance Advance = FeatureAdvance.None);
 
 /// <summary>
-/// ⛔ THE ONE IMPLEMENTOR SYSTEM-NAME TABLE — this implementation's whole answer to ISO §12.3.7.3 SR8, "<i>The
+/// ⛔ THE ONE IMPLEMENTOR SYSTEM-NAME TABLE — this implementation's whole answer to ISO §2023:12.3.7.3 SR8, "<i>The
 /// implementor shall specify the names that are available for switch-name-1, feature-name-1, and
 /// device-name-1.</i>", and to Annex A.1 items 189 (device-name), 190 (feature-name) and 191 (switch-name).
 /// Adding the next name is A ROW HERE and nothing else: the SPECIAL-NAMES binder refuses every entry whose name is
@@ -70,7 +70,7 @@ public sealed record ImplementorName(string Name, SystemNameKind Kind,
 /// the "any switch-name is accepted" leniency of the switch registry, are this table now.
 /// <para><b>device-names</b> (A.1 item 189, documented as DOC-A.1-2 / DOC-A.1-59 before this table existed):
 /// <c>CONSOLE</c> (input AND output — standard input / standard output), <c>SYSIN</c> (input — standard input),
-/// <c>SYSOUT</c> (output — standard output), <c>SYSERR</c> (output — standard error). §12.3.7.3 SR7's "additional
+/// <c>SYSOUT</c> (output — standard output), <c>SYSERR</c> (output — standard error). §2023:12.3.7.3 SR7's "additional
 /// restrictions": an input-only device may not be a DISPLAY target, an output-only one may not be an ACCEPT
 /// source (COBOL0817).</para>
 /// <para><b>feature-names</b> (A.1 items 190 and 222): <c>C01</c> — skip to channel 1, the top of the next page
@@ -81,12 +81,12 @@ public sealed record ImplementorName(string Name, SystemNameKind Kind,
 /// forms-control model to position against, so a row for them would have to invent one.</para>
 /// <para><b>switch-names</b> (A.1 item 191): <c>SWITCH-0</c> … <c>SWITCH-36</c> (GnuCOBOL's set) and
 /// <c>UPSI-0</c> … <c>UPSI-7</c> (IBM's User Program Status Indicators). Every switch may be referenced by SET
-/// (§12.3.7.4 GR3); the scope of every switch is the RUN UNIT and the external facility that sets its initial status
-/// is the process environment variable <c>COBOL_&lt;SWITCH-NAME&gt;</c> (§12.3.7.4 GR4 — <c>SwitchStore</c>).</para>
+/// (§2023:12.3.7.4 GR3); the scope of every switch is the RUN UNIT and the external facility that sets its initial status
+/// is the process environment variable <c>COBOL_&lt;SWITCH-NAME&gt;</c> (§2023:12.3.7.4 GR4 — <c>SwitchStore</c>).</para>
 /// </summary>
 public static class ImplementorNames
 {
-    /// <summary>Every available name, keyed case-insensitively. A name is ONE key, so §8.3.2.3.1's "shall not belong
+    /// <summary>Every available name, keyed case-insensitively. A name is ONE key, so §2023:8.3.2.3.1's "shall not belong
     /// to more than one" type is true by construction (<c>ImplementorNamesDriftTests</c> pins it anyway).</summary>
     public static FrozenDictionary<string, ImplementorName> All { get; } = Build();
 

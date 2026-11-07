@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.2.2 2) — a level-number spelled as a paragraph-name
+      *> ISO §2023:8.3.2.2 2) — a level-number spelled as a paragraph-name
       *> and as a section-name
       *>
       *> "Within a source element, a given user-defined word may be
       *> used as only one type of user-defined word with the following
       *> exceptions: ... 2) a level-number may be the same as a
       *> paragraph-name or a section-name"
-      *>   cite.py: OK  §8.3.2.2 2)  (User-defined words)
+      *>   cite.py: OK  §2023:8.3.2.2 2)  (User-defined words)
       *> "With the exception of section-names, paragraph-names, and
       *> level-numbers, each user-defined word shall contain at least
       *> one basic letter or extended letter."
-      *>   cite.py: OK  §8.3.2.2 3)  (User-defined words)
+      *>   cite.py: OK  §2023:8.3.2.2 3)  (User-defined words)
       *>   (the all-digit procedure-names below are therefore legal)
       *>
       *> The words 01, 05, 77 and 88 are each a LEVEL-NUMBER in the

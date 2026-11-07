@@ -5,12 +5,12 @@
 *> portable: unverified
 *>---
 *> ⛔ AN ABSOLUTE COLUMN ON A REPEATING ENTRY REQUIRES THE STEP PHRASE (kb/Work PB565).
-*> ISO/IEC 1989:2023 §13.18.38.3 SR25: "The STEP phrase shall be specified if the entry: a) contains an
+*> ISO/IEC 1989:2023 §2023:13.18.38.3 SR25: "The STEP phrase shall be specified if the entry: a) contains an
 *> absolute LINE clause, or b) has an entry with an absolute LINE clause subordinate to it, or c) contains an
 *> absolute COLUMN clause, or d) is subordinate to an entry with a LINE clause and has an entry with an
 *> absolute COLUMN clause subordinate to it. In all other cases, the STEP phrase is optional."
 *>
-*> The rule has teeth: §13.18.38.4 GR12 gives a STEP'd entry an interval, and its closing sentence gives an
+*> The rule has teeth: §2023:13.18.38.4 GR12 gives a STEP'd entry an interval, and its closing sentence gives an
 *> unSTEP'd one "the vertical or horizontal interval … defined by the relative LINE or COLUMN numbers" — which
 *> an ABSOLUTE COLUMN does not supply, so every repetition would land in the same column. This is the shape
 *> the PB565 defect note's own repro carried, and it was not conforming source: an implementation that

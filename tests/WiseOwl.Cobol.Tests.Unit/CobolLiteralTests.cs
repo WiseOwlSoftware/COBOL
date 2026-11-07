@@ -5,7 +5,7 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>The ONE literal codec (rearchitecture PHASE 05, Step 1): ISO/IEC 1989:2023 §8.3.3.1 — the
+/// <summary>The ONE literal codec (rearchitecture PHASE 05, Step 1): ISO/IEC 1989:2023 §2023:8.3.3.1 — the
 /// quotation-mark and apostrophe delimiter forms are EQUAL-STANDING, and a doubled OPENING delimiter is one
 /// embedded delimiter. Locks the apostrophe-delimited handling the retired hard-coded <c>'"'</c>-only guards
 /// silently miscompiled.</summary>
@@ -36,8 +36,8 @@ public sealed class CobolLiteralTests
         Assert.Equal(expected, CobolLiteral.IsStringLiteral(raw));
 
     /// <summary>kb/Work PB3245 — a literal token its line ended inside: an opening delimiter (after any of the five prefixes,
-    /// §8.3.3.2.2 / §8.3.3.4.2 / §8.3.3.5.2) that the text never closes, read left to right with a doubled delimiter as one
-    /// embedded delimiter (§8.3.3.2.3 r3). The closed literal, the zero-length one, text that is no single literal and text
+    /// §2023:8.3.3.2.2 / §2023:8.3.3.4.2 / §2023:8.3.3.5.2) that the text never closes, read left to right with a doubled delimiter as one
+    /// embedded delimiter (§2023:8.3.3.2.3 r3). The closed literal, the zero-length one, text that is no single literal and text
     /// with no opening delimiter are not unterminated.</summary>
     [Theory]
     [InlineData("\"HELLO", true)]
@@ -52,7 +52,7 @@ public sealed class CobolLiteralTests
     [InlineData("\"x'", true)]             // the other quotation symbol closes nothing
     [InlineData("\"AB\"", false)]
     [InlineData("'IT''S'", false)]
-    [InlineData("\"\"", false)]            // zero-length (§8.3.3.1)
+    [InlineData("\"\"", false)]            // zero-length (§2023:8.3.3.1)
     [InlineData("NX\"\"", false)]
     [InlineData("\"A\"&\"B\"", false)]     // no single literal (kb/Work PB71)
     [InlineData("NAME", false)]
@@ -61,7 +61,7 @@ public sealed class CobolLiteralTests
     public void IsUnterminated_OpenToTheEnd(string raw, bool expected) =>
         Assert.Equal(expected, CobolLiteral.IsUnterminated(raw));
 
-    /// <summary>An unterminated literal is no well-formed literal: the codec's other questions decline it, so the §8.3.3
+    /// <summary>An unterminated literal is no well-formed literal: the codec's other questions decline it, so the §2023:8.3.3
     /// rules (<see cref="CobolLiteral.SyntaxViolation"/>) and the format gates never judge its content (kb/Work PB3245 —
     /// COBOL5563 is its one report).</summary>
     [Theory]
@@ -77,7 +77,7 @@ public sealed class CobolLiteralTests
     }
 
     /// <summary>kb/Work PB1615 — the literal LENGTH bound is the edition's: 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1,
-    /// §8.3.3.4.3 SR1, §8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.43). The boundary from both sides, per class and
+    /// §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.43). The boundary from both sides, per class and
     /// delimiter, with the measure the rule uses: the literal's VALUE in positions of its class (a doubled embedded
     /// delimiter is one position; a prefix letter and the delimiters are none; a <c>BX</c> digit is four).</summary>
     [Theory]
@@ -125,14 +125,14 @@ public sealed class CobolLiteralTests
     [Fact]
     public void LengthViolation_CountsADoubledDelimiterOnce_AHexPairOnce_AndABooleanHexDigitFourTimes()
     {
-        // 160 doubled quotation marks are 160 positions (§8.3.3.2.3 SR3: two contiguous quotation symbols represent a single occurrence of that quotation symbol
+        // 160 doubled quotation marks are 160 positions (§2023:8.3.3.2.3 SR3: two contiguous quotation symbols represent a single occurrence of that quotation symbol
         // character), not 320 and not 162 with the delimiters; 161 are one over.
         Assert.Null(CobolLiteral.LengthViolation("\"" + string.Concat(Enumerable.Repeat("\"\"", 160)) + "\"", 85));
         Assert.NotNull(CobolLiteral.LengthViolation("\"" + string.Concat(Enumerable.Repeat("\"\"", 161)) + "\"", 85));
-        // X"41" repeated: two digits per alphanumeric position (§8.3.3.2.3 SR6) — 160 positions are 320 source digits.
+        // X"41" repeated: two digits per alphanumeric position (§2023:8.3.3.2.3 SR6) — 160 positions are 320 source digits.
         Assert.Null(CobolLiteral.LengthViolation("X\"" + string.Concat(Enumerable.Repeat("41", 160)) + "\"", 2002));
         Assert.NotNull(CobolLiteral.LengthViolation("X\"" + string.Concat(Enumerable.Repeat("41", 161)) + "\"", 2002));
-        // BX: §8.3.3.4.4 GR5 — each digit IS four boolean characters, so 40 digits are 160 positions and 41 are 164. The
+        // BX: §2023:8.3.3.4.4 GR5 — each digit IS four boolean characters, so 40 digits are 160 positions and 41 are 164. The
         // token is 43 characters long at 41 digits: past a quarter of the bound, so the fast path must not take it.
         Assert.Null(CobolLiteral.LengthViolation("BX\"" + new string('F', 40) + "\"", 2002));
         Assert.NotNull(CobolLiteral.LengthViolation("BX\"" + new string('F', 41) + "\"", 2002));

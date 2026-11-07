@@ -7,12 +7,12 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A KEPT FILE LOCK IS REPLACED BY A RE-OPEN'S, NEVER GIVEN BACK FIRST (kb/Work PB3483). ISO §14.9.7.4 GR4: <i>"For
+/// ⛔ A KEPT FILE LOCK IS REPLACED BY A RE-OPEN'S, NEVER GIVEN BACK FIRST (kb/Work PB3483). ISO §2023:14.9.7.4 GR4: <i>"For
 /// files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the
-/// file locks are released."</i>, and §14.9.27.4 GR25: <i>"If the execution of the OPEN statement is unsuccessful, the file is
+/// file locks are released."</i>, and §2023:14.9.27.4 GR25: <i>"If the execution of the OPEN statement is unsuccessful, the file is
 /// not affected"</i>. The connector's own re-OPEN establishes a lock the kept one would refuse as another holder's, so the
 /// kept lock used to be released first and taken again when the OPEN was unsuccessful — two instants in which another run
-/// unit's OPEN against the kept column was admitted (§9.1.15, <i>"preventing other run units from opening that file with
+/// unit's OPEN against the kept column was admitted (§2023:9.1.15, <i>"preventing other run units from opening that file with
 /// incompatible sharing rules"</i>). <see cref="RunUnitFileLock.Amend"/> publishes the new column on the same hold before it
 /// gives the old one back, and <see cref="RunUnitFileLock.Revert"/> publishes the old one before it gives the new one back.
 /// <para>The witness is a host that, at the entry of EVERY establishment it is asked for, sends a racing run unit in with a
@@ -134,7 +134,7 @@ public sealed class RunUnitFileLockAmendTests
         finally { Clean(dir); }
     }
 
-    /// <summary>A replacement another run unit's lock refuses leaves the kept lock EXACTLY as it was (§14.9.27.4 GR25): the
+    /// <summary>A replacement another run unit's lock refuses leaves the kept lock EXACTLY as it was (§2023:14.9.27.4 GR25): the
     /// request K's old column refuses and the other holder's does not is still refused afterwards, no racer got in, and the
     /// lock the refused request published is gone. K is SHARING WITH READ ONLY on INPUT, the other holder SHARING WITH ALL
     /// OTHER on INPUT (admitted beside K), the replacement SHARING WITH NO OTHER on I-O (refused by the other holder), and the

@@ -5,32 +5,32 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.14.3 SR1 and §13.18.14.4 GR3 - COLUMN / COL /
+      *> ISO §2023:13.18.14.3 SR1 and §2023:13.18.14.4 GR3 - COLUMN / COL /
       *> COLUMNS / COLS are one clause; printable-size comes from the
       *> PICTURE, or with no PICTURE from the VALUE literal
       *>
       *> "1. COLUMN, COL, COLUMNS, and COLS are synonyms."
-      *>   cite.py: OK  §13.18.14.3   (Syntax rules)   (rule 1.)
+      *>   cite.py: OK  §2023:13.18.14.3   (Syntax rules)   (rule 1.)
       *> "3) The printable-size of a printable item is the number of
       *> columns required for printing the characters described by the
       *> item's PICTURE clause or, in the absence of a PICTURE clause,
       *> the literal specified in the VALUE clause. There is a
       *> one-to-one correspondence between a column and a character in
       *> an alphanumeric character set."
-      *>   cite.py: OK  §13.18.14.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 3)  (General rules)
       *> Relative placement: "The position of the item's leftmost
       *> character is obtained by adding integer-2 to the current
       *> line's horizontal counter."
-      *>   cite.py: OK  §13.18.14.4 8)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 8)  (General rules)
       *> "The rightmost column position of each printable item becomes
       *> the new value of the horizontal counter."
-      *>   cite.py: OK  §13.18.14.4 9)  (General rules)
+      *>   cite.py: OK  §2023:13.18.14.4 9)  (General rules)
       *> Absolute with no LEFT/CENTER/RIGHT: "LEFT is assumed."
-      *>   cite.py: OK  §13.18.14.3 9)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.14.3 9)  (Syntax rules)
       *> "Any unoccupied columns in each print line are filled with
-      *> space characters."  cite.py: OK  §13.18.14.4 10)
+      *> space characters."  cite.py: OK  §2023:13.18.14.4 10)
       *> Lines: unpaged report, relative LINE clauses, first group at
-      *> LINE-COUNTER 0 + 1 (cite.py: OK §13.18.35.4 5) 5. c)), each
+      *> LINE-COUNTER 0 + 1 (cite.py: OK §2023:13.18.35.4 5) 5. c)), each
       *> next group at LINE-COUNTER + 1.
       *> Edition: the COL / COLS / COLUMNS spellings and COLUMN PLUS
       *> are 2002 introductions (COBOL-85 has only COLUMN NUMBER

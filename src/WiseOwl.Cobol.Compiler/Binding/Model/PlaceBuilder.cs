@@ -16,8 +16,8 @@ internal readonly record struct PlaceGap(DeferredShape? Deferred, DataItem Refus
 /// <see cref="Position"/> of each OCCURS level on its path and the facts of the finished binding
 /// (<see cref="IPlaceFacts"/>), it answers the <see cref="Place"/> every consumer reads and writes through — a plain
 /// <see cref="MemberPlace"/>, a Tier-A alias forwarded to its canonical, a Tier-B/C view window, a level-66 RENAMES
-/// composition (<see cref="PlaceForRenames"/>, ISO §13.18.45.4 GR1/GR2), an OCCURS DEPENDING group's wrap
-/// (<see cref="WrapIfOdoGroup"/>, §13.18.38.4 GR8) and the dynamic-capacity element place (§13.18.38.4 GR14). Both the
+/// composition (<see cref="PlaceForRenames"/>, ISO §2023:13.18.45.4 GR1/GR2), an OCCURS DEPENDING group's wrap
+/// (<see cref="WrapIfOdoGroup"/>, §2023:13.18.38.4 GR8) and the dynamic-capacity element place (§2023:13.18.38.4 GR14). Both the
 /// syntactic resolution (<see cref="ReferenceResolver"/>, which reads the subscripts the program wrote) and the by-item
 /// resolution (<see cref="PlaceTable"/>, which the binder fills for every item once binding is done) go through it, so
 /// every consumer sees identical view resolution (<c>RenamesPlaceBuilderDriftTests</c>); the code generator is handed
@@ -51,7 +51,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     internal Place? PlaceForItem(DataItem item, IReadOnlyList<Position> indexExprs, out PlaceGap gap)
     {
         gap = new(null, item);
-        // A level-66 RENAMES entry (ISO §13.18.45) is a data item of its own that owns no storage — its place is
+        // A level-66 RENAMES entry (ISO §2023:13.18.45) is a data item of its own that owns no storage — its place is
         // composed from the places of the items it renames (kb/Work PB1380: it is built HERE, in the one builder,
         // so every caller — a reference-modified alias above all — receives it the same way).
         if (item.Renames is { } ren) return PlaceForRenames(item, ren, indexExprs, out gap);
@@ -67,16 +67,16 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
             // top-level (static-field) class.
             // ⛔ A CLASS WHOSE CANONICAL LIES WITHIN AN OCCURS IS REACHED THROUGH THE SUBSCRIPTED PARENT PATH (kb/Work
-            // PB1279). ISO §13.18.44.3 SR5 sentence 2 — "However, data-name-2 may be subordinate to an item whose
-            // data description entry contains an OCCURS clause" — and §13.18.44.4 GR1 associates the redefining
+            // PB1279). ISO §2023:13.18.44.3 SR5 sentence 2 — "However, data-name-2 may be subordinate to an item whose
+            // data description entry contains an OCCURS clause" — and §2023:13.18.44.4 GR1 associates the redefining
             // item's storage with the first bit of the redefined item IN EACH OCCURRENCE, so every occurrence of the
-            // enclosing table holds its own backing, in that element's struct. §8.4.2.3.3 SR3 gives the reference one
+            // enclosing table holds its own backing, in that element's struct. §2023:8.4.2.3.3 SR3 gives the reference one
             // subscript per OCCURS clause: the LEADING ones select the enclosing element (they are the canonical
             // parent's own dimensions), the trailing ones are the in-class levels below.
             int outerCount = sc.Canonical.Parent?.SubscriptArity ?? 0;
             // A SUBSCRIPTED view: each OCCURS level on the item's path WITHIN the class displaces the window by
             // (occurrence − 1) × that level's per-occurrence width — the redefined table lays its occurrences
-            // end-to-end in the ONE backing (ISO §13.18.44). ClassOffset is the occurrence-1 position; subscripts
+            // end-to-end in the ONE backing (ISO §2023:13.18.44). ClassOffset is the occurrence-1 position; subscripts
             // map to the in-class OCCURS levels outer→inner, exactly as in AccessPath.
             var levels = SubscriptLevelsWithin(item, sc);
             if (indexExprs.Count != outerCount + levels.Count) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }   // an item-path caller's count
@@ -85,7 +85,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             if (WindowScopeOf(classBacking, BuildCellPath(sc), levels, indexExprs, CellOrdinalBase(sc)) is not { } scope) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }
             // A dynamic-capacity table referenced by its subscript IS its element, at offset zero of the element cell.
             Position origin = new PositionConstant(item.IsDynamicTable ? 0 : item.ClassOffset);
-            // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §13.18.5
+            // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §2023:13.18.5
             // — the view addresses wherever the pointer currently points; Phase-4b increment 2). The backing
             // property renders FIRST in both Read and Write, so the Deref null/bounds traps (GR3/GR4) fire
             // before the null-lenient OffsetOf. Only the record SCOPE is displaced: a dynamic-capacity table's element
@@ -100,7 +100,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             var offset = new PositionOffset(origin, scope.Terms);
             // (whole-group image analysis moved OUT of resolve to the post-bind UsageCollectionPass, PHASE-05 Step 5)
             // A class-tier GROUP holding an occurs-depending table is an ODO operand exactly like a struct group
-            // (kb/Work PB80: a BASED record — string-canonical — sent its MAXIMUM image; §13.18.38.4 GR8 does not
+            // (kb/Work PB80: a BASED record — string-canonical — sent its MAXIMUM image; §2023:13.18.38.4 GR8 does not
             // care how the group is stored). ONE wrap rule for both storage shapes.
             Position? dynOrdinal = scope.Cell is null ? null : scope.OrdinalAt(item.IsDynamicTable ? 0 : item.ClassDynOrdinal);
             return WrapIfOdoGroup(RedefViewPlace.For(scope.Backing, item, offset, based, scope.BitTerms, scope.Cell, dynOrdinal), item);
@@ -125,25 +125,25 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         if (BuildAccessPath(accessItem, indexExprs, OdoReferenceCheckFor) is not { } path) { gap = new(DeferredShape.UnbuiltAccessPath, item); return null; }
         // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
         // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
-        // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9.25.4 MOVE GR4.)
+        // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §2023:14.9.25.4 MOVE GR4.)
         return WrapIfOdoGroup(new MemberPlace(path, item), item);
     }
 
-    /// <summary>The place of a level-66 RENAMES entry (ISO §13.18.45) — the <see cref="PlaceForItem"/> arm for an
+    /// <summary>The place of a level-66 RENAMES entry (ISO §2023:13.18.45) — the <see cref="PlaceForItem"/> arm for an
     /// item that owns no storage of its own. The no-THROUGH form forwards to data-name-2's place (GR1); the
     /// THROUGH form composes a <see cref="RenamesPlace"/> over the spanned storage parts (GR2): string-valued leaves
     /// as they are and every numeric leaf through its storage image (<see cref="SpanLeafPlace"/>).</summary>
     private Place? PlaceForRenames(DataItem alias, RenamesInfo ren, IReadOnlyList<Position> indexExprs, out PlaceGap gap)
     {
         gap = new(null, alias);
-        // A level-66 entry is never a table element, so a written subscript was refused by §8.4.2.3.3 SR2 before
+        // A level-66 entry is never a table element, so a written subscript was refused by §2023:8.4.2.3.3 SR2 before
         // the syntactic path got here (ScreenSubscriptArity); an item-path caller's count is the same mismatch
         // every other item reports.
         if (indexExprs.Count > 0) { gap = new(DeferredShape.UnbuiltAccessPath, alias); return null; }
         // A RENAMES entry whose operands did not resolve was refused at its declaration (COBOL1655,
-        // §13.18.45.3), and the data binder leaves it with no From and an empty Span.
+        // §2023:13.18.45.3), and the data binder leaves it with no From and an empty Span.
         if (ren.Thru is null ? ren.From is null : ren.Span.Count == 0) return null;
-        // The no-THRU form is an ALIAS: §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the
+        // The no-THRU form is an ALIAS: §2023:13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the
         // data attributes of data-name-1 and the storage area occupied by data-name-2 becomes the storage area
         // occupied by data-name-1". Attributes AND storage forward to the renamed item's place (numeric stays
         // numeric: NC252A's ADD 3500 TO RENAME-12 over a PIC 9(4); a group forwards as the group), and only the
@@ -151,7 +151,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         // ⛔ BUT THE IDENTITY DOES NOT FORWARD (kb/Work PB602). GR1 shares the attributes and the storage, not the
         // NAME: data-name-1 is a data item of its OWN, and a bare forward made a reference to the 66
         // indistinguishable from a reference to the renamed item — so `START RLF KEY IS = RK-ALIAS` passed
-        // §14.9.41.3 SR5's "shall be the data item specified in the RELATIVE KEY clause" that its THROUGH sibling
+        // §2023:14.9.41.3 SR5's "shall be the data item specified in the RELATIVE KEY clause" that its THROUGH sibling
         // (a RenamesPlace, which keeps its own Item) was correctly refused by. `DenotesAs` records the alias on the
         // renamed item's own place, so nothing about the ACCESS changes and only the identity question answers
         // differently.
@@ -175,7 +175,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
                 widths.Add(part.LengthBytes);   // STORAGE bytes — the unit the alias's image is in (kb/Work PB1665)
                 continue;
             }
-            // An OCCURS leaf inside the span contributes EVERY occurrence in order (§13.18.45 — the alias covers
+            // An OCCURS leaf inside the span contributes EVERY occurrence in order (§2023:13.18.45 — the alias covers
             // the whole fixed-size area; NC252A's RENAME-7 over TABLE-ITEM-2 OCCURS 5). A leaf under an OCCURS GROUP is
             // one part per occurrence of the group (RenamesSpanPart.Outer, kb/Work PB986), so its cell is addressed by
             // those subscripts first.
@@ -193,7 +193,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// <summary>One spanned leaf cell of a RENAMES THROUGH alias, as the STORAGE image the composed alias
     /// concatenates: a string-valued leaf as it is, a typed NUMERIC leaf through its <see cref="NumericImagePlace"/>
     /// — the bytes it occupies, zoned digits for usage DISPLAY, radix-2 / BCD bytes for BINARY / PACKED, the IEEE
-    /// window for a float (V59; the alias is an alphanumeric group item over the storage, §13.18.45.4 GR2 — NC252A's
+    /// window for a float (V59; the alias is an alphanumeric group item over the storage, §2023:13.18.45.4 GR2 — NC252A's
     /// PIC 999 leaves under RENAMES-TEST-1). Null with the gap when the cell has no place.
     /// <para>⛔ EVERY NUMERIC USAGE, NOT ONLY THE CHARACTER FORMS (kb/Work PB1054). GR2 defines data-name-1 as "an
     /// alphanumeric group item that includes all elementary items" of the range, so a COMP member contributes its
@@ -201,7 +201,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// <see cref="PicInfo.IsCharacterFormNumeric"/> leaves and DEFER the rest (a COBOL1756 warning and a run-time
     /// abort for <c>66 RN RENAMES RA THRU RC</c> over a <c>PIC 9(4) COMP</c> member), although the image place it
     /// declined renders every numeric usage through the ONE storage codec (<c>NumFormatImage</c> /
-    /// <c>NumStoreImage</c>, and the float lane). Pointer, object and message-tag members never reach here: §13.18.45.3
+    /// <c>NumStoreImage</c>, and the float lane). Pointer, object and message-tag members never reach here: §2023:13.18.45.3
     /// SR8 refuses them in the range at the declaration (<c>ResolveRedefinesPass.RenamesRangeFault</c>).</para>
     /// <para>⛔ A USAGE NATIONAL CELL IS ITS BYTES TOO (kb/Work PB1665, PB2466): its value carrier holds one character
     /// per national position, and the position occupies two storage bytes (D-N1), so the cell is composed through
@@ -217,7 +217,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         return leaf.Pic is { Usage: Usage.National } ? new NationalBytesPlace(image) : image;
     }
 
-    /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §13.18.38 GR8): wrap
+    /// <summary>A group whose subtree contains an occurs-depending table is an ODO operand (ISO §2023:13.18.38 GR8): wrap
     /// it so the sending slice / receiving direction-split applies — whatever the group's storage shape (a record
     /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
     /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ
@@ -247,11 +247,11 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// item has no built place.</summary>
     internal Place? ResolveItemAt(DataItem item, IReadOnlyList<Position> indexExprs) => PlaceForItem(item, indexExprs);
 
-    /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §13.18.33.4 GR3 — "Multiple
+    /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §2023:13.18.33.4 GR3 — "Multiple
     /// level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — so
     /// the area is ONE place, and it is the LARGEST description's view (<see cref="FileModel.AreaRecord"/>): a
     /// shorter <c>Records[0]</c> window truncates the splice (RL106A's 56/102-char pair, ST111A's 50/75/100 SD).
-    /// Null only for a file whose record area could not be resolved at all — §14.9.30.4 GR6's implied entry is
+    /// Null only for a file whose record area could not be resolved at all — §2023:14.9.30.4 GR6's implied entry is
     /// materialized at bind time (kb/Work PB345), so no LEGAL file reaches a consumer with none.
     /// <para>It lives here because five consumers each wrote the same two-step —
     /// <c>file.AreaRecord is { } ar ? ResolveItem(ar) : null</c> — and START's own key comparand was built from
@@ -265,16 +265,16 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// (<c>OUTER.GROUP._redef_X</c>); a top-level class's backing is the bare static field (<c>_redef_X</c>). Returns
     /// <see langword="null"/> when the containing path is unavailable. A canonical within a FIXED table is reached
     /// through the enclosing element — <paramref name="outerIndexExprs"/> are the subscripts of the canonical
-    /// parent's own dimensions, outermost first (ISO §13.18.44.3 SR5, kb/Work PB1279). A canonical within an OCCURS
+    /// parent's own dimensions, outermost first (ISO §2023:13.18.44.3 SR5, kb/Work PB1279). A canonical within an OCCURS
     /// DYNAMIC table is reached the same way (kb/Work PB1933): the path's <see cref="DynTableSegment"/> renders its
     /// accessor from the direction <c>PlaceRenderer</c> renders the backing in — <c>RefSending</c> on a read,
-    /// <c>RefReceiving</c> (grow-and-seed, §8.5.1.9.3) on a store into the window. A METHOD's top-level class backing is a
+    /// <c>RefReceiving</c> (grow-and-seed, §2023:8.5.1.9.3) on a store into the window. A METHOD's top-level class backing is a
     /// local of the method (<see cref="RedefinesClass.BackingLocal"/>; kb/Work PB4416), the root of its path by identity.</summary>
     private AccessPath? BuildBackingPath(RedefinesClass cls, IReadOnlyList<Position> outerIndexExprs)
     {
         if (cls.Canonical.Parent is not { } parent)
             return new AccessPath([StorageRoot(cls.BackingLocal, cls.BackingClrName, OmittedFormalGuard.Of(cls.Canonical))]);
-        // The enclosing element carries the same §13.18.38.4 GR7 OCCURS DEPENDING check every other element path does.
+        // The enclosing element carries the same §2023:13.18.38.4 GR7 OCCURS DEPENDING check every other element path does.
         return BuildAccessPath(parent, outerIndexExprs, OdoReferenceCheckFor) is { } parentPath
             ? parentPath.Add(new MemberSegment(cls.BackingClrName)) : null;
     }
@@ -283,7 +283,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// the second half of the one storage area, holding the MANAGED SLOTS a pointer-class member rides
     /// (kb/Work PB231; <see cref="SlotWindow"/>). Null for a plain REDEFINES class, which has no cell.
     /// <para>Always a bare root field: the three cell surfaces (EXTERNAL, ADDRESS OF, BASED) all force a
-    /// LEVEL-1 record — §13.18.22.3 SR1 puts EXTERNAL only on "level 1 data description entries", the
+    /// LEVEL-1 record — §2023:13.18.22.3 SR1 puts EXTERNAL only on "level 1 data description entries", the
     /// ADDRESS-OF forcer walks to the root before forcing, and a BASED entry is a 01/77 — so there is no
     /// containing struct to reach through, and a canonical with a parent would mean the cell property was
     /// never emitted.</para></summary>
@@ -297,7 +297,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>⛔ THE COMPONENT-ORDINAL BASE OF A CELL-BACKED CLASS'S RECORD SCOPE (kb/Work PB2094), as the leading term of
     /// its ordinal displacement: a class laid over storage through its data-address pointer — a BASED item, an AREA formal
-    /// (§14.2.3 GR8) — numbers its components from the pointer's <c>CellPointer.DynBase</c>, the ordinal twin of the
+    /// (§2023:14.2.3 GR8) — numbers its components from the pointer's <c>CellPointer.DynBase</c>, the ordinal twin of the
     /// <c>CobolPtr.OffsetOf</c> its character window is displaced by (an area formal over a subordinate variable-length
     /// group begins at that group's first component). Empty for a class that owns its cell.</summary>
     internal static Position? CellOrdinalBase(RedefinesClass cls) =>
@@ -311,7 +311,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>The subscript levels of a reference to <paramref name="item"/> WITHIN its Tier-B class
     /// <paramref name="cls"/>, outermost first: every fixed OCCURS level and every dynamic-capacity table level on
-    /// its path (§8.4.2.3.3 SR3 — one subscript per OCCURS clause, a dynamic table's included).</summary>
+    /// its path (§2023:8.4.2.3.3 SR3 — one subscript per OCCURS clause, a dynamic table's included).</summary>
     private static List<DataItem> SubscriptLevelsWithin(DataItem item, RedefinesClass cls)
     {
         var levels = new List<DataItem>();
@@ -339,7 +339,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>⛔ THE ONE DISPLACEMENT TERM OF A FIXED OCCURS LEVEL (kb/Work PB231, PB3287): <c>(index − 1) ×</c> the
     /// level's per-occurrence STORAGE extent, <see cref="DataItem.ByteWidth"/> — never its character-position count,
-    /// because the class backing is byte-addressed and a NATIONAL element strides two bytes per position (§13.18.60.4
+    /// because the class backing is byte-addressed and a NATIONAL element strides two bytes per position (§2023:13.18.60.4
     /// GR8 / D-N1). A Tier-B view window (<see cref="WindowScopeOf"/>) and the address of an occurrence
     /// (<see cref="ResolveForAddressOf"/>) lay a table's occurrences end-to-end in the one cell image and take their
     /// displacement from here, so a stride fix cannot be made in one of them only.</summary>
@@ -347,13 +347,13 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>⛔ THE ONE WALK OF A TIER-B REFERENCE'S SUBSCRIPT LEVELS (kb/Work PB1042), outermost first. A fixed
     /// level displaces the window by <c>(index − 1) ×</c> its per-occurrence STORAGE extent — never its
-    /// character-position count (kb/Work PB231: a NATIONAL element occupies two bytes per position, §13.18.60.4 GR8 /
+    /// character-position count (kb/Work PB231: a NATIONAL element occupies two bytes per position, §2023:13.18.60.4 GR8 /
     /// D-N1) — its BIT twin by the level's bit stride (kb/Work PB203: `PIC 1(4) USAGE BIT OCCURS 6` strides 4 bits;
-    /// ALIGNED strides whole bytes, §13.18.1.4 GR2), and, in a cell, the component ordinal by the level's components
-    /// per occurrence (<see cref="CellComponents.PerOccurrence"/>). A dynamic-capacity table level — ISO §8.5.1.9.1
+    /// ALIGNED strides whole bytes, §2023:13.18.1.4 GR2), and, in a cell, the component ordinal by the level's components
+    /// per occurrence (<see cref="CellComponents.PerOccurrence"/>). A dynamic-capacity table level — ISO §2023:8.5.1.9.1
     /// 3): it "may be defined in any place, other than the file section, in which a fixed-capacity table may be
     /// defined" — opens the SCOPE of its element: the occurrence's element cell (<see cref="CellTableSegment"/> then
-    /// <see cref="DynTableSegment"/>, whose accessor is the reference's direction, §8.5.1.9.2 / §8.5.1.9.3), whose
+    /// <see cref="DynTableSegment"/>, whose accessor is the reference's direction, §2023:8.5.1.9.2 / §2023:8.5.1.9.3), whose
     /// <c>Ref</c> is the backing and whose own offsets and ordinals start again at zero. Null when such a level lies in
     /// a class with no cell.</summary>
     private static WindowScope? WindowScopeOf(AccessPath backing, AccessPath? cell, IReadOnlyList<DataItem> levels,
@@ -386,8 +386,8 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// way, and a new builder that roots through here cannot forget it. A CARRIER-RESIDENT formal has no storage of its
     /// own: its root is its carrier's (<see cref="DataItem.ResidentCarrier"/>: a program's carrier member, a method's
     /// carrier local, kb/Work PB4380) and the next step is the storage the carrier designates,
-    /// <see cref="CarrierValueSegment"/> (ISO §14.2.3 GR8). A METHOD's root is a local of the method, named by its
-    /// identity (<see cref="DataItem.ActivationLocal"/>, ISO §8.6.4; kb/Work PB4416); every other root is a member of the
+    /// <see cref="CarrierValueSegment"/> (ISO §2023:14.2.3 GR8). A METHOD's root is a local of the method, named by its
+    /// identity (<see cref="DataItem.ActivationLocal"/>, ISO §2023:8.6.4; kb/Work PB4416); every other root is a member of the
     /// program class, named by its CLR name.</summary>
     private static void AddRoot(List<AccessSegment> segs, DataItem root)
     {
@@ -418,7 +418,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
         var chain = new List<DataItem>();
         for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
         chain.Reverse();
-        // §8.4.2.3.3 SR3's count, from THE one place it is written down — the string twin below reads the same
+        // §2023:8.4.2.3.3 SR3's count, from THE one place it is written down — the string twin below reads the same
         // property, so the two access-path builders cannot disagree about arity (kb/Work PB877).
         if (item.SubscriptArity != indexExprs.Count) return null;   // wrong number of subscripts
         var segs = new List<AccessSegment>();
@@ -443,24 +443,24 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     internal static AccessPath? BuildTablePath(DataItem table) => BuildTablePath(table, []);
 
     /// <summary>⛔ THE ONE MODEL OF A TABLE LEVEL'S CURRENT OCCURRENCE COUNT (the <see cref="AllCount"/> the backend
-    /// renders through <c>PlaceRenderer.OccurrenceCount</c>): a fixed table's OCCURS integer (§13.18.38.4 GR4); an
+    /// renders through <c>PlaceRenderer.OccurrenceCount</c>): a fixed table's OCCURS integer (§2023:13.18.38.4 GR4); an
     /// occurs-depending table's data-name-1, which "represents the current number of occurrences of the subject of
     /// the entry" (GR7 — clamped to [integer-1, integer-2] with EC-BOUND-ODO outside); a dynamic-capacity table's
-    /// current capacity (§8.5.1.9.1), whose register view carries the OUTER index expressions of a nested table.
+    /// current capacity (§2023:8.5.1.9.1), whose register view carries the OUTER index expressions of a nested table.
     /// Every statement that ranges over the CURRENT occurrences of a table it sends asks HERE — a table(ALL)
-    /// argument (§15.3) and the Format-2 table SORT (§14.9.40.4 GR20, kb/Work PB1174, whose sort used to reorder
+    /// argument (§2023:15.3) and the Format-2 table SORT (§2023:14.9.40.4 GR20, kb/Work PB1174, whose sort used to reorder
     /// the whole PHYSICAL array). INITIALIZE keeps its own <c>InitializeBinder.TableCount</c> because its operand is
-    /// a RECEIVING one: §13.18.38.4 GR8b gives a receiving group holding its own data-name-1 the MAXIMUM, a question
+    /// a RECEIVING one: §2023:13.18.38.4 GR8b gives a receiving group holding its own data-name-1 the MAXIMUM, a question
     /// this sending-count model does not ask. <see langword="null"/> when the count
     /// cannot be addressed (an unresolvable data-name-1, or a dynamic table with no reachable register) — the caller
     /// reports it in its own words.
     /// <para>The three-way switch itself is <see cref="Procedure.OccurrenceCounts.Current"/> — the ONE reading INITIALIZE and the
-    /// §14.6.9.2 element moves also take; this entry only supplies the whole-table path a dynamic level's capacity
+    /// §2023:14.6.9.2 element moves also take; this entry only supplies the whole-table path a dynamic level's capacity
     /// register needs (the two used to be two copies of the switch, each documented as the one).</para></summary>
     internal AllCount? CurrentOccurrenceCount(DataItem table, IReadOnlyList<Position> outerIndexExprs) =>
         OccurrenceCounts.Current(table, table.IsDynamicTable ? BuildTablePath(table, outerIndexExprs) : null, this);
 
-    /// <summary>The §13.18.38.4 GR7 check a subscripted reference through <paramref name="level"/> carries
+    /// <summary>The §2023:13.18.38.4 GR7 check a subscripted reference through <paramref name="level"/> carries
     /// (<see cref="OdoReferenceCheck"/>, kb/Work PB1268): data-name-1's place and integer-1/integer-2 for an OCCURS
     /// DEPENDING level, when the compilation group can enable EC-BOUND-ODO at all; <see langword="null"/> otherwise
     /// (a fixed level, or no enabling >>TURN — the zero-scaffolding invariant). The bounds are the SAME the extent
@@ -471,7 +471,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
 
     /// <summary>The STRUCTURAL whole-table path to a table that may itself lie under OTHER tables — one index
     /// position per enclosing table level, outermost first: the
-    /// <see cref="CapacityRegisterPlace"/> of a NESTED dynamic-capacity table for a table(ALL) enumeration (ISO §15.3
+    /// <see cref="CapacityRegisterPlace"/> of a NESTED dynamic-capacity table for a table(ALL) enumeration (ISO §2023:15.3
     /// — each outer occurrence has its own capacity; kb/Work PB62). Null when fewer indices are supplied than there
     /// are enclosing tables — the zero-index form is exactly the whole-table ambiguity the one-argument overload
     /// reports.</summary>

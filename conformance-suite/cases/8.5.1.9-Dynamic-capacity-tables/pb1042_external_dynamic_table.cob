@@ -6,13 +6,13 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1042 — a dynamic-capacity table in an EXTERNAL record, shared by two programs.
-      *> ISO/IEC 1989:2023 §8.5.1.9.1 3): a dynamic-capacity table "may be defined in any place,
+      *> ISO/IEC 1989:2023 §2023:8.5.1.9.1 3): a dynamic-capacity table "may be defined in any place,
       *> other than the file section, in which a fixed-capacity table may be defined", and an
-      *> EXTERNAL record of the working-storage section is such a place. §13.18.22.4 GR1: every
+      *> EXTERNAL record of the working-storage section is such a place. §2023:13.18.22.4 GR1: every
       *> program describing PB1042XR references the ONE run-unit record, so the occurrences one
-      *> program creates (§8.5.1.9.3, a receiving subscript past the current capacity) exist in
-      *> the other. A group MOVE recreates the receiving table (§14.6.9.2); INITIALIZE leaves the
-      *> capacity unchanged (§14.9.20.4 GR10); SEARCH bounds at the current capacity.
+      *> program creates (§2023:8.5.1.9.3, a receiving subscript past the current capacity) exist in
+      *> the other. A group MOVE recreates the receiving table (§2023:14.6.9.2); INITIALIZE leaves the
+      *> capacity unchanged (§2023:14.9.20.4 GR10); SEARCH bounds at the current capacity.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1042XA.
        DATA DIVISION.

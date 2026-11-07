@@ -7,19 +7,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.60 GR24 — USAGE PROGRAM-POINTER (2002): a data item
+      *> ISO §2023:13.18.60 GR24 — USAGE PROGRAM-POINTER (2002): a data item
       *> that may contain the address of a program (for a COBOL program,
       *> an OUTERMOST program). Covers: the initial NULL state
-      *> (§13.18.63); SET Format 9 (§14.9.39 SR21) with the §8.4.3.13
+      *> (§2023:13.18.63); SET Format 9 (§2023:14.9.39 SR21) with the §2023:8.4.3.13
       *> program-address-identifier sender — ENTRY literal and ENTRY
       *> identifier (GR1a) — a program-pointer sender, and NULL;
-      *> §8.8.4.2.16 pointer relations (= / NOT = / NULL); CALL through
-      *> the pointer (§14.9.4 SR1 — identifier-1 references a
+      *> §2023:8.8.4.2.16 pointer relations (= / NOT = / NULL); CALL through
+      *> the pointer (§2023:14.9.4 SR1 — identifier-1 references a
       *> program-pointer; GR — the item contains the location of the
-      *> program being called); and the §8.4.3.13 GR4 not-found leg
+      *> program being called); and the §2023:8.4.3.13 GR4 not-found leg
       *> (EC-PROGRAM-NOT-FOUND set to exist, the value becomes NULL —
       *> checking not enabled here, so execution continues per
-      *> §14.6.13.1.4).
+      *> §2023:14.6.13.1.4).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PPMAINP10PT.
        DATA DIVISION.

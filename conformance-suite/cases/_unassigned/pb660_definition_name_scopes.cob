@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.2.2 + §8.4.6.3 — the POSITIVE control for kb/Work
+      *> ISO §2023:8.3.2.2 + §2023:8.4.6.3 — the POSITIVE control for kb/Work
       *> PB660's uniqueness check: three shapes the standard permits,
       *> each of which a coarser check would have rejected.
-      *> (1) §8.4.6.3's scope is ONE OUTERMOST PROGRAM — "The names
+      *> (1) §2023:8.4.6.3's scope is ONE OUTERMOST PROGRAM — "The names
       *> assigned to programs that are contained directly or indirectly
       *> within the same outermost program shall be unique within that
       *> outermost program" — so PB660PA and PB660PB may EACH contain a
@@ -18,11 +18,11 @@
       *> directly contained within another program, that program-name
       *> may be referenced only by statements included in that
       *> containing program".
-      *> (2) A contained program's name is NOT externalized — §8.3.2.2
+      *> (2) A contained program's name is NOT externalized — §2023:8.3.2.2
       *> externalizes "program-names of outermost programs" — so a
       *> containee never collides with an outermost definition and the
       *> group-wide check must not see it at all.
-      *> (3) What §8.3.2.2 makes unique is the EXTERNALIZED name, and
+      *> (3) What §2023:8.3.2.2 makes unique is the EXTERNALIZED name, and
       *> "For any externalized user-defined words for which the AS
       *> phrase is specified, the content of the literal specified in
       *> that AS phrase is a name that is externalized": two outermost

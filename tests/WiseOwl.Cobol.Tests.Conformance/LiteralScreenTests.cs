@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB1393 — a literal's OWN syntax rules are asked wherever the literal is written. The length rule
-/// (ISO §8.3.3.2.3 SR1 alphanumeric, §8.3.3.4.3 SR1 boolean, §8.3.3.5.3 SR1 national: at most 8,191 character
-/// positions of the class → COBOL0814) and the hexadecimal grouping rule (§8.3.3.2.3 SR6 / §8.3.3.5.3 SR5 →
+/// (ISO §2023:8.3.3.2.3 SR1 alphanumeric, §2023:8.3.3.4.3 SR1 boolean, §2023:8.3.3.5.3 SR1 national: at most 8,191 character
+/// positions of the class → COBOL0814) and the hexadecimal grouping rule (§2023:8.3.3.2.3 SR6 / §2023:8.3.3.5.3 SR5 →
 /// COBOL1635) used to live in ONE funnel each — the length cap only in the binder's national and boolean
 /// procedure-operand arms, the grouping rule only where the token was a direct child of <c>nonNumericLiteral</c> or of
 /// an ALL figurative — so an over-long alphanumeric literal anywhere, any over-long VALUE / level-88 / CONSTANT / ALL
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class LiteralScreenTests
 {
     /// <summary>Laid out in FIXED form (<see cref="FixedFormLayout"/>): an 8,192-position literal cannot be written on
-    /// one free-form line (§6.1 3) a) — at most 255 positions, COBOL2653) and is continued as fixed form continues it.</summary>
+    /// one free-form line (§2023:6.1 3) a) — at most 255 positions, COBOL2653) and is continued as fixed form continues it.</summary>
     private static string Program(string id, string data, string proc, string special = "", bool classic = false) =>
         FixedFormLayout.Source("IDENTIFICATION DIVISION.\nPROGRAM-ID. " + id + ".\n"
         + (special.Length > 0 ? "ENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\n" + special + "\n" : "")
@@ -29,7 +29,7 @@ public sealed class LiteralScreenTests
 
     /// <summary>Each position × class the length rule reaches. <c>{0}</c> is the literal's BODY length in
     /// positions: the case is compiled at 8,191 (legal) and 8,192 (COBOL0814). The BX case writes a quarter of
-    /// the positions as hexadecimal digits — §8.3.3.4.4 GR5 maps each digit to four boolean characters, so 2,048
+    /// the positions as hexadecimal digits — §2023:8.3.3.4.4 GR5 maps each digit to four boolean characters, so 2,048
     /// digits ARE 8,192 boolean positions.</summary>
     public static TheoryData<string, string, string> LengthCases() => new()
     {
@@ -60,18 +60,18 @@ public sealed class LiteralScreenTests
             if (data.Contains("{Q}") && positions % 4 != 0) continue;   // BX counts in fours — 8,192 only (8,188 is below)
             var (ok, errors, _) = EditionHarness.CompileFull(Program("LS" + positions, Fill(data), Fill(proc)), 2023);
             if (positions <= 8191)
-                Assert.True(ok, $"[{position}] a {positions}-position literal is legal (§8.3.3 SR1 '≤ 8,191'):\n"
+                Assert.True(ok, $"[{position}] a {positions}-position literal is legal (§2023:8.3.3 SR1 '≤ 8,191'):\n"
                     + string.Join("\n", errors));
             else
             {
-                Assert.False(ok, $"[{position}] an 8,192-position literal shall be rejected (§8.3.3 SR1)");
+                Assert.False(ok, $"[{position}] an 8,192-position literal shall be rejected (§2023:8.3.3 SR1)");
                 Assert.Single(errors, e => e.Contains("COBOL0814"));   // once — one screen, no second funnel
             }
         }
     }
 
     /// <summary>⭐ THE LENGTH BOUND IS THE EDITION'S (kb/Work PB1615, constructs row <c>literal-length-8191-2014</c>, VCR row
-    /// 7.43): 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1, §8.3.3.4.3 SR1, §8.3.3.5.3 SR1, §8.8.3.2 SR2–SR4), 160 below
+    /// 7.43): 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1, §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1, §2023:8.8.3.2 SR2–SR4), 160 below
     /// it — the edge DERIVED from GnuCOBOL 3.2's per-standard dialect files (<c>literal-length</c>: 160 in
     /// <c>cobol85.conf</c> and <c>cobol2002.conf</c>, 8191 in <c>cobol2014.conf</c>). Each row writes ONE class and ONE
     /// position at one edition and names the diagnostic it must draw (null: none). The boundary is pinned from both sides
@@ -151,8 +151,8 @@ public sealed class LiteralScreenTests
     /// <summary>The hexadecimal grouping rule at the two positions its former checks could not see: a
     /// concatenation operand (a <c>concatOperand</c>, never a <c>nonNumericLiteral</c>) and the keyword-omitted
     /// intrinsic argument (captured in the SUBSCRIPT lexer mode and re-parsed from text the version pass never
-    /// walked) — for the alphanumeric <c>X"…"</c> form (pairs, §8.3.3.2.3 SR6) and the national <c>NX"…"</c> form
-    /// (groups of four, §8.3.3.5.3 SR5). Each malformed literal used to decode to the empty string in silence.</summary>
+    /// walked) — for the alphanumeric <c>X"…"</c> form (pairs, §2023:8.3.3.2.3 SR6) and the national <c>NX"…"</c> form
+    /// (groups of four, §2023:8.3.3.5.3 SR5). Each malformed literal used to decode to the empty string in silence.</summary>
     [Theory]
     [InlineData("concatenation operand, X", "01 W PIC X(4).", "    MOVE \"Z\" & X\"4\" TO W.", "")]
     [InlineData("concatenation operand, NX", "01 W PIC N(4).", "    MOVE N\"Z\" & NX\"041\" TO W.", "")]
@@ -164,14 +164,14 @@ public sealed class LiteralScreenTests
     public void HexGrouping_IsScreenedAtEveryPosition(string position, string data, string proc, string special)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program("LSHEX", data, proc, special), 2023);
-        Assert.False(ok, $"[{position}] a malformed hexadecimal literal shall be rejected (§8.3.3.2.3 SR6 / §8.3.3.5.3 SR5)");
+        Assert.False(ok, $"[{position}] a malformed hexadecimal literal shall be rejected (§2023:8.3.3.2.3 SR6 / §2023:8.3.3.5.3 SR5)");
         Assert.Single(errors, e => e.Contains("COBOL1635"));
     }
 
-    /// <summary>The well-formed twins still compile and yield the §8.3.3.2.4 / §8.3.3.5.4 values — screening a
+    /// <summary>The well-formed twins still compile and yield the §2023:8.3.3.2.4 / §2023:8.3.3.5.4 values — screening a
     /// keyword-omitted argument's literal where it is written must not change what the argument binds to:
     /// <c>X"4142"</c> is two alphanumeric characters and <c>NX"00410042"</c> two national ones, so LENGTH is 2 for
-    /// both, and <c>"Z" &amp; X"41"</c> is <c>ZA</c> (§8.8.3.3 GR2).</summary>
+    /// both, and <c>"Z" &amp; X"41"</c> is <c>ZA</c> (§2023:8.8.3.3 GR2).</summary>
     [Fact]
     public void WellFormedHexLiterals_AtTheNewlyScreenedPositions_KeepTheirValues()
     {
@@ -185,7 +185,7 @@ public sealed class LiteralScreenTests
         Assert.Equal("X=0002\nNX=0002\nC=[ZA  ]", stdout.Replace("\r\n", "\n").TrimEnd());
     }
 
-    /// <summary>§8.8.3.2 SR2–SR4 reach the concatenated ALL literal-1 (§8.3.3.6.3 SR2: literal-1 "may be a
+    /// <summary>§2023:8.8.3.2 SR2–SR4 reach the concatenated ALL literal-1 (§2023:8.3.3.6.3 SR2: literal-1 "may be a
     /// concatenation expression"), whose fold is diagnostic-free: 4,096 + 4,095 positions is legal, 4,096 + 4,096
     /// is COBOL1545 — for every class.</summary>
     [Theory]
@@ -200,7 +200,7 @@ public sealed class LiteralScreenTests
         Assert.True(okAt8191, string.Join("\n", errors8191));
         var (okAt8192, errors8192, _) = EditionHarness.CompileFull(
             Program("LSALL2", data, $"    MOVE ALL {Lit(4096)} & {Lit(4096)} TO W."), 2023);
-        Assert.False(okAt8192, "an 8,192-position concatenated ALL literal-1 shall be rejected (§8.8.3.2 SR2–SR4)");
+        Assert.False(okAt8192, "an 8,192-position concatenated ALL literal-1 shall be rejected (§2023:8.8.3.2 SR2–SR4)");
         Assert.Single(errors8192, e => e.Contains("COBOL1545"));
     }
 }

@@ -59,7 +59,7 @@ public sealed class EditionContextTests
         Assert.True(ed.HasErrors);
     }
 
-    /// <summary>ISO §13.18.40.3 SR14 — "the number of digit positions described by character-string-1 shall range
+    /// <summary>ISO §2023:13.18.40.3 SR14 — "the number of digit positions described by character-string-1 shall range
     /// from 1 through 31": BOTH ends are asked by the ONE screen (kb/Work PB529). The lower bound is reached from
     /// source by <c>PIC LL EDITING L IS ":"</c> (<c>negative/pb529-picture-editing-no-digit-position</c>); the
     /// screen itself is witnessed here on every edition's capacity, COBOL-85's 18 included.</summary>
@@ -81,7 +81,7 @@ public sealed class EditionContextTests
             Assert.Contains(ed.Diagnostics, d => d.Contains($"error {code}:", StringComparison.Ordinal));
     }
 
-    /// <summary>The 31-digit refusal of an ITEM names the clause that limits an item, §13.18.40.3 SR14 — not §8.3.3.3.2,
+    /// <summary>The 31-digit refusal of an ITEM names the clause that limits an item, §2023:13.18.40.3 SR14 — not §2023:8.3.3.3.2,
     /// which is the fixed-point LITERAL rule (the differential fuzz's review R1-3, kb/Work PB3463: the clause had been
     /// inherited from the literal wording).</summary>
     [Fact]
@@ -90,7 +90,7 @@ public sealed class EditionContextTests
         var ed = new EditionContext(2023);
         ed.CheckDigitCapacity(34, "data item 'X' (PICTURE 9(34))");
         string message = Assert.Single(ed.Diagnostics, d => d.Contains("error COBOL0801:", StringComparison.Ordinal));
-        Assert.Contains("§13.18.40.3 SR14", message, StringComparison.Ordinal);
+        Assert.Contains("§2023:13.18.40.3 SR14", message, StringComparison.Ordinal);
     }
 
     [Fact]

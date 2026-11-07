@@ -12,21 +12,21 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The PERFORM statement's FORMAT half: the inline head's cardinality (§14.9.28.2 Formats 2 and 3) and the
-/// varying-phrase's operand brace group (§14.9.28.2 varying-phrase + §14.9.28.3 SR3/SR4/SR5/SR6).
+/// The PERFORM statement's FORMAT half: the inline head's cardinality (§2023:14.9.28.2 Formats 2 and 3) and the
+/// varying-phrase's operand brace group (§2023:14.9.28.2 varying-phrase + §2023:14.9.28.3 SR3/SR4/SR5/SR6).
 ///
 /// <para>⛔ THE OPERAND'S KIND IS DECIDED EXACTLY ONCE, HERE. Every rule about a varying-phrase operand keys on
 /// the same three-way question the printed format asks — is this slot holding a LITERAL, an INDEX-NAME or an
 /// IDENTIFIER? — so the answer is computed where the operand is bound (<see cref="VaryingOperand"/>) and carried
 /// on the bound level (<see cref="VaryingOperandKind"/>). Before this, SR4/SR5/SR6 were absent entirely and the
-/// §14.9.28.4 GR3 guard re-derived the kind in the EMITTER from a bound-node C# type, which is one identifier
+/// §2023:14.9.28.4 GR3 guard re-derived the kind in the EMITTER from a bound-node C# type, which is one identifier
 /// SHAPE and not the rule's question (kb/Work PB432, PB439).</para>
 /// </summary>
 internal sealed partial class ControlFlowBinder
 {
     // ── The inline head's cardinality (kb/Work PB431) ───────────────────────────────────────────────────────
 
-    /// <summary>§14.9.28.2 Formats 2 and 3, rendered from the printed page 683 / PDF 712: Format 2 is
+    /// <summary>§2023:14.9.28.2 Formats 2 and 3, rendered from the printed page 683 / PDF 712: Format 2 is
     /// <c>PERFORM [ times-phrase | until-phrase | varying-phrase ] imperative-statement-1 END-PERFORM</c> — ONE
     /// pair of square brackets over three STACKED alternatives, so at most ONE loop-control phrase — and Format 3
     /// prints <b>no</b> loop-control phrase at all (its head is <c>[ WITH LOCATION ]</c>).
@@ -36,7 +36,7 @@ internal sealed partial class ControlFlowBinder
     /// never asking for one: <c>PERFORM 3 TIMES UNTIL X &gt; 100</c> ran three times, <c>PERFORM UNTIL X &gt; 4
     /// 3 TIMES</c> ran five (the FIRST phrase always won), and <c>PERFORM 3 TIMES … WHEN EC-ALL …</c> ran its
     /// body ONCE — every one of them with no diagnostic at any <c>--std</c>.</para>
-    /// <para>⛔ WHY AN ERROR AND NOT THE §4.2.2 WARNING — the COBOL1970 reading, which this follows: §4.2.2's
+    /// <para>⛔ WHY AN ERROR AND NOT THE §2023:4.2.2 WARNING — the COBOL1970 reading, which this follows: §2023:4.2.2's
     /// second paragraph obliges an implementation to be ABLE to "indicate violations of the general formats",
     /// which is the floor; its FIRST paragraph fixes what may be ACCEPTED — "An implementation shall accept the
     /// syntax and provide the functionality for all standard language elements required by this Working Draft
@@ -54,7 +54,7 @@ internal sealed partial class ControlFlowBinder
         {
             ctx.Edition.Error(DiagnosticCatalog.PerformFormat3LoopControlPhrase,
                 $"an exception-checking (Format-3) PERFORM carries the loop-control phrase "
-                + $"'{PhraseName(options[0])}', and ISO §14.9.28.2 Format 3 prints none — its head is "
+                + $"'{PhraseName(options[0])}', and ISO §2023:14.9.28.2 Format 3 prints none — its head is "
                 + "[ WITH LOCATION ] and nothing else. Write the loop as an ordinary inline PERFORM and put the "
                 + "exception-checking PERFORM inside it, or the other way round");
             return;
@@ -62,7 +62,7 @@ internal sealed partial class ControlFlowBinder
         if (options.Length > 1)
             ctx.Edition.Error(DiagnosticCatalog.PerformInlineHeadMultipleControlPhrases,
                 $"an inline PERFORM carries {options.Length} loop-control phrases "
-                + $"({string.Join(", ", options.Select(PhraseName))}), and ISO §14.9.28.2 Format 2 prints ONE "
+                + $"({string.Join(", ", options.Select(PhraseName))}), and ISO §2023:14.9.28.2 Format 2 prints ONE "
                 + "bracket over the three stacked alternatives times-phrase / until-phrase / varying-phrase, so "
                 + "at most one may be specified. A VARYING phrase already carries its own UNTIL");
     }
@@ -75,8 +75,8 @@ internal sealed partial class ControlFlowBinder
 
     // ── The varying phrase (kb/Work PB432, PB437, PB439) ────────────────────────────────────────────────────
 
-    /// <summary>Bind a VARYING phrase (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4
-    /// GR12/GR13; §14.9.28.2 prints three formats and none of them is "VARYING") into its ordered induction
+    /// <summary>Bind a VARYING phrase (ISO §2023:14.9.28, the VARYING phrase of Formats 1 and 2 — §2023:14.9.28.4
+    /// GR12/GR13; §2023:14.9.28.2 prints three formats and none of them is "VARYING") into its ordered induction
     /// levels — the VARYING level first, then each AFTER level left-to-right. TEST AFTER is the phrase's own
     /// <c>TEST AFTER</c> (the AFTER tokens of the after-levels live in their sub-contexts, not here).</summary>
     private BoundPerformControl BindVarying(Core.PerformVaryingContext v)
@@ -91,7 +91,7 @@ internal sealed partial class ControlFlowBinder
                 return Unsupported($"PERFORM VARYING AFTER induction variable '{a.receivingIdentifier().GetText()}'");
             levels.Add(level);
         }
-        // §14.9.28.4 GR3: an index-name varied/AFTER from an IDENTIFIER FROM whose value is non-positive raises
+        // §2023:14.9.28.4 GR3: an index-name varied/AFTER from an IDENTIFIER FROM whose value is non-positive raises
         // the fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps
         // the directive-free output byte-identical (no check emitted when off).
         bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
@@ -99,7 +99,7 @@ internal sealed partial class ControlFlowBinder
     }
 
     /// <summary>A varying-phrase operand POSITION. It is an enum and not a bool because the position IS the rule:
-    /// the §14.9.28.3 operand rules and the §14.9.28.4 GR12 evaluation WINDOW are both functions of it, so a new
+    /// the §2023:14.9.28.3 operand rules and the §2023:14.9.28.4 GR12 evaluation WINDOW are both functions of it, so a new
     /// position gets both answers by being added here rather than by someone remembering two call sites.</summary>
     private enum VaryingSlot
     {
@@ -112,11 +112,11 @@ internal sealed partial class ControlFlowBinder
     }
 
     /// <summary>⛔ THE EVALUATION WINDOW OF EACH VARYING-PHRASE OPERAND, WRITTEN ONCE (kb/Work PB437). ISO
-    /// §14.9.28.4 GR12 states it as one sentence: "Item identification for identifier-3, identifier-4,
+    /// §2023:14.9.28.4 GR12 states it as one sentence: "Item identification for identifier-3, identifier-4,
     /// identifier-6, identifier-7, index-name-2, and index-name-4 is done each time the content of the data item
     /// referenced by the identifier or the index referenced by the index-name is used in a SETTING or AUGMENTING
     /// operation" — so every FROM and every BY is re-read per OPERATION, and a function reference in one
-    /// activates per operation (§8.4.3.2.4 GR1/GR6a).
+    /// activates per operation (§2023:8.4.3.2.4 GR1/GR6a).
     /// <para>The FIRST level's FROM is the one slot whose setting operation happens exactly ONCE per execution of
     /// the statement — GR13 a) (TEST BEFORE) and GR13 b) (TEST AFTER) both initialize it before any transfer of
     /// control and never again — so the statement-scoped hoist is EXACT for it and it alone. Every other slot
@@ -132,16 +132,16 @@ internal sealed partial class ControlFlowBinder
     /// <param name="Literal">The literal's value when <paramref name="Kind"/> is <c>Literal</c> and the text
     /// parses — SR4 b) ("a positive integer"), SR4 c) ("a nonzero integer") and SR6 ("shall not be zero") are
     /// value tests, and they are decidable entirely at compile time because they constrain a LITERAL.</param>
-    /// <param name="IsInteger">The §5.5 2) integer test, through the ONE classifier
+    /// <param name="IsInteger">The §2023:5.5 2) integer test, through the ONE classifier
     /// (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>).</param>
     /// <param name="Text">The operand as written, for the diagnostics.</param>
-    /// <param name="Present">False for an OMITTED BY phrase — §14.9.28.4 GR12 "For any BY phrase that is
+    /// <param name="Present">False for an OMITTED BY phrase — §2023:14.9.28.4 GR12 "For any BY phrase that is
     /// omitted, the augment value is 1", and the SR4 c) / SR5 c) / SR6 rules all speak of "the literal in the BY
     /// phrase", which an omitted phrase does not have.</param>
     private readonly record struct VaryingOperand(
         VaryingOperandKind Kind, BoundExpr Expr, decimal? Literal, bool IsInteger, string Text, bool Present = true);
 
-    /// <summary>The omitted BY phrase: augment value 1 (§14.9.28.4 GR12), subject to no operand rule.</summary>
+    /// <summary>The omitted BY phrase: augment value 1 (§2023:14.9.28.4 GR12), subject to no operand rule.</summary>
     private static readonly VaryingOperand OmittedBy =
         new(VaryingOperandKind.Literal, new BoundNumLiteral("1"), 1m, true, "1", Present: false);
 
@@ -159,13 +159,13 @@ internal sealed partial class ControlFlowBinder
             return null;
         }
         if (host.Set.SetTargetOf(dref) is not { } var) return null;
-        // §14.9.28.4 GR12: "Item identification for identifier-2, identifier-5, index-name-1, or index-name-3 is done each
+        // §2023:14.9.28.4 GR12: "Item identification for identifier-2, identifier-5, index-name-1, or index-name-3 is done each
         // time the content of the data item referenced by the identifier ... is set or augmented", so ControlFlowEmitter
         // places an object-property induction variable's accessors around each setting and augmenting store, where the
         // UNTIL condition's next evaluation sees the value (kb/Work PB2078: around the whole PERFORM, the condition read
         // the property's old value and the loop never ended).
         if (var is SetPlaceTarget { Place: var claimed }) ctx.Data.Procedure.ClaimInterleavedReceiver(claimed);
-        // §14.9.28.3 SR2 — "Each identifier shall reference a numeric elementary item described in the data
+        // §2023:14.9.28.3 SR2 — "Each identifier shall reference a numeric elementary item described in the data
         // division": the varied identifier is a class-closed position of the ONE operand-class screen. A PIC X
         // induction variable used to compile and throw at run time.
         if (var is SetPlaceTarget { Place: var vp })
@@ -175,27 +175,27 @@ internal sealed partial class ControlFlowBinder
         CheckVaryingOperandRules(dref, var, from, by);
         var untilMark = host.Udf.Mark;
         // The varying-phrase prints `UNTIL condition-1` / `UNTIL condition-2`: an EXIT here is the superset
-        // spelling CheckUntilExitPlacement has already refused under §14.9.28.3 SR8 (COBOL2954), so the level
+        // spelling CheckUntilExitPlacement has already refused under §2023:14.9.28.3 SR8 (COBOL2954), so the level
         // carries a refused condition rather than a loop the program never asked for.
         var cond = until.condition() is { } c
             ? host.Cond.BindCondition(c)
-            : host.Cond.Refused("an UNTIL EXIT in the varying-phrase (ISO §14.9.28.3 SR8)");
+            : host.Cond.Refused("an UNTIL EXIT in the varying-phrase (ISO §2023:14.9.28.3 SR8)");
         return new VaryingLevel(var, from.Expr, by.Expr, host.Udf.UdfAttachPerEvaluation(cond, untilMark), from.Kind);
     }
 
-    /// <summary>Bind ONE operand of the varying phrase and classify it against the brace group §14.9.28.2 prints.
+    /// <summary>Bind ONE operand of the varying phrase and classify it against the brace group §2023:14.9.28.2 prints.
     /// <para>The slot is parsed as <c>valueOperand</c> (a superset of the group) and narrowed HERE, so a shape
     /// the group does not print is named rather than becoming a bare parse error — and so the figurative ZERO
-    /// §8.3.3.6.3 SR1 permits (SR3 restricts every literal here to numeric, which is that rule's precondition)
+    /// §2023:8.3.3.6.3 SR1 permits (SR3 restricts every literal here to numeric, which is that rule's precondition)
     /// reaches the ONE numeric-context literal reading instead of failing to parse at all.</para></summary>
     private VaryingOperand BindVaryingOperand(Core.ValueOperandContext op, VaryingSlot slot)
     {
         var mark = host.Udf.Mark;
-        // §14.9.28.3 SR3 is the rule that closes THIS operand list, so a non-numeric literal is sent to it
-        // rather than to §8.8.1.1 alone. PERFORM VARYING is a §13.18.38.3 r7 index-name window (kb/Work R29) but
-        // not on §13.18.60.3 SR10's index-data-item list, and §14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
+        // §2023:14.9.28.3 SR3 is the rule that closes THIS operand list, so a non-numeric literal is sent to it
+        // rather than to §2023:8.8.1.1 alone. PERFORM VARYING is a §2023:13.18.38.3 r7 index-name window (kb/Work R29) but
+        // not on §2023:13.18.60.3 SR10's index-data-item list, and §2023:14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
         BoundExpr e = host.Expr.BindIndexNameWindowOperandExpr(op,
-            "\"Each literal shall be numeric\" (ISO §14.9.28.3 SR3)");
+            "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)");
         // GR12's window, applied before anything else can read the operand: an operand whose setting/augmenting
         // operation repeats carries its function activations to that operation (kb/Work PB437).
         if (IsPerEvaluationWindow(slot)) e = host.Udf.UdfAttachPerEvaluation(e, mark);
@@ -204,16 +204,16 @@ internal sealed partial class ControlFlowBinder
         string text = WrittenSource.Of(op);
         // ⛔ A SOLE FUNCTION-IDENTIFIER IS AN IDENTIFIER WHATEVER TREE THE BINDER LOWERED IT TO (kb/Work PB4831): FUNCTION LENGTH
         // of a variable-length group binds to a BoundBinary sum, which the tree-shape Classify below can only read as an
-        // arithmetic expression. §8.4.3.1.2 Format 1 makes a function-identifier an identifier (§15.4: it references a temporary
+        // arithmetic expression. §2023:8.4.3.1.2 Format 1 makes a function-identifier an identifier (§2023:15.4: it references a temporary
         // data item), so the WRITTEN shape decides, through the one sole-primary reader every sender position asks
         // (ConditionBinder.SoleFunctionCall, SetSenders.Classify); a PARENTHESIZED function stays an arithmetic expression
-        // (§8.8.1.1) and keeps the Classify verdict.
+        // (§2023:8.8.1.1) and keeps the Classify verdict.
         bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
             && ConditionBinder.SoleFunctionCall(written) is not null;
-        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§8.8.1.1, §8.3.3.3.2 rule 2; kb/Work PB4865):
+        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§2023:8.8.1.1, §2023:8.3.3.3.2 rule 2; kb/Work PB4865):
         // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
         // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal
-        // §14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
+        // §2023:14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
         // (SoleOperand.Primary, which a grouping parenthesis makes compound) or a single numeric literal with its contiguous sign (SoleOperand.NumericLiteral);
         // anything else written is an arithmetic expression.
         // GROUPING-PAREN-ONLY: the primary's own plain paren is the arithmetic grouping one, never the function-argument or subscript twin.
@@ -223,12 +223,12 @@ internal sealed partial class ControlFlowBinder
             : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
-                $"'{text}' is not one of the operands ISO §14.9.28.2's varying-phrase prints in this slot — "
+                $"'{text}' is not one of the operands ISO §2023:14.9.28.2's varying-phrase prints in this slot — "
                 + (slot is VaryingSlot.By
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")
                 + ". An arithmetic expression is not admitted here; compute it into a data item first");
-        // The §5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
+        // The §2023:5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
         // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
         // The per-evaluation carrier (BoundUdfEvaluatedExpr, the GR12 window's function activations) is transparent to the
         // TYPE as Classify makes it transparent to the KIND: the integer test reads the value the carrier wraps (kb/Work PB4865).
@@ -239,13 +239,13 @@ internal sealed partial class ControlFlowBinder
         return new VaryingOperand(kind, e, literal, isInteger, text);
     }
 
-    /// <summary>The bound operand → its §14.9.28.2 brace-group kind, plus a literal's value.
+    /// <summary>The bound operand → its §2023:14.9.28.2 brace-group kind, plus a literal's value.
     /// <para>⛔ IT IS A TOTAL CLASSIFICATION OF THE OPERAND, NOT A LIST OF THE SHAPES SOMEONE HAPPENED TO THINK
-    /// OF. Only the COMPOSITE shapes are Invalid: an identifier is EVERY §8.4.3.1.2 identifier format — a
+    /// OF. Only the COMPOSITE shapes are Invalid: an identifier is EVERY §2023:8.4.3.1.2 identifier format — a
     /// (qualified, subscripted, reference-modified) data reference, a function-identifier, a user-function
     /// result, a special register — so a new reference node is an identifier automatically, which is precisely
     /// what the <c>is BoundNumRef</c> test it replaced could never be (kb/Work PB439). A leading sign is part of
-    /// the numeric literal (§8.3.3.3.2 rule 2), so a negated literal is a literal and a negated identifier is
+    /// the numeric literal (§2023:8.3.3.3.2 rule 2), so a negated literal is a literal and a negated identifier is
     /// not an identifier.</para></summary>
     private static (VaryingOperandKind Kind, decimal? Literal) Classify(BoundExpr e) => e switch
     {
@@ -264,7 +264,7 @@ internal sealed partial class ControlFlowBinder
     private static decimal? ParseLiteral(string text) =>
         decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal d) ? d : null;
 
-    /// <summary>ISO §14.9.28.3 SR4, SR5 and SR6 over one bound level.
+    /// <summary>ISO §2023:14.9.28.3 SR4, SR5 and SR6 over one bound level.
     ///
     /// <para>⛔ SR4 AND SR5 ARE TWO ARMS OF ONE QUESTION — which POSITION holds the index-name. SR4's premise is
     /// "an index-name is specified in the VARYING or AFTER phrase"; SR5's is "an index-name is specified in the
@@ -308,7 +308,7 @@ internal sealed partial class ControlFlowBinder
         if (by is { Present: true, Kind: VaryingOperandKind.Literal })
         {
             // SR6 first — it is unconditional, and where SR4 c) also applies it is the stronger statement of the
-            // same defect. §14.9.28.4 GR12 makes the consequence concrete: the augment value would be 0, so no
+            // same defect. §2023:14.9.28.4 GR12 makes the consequence concrete: the augment value would be 0, so no
             // induction variable ever changes and the UNTIL condition can never become true through the phrase.
             if (by.Literal is 0m)
                 Sr(by.Text, "BY", "SR6", "The literal in the BY phrase shall not be zero");
@@ -321,6 +321,6 @@ internal sealed partial class ControlFlowBinder
 
         void Sr(string operand, string phrase, string rule, string quoted) =>
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandRule,
-                $"the PERFORM VARYING {phrase} operand '{operand}' violates ISO §14.9.28.3 {rule}: \"{quoted}\"");
+                $"the PERFORM VARYING {phrase} operand '{operand}' violates ISO §2023:14.9.28.3 {rule}: \"{quoted}\"");
     }
 }

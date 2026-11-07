@@ -63,9 +63,9 @@ public sealed class OperandStringChannelDriftTests
     // strongly-typed group with a pointer/object leaf needs (kb/Work PB1901); it IS the shared channel, one call deeper.
     [InlineData("BoundFieldOperand", "a field's display image is width- and category-sensitive; the local copy "
         + "would have to re-derive DE-EDITING, the sign convention and the float check", "OperandText.AsTransferString")]
-    [InlineData("BoundFigurative", "§8.3.3.6.4 GR3's PCS-aware materialisation — the arm PB25 added, and the one "
+    [InlineData("BoundFigurative", "§2023:8.3.3.6.4 GR3's PCS-aware materialisation — the arm PB25 added, and the one "
         + "whose absence aborted FUNCTION LOWER-CASE(SPACE) at run time", "OperandText.AsString")]
-    [InlineData("BoundAllLiteral", "§8.3.3.6.4 GR3c — ALL literal-1 is the literal ONCE in a length-unspecified "
+    [InlineData("BoundAllLiteral", "§2023:8.3.3.6.4 GR3c — ALL literal-1 is the literal ONCE in a length-unspecified "
         + "context, which a local copy has previously got wrong", "OperandText.AsString")]
     public void StrArgVisitor_DelegatesTheSharedLeaves_ToOperandTextAsString(string leaf, string why, string channel)
     {
@@ -81,10 +81,10 @@ public sealed class OperandStringChannelDriftTests
 
     /// <summary>
     /// The leaves the two channels are meant to answer DIFFERENTLY, asserted so nobody "fixes" them into
-    /// agreement. <c>BoundBoolOperand</c> — a boolean EXPRESSION argument, §8.4.3.2.3 SR8 (kb/Work PB65) — images
+    /// agreement. <c>BoundBoolOperand</c> — a boolean EXPRESSION argument, §2023:8.4.3.2.3 SR8 (kb/Work PB65) — images
     /// through the ONE <c>BooleanRenderer</c>, never a local re-derivation and never a loud stage (it was a stage
     /// before the grammar admitted the argument). <c>BoundNumericLiteral</c> is ADMITTED
-    /// PER-FUNCTION since PB59 (§15.12.3 r1 / §15.18.3 r1 admit numeric literals): the arm must stay
+    /// PER-FUNCTION since PB59 (§2023:15.12.3 r1 / §2023:15.18.3 r1 admit numeric literals): the arm must stay
     /// CONDITIONAL — <c>admitNumeric</c> selecting the shared OperandText image, <c>Loud</c> as the DEFAULT —
     /// because NUMVAL/NUMVAL-F carry open rows (AR-15.67.3-1 / AR-15.69.3-1) demanding a compile-time
     /// rejection; an unconditional delegation would turn their wrong-stage defect into a silently-wrong one.
@@ -102,7 +102,7 @@ public sealed class OperandStringChannelDriftTests
             "Visit(BoundNumericLiteral) must stay the CONDITIONAL PB59 shape — admitNumeric selecting the "
             + "shared OperandText image with Loud as the default. Unconditionally Loud re-opens "
             + "RV-15.12.4-1/RV-15.18.4-1 (legal literals abort at run time); unconditionally delegating "
-            + "silently admits a numeric literal where §15.67.3/§15.69.3 exclude it.");
+            + "silently admits a numeric literal where §2023:15.67.3/§2023:15.69.3 exclude it.");
         Assert.True(rhs.Contains("OperandText.AsString", StringComparison.Ordinal),
             "the admitting branch must delegate to the ONE OperandText.AsString image (PB25's rule: never a "
             + "local re-derivation of the literal image)");
@@ -111,7 +111,7 @@ public sealed class OperandStringChannelDriftTests
         Assert.True(bol.Success, "StrArgVisitor lost its Visit(BoundBoolOperand) arm");
         Assert.True(bol.Groups["rhs"].Value.Contains("BooleanRenderer.Render", StringComparison.Ordinal),
             "Visit(BoundBoolOperand) must image a boolean-expression argument through the ONE BooleanRenderer "
-            + "(§8.4.3.2.3 SR8 admits a boolean expression as an argument — kb/Work PB65); a loud stage here "
+            + "(§2023:8.4.3.2.3 SR8 admits a boolean expression as an argument — kb/Work PB65); a loud stage here "
             + "re-opens FMT-15.45.2, a local '0'/'1' derivation is a second boolean renderer.");
     }
 
@@ -138,7 +138,7 @@ public sealed class OperandStringChannelDriftTests
             .Where(fn => fn is not null).Distinct().Order().ToList();
         Assert.True(callers.SequenceEqual(new[] { "BaseConvert", "Concat" }),
             $"the numeric-admitting string entry is reached from [{string.Join(", ", callers)}] — expected "
-            + "exactly [BaseConvert, Concat] (§15.12.3 r1's unsigned-integer-literal argument-1; §15.18.3 r1's "
+            + "exactly [BaseConvert, Concat] (§2023:15.12.3 r1's unsigned-integer-literal argument-1; §2023:15.18.3 r1's "
             + "class-numeric list). If a new function legitimately admits numeric literals, add it here WITH "
             + "the §15.x.3 rule that says so.");
     }
@@ -166,13 +166,13 @@ public sealed class OperandStringChannelDriftTests
         // Every leaf is DELEGATED (the shared rule), DIVERGENT BY DESIGN, or ADMITTED PER-FUNCTION (PB59 —
         // the conditional arm the pin test above owns). A leaf in no bucket is one nobody has decided about,
         // which is how PB25 shipped.
-        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §14.9.30.4 GR4 b) current
-        // record — the record area sliced to the §13.18.43.4 GR16 byte count — written down once in
+        // BoundCurrentRecord (kb/Work PB339) is DELEGATED: its image is the ISO §2023:14.9.30.4 GR4 b) current
+        // record — the record area sliced to the §2023:13.18.43.4 GR16 byte count — written down once in
         // OperandText.CurrentRecordImage, so the intrinsic-argument channel forwards rather than going loud.
         // No intrinsic argument can BE one today (it is built only for a READ/RETURN INTO implicit MOVE), and
         // a loud arm for an unreachable-but-imageable operand is precisely PB25's wrong-stage failure.
         // BoundPredefinedNull (kb/Work PB1427) is DELEGATED to the one rule, which THROWS: the predefined NULL is
-        // bound only in a §8.4.3.10.3 SR1 context and no intrinsic argument is one (COBOL2576 refuses it first).
+        // bound only in a §2023:8.4.3.10.3 SR1 context and no intrinsic argument is one (COBOL2576 refuses it first).
         string[] delegated = ["BoundFieldOperand", "BoundFigurative", "BoundAllLiteral", "BoundCurrentRecord",
                               "BoundPredefinedNull"];
         // BoundAddressOperand (kb/Work PB1021) is class pointer: neither channel can image it, and both answer LOUD.

@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §8.1.2 1) (every character of the alphanumeric coded character set occupies the same number of
-      *> bytes), §13.18.44.4 GR1 (a REDEFINES entry shares ONE storage area) and §13.18.60.4 GR7 (USAGE DISPLAY: one
+      *> ISO/IEC 1989:2023 §2023:8.1.2 1) (every character of the alphanumeric coded character set occupies the same number of
+      *> bytes), §2023:13.18.44.4 GR1 (a REDEFINES entry shares ONE storage area) and §2023:13.18.60.4 GR7 (USAGE DISPLAY: one
       *> byte per position, DOC-A.1-209): the binary item B and the bit item BITS below read the storage image of the
       *> alphanumeric item A.
       *>

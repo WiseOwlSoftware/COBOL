@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// separate category.
 /// <para><b>⛔ THE INVARIANT THIS CLASS USED TO ASSERT IS FALSE, AND THE FALSE ONE COST A SILENT BUG.</b> It
 /// read "Every reserved word and context-sensitive word is a literal lexer token", and the whole map was built
-/// from <see cref="Antlr4.Runtime.IVocabulary.GetLiteralName"/> alone. Measured against ISO §8.9 ∪ §8.10 (552
+/// from <see cref="Antlr4.Runtime.IVocabulary.GetLiteralName"/> alone. Measured against ISO §2023:8.9 ∪ §2023:8.10 (552
 /// words), that walk reached 447: <b>17 words are lexed as a keyword token yet have no literal NAME</b>, because
 /// ANTLR publishes a literal name only for a token defined by exactly ONE literal — a multi-spelling rule
 /// (<c>PIC : 'PICTURE' | 'PIC'</c>; until kb/Work PB510 also <c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c> and the

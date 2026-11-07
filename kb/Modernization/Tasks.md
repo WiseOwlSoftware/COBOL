@@ -31,7 +31,7 @@ STATE** is the single-write live-state SSOT; every session reads §0 first and u
   proceeds on branch `phase-14`. **P14 Step 0 = the FOUR-EDITION SPEC-TRACEABILITY INVENTORY** — the **D13 "definition
   of DONE"** instrument: every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP,
   driven to **zero-GAP**. A parallel lane runs the D17 OO mandatory-surface opening wave.
-- **Future:** **P15 = v1.0** — G8 legacy retirement (three cuts + "CUT 2.5" D10 SUBSCRIPT-mode removal) + §4.2.16
+- **Future:** **P15 = v1.0** — G8 legacy retirement (three cuts + "CUT 2.5" D10 SUBSCRIPT-mode removal) + §2023:4.2.16
   conformance docs + runtime namespace flip. **P16 = v2** — the CIL/Cecil backend, explicitly off the conformance
   critical path.
 

@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY DATA ITEM A FILE'S OWN CLAUSES NAME IS ON ONE LIST, <see cref="FileModel.ClauseOperandItems"/>, SO A PROGRAM
 /// CONTAINED IN THE ONE THAT DESCRIBES A GLOBAL FILE CAN REACH IT (kb/Work PB4454). The contained program's I-O statements
 /// read the file's RELATIVE KEY, ASSIGN USING, RECORD VARYING DEPENDING ON, FILE STATUS and LINAGE items, which are the
-/// container's local items that ISO §13.18.27.4 GR2 does not let it name and §8.4.5 resolves in the container. The binder
+/// container's local items that ISO §2023:13.18.27.4 GR2 does not let it name and §2023:8.4.5 resolves in the container. The binder
 /// bridges and places the roots on that list (<c>DataBinder.GlobalFileOperandRoots</c>); a data-item operand added to
 /// <see cref="FileModel"/> and left off the list would stop the compilation of a contained program, with the
 /// <see cref="InvalidOperationException"/> of an item the place table never saw.
 /// <para>So every <see cref="DataItem"/> property of <see cref="FileModel"/> is either read by the list or named here as
-/// resident in the file's record area (the records are the file's GLOBAL names, §13.18.27.4 GR1). A property in neither
+/// resident in the file's record area (the records are the file's GLOBAL names, §2023:13.18.27.4 GR1). A property in neither
 /// is a red test, not a silently unreachable operand.</para>
 /// </summary>
 [Trait("Sweep", "tree")]

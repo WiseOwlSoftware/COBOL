@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.46.4 GR4/GR6 — multi-name TERMINATE order; no CLOSE
-      *> General format §14.9.46.2: TERMINATE { report-name-1 } ...
-      *>   cite.py: OK  §14.9.46.2   (General format)
+      *> ISO §2023:14.9.46.4 GR4/GR6 — multi-name TERMINATE order; no CLOSE
+      *> General format §2023:14.9.46.2: TERMINATE { report-name-1 } ...
+      *>   cite.py: OK  §2023:14.9.46.2   (General format)
       *> GR4 sentence 1: "The result of executing a TERMINATE statement
       *> in which more than one report-name-1 is specified is as though
       *> a separate TERMINATE statement had been executed for each
       *> report-name-1 in the same order as specified in the statement."
-      *>   cite.py: OK  §14.9.46.4 4)  (General rules)
+      *>   cite.py: OK  §2023:14.9.46.4 4)  (General rules)
       *> GR6: "The TERMINATE statement does not close the file
       *> associated with report-name-1."
-      *>   cite.py: OK  §14.9.46.4 6)  (General rules)
-      *> Supporting: §14.9.46.4 GR3 c) "The report footing is printed,
-      *> if defined." (cite.py: OK  §14.9.46.4 3) c)) - each report
-      *> had a GENERATE, so each TERMINATE prints its RF; §14.9.49.4
+      *>   cite.py: OK  §2023:14.9.46.4 6)  (General rules)
+      *> Supporting: §2023:14.9.46.4 GR3 c) "The report footing is printed,
+      *> if defined." (cite.py: OK  §2023:14.9.46.4 3) c)) - each report
+      *> had a GENERATE, so each TERMINATE prints its RF; §2023:14.9.49.4
       *> GR8 "The declarative is invoked just before the named report
-      *> group is produced" (cite.py: OK  §14.9.49.4 8)) - the USE
+      *> group is produced" (cite.py: OK  §2023:14.9.49.4 8)) - the USE
       *> BEFORE REPORTING declaratives make each RF's production order
       *> visible on DISPLAY.
       *> DERIVATION. R-A is declared first, R-B second; the statement

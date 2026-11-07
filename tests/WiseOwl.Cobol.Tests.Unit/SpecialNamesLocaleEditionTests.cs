@@ -9,14 +9,14 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The edition gate on the §12.3.7 SPECIAL-NAMES <c>LOCALE</c> clause (fix-queue PB25).
+/// The edition gate on the §2023:12.3.7 SPECIAL-NAMES <c>LOCALE</c> clause (fix-queue PB25).
 ///
-/// <para>The clause is an <b>§A.4.9 item 10</b> optional-locale element, so at 2002+ it must PARSE and be
+/// <para>The clause is an <b>§2023:A.4.9 item 10</b> optional-locale element, so at 2002+ it must PARSE and be
 /// DIAGNOSED as documented non-support (COBOL1518) rather than fail as a parse error — non-support is
-/// conformant per §4.2.7 / §A.4.1 only when it is diagnosed.</para>
+/// conformant per §2023:4.2.7 / §2023:A.4.1 only when it is diagnosed.</para>
 ///
 /// <para>⛔ WHY THE GATE IS LOAD-BEARING, AND WHY IT IS TESTED. <b>LOCALE is reserved only from 2002</b>
-/// (§8.9; <c>reserved-words.json</c> r85 = false, r2002/r2014/r2023 = true). At COBOL-85 it is an ordinary
+/// (§2023:8.9; <c>reserved-words.json</c> r85 = false, r2002/r2014/r2023 = true). At COBOL-85 it is an ordinary
 /// user-defined word, so <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a perfectly legal implementor-switch entry
 /// there and must keep parsing as one. A predicate that fired at every edition would turn legal 85 source into a
 /// documented-non-support error — the exact class of breakage <c>edition_gate_sweep</c> exists for.</para>
@@ -50,7 +50,7 @@ public sealed class SpecialNamesLocaleEditionTests
     {
         var diags = Parse("    LOCALE FR IS \"fr_FR\".\n", edition);
         Assert.False(diags.HasErrors,
-            "the SPECIAL-NAMES LOCALE clause must PARSE at 2002+ so it can be diagnosed as §A.4.9 documented "
+            "the SPECIAL-NAMES LOCALE clause must PARSE at 2002+ so it can be diagnosed as §2023:A.4.9 documented "
             + "non-support; a parse error is an unexplained rejection. Got: "
             + string.Join(" | ", diags.Diagnostics.Select(d => d.ToString())));
     }
@@ -62,7 +62,7 @@ public sealed class SpecialNamesLocaleEditionTests
     {
         var diags = Parse("    LOCALE IS FOO.\n", 85);
         Assert.False(diags.HasErrors,
-            "`SPECIAL-NAMES. LOCALE IS FOO.` is legal COBOL-85 (LOCALE is not reserved until 2002, §8.9) and must "
+            "`SPECIAL-NAMES. LOCALE IS FOO.` is legal COBOL-85 (LOCALE is not reserved until 2002, §2023:8.9) and must "
             + "still parse as an implementor-switch entry. Got: "
             + string.Join(" | ", diags.Diagnostics.Select(d => d.ToString())));
     }
@@ -75,11 +75,11 @@ public sealed class SpecialNamesLocaleEditionTests
     {
         var diags = Parse("    LOCALE IS FOO.\n", 2023);
         Assert.False(diags.HasErrors,
-            "`LOCALE IS FOO` has no locale-name, so it is not the §12.3.7 LOCALE clause and must fall through to "
+            "`LOCALE IS FOO` has no locale-name, so it is not the §2023:12.3.7 LOCALE clause and must fall through to "
             + "implementorSwitchEntry. Got: " + string.Join(" | ", diags.Diagnostics.Select(d => d.ToString())));
     }
 
-    /// <summary>The FULL pipeline's diagnostics — the parse-only harness above cannot see the §8.9 funnel, which
+    /// <summary>The FULL pipeline's diagnostics — the parse-only harness above cannot see the §2023:8.9 funnel, which
     /// runs in the VersionConformancePass after bind.</summary>
     private static IReadOnlyList<string> CompileErrors(string specialNames)
     {
@@ -102,7 +102,7 @@ public sealed class SpecialNamesLocaleEditionTests
 
     /// <summary>
     /// ⛔ THE CLAUSE'S OWN KEYWORD IS NOT A USER-DEFINED WORD (fix-queue PB27). <c>LOCALE</c> is not a lexer
-    /// token, so §12.3.7's <c>localeClause</c> matches the clause KEYWORD through <c>cobolWord</c> — and the §8.9
+    /// token, so §2023:12.3.7's <c>localeClause</c> matches the clause KEYWORD through <c>cobolWord</c> — and the §2023:8.9
     /// funnel was reading it as a user-defined word, printing <i>"'LOCALE' is a reserved word … and cannot be
     /// used as a user-defined word"</i> beside the correct COBOL1518 about a program that uses it as no such
     /// thing. A true diagnostic and a false one, together.
@@ -121,7 +121,7 @@ public sealed class SpecialNamesLocaleEditionTests
     }
 
     /// <summary>⛔ THE FAILING DIRECTION, which is what makes the exemption position-EXACT rather than a blanket
-    /// over the clause. Slot [1] is locale-name-1 — a genuine user-defined word — so a §8.9-reserved word there
+    /// over the clause. Slot [1] is locale-name-1 — a genuine user-defined word — so a §2023:8.9-reserved word there
     /// is still a violation. <c>LOCALE</c> itself is the probe: it is reserved at 2002+ AND lexes as an
     /// identifier, so it reaches the funnel (a token-lexed reserved word like MOVE dies in the parser and never
     /// tests this at all — the first probe of this did exactly that).</summary>

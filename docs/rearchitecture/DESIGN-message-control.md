@@ -3,9 +3,9 @@
 Status: APPROVED by the owner 2026-11-04 (kb/Work PB4700; the decision to implement the facility is PB4117's; §0's nine
 questions are decided as recommended). It becomes IMPLEMENTED when the slices of §9 (kb/Work PB4739-PB4745) land.
 
-WiseOwl COBOL implements the asynchronous messaging facility: SEND (§14.9.38), RECEIVE (§14.9.31), USAGE MESSAGE-TAG
-(§13.18.60), the message-tag class and its NULL, comparison, SET, INITIALIZE and BY VALUE, the implicit SEND at run-unit
-end (§14.6.11, §14.6.12) and the EC-MCS exception conditions (§14.6.13.1.6 Table 13). Its message control system (MCS)
+WiseOwl COBOL implements the asynchronous messaging facility: SEND (§2023:14.9.38), RECEIVE (§2023:14.9.31), USAGE MESSAGE-TAG
+(§2023:13.18.60), the message-tag class and its NULL, comparison, SET, INITIALIZE and BY VALUE, the implicit SEND at run-unit
+end (§2023:14.6.11, §2023:14.6.12) and the EC-MCS exception conditions (§2023:14.6.13.1.6 Table 13). Its message control system (MCS)
 is a peer transport: run units talk directly over AF_UNIX stream sockets, hold every message in memory, and learn of a
 partner's death when its connection closes (§5). The communication facility of COBOL-85 and 2002 (kb/Work PB4677,
 `DESIGN-communication-facility.md`) has its own transport, a paged store with a wake-up bell. The two facilities share
@@ -31,13 +31,13 @@ else), no GnuCOBOL tracker ticket in the local cache decides any of them, and no
 source for the 2023 facility was available to read, so their behavior is unknown and none is claimed. Each question
 carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` determination.
 
-1. **SET Format 17's direction.** The printed format is `SET data-name-4 TO { data-name-5 | NULL }`, but §14.9.39.4 GR40
+1. **SET Format 17's direction.** The printed format is `SET data-name-4 TO { data-name-5 | NULL }`, but §2023:14.9.39.4 GR40
    reads "If data-name-5 is specified, the content of data-name-4 is moved to data-name-5" and GR41 "If NULL is
    specified, the content of data-name-5 shall be set to that of the null value". GR41 names an operand that is not
    written when NULL is. **Recommend:** data-name-4 is the receiver in both rules, as the format, every other SET format
-   and §14.9.39.1 ("setting the content of a message-tag data item to NULL or another message-tag") say; record it as a
+   and §2023:14.9.39.1 ("setting the content of a message-tag data item to NULL or another message-tag") say; record it as a
    defect in the printed standard (kb/Work PB453 owes this decision).
-2. **The other printed defects of SEND, and Table 13's attributions.** §14.9.38.4 GR4 says "The message contains the
+2. **The other printed defects of SEND, and Table 13's attributions.** §2023:14.9.38.4 GR4 says "The message contains the
    content of data-name-1 as well as any additional implementor-defined data", but data-name-1 is the RETURNING message
    tag; GR1 ends "the execution of the RECEIVE statement is unsuccessful" in the SEND statement; GR7 raises "the
    EC-MCS-NO-RECEIVER exception condition", a name Table 13 does not list. Table 13 also describes EC-MCS-INVALID-TAG as
@@ -45,7 +45,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    RECEIVE rule the second. **Recommend:** the message is identifier-1's content; GR1 makes the SEND unsuccessful; GR7
    raises EC-MCS-NO-REQUESTER, the Table 13 name for a missing requestor (the D-MCS-NR determination, extended), and no new
    exception-name is invented. Table 13's other attributions are placed, not set aside: a SEND Format 2 tag that "is not
-   a correct format for the MCS" (a tag of another MCS directory) is EC-MCS-INVALID-TAG, the test §14.9.31.4 GR1 b) makes
+   a correct format for the MCS" (a tag of another MCS directory) is EC-MCS-INVALID-TAG, the test §2023:14.9.31.4 GR1 b) makes
    of the same operand, and a RECEIVE FROM NULL in a run unit that serves no name, which no requestor can address, is
    EC-MCS-NO-REQUESTER at once (§2.4). The alternative, EC-MCS-NO-REQUESTER for every bad SEND tag as GR7 alone reads,
    leaves both attributions unused. The CD corrects only GR1: its 14.9.41.4 GR2 reads "the execution of the SEND
@@ -73,7 +73,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    provided names, so an MCS failure with checking on and no ON EXCEPTION phrase, WHEN phrase or declarative ends the run
    unit abnormally. The alternative, nonfatal as GnuCOBOL has it, makes EC-MCS-IMP the one exception to that rule. Either
    answer rewrites DOC-A.1-100 (§3).
-5. **`CONTINUE AFTER MESSAGE RECEIVED`, and a negative interval.** §14.9.31.4 GR2 completes the statement "when the
+5. **`CONTINUE AFTER MESSAGE RECEIVED`, and a negative interval.** §2023:14.9.31.4 GR2 completes the statement "when the
    message or an exception is returned from the MCS or when the CONTINUE parameters are completed" and gives MESSAGE
    RECEIVED no other meaning. Two readings: (a) the parameters are complete as soon as the MCS reports that no message is
    waiting, so the phrase makes RECEIVE a poll; (b) they are complete when a message is received, which is what RECEIVE
@@ -82,26 +82,26 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    makes the phrase a second spelling of its own absence. Under (a) a waiting message is received; otherwise identifier-1
    is spaces and the statement is successful. `arithmetic-expression-1 SECONDS` waits at most that long, evaluated once
    by the CONTINUE statement's rule (`CobolTiming`: whole seconds, at most `CobolTiming.MaxSeconds`). A negative value is
-   zero, a poll, and EC-CONTINUE-LESS-THAN-ZERO is set to exist when its checking is enabled, as §14.9.9.4 GR1 b) does for
+   zero, a poll, and EC-CONTINUE-LESS-THAN-ZERO is set to exist when its checking is enabled, as §2023:14.9.9.4 GR1 b) does for
    the CONTINUE statement ("If checking for FC-CONTINUE-LESS-THAN-ZERO is enabled, the EC-CONTINUE-LESS-THAN-ZERO
    exception condition is set to exist"); it is nonfatal and leaves the RECEIVE successful. The alternative sets no
    condition, since GR2 does not invoke the CONTINUE statement's rules.
-6. **An exception sent to the requestor.** §14.9.38.4 GR8 sends exception-name-1 "to the requestor program", and
-   the implicit SEND of §14.6.11 and §14.6.12 sends EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION; no rule says
+6. **An exception sent to the requestor.** §2023:14.9.38.4 GR8 sends exception-name-1 "to the requestor program", and
+   the implicit SEND of §2023:14.6.11 and §2023:14.6.12 sends EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION; no rule says
    what the requestor's RECEIVE does with it. **Recommend:** the requestor's RECEIVE moves the reply into identifier-1
    and its length into data-name-2, then is unsuccessful with that exception condition, set to exist when the requestor's
    checking for it is enabled at the RECEIVE (a level-3 name of any family, tested by name at run time, §4.5, at its own
-   Table 13 fatality). §14.9.38.3 has no level-3 rule, where GOBACK has one ("Exception-name-1 shall be a level-3
-   exception-name", §14.9.18.3 SR2), so `RAISING EXCEPTION EC-SIZE` is legal; the requestor's RECEIVE is then unsuccessful
+   Table 13 fatality). §2023:14.9.38.3 has no level-3 rule, where GOBACK has one ("Exception-name-1 shall be a level-3
+   exception-name", §2023:14.9.18.3 SR2), so `RAISING EXCEPTION EC-SIZE` is legal; the requestor's RECEIVE is then unsuccessful
    and sets no condition, because "Only the lowest level exception-names are associated with exception status
-   indicators" (§14.6.13.1.1).
-7. **A message longer than identifier-1.** §14.9.31.4 GR3 makes the RECEIVE unsuccessful with EC-MCS-MESSAGE-LENGTH and
+   indicators" (§2023:14.6.13.1.1).
+7. **A message longer than identifier-1.** §2023:14.9.31.4 GR3 makes the RECEIVE unsuccessful with EC-MCS-MESSAGE-LENGTH and
    says nothing of the message. **Recommend:** the message is taken (it does not stay queued, where the next RECEIVE FROM
    NULL would loop on it), identifier-1 receives its first positions, data-name-2 is unchanged, data-name-1 identifies
-   the sender, and on the server side the message is active, so the server can answer it, as the NOTE under §14.9.38.4
+   the sender, and on the server side the message is active, so the server can answer it, as the NOTE under §2023:14.9.38.4
    GR1 expects ("The message server will determine if the size of the message sent differs from the size of the message
    expected and will return the appropriate exception condition").
-8. **Unsuccessful execution when checking is off.** §14.6.13.1.1 NOTE 3: "An exception condition is set to exist only if
+8. **Unsuccessful execution when checking is off.** §2023:14.6.13.1.1 NOTE 3: "An exception condition is set to exist only if
    checking for that condition is enabled by default or by the TURN compiler directive", and otherwise "the results of
    the operation are undefined". **Recommend:** whether a SEND or RECEIVE is successful never depends on checking; the
    ON EXCEPTION or NOT ON EXCEPTION phrase is chosen by the outcome, and the condition is set to exist (for
@@ -144,7 +144,7 @@ of different machines do not (§5.1).
 
 | Rule | Text (cite.py OK) | Design |
 |---|---|---|
-| §14.9.38.2 | Format 1 `SEND [TO] {literal-1 \| message-server-name-1} FROM identifier-1 RETURNING data-name-1 [ON EXCEPTION] [NOT ON EXCEPTION] END-SEND`; Format 2 `SEND [TO] data-name-2 FROM identifier-1 [RAISING {EXCEPTION exception-name-1 \| LAST [EXCEPTION]}] ... END-SEND` | RETURNING and END-SEND are required (unbracketed, PDF page 756); TO and the second EXCEPTION are optional words. The binder assigns the format once (§4.3). |
+| §2023:14.9.38.2 | Format 1 `SEND [TO] {literal-1 \| message-server-name-1} FROM identifier-1 RETURNING data-name-1 [ON EXCEPTION] [NOT ON EXCEPTION] END-SEND`; Format 2 `SEND [TO] data-name-2 FROM identifier-1 [RAISING {EXCEPTION exception-name-1 \| LAST [EXCEPTION]}] ... END-SEND` | RETURNING and END-SEND are required (unbracketed, PDF page 756); TO and the second EXCEPTION are optional words. The binder assigns the format once (§4.3). |
 | SR1 | "Literal-1 shall be an alphanumeric or national literal" | screened; a numeric or boolean literal is refused |
 | SR2 | "Message-server-name-1 is the name of a message server run unit" | a bare word, never resolved as a data name (§3, Q3) |
 | SR3 | identifier-1 and its subordinates contain no ANY LENGTH, BASED, DYNAMIC-LENGTH, OBJECT-REFERENCE, external-ODO, POINTER, FUNCTION-POINTER or PROGRAM-POINTER clause | one screen with RECEIVE SR2 (§4.3) |
@@ -161,7 +161,7 @@ of different machines do not (§5.1).
 
 | Rule | Text (cite.py OK) | Design |
 |---|---|---|
-| §14.9.31.2 | `RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 [CONTINUE [AFTER] {arithmetic-expression-1 [SECONDS] \| MESSAGE RECEIVED}] [ON EXCEPTION] [NOT ON EXCEPTION] [END-RECEIVE]` | as parsed today; the word after MESSAGE must be RECEIVED (§4.1) |
+| §2023:14.9.31.2 | `RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 [CONTINUE [AFTER] {arithmetic-expression-1 [SECONDS] \| MESSAGE RECEIVED}] [ON EXCEPTION] [NOT ON EXCEPTION] [END-RECEIVE]` | as parsed today; the word after MESSAGE must be RECEIVED (§4.1) |
 | SR1 | "Data-name-1 shall be the name of a message-tag data item" | screened |
 | SR2 | identifier-1 as SEND SR3, plus "the CONSTANT RECORD clause" | the same screen, with the CONSTANT RECORD arm (a RECEIVE writes identifier-1) |
 | SR3 | "Data-name-2 shall be an integer data item of the class numeric" | screened |
@@ -176,38 +176,38 @@ of different machines do not (§5.1).
 
 | Rule | Text (cite.py OK) | Design |
 |---|---|---|
-| §8.5.2.9 | "An elementary data item explicitly described as usage message-tag item" | `PicCategory.MessageTag` (§4.2) |
-| §13.18.60.4 GR9 | "The class and category of a message-tag data item are message-tag"; the implementor specifies the alignment, representation and "the number of bytes contained in the data item" | the slot rule (§4.2); DOC-A.1-212 |
-| §13.18.60.3 SR4, SR14, SR21 | not in a CONSTANT RECORD; "may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG phrase"; "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry" | SR4 and SR14 are screened today through `ItemCategory.Sr4PhraseOf` and `Sr14PhraseOf`, whose MESSAGE-TAG arms exist; SR21 is COBOL2158 (`MessageTagUsageExclusive`, `DataBinder`) and stays |
-| §8.4.3.10.1; §8.4.3.10.3 SR1 b); §8.4.3.10.4 GR4 | "NULL is a predefined address of class pointer or a predefined content of class message-tag"; "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"; "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor" | `MessageTag.Null` (§4.2) |
-| §8.8.4.2.1 item 9, §8.8.4.2.3 SR5 | "Two operands of class message-tag"; "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category" | relation Format 3 gains the message-tag arm |
-| §8.8.4.2.3 SR4; §8.8.4.2.12 | "Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality"; "each elementary item of the first operand is compared with the corresponding elementary item of the second operand" | `StatementValidation.ContainsNonOrderableLeaf` sees `CobolClass.MessageTag` (COBOL1535); `StrongGroupComparison` lowers a message-tag leaf pair to the Format 3 relation, so two groups whose tags name different parties compare unequal |
-| §8.8.4.2.14 | "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL" | `MessageTag.SameParty`: two server tags of one server name, two requestor tags of one requestor run unit, two NULLs. A tag's message number does not take part. |
-| §14.9.39 Format 17 | SR35 "Data-name-4 and data-name-5 shall be message-tag data items"; GR40, GR41 | Q1 |
-| FMT-14.9.20.2; §14.9.20.3 SR1, SR3, SR4; §14.9.20.4 GR4, GR5, GR6 | the MESSAGE-TAG category-name; SR3 "For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be specified"; SR4 "a SET statement with identifier-2 as the sending operand and an item of the specified category as the receiving operand shall be valid"; GR5 c) 1. a. "Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer"; GR6 "Message-tag \| Predefined content NULL" | `InitializeBinder` binds each form through its existing arms: VALUE and the default to `InitializeSetNull`, `REPLACING MESSAGE-TAG DATA BY tag2` to `InitializeSetFrom` after `SetBinder.ScreenImplicitSet`, SR3 and SR4 through COBOL1982 and COBOL1983. `InitializeEmitter` writes both through `PlaceRenderer`, so the emitter needs no arm; the "no elementary item can reach this test" remark on `QualifiesCategorically` goes. Witnessed in §7.1 |
-| §13.18.63.4 GR4 | "data items of class message-tag, class object, and class pointer are initialized to null" | the field's default is `MessageTag.Null` |
-| §14.2.2 SR2; §14.9.23.3 SR15; §14.9.4.3 SR22 | "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer"; INVOKE: "identifier-5 shall be of class message-tag, numeric, object or pointer"; CALL: "identifier-4 shall be of class numeric, object, or pointer" | a BY VALUE formal and an INVOKE BY VALUE argument copy the struct; a CALL BY VALUE message-tag argument is refused by `CallBinder`'s SR22 screen once `CobolClass.MessageTag` exists (§4.2); BY REFERENCE passes the slot |
-| §14.8.2.3.2 | "If neither the formal parameter nor the argument is of class message-tag, object, or pointer, the conformance rules are the following"; the pointer rule "shall be of class pointer and the corresponding items shall be of the same category" | message-tag is named only to exclude it from the length rules, so the pointer rule is applied to it: a message-tag argument for a formal of another class, or the reverse, is refused where a prototype makes it checkable and is EC-PROGRAM-ARG-MISMATCH at run time otherwise. An implementor choice, D-MCS-ARG (§3) |
-| §14.9.25.4 | group moves are byte moves "except as may be required by an implementation for subordinate items of class message-tag, object, or pointer" | a message tag rides the managed slot of its strongly-typed group (`Place.SlotWindow`), as a function-pointer does |
+| §2023:8.5.2.9 | "An elementary data item explicitly described as usage message-tag item" | `PicCategory.MessageTag` (§4.2) |
+| §2023:13.18.60.4 GR9 | "The class and category of a message-tag data item are message-tag"; the implementor specifies the alignment, representation and "the number of bytes contained in the data item" | the slot rule (§4.2); DOC-A.1-212 |
+| §2023:13.18.60.3 SR4, SR14, SR21 | not in a CONSTANT RECORD; "may be specified only for an elementary data item at level 1 or an elementary data item subordinate to a type declaration that includes the STRONG phrase"; "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry" | SR4 and SR14 are screened today through `ItemCategory.Sr4PhraseOf` and `Sr14PhraseOf`, whose MESSAGE-TAG arms exist; SR21 is COBOL2158 (`MessageTagUsageExclusive`, `DataBinder`) and stays |
+| §2023:8.4.3.10.1; §2023:8.4.3.10.3 SR1 b); §2023:8.4.3.10.4 GR4 | "NULL is a predefined address of class pointer or a predefined content of class message-tag"; "it may be used only as a sending operand in an INITIALIZE or a SET statement or in a message-tag relation condition"; "The null content is an implementor-defined value that is guaranteed not to represent a message server or message requestor" | `MessageTag.Null` (§4.2) |
+| §2023:8.8.4.2.1 item 9, §2023:8.8.4.2.3 SR5 | "Two operands of class message-tag"; "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category" | relation Format 3 gains the message-tag arm |
+| §2023:8.8.4.2.3 SR4; §2023:8.8.4.2.12 | "Strongly-typed group items that contain elementary items of class boolean, message-tag, object, or pointer, may be compared only for equality or inequality"; "each elementary item of the first operand is compared with the corresponding elementary item of the second operand" | `StatementValidation.ContainsNonOrderableLeaf` sees `CobolClass.MessageTag` (COBOL1535); `StrongGroupComparison` lowers a message-tag leaf pair to the Format 3 relation, so two groups whose tags name different parties compare unequal |
+| §2023:8.8.4.2.14 | "The operands are equal if they reference the same message requestor or message server of the same name or one is NULL and the other is NULL" | `MessageTag.SameParty`: two server tags of one server name, two requestor tags of one requestor run unit, two NULLs. A tag's message number does not take part. |
+| §2023:14.9.39 Format 17 | SR35 "Data-name-4 and data-name-5 shall be message-tag data items"; GR40, GR41 | Q1 |
+| FMT-14.9.20.2; §2023:14.9.20.3 SR1, SR3, SR4; §2023:14.9.20.4 GR4, GR5, GR6 | the MESSAGE-TAG category-name; SR3 "For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be specified"; SR4 "a SET statement with identifier-2 as the sending operand and an item of the specified category as the receiving operand shall be valid"; GR5 c) 1. a. "Either the category of the elementary data item is data-pointer, message-tag, object-reference, or program-pointer"; GR6 "Message-tag \| Predefined content NULL" | `InitializeBinder` binds each form through its existing arms: VALUE and the default to `InitializeSetNull`, `REPLACING MESSAGE-TAG DATA BY tag2` to `InitializeSetFrom` after `SetBinder.ScreenImplicitSet`, SR3 and SR4 through COBOL1982 and COBOL1983. `InitializeEmitter` writes both through `PlaceRenderer`, so the emitter needs no arm; the "no elementary item can reach this test" remark on `QualifiesCategorically` goes. Witnessed in §7.1 |
+| §2023:13.18.63.4 GR4 | "data items of class message-tag, class object, and class pointer are initialized to null" | the field's default is `MessageTag.Null` |
+| §2023:14.2.2 SR2; §2023:14.9.23.3 SR15; §2023:14.9.4.3 SR22 | "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer"; INVOKE: "identifier-5 shall be of class message-tag, numeric, object or pointer"; CALL: "identifier-4 shall be of class numeric, object, or pointer" | a BY VALUE formal and an INVOKE BY VALUE argument copy the struct; a CALL BY VALUE message-tag argument is refused by `CallBinder`'s SR22 screen once `CobolClass.MessageTag` exists (§4.2); BY REFERENCE passes the slot |
+| §2023:14.8.2.3.2 | "If neither the formal parameter nor the argument is of class message-tag, object, or pointer, the conformance rules are the following"; the pointer rule "shall be of class pointer and the corresponding items shall be of the same category" | message-tag is named only to exclude it from the length rules, so the pointer rule is applied to it: a message-tag argument for a formal of another class, or the reverse, is refused where a prototype makes it checkable and is EC-PROGRAM-ARG-MISMATCH at run time otherwise. An implementor choice, D-MCS-ARG (§3) |
+| §2023:14.9.25.4 | group moves are byte moves "except as may be required by an implementation for subordinate items of class message-tag, object, or pointer" | a message tag rides the managed slot of its strongly-typed group (`Place.SlotWindow`), as a function-pointer does |
 
 The other class restrictions that name message-tag form one family, which excludes the classes index, message-tag,
-object and pointer (a paraphrase; each rule words it its own way): §8.8.4.4.3 SR1, §13.16.3 SR8, SR10 and SR24 e), §13.18.38.3 SR8, §13.18.44.3 SR12 and SR14,
-§13.18.45.3 SR8, §13.18.60.3 SR11, §13.18.63.3 SR9, §14.7.6 GR4, §14.9.1.3 SR1 and SR3 ("Identifier-2 shall not reference
-a data item of class alphabetic, boolean, index, message-tag, object, or pointer"), §14.9.11.3 SR1, §14.9.13.3 SR4 and SR7,
-§14.9.24.3, §14.9.25.3 SR1, §14.9.40.3, §15.19.3 rule 7, §15.59.3, §15.63.3, §15.71.3 and §15.72.3 rule 1, the alignment
-rules §8.5.1.6.1 and §8.5.1.6.5, and §13.18.42.4's implicit property methods. They are written today through
+object and pointer (a paraphrase; each rule words it its own way): §2023:8.8.4.4.3 SR1, §2023:13.16.3 SR8, SR10 and SR24 e), §2023:13.18.38.3 SR8, §2023:13.18.44.3 SR12 and SR14,
+§2023:13.18.45.3 SR8, §2023:13.18.60.3 SR11, §2023:13.18.63.3 SR9, §2023:14.7.6 GR4, §2023:14.9.1.3 SR1 and SR3 ("Identifier-2 shall not reference
+a data item of class alphabetic, boolean, index, message-tag, object, or pointer"), §2023:14.9.11.3 SR1, §2023:14.9.13.3 SR4 and SR7,
+§2023:14.9.24.3, §2023:14.9.25.3 SR1, §2023:14.9.40.3, §2023:15.19.3 rule 7, §2023:15.59.3, §2023:15.63.3, §2023:15.71.3 and §2023:15.72.3 rule 1, the alignment
+rules §2023:8.5.1.6.1 and §2023:8.5.1.6.5, and §2023:13.18.42.4's implicit property methods. They are written today through
 `ItemCategory.IsIndexMessageTagObjectOrPointer`, `IsBooleanMessageTagObjectOrPointer` and `IsMessageTag`, or through the
 class lattice (`IntrinsicArgumentRules.ClassOfItem`), which answers for the new category (§4.2), so each fires as soon as
-the usage binds; slice S1 witnesses each one (§9). The VALIDATE facility's rules that name the class (§13.18.17.3 SR1,
-§13.18.24.3 SR3, §13.18.31.3 SR1, §13.18.62.3 SR6, §14.9.50.3 SR2) stay DOCUMENTED-NON-SUPPORT with that facility: their
+the usage binds; slice S1 witnesses each one (§9). The VALIDATE facility's rules that name the class (§2023:13.18.17.3 SR1,
+§2023:13.18.24.3 SR3, §2023:13.18.31.3 SR1, §2023:13.18.62.3 SR6, §2023:14.9.50.3 SR2) stay DOCUMENTED-NON-SUPPORT with that facility: their
 clauses are refused by name, so no message tag reaches them.
 
 ### 2.4 Run-unit end and the exception conditions
 
-§14.6.11 item 7: "If the run unit has an active message or messages to which it has not replied, an implicit SEND
+§2023:14.6.11 item 7: "If the run unit has an active message or messages to which it has not replied, an implicit SEND
 statement of the form 'SEND TO data-name FROM temp RAISING EXCEPTION EC-MCS-NORMAL-TERMINATION' is executed for each such
 message", where "temp is a temporary data item that is the size of the receiving data item in the associated RECEIVE
-statement for that message-tag". §14.6.12 executes the same SEND with EC-MCS-ABNORMAL-TERMINATION after the abnormal
+statement for that message-tag". §2023:14.6.12 executes the same SEND with EC-MCS-ABNORMAL-TERMINATION after the abnormal
 ending's rollback, then "the runtime system attempts to perform the operations of normal termination as specified in
 14.6.11". The temp is spaces (§5.6).
 
@@ -242,24 +242,24 @@ recommends fatal). Every Table 13 description is placed:
 | Latitude | ISO | GnuCOBOL | IBM, Micro Focus | Choice | CONFORMANCE.md |
 |---|---|---|---|---|---|
 | Whether the facility is provided | A.3 item 4 | pending | unknown | provided | §2 Annex A.3 row 4 flips from **Not claimed** to **Claimed**; §4 item 1 is deleted and every "§4 item N" reference renumbered in the same change; the preamble's COBOL1578 sentences go |
-| Message-tag size, contents, alignment | §13.18.60.4 GR9; A.1 item 212 | none | unknown | the slot rule of DOC-A.1-210, -214 and -217 (D-SLOT), §4.2; a determination, not an owner question | new DOC-A.1-212 row |
+| Message-tag size, contents, alignment | §2023:13.18.60.4 GR9; A.1 item 212 | none | unknown | the slot rule of DOC-A.1-210, -214 and -217 (D-SLOT), §4.2; a determination, not an owner question | new DOC-A.1-212 row |
 | EC-MCS-IMP's fatality | Table 13 (Imp) | fatal flag 0 for every -IMP name | unknown | Q4 | DOC-A.1-100: under Q4's recommendation its "each is FATAL" stands and "the implementation itself sets only EC-PROGRAM-IMP" names EC-MCS-IMP too |
-| Argument conformance of a message tag | §14.8.2.3.2 | none | unknown | the pointer rule (§2.3) | new D-MCS-ARG |
-| NULL's content | §8.4.3.10.4 GR4 | none | unknown | `MessageTag.Null`, no party | DOC-A.1-125 extended |
-| Naming and finding a server; activation | §14.9.38.3 SR2, GR5; §14.9.31.4 GR1 | none | unknown | Q3 | new D-MCS-SERVER |
-| Transport between run units | §3.118: "implementor-defined system that sends and receives messages exchanged between run units" | none | unknown | peer AF_UNIX stream sockets between the run units of one user on one machine (§5) | new D-MCS-TRANSPORT |
-| Tag contents and equality | §3.120, §8.8.4.2.14 | none | unknown | §4.2; §5.4.1 step 8 | inside D-MCS-SERVER |
-| Message length limits | §14.9.38.4 GR1 ("larger than the message server allows") | none | unknown | `maxLength` of a server definition; none otherwise | new D-MCS-LENGTH, with Q7 |
-| CONTINUE AFTER | §14.9.31.4 GR2; §14.9.9.4 GR1 ("the implementor shall specify the maximum meaningful value") | none | unknown | Q5; whole seconds, `CobolTiming.MaxSeconds`, a negative value | new D-MCS-WAIT; A.3 row 8 names RECEIVE too |
-| Forwarded exceptions | §14.9.38.4 GR8 | none | unknown | Q6, levels 1 and 2 included | new D-MCS-RAISE |
-| Outcome with checking off; what EC-MCS-IMP covers | §14.6.13.1.1 NOTE 3; Table 13 | none | unknown | Q8 | new D-MCS-CHECK |
-| SET Format 17 direction | §14.9.39.4 GR40, GR41 | none | unknown | Q1 | new D-SET17 |
-| SEND's misprints; Table 13's attributions | §14.9.38.4 GR1, GR4, GR7; Table 13 | none | unknown | Q2 | D-MCS-NR extended |
+| Argument conformance of a message tag | §2023:14.8.2.3.2 | none | unknown | the pointer rule (§2.3) | new D-MCS-ARG |
+| NULL's content | §2023:8.4.3.10.4 GR4 | none | unknown | `MessageTag.Null`, no party | DOC-A.1-125 extended |
+| Naming and finding a server; activation | §2023:14.9.38.3 SR2, GR5; §2023:14.9.31.4 GR1 | none | unknown | Q3 | new D-MCS-SERVER |
+| Transport between run units | §2023:3.118: "implementor-defined system that sends and receives messages exchanged between run units" | none | unknown | peer AF_UNIX stream sockets between the run units of one user on one machine (§5) | new D-MCS-TRANSPORT |
+| Tag contents and equality | §2023:3.120, §2023:8.8.4.2.14 | none | unknown | §4.2; §5.4.1 step 8 | inside D-MCS-SERVER |
+| Message length limits | §2023:14.9.38.4 GR1 ("larger than the message server allows") | none | unknown | `maxLength` of a server definition; none otherwise | new D-MCS-LENGTH, with Q7 |
+| CONTINUE AFTER | §2023:14.9.31.4 GR2; §2023:14.9.9.4 GR1 ("the implementor shall specify the maximum meaningful value") | none | unknown | Q5; whole seconds, `CobolTiming.MaxSeconds`, a negative value | new D-MCS-WAIT; A.3 row 8 names RECEIVE too |
+| Forwarded exceptions | §2023:14.9.38.4 GR8 | none | unknown | Q6, levels 1 and 2 included | new D-MCS-RAISE |
+| Outcome with checking off; what EC-MCS-IMP covers | §2023:14.6.13.1.1 NOTE 3; Table 13 | none | unknown | Q8 | new D-MCS-CHECK |
+| SET Format 17 direction | §2023:14.9.39.4 GR40, GR41 | none | unknown | Q1 | new D-SET17 |
+| SEND's misprints; Table 13's attributions | §2023:14.9.38.4 GR1, GR4, GR7; Table 13 | none | unknown | Q2 | D-MCS-NR extended |
 
 Every other line of `docs/CONFORMANCE.md` that describes the decline changes with the slice that changes its answer. The
 query `git grep -n -i -E "message-tag|COBOL1578|COBOL1943|COBOL2205|EC-MCS|asynchronous messag" -- docs/CONFORMANCE.md`
 finds 48 lines. They sit in the preamble's COBOL1578 sentences, Annex A.3 row 4, D-MCS-NR ("accepted inert like every
-EC-MCS name"), §3's statement that the MCS statements carry the §4.2.6 warning, §4 item 1, the CORRESPONDING note that
+EC-MCS name"), §3's statement that the MCS statements carry the §2023:4.2.6 warning, §4 item 1, the CORRESPONDING note that
 "the message-tag class has no item to refuse", §4's COBOL1578 roll-call, the A.1 preamble that withdraws item 212,
 DOC-A.1-46 (MESSAGE-TAG under "Not provided") and DOC-A.1-100. The file changes under every landing, so the query, not
 a line number, finds them: the slice that retires the decline re-runs it and leaves no hit that describes the decline.
@@ -278,7 +278,7 @@ after the operand. Two changes:
   apart. Every visitor, binder arm, audit line and drift test followed in the same change.
 - `CONTINUE AFTER MESSAGE RECEIVED` was parsed as `messageKeyword cobolWord`, so `CONTINUE AFTER MESSAGE FOO`
   compiled. The arm is `messageKeyword {wordAhead("RECEIVED")}? cobolWord` (PB4743; a `FOO` is COBOL0001, "failed
-  predicate"); RECEIVED stays a cobolWord because §8.9 does not reserve it and §8.10 does not list it as
+  predicate"); RECEIVED stays a cobolWord because §2023:8.9 does not reserve it and §2023:8.10 does not list it as
   context-sensitive.
 
 SEND keeps one rule for both formats: which format a `SEND TO name FROM x` is depends on the declaration of `name`, which
@@ -293,9 +293,9 @@ no parse alternative reads (kb/Work PB4090).
   `PicInfo.FunctionPointerItem`. `PicInfo.MessageTagRecovery` and its recovery comments are deleted (in `DataBinder`,
   `ItemCategory`, `IntrinsicArgumentRules` and `VersionConformancePass`), and so is the `Usage.MessageTag` arm of
   `ItemCategory.IsMessageTag` that read the written usage for want of a category (the category answers).
-- **`CobolClass.MessageTag`** (`Binding/IntrinsicArgumentRules.cs`): §8.5.2.1 Table 2's class, which `ClassOfItem`
+- **`CobolClass.MessageTag`** (`Binding/IntrinsicArgumentRules.cs`): §2023:8.5.2.1 Table 2's class, which `ClassOfItem`
   answers for the category, so every screen over the class lattice decides a message tag instead of failing open:
-  `StatementValidation.ContainsNonOrderableLeaf` (§8.8.4.2.3 SR4), `CallBinder`'s §14.9.4.3 SR22 screen, and the
+  `StatementValidation.ContainsNonOrderableLeaf` (§2023:8.8.4.2.3 SR4), `CallBinder`'s §2023:14.9.4.3 SR22 screen, and the
   intrinsic argument screens. `IntrinsicArgumentClassDriftTests.EveryUsageMember_HasATable2ClassDisposition` records the
   new disposition.
 - **The representation (DOC-A.1-212)** follows the slot rule that DOC-A.1-210, -214 and -217 already state for every
@@ -314,7 +314,7 @@ no parse alternative reads (kb/Work PB4090).
   slice that gives a tag group a two-way image must give it the leaf-vector methods too: the sort still takes this path
   and fails to compile, rather than lose a tag, if it does not.
 - **The runtime type `MessageTag`** (`src/WiseOwl.Cobol.Runtime/Messaging/MessageTag.cs`): a `readonly struct`, NOT a
-  record, so C# has no `==` an emitter could mistake for §8.8.4.2.14's equality.
+  record, so C# has no `==` an emitter could mistake for §2023:8.8.4.2.14's equality.
 
 ```csharp
 public readonly struct MessageTag
@@ -322,7 +322,7 @@ public readonly struct MessageTag
     public static readonly MessageTag Null = default;
     internal MessageTag(string mcs, MessageParty party, string name, long message) { ... }
     public bool IsNull => Party == MessageParty.None;
-    /// <summary>ISO §8.8.4.2.14: the same server name, the same requestor run unit, or both NULL.</summary>
+    /// <summary>ISO §2023:8.8.4.2.14: the same server name, the same requestor run unit, or both NULL.</summary>
     public static bool SameParty(MessageTag a, MessageTag b) { ... }
 }
 public enum MessageParty { None, Server, Requestor }
@@ -367,10 +367,10 @@ then requires RETURNING (COBOL1850). Format 2's data-name-2 resolves; Format 1's
    forbidden clause (`MessagingBinder.ForbiddenClause`). A depending-on item outside identifier-1 is found from the
    table's `OccursSpec` (`Binding/Model/OdoModel.cs`). RECEIVE's CONSTANT RECORD arm is the receiving funnel's, not the
    walk's (PB4743's correction of this paragraph): a RECEIVE writes identifier-1, so `ResolveReceiving` has already
-   refused every item of a CONSTANT RECORD (COBOL1548, §13.18.15.3 SR2) before the walk sees a place, and an arm in the
+   refused every item of a CONSTANT RECORD (COBOL1548, §2023:13.18.15.3 SR2) before the walk sees a place, and an arm in the
    walk would be unreachable. SEND reads identifier-1, so SEND accepts a constant record, as its list of clauses says.
 6. The written exception-name of RAISING resolves through `EcNameResolution.TryResolve`, the one funnel, with no level-3
-   site: §14.9.38.3 has no level-3 rule, so a level-1 or level-2 name binds (Q6), and a 2023 name below 2023 is still
+   site: §2023:14.9.38.3 has no level-3 rule, so a level-1 or level-2 name binds (Q6), and a 2023 name below 2023 is still
    COBOL0878.
 
 Each refusal states its rule with the `cite.py`-checked text, the COBOL1720 precedent. Screens 2 to 5 are two codes in
@@ -381,7 +381,7 @@ operand-class helper (`MessagingBinder.RefuseOperandClass`) quotes the rule; the
 
 **SET Format 17** stops being refused: `SetBinder.BindMessageTagSet` builds a `BoundSetMessageTag` (receiver, sender or
 NULL) by Q1; `SetFormatSelection`'s F17 row stays as it is. **Relation Format 3** gains the message-tag arm in
-`RelationComparability` and the condition binder: equality and inequality only, same category, NULL admitted (§8.4.3.10.3
+`RelationComparability` and the condition binder: equality and inequality only, same category, NULL admitted (§2023:8.4.3.10.3
 SR1 b); `StrongGroupComparison` reaches the arm for a message-tag leaf with no change of its own (§2.3). **INITIALIZE**
 binds through its existing arms (§2.3), and its "no elementary item can reach this test" remark goes.
 
@@ -414,7 +414,7 @@ outcome back through the ordinary channels:
   `PlaceRenderer.WriteVarGroupContiguous` (the group arm of `SequentialIoEmitter.EmitOutOfLineInto`), which honours the
   table only when the components correspond and splits by the D-FRA take step otherwise (`RecordExtents`). Any other
   identifier-1 takes the image through `SequentialIoEmitter.EmitImageInto`, the one record-area store, left-justified
-  and space-filled as a group move is (§14.9.25.4). The slots follow. data-name-2 takes the length through the
+  and space-filled as a group move is (§2023:14.9.25.4). The slots follow. data-name-2 takes the length through the
   ordinary numeric store; data-name-1 takes the tag. The capacity a RECEIVE reports to the MCS is identifier-1's
   maximum length.
 - RETURNING data-name-1 takes the server tag; Format 2 hands the tag over by value.
@@ -471,14 +471,14 @@ SR-14.9.38.3-1 to -4 and SR-14.9.39.3-35. A further 48 rows mention message-tag 
 CONFORMS on their other classes (among them SR-8.8.4.2.3-5, GR-13.18.63.4-4, SR-13.18.60.3-4, -11 and -14,
 SR-14.9.11.3-1 and SR-14.2.2-2); each gains a message-tag witness in slice S1, as do the CONFORMS rows §2.3 adds to the
 design's reach (SR-8.8.4.2.3-4, SR-14.9.1.3-3, SR-14.9.4.3-22, SR-14.9.20.3-3 and -4, GR-14.9.20.4-5, FMT-14.9.20.2).
-§8.8.4.2.14 and §14.6.12 are prose with no inventory row; slice S1 files a kb/Work note for the first and S4 for the
+§2023:8.8.4.2.14 and §2023:14.6.12 are prose with no inventory row; slice S1 files a kb/Work note for the first and S4 for the
 second rather than inventing a row here.
 
 ## 5. Runtime: the peer transport
 
 The runtime lives in `src/WiseOwl.Cobol.Runtime/Messaging/`. It holds every message in the memory of the run units that
 exchange it and keeps nothing on disk but socket files. The standard asks no more: a SEND "suspends execution until the
-message is received by the server run unit" (§14.9.38.4 GR4), and a reply goes only to a requestor whose message "has not
+message is received by the server run unit" (§2023:14.9.38.4 GR4), and a reply goes only to a requestor whose message "has not
 yet been responded to by a SEND statement in the current run unit" (GR7), so no message outlives both parties.
 
 ### 5.1 The MCS directory and the socket directory
@@ -581,7 +581,7 @@ requestor or ringer then takes the byte, connects once more, and deletes the fil
 2. Publish the pending bell `p/<N>/<r>`.
 3. Enumerate `s/<N>/` and connect to each entry with no link, applying the refusal rule. Any other failure is EC-MCS-IMP.
 4. No link: activate (§5.4.5) when `mcs.json` defines `start` and this SEND has not yet activated the name; otherwise
-   "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist" (§14.9.38.4 GR5).
+   "If such a run unit is not identified, the EC-MCS-NO-SERVER exception condition is set to exist" (§2023:14.9.38.4 GR5).
 5. Write `OFFER` of the current round on every link, and wait.
 6. On the round's first `CLAIM`, write `GRANT` to that server and `WITHDRAW` to every other offered link. Other CLAIMs
    are ignored; their links already have a WITHDRAW.
@@ -611,11 +611,11 @@ RECEIVE FROM NULL in a run unit that serves no name is EC-MCS-NO-REQUESTER (Q2).
 its oldest offer and moves on at a `WITHDRAW`. At a `GRANT` it writes `ACK`, records the message in `Active` with
 identifier-1's maximum length, and only then completes with the requestor tag (Requestor, `<r>`, serial); a message longer than
 identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). A RECEIVE that ends EC-MCS-IMP with a CLAIM in flight closes the claimed link when the server owes no reply on it: it will never read the `GRANT`, and the requestor, still holding the message, goes on to a new round (§5.4.1 step 9). With a reply owed on the link it stays open (the requestor would answer that reply "server ended"): the offer stays claimed, the next RECEIVE adopts it, and a `GRANT` that arrives between the two is held on the offer. RECEIVE FROM a requestor tag considers only that link, and
-a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§14.9.31.4 GR1 b).
+a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§2023:14.9.31.4 GR1 b).
 
 SEND Format 2 tests in GR order. A message of zero character positions is EC-MCS-MESSAGE-LENGTH (GR1); `maxLength` does
 not apply, because it is the limit a server definition sets on what that server accepts (§2.1 GR1, D-MCS-LENGTH), and a
-reply goes to a requestor, which has no definition and measures the reply against its own identifier-1 (§14.9.31.4 GR3).
+reply goes to a requestor, which has no definition and measures the reply against its own identifier-1 (§2023:14.9.31.4 GR3).
 Then the tag: the SEND needs an `Active` entry, so a NULL tag, a server tag or an answered message is
 EC-MCS-NO-REQUESTER, and another `<h>` EC-MCS-INVALID-TAG (Q2). It writes `REPLY` with GR8's name (Q6) and removes the
 entry; to an ended link it succeeds and drops the reply. The requestor's pump drains every frame, so the write never
@@ -636,7 +636,7 @@ once.
 At the deadline, the holder of the message decides. A server with a CLAIM in flight waits for its `GRANT` or `WITHDRAW`:
 the requestor still holds the message, and §5.4.1's invariant bounds the wait. A requestor first takes every frame its pump
 has queued, so a reply that arrived is delivered. Otherwise "the content of identifier-1 will be all space characters and
-the RECEIVE statement is assumed to be successful" (§14.9.31.4 GR2), with data-name-2 zero. A SEND has no time limit
+the RECEIVE statement is assumed to be successful" (§2023:14.9.31.4 GR2), with data-name-2 zero. A SEND has no time limit
 (GR4); a dead partner ends it through `LinkEnded`.
 
 #### 5.4.5 Activation
@@ -690,11 +690,11 @@ all, and S0 decides it first. Exactly once, as programs see it, follows from `AC
 
 `RunUnit.Terminate` calls `Messaging?.End(EndedAbnormally)` in its `finally`, so a failed close cannot skip it. On an
 abnormal ending it runs after `Files.EndTransactions(abnormal: true)`, since after the rollback "the runtime system
-attempts to perform the operations of normal termination as specified in 14.6.11" (§14.6.12); on a normal one, after
-`Files.CloseAll` and the static-storage reset (§14.6.11 item 7). It writes, for each `Active` entry,
+attempts to perform the operations of normal termination as specified in 14.6.11" (§2023:14.6.12); on a normal one, after
+`Files.CloseAll` and the static-storage reset (§2023:14.6.11 item 7). It writes, for each `Active` entry,
 `REPLY` with EC-MCS-NORMAL-TERMINATION or EC-MCS-ABNORMAL-TERMINATION and spaces of the recorded size, because "temp is a
 temporary data item that is the size of the receiving data item in the associated RECEIVE statement for that message-tag"
-(§14.6.11 item 7) that no statement set. It then closes links and listeners, its pending bell among them, and deletes
+(§2023:14.6.11 item 7) that no statement set. It then closes links and listeners, its pending bell among them, and deletes
 their socket files, in that order. A run unit killed without `End` reaches its partners as `LinkEnded`, and the
 refusal rule of §5.4.1 deletes the files it left.
 
@@ -782,7 +782,7 @@ These are case files under the clause folders of the conformance suite (`DESIGN-
 
 | Case file | Tests |
 |---|---|
-| `cases/13.18.60-USAGE/message-tag-usage.cob` | a level-1 and a strongly-typed message tag; NULL at start (§13.18.63.4 GR4); `FUNCTION BYTE-LENGTH` of a strongly-typed group holding one (DOC-A.1-212) |
+| `cases/13.18.60-USAGE/message-tag-usage.cob` | a level-1 and a strongly-typed message tag; NULL at start (§2023:13.18.63.4 GR4); `FUNCTION BYTE-LENGTH` of a strongly-typed group holding one (DOC-A.1-212) |
 | `cases/14.9.39-SET/set-message-tag.cob` | SET TO NULL; SET TO another tag (Q1) |
 | `cases/8.8.4.2-Relation-condition/message-tag-relation.cob` | NULL = NULL; tag = NULL after INITIALIZE; NOT EQUAL; `<>`; two strongly-typed groups holding NULL tags compare equal (the unequal case needs a live party, §7.2) |
 | `cases/14.9.20-INITIALIZE/initialize-message-tag.cob` | INITIALIZE sets NULL, bare, with the VALUE phrase and with DEFAULT; `REPLACING MESSAGE-TAG DATA BY tag2` copies tag2 |
@@ -797,8 +797,8 @@ Each runs with `WISEOWL_COBOL_MCS` pointing at a fresh empty directory, which th
 and `receive-poll` sets `WISEOWL_COBOL_MCS_SERVER` the same way). The refusals are one test each in
 `wiseowl/diagnostics/`: SEND SR1, SR3, SR4 (both operands), RECEIVE SR1, SR2 (each clause, and CONSTANT RECORD for RECEIVE
 only), SR3; SET Format 17 with a non-tag operand; the relation with a tag and a pointer; an ordering relation over a
-strongly-typed group holding a tag (COBOL1535); a message tag as CALL BY VALUE argument (§14.9.4.3 SR22) and as ACCEPT
-identifier-2 (§14.9.1.3 SR3); INITIALIZE REPLACING MESSAGE-TAG without identifier-2 and with a non-tag one (COBOL1982,
+strongly-typed group holding a tag (COBOL1535); a message tag as CALL BY VALUE argument (§2023:14.9.4.3 SR22) and as ACCEPT
+identifier-2 (§2023:14.9.1.3 SR3); INITIALIZE REPLACING MESSAGE-TAG without identifier-2 and with a non-tag one (COBOL1982,
 COBOL1983); NULL in a MOVE; the `CONTINUE AFTER MESSAGE` word that is not RECEIVED. Each refusal also runs at 2014, where
 COBOL0900 is the expected diagnosis and no second one may appear (a statement of ANY verb whose own operands name a message-tag item whose entry the compilation walks, or a function whose RETURNING item is one, binds to a no-op below 2023, in every SET format as in MOVE and DISPLAY: `StatementBinder.NamesGatedMessageTag` asks it once, at the funnel every statement passes through, over the statement's own operands and not those of a statement nested in it; and an item read from an imported assembly, `DataItem.IsImported`, which has no entry here and so no gate, is bound and checked at every edition); an EC-MCS name at 2014 stays COBOL0878
 (`pb374-ec-mcs-name-below-2023`).
@@ -917,7 +917,7 @@ decline. `SendFormatClassificationTests` and `MessageTagIntroductionGateTests` s
   then has no further event. Its watches rest on the same AF_UNIX close semantics as §5.5. If S0's kill or backlog
   witness fails on Windows, it is the candidate the transport is re-decided with, and that race needs a second wake
   (a bounded re-ask after a watch ends) before it can be built.
-- **A `record struct` tag.** Its `==` compares the message number, which §8.8.4.2.14 excludes: "The operands are equal if
+- **A `record struct` tag.** Its `==` compares the message number, which §2023:8.8.4.2.14 excludes: "The operands are equal if
   they reference the same message requestor or message server of the same name or one is NULL and the other is NULL".
 - **Leaving a message longer than identifier-1 offered.** RECEIVE FROM NULL would take it forever.
 
@@ -931,11 +931,11 @@ query, and leaves no bound statement that no emitter renders.
 | Slice | Content | Closes |
 |---|---|---|
 | S0 (PB4739) | `unit:PlatformAssumptionTests` (§7.2) green on Windows and Linux CI. **If the kill or backlog witness fails on Windows, stop:** no runtime slice starts, and the owner re-decides the 2023 transport with §8's liveness-byte design as the candidate. A failed rename witness only switches that OS to `McsPublishByte` publishing (§5.4.1) | |
-| S1 (PB4740) | the type: `PicCategory.MessageTag`, `CobolClass.MessageTag`, `StorageForm.MessageTagRef`, the slot, `MessageTag`, NULL, VALUE, SET Format 17, relation Format 3 and strongly-typed groups, INITIALIZE, argument passing; COBOL1943, COBOL2205 and `MessageTagRecovery` retire; §7.1's cases for these; one witness per class rule of §2.3 and row of §4.6; DOC-A.1-212, -125, -46, D-SET17, D-MCS-ARG, CONFORMANCE §4 item 1's MESSAGE-TAG and SET paragraphs; the user guide's tag section; the §8.8.4.2.14 gap note | GR-13.18.60.4-9, SR-13.18.60.3-21, SR-14.9.39.3-35, GR-14.9.39.4-40, -41, GR-8.4.3.10.4-4, GR-8.8.4.2.1-9, DOC-A.1-212; witnesses for §4.6's CONFORMS rows |
+| S1 (PB4740) | the type: `PicCategory.MessageTag`, `CobolClass.MessageTag`, `StorageForm.MessageTagRef`, the slot, `MessageTag`, NULL, VALUE, SET Format 17, relation Format 3 and strongly-typed groups, INITIALIZE, argument passing; COBOL1943, COBOL2205 and `MessageTagRecovery` retire; §7.1's cases for these; one witness per class rule of §2.3 and row of §4.6; DOC-A.1-212, -125, -46, D-SET17, D-MCS-ARG, CONFORMANCE §4 item 1's MESSAGE-TAG and SET paragraphs; the user guide's tag section; the §2023:8.8.4.2.14 gap note | GR-13.18.60.4-9, SR-13.18.60.3-21, SR-14.9.39.3-35, GR-14.9.39.4-40, -41, GR-8.4.3.10.4-4, GR-8.8.4.2.1-9, DOC-A.1-212; witnesses for §4.6's CONFORMS rows |
 | S2a (PB4741) | `MessagingProtocol`, `IPeerTransport`, `InMemoryTransport`, their unit tests; no socket, no `RunUnit` change | |
 | S2b (PB4742) | `SocketTransport`, `PeerLink`, `MessagingPeer`, `MessagingSettings`, server start-up and pending bells, `End` in `Terminate`, `McsStartByte`, the `RuntimeConfig` rows; behavior-neutral for existing tests; D-MCS-TRANSPORT | |
 | S3 (PB4743) | binding: `MessagingBinder`, the screens, the three nodes, the grammar renames and RECEIVED, with refusal goldens; `StatementBinder` still answers COBOL1578 and the EC-MCS decline stands | FMT-14.9.31.2, FMT-14.9.38.2, SR-14.9.31.3-1 to -3, SR-14.9.38.3-1 to -4 |
-| S4 (PB4744) | the exchange: `AsyncMessaging`, `MessagingEmitter`, the `NodeKindRaises` rows and raise helpers, CONTINUE AFTER, the runner's per-test MCS directory, §7.1's SEND and RECEIVE cases, §7.2's in-process and kill cases; COBOL1578, the EC-MCS rows of `DeclinedEcFamilies` and `declined-raise-sites.json`, `mcs-only` and CONFORMANCE §4 item 1 retire; A.3 row 4 flips; D-MCS-SERVER, -LENGTH, -WAIT, -RAISE, -CHECK, D-MCS-NR, DOC-A.1-100; the user guide's messaging section; the §14.6.12 gap note | GR-14.9.31.4-1 to -5, GR-14.9.38.4-1 to -8, GR-14.6.11-7 |
+| S4 (PB4744) | the exchange: `AsyncMessaging`, `MessagingEmitter`, the `NodeKindRaises` rows and raise helpers, CONTINUE AFTER, the runner's per-test MCS directory, §7.1's SEND and RECEIVE cases, §7.2's in-process and kill cases; COBOL1578, the EC-MCS rows of `DeclinedEcFamilies` and `declined-raise-sites.json`, `mcs-only` and CONFORMANCE §4 item 1 retire; A.3 row 4 flips; D-MCS-SERVER, -LENGTH, -WAIT, -RAISE, -CHECK, D-MCS-NR, DOC-A.1-100; the user guide's messaging section; the §2023:14.6.12 gap note | GR-14.9.31.4-1 to -5, GR-14.9.38.4-1 to -8, GR-14.6.11-7 |
 | S5 (PB4745) | activation: `ServerActivation`, `start/<N>.lock`, notify, server logs, EC-MCS-IMP for a failed start, its process tests; Q9's `servers` field | |
 
 S0 comes first, with S1 beside it. PB4677's slice 2 needs S0; S2a needs S0 and PB4677's slice 2, S2b needs S2a, S3 needs S1, S4 needs S2b and S3, S5 needs S4.

@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.1.2 Format 1: ACCEPT identifier-1 [ FROM mnemonic-name-1 ]. A mnemonic-name "identifies an implementor-defined
-      *> device-name, feature-name, or switch-name" (§8.3.2.2.16): a word with no data description, so it
-      *> takes no subscript or reference modification, and no qualified format of §8.4.2.2.2 names one.
+      *> ISO 1989:2023 §2023:14.9.1.2 Format 1: ACCEPT identifier-1 [ FROM mnemonic-name-1 ]. A mnemonic-name "identifies an implementor-defined
+      *> device-name, feature-name, or switch-name" (§2023:8.3.2.2.16): a word with no data description, so it
+      *> takes no subscript or reference modification, and no qualified format of §2023:8.4.2.2.2 names one.
       *> MYIN written with a reference modification is no ACCEPT statement at any edition. COBOL2269 (kb/Work PB2499).
       *> The grammar spelled the slot as a dataReference and the binder read only the word, so the
       *> suffix compiled clean and vanished; the slot is now a word and the suffix a named syntax error.

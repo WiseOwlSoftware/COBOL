@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.59 MAX / §15.63 MIN — the leftmost-tie returned-value rule and the { argument-1 } …
-      *> repetition both general formats declare (§15.59.2, §15.63.2).
-      *> §15.59.4 r1: comparisons follow §8.8.4.2 simple relation conditions, so alphanumeric operands
+      *> ISO §2023:15.59 MAX / §2023:15.63 MIN — the leftmost-tie returned-value rule and the { argument-1 } …
+      *> repetition both general formats declare (§2023:15.59.2, §2023:15.63.2).
+      *> §2023:15.59.4 r1: comparisons follow §2023:8.8.4.2 simple relation conditions, so alphanumeric operands
       *> of unequal size compare as if the shorter were space-padded — "AB " and "AB" are EQUAL.
-      *> §15.59.4 r2: "the content of the argument-1 returned is the leftmost argument-1 having that
-      *> value." §15.59.4 r3: "the size of the returned value is the same as the size of the selected
+      *> §2023:15.59.4 r2: "the content of the argument-1 returned is the leftmost argument-1 having that
+      *> value." §2023:15.59.4 r3: "the size of the returned value is the same as the size of the selected
       *> argument-1." So MAX("AB " "AB") selects the 3-char leftmost, MAX("AB" "AB ") the 2-char one,
       *> and a tie AWAY from first position (MAX("A" "B " "B")) selects position 2 (size 2).
       *> FUNCTION LENGTH proves each selected size; the integer legs prove the … repetition with three

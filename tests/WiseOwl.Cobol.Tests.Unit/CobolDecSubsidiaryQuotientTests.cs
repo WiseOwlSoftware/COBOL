@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE SDIDI SUBSIDIARY QUOTIENT OF DIVIDE ... REMAINDER (ISO §14.9.12.4 6) c), kb/Work PB3017): the SDIDI quotient
+/// ⛔ THE SDIDI SUBSIDIARY QUOTIENT OF DIVIDE ... REMAINDER (ISO §2023:14.9.12.4 6) c), kb/Work PB3017): the SDIDI quotient
 /// truncated toward zero at the GIVING receiver's scale, every integer digit kept (kb/Work PB3975: no digit cap, the
 /// GnuCOBOL 3.2 subsidiary quotient docs/CONFORMANCE.md DOC-A.1-70 follows when a quotient size error leaves the remainder
 /// to the implementor), the significand kept at the quotient's own exponent so the 34-digit invariant of every

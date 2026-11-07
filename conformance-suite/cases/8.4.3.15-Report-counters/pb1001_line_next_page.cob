@@ -10,26 +10,26 @@
       *> (kb/Work PB1001 — `LINE integer-1 ON NEXT PAGE` was refused, COBOL0899, at every edition).
       *>
       *> THE RULES (ISO/IEC 1989:2023).
-      *> §13.18.35.2 Format 1 — the operand is `integer-1 [ON NEXT PAGE]`, `{PLUS|+} integer-2` or a bare
+      *> §2023:13.18.35.2 Format 1 — the operand is `integer-1 [ON NEXT PAGE]`, `{PLUS|+} integer-2` or a bare
       *>   `ON NEXT PAGE` (the three-way brace, rendered from the printed page).
-      *> §13.18.35.4 GR4 — a body group other than "the chronologically first body group since the execution
+      *> §2023:13.18.35.4 GR4 — a body group other than "the chronologically first body group since the execution
       *>   of an INITIATE statement" takes a page fit test, and a) "If the first LINE clause has a NEXT PAGE
       *>   phrase, no page fit test takes place and the page fit is declared unsuccessful." "Which LINE clause is
       *>   taken to be the first may depend on the current values of conditions in PRESENT WHEN clauses."
-      *> §13.18.35.4 GR5 a) — an absolute first line is printed at integer-1; "If in addition the NEXT PAGE phrase
+      *> §2023:13.18.35.4 GR5 a) — an absolute first line is printed at integer-1; "If in addition the NEXT PAGE phrase
       *>   is present and the report group is a report footing, the first line is printed beginning on a new
       *>   page." GR5 b) 3. — the first body group on a page begins at the FIRST DETAIL integer.
-      *> §13.18.37.4 GR4 a) 2. — after an absolute NEXT GROUP filled the save location, a next body group that
+      *> §2023:13.18.37.4 GR4 a) 2. — after an absolute NEXT GROUP filled the save location, a next body group that
       *>   begins "with an absolute LINE clause with the NEXT PAGE phrase" takes a page advance, the save
       *>   location moves to LINE-COUNTER, and it is then processed "as for an identical report group without
       *>   the NEXT PAGE phrase". ONE advance: the one the save location forces (docs/CONFORMANCE.md).
-      *> §13.18.57.4 GR6 b) — no page heading before "a report footing on a page by itself"; GR6 f) 2. — no page
+      *> §2023:13.18.57.4 GR6 b) — no page heading before "a report footing on a page by itself"; GR6 f) 2. — no page
       *>   footing "on the last page, if it is occupied only by a report footing group"; GR7 f) — the upper
       *>   limit of such a footing is the HEADING integer (where the bare form, which writes no integer, begins
       *>   — a determination, docs/CONFORMANCE.md).
-      *> §8.4.3.15.4 GR2/GR3 — each page advance adds 1 to PAGE-COUNTER and zeroes LINE-COUNTER.
+      *> §2023:8.4.3.15.4 GR2/GR3 — each page advance adds 1 to PAGE-COUNTER and zeroes LINE-COUNTER.
       *>
-      *> REPORT R-NP: PAGE LIMIT 12, HEADING 1, FIRST DETAIL 3, LAST DETAIL 9, FOOTING 10 (§13.18.39).
+      *> REPORT R-NP: PAGE LIMIT 12, HEADING 1, FIRST DETAIL 3, LAST DETAIL 9, FOOTING 10 (§2023:13.18.39).
       *> DERIVATION (LC = LINE-COUNTER, PC = PAGE-COUNTER; INITIATE: LC 0, PC 1):
       *>  1 GENERATE DE-N (the first GENERATE): PH line 1 "PH1". DE-N is the chronologically first body group
       *>    — no page fit test, so NO advance despite NEXT PAGE (GR4): line 5 "N05", line 6 "n06". LC 6.

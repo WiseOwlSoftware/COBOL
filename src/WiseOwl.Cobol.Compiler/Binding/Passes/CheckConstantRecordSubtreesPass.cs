@@ -11,11 +11,11 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// What a CONSTANT RECORD's SUBTREE may not contain — §13.16.3 SR13, §13.18.40.3 SR32, §13.18.38.3 SR19/SR23/SR33 (kb/Work PB1262). Rules about an item's POSITION, so they are asked of the COMPOSED forest: immediately after ExpandTypes, which supplies the TYPE / SAME AS clones, and before anything clears a flag the rule reads.
+/// What a CONSTANT RECORD's SUBTREE may not contain — §2023:13.16.3 SR13, §2023:13.18.40.3 SR32, §2023:13.18.38.3 SR19/SR23/SR33 (kb/Work PB1262). Rules about an item's POSITION, so they are asked of the COMPOSED forest: immediately after ExpandTypes, which supplies the TYPE / SAME AS clones, and before anything clears a flag the rule reads.
 /// </para>
 /// <para>
-/// What a CONSTANT RECORD's SUBTREE may not contain (kb/Work PB1262, PB487): §13.16.3 SR13 (the excluded clauses),
-/// §13.18.40.3 SR32 (no format 2 PICTURE) and §13.18.38.3 SR19 / SR23 / SR33 (the OCCURS formats). Every one is a rule
+/// What a CONSTANT RECORD's SUBTREE may not contain (kb/Work PB1262, PB487): §2023:13.16.3 SR13 (the excluded clauses),
+/// §2023:13.18.40.3 SR32 (no format 2 PICTURE) and §2023:13.18.38.3 SR19 / SR23 / SR33 (the OCCURS formats). Every one is a rule
 /// about an item's POSITION — "any data item subordinate to" a CONSTANT RECORD — so it is a property of the COMPOSED
 /// entry, and the pass walks <see cref="DataBinder.CompositionForest"/> after <c>ExpandTypes</c>. The screens used to run at
 /// entry-attach time (<c>BindEntries</c>), which sees only the entries the programmer WROTE: an item a
@@ -51,24 +51,24 @@ internal sealed class CheckConstantRecordSubtreesPass : IBindPass
             using var _ = binder.Edition.At(item);
             string name = item.CobolName ?? "FILLER";
 
-            // §13.16.3 SR13 ¶1 (the subordinate half). The excluded clauses are the written-clause set
+            // §2023:13.16.3 SR13 ¶1 (the subordinate half). The excluded clauses are the written-clause set
             // DataClauseKinds.ConstantRecordExcluded; the item carries a flag for each one it can hold — select-when and
             // the validation clauses are declined facilities, refused where they are written, and never reach an item.
             if (subordinate && ExcludedClausesOf(item) is var excluded && excluded != DataClauseKind.None)
                 binder.Edition.Error(DiagnosticCatalog.ConstantRecordRule,
                     $"'{name}': the ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when, SYNCHRONIZED, and "
                     + "TYPEDEF clauses and validation-clauses shall not be specified in any data description entry "
-                    + "subordinate to a data description entry with the CONSTANT RECORD clause (ISO §13.16.3 SR13); "
+                    + "subordinate to a data description entry with the CONSTANT RECORD clause (ISO §2023:13.16.3 SR13); "
                     + $"this entry specifies {DataClauseKinds.Name(excluded)}");
 
-            // §13.18.40.3 SR32: a format 2 PICTURE clause shall not be specified in any data item subordinate to a
+            // §2023:13.18.40.3 SR32: a format 2 PICTURE clause shall not be specified in any data item subordinate to a
             // data item described with the CONSTANT RECORD clause.
             if (subordinate && item.Pic is { LocaleEdit: not null })
                 binder.Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation,
                     $"'{name}': a format 2 PICTURE clause shall not be specified in any data item subordinate to a data "
-                    + "item described with the CONSTANT RECORD clause (ISO §13.18.40.3 SR32)");
+                    + "item described with the CONSTANT RECORD clause (ISO §2023:13.18.40.3 SR32)");
 
-            // §13.18.38.3: SR33 bars the dynamic-capacity-table format (Format 4) on the record's items INCLUDING the
+            // §2023:13.18.38.3: SR33 bars the dynamic-capacity-table format (Format 4) on the record's items INCLUDING the
             // CONSTANT RECORD item; SR19 bars a Format 2 table, and SR23 the DEPENDING phrase of ANY format (the
             // report-writer Format 3 spelling the data division admits), in a SUBORDINATE item. A fixed Format 1
             // table stays legal.
@@ -77,12 +77,12 @@ internal sealed class CheckConstantRecordSubtreesPass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.ConstantRecordRule,
                     $"'{name}': the dynamic-capacity-table format of the OCCURS clause shall not be specified in any data "
                     + "item described with the CONSTANT RECORD clause or any data item subordinate to one "
-                    + "(ISO §13.18.38.3 SR33)");
+                    + "(ISO §2023:13.18.38.3 SR33)");
             else if (subordinate && occurs.DependingName is not null)
                 binder.Edition.Error(DiagnosticCatalog.ConstantRecordRule,
                     $"'{name}': a format 2 OCCURS clause, and the DEPENDING phrase of any OCCURS format, shall not be "
                     + "specified in any data item subordinate to a data item described with the CONSTANT RECORD clause "
-                    + "(ISO §13.18.38.3 SR19, SR23)");
+                    + "(ISO §2023:13.18.38.3 SR19, SR23)");
         }
     }
 

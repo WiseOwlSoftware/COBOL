@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE ONE ROUNDING KERNEL IS EXACT OVER EVERY DIVISOR ITS CALLERS PASS (kb/Work PB2640).
-/// <para><c>CobolNum.RoundDiv</c> decides the three NEAREST-* modes (§14.7.4.3 GR4/GR5/GR6: "rounded to the nearest
+/// <para><c>CobolNum.RoundDiv</c> decides the three NEAREST-* modes (§2023:14.7.4.3 GR4/GR5/GR6: "rounded to the nearest
 /// value that can be represented", a tie being two values equally near) from the remainder. It used to compare
 /// <c>2·|rem|</c> with the divisor, and on the <see cref="Int128"/> lane the doubling wraps NEGATIVE once
 /// <c>|rem|</c> passes 2^126 (about 8.5e37): <c>COMPUTE Q ROUNDED = (A * B) / (C * D)</c> over four
@@ -127,7 +127,7 @@ public sealed class RoundDivBoundaryTests
         Assert.Equal(min, CobolNum.Divide(min, 0, 1, 0, 0, CobolRounding.Truncation));
         Assert.Equal((Int128)1, CobolNum.Divide(min, 0, min, 0, 0, CobolRounding.Truncation));
         Assert.Equal((Int128)0, CobolNum.Divide(7, 0, min, 0, 0, CobolRounding.NearestAwayFromZero));
-        // The quotient 2^127 is the one value a POSITIVE result cannot hold: the §14.7.5 case-5 size error, not a wrap.
+        // The quotient 2^127 is the one value a POSITIVE result cannot hold: the §2023:14.7.5 case-5 size error, not a wrap.
         var ex = Assert.Throws<CobolSizeError>(() => CobolNum.Divide(min, 0, -1, 0, 0, CobolRounding.Truncation));
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }

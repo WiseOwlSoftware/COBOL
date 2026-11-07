@@ -5,20 +5,20 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The LINAGE logical-page subsystem (ISO/IEC 1989:2023 §13.18.34 LINAGE clause, §8.4.3.14 LINAGE-COUNTER,
-/// §14.9.51 WRITE GR25–GR28): the per-GR conformance net for the counter state machine, the GR26a/GR26b
+/// The LINAGE logical-page subsystem (ISO/IEC 1989:2023 §2023:13.18.34 LINAGE clause, §2023:8.4.3.14 LINAGE-COUNTER,
+/// §2023:14.9.51 WRITE GR25–GR28): the per-GR conformance net for the counter state machine, the GR26a/GR26b
 /// end-of-page discrimination, and the GR6b data-name re-evaluation timing. Every behavioral test here is
 /// SPEC-PINNED (expected values derived from the cited rules, not the former legacy engine): the legacy evaluates
-/// LINAGE data-names ONLY at OPEN OUTPUT — a verified hole vs §13.18.34 GR6b2/GR6b3 (the SQ208M/SQ210M golden
+/// LINAGE data-names ONLY at OPEN OUTPUT — a verified hole vs §2023:13.18.34 GR6b2/GR6b3 (the SQ208M/SQ210M golden
 /// re-baselines) — so it cannot be the authority for this subsystem.
 ///
 /// <para>⛔ THE OBSERVABLE SURFACE IS TWO SURFACES, AND FOR YEARS THIS CLASS HAD ONLY ONE. Most tests here read
 /// the LINAGE-COUNTER register and the END-OF-PAGE branches through stdout; that is blind to WHERE ON THE MEDIUM
 /// a record lands, and the class comment used to state the blindness as a property of the FEATURE — "the physical
-/// stream is counter-only (§13.18.34 GR8 — pages are contiguous, no margin spacing)". It is not. §13.18.34.4 GR1
+/// stream is counter-only (§2023:13.18.34 GR8 — pages are contiguous, no margin spacing)". It is not. §2023:13.18.34.4 GR1
 /// makes the logical page the SUM of top margin + page body + bottom margin, GR4/GR5 name those margins as lines
 /// OF that page, and GR8's "no additional spacing" forbids spacing BEYOND the logical page rather than deleting
-/// the margins the page contains; §14.9.51.4 GR25 g) then repositions an ADVANCING PAGE write to the next logical
+/// the margins the page contains; §2023:14.9.51.4 GR25 g) then repositions an ADVANCING PAGE write to the next logical
 /// page instead of emitting a form feed. Under the counter-only reading GR4 and GR5 had no content at all, and
 /// `LINES AT TOP` / `LINES AT BOTTOM` changed no byte of the output for the whole life of the connector while
 /// every test here stayed green (kb/Work PB523). The <c>Bytes_*</c> tests below close that hole: they assert the
@@ -62,10 +62,10 @@ public sealed class LinageConformanceTests
         {proc}
         """;
 
-    // ── The BYTES on the medium (§13.18.34.4 GR1/GR4/GR5/GR8, §14.9.51.4 GR25 g)/GR26 a)) ─────────────────
+    // ── The BYTES on the medium (§2023:13.18.34.4 GR1/GR4/GR5/GR8, §2023:14.9.51.4 GR25 g)/GR26 a)) ─────────────────
 
     /// <summary><see cref="WiseOwl.Cobol"/> at the shipping default edition, for the one fixture that needs a post-85 construct:
-    /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§12.4.5.10.3; COBOL0900 rejects it at --std 85). The
+    /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§2023:12.4.5.10.3; COBOL0900 rejects it at --std 85). The
     /// LINAGE rules under test are identical across all four editions, so the arm is exercised where it exists.</summary>
     private static readonly WiseOwlCobolCompiler WiseOwlCobol2023 = new(2023);
 
@@ -116,7 +116,7 @@ public sealed class LinageConformanceTests
 
     [Fact]
     // ⛔ THE TOP AND BOTTOM MARGINS ARE LINES OF THE LOGICAL PAGE, ON THE MEDIUM (kb/Work PB523).
-    // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2. Derivation, entirely from §13.18.34.4:
+    // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2. Derivation, entirely from §2023:13.18.34.4:
     //   GR1  logical page size = 3 + 2 + 2 = 7 lines ("the sum of the values referenced by each phrase except
     //        the FOOTING phrase"), so page 1 is physical lines 1-7 and — GR8, "each logical page is contiguous
     //        to the next with no additional spacing provided" — page 2 begins at physical line 8.
@@ -124,9 +124,9 @@ public sealed class LinageConformanceTests
     //   GR2  page body = 2 writable lines: page-1 physical 4-5 (body lines 1-2), page-2 physical 11-12.
     //   GR5  bottom margin = 2 lines: page-1 physical 6-7.
     //   GR7d counter := 1 at OPEN OUTPUT (device at body line 1).
-    // W1 AFTER ADVANCING 1 (§14.9.51.4 GR25 f) advance then present, §13.18.34.4 GR7 c) 2 counter += 1): counter 1→2, so
+    // W1 AFTER ADVANCING 1 (§2023:14.9.51.4 GR25 f) advance then present, §2023:13.18.34.4 GR7 c) 2 counter += 1): counter 1→2, so
     //    AAAA is on page-1 body line 2 = physical line 5.
-    // W2: counter would be 3, past the page size — §14.9.51.4 GR26 a) page overflow, AFTER phrase, so "the
+    // W2: counter would be 3, past the page size — §2023:14.9.51.4 GR26 a) page overflow, AFTER phrase, so "the
     //    device is repositioned to the first line that may be written on the next logical page and the logical
     //    record is presented on that line": page-2 body line 1 = physical line 11. GR7 c) 4 resets the counter.
     // W3: counter 1→2 ⇒ page-2 body line 2 = physical line 12.
@@ -145,7 +145,7 @@ public sealed class LinageConformanceTests
 
     [Fact]
     // ⛔ ZERO MARGINS ARE THE IDENTITY — the same program with no TOP/BOTTOM phrase produces the print stream
-    // it always produced. §13.18.34.4 GR1: "If the LINES AT TOP or LINES AT BOTTOM phrases are not specified,
+    // it always produced. §2023:13.18.34.4 GR1: "If the LINES AT TOP or LINES AT BOTTOM phrases are not specified,
     // the values of these items are zero", so the logical page is 0 + 2 + 0 and every page transition costs
     // exactly the one line GR8 makes it. This is the regression guard for the whole print corpus: the margin
     // model may not add a byte to a file that declared no margins.
@@ -161,7 +161,7 @@ public sealed class LinageConformanceTests
             "\r\nAAAA\r\nBBBB\r\nCCCC\r\n");
 
     [Fact]
-    // ⛔ ADVANCING PAGE ON A LINAGE FILE IS A REPOSITION, NEVER A FORM FEED. §14.9.51.4 GR25 g): "If PAGE is
+    // ⛔ ADVANCING PAGE ON A LINAGE FILE IS A REPOSITION, NEVER A FORM FEED. §2023:14.9.51.4 GR25 g): "If PAGE is
     // specified and the LINAGE clause is specified in the associated file description entry, the record is
     // presented on the logical page before or after (depending on the phrase used) the device is repositioned
     // to the next logical page. The repositioning is to the first line that may be written on the next logical
@@ -182,7 +182,7 @@ public sealed class LinageConformanceTests
             "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nAAAA\r\nBBBB\r\n");
 
     [Fact]
-    // §14.9.51.4 GR25 g)'s OTHER half — "the record is presented on the logical page BEFORE ... the device is
+    // §2023:14.9.51.4 GR25 g)'s OTHER half — "the record is presented on the logical page BEFORE ... the device is
     // repositioned": BEFORE ADVANCING PAGE prints on the page it is standing on and only then leaves it. Same
     // FD as above (logical page 6 = 2 + 3 + 1).
     // W1 BEFORE ADVANCING PAGE: AAAA is presented at page-1 body line 1 = physical line 3 (the top margin, GR4,
@@ -199,7 +199,7 @@ public sealed class LinageConformanceTests
             "\r\n\r\nAAAA\r\n\r\n\r\n\r\n\r\n\r\n\r\nBBBB\r\n");
 
     [Fact]
-    // §14.9.51.4 GR26 a)'s OTHER ordering, the one only a BEFORE phrase reaches: "If the BEFORE phrase is
+    // §2023:14.9.51.4 GR26 a)'s OTHER ordering, the one only a BEFORE phrase reaches: "If the BEFORE phrase is
     // specified, the logical record is presented and the device is repositioned to the first line that may be
     // written on the next logical page." The AFTER arm can never show this, because it repositions first and so
     // never presents on the LAST line of a page body.
@@ -226,7 +226,7 @@ public sealed class LinageConformanceTests
 
     [Fact]
     // kb/Work PB864, on a print file with NO LINAGE clause — the plain print stream, where the one-flag defect
-    // was not tied to a logical page at all. §14.9.51.4 GR25 e): "If the BEFORE phrase is used, the line is
+    // was not tied to a logical page at all. §2023:14.9.51.4 GR25 e): "If the BEFORE phrase is used, the line is
     // presented before the representation of the printed page is advanced", so each record is followed by its
     // own advance and the last advance ends the file. No trailing blank line.
     public void Bytes_BeforeAdvancing_LastLineEndedByItsOwnAdvance_CloseAddsNothing()
@@ -252,7 +252,7 @@ public sealed class LinageConformanceTests
             "AAAA\r\n\r\nBBBB\r\n");
 
     // ── kb/Work PB964: a WRITE with no ADVANCING phrase after an AFTER-placed record ─────────────────────────
-    // §14.9.51.4 GR25: "If the ADVANCING phrase is not used, automatic advancing shall be provided by the
+    // §2023:14.9.51.4 GR25: "If the ADVANCING phrase is not used, automatic advancing shall be provided by the
     // implementor to act as if the user has specified AFTER ADVANCING 1 LINE", and GR25 f): "the line is
     // presented after the representation of the printed page is advanced". An AFTER write leaves its record on
     // an unterminated line; the plain WRITE's one advance ends that line and the record lands on the next one.
@@ -266,7 +266,7 @@ public sealed class LinageConformanceTests
     [Theory]
     [InlineData("LNGBY9", "lngby9.prt", "", "RECORD CONTAINS 4 CHARACTERS", 85)]
     [InlineData("LNGBYA", "lngbya.prt", "", "LINAGE IS 10 LINES", 85)]
-    // A LINE SEQUENTIAL file's FD carries no RECORD CONTAINS (§13.4.5.3 SR4 — "neither the BLOCK CONTAINS clause
+    // A LINE SEQUENTIAL file's FD carries no RECORD CONTAINS (§2023:13.4.5.3 SR4 — "neither the BLOCK CONTAINS clause
     // nor the RECORD CONTAINS clause shall be specified"; COBOL2605), so its record width is the 01's alone.
     [InlineData("LNGBYB", "lngbyb.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "", 2023)]
     [InlineData("LNGBYC", "lngbyc.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "LINAGE IS 10 LINES", 2023)]
@@ -325,15 +325,15 @@ public sealed class LinageConformanceTests
     [Fact]
     // ⛔ THE SECOND ARM OF THE WRITE DISPATCH — a LINE SEQUENTIAL LINAGE file gets the SAME logical page. This is
     // the arm kb/Work PB523 found unfixed while its record-sequential twin was fixed: a plain WRITE there emitted
-    // the record and a bare newline, so the margins never reached a line sequential medium. §14.9.51.4 GR25 makes
-    // an omitted ADVANCING phrase a one-line advance and §13.18.34.4 GR7 c) 3 adds one to the counter, so that
+    // the record and a bare newline, so the margins never reached a line sequential medium. §2023:14.9.51.4 GR25 makes
+    // an omitted ADVANCING phrase a one-line advance and §2023:13.18.34.4 GR7 c) 3 adds one to the counter, so that
     // newline IS the device travelling one line on the logical page.
     // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2 (page 1 = physical 1-7, page 2 starts at 8).
-    // A plain WRITE is an AFTER ADVANCING 1 LINE (§14.9.51.4 GR25: "automatic advancing shall be provided by the
+    // A plain WRITE is an AFTER ADVANCING 1 LINE (§2023:14.9.51.4 GR25: "automatic advancing shall be provided by the
     // implementor to act as if the user has specified AFTER ADVANCING 1 LINE"; kb/Work PB1027), so the file is
     // BYTE FOR BYTE the one Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage derives for the same FD with the
     // phrase spelled out: AAAA lands on page-1 body line 2 = physical 5 (GR25 f): the counter was 1 at OPEN,
-    // §13.18.34.4 GR7 d), and the advance makes it 2, GR7 c) 3), BBBB's advance would reach body line 3, past the
+    // §2023:13.18.34.4 GR7 d), and the advance makes it 2, GR7 c) 3), BBBB's advance would reach body line 3, past the
     // page size, so GR26 a) repositions to page-2 body line 1 = physical 11 and presents it there, and CCCC lands
     // on body line 2 = physical 12.
     public void Bytes_LineSequentialLinageFile_GetsTheSameMargins()
@@ -348,7 +348,7 @@ public sealed class LinageConformanceTests
             """), "lngby5.prt",
             "\r\n\r\n\r\n\r\nAAAA\r\n\r\n\r\n\r\n\r\n\r\nBBBB\r\nCCCC\r\n", edition: 2023, org: LineSequentialOrg);
 
-    // ── GR7 counter rules (§13.18.34 GR7c1–c4 / GR7d) ─────────────────────────────────────────────────────
+    // ── GR7 counter rules (§2023:13.18.34 GR7c1–c4 / GR7d) ─────────────────────────────────────────────────────
 
     [Fact]   // GR7d: LINAGE-COUNTER is set to one at OPEN OUTPUT.
     public void Gr7d_CounterIsOneAtOpenOutput()
@@ -379,7 +379,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "LC=004");
 
-    [Fact]   // §14.9.51 GR25c: ADVANCING 0 performs no repositioning; the counter gains 0 (GR7c2).
+    [Fact]   // §2023:14.9.51 GR25c: ADVANCING 0 performs no repositioning; the counter gains 0 (GR7c2).
     public void Gr25c_AdvancingZero_CounterUnchanged()
         => AssertSpec(Program("LINAGE IS 5 LINES WITH FOOTING AT 4", "", """
                 WRITE P-REC AFTER ADVANCING 0 LINES.
@@ -400,7 +400,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "LC=001");
 
-    [Fact]   // GR7c4 + §14.9.51 GR26a: crossing the page body repositions to LINE ONE of the next page —
+    [Fact]   // GR7c4 + §2023:14.9.51 GR26a: crossing the page body repositions to LINE ONE of the next page —
              // counter := 1, never a modulo carry (8 past a 5-line body is 1, not 3) — with an overflow EOP.
     public void Gr7c4_OverflowCrossing_ResetsToOneNotModulo()
         => AssertSpec(Program("LINAGE IS 5 LINES", "", """
@@ -415,7 +415,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "EOP\nLC=001");
 
-    // ── GR26a vs GR26b end-of-page discrimination (§14.9.51) ──────────────────────────────────────────────
+    // ── GR26a vs GR26b end-of-page discrimination (§2023:14.9.51) ──────────────────────────────────────────────
 
     [Fact]   // GR26b + GR27b: printing within the footing area is a FOOTING end-of-page — the AT branch reads
              // the POST-advance counter of the triggering write, and the counter is NOT reset (no overflow).
@@ -431,10 +431,10 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "EOP AT 004\nAFTER=004");
 
-    [Fact]   // ⚖ THE ADJUDICATED BOUNDARY — docs/CONFORMANCE.md §4 "DETERMINATION — the §14.9.51.4 GR26 a)/b)
+    [Fact]   // ⚖ THE ADJUDICATED BOUNDARY — docs/CONFORMANCE.md §4 "DETERMINATION — the §2023:14.9.51.4 GR26 a)/b)
              // boundary at LINAGE-COUNTER = page size" (kb/Work PB686). GR26a as PRINTED fires at counter ≥ page
              // size and GR26b is clamped to counter < page size; at counter == page size neither can hold with
-             // §13.18.34 GR2 (all page-size lines may be written), GR3 (the footing area is [footing start, page
+             // §2023:13.18.34 GR2 (all page-size lines may be written), GR3 (the footing area is [footing start, page
              // size] INCLUSIVE) or GR26's lead sentence. So a write landing exactly ON the page size is a FOOTING
              // end-of-page (counter stays), and overflow (GR26a) fires only when the positioning actually PASSES
              // the body (counter then resets to 1, GR7c4). ⛔ THIS EXPECTATION IS A DETERMINATION, NOT A LITERAL
@@ -455,7 +455,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "EOP1\nLC=005\nEOP2\nLC=001");
 
-    [Fact]   // §13.18.34 GR1: no FOOTING phrase ⇒ no end-of-page condition independent of page overflow —
+    [Fact]   // §2023:13.18.34 GR1: no FOOTING phrase ⇒ no end-of-page condition independent of page overflow —
              // a write landing on the page size raises NOTHING (GR28: the NOT branch runs); only the
              // body-crossing write raises the (overflow) end-of-page.
              // ⚖ THE SECOND ARM OF THE PB686 BOUNDARY, and the one that shows the stakes: the determination
@@ -477,7 +477,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "NO-EOP1\nEOP2");
 
-    // ── GR6b data-name evaluation timing (§13.18.34 GR6b1/2/3 — the legacy's verified hole) ───────────────
+    // ── GR6b data-name evaluation timing (§2023:13.18.34 GR6b1/2/3 — the legacy's verified hole) ───────────────
 
     [Fact]   // GR6b1: a data-name operand's value is read at the COMPLETION of OPEN OUTPUT — the pre-open
              // MOVE governs the first page; a post-open MOVE has no effect until a page transition (GR6b
@@ -596,7 +596,7 @@ public sealed class LinageConformanceTests
             // 2 lines; 1+2 = 3 > 2 ⇒ overflow EOP. Without the re-evaluation it would be 3 ≤ 5 ⇒ no EOP.
             "EOP");
 
-    // ── LINAGE-COUNTER as an operand (§8.4.3.14 SR1 — procedure-division references) ───────────────────────
+    // ── LINAGE-COUNTER as an operand (§2023:8.4.3.14 SR1 — procedure-division references) ───────────────────────
 
     [Fact]   // The register in IF relations and PERFORM UNTIL conditions (plus MOVE — every test above).
     public void Counter_InIfAndPerformUntil()
@@ -614,8 +614,8 @@ public sealed class LinageConformanceTests
                 WRITE P-REC AFTER ADVANCING 1 LINE.
             """), "IF-OK\nLC=004");
 
-    [Fact]   // §8.4.3.14 SR3 / §8.4.2.2: with more than one LINAGE file the register is QUALIFIED by
-             // file-name — each file carries its own counter (§13.18.34 GR7a). No NIST coverage; spec-pinned.
+    [Fact]   // §2023:8.4.3.14 SR3 / §2023:8.4.2.2: with more than one LINAGE file the register is QUALIFIED by
+             // file-name — each file carries its own counter (§2023:13.18.34 GR7a). No NIST coverage; spec-pinned.
     public void QualifiedCounter_TwoLinageFiles()
         => AssertSpec("""
             IDENTIFICATION DIVISION.
@@ -650,7 +650,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """, "P1=002\nP2=003");
 
-    // ── Bind-time diagnostics (§14.9.51 SR13/SR18/SR19; §8.4.3.14 SR3) ─────────────────────────────────────
+    // ── Bind-time diagnostics (§2023:14.9.51 SR13/SR18/SR19; §2023:8.4.3.14 SR3) ─────────────────────────────────────
 
     [Fact]   // SR19 — THE silent-drop bug class: an END-OF-PAGE phrase on a file whose FD has no LINAGE
              // clause is a compile-time rejection, never a dropped branch.
@@ -681,8 +681,8 @@ public sealed class LinageConformanceTests
 
     [Fact]   // SR18 names the END-OF-PAGE phrase (GR27 b)'s imperative-statement-1); SR19 and GR28 name the NOT
              // END-OF-PAGE phrase separately, so a NOT-only phrase beside ADVANCING PAGE is legal — and its
-             // imperative does not run, because ADVANCING PAGE is a page overflow (§13.18.34.4 GR7 c) 1's implicit
-             // increment → §14.9.51.4 GR26 a); kb/Work PB578). A plain write after it is the live control.
+             // imperative does not run, because ADVANCING PAGE is a page overflow (§2023:13.18.34.4 GR7 c) 1's implicit
+             // increment → §2023:14.9.51.4 GR26 a); kb/Work PB578). A plain write after it is the live control.
     public void Sr18_AdvancingPageWithNotEopOnly_IsLegalAndTheEndOfPageConditionOccurs()
         => AssertSpec(Program("LINAGE IS 5 LINES", "", """
                 WRITE P-REC AFTER ADVANCING PAGE
@@ -697,7 +697,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), "PLAIN-NOT-EOP\nLC=002");
 
-    [Fact]   // SR18 with the NOT-first pair (§14.9.51.2's choice indicators, COBOL-2023): the pair still carries the
+    [Fact]   // SR18 with the NOT-first pair (§2023:14.9.51.2's choice indicators, COBOL-2023): the pair still carries the
              // END-OF-PAGE phrase, so it is rejected whichever phrase is written first (kb/Work PB578).
     public void Sr18_AdvancingPageWithNotFirstEopPair_IsRejected()
     {
@@ -743,7 +743,7 @@ public sealed class LinageConformanceTests
         EditionHarness.AssertHasDiagnostic(diags, "SR13");
     }
 
-    [Fact]   // §8.4.3.14 SR3 / §8.4.2.2: an UNQUALIFIED LINAGE-COUNTER is ambiguous when two files have
+    [Fact]   // §2023:8.4.3.14 SR3 / §2023:8.4.2.2: an UNQUALIFIED LINAGE-COUNTER is ambiguous when two files have
              // LINAGE clauses — rejected with a qualification diagnostic.
     public void UnqualifiedCounter_TwoLinageFiles_IsRejected()
     {
@@ -779,7 +779,7 @@ public sealed class LinageConformanceTests
 
     // ── GR6 b)'s VALUE RULES and what a violation does (kb/Work PB525 + PB526) ────────────────────────────
     //
-    // §13.18.34.4 GR6 b) 1 "The page size shall be greater than zero." and GR6 b) 2 "The footing start shall be
+    // §2023:13.18.34.4 GR6 b) 1 "The page size shall be greater than zero." and GR6 b) 2 "The footing start shall be
     // greater than zero and not greater than the page size.", then: "If the value does not conform to these two
     // rules, the EC-I-O-LINAGE exception condition is set to exist. If execution continues after processing of
     // this exception condition, it continues with the statement following the WRITE statement; the
@@ -787,8 +787,8 @@ public sealed class LinageConformanceTests
     // statements referencing the file cause the EC-I-O-LINAGE exception condition to continue to exist until the
     // file is closed."
     //
-    // EC-I-O-LINAGE is Fatal (Table 13) and §14.6.13.1.3 3) routes a fatal EC-I-O condition through §9.1.13's
-    // rules, which are rules about the I-O STATUS — so the violation reports one: '90', §9.1.13.11's
+    // EC-I-O-LINAGE is Fatal (Table 13) and §2023:14.6.13.1.3 3) routes a fatal EC-I-O condition through §2023:9.1.13's
+    // rules, which are rules about the I-O STATUS — so the violation reports one: '90', §2023:9.1.13.11's
     // implementor-defined value (docs/CONFORMANCE.md §7 DOC-A.1-110). That is what these tests read, because it
     // is what a program with NO >>TURN can see; the exception-NAME half is
     // conformance-suite/cases/13.18.34-LINAGE/pb526_linage_ec_checking.
@@ -861,7 +861,7 @@ public sealed class LinageConformanceTests
             """), "USE FS=90\nUSE FS=90\nW1 FS=90 LC=000");
 
     [Fact]   // …the other half of the pair: NO FOOTING phrase, everything else identical. GR1 governs, the write
-             // is successful, and §14.9.51.4 GR28's NOT END-OF-PAGE imperative runs on it.
+             // is successful, and §2023:14.9.51.4 GR28's NOT END-OF-PAGE imperative runs on it.
     public void Gr1_NoFootingPhrase_SamePageAndWrite_IsAnOrdinarySuccessfulWrite()
         => AssertSpec(ViolationProgram("LINAGE IS 5 LINES", "", """
                 OPEN OUTPUT LPF.
@@ -907,7 +907,7 @@ public sealed class LinageConformanceTests
             "W1 FS=00 LC=002\nUSE FS=90\nW2 FS=90 LC=000\nUSE FS=90\nW3 FS=90 LC=000\n"
             + "CLOSE FS=00\nREOPEN FS=00 LC=001");
 
-    [Fact]   // §14.9.51.4 GR27 ("When an end-of-page condition occurs, the WRITE statement is successful") and
+    [Fact]   // §2023:14.9.51.4 GR27 ("When an end-of-page condition occurs, the WRITE statement is successful") and
              // GR28 ("If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase,
              // the end-of-page condition does not occur …") both condition the phrase on a SUCCESSFUL write, so
              // an unsuccessful one runs NEITHER imperative. The latched write below is the case that made this

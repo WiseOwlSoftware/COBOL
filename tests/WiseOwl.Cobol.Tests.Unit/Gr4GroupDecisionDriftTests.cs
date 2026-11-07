@@ -9,7 +9,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ <b>ISO §14.9.25.4 GR4 IS ONE RULE OVER BOTH OPERANDS, AND ONE CODEC IN BOTH DIRECTIONS</b> (kb/Work PB430).
+/// ⛔ <b>ISO §2023:14.9.25.4 GR4 IS ONE RULE OVER BOTH OPERANDS, AND ONE CODEC IN BOTH DIRECTIONS</b> (kb/Work PB430).
 /// The two defects this pins had the same shape — a question answered in two places, and the two answers drifted:
 /// the elementary-vs-group decision was asked structurally on the receiving side and through
 /// <c>IsGroupPlace</c> on the sending side (so a level-66 THROUGH alias was a group SENDER and an elementary
@@ -28,7 +28,7 @@ public sealed class Gr4GroupDecisionDriftTests
         TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs")));
 
     /// <summary>The RECEIVING half of GR4's test goes through the SAME predicate the sending half does. A second
-    /// spelling of the structural test is the defect: §13.18.45.4 GR2 and §13.18.29.4 GR1b/GR2b both make the
+    /// spelling of the structural test is the defect: §2023:13.18.45.4 GR2 and §2023:13.18.29.4 GR1b/GR2b both make the
     /// answer non-structural, and a re-spelling sees neither.</summary>
     [Fact]
     public void MoveClassifier_ReceivingHalfOfGr4_AsksIsGroupPlace_NotAReSpelling()
@@ -41,8 +41,8 @@ public sealed class Gr4GroupDecisionDriftTests
         Assert.DoesNotMatch(@"target\s*\.\s*Item\s*\.\s*IsGroup\b", kind.Groups["b"].Value);
     }
 
-    /// <summary>THE ONE PLACE the §14.9.25.4 GR4 group designation is decided — so a shape the standard
-    /// DESIGNATES a group item (a RENAMES … THROUGH alias, §13.18.45.4 GR2) is one everywhere or nowhere.</summary>
+    /// <summary>THE ONE PLACE the §2023:14.9.25.4 GR4 group designation is decided — so a shape the standard
+    /// DESIGNATES a group item (a RENAMES … THROUGH alias, §2023:13.18.45.4 GR2) is one everywhere or nowhere.</summary>
     [Fact]
     public void MoveClassifier_IsGroupPlace_IsTheOnlySiteThatNamesRenamesPlace()
     {
@@ -50,7 +50,7 @@ public sealed class Gr4GroupDecisionDriftTests
         int mentions = Regex.Matches(src, @"\bRenamesPlace\b").Count;
         Assert.True(mentions == 1,
             $"MoveClassifier names RenamesPlace {mentions} time(s); IsGroupPlace is the ONE site that decides "
-            + "the §14.9.25.4 GR4 group designation, and a second test of the place kind is how the sending and "
+            + "the §2023:14.9.25.4 GR4 group designation, and a second test of the place kind is how the sending and "
             + "receiving halves came to disagree (kb/Work PB430)");
     }
 
@@ -96,7 +96,7 @@ public sealed class Gr4GroupDecisionDriftTests
         Assert.Matches(@"Usage\.Bit\s*=>\s*RuntimeApi\.BitsPackAll\(", codec.Groups["b"].Value);
     }
 
-    /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §15.13.4 1), §15.2 2)),
+    /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §2023:15.13.4 1), §2023:15.2 2)),
     /// so the storage image of a MOVE's sender (<c>OperandText.AsStorageImage</c>) is its packed bits (kb/Work PB3562).
     /// <c>CharacterUsage</c> answered DISPLAY for it, and the group move copied the carrier text.</summary>
     [Fact]

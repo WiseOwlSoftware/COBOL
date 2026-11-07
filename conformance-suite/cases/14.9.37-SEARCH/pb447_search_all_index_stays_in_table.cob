@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 — WHERE EACH SEARCH FORMAT LEAVES ITS SEARCH
+      *> ISO §2023:14.9.37.4 — WHERE EACH SEARCH FORMAT LEAVES ITS SEARCH
       *> INDEX. The standard writes the scan twice and the two texts
       *> disagree, so this program asserts BOTH, in one run, at the
       *> edition both formats already existed in (kb/Work PB447).
@@ -25,7 +25,7 @@
       *>     outside the permissible range of occurrence values." The
       *>     new value is formed and then judged, so the index ends at
       *>     6 over five occurrences — determined, and pinned exactly.
-      *> C — Format 2 over an occurs-depending table. §13.18.38 GR7
+      *> C — Format 2 over an occurs-depending table. §2023:13.18.38 GR7
       *>     makes the CURRENT count the last element, so GR9's bound
       *>     is 3 here although storage for 5 exists.
       *> D — Format 2, successful. GR1 a): the index "remains set at

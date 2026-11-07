@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB4740 review R1-3 - a FILE SORT KEY OF CLASS MESSAGE-TAG IS REFUSED BY SR6 c).
       *>   cite.py --check 14.9.40.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.40.3 6) c)
+      *>     pointer." -> OK §2023:14.9.40.3 6) c)
       *> SMT is a level-1 USAGE MESSAGE-TAG record of the SD (the placement 13.18.60.3 SR14 permits). The pointer twin is
       *> pb1173-sort-file-key-pointer; before the fix the message-tag key compiled with COBOL1756 and aborted the run.
       *> The SD record is one message tag, which has the 8-byte slot width (DataItem.PointerByteWidth), so the USING

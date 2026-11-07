@@ -107,13 +107,13 @@ public sealed class GroupDataDifferentialTests
     public void FigurativeValue_FullFieldWidth(string ws, string proc, string expected)
         => AssertSpec(Program(ws, proc), expected);
 
-    // ── Whole-group image over an OCCURS subordinate (ISO §14.9 group move / §8.8.4.1 group compare) ──────────
+    // ── Whole-group image over an OCCURS subordinate (ISO §2023:14.9 group move / §2023:8.8.4.1 group compare) ──────────
     // A group move treats the whole group, INCLUDING every fixed-OCCURS position, as one alphanumeric item; the
     // expected results are derived from the spec.
 
     [Fact]
-    // OCCURS of an alphanumeric element: a whole-group MOVE distributes the image across every occurrence (ISO §14.9),
-    // the group compares as its concatenated image (§8.8.4.1), and a subscripted write is visible in the group image.
+    // OCCURS of an alphanumeric element: a whole-group MOVE distributes the image across every occurrence (ISO §2023:14.9),
+    // the group compares as its concatenated image (§2023:8.8.4.1), and a subscripted write is visible in the group image.
     public void WholeGroupImage_OccursOfAlphanumeric()
         => AssertSpec(Program("01 TBL.\n   02 ELEM PIC X(2) OCCURS 3.",
             """
@@ -126,7 +126,7 @@ public sealed class GroupDataDifferentialTests
 
     [Fact]
     // OCCURS of a numeric-DISPLAY element: the leaves store their zoned character image in the whole-group image, yet
-    // a subscripted reference still reads/writes the numeric value (ISO §14.9; the image facility and the numeric
+    // a subscripted reference still reads/writes the numeric value (ISO §2023:14.9; the image facility and the numeric
     // pipeline share one string-stored representation).
     public void WholeGroupImage_OccursOfNumericDisplay()
         => AssertSpec(Program("01 NTBL.\n   02 NE PIC 9(3) OCCURS 3.\n01 WS-OUT PIC X(9).",
@@ -142,7 +142,7 @@ public sealed class GroupDataDifferentialTests
 
     [Fact]
     // OCCURS of a GROUP element (multi-level): the table image is each occurrence's group image concatenated, and
-    // FromImage distributes back into each occurrence's subordinate leaves (ISO §14.9).
+    // FromImage distributes back into each occurrence's subordinate leaves (ISO §2023:14.9).
     public void WholeGroupImage_OccursOfGroup()
         => AssertSpec(Program("01 T2.\n   02 G OCCURS 2.\n      03 GA PIC X(2).\n      03 GB PIC X.",
             """

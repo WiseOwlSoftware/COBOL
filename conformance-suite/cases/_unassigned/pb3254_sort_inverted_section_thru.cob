@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB3254 - AN INVERTED THRU OVER SECTIONS IS LEGAL AND RUNS (ISO §14.9.28.4 GR6)
+      *> kb/Work PB3254 - AN INVERTED THRU OVER SECTIONS IS LEGAL AND RUNS (ISO §2023:14.9.28.4 GR6)
       *>   cite.py --check 14.9.28.4 "There is no necessary relationship between procedure-name-1 and
       *>     procedure-name-2 except that a consecutive sequence of operations is to be executed beginning at the
-      *>     procedure named procedure-name-1" -> OK §14.9.28.4 6)
+      *>     procedure named procedure-name-1" -> OK §2023:14.9.28.4 6)
       *> INPUT PROCEDURE IS S-B THRU S-A with S-A physically BEFORE S-B. The sort procedure's range is the
       *> consecutive sequence beginning at B1 and ending with the last statement of S-A, and the return mechanism
-      *> sits after A2 (§14.9.40.4 GR11); B3's GO TO A1 is the transfer that makes the sequence consecutive. The
+      *> sits after A2 (§2023:14.9.40.4 GR11); B3's GO TO A1 is the transfer that makes the sequence consecutive. The
       *> binder's lexical span for the ban on a SORT in the procedure (SR3) covers A1..B3, and this program has no
       *> SORT or MERGE there, so it compiles and runs.
       *> Derivation:

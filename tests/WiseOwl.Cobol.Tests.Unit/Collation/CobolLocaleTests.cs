@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 
 /// <summary>
 /// The LOCALE intrinsics' runtime (Runtime/Intrinsics/CobolLocale.cs + Runtime/Globalization/LocaleFacts.cs;
-/// DESIGN-locale-facility §4.7/§4.8/§8; kb/Work PB64 T4): LOCALE-COMPARE IS the locale-based comparison (§15.51.4
+/// DESIGN-locale-facility §4.7/§4.8/§8; kb/Work PB64 T4): LOCALE-COMPARE IS the locale-based comparison (§2023:15.51.4
 /// r2–r5); LOCALE-DATE/-TIME/-TIME-FROM-SECONDS render per the locale's <c>d_fmt</c>/<c>t_fmt</c> (L10 — the
-/// culture's short date / long time patterns) with §15.53.3 r3's own hour/second ranges, the fraction of a scaled
+/// culture's short date / long time patterns) with §2023:15.53.3 r3's own hour/second ranges, the fraction of a scaled
 /// seconds argument, EC-ARGUMENT-FUNCTION on invalid arguments; the three locale conditions — EC-LOCALE-MISSING (a
 /// named unavailable locale), EC-LOCALE-INVALID (an available locale without culture data — a site-tailored made-up
 /// tag), and the gating (nothing raised with checking off; the documented stand-in answers). The golden
@@ -33,10 +33,10 @@ public sealed class CobolLocaleTests
         {
             Assert.Equal(">", CobolLocale.Compare("nz", "ñu", null));          // root: ñ = n + tilde, z > u
             Assert.Equal("<", CobolLocale.Compare("nz", "ñu", "es-ES"));       // Spanish: ñ a primary after n
-            Assert.Equal("=", CobolLocale.Compare("ab", "ab   ", null));       // §15.51.4 r2 — trailing spaces
+            Assert.Equal("=", CobolLocale.Compare("ab", "ab   ", null));       // §2023:15.51.4 r2 — trailing spaces
             Assert.Equal("=", CobolLocale.Compare("   ", " ", null));          // all spaces → one space
             Assert.Equal("<", CobolLocale.Compare("", "a", "fr-FR"));
-            ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");        // the CURRENT locale (§14.6.6 r7)
+            ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");        // the CURRENT locale (§2023:14.6.6 r7)
             Assert.Equal("<", CobolLocale.Compare("nz", "ñu", null));
         });
     }
@@ -50,15 +50,15 @@ public sealed class CobolLocaleTests
             Assert.Equal("08/19/2026", CobolLocale.Date("20260819", null));     // the root: invariant d_fmt
             Assert.Equal(new DateTime(2026, 8, 19).ToString(CultureInfo.GetCultureInfo("fr-FR").DateTimeFormat.ShortDatePattern, CultureInfo.GetCultureInfo("fr-FR")),
                 CobolLocale.Date("20260819", "fr-FR"));
-            // ⛔ EC-ARGUMENT-FUNCTION checking OFF: the §15.3 rule 14 substituted result is ONE
-            // SPACE, not a zero-length value (kb/Work PB470). §15.52.4 r3 makes the returned length
+            // ⛔ EC-ARGUMENT-FUNCTION checking OFF: the §2023:15.3 rule 14 substituted result is ONE
+            // SPACE, not a zero-length value (kb/Work PB470). §2023:15.52.4 r3 makes the returned length
             // depend on the LOCALE, which rejecting argument-1 leaves intact, so docs/CONFORMANCE.md row
             // DOC-A.1-90's zero-length class (a length derived from the REJECTED argument) does not reach
-            // here and its general "spaces" clause does — one position, on §15.30.3 r1's own
+            // here and its general "spaces" clause does — one position, on §2023:15.30.3 r1's own
             // answer for an alphanumeric function whose contents are absent. These asserts read the value
-            // DIRECTLY because §14.6.8.5 space-fills a receiver from a zero-length sender, so a MOVE
+            // DIRECTLY because §2023:14.6.8.5 space-fills a receiver from a zero-length sender, so a MOVE
             // cannot tell the two apart — which is how "" survived here for a year.
-            Assert.Equal(" ", CobolLocale.Date("20261399", null));              // §15.52.3 r2 — month 13
+            Assert.Equal(" ", CobolLocale.Date("20261399", null));              // §2023:15.52.3 r2 — month 13
             Assert.Equal(" ", CobolLocale.Date("2026081", null));               // r1 — 7 positions
             Assert.Equal(" ", CobolLocale.Date("16000101", null));              // year < 1601 — not a CURRENT-DATE value
             ExceptionState.ArgumentFunctionChecking = true;
@@ -78,10 +78,10 @@ public sealed class CobolLocaleTests
         {
             ru.Locale.Set(LocaleCategory.All, "");
             Assert.Equal("13:05:09", CobolLocale.Time("130509", null));
-            Assert.Equal("24:00:00", CobolLocale.Time("240000", null));          // §15.53.3 r3a — hour 24 is legal
+            Assert.Equal("24:00:00", CobolLocale.Time("240000", null));          // §2023:15.53.3 r3a — hour 24 is legal
             Assert.Equal("23:59:99", CobolLocale.Time("235999", null));          // r3b — seconds to 99
-            // The §15.3 rule 14 substituted result — ONE SPACE, per row DOC-A.1-90 over
-            // §15.53.4 r3 (see the LOCALE-DATE test above; kb/Work PB470). Both guards are read:
+            // The §2023:15.3 rule 14 substituted result — ONE SPACE, per row DOC-A.1-90 over
+            // §2023:15.53.4 r3 (see the LOCALE-DATE test above; kb/Work PB470). Both guards are read:
             // the r3 RANGE screen and the r1/r2 FORM screen were separate arms, each with its own
             // substitute, before they were moved onto the one rule table.
             Assert.Equal(" ", CobolLocale.Time("250000", null));                 // r3a — hour 25 is not
@@ -116,12 +116,12 @@ public sealed class CobolLocaleTests
             Assert.Equal("13:05:09.25", CobolLocale.TimeFromSeconds(4710925, 2, null));
             Assert.Equal("00:00:00", CobolLocale.TimeFromSeconds(0, 0, null));
             Assert.Equal("23:59:59", CobolLocale.TimeFromSeconds(86399, 0, null));
-            // ONE SPACE again (row DOC-A.1-90 over §15.54.4 r3; kb/Work PB470) — and this guard
+            // ONE SPACE again (row DOC-A.1-90 over §2023:15.54.4 r3; kb/Work PB470) — and this guard
             // reaches it through a bool screening predicate that raised on its own, so the caller reads
             // ArgumentSubstitute.Spaces rather than spelling a literal.
-            Assert.Equal(" ", CobolLocale.TimeFromSeconds(86400, 0, null));      // §7.3.17.4 GR5 — not standard form
-            // GR4 (LEAP-SECOND ON): 86 400 IS the day's leap second, the time 23:59:60 (§15.54.4 r2 — "the hours,
-            // minutes, and seconds of the time specified by argument-1"; §15.3.3.3 lets the seconds subfield be 60),
+            Assert.Equal(" ", CobolLocale.TimeFromSeconds(86400, 0, null));      // §2023:7.3.17.4 GR5 — not standard form
+            // GR4 (LEAP-SECOND ON): 86 400 IS the day's leap second, the time 23:59:60 (§2023:15.54.4 r2 — "the hours,
+            // minutes, and seconds of the time specified by argument-1"; §2023:15.3.3.3 lets the seconds subfield be 60),
             // the same reading FORMATTED-TIME gives it. It was "24:00:00" — a time the day does not have (PB1379).
             Assert.Equal("23:59:60", CobolLocale.TimeFromSeconds(86400, 0, null, leapSecond: true));
             Assert.Equal("23:59:60.5", CobolLocale.TimeFromSeconds(864005, 1, null, leapSecond: true));
@@ -199,12 +199,12 @@ public sealed class CobolLocaleTests
             ru.Locale.Set(LocaleCategory.All, "");
             Assert.Equal("\u0130", CobolLocale.UpperCase("i", "tr-TR"));           // dotted capital I
             Assert.Equal("\u0131", CobolLocale.LowerCase("I", "tr-TR"));           // dotless small i
-            Assert.Equal("I", CobolLocale.UpperCase("i", (LocaleFacts?)null));    // the implementor's map (§15.97.4 r4)
+            Assert.Equal("I", CobolLocale.UpperCase("i", (LocaleFacts?)null));    // the implementor's map (§2023:15.97.4 r4)
             Assert.Equal("I", CobolLocale.UpperCase("i", LocaleFacts.For("en-US")));
             Assert.Equal("\u0130", CobolLocale.UpperCase("i", LocaleFacts.For("tr")));
             Assert.Equal("", CobolLocale.UpperCase(null, "fr-FR"));
             Assert.Equal("ABC", CobolLocale.UpperCase("abc", ""));                 // the root
-            // §15.97.4 r6 / §15.57.4 r6 — a letter with no correspondence is UNCHANGED (ß has no simple uppercase; the
+            // §2023:15.97.4 r6 / §2023:15.57.4 r6 — a letter with no correspondence is UNCHANGED (ß has no simple uppercase; the
             // simple map of L9 never expands it to SS), under a locale and under the implementor's map alike.
             Assert.Equal("STRA\u00DFE", CobolLocale.UpperCase("stra\u00DFe", "de-DE"));
             Assert.Equal("STRA\u00DFE", CobolLocale.UpperCase("stra\u00DFe", (LocaleFacts?)null));
@@ -216,7 +216,7 @@ public sealed class CobolLocaleTests
         });
     }
 
-    /// <summary>The ONE §8.2.1 gate for the classification consumers (T5): a classification naming a DECLARED but
+    /// <summary>The ONE §2023:8.2.1 gate for the classification consumers (T5): a classification naming a DECLARED but
     /// UNAVAILABLE locale resolves (the compiler never checks availability — L1) and every operation requiring it —
     /// a class test, a case function without a phrase — raises EC-LOCALE-MISSING at use when checking is on, the coded
     /// character set's behavior standing when it is off; an available locale whose culture data .NET lacks raises
@@ -248,8 +248,8 @@ public sealed class CobolLocaleTests
         });
     }
 
-    /// <summary>The CHARACTER CLASSIFICATION resolution at activation (§12.3.6.4 GR5; §14.6.6 r2): the four phrase
-    /// kinds, the None singleton, and the classification-aware class tests (§8.8.4.4.4 GR3 b1/c1/d1 — a Unicode letter
+    /// <summary>The CHARACTER CLASSIFICATION resolution at activation (§2023:12.3.6.4 GR5; §2023:14.6.6 r2): the four phrase
+    /// kinds, the None singleton, and the classification-aware class tests (§2023:8.8.4.4.4 GR3 b1/c1/d1 — a Unicode letter
     /// per LC_CTYPE; no space; the locale's case round-trip for upper/lower).</summary>
     [Fact]
     public void Classification_ResolvesAtActivation_AndDrivesTheClassTests()
@@ -284,7 +284,7 @@ public sealed class CobolLocaleTests
         });
     }
 
-    /// <summary>EC-LOCALE-INVALID (§8.2.1 "invalid or incomplete"): a locale that IS available — a site tailoring
+    /// <summary>EC-LOCALE-INVALID (§2023:8.2.1 "invalid or incomplete"): a locale that IS available — a site tailoring
     /// makes "zz-QQ" known — but has no .NET culture data for LC_TIME; the invariant format stands when checking is
     /// off and the condition is raised when on. LC_COLLATE is unaffected (the tailoring collates).</summary>
     [Fact]

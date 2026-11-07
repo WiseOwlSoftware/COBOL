@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB971 — the *-ARG-OMITTED rule is ONE rule written three times, keyed to the kind of the activated
-/// element that owns the formal (ISO §14.9.4.4 GR12 program, §8.4.3.2.4 GR8 function, §14.9.23.4 GR10 method).
+/// element that owns the formal (ISO §2023:14.9.4.4 GR12 program, §2023:8.4.3.2.4 GR8 function, §2023:14.9.23.4 GR10 method).
 /// Three tables have to agree for a reference to raise the RIGHT name under the RIGHT flag, and before PB971 they
 /// did not: the binder queried EC-PROGRAM-ARG-OMITTED only for a CALL (so no referencing statement enabled it), a
 /// function's carrier raised the PROGRAM name, and a method had no raise site at all. These facts pin them:
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kind is a failure here, not a silently unchecked element);</item>
 /// <item>the guard raises exactly <see cref="OmittedFormal.ConditionName"/> for its kind, armed by exactly the flag
 /// <see cref="EcEmitter"/> sets for that name — the name the binder's per-statement query enables;</item>
-/// <item>a PRESENT argument never raises, and checking off never raises (§14.6.13.1.1).</item>
+/// <item>a PRESENT argument never raises, and checking off never raises (§2023:14.6.13.1.1).</item>
 /// </list>
 /// </summary>
 public sealed class OmittedFormalGuardDriftTests

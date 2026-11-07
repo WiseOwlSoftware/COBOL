@@ -9,7 +9,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ <b>THE §14.9.25.4 GR2/GR3 SUBSTITUTION IS ASKED ONCE, AT ONE SEAM, AND THE EMITTER MAY NOT GO ROUND IT</b>
+/// ⛔ <b>THE §2023:14.9.25.4 GR2/GR3 SUBSTITUTION IS ASKED ONCE, AT ONE SEAM, AND THE EMITTER MAY NOT GO ROUND IT</b>
 /// (kb/Work PB425). The rule rewrites the SENDING operand per RECEIVING operand — a zero-length literal-1 "is
 /// treated as if it were the figurative constant SPACE" (GR3: ZERO for a boolean one) unless the receiver is a
 /// dynamic-length elementary item — so one statement can legitimately store two different senders, and the
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// it would silently restore the defect for whichever arm made it (feedback_two_arm_dispatch).</para>
 ///
 /// <para><b>The complement is asserted too</b>, because the rule has two halves and a test that watched only one
-/// would pass while the other rotted: the SYNTAX screens must keep reading <c>m.Source</c>. §14.9.25.3 SR5 names
+/// would pass while the other rotted: the SYNTAX screens must keep reading <c>m.Source</c>. §2023:14.9.25.3 SR5 names
 /// a closed list of figurative constants WRITTEN in the source, so a gate that saw the substituted sender would
 /// reject <c>MOVE "" TO PIC 9(3)</c> — legal at every edition — as the 2023 removal.</para>
 /// </summary>
@@ -34,22 +34,22 @@ public sealed class ZeroLengthSubstitutionDriftTests
 
     /// <summary>The MOVE renderer reads the per-target SENDER, never the statement's scalar written source.
     /// <c>m.Source</c> is the operand the programmer wrote; <c>m.Stores[i].Sender</c> is the operand
-    /// §14.9.25.4 GR2/GR3 leave for THAT receiver, and only the second is what gets stored.</summary>
+    /// §2023:14.9.25.4 GR2/GR3 leave for THAT receiver, and only the second is what gets stored.</summary>
     [Fact]
     public void MoveEmitter_NeverRendersTheStatementsScalarSource()
     {
         string src = MoveEmitter();
         Assert.False(Regex.IsMatch(src, @"\bm\s*\.\s*Source\b"),
             "MoveEmitter reads BoundMove.Source. The sending operand of a MOVE is PER RECEIVING OPERAND — "
-            + "ISO §14.9.25.4 GR2/GR3 substitute the figurative constant SPACE / ZERO for a zero-length "
+            + "ISO §2023:14.9.25.4 GR2/GR3 substitute the figurative constant SPACE / ZERO for a zero-length "
             + "literal-1 at every receiver EXCEPT a dynamic-length elementary one, so `MOVE \"\" TO D-DYN, "
             + "N-NUM` stores two different senders from one statement. Render `m.Stores[i].Sender` "
             + "(kb/Work PB425); `m.Source` is the WRITTEN operand, which only the syntax screens may read.");
     }
 
     /// <summary>The store's dispatch KIND is the one the classifier computed over the SUBSTITUTED sender (so a
-    /// zero-length literal into a numeric receiver dispatches to the figurative fill §14.9.25.4 GR2 makes it),
-    /// and its ORIGIN says which rule put that sender there — a written figurative is §14.9.25.3 SR5's removed
+    /// zero-length literal into a numeric receiver dispatches to the figurative fill §2023:14.9.25.4 GR2 makes it),
+    /// and its ORIGIN says which rule put that sender there — a written figurative is §2023:14.9.25.3 SR5's removed
     /// construct, a substituted one is legal source. All three come off the SAME store in one destructuring:
     /// recovering any of them some other way means reading `m.Source`, which the test above forbids.</summary>
     [Fact]
@@ -59,7 +59,7 @@ public sealed class ZeroLengthSubstitutionDriftTests
             MoveEmitter());
     }
 
-    /// <summary>⛔ THE COMPLEMENT: the §14.9.25.3 SR5 edition gates re-derive from the WRITTEN sending operand.
+    /// <summary>⛔ THE COMPLEMENT: the §2023:14.9.25.3 SR5 edition gates re-derive from the WRITTEN sending operand.
     /// SR5's prohibition is a SYNTAX rule over "an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE,
     /// LOW-VALUE, ALL "literal", or ALL symbolic-character)" — things spelled in the source — while GR2/GR3
     /// substitute a value. A gate reading the substituted sender would turn a wrong answer into a false

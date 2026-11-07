@@ -5,21 +5,21 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR10 — "The comparison described in General
+      *> ISO §2023:14.9.41.4 GR10 — "The comparison described in General
       *> rule 9 uses the data item referenced by the RELATIVE KEY
       *> clause in the file control entry associated with file-name-1."
       *> The file is SPARSE — records at relative record numbers 3, 7
       *> and 9 — so the answer to a comparison is a value the file's
       *> shape cannot supply by accident.
-      *>   S1  RK holds 5 and the relation is GREATER. §14.9.41.4 GR9a:
+      *>   S1  RK holds 5 and the relation is GREATER. §2023:14.9.41.4 GR9a:
       *>       "the file position indicator is set to the relative
       *>       record number of the first logical record in the file
       *>       whose key satisfies the comparison searching the file
       *>       sequentially" — that is 7. The following READ NEXT makes
-      *>       that record available (§14.9.30.4 GR21b) and §14.9.30.4
+      *>       that record available (§2023:14.9.30.4 GR21b) and §2023:14.9.30.4
       *>       GR25 moves its relative record number into the RELATIVE
       *>       KEY item, so K1 prints 0007 and V1 prints R007.
-      *>   S2  The KEY phrase OMITTED. §14.9.41.4 GR8: "the START
+      *>   S2  The KEY phrase OMITTED. §2023:14.9.41.4 GR8: "the START
       *>       statement behaves as though KEY IS EQUAL TO data-name-1
       *>       had been specified, where data-name-1 is the name of the
       *>       key specified in the RELATIVE KEY clause" — so with RK
@@ -27,8 +27,8 @@
       *>       of the statement resolve to the SAME data item, which is
       *>       what GR10 asserts.
       *>   S3  RK holds 9 and the relation is GREATER: no record has a
-      *>       higher relative record number, so §14.9.41.4 GR9c gives
-      *>       the invalid key condition and '23' (§9.1.13.5 — of the
+      *>       higher relative record number, so §2023:14.9.41.4 GR9c gives
+      *>       the invalid key condition and '23' (§2023:9.1.13.5 — of the
       *>       invalid-key values only '23' can arise from a START;
       *>       '21', '22' and '24' are all WRITE/REWRITE conditions).
       *>       S1 and S3 differ ONLY in the content of RK, so the

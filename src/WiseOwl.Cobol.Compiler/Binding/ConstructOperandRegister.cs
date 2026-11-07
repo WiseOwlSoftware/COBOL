@@ -26,7 +26,7 @@ internal enum ConstructOperand
 /// loop over the constructs while <c>Add</c> runs inside the per-operand loop: that screens per OPERAND across
 /// all constructs at once, so ONE construct naming the same operand twice is rejected by a diagnostic whose own
 /// text ("in more than one …") the program falsifies. The standard's general formats put the repeat inside one
-/// construct beyond reach of these rules: per ISO §5.2.7 an ellipsis makes the preceding brace/bracket group
+/// construct beyond reach of these rules: per ISO §2023:5.2.7 an ellipsis makes the preceding brace/bracket group
 /// repeatable ("the ellipsis applies to the portion of the format between the determined pair of delimiters")
 /// and no rule adds a distinctness requirement to the repetition, so one construct MAY write an operand twice —
 /// and one construct is never "more than one".</para>
@@ -45,14 +45,14 @@ internal enum ConstructOperand
 /// on 2026-09-05 before this line was written.</para>
 /// <para>Consumers (add the next one here — this list is the reason the type is shared, not private):</para>
 /// <list type="bullet">
-///   <item><description><c>ProcedureTableBuilder</c> — ISO §14.9.49.3 SR7 (open modes: "may each be specified
+///   <item><description><c>ProcedureTableBuilder</c> — ISO §2023:14.9.49.3 SR7 (open modes: "may each be specified
 ///     only once in the declaratives portion of a given procedure division"), SR8 ("The same file-name shall not
 ///     appear in more than one USE AFTER EXCEPTION statement within the same procedure division"), SR9 (report
 ///     group) and SR14 (the exception-name/file-name pair); the construct is the USE STATEMENT (kb/Work
 ///     PB364).</description></item>
-///   <item><description><c>FileControlBinder.ResolveFileCollating</c> — ISO §12.4.5.7.3 SR8 ("Neither data-name-1 nor
+///   <item><description><c>FileControlBinder.ResolveFileCollating</c> — ISO §2023:12.4.5.7.3 SR8 ("Neither data-name-1 nor
 ///     record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause"); the construct is the
-///     Format-2 COLLATING SEQUENCE CLAUSE, whose §12.4.5.7.2 figure writes
+///     Format-2 COLLATING SEQUENCE CLAUSE, whose §2023:12.4.5.7.2 figure writes
 ///     <c>OF { data-name-1 | record-key-name-1 } … IS alphabet-name-3</c> (kb/Work PB703).</description></item>
 /// </list>
 /// </summary>

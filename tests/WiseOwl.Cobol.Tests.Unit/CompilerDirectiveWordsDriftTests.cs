@@ -8,15 +8,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1366 — <see cref="CompilerDirectiveWords"/> is the ONE representation of ISO/IEC 1989:2023 §8.12,
+/// kb/Work PB1366 — <see cref="CompilerDirectiveWords"/> is the ONE representation of ISO/IEC 1989:2023 §2023:8.12,
 /// "Compiler-directive words", and these tests are what keeps it equal to the standard: a word the table prints
-/// and the code lacks is a compilation-variable-name this compiler would accept (§7.3.11.3 SR1, §7.3.8.4.3 SR1), and
+/// and the code lacks is a compilation-variable-name this compiler would accept (§2023:7.3.11.3 SR1, §2023:7.3.8.4.3 SR1), and
 /// a word the code has and the table lacks is legal source it would reject.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class CompilerDirectiveWordsDriftTests
 {
-    /// <summary>The §8.12 table, read from the specification itself: every cell of the pipe table between the
+    /// <summary>The §2023:8.12 table, read from the specification itself: every cell of the pipe table between the
     /// section heading and the "In addition to the above list" sentence.</summary>
     private static HashSet<string> SpecTable()
     {
@@ -49,13 +49,13 @@ public sealed class CompilerDirectiveWordsDriftTests
         var code = CompilerDirectiveWords.All.ToHashSet(StringComparer.Ordinal);
         Assert.True(spec.Count > 90, $"the 8.12 table parse found only {spec.Count} words");
         Assert.True(spec.SetEquals(code),
-            "§8.12 and CompilerDirectiveWords disagree — in the spec only: ["
+            "§2023:8.12 and CompilerDirectiveWords disagree — in the spec only: ["
             + string.Join(", ", spec.Except(code).Order(StringComparer.Ordinal)) + "]; in the code only: ["
             + string.Join(", ", code.Except(spec).Order(StringComparer.Ordinal)) + "]");
         Assert.Equal(CompilerDirectiveWords.All.Count, code.Count);   // no duplicate entry
     }
 
-    /// <summary>Every directive the catalog recognizes heads its line with a §8.12 word (§7.3.3 SR6) — except the two
+    /// <summary>Every directive the catalog recognizes heads its line with a §2023:8.12 word (§2023:7.3.3 SR6) — except the two
     /// Annex E.2 item 21 directives the 2023 text removed, which the 2023 table no longer lists. A directive added to
     /// <c>constructs.json</c> without its word on the list is a red test, never a silently usable variable name.</summary>
     [Fact]

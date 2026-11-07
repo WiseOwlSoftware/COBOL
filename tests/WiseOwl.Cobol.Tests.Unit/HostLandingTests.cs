@@ -7,9 +7,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DOOR RULES OF THE .NET HOST ENTRY ARE ONE FUNCTION, AND IT LOSES NOTHING (DESIGN-external-repository §4.3, §17.3
-/// "The door rules are one function"; kb/Work PB2099). ISO §14.2.3 9) and 10) land a host value into a record of the
+/// "The door rules are one function"; kb/Work PB2099). ISO §2023:14.2.3 9) and 10) land a host value into a record of the
 /// formal's description by "a COMPUTE statement without the ROUNDED phrase" (numeric) or "a MOVE statement" (otherwise),
-/// and §14.2.3 13) lets the implementor state the restrictions for a non-COBOL activator: the one stated for .NET is that
+/// and §2023:14.2.3 13) lets the implementor state the restrictions for a non-COBOL activator: the one stated for .NET is that
 /// the landing must be exact. This pins <see cref="HostLanding"/> on the loss fixture the design names — high order, low
 /// order, sign, P positions, each binary capacity, string length, boolean characters — refused, the exact boundary values
 /// accepted, and the validity decode agreeing with <see cref="CobolNum.IsNumericImage"/> per byte form. Every expected
@@ -30,7 +30,7 @@ public sealed class HostLandingTests
     };
 
     /// <summary>A binary item whose truncation is by capacity (BINARY-CHAR … BINARY-DOUBLE, COMP-5): its whole
-    /// <paramref name="bytes"/>-byte container (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10).</summary>
+    /// <paramref name="bytes"/>-byte container (§2023:13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10).</summary>
     private static NumProfile Capacity(int digits, int scale, bool signed, int bytes) => new()
     {
         Digits = digits, FractionDigits = scale, Signed = signed, SignKind = NumericSign.BinaryMinus,
@@ -137,7 +137,7 @@ public sealed class HostLandingTests
         Assert.Equal("ABCD", HostLanding.LandText("ABCD", 4, justified: false, boolean: false, "T", null));
         Refused(() => HostLanding.LandText("ABCDE", 4, justified: false, boolean: false, "T", null), "T");
         Assert.Throws<ArgumentNullException>(() => HostLanding.LandText(null, 4, justified: false, boolean: false, "T", null));
-        // §13.18.32.4 2): zero fill for boolean positions — on the right ordinarily, on the left under JUSTIFIED.
+        // §2023:13.18.32.4 2): zero fill for boolean positions — on the right ordinarily, on the left under JUSTIFIED.
         Assert.Equal("010100", HostLanding.LandText("0101", 6, justified: false, boolean: true, "B", null));
         Assert.Equal("0011", HostLanding.LandText("11", 4, justified: true, boolean: true, "B", null));
         Refused(() => HostLanding.LandText("012", 4, justified: false, boolean: true, "B", null), "B");

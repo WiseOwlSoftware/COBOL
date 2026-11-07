@@ -13,7 +13,7 @@ internal sealed record ElementBinding(DataBinder Data, ReferenceResolver Refs);
 
 /// <summary>
 /// ⛔ THE BINDERS OF THE GROUP'S SOURCE ELEMENTS, KEPT ON THE BINDER'S SIDE OF THE SEAM (docs/rearchitecture/DESIGN-architecture-review.md
-/// §8.3 (1), step 11; kb/Work PB2361). A <see cref="BoundUnit"/> and an <see cref="OoClassUnit"/> are the bound model a backend
+/// §2023:8.3 (1), step 11; kb/Work PB2361). A <see cref="BoundUnit"/> and an <see cref="OoClassUnit"/> are the bound model a backend
 /// reads, so they carry the frozen <see cref="DataBindResult"/> and never a binder; the binding phases, which need each element's
 /// <see cref="DataBinder"/> and <see cref="ReferenceResolver"/> (a container's GLOBAL names, the repository's signatures, the
 /// statement walk, the group tail), ask this table, which <see cref="BindSession.Binders"/> holds for the length of one bind.
@@ -27,7 +27,7 @@ internal sealed class ElementBinders
     private readonly Dictionary<OoClassUnit, ElementBinding> _factories = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<OoInterfaceSymbol, DataBinder> _interfaces = [];
 
-    /// <summary>The data binder of each interface the group defines (its prototypes' formals, ISO §10.6.2 SR4), in the order
+    /// <summary>The data binder of each interface the group defines (its prototypes' formals, ISO §2023:10.6.2 SR4), in the order
     /// they bound. An interface has no procedure division, so it has no resolver.</summary>
     public IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> Interfaces => _interfaces;
 
@@ -64,7 +64,7 @@ internal sealed class ElementBinders
             : throw new InvalidOperationException($"ElementBinders: program unit '{unit.Name}' was read before its data division bound");
 
     /// <summary>The signature of the program or function <paramref name="unit"/> (its USING formals and RETURNING item,
-    /// ISO §14.8.2, §14.8.3), which the group's repository search, the AS NESTED table and the prototype-pair screens compare.</summary>
+    /// ISO §2023:14.8.2, §2023:14.8.3), which the group's repository search, the AS NESTED table and the prototype-pair screens compare.</summary>
     public CalleeSignature SignatureOf(BoundUnit unit)
     {
         var linkage = Of(unit).Data.Linkage;
@@ -87,7 +87,7 @@ internal sealed class ElementBinders
     /// (<see cref="PassPhase.EditionConformanceChecked"/>, the P6 Step-6 gate), so a result is never made over a forest a
     /// pass still writes. The unexpanded parameterized classes bind for their own rules and are never emitted, so they are not
     /// frozen. Returns each interface's result (<see cref="BoundCompilation.InterfaceData"/>): an interface binds only its
-    /// prototypes' formals in the data phases (ISO §10.6.2 SR4) and no group-tail pass runs over it, so its binder is complete
+    /// prototypes' formals in the data phases (ISO §2023:10.6.2 SR4) and no group-tail pass runs over it, so its binder is complete
     /// when its data has bound and carries no watermark to require.</summary>
     public IReadOnlyDictionary<OoInterfaceSymbol, DataBindResult> Freeze(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes)
     {

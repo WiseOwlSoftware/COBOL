@@ -22,8 +22,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A BY REFERENCE INVOKE ARGUMENT GETS ONE VERDICT ON THE TYPED AND THE UNIVERSAL LANE (kb/Work PB2077, decision
-/// PB3098; OO_DESIGN D6 item 6). ISO §14.9.23.4 GR7 b) locates the method for EVERY INVOKE by §9.3.6's match,
-/// and §14.9.23.3 SR5 c) with §14.8.1 asks a typed receiver's §14.8.2 conformance at compile time: one relation, read
+/// PB3098; OO_DESIGN D6 item 6). ISO §2023:14.9.23.4 GR7 b) locates the method for EVERY INVOKE by §2023:9.3.6's match,
+/// and §2023:14.9.23.3 SR5 c) with §2023:14.8.1 asks a typed receiver's §2023:14.8.2 conformance at compile time: one relation, read
 /// at two times. The universal switch asks <see cref="ActivationRelations.Matches"/> and
 /// <see cref="ActivationRelations.ParameterViolation"/> at run time; the typed binder
 /// (<c>OoBinder.ByReferenceArgumentReason</c>) asks <see cref="ActivationRelations.MatchViolation"/> and the same
@@ -78,7 +78,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
             .ToList();
         Assert.True(refModArms.Count == 0,
             "OoBindInvocationArg branches on a reference-modified argument (line " + string.Join(", ", refModArms) + "): "
-            + "a slice is the unique data item §8.4.3.3.4 GR5 / GR6 create and is described by ActivationDescriptions, "
+            + "a slice is the unique data item §2023:8.4.3.3.4 GR5 / GR6 create and is described by ActivationDescriptions, "
             + "never judged by a conformance arm of the binder's own (kb/Work PB2077).");
     }
 
@@ -128,7 +128,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
                     + $"{(binder ? "conforms" : "refused")}, the universal relation {(relation ? "conforms" : "refused")}");
                 if (argument is RefModPlace)
                     Assert.False(binder, $"a slice of PIC {argument.Item.PictureText} matched the elementary formal PIC "
-                        + $"{formal.PictureText}: the unique data item has no PICTURE clause (ISO §8.4.3.3.4 GR6; §9.3.6 3 e))");
+                        + $"{formal.PictureText}: the unique data item has no PICTURE clause (ISO §2023:8.4.3.3.4 GR6; §2023:9.3.6 3 e))");
             }
         Assert.True(pairs > 600, $"only {pairs} pairs — the population no longer exercises the invariant");
         Assert.True(matched > 15, $"only {matched} matching pairs — the population no longer reaches a match");
@@ -196,8 +196,8 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
 
     private const string Group4 = "       01 LF.\n          05 LF1 PIC X(4).";
 
-    /// <summary>PB3098's verdict table, typed column (ISO §9.3.6 3 c) / 3 e), §14.8.2.2 rule 1, §9.3.6 4 d),
-    /// §14.8.2.3.2 "Additionally" d); docs/CONFORMANCE.md D-RM1).</summary>
+    /// <summary>PB3098's verdict table, typed column (ISO §2023:9.3.6 3 c) / 3 e), §2023:14.8.2.2 rule 1, §2023:9.3.6 4 d),
+    /// §2023:14.8.2.3.2 "Additionally" d); docs/CONFORMANCE.md D-RM1).</summary>
     [Theory]
     [InlineData("       01 LF PIC X(5).", "X(1:5)", false)]           // 3 e): the slice has no PICTURE clause
     [InlineData("       01 LF PIC X(5).", "X(1:N)", false)]
@@ -221,7 +221,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
     public void PB3098sRows_CompileToTheirVerdicts(string formal, string argument, bool accepted) =>
         Assert.Equal(accepted, TypedLaneAccepts(formal, argument));
 
-    /// <summary>The refusal names the clause that differs, never the length §14.8.2.3.2 "Additionally" d) relaxes
+    /// <summary>The refusal names the clause that differs, never the length §2023:14.8.2.3.2 "Additionally" d) relaxes
     /// (kb/Work PB2077 review R1-2): opposite an ANY LENGTH formal, a JUSTIFIED argument is refused for JUSTIFIED.</summary>
     [Fact]
     public void AnAnyLengthFormalsRefusal_NamesTheClauseThatDiffers_NotTheLength()
@@ -238,7 +238,7 @@ public sealed class TypedAndUniversalInvokeVerdictsAgreeDriftTests
     /// <see cref="ActivationDescription.ClausePhrases"/>; the <see cref="ActivationDescription.Clauses"/> key — a
     /// restricted pointer's type layout with its leaves' analyzed profiles, a PICTURE identity's packed fields — is an
     /// identity, and printing it put <c>PicInfo { … }</c> dumps into COBOL0828. Each row is a negative program whose
-    /// refusal names the difference §9.3.6 match rule 3 e) / §14.8.2.3.2 rule 4 found, and contains no key separator.</summary>
+    /// refusal names the difference §2023:9.3.6 match rule 3 e) / §2023:14.8.2.3.2 rule 4 found, and contains no key separator.</summary>
     [Theory]
     [InlineData("pb480-typed-restricted-pointer-type.cob",
         "(an elementary data-pointer item described with USAGE POINTER TO T-REC)",

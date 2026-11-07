@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB412 — A DEPENDING PHRASE WITH NO PROCEDURE-NAME. §14.9.17.2 Format 2 prints
+*> kb/Work PB412 — A DEPENDING PHRASE WITH NO PROCEDURE-NAME. §2023:14.9.17.2 Format 2 prints
 *> `GO TO { procedure-name-1 } … DEPENDING ON identifier-1`; 5.2.6.3 requires one alternative of a brace group
 *> to be explicitly specified, so at least one procedure-name is obligatory, and Format 1 has no DEPENDING
 *> phrase at all. No format admits this program at any of 1985/2002/2014/2023.

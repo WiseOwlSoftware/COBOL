@@ -20,22 +20,22 @@ using Core = CobolParserCore;
 /// admits the superset so the refusal can NAME the rule instead of answering a bare COBOL0001.
 ///
 /// <list type="number">
-/// <item><b>An imperative-statement operand holds only imperative statements</b> (kb/Work PB351; §14.5.1). Every
+/// <item><b>An imperative-statement operand holds only imperative statements</b> (kb/Work PB351; §2023:14.5.1). Every
 /// conditional phrase of every statement spells its operand <c>statementBlock</c> (= <c>statement+</c>), so an IF with
-/// no END-IF written as a READ's AT END operand, a SEARCH WHEN operand or an EVALUATE WHEN operand compiled. §14.5.1:
+/// no END-IF written as a READ's AT END operand, a SEARCH WHEN operand or an EVALUATE WHEN operand compiled. §2023:14.5.1:
 /// "An imperative statement specifies an unconditional action to be taken by the runtime element or is a conditional
 /// statement that is delimited by its explicit scope terminator", and "Any statement with a conditional phrase that is
 /// not terminated by its explicit scope terminator is a conditional statement." The ONE operand that is not an
-/// imperative-statement is IF's statement-1 / statement-2 (§14.9.19.3 SR1: "either one or more imperative statements or
+/// imperative-statement is IF's statement-1 / statement-2 (§2023:14.9.19.3 SR1: "either one or more imperative statements or
 /// a conditional statement optionally preceded by one or more imperative statements"), so a <c>statementBlock</c> is
 /// screened unless its parent is the IF statement — a NEW phrase rule is screened automatically, which a list of
 /// phrase rules could never be. The classification is <see cref="ConditionalStatements.IsConditional"/>.</item>
-/// <item><b>Format 1 (with sections) and Format 2 (without sections) are distinct</b> (kb/Work PB1146; §14.2.1, §14.4.1).
+/// <item><b>Format 1 (with sections) and Format 2 (without sections) are distinct</b> (kb/Work PB1146; §2023:14.2.1, §2023:14.4.1).
 /// The grammar parses <c>declarativePart* sentence* paragraphDefinition* sectionDefinition*</c>, the union of the two
-/// formats (every paragraph after a section header is that section's, §14.4.2, so a paragraph outside every section is
+/// formats (every paragraph after a section header is that section's, §2023:14.4.2, so a paragraph outside every section is
 /// one written before the first section header; kb/Work PB4230). Format 1 prints
 /// nothing between the procedure division header (or END DECLARATIVES) and the first section header, prints ONE
-/// bracketed DECLARATIVES portion, and §14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in
+/// bracketed DECLARATIVES portion, and §2023:14.4.1 adds "If one paragraph is in a section, all paragraphs shall be in
 /// sections" — so once a division has a section (a DECLARATIVES portion is made of sections), a sentence or a paragraph
 /// outside every section is refused.</item>
 /// </list>
@@ -52,7 +52,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
     public override object? VisitEnvironmentDivision(Core.EnvironmentDivisionContext ctx) => null;
     public override object? VisitDataDivision(Core.DataDivisionContext ctx) => null;
 
-    // ── §14.5.1: an imperative-statement operand ───────────────────────────────────────────────────────────
+    // ── §2023:14.5.1: an imperative-statement operand ───────────────────────────────────────────────────────────
 
     public override object? VisitStatementBlock(Core.StatementBlockContext ctx)
     {
@@ -68,11 +68,11 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         string name = Table12StatementNames.NameOf(s);
         string owner = OwningStatementName(block);
         string phrase = PhraseWords(block);
-        // §14.5.3.3 decides whose phrase a [NOT] phrase is, and the reader who wrote `… ON SIZE ERROR ADD … NOT ON SIZE
+        // §2023:14.5.3.3 decides whose phrase a [NOT] phrase is, and the reader who wrote `… ON SIZE ERROR ADD … NOT ON SIZE
         // ERROR …` meant it for the outer statement: when the inner statement's phrase is one the outer statement's
         // format also prints, the message says which statement the rule gave it to (kb/Work PB3830).
         string association = InnerPhraseTheOwnerPrints(block, s) is { } inner
-            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO §14.5.3.3: \"Any "
+            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO §2023:14.5.3.3: \"Any "
               + "phrase encountered is the next phrase of the most-recently preceding unterminated statement with which "
               + "that phrase may be syntactically associated\"."
             : "";
@@ -81,14 +81,14 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
             EditionSeverity.Error, DiagnosticCatalog.ConditionalStatementAsImperative.Id,
             $"{owner} {phrase}: this {name} statement is written without its explicit scope terminator END-{name}, "
             + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — ISO "
-            + "§14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
+            + "§2023:14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
             + "is a conditional statement\"; an imperative statement \"is a conditional statement that is delimited by its "
             + $"explicit scope terminator\".{association} Write END-{name} to close it.",
             name, DiagnosticCatalog.ConditionalStatementAsImperative.IsoSection));
     }
 
     /// <summary>The words of the inner statement's first conditional phrase that the OWNING statement's general formats
-    /// also print (so §14.5.3.3, not the writer's layout, decided it is the inner statement's), or null.</summary>
+    /// also print (so §2023:14.5.3.3, not the writer's layout, decided it is the inner statement's), or null.</summary>
     private static string? InnerPhraseTheOwnerPrints(Core.StatementBlockContext block, Core.StatementContext inner)
     {
         if (block.Parent is not Core.ConditionalPhraseContext { Parent: Core.ConditionalPhrasesContext { Parent: ParserRuleContext ownerRule } }
@@ -141,22 +141,22 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         return (words.Count == 0 ? parent.Start.Text : string.Join(' ', words)).ToUpperInvariant();
     }
 
-    // ── §14.2.1 / §14.4.1: Format 1 versus Format 2 ────────────────────────────────────────────────────────
+    // ── §2023:14.2.1 / §2023:14.4.1: Format 1 versus Format 2 ────────────────────────────────────────────────────────
 
     public override object? VisitProcedureDivision(Core.ProcedureDivisionContext ctx)
     {
         var declaratives = ctx.declarativePart();
         if (declaratives.Length > 1)
             ReportFormat(declaratives[1],
-                "a second DECLARATIVES portion — §14.2.1 Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
+                "a second DECLARATIVES portion — §2023:14.2.1 Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
                 + "portion, immediately after the procedure division header");
 
         bool hasSectionDefinitions = ctx.sectionDefinition().Length > 0;
         if (hasSectionDefinitions || declaratives.Length > 0)
         {
             string why = hasSectionDefinitions
-                ? "the procedure division has sections, so it is §14.2.1 Format 1 (with-sections)"
-                : "the procedure division has DECLARATIVES, which only §14.2.1 Format 1 (with-sections) admits";
+                ? "the procedure division has sections, so it is §2023:14.2.1 Format 1 (with-sections)"
+                : "the procedure division has DECLARATIVES, which only §2023:14.2.1 Format 1 (with-sections) admits";
             var sentences = ctx.sentence();
             if (sentences.Length > 0)
                 ReportFormat(sentences[0],
@@ -167,7 +167,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
                 ReportFormat(paragraphs[0],
                     $"paragraph {ProcedureNameShape.Head(paragraphs[0].paragraphName().procedureName()).ToUpperInvariant()} is not in a section"
                     + (paragraphs.Length > 1 ? $" (nor are {paragraphs.Length - 1} more paragraphs after it)" : "")
-                    + $" — {why}, and §14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
+                    + $" — {why}, and §2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
         }
         return base.VisitChildren(ctx);
     }

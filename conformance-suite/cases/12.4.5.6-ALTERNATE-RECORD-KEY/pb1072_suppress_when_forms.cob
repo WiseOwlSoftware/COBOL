@@ -6,13 +6,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1072 — the SUPPRESS WHEN literal-1 is the key suppression value in EVERY form ISO §12.4.5.6.3
+      *> kb/Work PB1072 — the SUPPRESS WHEN literal-1 is the key suppression value in EVERY form ISO §2023:12.4.5.6.3
       *> SR7 admits: "Literal-1 shall be an alphanumeric literal, a national literal, or a figurative constant".
-      *> §12.4.5.6.4 GR6: no alternate access path to a record "when the value of data-name-1 ... in that record
+      *> §2023:12.4.5.6.4 GR6: no alternate access path to a record "when the value of data-name-1 ... in that record
       *> is equal to literal-1"; GR4 makes that equality a relation condition, so a figurative / ALL literal is
-      *> repeated to the key's size (§8.3.3.6.4 GR2) and a shorter literal space-extended (§8.8.4.2.7 2)).
-      *> A constant-name (§13.10.3 SR2) and a symbolic-character (§8.3.3.6.2 Format 7) stand for literal-1.
-      *> §14.9.51.4 GR41: suppressed entries never cause a duplicate key condition.
+      *> repeated to the key's size (§2023:8.3.3.6.4 GR2) and a shorter literal space-extended (§2023:8.8.4.2.7 2)).
+      *> A constant-name (§2023:13.10.3 SR2) and a symbolic-character (§2023:8.3.3.6.2 Format 7) stand for literal-1.
+      *> §2023:14.9.51.4 GR41: suppressed entries never cause a duplicate key condition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1072SW.
        ENVIRONMENT DIVISION.
@@ -95,7 +95,7 @@
            MOVE "OTHR1" TO R-NA MOVE "X" TO R-SH
            REWRITE R DISPLAY "RW3 " WS-FS.
       *>   REWRITE 04 so R-NA becomes the WORD "SPACE", which record 01 holds: not the suppression value, so
-      *>   §14.9.35.4 GR25 c) '22' and the record is left unchanged.
+      *>   §2023:14.9.35.4 GR25 c) '22' and the record is left unchanged.
            MOVE "04" TO R-KEY READ F
            MOVE "SPACE" TO R-NA
            REWRITE R DISPLAY "RW4 " WS-FS.

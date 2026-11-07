@@ -37,7 +37,7 @@ tags: [wiseowl-cobol, work, defect]
 > | `FUNCTION UPPER-CASE("abc") (1:2)` | COBOL0001 parse error |
 > | `CURRENT-DATE (1:8)` (keyword-omitted) | COBOL1543 — the group was read as an ARGUMENT LIST |
 > | `UPPER-CASE("abc") (2:3)` (keyword-omitted) | ⛔ **COMPILED CLEAN, threw at RUN TIME** — the PB7/DA7 wrong-stage family |
-> | `FUNCTION LOCALE-DATE(CURRENT-DATE (1:8))` — **the standard's own §D.14.3.6 example** | COBOL1543 |
+> | `FUNCTION LOCALE-DATE(CURRENT-DATE (1:8))` — **the standard's own §2023:D.14.3.6 example** | COBOL1543 |
 >
 > ⚠ **AND THE GRAMMAR TAIL ALONE WOULD HAVE MADE IT WORSE.** With `refModPart` parsing but the binder ignoring
 > it, `FUNCTION UPPER-CASE("abcdefgh") (2:3)` compiled and printed **ABC** instead of BCD — the ref-mod silently
@@ -45,19 +45,19 @@ tags: [wiseowl-cobol, work, defect]
 >
 > **THE FIX, and where each rule lives:**
 > · grammar — `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*`;
-> · §8.4.3.3.3 SR2 (alphanumeric/boolean/national only) — `IntrinsicBinder.ResultRefMod`, **`COBOL1629`**;
-> · §8.4.3.2.3 SR6 (a `(` after an argument-PERMITTING function name is ALWAYS the argument list — the
+> · §2023:8.4.3.3.3 SR2 (alphanumeric/boolean/national only) — `IntrinsicBinder.ResultRefMod`, **`COBOL1629`**;
+> · §2023:8.4.3.2.3 SR6 (a `(` after an argument-PERMITTING function name is ALWAYS the argument list — the
 >   standard's own RANDOM trap) — same site, reported as the argument-list error it is (`COBOL1543`), not as
 >   a class error about a ref-mod that was never written;
-> · §8.4.3.3.3 SR3 (no ref-mod of a ref-mod) — **`COBOL1630`**, counted in the binder rather than expressed as
+> · §2023:8.4.3.3.3 SR3 (no ref-mod of a ref-mod) — **`COBOL1630`**, counted in the binder rather than expressed as
 >   the grammar's arity, so the function and data-reference sides report the SAME rule;
 > · the two source carriers (parsed `refModPart` · SUBSCRIPT-mode capture) now reduce through ONE reader,
 >   `ReferenceResolver.ReadRefMod` → `RefModSpec`, and the slice reuses `CobolString.RefMod` — so the
->   §8.4.3.3.4 item-5c bounds check and EC-BOUND-REF-MOD are shared, not re-implemented.
+>   §2023:8.4.3.3.4 item-5c bounds check and EC-BOUND-REF-MOD are shared, not re-implemented.
 > **A RIDER, NOT A WRAPPER:** the ref-mod hangs on `BoundIntrinsicCall.RefMod` because the alphanumeric string
 > channel is selected by pattern-matching that node at several sites; a wrapper would have silently stopped
 > matching at each one, and the failure mode is a DROPPED ref-mod, not a compile error.
-> **GOLDEN** `conformance:2023/pb8_refmod_function_result` (9 cases incl. §D.14.3.6) + four negative fixtures.
+> **GOLDEN** `conformance:2023/pb8_refmod_function_result` (9 cases incl. §2023:D.14.3.6) + four negative fixtures.
 > **INVENTORY** `SR-8.4.3.3.3-2` and `SR-8.4.3.3.3-3` CLOSED; `SR-8.4.3.2.3-6` PARTIAL (see PB9).
 >
 > ---
@@ -68,11 +68,11 @@ tags: [wiseowl-cobol, work, defect]
 > MOVE FUNCTION CURRENT-DATE (1:4)      TO WS-YR  ->  COBOL0001: no viable alternative at input '('
 > MOVE FUNCTION UPPER-CASE("abc") (1:2) TO T      ->  COBOL0001: no viable alternative at input '('
 > ```
-> ✅ **§8.4.3.3.3 SR2, validated verbatim:** "If identifier-1 is a function-identifier, it shall reference an
+> ✅ **§2023:8.4.3.3.3 SR2, validated verbatim:** "If identifier-1 is a function-identifier, it shall reference an
 > alphanumeric, boolean, or national function." The standard explicitly contemplates reference-modifying a
-> function-identifier and constrains only WHICH functions qualify — CURRENT-DATE (§15.21.1, alphanumeric) and
-> UPPER-CASE both do. The shape is normative at §15.23.3 r5, §15.25.3 r5 and §15.100.3 r5, and written out at
-> §D.14.3.6.
+> function-identifier and constrains only WHICH functions qualify — CURRENT-DATE (§2023:15.21.1, alphanumeric) and
+> UPPER-CASE both do. The shape is normative at §2023:15.23.3 r5, §2023:15.25.3 r5 and §2023:15.100.3 r5, and written out at
+> §2023:D.14.3.6.
 >
 > **⛔ ROOT CAUSE IS IN THE LEXER, AND THE FILE WARNS IT CANNOT BE REPAIRED DOWNSTREAM.**
 > `CobolLexer.g4`'s `OnDefaultLParen` pushes SUBSCRIPT mode — which is what captures a ref-mod — only when
@@ -85,4 +85,4 @@ tags: [wiseowl-cobol, work, defect]
 > riskiest category in this codebase, and deliberately NOT attempted in the same pass that landed PB7.
 >
 > ⚠ Interaction worth knowing: PB7 made zero-argument keyword-omitted references bind, so the standard's own
-> §D.14.3.6 example `CURRENT-DATE (1:8)` gains a second reason to work once this lands.
+> §2023:D.14.3.6 example `CURRENT-DATE (1:8)` gains a second reason to work once this lands.

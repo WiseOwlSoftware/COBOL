@@ -6,11 +6,11 @@
 *> portable: unverified
 *>---
       *> RESERVE IS BARRED ONLY FROM A LINE SEQUENTIAL FILE (kb/Work PB781).
-      *> ISO/IEC 1989:2023 §12.4.5.2 SR12: "If the LINE SEQUENTIAL phrase of the
+      *> ISO/IEC 1989:2023 §2023:12.4.5.2 SR12: "If the LINE SEQUENTIAL phrase of the
       *> ORGANIZATION clause is specified, the RESERVE clause shall not be specified."
       *> The rule names the LINE SEQUENTIAL phrase, so a RECORD SEQUENTIAL file (RS) and a
       *> file with no ORGANIZATION clause (DS, sequential RECORD SEQUENTIAL by
-      *> §12.4.5.10.3 GR6) keep their RESERVE clauses, beside a LINE SEQUENTIAL file (LS)
+      *> §2023:12.4.5.10.3 GR6) keep their RESERVE clauses, beside a LINE SEQUENTIAL file (LS)
       *> that has none. Each file is written with one record and read back:
       *> [LS-1][RS-2][DS-3].
        IDENTIFICATION DIVISION.

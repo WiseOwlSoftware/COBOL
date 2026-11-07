@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.58.4 rule 2 — the LOWEST-ALGEBRAIC returned value, over the shapes the clause's own NOTE
-      *> enumerates, plus the §15.58.3 rule 2 ADMIT side (that bar is CONDITIONAL on standard-decimal).
+      *> ISO §2023:15.58.4 rule 2 — the LOWEST-ALGEBRAIC returned value, over the shapes the clause's own NOTE
+      *> enumerates, plus the §2023:15.58.3 rule 2 ADMIT side (that bar is CONDITIONAL on standard-decimal).
       *>
       *> THE RULE: "The value returned is equal to the lowest finite algebraic value that may be represented
-      *> in argument-1." (§15.58.4 r2). Its NOTE tabulates seven argument shapes; the first seven DISPLAYs
+      *> in argument-1." (§2023:15.58.4 r2). Its NOTE tabulates seven argument shapes; the first seven DISPLAYs
       *> below reproduce that table, each value re-derived from the description rather than copied:
       *>   S999                  signed, 3 digit positions, scale 0 -> the all-nines magnitude negated: -999
-      *>   S9(4) USAGE BINARY    §13.18.60.4 GR4 sizes USAGE BINARY to "the maximum range of values implied by
+      *>   S9(4) USAGE BINARY    §2023:13.18.60.4 GR4 sizes USAGE BINARY to "the maximum range of values implied by
       *>                         the associated decimal picture character-string", so the PICTURE's 4 digits
       *>                         bound it (not the 2-byte container): -9999
       *>   99V9(3)               UNSIGNED — no negative value is representable, so the lowest IS zero, carried
@@ -22,17 +22,17 @@
       *>                         digit position; 'CR' makes the mask sign-representable: -99999.99
       *>   $**,**9.99            the same capacity with NO sign symbol anywhere in the mask, so no negative
       *>                         value may be represented: 0
-      *>   BINARY-CHAR SIGNED    §13.18.60.4 GR21 leaves the representation and length implementor-defined;
+      *>   BINARY-CHAR SIGNED    §2023:13.18.60.4 GR21 leaves the representation and length implementor-defined;
       *>                         WiseOwl COBOL documents 1 byte, two's complement (CONFORMANCE.md A.1 items
       *>                         206/207), which is exactly the NOTE's "assuming an 8-bit twos-complement
       *>                         representation": -128
-      *>   BINARY-CHAR UNSIGNED  the same container unsigned — §13.18.60.4 GR12's range for it starts at 0
+      *>   BINARY-CHAR UNSIGNED  the same container unsigned — §2023:13.18.60.4 GR12's range for it starts at 0
       *>                         and no negative value is representable: 0
       *>
-      *> THE EIGHTH LINE IS §15.58.3 RULE 2's ADMIT SIDE. Rule 2 bars a standard binary floating-point
+      *> THE EIGHTH LINE IS §2023:15.58.3 RULE 2's ADMIT SIDE. Rule 2 bars a standard binary floating-point
       *> argument-1 only "If standard-decimal arithmetic is in effect"; no ARITHMETIC clause is written here,
-      *> so §11.9.5.2 GR4 makes NATIVE arithmetic effective and the FLOAT-BINARY-64 item is LEGAL source.
-      *> §13.18.60.4 GR15 pins that usage to ISO/IEC 60559 binary64, whose lowest FINITE value is
+      *> so §2023:11.9.5.2 GR4 makes NATIVE arithmetic effective and the FLOAT-BINARY-64 item is LEGAL source.
+      *> §2023:13.18.60.4 GR15 pins that usage to ISO/IEC 60559 binary64, whose lowest FINITE value is
       *> -(2 - 2**-52) x 2**1023 = -1.7976931348623157E+308. The bound is one-sided on purpose: any literal
       *> farther from zero than the carrier's own maximum (1.798E+308, say) is not a representable binary64
       *> literal, so a two-sided test cannot be written under this mode. The REJECT side of rule 2 is

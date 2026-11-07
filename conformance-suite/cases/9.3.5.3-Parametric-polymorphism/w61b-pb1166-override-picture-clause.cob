@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1166 - the OVERRIDE lane (§11.7.3 SR9 through §9.3.8.2.3
+      *> kb/Work PB1166 - the OVERRIDE lane (§2023:11.7.3 SR9 through §2023:9.3.8.2.3
       *> rules 3/6), the REJECT half.
       *>   cite.py --check 9.3.8.2.3 "has the same ALIGNED, ANY LENGTH,
       *>     BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and

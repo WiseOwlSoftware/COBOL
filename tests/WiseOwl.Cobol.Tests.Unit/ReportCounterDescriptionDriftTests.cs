@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE REPORT COUNTERS HAVE ONE IMPLICIT DESCRIPTION, AND THE COMPILER AND THE RUNTIME STATE IT IN ONE PLACE EACH
-/// (kb/Work PB1746). PAGE-COUNTER and LINE-COUNTER are "temporary unsigned integer data items" (ISO §8.4.3.15.4 GR1)
+/// (kb/Work PB1746). PAGE-COUNTER and LINE-COUNTER are "temporary unsigned integer data items" (ISO §2023:8.4.3.15.4 GR1)
 /// of no size or usage the standard names, so the latitude order takes GnuCOBOL's — an unsigned 32-bit binary
 /// integer (cobc 3.2.0 <c>CB_USAGE_UNSIGNED_INT</c>). The compiler states it once, as <see cref="PicInfo.ReportCounterItem"/>
 /// (the extremes, the 10-digit image, the 4-byte length and the usage screens all read it through
@@ -40,7 +40,7 @@ public sealed class ReportCounterDescriptionDriftTests
         var range = AlgebraicRanges.Of(pic)!.Value;
         string capacity = (CobolReport.CounterModulus - 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
         Assert.Equal(capacity, range.Farthest);
-        Assert.Null(range.FarthestNegative);          // unsigned: no negative extreme (§8.4.3.15.4 GR1)
+        Assert.Null(range.FarthestNegative);          // unsigned: no negative extreme (§2023:8.4.3.15.4 GR1)
         Assert.Equal("1", range.Nearest);
         Assert.Equal("0", range.Zero);
         // The character image is the capacity's digit count, so the all-nines is not what sizes it.
@@ -73,7 +73,7 @@ public sealed class ReportCounterDescriptionDriftTests
     public void AnIncrementPastTheCapacity_WrapsToZero()
     {
         // The engine's page advance is `PageCounter = PageCounter + 1` through the same reducing setter, so a counter
-        // at its capacity advances to 0, as cobc's ADD 1 TO PAGE-COUNTER does (§8.4.3.15.4 GR1 sets no larger size).
+        // at its capacity advances to 0, as cobc's ADD 1 TO PAGE-COUNTER does (§2023:8.4.3.15.4 GR1 sets no larger size).
         var report = NewReport();
         report.SetPageCounter(CobolReport.CounterModulus - 1);
         report.SetPageCounter(report.PageCounter + 1);

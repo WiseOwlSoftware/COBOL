@@ -5,8 +5,8 @@
       *> portable: unverified
       *>---
       *> kb/Work PB2732 - an index-name is a DEFINING user-defined
-      *> word: §13.18.38.2 prints [ INDEXED BY { index-name-1 } ... ]
-      *> and §8.3.2.2.11 "An index-name identifies an index associated
+      *> word: §2023:13.18.38.2 prints [ INDEXED BY { index-name-1 } ... ]
+      *> and §2023:8.3.2.2.11 "An index-name identifies an index associated
       *> with a specific table". A qualifier is no part of the format,
       *> so IX OF G is a syntax error. It used to compile clean and
       *> declare an index named IXOFG (the operand's glued text).

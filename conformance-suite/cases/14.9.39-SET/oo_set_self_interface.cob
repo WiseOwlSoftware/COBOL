@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 SR10d2: SET … TO SELF into a receiver described with an interface-name is legal
+      *> ISO §2023:14.9.39.3 SR10d2: SET … TO SELF into a receiver described with an interface-name is legal
       *> exactly when the INSTANCE definition containing the SET "is described with an IMPLEMENTS clause that
       *> references int-1". CSELFY's OBJECT does IMPLEMENT ISELFY, so the SET conforms and SELF widens to the
       *> interface view. The positive control for the SR10d2 rejection in

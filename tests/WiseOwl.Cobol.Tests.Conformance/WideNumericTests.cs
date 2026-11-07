@@ -42,7 +42,7 @@ public sealed class WideNumericTests
             Run("01 W PIC 9(31).", "MOVE 1234567890123456789012345678901 TO W.\n    DISPLAY W."));
 
     /// <summary>A 34-digit exact intermediate product (16×15-digit operands × 1000) stores into a 31-digit
-    /// receiver with HIGH-ORDER truncation (the no-ON-SIZE-ERROR behavior, ISO §14.7) — proving the carrier held
+    /// receiver with HIGH-ORDER truncation (the no-ON-SIZE-ERROR behavior, ISO §2023:14.7) — proving the carrier held
     /// every digit exactly up to the store: the low 31 digits match the true product
     /// 9999999999999989000000000000001000.</summary>
     [Fact]

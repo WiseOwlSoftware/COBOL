@@ -23,7 +23,7 @@
 - **Unification is feasible and correct — but only at the *classification/decision* layer, not the *physical* layer.**
   The right target is exactly what `DESIGN-data-model.md` proposes: one closed `StorageForm` discriminator computed
   **once** by one pass, read by everyone, replacing the late-mutated flag. The multiple physical forms are intrinsic
-  (they exist for real §14.9.25.4 GR4 / §13.18.44 reasons) and should stay; the *defect* is the scattered late decision,
+  (they exist for real §2023:14.9.25.4 GR4 / §2023:13.18.44 reasons) and should stay; the *defect* is the scattered late decision,
   not the plurality.
 - **The roadmap (`DESIGN-data-model.md` + `PHASE-05-…md`) is strong and largely complete.** The gaps are narrow and
   listed in §9: (1) the OO override-harmonize *pairwise cross-unit* reconciliation is assumed to become a declarative
@@ -89,7 +89,7 @@ same value).
 **Finding.** Packed **is not** a distinct value representation. `long`/`Int128` is *the* fixed-point carrier for
 DISPLAY, COMP, COMP-3, COMP-5, and the BINARY-CHAR family alike (`PicInfo.ClrType` `:242–247`; `CobolNum` remark
 `:19–21`). The *only* place the packed nature ever materialises as bytes is the file/record codec (Tier-C /
-`AsImage` — a §13.18.60 GR4 implementor-defined zoned image, `PicInfo.ImageSignKind` `:153`). So the task's candidate
+`AsImage` — a §2023:13.18.60 GR4 implementor-defined zoned image, `PicInfo.ImageSignKind` `:153`). So the task's candidate
 "packed/binary" collapses into candidates "native long/Int128" + "the AsImage/FromImage codec." **This is a point in
 the model's favour** and the design's `StorageForm.NativeInt` correctly keeps them one case.
 
@@ -179,7 +179,7 @@ WS_SRC.FromImage(new string(' ', 7));                      // MOVE SPACES — th
 ```
 
 Run output: `DST-N=042`, `DST-X=WXYZ`, `SRC-N-AFTER-SPACES=[   ]` — the numeric leaf legitimately holds spaces
-(exactly why the promotion exists: §14.9.25.4 MOVE GR4 fills a group "without consideration for the individual
+(exactly why the promotion exists: §2023:14.9.25.4 MOVE GR4 fills a group "without consideration for the individual
 elementary items"). The **same source** compiled without the whole-group use would keep `WS_SN` a `long` (trace 1
 shows the un-promoted shape).
 
@@ -213,7 +213,7 @@ with **no field**, its value IS `CobolDynTable.Capacity`; `OdoModel.cs:455–464
 
 - **`AsImage()` / `FromImage()` group codec** (`FieldEmitter.cs:207–261`): a group's value as one flat character
   string, with each native fixed-point leaf encoded on demand via `CobolNum.FormatDisplay` (trailing-overpunch image
-  per §13.18.60 GR4) and decoded via `CobolNum.ParseDisplay`. Reached by whole-group MOVE/compare/DISPLAY/WRITE/
+  per §2023:13.18.60 GR4) and decoded via `CobolNum.ParseDisplay`. Reached by whole-group MOVE/compare/DISPLAY/WRITE/
   RELEASE and the FD/SD record codec. This is the `AsImage/FromImage codec` in the task's candidate list — a *sixth*
   face a numeric value wears, distinct from its at-rest form.
 
@@ -382,7 +382,7 @@ following are the concrete gaps / corrections the roadmap should address:
    storage). `StorageForm` as designed conflates "value representation" with "field emission." The roadmap should add
    either a `StorageForm` case or an explicit `HasField`/phantom predicate so `FieldEmitter` and `StorageFormPass`
    agree on which items are physical — otherwise a phantom field or a read of a nonexistent field is a latent
-   StorageFormPass bug (my §8.5).
+   StorageFormPass bug (my §2023:8.5).
 
 4. **[Minor correction] The equivalence gate proves parity only where the conformance corpus exercises the path.**
    PHASE-05 Step 2/6 assert `StorageForm`≡`StoreAsImage` over the 2028-test corpus. That is sound for the common

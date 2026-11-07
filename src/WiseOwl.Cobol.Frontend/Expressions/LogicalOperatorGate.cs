@@ -8,15 +8,15 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 
 /// <summary>
 /// ⭐ THE logical-operator INTRODUCTION gate — ONE rule, asked by BOTH lanes. The exclusive-or connective
-/// ('EXCLUSIVE-OR' or 'XOR', ISO §8.8.4.9) is a COBOL-2023 introduction (Annex E.2 item 25), checked through the ONE
-/// <see cref="ConstructRegistry"/> funnel so the code and the §4.2 severity are the registry's.
+/// ('EXCLUSIVE-OR' or 'XOR', ISO §2023:8.8.4.9) is a COBOL-2023 introduction (Annex E.2 item 25), checked through the ONE
+/// <see cref="ConstructRegistry"/> funnel so the code and the §2023:4.2 severity are the registry's.
 /// <para><b>One node to recognize.</b> Every tier that admits the connective — the condition's leading and succeeding
 /// tiers, the EVALUATE partial-expression spine and the constant-conditional-expression tiers — spells it through the
 /// one <c>xorOperator</c> grammar rule, so the gate asks for that node and never for a tier: a tier-keyed gate is a
 /// hand-kept list of tiers, and the partial-expression XOR was the tier it had forgotten (kb/Work PB1390).</para>
 /// <para><b>Both lanes.</b> <c>VersionConformancePass</c> calls it per <c>xorOperator</c> node of the compilation
 /// unit; the conditional-compilation stage calls it per constant-conditional-expression FRAGMENT, which the
-/// compilation-unit walk never reaches — a >>IF operand is "a complex condition as specified in 8.8.4.9" (§7.3.8.2
+/// compilation-unit walk never reaches — a >>IF operand is "a complex condition as specified in 8.8.4.9" (§2023:7.3.8.2
 /// SR1 d)) of the targeted edition, so <c>&gt;&gt;IF A = 1 XOR B = 2</c> below 2023 is the same COBOL0900 its
 /// runtime twin draws (kb/Work PB1371). The <see cref="BooleanOperatorGate"/> precedent (kb/Work PB1370).</para>
 /// </summary>

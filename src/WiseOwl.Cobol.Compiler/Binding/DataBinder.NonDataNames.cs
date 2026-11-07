@@ -13,19 +13,19 @@ internal enum NonDataDeclarationKind
     ScreenEntry,
     /// <summary>An alphabet-name of the SPECIAL-NAMES paragraph.</summary>
     AlphabetName,
-    /// <summary>A constant-name (a CONSTANT entry, §13.10).</summary>
+    /// <summary>A constant-name (a CONSTANT entry, §2023:13.10).</summary>
     ConstantName,
-    /// <summary>An index-name (an INDEXED BY phrase, §13.18.38).</summary>
+    /// <summary>An index-name (an INDEXED BY phrase, §2023:13.18.38).</summary>
     IndexName,
     /// <summary>A level-88 condition-name.</summary>
     ConditionName,
-    /// <summary>A type-name (a TYPEDEF entry, §13.18.58).</summary>
+    /// <summary>A type-name (a TYPEDEF entry, §2023:13.18.58).</summary>
     TypeName,
-    /// <summary>A data-name declared only by a subordinate entry of a type declaration (§13.18.58.4 GR1).</summary>
+    /// <summary>A data-name declared only by a subordinate entry of a type declaration (§2023:13.18.58.4 GR1).</summary>
     TypeDeclarationMember,
-    /// <summary>A condition-name declared only by a level-88 entry of a type declaration (§13.18.58.4 GR1, GR2).</summary>
+    /// <summary>A condition-name declared only by a level-88 entry of a type declaration (§2023:13.18.58.4 GR1, GR2).</summary>
     TypeDeclarationCondition,
-    /// <summary>A file-name: a SELECT entry of this source element, or the GLOBAL file of a containing one (§13.18.27.4 GR1).</summary>
+    /// <summary>A file-name: a SELECT entry of this source element, or the GLOBAL file of a containing one (§2023:13.18.27.4 GR1).</summary>
     FileName,
     /// <summary>A cd-name: a communication description entry of this source element (ISO/IEC 1989:2002 A.1.2). It is this element's alone,
     /// since a cd-name "may be referenced only by statements and entries in the source element that contains the communication section
@@ -38,7 +38,7 @@ internal enum NonDataDeclarationKind
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
 /// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
-/// measure), the tier ISO §8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
+/// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
 internal readonly record struct NonDataDeclaration(
     NonDataDeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0)
 {
@@ -53,16 +53,16 @@ internal readonly record struct NonDataDeclaration(
         NonDataDeclarationKind.ConstantName or NonDataDeclarationKind.IndexName or NonDataDeclarationKind.ConditionName
             or NonDataDeclarationKind.FileName or NonDataDeclarationKind.CdName => $"is declared as {ClassPhrase}, not as a data item",
         NonDataDeclarationKind.TypeName => "is declared as a type-name (a TYPEDEF entry), not as a data item: a type "
-            + "declaration has no storage associated with it (ISO §13.18.58.4 GR2)",
+            + "declaration has no storage associated with it (ISO §2023:13.18.58.4 GR2)",
         NonDataDeclarationKind.TypeDeclarationMember =>
             (CobolNames.Same(written, name) ? "is declared" : $"names '{name}', which is declared")
             + $" only by a subordinate entry of the type declaration '{TypeName}', not as a data item: such a data-name "
-            + "may be referenced only as a subordinate item of a group defined using the type-name (ISO §13.18.58.4 "
+            + "may be referenced only as a subordinate item of a group defined using the type-name (ISO §2023:13.18.58.4 "
             + "GR1), and no such group is visible here",
         NonDataDeclarationKind.TypeDeclarationCondition =>
             (CobolNames.Same(written, name) ? "is declared" : $"names '{name}', which is declared")
             + $" only by a level-88 entry of the type declaration '{TypeName}', not as a condition-name of a data item: a "
-            + "type declaration has no storage associated with it (ISO §13.18.58.4 GR2), so the condition-name has no "
+            + "type declaration has no storage associated with it (ISO §2023:13.18.58.4 GR2), so the condition-name has no "
             + "conditional variable until a group is defined using the type-name (GR1), and no such group is visible here",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
@@ -70,13 +70,13 @@ internal readonly record struct NonDataDeclaration(
     /// <summary>What the three name classes that a position can meet BESIDE a level-88 are, as a noun phrase: the one
     /// wording of <see cref="DeclaredAs"/> ("is declared as …, not as a data item") and of the condition-only position's
     /// refusal of a condition-name a nearer declaration of the class hides (<c>NameResolution.HiddenConditionText</c>,
-    /// ISO §8.4.6.2.1 3) a)).</summary>
+    /// ISO §2023:8.4.6.2.1 3) a)).</summary>
     public string ClassPhrase => Kind switch
     {
-        NonDataDeclarationKind.ConstantName => "a constant-name (a CONSTANT entry, ISO §13.10)",
-        NonDataDeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO §13.18.38)",
+        NonDataDeclarationKind.ConstantName => "a constant-name (a CONSTANT entry, ISO §2023:13.10)",
+        NonDataDeclarationKind.IndexName => "an index-name (an INDEXED BY phrase, ISO §2023:13.18.38)",
         NonDataDeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
-        NonDataDeclarationKind.FileName => "a file-name (a file control entry, ISO §12.4.5)",
+        NonDataDeclarationKind.FileName => "a file-name (a file control entry, ISO §2023:12.4.5)",
         NonDataDeclarationKind.CdName => "a cd-name (a communication description entry, ISO/IEC 1989:2002 A.1.2)",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
@@ -85,19 +85,19 @@ internal readonly record struct NonDataDeclaration(
 public sealed partial class DataBinder
 {
     /// <summary>⛔ THE ONE ANSWER TO "WHAT IS THIS NAME DECLARED AS, IF NOT A DATA ITEM?" (kb/Work PB1906), asked by every
-    /// site that refuses a reference for identifying no data item (ISO §8.4.2.1: "a statement shall contain a reference
+    /// site that refuses a reference for identifying no data item (ISO §2023:8.4.2.1: "a statement shall contain a reference
     /// that uniquely identifies that resource"): the procedure division's unidentified reference
     /// (<see cref="NameResolution.ReportUnidentified"/>), a file clause's data-name operand
     /// (<see cref="ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
     /// type-name was "not defined" at all three and an alphabet-, constant-, index- or condition-name at the two clause
     /// sites. Null when the name is declared as nothing but data — or as nothing at all — so the caller's own
     /// uniqueness verdict stands. A data-name of the same spelling the ranked lookup leaves standing (a condition-name
-    /// declared NEARER hides it, kb/Work PB4219) wins over a constant-name, a condition-name and the type declarations (§8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
-    /// a §8.3.2.2 conflict reported at the declaration). A REPORT SECTION entry is
-    /// <see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§13.8.6.2.3), not this one.
+    /// declared NEARER hides it, kb/Work PB4219) wins over a constant-name, a condition-name and the type declarations (§2023:8.3.2.2 exception 3 lets a constant-name and a data-name share one word; the others are
+    /// a §2023:8.3.2.2 conflict reported at the declaration). A REPORT SECTION entry is
+    /// <see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>'s: its refusal is a section rule (§2023:13.8.6.2.3), not this one.
     /// <para>⛔ A CONSTANT-NAME, AN INDEX-NAME, A FILE-NAME AND A CONDITION-NAME ARE RANKED BY THE ELEMENT THAT DECLARES
     /// THEM (kb/Work PB4219, PB4432): ISO
-    /// §8.4.6.2.1 3) a) makes the declaration of the source element B the referenced item, and b) the nearest
+    /// §2023:8.4.6.2.1 3) a) makes the declaration of the source element B the referenced item, and b) the nearest
     /// containing one otherwise, so a contained program's own level-88 RELF is what `RELF` names there, not its
     /// container's GLOBAL file, constant-name or index-name RELF; each used to be asked first whatever the nesting. Each answer carries its
     /// <see cref="NonDataDeclaration.Depth"/> so a caller that weighs it against a declaration this query does not
@@ -106,16 +106,16 @@ public sealed partial class DataBinder
     {
         if (State.Forest.ScreenNames.Contains(name)) return new(NonDataDeclarationKind.ScreenEntry);
         if (SpecialNames.IsAlphabetName(name)) return new(NonDataDeclarationKind.AlphabetName);
-        // An unqualified reference's data-name answer is the RANKED one (§8.4.6.2.1 3)): a container's GLOBAL data item that
+        // An unqualified reference's data-name answer is the RANKED one (§2023:8.4.6.2.1 3)): a container's GLOBAL data item that
         // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
         // one keeps the raw answer, which the callers word as "declared, but not under the given qualifiers".
         bool dataName = qualifiers.Count == 0
             ? Symbols.TryResolveUnqualified(name, scope, out _)
             : Symbols.TryResolve(name, scope, out _);
         // ⛔ THE NON-DATA DECLARATIONS OF THE SPELLING ARE RANKED TOGETHER, by the depth of the element that declares each
-        // (§8.4.6.2.1 3), kb/Work PB4219, PB4432): the classes NonConditionDeclarationsOf offers (constant-name, index-name,
+        // (§2023:8.4.6.2.1 3), kb/Work PB4219, PB4432): the classes NonConditionDeclarationsOf offers (constant-name, index-name,
         // file-name; the CAPACITY register has its own one lookup) and a condition-name. The nearest wins; at EQUAL depth one element declares both, a
-        // §8.3.2.2 conflict reported at the declaration, and the first offered keeps the answer as it always has.
+        // §2023:8.3.2.2 conflict reported at the declaration, and the first offered keeps the answer as it always has.
         NonDataDeclaration? nearest = null;
         void Offer(NonDataDeclaration candidate)
         {
@@ -128,7 +128,7 @@ public sealed partial class DataBinder
         if (nearest is { } answer) return answer;
         if (dataName) return null;
         if (qualifiers.Count == 0 && TryFindTypeDecl(name, scope, out _)) return new(NonDataDeclarationKind.TypeName);
-        // §13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
+        // §2023:13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
         // the type declaration of that type" — a data-name or a condition-name such an entry declares.
         foreach (var declaration in VisibleTypeDeclarations(scope))
         {
@@ -143,7 +143,7 @@ public sealed partial class DataBinder
 
     /// <summary>⛔ THE ONE LIST OF THE NAME CLASSES BESIDE A CONDITION-NAME, each with the depth of the element that declares
     /// it (kb/Work PB4432): the constant-name, the index-name and the file-name of the spelling (this element's own SELECT
-    /// or a containing element's GLOBAL file, §13.18.27.4 GR1) and this element's cd-name (never inherited, so depth 0; kb/Work
+    /// or a containing element's GLOBAL file, §2023:13.18.27.4 GR1) and this element's cd-name (never inherited, so depth 0; kb/Work
     /// PB4713), in the order a tie at one depth keeps.
     /// <see cref="NonDataDeclarationOf"/> ranks them with the condition-name for a reference that identifies no data
     /// item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way round for the
@@ -166,7 +166,7 @@ public sealed partial class DataBinder
         // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
         // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
         // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`
-        // (§8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
+        // (§2023:8.4.6.2.1 2): qualification is applied over the whole set before rule 3 ranks it; kb/Work PB4432 review R2-1).
         if (Symbols.IndexCandidates(name, qualifiers, scope) is { } indexes)
             yield return new(NonDataDeclarationKind.IndexName,
                 Depth: indexes.Count > 0 ? indexes.NearestDepth(i => State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
@@ -177,7 +177,7 @@ public sealed partial class DataBinder
             yield return new(NonDataDeclarationKind.CdName);
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
     /// reverse arm of <see cref="NonDataDeclarationOf"/>'s ranking): the nearest constant-name, index-name or file-name of
     /// the spelling declared in a source element NEARER than <paramref name="depth"/>, the depth of the level-88 tier the
     /// reference reaches, or null when none is. "If the name is declared in source element B, the item in source element
@@ -200,7 +200,7 @@ public sealed partial class DataBinder
     internal bool NonConditionDeclarationHides(string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth) =>
         NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null;
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
     /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
     /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a
     /// NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it reports nothing.</summary>
@@ -219,7 +219,7 @@ public sealed partial class DataBinder
         return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set
     /// of names (its own and every container's global ones) declares <paramref name="name"/> as a data-name, a
     /// condition-name or an index-name in a source element NEARER than <paramref name="depth"/> (the containment
     /// distance of the element that declared the constant or symbolic-character; 1 = the direct container). "b) 1.
@@ -227,12 +227,12 @@ public sealed partial class DataBinder
     /// source element if the name is not declared in source element A and is declared in the source element
     /// containing source element A." A condition-name is placed by its conditional variable.
     /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ForestSlice.ByName"/> (kb/Work PB3154
-    /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§13.18.38.3 SR30) kept off
+    /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§2023:13.18.38.3 SR30) kept off
     /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
     /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
     /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-    /// counter is a data-name too (§13.18.54.4 GR5) kept off it in <see cref="ReportScope.SumCounters"/>, placed by its report
-    /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §13.18.27.4 GR1), so
+    /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in <see cref="ReportScope.SumCounters"/>, placed by its report
+    /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §2023:13.18.27.4 GR1), so
     /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
     /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
     /// added there is asked here too.</para></summary>

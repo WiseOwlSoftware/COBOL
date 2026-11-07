@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.19.3 SR2 a) — "any ELSE encountered is matched with
+      *> ISO §2023:14.9.19.3 SR2 a) — "any ELSE encountered is matched with
       *> the nearest preceding IF that either has not been already
       *> matched with an ELSE or has not been implicitly or explicitly
       *> terminated" — and SR2 b) — "any END-IF encountered is matched

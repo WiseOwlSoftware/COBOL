@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.55.3 r2 — LOG's argument-VALUE rule, both branches
+      *> ISO §2023:15.55.3 r2 — LOG's argument-VALUE rule, both branches
       *> "The value of argument-1 shall be greater than zero."
       *>
       *> DERIVATION. ISO 15.3: "If the evaluation of an argument

@@ -9,12 +9,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE EXTENT OF N OCCURRENCES OF A BIT TABLE IS ONE RULE IN ONE PLACE, AND ITS LAST OCCURRENCE CARRIES NO TRAILING
-/// FILLER (kb/Work PB3156). §13.18.1.4 GR2 puts every occurrence of an ALIGNED table at the first bit of a byte, so the
-/// occurrences sit one STRIDE apart; §8.5.1.6.3 generates implicit filler only "as needed to advance alignment to a
+/// FILLER (kb/Work PB3156). §2023:13.18.1.4 GR2 puts every occurrence of an ALIGNED table at the first bit of a byte, so the
+/// occurrences sit one STRIDE apart; §2023:8.5.1.6.3 generates implicit filler only "as needed to advance alignment to a
 /// required natural boundary for the next item", and the last occurrence has no next one, so the table's extent is
 /// <c>stride × (n − 1) + width</c> for n ≥ 1 and nothing for none. That is <c>BitLayout.TableBits</c>; it had been spelled
 /// three times (the layout walk, the record-size minimum, the OCCURS DEPENDING record limit) and a fourth reader — FUNCTION
-/// LENGTH of a bit group, counted in boolean positions (§15.50.4 r1) — was missing it, so the table was a named stage. These
+/// LENGTH of a bit group, counted in boolean positions (§2023:15.50.4 r1) — was missing it, so the table was a named stage. These
 /// facts keep it one rule:
 /// <list type="bullet">
 /// <item>no source under <c>src/</c> but <c>BitLayout.cs</c> writes the extent out as <c>StrideBits(…) * (… − 1)</c>;</item>
@@ -69,7 +69,7 @@ public sealed class AlignedBitTableExtentDriftTests
         Assert.Equal("101011", CobolBits.Strided(["101", "011"], 3, ""));
     }
 
-    /// <summary>The padding between the occurrences is STORED filler (ISO §8.5.1.6.3 "implicitly described as a filler elementary
+    /// <summary>The padding between the occurrences is STORED filler (ISO §2023:8.5.1.6.3 "implicitly described as a filler elementary
     /// bit data item"; kb/Work PB3564): <c>Strided</c> composes the occurrences around the stored pads and
     /// <c>StridePads</c> reads them back out of a carrier, so a write of the whole carrier round-trips.</summary>
     [Fact]

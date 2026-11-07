@@ -10,12 +10,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// add a false one:
 /// <list type="bullet">
 /// <item>a user-defined word in the faulted sentence's tail, not followed by a period, stopped the resynchronization as
-/// a possible paragraph header (ISO §14.4.3: "A paragraph consists of a paragraph-name followed by a separator period"),
+/// a possible paragraph header (ISO §2023:14.4.3: "A paragraph consists of a paragraph-name followed by a separator period"),
 /// and the procedure division's own recovery then swallowed every later sentence, its faults with it (PB4299);</item>
 /// <item>a fault caught by the rule of a statement an explicit scope terminator closes ended that rule, and its END-x
-/// met no open statement, a false COBOL0306 for a statement the source holds (§14.5.3.2; PB4382, PB4299 R10);</item>
+/// met no open statement, a false COBOL0306 for a statement the source holds (§2023:14.5.3.2; PB4382, PB4299 R10);</item>
 /// <item>a WHEN OTHER phrase written in its place drew COBOL2073 "at most once, and only after every WHEN phrase" where
-/// the fault was before it: a statement missing its operand, or a WHEN group with no statement (§14.9.13.2; PB4300,
+/// the fault was before it: a statement missing its operand, or a WHEN group with no statement (§2023:14.9.13.2; PB4300,
 /// PB4382).</item>
 /// </list>
 /// Each row asserts the WHOLE list of diagnostics, in order: its code and the word it names.
@@ -36,7 +36,7 @@ public sealed class ParseRecoveryCascadeTests
     }
 
     /// <summary>PB4299: the faulted sentence's tail holds a user-defined word that no period follows; the sentences after
-    /// it are parsed afresh, so the MOVE that omits its TO (ISO §14.9.25.2) is the second diagnostic.</summary>
+    /// it are parsed afresh, so the MOVE that omits its TO (ISO §2023:14.9.25.2) is the second diagnostic.</summary>
     [Theory]
     [InlineData("IF W-N = 1 THEN ADD TO W-N END-IF. MOVE 1 W-N.")]                       // G4/V2
     [InlineData("IF W-N = 1 THEN ADD TO W-N END-IF. DISPLAY \"X\" \"Y\". MOVE 1 W-N.")]  // G4/V18: a clean sentence between
@@ -77,7 +77,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4382, review R1-1: a fault reported AT a statement's own terminator (the empty block it ends) leaves no
-    /// record of that statement, so a terminator met later in the sentence is a stray one (ISO §14.5.3.2 1)): COBOL0306.</summary>
+    /// record of that statement, so a terminator met later in the sentence is a stray one (ISO §2023:14.5.3.2 1)): COBOL0306.</summary>
     [Theory]
     [InlineData("IF W-N = 1 END-IF DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
     [InlineData("IF W-N = 1 END-IF IF W-K = 2 DISPLAY \"X\" END-IF END-IF. MOVE 1 W-N.", "COBOL2072@END-IF", "COBOL0306@END-IF", "COBOL5506@W-N")]
@@ -85,7 +85,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4382, review R2-1: an empty IF inside another statement faults at its own END-IF, which the IF takes
-    /// (ISO §14.5.3.2 1)); the ENCLOSING statement's own terminator is its own, not a stray one. The enclosing IF is left
+    /// (ISO §2023:14.5.3.2 1)); the ENCLOSING statement's own terminator is its own, not a stray one. The enclosing IF is left
     /// too (the prediction ended its block before the malformed one), so a terminator beyond it is the stray.</summary>
     [Theory]
     [InlineData("IF W-N = 1 IF W-K = 2 END-IF END-IF.", "COBOL2072@END-IF")]
@@ -97,7 +97,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4382, review R2-2: a statement the recovery left is terminated with the statement ENCLOSING it, by that
-    /// statement's terminator (ISO §14.5.3.2 2)), so a terminator of its kind met after that is a stray one: COBOL0306.</summary>
+    /// statement's terminator (ISO §2023:14.5.3.2 2)), so a terminator of its kind met after that is a stray one: COBOL0306.</summary>
     [Theory]
     [InlineData("PERFORM UNTIL W-N = 2 IF W-N = 1 END-PERFORM DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-PERFORM", "COBOL0306@END-IF", "COBOL5506@W-N")]
     [InlineData("EVALUATE W-N WHEN 1 IF W-N = 1 END-EVALUATE DISPLAY \"X\" END-IF. MOVE 1 W-N.", "COBOL2072@END-EVALUATE", "COBOL0306@END-IF", "COBOL5506@W-N")]
@@ -108,7 +108,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4438, PB4436: the terminator a recovery consumed as a left statement's own ends the recovery, so a stray
-    /// terminator written directly after it is met by the parse and drawn COBOL0306 (ISO §14.5.3.2 1)), and the
+    /// terminator written directly after it is met by the parse and drawn COBOL0306 (ISO §2023:14.5.3.2 1)), and the
     /// statement enclosing an empty IF takes its own END-IF without the recovery swallowing it, so the true stray later in
     /// the sentence is drawn too.</summary>
     [Theory]
@@ -126,7 +126,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4448: a statement that begins the next statement of a block and whose own parse dies later (an IF whose
-    /// statement-1 is missing) is refused where it dies, COBOL2072 (ISO §5.2.6.3: "the syntax element contained within
+    /// statement-1 is missing) is refused where it dies, COBOL2072 (ISO §2023:5.2.6.3: "the syntax element contained within
     /// the braces or one of the alternatives contained within the braces shall be explicitly specified"), never at its
     /// first token as a word "not expected here": the IF begins a statement where the block stands, so the block of an
     /// inline PERFORM, the one that ENDS the construct before it, is not the place that refuses it.</summary>
@@ -145,7 +145,7 @@ public sealed class ParseRecoveryCascadeTests
 
     /// <summary>PB4437: an IF that is the first statement of a WHEN group (EVALUATE, SEARCH) and faults at its ELSE is left
     /// by the recovery, and the EVALUATE or SEARCH ends before the statement after it. The IF's own END-IF, and the
-    /// EVALUATE's or SEARCH's END-x after the statements the group's block could not take, are theirs (ISO §14.5.3.2 1)):
+    /// EVALUATE's or SEARCH's END-x after the statements the group's block could not take, are theirs (ISO §2023:14.5.3.2 1)):
     /// not COBOL0306. A terminator beyond them is the stray one.</summary>
     [Theory]
     [InlineData("EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE. MOVE 1 W-N.", "COBOL2072@ELSE", "COBOL5506@W-N")]
@@ -163,11 +163,11 @@ public sealed class ParseRecoveryCascadeTests
 
     /// <summary>PB4447: a statement whose own optional terminator would match the one a left statement is due (an outer IF's
     /// END-IF, which every statement inside it may be followed by) never takes it: the END-IF belongs to "the
-    /// most-recently preceding unterminated statement" with that name (ISO §14.5.3.2 1)), the left inner IF, which began
+    /// most-recently preceding unterminated statement" with that name (ISO §2023:14.5.3.2 1)), the left inner IF, which began
     /// after the open one. The statements between go on as the source wrote them: the EVALUATE (or SEARCH, or ADD with
     /// an ON SIZE ERROR phrase) whose block the IF began holds the DISPLAY after it and ends in its own terminator, so that
     /// terminator is no stray one, and the END-IF after it is the outer IF's. The ELSE of the left IF is its own phrase
-    /// word (§14.5.3.3 4)), never the outer IF's: the nearest unterminated IF it may be associated with is the left one.</summary>
+    /// word (§2023:14.5.3.3 4)), never the outer IF's: the nearest unterminated IF it may be associated with is the left one.</summary>
     [Theory]
     [InlineData("IF W-N = 1 EVALUATE W-N WHEN 1 IF W-K = 1 ELSE DISPLAY W-A END-IF DISPLAY \"X\" END-EVALUATE END-IF. MOVE 1 W-N.",
                 "COBOL2072@ELSE", "COBOL5506@W-N")]
@@ -192,7 +192,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4447 review R1-1: "the next phrase of any containing statement" implicitly terminates a conditional statement
-    /// contained within it (ISO §14.5.3.3 4) b)), so the statement the recovery left, which has taken the one phrase its
+    /// contained within it (ISO §2023:14.5.3.3 4) b)), so the statement the recovery left, which has taken the one phrase its
     /// format permits, is ended by the next phrase of the open statement around it: the END-IF after that phrase is the
     /// open statement's own, never the left statement's, and a second END-IF is the true stray (COBOL0306), as it is where
     /// the parse did not leave the inner IF. The phrase the left statement's format still permits is its own, and its
@@ -209,12 +209,12 @@ public sealed class ParseRecoveryCascadeTests
     [InlineData("IF W-N = 1 EVALUATE W-N WHEN 1 IF W-K = 2 ELSE DISPLAY 'X' WHEN 2 DISPLAY 'Y' END-EVALUATE END-IF. MOVE 1 W-N.",
                 "COBOL2072@ELSE", "COBOL5506@W-N")]
     // The condition's fault leaves the inner IF with no phrase yet: the ELSE is its own (the nearest IF it may be associated
-    // with, §14.5.3.3 4)), so both END-IFs are written for the two IFs.
+    // with, §2023:14.5.3.3 4)), so both END-IFs are written for the two IFs.
     [InlineData("IF W-N = 1 IF W-K NOT <> 1 DISPLAY 'C' ELSE DISPLAY 'D' END-IF END-IF. MOVE 1 W-N.", "COBOL0001@<>", "COBOL5506@W-N")]
     public void TheNextPhraseOfAContainingStatement_EndsTheStatementTheRecoveryLeft(string statements, params string[] diagnostics)
         => AssertDiagnostics(statements, diagnostics);
 
-    /// <summary>PB4447 review R2-1: only a PHRASE of a containing statement ends the statement the recovery left (ISO §14.5.3.3 4)
+    /// <summary>PB4447 review R2-1: only a PHRASE of a containing statement ends the statement the recovery left (ISO §2023:14.5.3.3 4)
     /// b)), never the START of the next statement of a containing block. A synchronization point inside the statement before
     /// the word (a MOVE or ADD receiving list, a DISPLAY operand list) meets the next statement's first word (DISPLAY) where the
     /// enclosing block takes it; that word is no phrase of the open IF or PERFORM, so the left IF stays due its own END-IF and
@@ -233,7 +233,7 @@ public sealed class ParseRecoveryCascadeTests
 
     /// <summary>PB4447, sibling: a fault deep inside a statement ends the lists around it early, not only the nearest
     /// one. The prediction that died inside the IF C ended the IF A before the IF B that holds it, so the IF A is left too
-    /// (ISO §14.5.3.2 1)): its ELSE phrase and its END-IF are its own (§14.5.3.3 4)), where they drew a COBOL0001 and a
+    /// (ISO §2023:14.5.3.2 1)): its ELSE phrase and its END-IF are its own (§2023:14.5.3.3 4)), where they drew a COBOL0001 and a
     /// false COBOL0306.</summary>
     [Theory]
     [InlineData("IF W-N = 1 DISPLAY \"Z\" IF W-K = 2 IF W-K = 1 ELSE DISPLAY W-A END-IF END-IF ELSE DISPLAY \"Y\" END-IF. MOVE 1 W-N.",
@@ -248,7 +248,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4436 review R1-1: the ELSE, WHEN or WHEN OTHER that follows the terminator a recovery consumed belongs to the
-    /// statement the recovery left, whose block the prediction ended before the malformed IF (ISO §14.5.3.3 4): "Any phrase
+    /// statement the recovery left, whose block the prediction ended before the malformed IF (ISO §2023:14.5.3.3 4): "Any phrase
     /// encountered is the next phrase of the most-recently preceding unterminated statement with which that phrase may be
     /// syntactically associated"; the IF's statement-1 and statement-2, the WHEN groups of one EVALUATE or SEARCH, are the
     /// phrases of one statement). The one fault was reported; the word draws no COBOL0001 or COBOL2073 of its own, and a
@@ -278,7 +278,7 @@ public sealed class ParseRecoveryCascadeTests
         => AssertDiagnostics(statements, diagnostics);
 
     /// <summary>PB4449: "If all permitted occurrences of a phrase have already been specified for a given statement, a
-    /// subsequent occurrence of that phrase is not syntactically associated with that statement" (ISO §14.5.3.3 4)), so
+    /// subsequent occurrence of that phrase is not syntactically associated with that statement" (ISO §2023:14.5.3.3 4)), so
     /// the second ELSE of the IF the recovery left, and a WHEN OTHER after its WHEN OTHER, are no phrases of it: each is
     /// reported as the same word is after a statement the parse did not leave (COBOL2269, COBOL2073). A WHEN after any
     /// number of WHENs, and the first WHEN OTHER, are still the statement's own.</summary>

@@ -9,7 +9,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The COMPOSITION validator's own behaviour (kb/Work PB528): the §13.18.40.3 rules it enforces and — the half
+/// The COMPOSITION validator's own behaviour (kb/Work PB528): the §2023:13.18.40.3 rules it enforces and — the half
 /// that matters more — the legal shapes it must never reject. The conformance corpus proves the same facts end to
 /// end; these run at the unit boundary so a refactor that stops CALLING the validator, or one that widens a
 /// prohibition by a symbol, fails in seconds rather than in the battery.
@@ -89,7 +89,7 @@ public sealed class PictureCompositionTests
         => Assert.DoesNotContain(Diagnose(picture), d => d.Contains("COBOL1934") || d.Contains("COBOL1935"));
 
     /// <summary>
-    /// ISO §13.18.40.3 SR13 and §13.18.40.6's closing paragraph interchange the comma and period ROLES, so the
+    /// ISO §2023:13.18.40.3 SR13 and §2023:13.18.40.6's closing paragraph interchange the comma and period ROLES, so the
     /// whole rule set transfers with one flag. Without it the NIST comma-mode shapes (NC107A's
     /// <c>9.999.999,99</c>, SM103A's <c>ZZ.ZZZ.ZZZ,99</c>) are rejected as legal source — the exact regression a
     /// composition validator that forgot SR13 would cause, and the reason the flag is threaded from DataBinder.
@@ -112,7 +112,7 @@ public sealed class PictureCompositionTests
 
     /// <summary>
     /// SR29 — "For floating insertion, at least one insertion symbol shall be specified to the left of the
-    /// decimal point position" (kb/Work PB530). §13.18.40.5 rule 6 defines the image ONLY for a string anchored
+    /// decimal point position" (kb/Work PB530). §2023:13.18.40.5 rule 6 defines the image ONLY for a string anchored
     /// left of the point (a: "any or all of the leading numeric character positions to the left of the decimal
     /// point position"; b: all of them, whose result "is the same as if the floating insertion editing were
     /// defined only to the left of the decimal point position"), so a string lying wholly to its right has no
@@ -135,7 +135,7 @@ public sealed class PictureCompositionTests
     /// <summary>⛔ THE COMPLEMENT OF SR29 — the shapes it must NOT refuse. A floating string that STARTS left of
     /// the point satisfies it however far right it runs (rule 6 b spans the point); a string with no decimal
     /// point position written at all is wholly left of it; a TRAILING 'P' string puts the assumed point to its
-    /// right (§13.18.40.4 GR14), not its left; and ZERO SUPPRESSION is not floating insertion — SR29 names
+    /// right (§2023:13.18.40.4 GR14), not its left; and ZERO SUPPRESSION is not floating insertion — SR29 names
     /// floating insertion alone and the standard states no analogue for 'Z'/'*', so <c>PIC .ZZ</c> stays
     /// legal.</summary>
     [Theory]
@@ -161,7 +161,7 @@ public sealed class PictureCompositionTests
     // three extended symbols — SR24, counted over SYMBOLS (a fixed occurrence each), not over phrases
     [InlineData("9L9F9G", new[] { 'L', 'F', 'G' }, "COBOL1985")]
     [InlineData("L9L9L", new[] { 'L' }, "COBOL1985")]
-    // a single extended symbol takes the 'cs' precedence (§13.18.40.6): never between digit positions
+    // a single extended symbol takes the 'cs' precedence (§2023:13.18.40.6): never between digit positions
     [InlineData("99L99", new[] { 'L' }, "COBOL1935")]
     [InlineData("9L9", new[] { 'L' }, "COBOL1935")]
     public void TheExtendedEditingSymbolSet_IsScreened(string picture, char[] phraseOrder, string code)
@@ -170,7 +170,7 @@ public sealed class PictureCompositionTests
     /// <summary>The complement: every placement the standard sanctions binds. Two symbols are the string's two
     /// ENDS in phrase order (SR25 as written — Annex D.24's own <c>PIC IS L9999.99F</c> included, with a currency
     /// symbol or a floating string beside them); one symbol stands where a fixed currency symbol could, first or
-    /// last (§13.18.40.6's closing sentence), and a currency symbol keeps its SR26 place beside it. The order of
+    /// last (§2023:13.18.40.6's closing sentence), and a currency symbol keeps its SR26 place beside it. The order of
     /// one currency-like symbol against another is SR25/SR26's and not Table 10's blank cell, which is why
     /// <c>L$999F</c> and <c>L999L</c> are legal.</summary>
     [Theory]
@@ -213,7 +213,7 @@ public sealed class PictureCompositionTests
     }
 
     /// <summary>
-    /// ⛔ ONE floating-string definition (§13.18.40.5 rule 6), read by the composition rules AND by
+    /// ⛔ ONE floating-string definition (§2023:13.18.40.5 rule 6), read by the composition rules AND by
     /// <c>PictureAnalyzer</c>'s geometry. Floating-ness is ADJACENCY ("a string of at least two identical
     /// floating insertion editing symbols", with the simple insertion symbols and — rule 6 b — the decimal point
     /// embedded), never a bare occurrence count: the count this replaced read <c>+999+</c> and <c>$999$</c> as
@@ -234,7 +234,7 @@ public sealed class PictureCompositionTests
             PictureComposition.FloatingString(expanded, '$', new HashSet<char>(), new HashSet<char>(),
                 decimalPointIsComma: false));
     /// <summary>
-    /// ⛔ THE SCALE GATE. §13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN, which
+    /// ⛔ THE SCALE GATE. §2023:13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN, which
     /// <c>PIC X(30000)</c> obeys — so <c>ExpandRepeats</c> hands the composition validator a 30 000-SYMBOL
     /// string, and Table 10's relation binds every ordered PAIR of them. Walked as pairs that is 9x10^8
     /// comparisons inside the binder; walked as a bit set of the 24 ROLES seen so far it is one test per
@@ -256,7 +256,7 @@ public sealed class PictureCompositionTests
             $"the Table 10 walk reported {small} / {large} role tests — the WalkObserver seam is disconnected or the "
             + "shapes no longer reach the walk");
         Assert.True(large <= 11 * small,
-            $"tenfold more symbols cost {(double)large / small:F1}x the role tests in the §13.18.40.6 Table 10 walk "
+            $"tenfold more symbols cost {(double)large / small:F1}x the role tests in the §2023:13.18.40.6 Table 10 walk "
             + "(linear is ~10x, quadratic ~100x) — it is quadratic in the symbol count again");
     }
 

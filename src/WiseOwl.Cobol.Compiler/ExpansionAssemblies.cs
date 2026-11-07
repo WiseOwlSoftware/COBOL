@@ -10,7 +10,7 @@ using WiseOwl.Cobol.Frontend.Common;
 namespace WiseOwl.Cobol;
 
 /// <summary>
-/// ⛔ PLACEMENT (a): AN EXPANSION IN AN ASSEMBLY OF ITS OWN (ISO §9.3.12; DESIGN-external-repository §10.5, §7.2; kb/Work PB2104). An
+/// ⛔ PLACEMENT (a): AN EXPANSION IN AN ASSEMBLY OF ITS OWN (ISO §2023:9.3.12; DESIGN-external-repository §10.5, §7.2; kb/Work PB2104). An
 /// expansion whose code names no class or interface of the expanding group is compiled apart: "as its OWN compilation — the skeleton's
 /// recorded source under its recorded state, the referenced assemblies as references — into <c>&lt;externalized name&gt;.dll</c> beside
 /// the group's output". That is exactly what this does: the expansion's text (the skeleton's tokens with the header renamed and each
@@ -75,7 +75,7 @@ internal static class ExpansionAssemblies
                     edition.WithdrawWarningsOf(region);
                 }
                 if (!result.Success)
-                    return new(files, [$"the expansion assembly '{target}' (ISO §9.3.12; DESIGN-external-repository §10.5):",
+                    return new(files, [$"the expansion assembly '{target}' (ISO §2023:9.3.12; DESIGN-external-repository §10.5):",
                         .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath, result.Status);
                 files.AddRange(result.OutputFiles);
                 references.Add(target);
@@ -104,16 +104,16 @@ internal static class ExpansionAssemblies
         return diagnostic.Replace(temp, $"the text of the expansion '{expansion}'", StringComparison.Ordinal);
     }
 
-    /// <summary>The most positions of a line this writes (ISO §6.1 3) a) allows 255): room is left for a floating literal continuation
+    /// <summary>The most positions of a line this writes (ISO §2023:6.1 3) a) allows 255): room is left for a floating literal continuation
     /// indicator and its quotation symbol.</summary>
     private const int LineLimit = 200;
 
     /// <summary>The text as free-form lines of at most <see cref="LineLimit"/> positions that read as the text does. A line break stands
     /// where the text had a space BETWEEN words — a space inside an alphanumeric, boolean or national literal is the literal's content, so
     /// the text is split into words by the literals' delimiters, not by every space — and a literal too long for the rest of a line is
-    /// continued by the floating literal continuation indicator (ISO §6.2.3.1: the quotation symbol and hyphen that end the line;
-    /// §6.5 8): the continuation line begins with the matching quotation symbol and the literal goes on after it).
-    /// <para>ISO §6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be
+    /// continued by the floating literal continuation indicator (ISO §2023:6.2.3.1: the quotation symbol and hyphen that end the line;
+    /// §2023:6.5 8): the continuation line begins with the matching quotation symbol and the literal goes on after it).
+    /// <para>ISO §2023:6.4.2: "At least one alphanumeric character, national character, or hexadecimal digit of the literal content shall be
     /// specified on the continued line and on each continuation line", and "A pair of quotation symbols indicating a single quotation symbol
     /// within a literal shall be specified on the same line". So a continuation indicator never follows the opening delimiter directly: a
     /// continuation line opens with the quotation symbol and then a whole content unit (one character, or a doubled quotation symbol, at
@@ -180,7 +180,7 @@ internal static class ExpansionAssemblies
     }
 
     /// <summary>How many characters just before the opening delimiter at <paramref name="at"/> of <paramref name="word"/> are the
-    /// literal's prefix letters — <c>N</c>, <c>B</c>, <c>X</c>, <c>NX</c> or <c>BX</c> (ISO §8.3.3.2, §8.3.3.4, §8.3.3.5) — and not the
+    /// literal's prefix letters — <c>N</c>, <c>B</c>, <c>X</c>, <c>NX</c> or <c>BX</c> (ISO §2023:8.3.3.2, §2023:8.3.3.4, §2023:8.3.3.5) — and not the
     /// end of a longer word.</summary>
     private static int PrefixLengthBefore(string word, int at)
     {

@@ -5,27 +5,27 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.6.4.3 SR1 / §12.4.6.4.4 GR4 — sort-merge-area SAME
+      *> ISO §2023:12.4.6.4.3 SR1 / §2023:12.4.6.4.4 GR4 — sort-merge-area SAME
       *> clauses, in both spellings, over sort files and non-sort files.
       *> SR1: "SORT and SORT-MERGE are equivalent."
-      *>   cite.py: OK  §12.4.6.4.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:12.4.6.4.3 1)  (Syntax rules)
       *> GR4 a): "Any storage area allocated for the sorting or merging
       *>   of a sort or merge file specified in a sort-merge-area format
       *>   SAME clause is available for reuse in sorting or merging any
       *>   of the other sort or merge files specified in that
       *>   sort-merge-area format SAME clause."
-      *>   cite.py: OK  §12.4.6.4.4 4) a)  (General rules)
+      *>   cite.py: OK  §2023:12.4.6.4.4 4) a)  (General rules)
       *> GR4 b): "Storage areas assigned to files specified in a
       *>   sort-merge-area format SAME clause that do not represent sort
       *>   or merge files may be allocated as needed for sorting or
       *>   merging ..."
-      *>   cite.py: OK  §12.4.6.4.4 4) b)  (General rules)
+      *>   cite.py: OK  §2023:12.4.6.4.4 4) b)  (General rules)
       *> GR4 c): "Storage areas assigned to files specified in a
       *>   sort-merge-area format SAME clause other than sort or merge
       *>   files do not share the same storage area with each other."
-      *>   cite.py: OK  §12.4.6.4.4 4) c)  (General rules)
+      *>   cite.py: OK  §2023:12.4.6.4.4 4) c)  (General rules)
       *> (GR5 is respected: F3/F4 are closed during every SORT.)
-      *>   cite.py: OK  §12.4.6.4.4 5)  (General rules)
+      *>   cite.py: OK  §2023:12.4.6.4.4 5)  (General rules)
       *> Derivation, by output line:
       *>  1 "C F3-ONE F4-ONE": F3 and F4 are both in the SORT clause and
       *>    both open OUTPUT; GR4 c) says their areas are NOT shared,

@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.49.3 SR10/SR11 (kb/Work PB363) restrict a USE BEFORE
+      *> ISO §2023:14.9.49.3 SR10/SR11 (kb/Work PB363) restrict a USE BEFORE
       *> REPORTING procedure: no GENERATE, INITIATE or TERMINATE in its
       *> paragraphs, and no alteration of a control data item. This is the
       *> LEGAL shape: the procedure stores into WS-SEQ, which is NOT a
       *> control data item (the CONTROL clause names WS-GRP).
-      *> §14.9.49.4 GR9 performs the procedure "on each occasion that the
+      *> §2023:14.9.49.4 GR9 performs the procedure "on each occasion that the
       *> named report group is processed", d) "Before the processing of
       *> any LINE clauses defined for the report group and any printable
       *> items described in entries subordinate to them" - once per

@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// The aligned forms (<c>MaxScaled</c> and siblings) receive arguments pre-widened to the common scale, and
 /// that widening wrapped silently past the Int128 intermediate: <c>FUNCTION MIN(BIGV SMLV)</c> over a
 /// <c>PIC 9(24)</c> and a <c>PIC 9V9(15)</c> — 39 aligned digits — returned a NEGATIVE value, the content of
-/// NO argument (§15.63.4 r1 is violated on its face). Selection needs no alignment at all: the §8.8.4.2
+/// NO argument (§2023:15.63.4 r1 is violated on its face). Selection needs no alignment at all: the §2023:8.8.4.2
 /// comparison is <see cref="CobolNum.Compare"/>'s exact non-widening compare, the tie keeps the LEFTMOST
-/// argument (§15.59.4 r2 / §15.63.4 r2, first-ordinal for §15.71.4/§15.72.4), and only the ONE selected
+/// argument (§2023:15.59.4 r2 / §2023:15.63.4 r2, first-ordinal for §2023:15.71.4/§2023:15.72.4), and only the ONE selected
 /// value rescales to the caller's scale — through <see cref="CobolNum.RescaleEscape"/>, so a result that
 /// genuinely cannot be represented at that scale inside the intermediate is the size-error condition, never
 /// a wrap. The aligned forms remain for all-fitting argument lists (the emitter's capacity choice); the
@@ -38,9 +38,9 @@ public static partial class CobolIntrinsics
         return best;
     }
 
-    /// <summary>§15.59 MAX by value selection — the leftmost greatest argument, rescaled to
+    /// <summary>§2023:15.59 MAX by value selection — the leftmost greatest argument, rescaled to
     /// <paramref name="toScale"/>. A RECEIVER-BOUND result (<paramref name="store"/>) rescales with the
-    /// store-cap (§14.9.25.4 GR6 high-order truncation semantics — the receiver's own capacity mod finishes
+    /// store-cap (§2023:14.9.25.4 GR6 high-order truncation semantics — the receiver's own capacity mod finishes
     /// the job); a receiverless result stays LOUD on the escape check, because a comparison consuming a
     /// capped value would silently compare the wrong number.</summary>
     public static Int128 MaxAt(int toScale, bool store, Int128[] v, int[] s)
@@ -50,7 +50,7 @@ public static partial class CobolIntrinsics
                      : CobolNum.RescaleEscape(v[i], s[i], toScale, CobolRounding.Truncation);
     }
 
-    /// <summary>§15.63 MIN by value selection — the leftmost least argument (rescale semantics as
+    /// <summary>§2023:15.63 MIN by value selection — the leftmost least argument (rescale semantics as
     /// <see cref="MaxAt"/>).</summary>
     public static Int128 MinAt(int toScale, bool store, Int128[] v, int[] s)
     {
@@ -59,10 +59,10 @@ public static partial class CobolIntrinsics
                      : CobolNum.RescaleEscape(v[i], s[i], toScale, CobolRounding.Truncation);
     }
 
-    /// <summary>§15.71 ORD-MAX — the 1-based ordinal of the first greatest argument. Pure selection: no
+    /// <summary>§2023:15.71 ORD-MAX — the 1-based ordinal of the first greatest argument. Pure selection: no
     /// rescale ever, so every legal argument list has its defined answer.</summary>
     public static long OrdMaxAt(Int128[] v, int[] s) => SelectMax(v, s) + 1;
 
-    /// <summary>§15.72 ORD-MIN — the 1-based ordinal of the first least argument.</summary>
+    /// <summary>§2023:15.72 ORD-MIN — the 1-based ordinal of the first least argument.</summary>
     public static long OrdMinAt(Int128[] v, int[] s) => SelectMin(v, s) + 1;
 }

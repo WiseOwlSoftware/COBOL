@@ -5,13 +5,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR1 — "If neither the TEST BEFORE nor the TEST
+      *> ISO §2023:14.9.28.3 SR1 — "If neither the TEST BEFORE nor the TEST
       *> AFTER phrase is specified, the TEST BEFORE phrase is assumed."
       *>
       *> The rule is a DEFAULT, so it is observable only on a program
       *> shape that tells the two assumptions apart. Every loop below
       *> enters with its condition ALREADY TRUE and never changes it,
-      *> which §14.9.28.4 GR10 splits exactly:
+      *> which §2023:14.9.28.4 GR10 splits exactly:
       *>   "If the condition is true when the PERFORM statement is
       *>   entered, and the TEST BEFORE phrase is specified or implied,
       *>   no transfer to the specified set of statements takes place"
@@ -28,13 +28,13 @@
       *> once would print 1 1 1. Neither is the derived answer.
       *>
       *> SR1 is a FORMATS 1 AND 2 rule, so all THREE carriers of the
-      *> optional WITH TEST phrase are measured — the §14.9.28.2
+      *> optional WITH TEST phrase are measured — the §2023:14.9.28.2
       *> until-phrase in its inline (Format 2) and out-of-line
       *> (Format 1) positions, and the varying-phrase, which prints the
       *> WITH TEST bracket of its own.
       *>
       *> The VARYING legs also print the induction variable.
-      *> §14.9.28.4 GR13 a) sets it to 9 first; GR13 d) then leaves it
+      *> §2023:14.9.28.4 GR13 a) sets it to 9 first; GR13 d) then leaves it
       *> with "the value it contained when condition-1 was evaluated"
       *> and GR13 b) with "the value it contained at the completion of
       *> the execution of the specified set of statements" — the body
@@ -63,7 +63,7 @@
        01 I3      PIC 9(3) VALUE 0.
        PROCEDURE DIVISION.
        MAIN-P.
-      *> Carrier A — the INLINE until-phrase (§14.9.28.2 Format 2).
+      *> Carrier A — the INLINE until-phrase (§2023:14.9.28.2 Format 2).
       *> G is 1 and no body touches it, so G = 1 is true at entry.
            PERFORM UNTIL G = 1
                ADD 1 TO CA-DEF
@@ -76,9 +76,9 @@
            END-PERFORM.
            DISPLAY "SR1-INLINE DEF=" CA-DEF " BEF=" CA-BEF
                " AFT=" CA-AFT.
-      *> Carrier B — the OUT-OF-LINE until-phrase (§14.9.28.2
+      *> Carrier B — the OUT-OF-LINE until-phrase (§2023:14.9.28.2
       *> Format 1). Each target is a paragraph of its own, so
-      *> §14.9.28.4 GR5 a) returns after its single statement.
+      *> §2023:14.9.28.4 GR5 a) returns after its single statement.
            PERFORM BUMP-B-DEF UNTIL G = 1.
            PERFORM BUMP-B-BEF WITH TEST BEFORE UNTIL G = 1.
            PERFORM BUMP-B-AFT WITH TEST AFTER UNTIL G = 1.

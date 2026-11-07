@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.2.3 SR4 — a FUNCTION's ANY LENGTH item that the
+      *> ISO §2023:13.18.2.3 SR4 — a FUNCTION's ANY LENGTH item that the
       *> procedure division header does not reference at all is refused.
       *>   cite.py --check 13.18.2.3 "If the source element containing the
       *>     ANY LENGTH clause is a function, the subject of the entry

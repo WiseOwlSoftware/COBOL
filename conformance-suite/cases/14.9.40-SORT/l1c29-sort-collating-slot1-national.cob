@@ -4,15 +4,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40.3 SR1 — alphabet-name-1 names a FOR NATIONAL alphabet (IS form)
+      *> ISO §2023:14.9.40.3 SR1 — alphabet-name-1 names a FOR NATIONAL alphabet (IS form)
       *> Rule: "Alphabet-name-1 shall reference an alphabet that defines an
       *> alphanumeric collating sequence."
       *> cite.py --check 14.9.40.3 "Alphabet-name-1 shall reference an
       *>   alphabet that defines an alphanumeric collating sequence"
-      *>   -> OK  §14.9.40.3 1)  (Syntax rules)
-      *> §12.3.7.4 GR7 b): "When the NATIONAL phrase is specified, ... a
+      *>   -> OK  §2023:14.9.40.3 1)  (Syntax rules)
+      *> §2023:12.3.7.4 GR7 b): "When the NATIONAL phrase is specified, ... a
       *> collating sequence referenced by alphabet-name-2 is a national
-      *> collating sequence." -> OK  §12.3.7.4 7)
+      *> collating sequence." -> OK  §2023:12.3.7.4 7)
       *> N-NAT is FOR NATIONAL IS NATIVE, so its sequence is NATIONAL; the
       *> single word after IS is alphabet-name-1, so SR1 is violated. Every
       *> other element is legal (A-AN is declared but unused). National

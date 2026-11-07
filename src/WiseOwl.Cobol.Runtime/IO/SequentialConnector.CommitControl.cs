@@ -3,16 +3,16 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ A SEQUENTIAL FILE UNDER APPLY COMMIT (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2; kb/Work PB3340). §9.1.18.2:
+/// ⛔ A SEQUENTIAL FILE UNDER APPLY COMMIT (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2; kb/Work PB3340). §2023:9.1.18.2:
 /// <i>"Apart from sort-merge files and report writer files, any type of file on a mass storage device may be specified"</i> —
 /// record sequential, line sequential and the print stream alike (2.2.2.10) — so a covered connector's changes are its run
 /// unit's transaction on the physical file (<see cref="SequentialJournal"/>, owned by the registry's
 /// <see cref="SequentialTransactions"/>), which COMMIT makes permanent and ROLLBACK, item 8 and an abnormal termination undo.
 /// <para><b>The kept handle (2.2.2.4, 2.2.2.9).</b> A covered connector takes ONE read-write host handle at its first OPEN after
-/// the last COMMIT or ROLLBACK and KEEPS it — across its CLOSE (§14.9.6.4 GR9: <i>"Except when the file is specified in an APPLY
+/// the last COMMIT or ROLLBACK and KEEPS it — across its CLOSE (§2023:14.9.6.4 GR9: <i>"Except when the file is specified in an APPLY
 /// COMMIT clause, the file lock and any record locks associated with the file connector referenced by file-name-1 are released
 /// by the execution of the CLOSE statement"</i>) and across a re-OPEN, whose reader or writer is rebuilt over it — until the
-/// COMMIT (§14.9.7.4 GR4) or ROLLBACK (§9.1.15) releases it (<see cref="ReleaseKept"/>); a DELETE FILE closes it before the file
+/// COMMIT (§2023:14.9.7.4 GR4) or ROLLBACK (§2023:9.1.15) releases it (<see cref="ReleaseKept"/>); a DELETE FILE closes it before the file
 /// is removed, and a creation opens it. The capture reads F through it and the restore writes F through it.</para>
 /// <para><b>The changes (2.2.2.2).</b> A WRITE appends (<see cref="JournalAppend"/>, R3), a REWRITE overwrites in place
 /// (<see cref="JournalImage"/>, R2), an OPEN OUTPUT of an existing file truncates and a DELETE FILE removes it (both CAPTURE,
@@ -247,7 +247,7 @@ public sealed partial class SequentialConnector : IJournalData
         return count(fs);
     }
 
-    /// <summary>The CLOSE keeps the handle, its endpoint and the run-unit file lock (§14.9.6.4 GR9, §14.9.7.4 GR4).</summary>
+    /// <summary>The CLOSE keeps the handle, its endpoint and the run-unit file lock (§2023:14.9.6.4 GR9, §2023:14.9.7.4 GR4).</summary>
     private void KeepHeld()
     {
         _kept = true;
@@ -277,8 +277,8 @@ public sealed partial class SequentialConnector : IJournalData
         }
     }
 
-    /// <summary>⛔ GIVE BACK WHAT A CLOSE UNDER COMMIT CONTROL KEPT (§9.1.15: <i>"the file lock is removed by the COMMIT
-    /// statement"</i>; §9.1.18.5 at the run unit's end): the record locks published through the kept endpoint, the handle and
+    /// <summary>⛔ GIVE BACK WHAT A CLOSE UNDER COMMIT CONTROL KEPT (§2023:9.1.15: <i>"the file lock is removed by the COMMIT
+    /// statement"</i>; §2023:9.1.18.5 at the run unit's end): the record locks published through the kept endpoint, the handle and
     /// the run-unit file lock. Nothing for a connector that is open (its handle is its OPEN's) or kept nothing.</summary>
     internal void ReleaseKept()
     {
@@ -339,17 +339,17 @@ public sealed partial class SequentialConnector : IJournalData
         return null;
     }
 
-    /// <summary>⛔ THE WRITE THAT CREATES THE FILE AGAIN AFTER THE RUN UNIT'S ROLLBACK REMOVED IT (§14.9.36.4 GR3, <i>"restored to the
+    /// <summary>⛔ THE WRITE THAT CREATES THE FILE AGAIN AFTER THE RUN UNIT'S ROLLBACK REMOVED IT (§2023:14.9.36.4 GR3, <i>"restored to the
     /// state they were in at the execution of the last COMMIT statement or the start of the run unit"</i>, a state with no file;
     /// DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The
-    /// ROLLBACK released this connector's file lock of a file not open at the last COMMIT (§9.1.15) and reversed only this run
-    /// unit's own changes, so a file another run unit has made at the path since is protected from this one (§9.1.17): the WRITE
-    /// is refused '30' (§9.1.13.6 item 1), never appended to it. The presence probe and the creating handle are one decision
+    /// ROLLBACK released this connector's file lock of a file not open at the last COMMIT (§2023:9.1.15) and reversed only this run
+    /// unit's own changes, so a file another run unit has made at the path since is protected from this one (§2023:9.1.17): the WRITE
+    /// is refused '30' (§2023:9.1.13.6 item 1), never appended to it. The presence probe and the creating handle are one decision
     /// under the entry mutex the lock test holds, and the handle is opened <see cref="FileMode.CreateNew"/>, so a file made
     /// between the probe and the open (by a run unit whose OPEN takes no entry mutex) is refused rather than adopted.
     /// <para>An unsuccessful creation leaves the connector on no file (<see cref="_fileRemoved"/> stays set). The journal this WRITE
     /// began is WITHDRAWN when the file was not created (2.2.2.14: the file is as the journal's start says,
-    /// <see cref="FileConnector.WithdrawWhatTheOpenBegan"/>, the rule of an unsuccessful OPEN); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8; the '30' is
+    /// <see cref="FileConnector.WithdrawWhatTheOpenBegan"/>, the rule of an unsuccessful OPEN); otherwise it is left to item 8's ROLLBACK (§2023:14.6.13.1.3 8; the '30' is
     /// fatal), which removes the file this WRITE made. Returns the failing I-O status, or null.</para></summary>
     private string? CreateTheFileAgain()
     {
@@ -418,17 +418,17 @@ public sealed partial class SequentialConnector : IJournalData
     /// <summary>⛔ THE READ'S STEP (2.2.2.3, 2.2.2.8): a READ not IGNORING LOCK through a connector whose file lock admits another
     /// run unit's writer (<c>SHARING WITH ALL OTHER</c>, the one posture under which another transaction can live beside it)
     /// meets every other live transaction's holding of the record it would make available — the whole file once replaced, a
-    /// record it rewrote, one it appended — with '51' (§9.1.13.8 1)), and a dead one's is settled before the READ. The record
+    /// record it rewrote, one it appended — with '51' (§2023:9.1.13.8 1)), and a dead one's is settled before the READ. The record
     /// a forward READ makes available starts at the file position indicator's offset; a backward one's is told by its ordinal.
     /// The lock test is <see cref="JournalLockTest"/>'s, the statement's RETRY phrase applying. Null when the READ may proceed.
     /// The caller asks it after the record-lock conflict check (DOC-A.1-104's point).
-    /// <para>⛔ A READ THAT TESTS NO LOCK (<paramref name="testsLocks"/> false: IGNORING LOCK, §14.9.30.4 GR12, <i>"the requested
+    /// <para>⛔ A READ THAT TESTS NO LOCK (<paramref name="testsLocks"/> false: IGNORING LOCK, §2023:14.9.30.4 GR12, <i>"the requested
     /// record is made available, even if it is locked"</i>; ADVANCING ON LOCK, GR22) takes this entry step alone, with no holding
-    /// judged (kb/Work PB4097; §9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since the previous commit
+    /// judged (kb/Work PB4097; §2023:9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since the previous commit
     /// or, if none, the beginning of the run unit are rolled back"</i>): it ignores a LIVE transaction's holdings, never a rollback
     /// that is owed, since a dead transaction's rewritten record is not in the file once its owner's locks are gone.</para>
     /// <para>A host refusal of the settle (the file is read-only to this process, the medium refused a page) is the entry's host
-    /// failure: '30', a permanent error as every statement's entry gives (<c>KeyedConnector.Enter</c>; §9.1.13.6 1)), never an
+    /// failure: '30', a permanent error as every statement's entry gives (<c>KeyedConnector.Enter</c>; §2023:9.1.13.6 1)), never an
     /// exception out of the statement and never the dead change shown to the reader.</para></summary>
     internal string? ReadHoldingsGate(bool previous, bool testsLocks)
     {
@@ -451,7 +451,7 @@ public sealed partial class SequentialConnector : IJournalData
     private bool MeetsAnotherRunUnitsTransactions => FileLockPosture.AdmitsAnotherWriter(HostShare) && HostPath.Length != 0 && _reader is not null;
 
     /// <summary>⛔ THE JOURNAL ARM OF THE LOCK TEST, UNDER THE STATEMENT'S RETRY PHRASE (2.2.2.3: <i>"held, '51' (RETRY
-    /// applies)"</i>; §14.7.9.3 GR4 b): a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the
+    /// applies)"</i>; §2023:14.7.9.3 GR4 b): a record operation conflict is attempted again as GR1 to GR3 specify, and an attempt the
     /// holder permits makes the statement successful). Each attempt is one entry step (<see cref="SequentialJournal.Enter"/>,
     /// <paramref name="ownId"/> the connector's own transaction, which it never meets): a dead owner's transaction is settled,
     /// and a live one's holding that <paramref name="held"/> picks refuses the attempt (<see cref="SequentialJournal.Holdings.Conflict"/>:
@@ -510,8 +510,8 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>⛔ THE CHANGE OF A CONNECTOR NO APPLY COMMIT NAMES, UNDER A FILE LOCK THAT ADMITS ANOTHER RUN UNIT'S WRITER (2.2.2.3;
     /// review finding R1-1 of kb/Work PB3340): its lock test AND its change are one step under the entry mutex, which
-    /// <paramref name="release"/> holds until the caller has RELEASED the record to the operating environment (§14.9.51.4 GR12,
-    /// §14.9.35.4 GR4). A test made outside it left a gap: another run unit's covered WRITE could begin its transaction and read
+    /// <paramref name="release"/> holds until the caller has RELEASED the record to the operating environment (§2023:14.9.51.4 GR12,
+    /// §2023:14.9.35.4 GR4). A test made outside it left a gap: another run unit's covered WRITE could begin its transaction and read
     /// its committed length L between this test and this write, so the record landed at or past L, outside every holding, and
     /// that transaction's ROLLBACK (or the settle after its death) truncated it away: a record of a connector with no transaction,
     /// which GR19 (<i>"the added records follow the records present in the physical file when it was opened"</i>) and GR12 keep.
@@ -621,7 +621,7 @@ public sealed partial class SequentialConnector : IJournalData
         }
     }
 
-    /// <summary>⛔ THE CONNECTOR AFTER ITS RUN UNIT'S ROLLBACK (2.2.2.7; §14.9.36.4 GR3 restores the file and its locks and leaves
+    /// <summary>⛔ THE CONNECTOR AFTER ITS RUN UNIT'S ROLLBACK (2.2.2.7; §2023:14.9.36.4 GR3 restores the file and its locks and leaves
     /// the open mode to the implementor): an OUTPUT or EXTEND writer's next WRITE lands at the restored end, or — the file removed
     /// — creates it again; an I-O or INPUT reader keeps its file position indicator and its last-read anchors, its buffer
     /// re-read from the restored file (a removed file reads AT END and a REWRITE on it answers '43'); a print file's logical page

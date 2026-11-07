@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE LENGTH OF AN ANY LENGTH RETURNING ITEM IS THE ACTIVATOR'S (kb/Work PB1167). ISO §13.18.2.4 GR1 b) treats the
+/// ⛔ THE LENGTH OF AN ANY LENGTH RETURNING ITEM IS THE ACTIVATOR'S (kb/Work PB1167). ISO §2023:13.18.2.4 GR1 b) treats the
 /// subject of the clause "as though there were n repetitions of the picture symbol in the character-string in its
 /// PICTURE clause, where n is the length of the corresponding argument or returning item of the activating runtime
 /// element", and GR1 a) makes it a zero-length item when that returning item is one. <see cref="CobolArgAdapt.ReturningSeed"/>

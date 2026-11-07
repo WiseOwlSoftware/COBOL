@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Serial SEARCH (ISO §14.9.37 Format 1, §14.9.37.4 GR3–GR4): scan from the index's CURRENT setting, AT END on past-end,
+/// Serial SEARCH (ISO §2023:14.9.37 Format 1, §2023:14.9.37.4 GR3–GR4): scan from the index's CURRENT setting, AT END on past-end,
 /// WHEN arms in order (first true wins), VARYING a same-table index / other item in step, and GO TO out of a
 /// WHEN body. Pinned to the committed golden (NIST-85 green across the table series). SEARCH ALL (Format 2) is
 /// implemented and has its own spec-derived suite — <see cref="SearchIndexRangeSpecTests"/> for the GR9 index

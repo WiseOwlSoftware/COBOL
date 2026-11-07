@@ -17,12 +17,12 @@ using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The REPORT SECTION's binder (ISO/IEC 1989:2023 §13.8 report section / §13.14 report description / §13.15 report group
+/// The REPORT SECTION's binder (ISO/IEC 1989:2023 §2023:13.8 report section / §2023:13.14 report description / §2023:13.15 report group
 /// description; docs/REPORT_WRITER_DESIGN.md §3; kb/Work PB2357, step 7 of the <see cref="DataBinder"/> extract): binds each RD
 /// entry into a <see cref="ReportModel"/> (<see cref="BindReportSection"/>), resolves the names those entries use once the data
 /// division is built (<see cref="ResolveReports"/>), makes a container's GLOBAL reports visible
 /// (<see cref="InheritContainerReports"/>) and answers the report-item refusal every other section's name lookup asks
-/// (<see cref="ReportEntryReferenceRefused"/>, §13.8.6.2.3). It writes <paramref name="scope"/>, the facts later phases read, and
+/// (<see cref="ReportEntryReferenceRefused"/>, §2023:13.8.6.2.3). It writes <paramref name="scope"/>, the facts later phases read, and
 /// reaches the data binder's shared helpers (clause-operand resolution, picture screens, unique ids) through
 /// <paramref name="host"/>, the <see cref="DataBinder"/> that owns it.
 /// </summary>
@@ -32,11 +32,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private readonly ReportScope _scope = scope;
     private readonly EditionContext Edition = host.Edition;
 
-    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §13.18.27.4 GR1/GR2):
+    /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §2023:13.18.27.4 GR1/GR2):
     /// the end of <see cref="DataBinder.BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
-    /// a name it declares hides the container's (§8.4.6.2), and BEFORE <see cref="DataBinder.BindResolve"/>, so every clause of
+    /// a name it declares hides the container's (§2023:8.4.6.2), and BEFORE <see cref="DataBinder.BindResolve"/>, so every clause of
     /// this unit's own data division that names a report item (FILE STATUS, RELATIVE KEY, OCCURS … DEPENDING ON,
-    /// ASSIGN … USING) finds the inherited report when it asks <see cref="ReportEntryReferenceRefused"/> (§13.8.6.2.3).
+    /// ASSIGN … USING) finds the inherited report when it asks <see cref="ReportEntryReferenceRefused"/> (§2023:13.8.6.2.3).
     /// Inheriting after the whole <c>Bind</c> left those clauses telling a programmer that a name the container's
     /// report declares is "not defined" (kb/Work PB3766).</summary>
     internal void InheritContainerReports()
@@ -45,10 +45,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             InheritGlobalReport(report, depth);
     }
 
-    /// <summary>Make a container's GLOBAL report visible here (ISO §13.18.27.4 GR1/GR2): its report-name, its
+    /// <summary>Make a container's GLOBAL report visible here (ISO §2023:13.18.27.4 GR1/GR2): its report-name, its
     /// report groups (reached through the report), and its sum counters (GR1 — "All data-names subordinate to a
     /// global name are global names"). Called by <see cref="InheritContainerReports"/>, nearest container first, so
-    /// a name this unit declares — or a nearer container already supplied — hides the farther one (§8.4.6.2).
+    /// a name this unit declares — or a nearer container already supplied — hides the farther one (§2023:8.4.6.2).
     /// Returns false when the report-name is hidden.</summary>
     private bool InheritGlobalReport(ReportModel report, int depth)
     {
@@ -64,7 +64,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return true;
     }
 
-    /// <summary>Bind the REPORT SECTION's RD entries into <see cref="ReportScope.Declared"/> (ISO §13.14/§13.15). Runs after
+    /// <summary>Bind the REPORT SECTION's RD entries into <see cref="ReportScope.Declared"/> (ISO §2023:13.14/§2023:13.15). Runs after
     /// <c>BindFileControl</c>/<c>BindFileSection</c> (the FD REPORT clauses are captured there); SOURCE/CONTROL
     /// data references resolve post-build in <see cref="ResolveReports"/> (the FILE STATUS pattern — one
     /// canonical resolution point).</summary>
@@ -76,7 +76,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             using var _ = Edition.At(rd);
             if (rd.reportName()?.GetText() is not { } name) continue;
-            _d.DeclareUserWord(name, UserWordKind.ReportName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB1083)
+            _d.DeclareUserWord(name, UserWordKind.ReportName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
             var model = new ReportModel
             {
                 Name = name,
@@ -84,7 +84,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 WrittenEntries = rd.reportGroupEntry(),
                 CsIndex = _scope.Declared.Count,
                 Uid = _d.TakeUid(),
-                // §8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
+                // §2023:8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
                 // RD (kb/Work PB429). The SUM counter's Register is built the same way a few hundred lines below.
                 PageCounterRegister = new DataItem
                 {
@@ -102,15 +102,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
     }
 
-    /// <summary>⛔ THE ONE SCREEN OF ISO §13.18.60.3 SR7 — "Only the DISPLAY or NATIONAL phrase may be
+    /// <summary>⛔ THE ONE SCREEN OF ISO §2023:13.18.60.3 SR7 — "Only the DISPLAY or NATIONAL phrase may be
     /// specified in any USAGE clause associated with a report group item" (kb/Work PB541). It is asked at the
     /// two points a usage becomes known and nowhere else: of the USAGE CLAUSE as it is captured (which is the
     /// rule's own subject, and the only place a GROUP entry's clause is visible), and of the usage a printable
-    /// item SETTLES on, which may have been implied by its picture character-string (§13.18.60.4 GR7/GR8) and so
+    /// item SETTLES on, which may have been implied by its picture character-string (§2023:13.18.60.4 GR7/GR8) and so
     /// never passed a clause. One rule, one message, two positions — never two spellings of the rule.
     /// <para>The gate this replaced tested <c>Usage is not Display</c>, one alternative narrower than the rule,
-    /// and refused every legal NATIONAL report item at every edition under a §13.15 citation that says nothing
-    /// of the kind; the nearest real text, §13.18.14.4 GR3, is about the column/character correspondence.</para>
+    /// and refused every legal NATIONAL report item at every edition under a §2023:13.15 citation that says nothing
+    /// of the kind; the nearest real text, §2023:13.18.14.4 GR3, is about the column/character correspondence.</para>
     /// </summary>
     internal void ScreenReportUsage(Usage usage, string reportName, string? entryName, string? written)
     {
@@ -118,30 +118,30 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         Edition.Error(DiagnosticCatalog.ReportUsageNotDisplayOrNational, $"RD '{reportName}' entry "
             + $"'{entryName ?? "FILLER"}'{(written is null ? "" : $" ({written})")}: usage {usage} is not "
             + "admitted here — only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
-            + "associated with a report group item (ISO §13.18.60.3 SR7)");
+            + "associated with a report group item (ISO §2023:13.18.60.3 SR7)");
     }
 
-    /// <summary>Bind one RD entry's description clauses: PAGE geometry (§13.18.39) with the GR3 defaults,
-    /// CONTROL (§13.18.16), GLOBAL (§13.18.27 on an RD); CODE (§13.18.12) stages loud.</summary>
+    /// <summary>Bind one RD entry's description clauses: PAGE geometry (§2023:13.18.39) with the GR3 defaults,
+    /// CONTROL (§2023:13.18.16), GLOBAL (§2023:13.18.27 on an RD); CODE (§2023:13.18.12) stages loud.</summary>
     private void BindReportDescriptionClauses(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
         bool heading = false, firstDetail = false, lastControlHeading = false, lastDetail = false, footing = false;
-        // §13.14.2 prints each clause in its own bracket with no ellipsis; §13.14.3 SR2 licenses any ORDER, never a
+        // §2023:13.14.2 prints each clause in its own bracket with no ellipsis; §2023:13.14.3 SR2 licenses any ORDER, never a
         // repeat (COBOL2423 — the grammar's `reportDescriptionClause*` admits both).
         var rdClauses = rd.reportDescriptionClause();
         string rdWhere = $"RD '{model.Name}'";
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportGlobalClause() is not null), rdWhere,
-            "the GLOBAL clause", "ISO §13.14.2");
+            "the GLOBAL clause", "ISO §2023:13.14.2");
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportCodeClause() is not null), rdWhere,
-            "the CODE clause", "ISO §13.14.2");
+            "the CODE clause", "ISO §2023:13.14.2");
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportControlClause() is not null), rdWhere,
-            "the CONTROL clause", "ISO §13.14.2");
+            "the CONTROL clause", "ISO §2023:13.14.2");
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportPageClause() is not null), rdWhere,
-            "the PAGE clause", "ISO §13.14.2");
+            "the PAGE clause", "ISO §2023:13.14.2");
         foreach (var clause in rdClauses)
         {
-            // §13.18.27.3 SR1 e) — the report-name is a global name. The containment half (visibility in contained
-            // programs, §13.18.27.4 GR1/GR2, and the declarative a contained GENERATE selects, §14.9.49.4 GR4) is
+            // §2023:13.18.27.3 SR1 e) — the report-name is a global name. The containment half (visibility in contained
+            // programs, §2023:13.18.27.4 GR1/GR2, and the declarative a contained GENERATE selects, §2023:14.9.49.4 GR4) is
             // BinderDriver's inheritance walk and the emitter's GR4 selector (kb/Work PB369).
             if (clause.reportGlobalClause() is not null)
                 model.IsGlobal = true;
@@ -152,15 +152,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             else if (clause.reportControlClause() is { } ctl)
             {
-                // Operand order IS the hierarchy, major→minor (§13.18.16.4 GR1); FINAL is the highest level (GR2).
+                // Operand order IS the hierarchy, major→minor (§2023:13.18.16.4 GR1); FINAL is the highest level (GR2).
                 int clauseStart = model.Controls.Count;   // a repeated CONTROL clause is COBOL2423 above
                 for (int i = 0; i < ctl.ChildCount; i++)
                     switch (ctl.GetChild(i))
                     {
                         case Antlr4.Runtime.Tree.ITerminalNode t when t.Symbol.Type == CobolLexer.FINAL:
-                            // ⛔ THE GENERAL FORMAT, not a syntax rule (kb/Work PB483): §13.18.16.2 prints
+                            // ⛔ THE GENERAL FORMAT, not a syntax rule (kb/Work PB483): §2023:13.18.16.2 prints
                             // `FINAL [ data-name-1 ] …` — FINAL once, FIRST, the ellipsis on the data-name bracket
-                            // alone (§5.2.7). The grammar's `(FINAL | dataReference)+` admits FINAL anywhere and
+                            // alone (§2023:5.2.7). The grammar's `(FINAL | dataReference)+` admits FINAL anywhere and
                             // any number of times; before this screen `CONTROLS ARE FINAL FINAL CX` built a second
                             // FINAL level that could never break, and `CONTROL CX FINAL` made FINAL the MINOR
                             // level — contradicting GR2 — so TERMINATE printed CF FINAL before CF CX.
@@ -169,19 +169,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                     + (model.Controls.Skip(clauseStart).Any(c => c.IsFinal)
                                         ? "FINAL is written more than once in the CONTROL clause"
                                         : $"FINAL is written after the data-name '{model.Controls[^1].Display}'")
-                                    + " — ISO §13.18.16.2 admits FINAL once, as the first operand (`FINAL "
-                                    + "[ data-name-1 ] …`, §5.2.7), and §13.18.16.4 GR2 makes it the highest level");
+                                    + " — ISO §2023:13.18.16.2 admits FINAL once, as the first operand (`FINAL "
+                                    + "[ data-name-1 ] …`, §2023:5.2.7), and §2023:13.18.16.4 GR2 makes it the highest level");
                             model.Controls.Add(new ReportControlModel { IsFinal = true });
                             break;
                         case Core.DataReferenceContext dref:
                             model.Controls.Add(new ReportControlModel
                             {
                                 Operand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlOperandShape,
-                                    $"RD '{model.Name}': CONTROL operand", "ISO §13.18.16.3 SR4"),
+                                    $"RD '{model.Name}': CONTROL operand", "ISO §2023:13.18.16.3 SR4"),
                             });
                             break;
                     }
-                // §13.18.16.3 SR6 — "Data-name-1 shall be unique in any given CONTROL clause." Uniqueness is of
+                // §2023:13.18.16.3 SR6 — "Data-name-1 shall be unique in any given CONTROL clause." Uniqueness is of
                 // the WRITTEN reference: SR6's own second sentence permits two operands to "refer to the same
                 // physical data item or to overlapping data items", so the referenced ITEM cannot be what
                 // distinguishes them, and SR10/SR8 could not name a level unambiguously if it were.
@@ -192,7 +192,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             {
                                 Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand "
                                     + $"'{later}' appears twice: data-name-1 shall be unique in any given CONTROL "
-                                    + "clause (ISO §13.18.16.3 SR6). Two operands may refer to the same item or to "
+                                    + "clause (ISO §2023:13.18.16.3 SR6). Two operands may refer to the same item or to "
                                     + "overlapping data — write them as distinct references (a qualification or a "
                                     + "reference modification), never as the same one twice.");
                                 break;
@@ -200,12 +200,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             else if (clause.reportPageClause() is { } page)
             {
-                // §13.18.39.4 GR2a — integer-1 is the page limit, and "If integer-1 is not specified, the report
+                // §2023:13.18.39.4 GR2a — integer-1 is the page limit, and "If integer-1 is not specified, the report
                 // consists of a single page of indefinite length": a PAGE clause that gives only integer-2 (the page
                 // width, GR2b) leaves the report UNPAGED. GR5 — "If integer-2 is omitted, a value of 999 is assumed
                 // for the page width": ReportModel.PageWidth already holds that default.
                 // Every integer of the clause is a literal position, so an integer constant-name stands there
-                // (§13.10.3 SR2) — read through the ONE reader (kb/Work PB1947); a refused constant reads as 1, the
+                // (§2023:13.10.3 SR2) — read through the ONE reader (kb/Work PB1947); a refused constant reads as 1, the
                 // recovery value no range rule below trips on (the compile has already failed).
                 int? writtenLimit = null;   // null: not written, or refused (the compile has already failed)
                 if (page.integerOperand() is { } limit)
@@ -219,20 +219,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     model.PageWidth = _d.Constants.IntegerOperandValue(width.integerOperand(), rdWhere) ?? ConstantEntryBinder.RecoveredIntegerOperand;
                     model.PageWidthWritten = true;
                 }
-                // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
+                // §2023:13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
                 // never a repeat (COBOL2423).
                 var subs = page.reportPageSubclause();
                 foreach (var phrase in Enum.GetValues<PagePhrase>())
                     UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => PagePhraseOf(s) == phrase), rdWhere,
-                        $"the PAGE clause's {PagePhraseWords(phrase)} phrase", "ISO §13.18.39.2");
-                // §13.18.39.3 SR3 — "The HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, or FOOTING
+                        $"the PAGE clause's {PagePhraseWords(phrase)} phrase", "ISO §2023:13.18.39.2");
+                // §2023:13.18.39.3 SR3 — "The HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, or FOOTING
                 // phrase may be specified only if integer-1 is specified." Each phrase subdivides the page
                 // (GR2c–GR2g) and a report with no page limit has no page to subdivide.
                 if (page.integerOperand() is null && subs.Length > 0)
                     Edition.Error(DiagnosticCatalog.ReportPagePhraseWithoutLimit, $"{rdWhere}: the PAGE clause "
                         + $"specifies {string.Join(", ", subs.Select(s => PagePhraseWords(PagePhraseOf(s))).Distinct())} "
                         + "but no integer-1 (the page limit): those phrases may be specified only if integer-1 is "
-                        + "specified (ISO §13.18.39.3 SR3)");
+                        + "specified (ISO §2023:13.18.39.3 SR3)");
                 var writtenPhrases = new List<(PagePhrase Phrase, int Value, Core.ReportPageSubclauseContext Ctx)>();
                 foreach (var sub in subs)
                 {
@@ -252,7 +252,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
         }
         if (!model.Paged) return;
-        // The §13.18.39.4 GR3 defaults:
+        // The §2023:13.18.39.4 GR3 defaults:
         if (!heading) model.Heading = 1;                                              // GR3a
         if (!firstDetail) model.FirstDetail = model.Heading;                          // GR3b
         if (!lastDetail) model.LastDetail = footing ? model.Footing : model.PageLimit;   // GR3d
@@ -262,8 +262,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (!footing) model.Footing = lastDetail ? model.LastDetail : model.PageLimit;   // GR3e
     }
 
-    /// <summary>⛔ THE PAGE CLAUSE'S INTEGER RULES (ISO §13.18.39.3 SR5, SR6; kb/Work PB1270), asked of the WRITTEN
-    /// integers before the §13.18.39.4 GR3 defaults exist — a default is the programmer's integer copied, so asking
+    /// <summary>⛔ THE PAGE CLAUSE'S INTEGER RULES (ISO §2023:13.18.39.3 SR5, SR6; kb/Work PB1270), asked of the WRITTEN
+    /// integers before the §2023:13.18.39.4 GR3 defaults exist — a default is the programmer's integer copied, so asking
     /// after it would report one fault twice, and SR6 says "wherever specified".
     /// <list type="bullet">
     /// <item>SR5 — "Integer-1 shall not exceed 9999."</item>
@@ -282,7 +282,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             using var at = Edition.At(limitCtx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} exceeds "
-                + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §13.18.39.3 SR5)");
+                + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)");
         }
         phrases.Sort((a, b) => a.Phrase.CompareTo(b.Phrase));
         for (int k = 0; k < phrases.Count; k++)
@@ -298,22 +298,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the {PagePhraseWords(phrase)} integer "
                 + $"{value} is greater than {nextWords} {next}; the PAGE clause's integers shall be in ascending order, "
                 + "HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING, then the page limit, with equality "
-                + "allowed (ISO §13.18.39.3 SR6)");
+                + "allowed (ISO §2023:13.18.39.3 SR6)");
         }
     }
 
-    /// <summary>ISO §13.18.39.3 SR5 — "Integer-1 shall not exceed 9999."</summary>
+    /// <summary>ISO §2023:13.18.39.3 SR5 — "Integer-1 shall not exceed 9999."</summary>
     private const int MaxPageLimit = 9999;
 
-    /// <summary>Capture the RD's CODE clause (ISO §13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
+    /// <summary>Capture the RD's CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
     /// boolean literal and a figurative constant are not one) and decoded through the ONE literal readers
-    /// (<see cref="SpecialNamesBinder.OperandLiteralClass"/> / <see cref="SpecialNamesBinder.LiteralCharsOf"/> — a §8.8.3.3 concatenation folds, a
+    /// (<see cref="SpecialNamesBinder.OperandLiteralClass"/> / <see cref="SpecialNamesBinder.LiteralCharsOf"/> — a §2023:8.8.3.3 concatenation folds, a
     /// hexadecimal format decodes). identifier-1 is kept as the WRITTEN reference, exactly as the SOURCE clause's
     /// identifier operand is (<see cref="FieldReferenceSource"/>): its base item is screened post-build with SR2's shape
     /// rules (<see cref="ResolveReportCode"/>) and its value is bound in the procedure phase. A constant-name written
     /// where identifier-1 could stand is literal-1: it "may be used anywhere that a format specifies a literal of the
-    /// class and category of constant-name-1" (ISO §13.10.3 SR2), "as if literal-1 … were written" (§13.10.4 GR1), so
+    /// class and category of constant-name-1" (ISO §2023:13.10.3 SR2), "as if literal-1 … were written" (§2023:13.10.4 GR1), so
     /// it takes SR1's screen and the literal's characters (kb/Work PB780; it was refused as an unresolved identifier-1).
     /// Returns null for an operand that was refused, so no code is emitted for it.</summary>
     private ReportCodeModel? BindCodeClause(Core.ReportCodeClauseContext cc, ReportModel model)
@@ -324,7 +324,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
-                    + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §13.18.12.3 SR1)");
+                    + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
                 return null;
             }
             return new ReportCodeModel { Literal = _d.SpecialNames.LiteralCharsOf(lit, sr11: false), Written = lit.GetText() };
@@ -336,7 +336,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names the constant-name '{DataBinder.WrittenText(dref)}' "
                     + $"for {k.StandsFor}, which is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
-                    + "(ISO §13.18.12.3 SR1; §13.10.4 GR1)");
+                    + "(ISO §2023:13.18.12.3 SR1; §2023:13.10.4 GR1)");
                 return null;
             }
             return new ReportCodeModel { Literal = k.Text, Written = DataBinder.WrittenText(dref) };
@@ -345,15 +345,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             // LINE-COUNTER / PAGE-COUNTER — the report's registers, numeric: never an alphanumeric data item.
             Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(dref)}, a report "
-                + "counter, which is numeric: identifier-1 shall reference an alphanumeric data item (ISO §13.18.12.3 SR2)");
+                + "counter, which is numeric: identifier-1 shall reference an alphanumeric data item (ISO §2023:13.18.12.3 SR2)");
             return null;
         }
         // The WHOLE written reference rides on the model — a subscript and a reference modification are part of an
-        // identifier (§8.4.3.1.2) and bind in the procedure phase, exactly as the SOURCE clause's identifier-1 does.
+        // identifier (§2023:8.4.3.1.2) and bind in the procedure phase, exactly as the SOURCE clause's identifier-1 does.
         return new ReportCodeModel { Reference = dref, Written = DataBinder.WrittenText(dref) };
     }
 
-    /// <summary>Resolve the CODE clause's identifier-1 to its item and screen §13.18.12.3 SR2 over it — "Identifier-1 shall
+    /// <summary>Resolve the CODE clause's identifier-1 to its item and screen §2023:13.18.12.3 SR2 over it — "Identifier-1 shall
     /// reference an alphanumeric data item that shall not be an occurs-depending-on group item, a variable-length group,
     /// or a dynamic-length elementary item" — then fix the code's length (the item's character positions, which SR2's
     /// exclusions make FIXED). literal-1's length is its characters'. Either way the length is what GR2 charges to the
@@ -367,9 +367,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return;
         }
         // ⛔ THE BASE ITEM is looked up here (the SR2 screen is over the item's DESCRIPTION), and nothing else of the written
-        // reference is dropped: a subscript and a reference modification are part of identifier-1 (§8.4.3.1.2) and bind
+        // reference is dropped: a subscript and a reference modification are part of identifier-1 (§2023:8.4.3.1.2) and bind
         // in the procedure phase through the ONE sending-operand resolution (`ReportCodeModel.Value`), where the
-        // resolver also asks §8.4.2.3.3 SR3's subscript count — so an unsubscripted reference to a table element is
+        // resolver also asks §2023:8.4.2.3.3 SR3's subscript count — so an unsubscripted reference to a table element is
         // refused THERE (SR5), and a subscripted one is legal source (kb/Work PB1292).
         var (codeName, codeQuals) = DataBinder.KeyReference(code.Reference!);
         using var codeAt = Edition.At(code.Reference!);   // identifier-1 as written (kb/Work PB2034)
@@ -377,29 +377,29 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         code.Item = LookupQualified(codeName, codeQuals, where, out bool ambiguous);
         if (code.Item is not { } item)
         {
-            // A report entry's data-name is declared, and §13.15.3 SR7 bars this clause from naming it (kb/Work PB4226's
+            // A report entry's data-name is declared, and §2023:13.15.3 SR7 bars this clause from naming it (kb/Work PB4226's
             // sibling): the one report-item refusal, under the report section's own rule, not "does not resolve".
             if (!ambiguous
                 && !ReportEntryReferenceRefused(default, $"{where} '{code.Written}'", codeName, codeQuals, inReportSection: true))
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{code.Written}', which does not resolve "
-                    + "to a data item (ISO §8.4.2.1; identifier-1 of §13.18.12.2)");
+                    + "to a data item (ISO §2023:8.4.2.1; identifier-1 of §2023:13.18.12.2)");
             return;
         }
-        // A reference-modified identifier-1 references the §8.4.3.3.4 GR5 unique data item, which GR6 c) makes alphanumeric
+        // A reference-modified identifier-1 references the §2023:8.4.3.3.4 GR5 unique data item, which GR6 c) makes alphanumeric
         // whatever the base's category — so the CLASS half of SR2 is asked of the base item only when no
         // reference-modification is written, and the length is the slice's, which the logical record size needs FIXED
         // (GR2) — an integer-literal position and length, as the CONTROL operand's ref-mod requires.
         var codeSfx = RefModBinder.ReadOperandSuffixes(code.Reference!);
         bool codeRefMod = codeSfx.RefMods > 0;
-        // ⛔ "AN ALPHANUMERIC DATA ITEM" IS THE CATEGORY (§8.5.2.1: a class or category named in the rules of COBOL
+        // ⛔ "AN ALPHANUMERIC DATA ITEM" IS THE CATEGORY (§2023:8.5.2.1: a class or category named in the rules of COBOL
         // "refers to the category unless class is specifically indicated"), so it asks the ONE category reader every
         // rule so worded asks (ASSIGN USING, FILE STATUS, the record keys) — never the class lattice, whose
-        // alphanumeric answer for a strongly-typed group is §15.3 item 2's reading of a function ARGUMENT (kb/Work PB3355).
+        // alphanumeric answer for a strongly-typed group is §2023:15.3 item 2's reading of a function ARGUMENT (kb/Work PB3355).
         string? why = !codeRefMod && !ItemCategory.IsAlphanumeric(item)
                 ? $"is not an alphanumeric data item (it is {ItemCategory.Face(item)})"
             : codeRefMod && (codeSfx.RefMods > 1 || codeSfx.NonLiteral || codeSfx.BeyondHostLimit || codeSfx.Start is null)
                 ? "is reference-modified with a leftmost-position or length that is not a single integer literal, so the "
-                  + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
+                  + "characters it occupies in every logical record (§2023:13.18.12.4 GR2) are not a fixed number"
             : OdoModel.TableUnder(item) is { } odo
                 ? $"is a group with the occurs-depending-on table '{odo.CobolName ?? odo.ClrName}' subordinate to it"
             : item.IsGroup && DataItem.HasVariableLengthSubordinate(item)
@@ -411,7 +411,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{code.Written}', which {why}: identifier-1 "
                 + "shall reference an alphanumeric data item that is not an occurs-depending-on group item, a "
-                + "variable-length group, or a dynamic-length elementary item (ISO §13.18.12.3 SR2)");
+                + "variable-length group, or a dynamic-length elementary item (ISO §2023:13.18.12.3 SR2)");
             return;
         }
         code.Length = codeRefMod
@@ -419,14 +419,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             : item.DisplayTextWidth;
     }
 
-    /// <summary>The five trailing phrases of the PAGE clause (§13.18.39.2), each in its own bracket — what
+    /// <summary>The five trailing phrases of the PAGE clause (§2023:13.18.39.2), each in its own bracket — what
     /// <see cref="PagePhraseOf"/> decides, so the once-only screen, the SR3 screen and the binding read one
     /// classification and the next phrase is one more member here.</summary>
     private enum PagePhrase { Heading, FirstDetail, LastControlHeading, LastDetail, Footing }
 
-    /// <summary>Which §13.18.39.2 phrase a <c>reportPageSubclause</c> is. Read from the phrase's first token and,
+    /// <summary>Which §2023:13.18.39.2 phrase a <c>reportPageSubclause</c> is. Read from the phrase's first token and,
     /// for LAST, the word after it — never from <c>HEADING()</c>, which is also a terminal of LAST CONTROL HEADING
-    /// (§13.18.39.3 SR1 makes the abbreviations CH and DE synonyms, so the second word may be either spelling).</summary>
+    /// (§2023:13.18.39.3 SR1 makes the abbreviations CH and DE synonyms, so the second word may be either spelling).</summary>
     private static PagePhrase PagePhraseOf(Core.ReportPageSubclauseContext sub) => sub.Start.Type switch
     {
         CobolLexer.HEADING => PagePhrase.Heading,
@@ -445,10 +445,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     };
 
     /// <summary>Build one RD's report groups from its (flat, level-numbered) group entries. The line-building
-    /// rule (ISO §13.15 / REPORT_WRITER_DESIGN §3.3): walking the entries in declaration order, a
+    /// rule (ISO §2023:13.15 / REPORT_WRITER_DESIGN §3.3): walking the entries in declaration order, a
     /// 01-level entry opens a new GROUP; an entry whose clauses include a LINE clause OPENS a new report line
     /// (LINE is legal at ANY level — RW101A puts <c>LINE PLUS 1</c> on an 03); an entry with a COLUMN clause
-    /// appends a printable field to the CURRENT line. PRESENT WHEN conditions (§13.18.41 Format 1) accumulate
+    /// appends a printable field to the CURRENT line. PRESENT WHEN conditions (§2023:13.18.41 Format 1) accumulate
     /// down a level-number stack — a line carries the chain 01→line-entry, a field the chain strictly below the
     /// line entry, a SUM entry the full chain (GR2b: an absent ancestor absents every subordinate,
     /// "irrespective of any PRESENT WHEN clauses they may also contain" — the AND of independent conditions).
@@ -477,12 +477,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>⛔ THE REPORT SECTION'S ENTRIES FOR ONE RD, CUT INTO RUNS AT ITS CONSTANT ENTRIES — the one place the
-    /// cut is made, for the flat screens and for <see cref="BindReportSectionEntries"/> alike. ISO §13.8.2 prints the
+    /// cut is made, for the flat screens and for <see cref="BindReportSectionEntries"/> alike. ISO §2023:13.8.2 prints the
     /// entries after a report description entry as <c>{ constant-entry | report-group-description-entry } …</c>, and a
-    /// constant is a level-01 entry (§13.10.2), so it ends the report group before it. Each run is the index range
+    /// constant is a level-01 entry (§2023:13.10.2), so it ends the report group before it. Each run is the index range
     /// [Start, End) of <c>rd.reportGroupEntry()</c> and the constant entry that ends it (null for the last run).
     /// Before the cut the screens read across a constant: `03 LINE PLUS 1. 01 K CONSTANT AS 3. 05 LINE PLUS 1.` drew a
-    /// spurious §13.18.35.3 SR4 diagnostic, as if the second LINE entry were subordinate to the first.</summary>
+    /// spurious §2023:13.18.35.3 SR4 diagnostic, as if the second LINE entry were subordinate to the first.</summary>
     private static List<(int Start, int End, Core.ConstantEntryContext? Constant)> ReportEntryRuns(
         Core.ReportDescriptionEntryContext rd)
     {
@@ -499,17 +499,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return runs;
     }
 
-    /// <summary>ISO §8.5.1.3.2's equal-sibling rule for report group description entries (kb/Work PB1954): "All
+    /// <summary>ISO §2023:8.5.1.3.2's equal-sibling rule for report group description entries (kb/Work PB1954): "All
     /// items that are immediately subordinate to a given group item shall be described using numerically equal
-    /// level-numbers greater than the level-number used to describe that group item." §13.18.33.1 gives level-numbers
+    /// level-numbers greater than the level-number used to describe that group item." §2023:13.18.33.1 gives level-numbers
     /// 1 through 49 one meaning in a data description entry and a report group description entry, so the rule the
     /// data arm asks in <see cref="DataBinder.BindEntries"/> is asked here too, through the same
     /// <see cref="DataBinder.ScreenImmediateMemberLevel"/>. Screened ONCE per WRITTEN entry over one run of the flat entry array
-    /// (the <see cref="ScreenReportLineNesting"/> shape): a §13.18.38 Format 3 subtree replay in
+    /// (the <see cref="ScreenReportLineNesting"/> shape): a §2023:13.18.38 Format 3 subtree replay in
     /// <c>BindReportEntry</c> would report it once per repetition (kb/Work PB884, PB1306). A first entry that is not
     /// level 1 is <see cref="DiagnosticCatalog.ReportGroupBefore01"/>'s, reported by the walk. An entry whose
     /// level-number is outside 1 through 49 (an 88, 66 or 77 written in an RD) is no report group description entry
-    /// (§13.18.33.3 SR4, COBOL1746 from <c>LevelNumberPass</c>), so it takes no place in the hierarchy: counting it
+    /// (§2023:13.18.33.3 SR4, COBOL1746 from <c>LevelNumberPass</c>), so it takes no place in the hierarchy: counting it
     /// made `01 DT TYPE DETAIL. 88 D-ON VALUE "X". 05 LINE 1.` report the 05 as unequal to the 88.</summary>
     private void ScreenReportLevelNumbers(Core.ReportGroupEntryContext[] run, ReportModel model)
     {
@@ -532,9 +532,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>⛔ THE VARYING CLAUSE'S SYNTAX RULES, asked ONCE per WRITTEN entry over the flat entry array (kb/Work
-    /// PB1306) — the <see cref="ScreenReportLineNesting"/> shape, so a §13.18.38 subtree replay cannot multiply them.
+    /// PB1306) — the <see cref="ScreenReportLineNesting"/> shape, so a §2023:13.18.38 subtree replay cannot multiply them.
     /// <list type="bullet">
-    /// <item>§13.18.64.3 SR1 — "The entry containing the VARYING clause shall also contain an OCCURS clause or, if the
+    /// <item>§2023:13.18.64.3 SR1 — "The entry containing the VARYING clause shall also contain an OCCURS clause or, if the
     /// VARYING clause appears in a report group description entry, a multiple LINE or multiple COLUMN clause."</item>
     /// <item>SR2 — "Data-name-1 shall not be defined elsewhere in the source element, except as data-name-1 in another
     /// VARYING clause of an entry not subordinate to the subject of the current entry." Three arms: a name given twice
@@ -565,7 +565,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 || (c.reportColumnClause()?.reportColumnOperand().Length ?? 0) > 1);
             if (!repeating)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where}: a VARYING clause requires the entry to also "
-                    + "contain an OCCURS clause or a multiple LINE or multiple COLUMN clause (ISO §13.18.64.3 SR1)");
+                    + "contain an OCCURS clause or a multiple LINE or multiple COLUMN clause (ISO §2023:13.18.64.3 SR1)");
             var own = new List<string>();
             foreach (var spec in specs)
             {
@@ -574,11 +574,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': the counter is defined twice in "
                         + "this entry; data-name-1 shall not be defined elsewhere in the source element, except as "
                         + "data-name-1 in another VARYING clause of an entry not subordinate to the subject of the "
-                        + "current entry (ISO §13.18.64.3 SR2)");
+                        + "current entry (ISO §2023:13.18.64.3 SR2)");
                 else if (enclosing.Any(c => CobolNames.Same(c.Name, name)))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': an entry above this one already "
                         + "defines the counter in its VARYING clause; a reuse of the name is permitted only in an entry "
-                        + "not subordinate to the subject of the current entry (ISO §13.18.64.3 SR2)");
+                        + "not subordinate to the subject of the current entry (ISO §2023:13.18.64.3 SR2)");
                 else if (!model.VaryingNames.Contains(name, CobolNames.Comparer))
                     model.VaryingNames.Add(name);
                 own.Add(name);
@@ -587,14 +587,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (spec.FROM() is not null && own.FirstOrDefault(n => HasWord(spec.arithmeticExpression(0), n)) is { } hit)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{spec.cobolWord().GetText()}': the "
                         + $"counter '{hit}' shall not be referenced in arithmetic-expression-1 of the same VARYING clause (ISO "
-                        + "§13.18.64.3 SR3)");
+                        + "§2023:13.18.64.3 SR3)");
             enclosing.AddRange(own.Select(n => (level, n)));
         }
     }
 
-    /// <summary>⛔ ISO §13.8.4 — "An RD entry shall be followed by one or more report group description entries"
-    /// (kb/Work PB1226). §13.8.2 prints the entries after a report description entry as the brace group
-    /// <c>{ constant-entry | report-group-description-entry } …</c>, and §13.8.4 narrows the one-or-more to the
+    /// <summary>⛔ ISO §2023:13.8.4 — "An RD entry shall be followed by one or more report group description entries"
+    /// (kb/Work PB1226). §2023:13.8.2 prints the entries after a report description entry as the brace group
+    /// <c>{ constant-entry | report-group-description-entry } …</c>, and §2023:13.8.4 narrows the one-or-more to the
     /// report group kind: constant entries alone describe no report. The grammar admits the list empty (a
     /// bind-time rule, like the sort-merge twin's COBOL1837, so the diagnostic names the rule rather than a
     /// parse position).</summary>
@@ -602,16 +602,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (entries.Length > 0) return;
         Edition.Error(DiagnosticCatalog.ReportDescriptionWithoutGroup, $"RD '{model.Name}' is followed by no report "
-            + "group description entry (ISO §13.8.4: an RD entry shall be followed by one or more report group "
+            + "group description entry (ISO §2023:13.8.4: an RD entry shall be followed by one or more report group "
             + "description entries)");
     }
 
-    /// <summary>⛔ THE REPORT SECTION'S ENTRIES IN SOURCE ORDER (ISO §13.8.2: <c>{ constant-entry |
+    /// <summary>⛔ THE REPORT SECTION'S ENTRIES IN SOURCE ORDER (ISO §2023:13.8.2: <c>{ constant-entry |
     /// report-group-description-entry } …</c>; kb/Work PB1226). A constant entry binds into the compile-time
     /// constant table at the point it stands, unless a reference bound it earlier on demand (a reference may precede
     /// the entry it names, kb/Work PB1231, <see cref="ConstantEntryBinder.FindConstant"/>); the report group entries between two constants bind as
     /// one run (<see cref="ReportEntryRuns"/>) through <see cref="BindReportEntries"/>, which takes an index range for
-    /// exactly this. A constant is a level-01 entry (§13.10.2), so it ends the group before it: the entries after it
+    /// exactly this. A constant is a level-01 entry (§2023:13.10.2), so it ends the group before it: the entries after it
     /// have no 01 entry to belong to, and the builder's group is dropped so
     /// <see cref="DiagnosticCatalog.ReportGroupBefore01"/> says so instead of attaching them to the group the constant
     /// interrupted.</summary>
@@ -634,8 +634,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// entry reserved its block of ids when it was first seen (<see cref="SumFamilyOf"/>), but the replay binds its
     /// occurrences interleaved with the sibling entries' (A0 B0 A1 B1), so binding order is not id order; the engine
     /// registers the counters in list order and requires the list index to BE the id (<c>CobolReport.AddSum</c>).
-    /// Every repetition of every entry is bound (§13.18.38.4 GR10 — "integer-2 distinct report items"; the
-    /// repetitions §13.18.63.4 GR23 lets a DEPENDING phrase suppress are bound too), so the reserved blocks are
+    /// Every repetition of every entry is bound (§2023:13.18.38.4 GR10 — "integer-2 distinct report items"; the
+    /// repetitions §2023:13.18.63.4 GR23 lets a DEPENDING phrase suppress are bound too), so the reserved blocks are
     /// exactly filled; a gap is a binder defect,
     /// never a property of the source.</summary>
     private static void SealSumCounters(ReportModel model)
@@ -648,15 +648,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "— a counter block was not filled by its entry's occurrences (kb/Work PB1271)");
     }
 
-    /// <summary>⛔ THE NEXT GROUP CLAUSE (ISO §13.18.37; kb/Work PB957), bound once per RD after every group is
+    /// <summary>⛔ THE NEXT GROUP CLAUSE (ISO §2023:13.18.37; kb/Work PB957), bound once per RD after every group is
     /// complete — its syntax rules read the group's TYPE (which may follow the clause in the entry) and, for SR6a,
     /// SR6c and SR7, the group's lines. The binding is the runtime's own
     /// <see cref="WiseOwl.Cobol.Runtime.IO.ReportNextGroup"/>; the engine applies it after the group's last line is
-    /// printed (§13.18.37.4 GR2).
+    /// printed (§2023:13.18.37.4 GR2).
     /// <list type="bullet">
-    /// <item>§13.15.3 SR6 — "The NEXT GROUP clause may be specified only in a level 1 entry." Screened over the flat
-    /// entry array, so a §13.18.38 Format 3 replay cannot report it once per repetition.</item>
-    /// <item>§13.18.37.3 SR1 — "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is
+    /// <item>§2023:13.15.3 SR6 — "The NEXT GROUP clause may be specified only in a level 1 entry." Screened over the flat
+    /// entry array, so a §2023:13.18.38 Format 3 replay cannot report it once per repetition.</item>
+    /// <item>§2023:13.18.37.3 SR1 — "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is
     /// not divided into pages." (Unsigned: the grammar's integerLiteral carries no sign, and SR2's PLUS/+ is the
     /// relative operator, not a sign.)</item>
     /// <item>SR3 — "If the report is not divided into pages, only the relative form of the clause may be
@@ -681,7 +681,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     using var _ = Edition.At(misplaced);
                     Edition.Error(DiagnosticCatalog.ReportNextGroupClauseRule, $"RD '{model.Name}' entry "
                         + $"'{ge.dataName().NameOrNull() ?? "FILLER"}' is a level {level} entry; the NEXT GROUP "
-                        + "clause may be specified only in a level 1 entry (ISO §13.15.3 SR6)");
+                        + "clause may be specified only in a level 1 entry (ISO §2023:13.15.3 SR6)");
                 }
         }
         foreach (var g in model.Groups)
@@ -701,28 +701,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (g.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.ReportFooting)
             {
                 Violation("the NEXT GROUP clause shall not be specified in a page heading or report footing (ISO "
-                    + "§13.18.37.3 SR4)");
+                    + "§2023:13.18.37.3 SR4)");
                 continue;
             }
             if (ng.Kind == ReportNextGroupKind.NextPage)
             {
                 if (g.Kind == ReportGroupKindModel.PageFooting)
-                    Violation("the NEXT PAGE phrase shall not be specified in a page footing (ISO §13.18.37.3 SR5)");
+                    Violation("the NEXT PAGE phrase shall not be specified in a page footing (ISO §2023:13.18.37.3 SR5)");
                 if (!model.Paged)
                     Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
-                        + "clause may be specified (ISO §13.18.37.3 SR3)");
+                        + "clause may be specified (ISO §2023:13.18.37.3 SR3)");
                 continue;
             }
             bool absolute = ng.Kind == ReportNextGroupKind.Absolute;
             if (ng.Value > model.VerticalLimit)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
-                    + "divided into pages (ISO §13.18.37.3 SR1)");
+                    + "divided into pages (ISO §2023:13.18.37.3 SR1)");
             if (!model.Paged)
             {
                 if (absolute)
                     Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
-                        + "clause may be specified (ISO §13.18.37.3 SR3)");
+                        + "clause may be specified (ISO §2023:13.18.37.3 SR3)");
                 continue;   // SR6/SR7 are stated against the page regions, which an unpaged report has none of
             }
             int? minLast = g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageFooting
@@ -733,40 +733,40 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     when ng.Value >= model.FirstDetail || (minLast is { } m && ng.Value <= m):
                     Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the report "
                         + $"heading ({minLast?.ToString() ?? "none"}) and less than the FIRST DETAIL integer "
-                        + $"{model.FirstDetail} (ISO §13.18.37.3 SR6a)");
+                        + $"{model.FirstDetail} (ISO §2023:13.18.37.3 SR6a)");
                     break;
                 case (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
                       or ReportGroupKindModel.ControlFooting, true)
                     when ng.Value < model.FirstDetail || ng.Value > model.Footing:
                     Violation($"integer-1 {ng.Value} shall lie between the FIRST DETAIL integer {model.FirstDetail} and "
-                        + $"the FOOTING integer {model.Footing}, inclusive (ISO §13.18.37.3 SR6b)");
+                        + $"the FOOTING integer {model.Footing}, inclusive (ISO §2023:13.18.37.3 SR6b)");
                     break;
                 case (ReportGroupKindModel.PageFooting, true) when minLast is { } m && ng.Value <= m:
                     Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the page "
-                        + $"footing ({m}) (ISO §13.18.37.3 SR6c)");
+                        + $"footing ({m}) (ISO §2023:13.18.37.3 SR6c)");
                     break;
                 case (ReportGroupKindModel.ReportHeading, false) when minLast is { } m && m + ng.Value >= model.FirstDetail:
                     Violation($"the minimum last line number of the report heading ({m}) plus integer-2 {ng.Value} shall "
-                        + $"be less than the FIRST DETAIL integer {model.FirstDetail} (ISO §13.18.37.3 SR7a)");
+                        + $"be less than the FIRST DETAIL integer {model.FirstDetail} (ISO §2023:13.18.37.3 SR7a)");
                     break;
                 case (ReportGroupKindModel.PageFooting, false) when minLast is { } m && m + ng.Value > model.PageLimit:
                     Violation($"the minimum last line number of the page footing ({m}) plus integer-2 {ng.Value} shall "
-                        + $"not exceed the page limit {model.PageLimit} (ISO §13.18.37.3 SR7b)");
+                        + $"not exceed the page limit {model.PageLimit} (ISO §2023:13.18.37.3 SR7b)");
                     break;
             }
         }
     }
 
-    /// <summary>The MINIMUM LAST LINE NUMBER of a report heading or page footing (ISO §13.18.37.3 SR6a/SR6c/SR7):
-    /// the §13.18.35.4 GR5/GR7 placement walked over the group's UNCONDITIONAL lines only — first line absolute →
+    /// <summary>The MINIMUM LAST LINE NUMBER of a report heading or page footing (ISO §2023:13.18.37.3 SR6a/SR6c/SR7):
+    /// the §2023:13.18.35.4 GR5/GR7 placement walked over the group's UNCONDITIONAL lines only — first line absolute →
     /// integer-1, relative → HEADING + integer-2 − 1 (GR5b1, report heading) or FOOTING + integer-2 (GR5b4, page
-    /// footing); later lines absolute → integer-1, relative → the previous line + integer-2, and a §13.18.38.4
+    /// footing); later lines absolute → integer-1, relative → the previous line + integer-2, and a §2023:13.18.38.4
     /// GR12c/GR12d STEP line → its anchor + its displacement, the anchors seeded as the engine seeds them. Null
-    /// when every line can be absent. <paramref name="present"/> names the lines to walk instead — the §13.18.35.3 SR6 d)
+    /// when every line can be absent. <paramref name="present"/> names the lines to walk instead — the §2023:13.18.35.3 SR6 d)
     /// screen asks it for a presentation in which a chosen set of conditional lines is present (null: the
     /// unconditional lines, the floor no presentation can lift). <paramref name="seed"/> is the last line of the group
     /// printed BEFORE this one in the same run of groups, when there is one (a control heading below an OR PAGE heading
-    /// follows it, §13.18.57.4 GR7 d) 2.): the walk starts from that line, so a relative first line is placed after it
+    /// follows it, §2023:13.18.57.4 GR7 d) 2.): the walk starts from that line, so a relative first line is placed after it
     /// instead of at FIRST DETAIL, and with no walked line the seed is the answer.</summary>
     private static int? MinimumLastLine(ReportGroupModel g, ReportModel model, Func<ReportLineModel, bool>? present = null, int? seed = null)
     {
@@ -778,7 +778,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             int relative = l.Kind == ReportLineKindModel.Step ? l.RelativeBase : l.Value;
             int target = l.Kind == ReportLineKindModel.Absolute ? l.Value
                 // The bare ON NEXT PAGE of a report footing starts the footing on a page by itself, at the upper limit
-                // §13.18.57.4 GR7 f) gives it, the HEADING integer (the run-time engine's determination, docs/CONFORMANCE.md).
+                // §2023:13.18.57.4 GR7 f) gives it, the HEADING integer (the run-time engine's determination, docs/CONFORMANCE.md).
                 : pos is null && g.Kind == ReportGroupKindModel.ReportFooting && l.NextPage ? model.Heading
                 : pos is null ? g.Kind switch
                 {
@@ -795,8 +795,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return pos;
     }
 
-    /// <summary>⛔ THE UPPER AND LOWER LIMIT OF A REPORT GROUP (ISO §13.18.57.4 GR7 and GR8), computed once the whole
-    /// report is bound — the compile-time consumer of §13.18.35.3 SR6 c), and the same numbers the run-time page-fit
+    /// <summary>⛔ THE UPPER AND LOWER LIMIT OF A REPORT GROUP (ISO §2023:13.18.57.4 GR7 and GR8), computed once the whole
+    /// report is bound — the compile-time consumer of §2023:13.18.35.3 SR6 c), and the same numbers the run-time page-fit
     /// test reads for a body group (<c>CobolReport.LowerLimit</c>, GR8 d)–f)). GR7: "the uppermost permitted line on
     /// the page that may be occupied by the report group's first line"; GR8: "the lowermost permitted line … that
     /// may be occupied by the report group's last line".
@@ -807,9 +807,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the highest OR PAGE level or above, FIRST DETAIL; a lower control heading, the line after the next higher-level
     /// control heading; a detail, the line after the lowest-level OR PAGE control heading; a control footing, the line
     /// after the lowest OR PAGE heading at its own level or above, else FIRST DETAIL. e) page footing: FOOTING + 1.
-    /// f)/g) report footing: on a page by itself (its first LINE clause has the NEXT PAGE phrase, §13.18.35.4 GR5 a))
+    /// f)/g) report footing: on a page by itself (its first LINE clause has the NEXT PAGE phrase, §2023:13.18.35.4 GR5 a))
     /// the HEADING integer, else the line after the page footing's last line, or FOOTING + 1 with none.</item>
-    /// <item>LOWER. a)/b) report heading: on a page by itself (its NEXT GROUP clause is NEXT PAGE, §13.18.37.4 GR3 c)
+    /// <item>LOWER. a)/b) report heading: on a page by itself (its NEXT GROUP clause is NEXT PAGE, §2023:13.18.37.4 GR3 c)
     /// — the first body group takes no page-fit test, so nothing else separates it) the page limit; else the line before
     /// the page heading's first line, or FIRST DETAIL − 1 with no page heading. c) page heading: FIRST DETAIL − 1.
     /// d) control heading: LAST CONTROL HEADING. e) detail: LAST DETAIL. f) control footing: FOOTING. g) page footing
@@ -827,8 +827,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var controlHeadings = model.Groups.Where(x => x.Kind == ReportGroupKindModel.ControlHeading && x.ControlLevel >= 0).ToList();
         var orPage = controlHeadings.Where(x => x.OrPage).ToList();
         // The last line of a control heading at its UPPERMOST: every OR PAGE heading above it is printed before it on
-        // every page advance (§13.18.57.4 GR6 c)), so its first line follows the nearest such heading's last line
-        // instead of standing at FIRST DETAIL (§13.18.35.4 GR5 b) 3. — the first body group on a page), and so on up the
+        // every page advance (§2023:13.18.57.4 GR6 c)), so its first line follows the nearest such heading's last line
+        // instead of standing at FIRST DETAIL (§2023:13.18.35.4 GR5 b) 3. — the first body group on a page), and so on up the
         // chain (the d) 2./d) 3. limits "the line following the last line of" a heading below another one).
         int? HeadingReach(ReportGroupModel h)
         {
@@ -880,7 +880,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
     }
 
-    /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
+    /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §2023:13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
     /// has its control level (<see cref="ControlLevelOf"/>, SR10/SR11):
     /// <list type="bullet">
     /// <item>SR13 — "REPORT HEADING, PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once
@@ -910,10 +910,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     ? $"{ReportGroupTypeWords(g.Kind)} for control '{model.Controls[g.ControlLevel].Display}' ("
                         + $"'{first[(g.Kind, g.ControlLevel)].Name ?? "FILLER"}' is the first); at most one CONTROL HEADING and at "
                         + "most one CONTROL FOOTING may be defined for each control data item or FINAL of the CONTROL clause (ISO "
-                        + "§13.18.57.3 SR14)"
+                        + "§2023:13.18.57.3 SR14)"
                     : $"{ReportGroupTypeWords(g.Kind)} ('{first[(g.Kind, -1)].Name ?? "FILLER"}' is the first); REPORT HEADING, "
                         + "PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once in any given report "
-                        + "description (ISO §13.18.57.3 SR13)"));
+                        + "description (ISO §2023:13.18.57.3 SR13)"));
         }
         if (model.Groups.Count > 0 && !model.Groups.Exists(g => g.Kind is ReportGroupKindModel.Detail
                 or ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting))
@@ -921,11 +921,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             using var at = Edition.At(model.Groups[0].Entry);
             Edition.Error(DiagnosticCatalog.ReportGroupSetRule, $"RD '{model.Name}' describes no body group: each report "
                 + "description shall include at least one body group, a DETAIL, CONTROL HEADING or CONTROL FOOTING group "
-                + "(ISO §13.18.57.3 SR15)");
+                + "(ISO §2023:13.18.57.3 SR15)");
         }
     }
 
-    /// <summary>The upper limit a RELATIVE first line is held to (§13.18.57.4 GR7 a), b), e), f)): the HEADING integer for
+    /// <summary>The upper limit a RELATIVE first line is held to (§2023:13.18.57.4 GR7 a), b), e), f)): the HEADING integer for
     /// a heading (and for a report footing on a page by itself); FOOTING + 1 for a page footing and a report footing
     /// with no page footing before it. A report footing printed after the page footing has the longer reach — the line
     /// after the page footing's last — but its first line is then that last line plus integer-2, so the question
@@ -935,19 +935,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageHeading
         || g.Lines is [{ NextPage: true }, ..] ? model.Heading : model.Footing + 1;
 
-    /// <summary>⛔ THE LINE SET OF EACH REPORT GROUP (ISO §13.18.35.3 SR6 a)–e); kb/Work PB1222, PB1270), asked once
+    /// <summary>⛔ THE LINE SET OF EACH REPORT GROUP (ISO §2023:13.18.35.3 SR6 a)–e); kb/Work PB1222, PB1270), asked once
     /// the group is complete and the page regions are known:
     /// <list type="bullet">
     /// <item>a) "If any two or more absolute lines are defined using line numbers that are not in increasing numerical
     /// order, they shall each be subject to a different PRESENT WHEN clause."</item>
     /// <item>b) "If any two or more lines, or groups of lines, overlap each other, they shall each be subject to a
     /// different PRESENT WHEN clause." Two absolute lines with the same number. A relative line overlaps nothing the
-    /// description fixes: its position is its predecessor's plus integer-2, and §13.18.35.4 GR3 excepts the integer-2
+    /// description fixes: its position is its predecessor's plus integer-2, and §2023:13.18.35.4 GR3 excepts the integer-2
     /// of zero ("the non-space characters of a relative line specified with an integer-2 of zero will overwrite the
     /// corresponding characters of the preceding line") from the overlap rule altogether.</item>
     /// <item>c) "Any absolute report lines shall be defined in such a way that no line appears above the upper limit
     /// or below the lower limit allowed for the report group" — <see cref="GroupLimits"/>; only in a report divided
-    /// into pages, the only report with page regions (§13.18.39.4 GR2).</item>
+    /// into pages, the only report with page regions (§2023:13.18.39.4 GR2).</item>
     /// <item>d) "If the report group consists of one or more absolute lines, not subject to any PRESENT WHEN clause,
     /// and ends in a set of relative lines, or groups of relative lines, they shall not cause the report group's lower
     /// limit to be exceeded unless each of them is subject to a different PRESENT WHEN clause, in which case this rule
@@ -959,7 +959,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// be subject to a different PRESENT WHEN clause."</item>
     /// </list>
     /// The pairs of a), b) and e) are over WRITTEN entries — each entry's first line, in description order — so the
-    /// repetitions of a repeating entry (§13.18.38.3 SR26's overlap rule) and the operands of a multiple LINE clause
+    /// repetitions of a repeating entry (§2023:13.18.38.3 SR26's overlap rule) and the operands of a multiple LINE clause
     /// (SR10 c)) are not compared with each other, and a replay never reports one fault once per repetition.</summary>
     private void ScreenReportGroupLines(ReportModel model)
     {
@@ -985,14 +985,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (iAbsolute && jAbsolute && lj.Value < li.Value)
                         Violation(lj, $"the absolute lines {LineWords(li)} and {LineWords(lj)} of one report group are not in "
                             + "increasing numerical order and are not each subject to a different PRESENT WHEN clause "
-                            + "(ISO §13.18.35.3 SR6 a))");
+                            + "(ISO §2023:13.18.35.3 SR6 a))");
                     else if (iAbsolute && jAbsolute && lj.Value == li.Value)
                         Violation(lj, $"the lines {LineWords(li)} and {LineWords(lj)} of one report group overlap and are not "
-                            + "each subject to a different PRESENT WHEN clause (ISO §13.18.35.3 SR6 b))");
+                            + "each subject to a different PRESENT WHEN clause (ISO §2023:13.18.35.3 SR6 b))");
                     else if (!iAbsolute && jAbsolute)
                         Violation(lj, $"the absolute line {LineWords(lj)} is described after the relative line {LineWords(li)} "
                             + "of one report group, and they are not each subject to a different PRESENT WHEN clause "
-                            + "(ISO §13.18.35.3 SR6 e))");
+                            + "(ISO §2023:13.18.35.3 SR6 e))");
                 }
 
             if (!model.Paged) continue;
@@ -1006,12 +1006,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Violation(l, $"the absolute line {LineWords(l)} of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
                     + $"'{g.Name ?? "FILLER"}' lies "
                     + (l.Value < upper ? $"above the upper limit {upper}" : $"below the lower limit {lower}")
-                    + " the report group may occupy (ISO §13.18.35.3 SR6 c); limits per §13.18.57.4 GR7/GR8 from the PAGE "
-                    + "clause, §13.18.39.4)");
+                    + " the report group may occupy (ISO §2023:13.18.35.3 SR6 c); limits per §2023:13.18.57.4 GR7/GR8 from the PAGE "
+                    + "clause, §2023:13.18.39.4)");
             }
 
-            // §13.18.39.4 GR1/GR2 — a heading or footing group is confined to its region. A group of RELATIVE lines
-            // only has no absolute line for SR6 c) to bound, but where §13.18.35.4 GR5 b puts its first line is a
+            // §2023:13.18.39.4 GR1/GR2 — a heading or footing group is confined to its region. A group of RELATIVE lines
+            // only has no absolute line for SR6 c) to bound, but where §2023:13.18.35.4 GR5 b puts its first line is a
             // number the description fixes: HEADING + integer-2 − 1 (a report heading, a page heading with no report
             // heading before it), FOOTING + integer-2 (a page footing, a report footing with no page footing before
             // it) — the seeds MinimumLastLine walks, from below only: a page heading after a report heading, a report
@@ -1035,9 +1035,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Violation(last, $"the relative lines of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
                         + $"'{g.Name ?? "FILLER"}' reach line {relativeEnd}, past the group's lower limit {lower}, on every page "
                         + (g.Kind is ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting
-                            ? "(ISO §13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
-                            : "(ISO §13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
-                        + "; limits per §13.18.57.4 GR8)");
+                            ? "(ISO §2023:13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
+                            : "(ISO §2023:13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
+                        + "; limits per §2023:13.18.57.4 GR8)");
                 }
 
                 // The candidates for the group's first line: a relative line is first when every line above it may be
@@ -1052,12 +1052,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         bool heading = g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageHeading;
                         Violation(l, $"the relative {LineWords(l)} can be the first line of "
                             + $"{ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group '{g.Name ?? "FILLER"}', and "
-                            + $"§13.18.35.4 GR5 b) prints it on line {first}, "
+                            + $"§2023:13.18.35.4 GR5 b) prints it on line {first}, "
                             + (heading ? $"above the HEADING integer {model.Heading}, the first line position on which a heading "
-                                + "may be printed (ISO §13.18.39.4 GR2 c))"
+                                + "may be printed (ISO §2023:13.18.39.4 GR2 c))"
                                 : $"not after the FOOTING integer {model.Footing}, after which a footing shall begin (ISO "
-                                + "§13.18.39.4 GR2 g))")
-                            + "; limits per §13.18.57.4 GR7)");
+                                + "§2023:13.18.39.4 GR2 g))")
+                            + "; limits per §2023:13.18.57.4 GR7)");
                     }
                     if (l.PresentWhenCtxs.Count == 0 && l.RepetitionGuards.Count == 0) break;
                 }
@@ -1082,15 +1082,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     using var at = Edition.At(tail[^1].Entry);
                     Violation(tail[^1], $"the relative lines at the end of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} "
                         + $"report group '{g.Name ?? "FILLER"}' carry its last line to line {last}, past the group's lower limit "
-                        + $"{lower}, and are not each subject to a different PRESENT WHEN clause (ISO §13.18.35.3 SR6 d))");
+                        + $"{lower}, and are not each subject to a different PRESENT WHEN clause (ISO §2023:13.18.35.3 SR6 d))");
                 }
             }
         }
     }
 
-    /// <summary>⛔ THE LINE CLAUSE'S OPERAND RULES (ISO §13.18.35.3 SR3, SR5, SR7, SR8; kb/Work PB1001 + PB1002),
+    /// <summary>⛔ THE LINE CLAUSE'S OPERAND RULES (ISO §2023:13.18.35.3 SR3, SR5, SR7, SR8; kb/Work PB1001 + PB1002),
     /// screened ONCE per WRITTEN clause over the flat entry array — the <see cref="ScreenReportLineNesting"/>
-    /// shape, so a §13.18.38 Format 3 subtree replay cannot report one clause once per repetition. They read the
+    /// shape, so a §2023:13.18.38 Format 3 subtree replay cannot report one clause once per repetition. They read the
     /// RD's page model (bound before the groups — <c>BindReportDescriptionClauses</c>) and the group's TYPE, which
     /// the level 1 entry carries (<see cref="GroupKindOf"/>, the one TYPE reader).
     /// <list type="bullet">
@@ -1098,9 +1098,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// divided into pages." The NEXT GROUP clause's SR1 is the same sentence and reads the same two limits.</item>
     /// <item>SR5 — "If the report is not divided into pages, all its LINE clauses shall be relative." ⚠ The bare
     /// <c>ON NEXT PAGE</c> operand is not the relative FORM (<c>{PLUS|+} integer-2</c>, SR3's "Integer-2 specifies
-    /// a relative line number"), exactly as §13.18.37.3 SR3 — "only the relative form of the clause may be
+    /// a relative line number"), exactly as §2023:13.18.37.3 SR3 — "only the relative form of the clause may be
     /// specified" — excludes NEXT GROUP NEXT PAGE from an unpaged report; a report of one page of indefinite
-    /// length (§13.18.39.4 GR2a) has no next page to begin (docs/CONFORMANCE.md, the LINE NEXT PAGE block).</item>
+    /// length (§2023:13.18.39.4 GR2a) has no next page to begin (docs/CONFORMANCE.md, the LINE NEXT PAGE block).</item>
     /// <item>SR7 — "Within a given report group description, a NEXT PAGE phrase, if present, shall be specified
     /// only in the first LINE clause." (A multiple LINE clause's later operands are SR10a's, in
     /// <see cref="MultipleLineOperands"/>, and are not reported twice.)</item>
@@ -1135,13 +1135,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         if ((_d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
-                                + "is not divided into pages (ISO §13.18.35.3 SR3)");
+                                + "is not divided into pages (ISO §2023:13.18.35.3 SR3)");
                     }
                     if (!model.Paged && (absolute || op.NEXT() is not null))
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
                             + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
-                            + " (ISO §13.18.35.3 SR5)");
+                            + " (ISO §2023:13.18.35.3 SR5)");
                     // SR9 — "If the current report group is a control heading with the OR PAGE phrase, all the LINE
                     // clauses in the report group description shall be relative." A bare NEXT PAGE operand is no
                     // relative form either, exactly as SR5 reads it (kb/Work PB1248).
@@ -1149,24 +1149,24 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Violation("a control heading with the OR PAGE phrase shall have only relative LINE clauses — "
                             + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
-                            + " (ISO §13.18.35.3 SR9)");
+                            + " (ISO §2023:13.18.35.3 SR9)");
                     if (op.NEXT() is null) continue;
                     if (k == 0 && !firstLineClause)
                         Violation("a NEXT PAGE phrase, if present, shall be specified only in the first LINE clause of "
-                            + "the report group description (ISO §13.18.35.3 SR7)");
+                            + "the report group description (ISO §2023:13.18.35.3 SR7)");
                     if (kind is not (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
                         or ReportGroupKindModel.ControlFooting or ReportGroupKindModel.ReportFooting))
                         Violation($"the NEXT PAGE phrase may appear only in the description of a body group or a report "
-                            + $"footing, not a {ReportGroupTypeWords(kind)} (ISO §13.18.35.3 SR8)");
+                            + $"footing, not a {ReportGroupTypeWords(kind)} (ISO §2023:13.18.35.3 SR8)");
                 }
                 firstLineClause = false;
             }
         }
     }
 
-    /// <summary>⛔ THE MULTIPLE COLUMN CLAUSE'S RULES (ISO §13.18.14.3 SR10; kb/Work PB1222), screened ONCE per WRITTEN
+    /// <summary>⛔ THE MULTIPLE COLUMN CLAUSE'S RULES (ISO §2023:13.18.14.3 SR10; kb/Work PB1222), screened ONCE per WRITTEN
     /// clause over the flat entry array — the <see cref="ScreenReportLineClauses"/> shape, and the COLUMN arm of the
-    /// two-arm rule whose LINE arm (§13.18.35.3 SR10 c)/d)) <see cref="MultipleLineOperands"/> already screens. "If more
+    /// two-arm rule whose LINE arm (§2023:13.18.35.3 SR10 c)/d)) <see cref="MultipleLineOperands"/> already screens. "If more
     /// than one integer-1 or integer-2 operand is specified the clause is referred to as a multiple COLUMN clause and
     /// the following additional rules apply: a) No OCCURS clause shall be specified in the same entry. b) All the
     /// occurrences of integer-1 shall be in increasing order of magnitude." Neither has a PRESENT WHEN excuse.</summary>
@@ -1180,7 +1180,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
                 if (ge.reportGroupClause().Any(c => c.occursClause() is not null))
                     Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: a multiple COLUMN clause and an OCCURS "
-                        + "clause may not both be present in the same report group description entry (ISO §13.18.14.3 SR10 a))");
+                        + "clause may not both be present in the same report group description entry (ISO §2023:13.18.14.3 SR10 a))");
                 int? last = null;
                 foreach (var op in cc.reportColumnOperand())
                 {
@@ -1189,16 +1189,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (last is { } previous && v <= previous)
                         Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: in a multiple COLUMN clause all the "
                             + $"occurrences of integer-1 shall be in increasing order of magnitude — {v} follows {previous} "
-                            + "(ISO §13.18.14.3 SR10 b))");
+                            + "(ISO §2023:13.18.14.3 SR10 b))");
                     last = v;
                 }
             }
     }
 
-    /// <summary>ISO §13.18.35.3 SR4 — "Within a given report group description entry, an entry that contains a
+    /// <summary>ISO §2023:13.18.35.3 SR4 — "Within a given report group description entry, an entry that contains a
     /// LINE clause shall not have a subordinate entry that also contains a LINE clause." Screened over the FLAT
-    /// entry array once per RD, before the walk, so a subtree REPLAY (§13.18.38.4 GR10) cannot report the same
-    /// violation once per repetition. The rule is what makes the §13.18.38.4 GR10c/GR10d split exhaustive: a
+    /// entry array once per RD, before the walk, so a subtree REPLAY (§2023:13.18.38.4 GR10) cannot report the same
+    /// violation once per repetition. The rule is what makes the §2023:13.18.38.4 GR10c/GR10d split exhaustive: a
     /// vertically repeating entry either carries the LINE clause itself or has them below it, never both.</summary>
     private void ScreenReportLineNesting(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
@@ -1213,15 +1213,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 using var _ = Edition.At(entries[k]);
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': an entry that contains a LINE "
                     + "clause shall not have a subordinate entry that also contains a LINE clause (ISO "
-                    + "§13.18.35.3 SR4)");
+                    + "§2023:13.18.35.3 SR4)");
                 break;
             }
         }
     }
 
-    /// <summary>⛔ THE §13.15.3 CLAUSE-PRESENCE RULES, screened ONCE per WRITTEN entry over the flat entry array
+    /// <summary>⛔ THE §2023:13.15.3 CLAUSE-PRESENCE RULES, screened ONCE per WRITTEN entry over the flat entry array
     /// (kb/Work PB853) — the <see cref="ScreenReportLineNesting"/> shape, and for the same reason: they are
-    /// properties of the entry as written, and the §13.18.38 Format 3 subtree replay binds OCCURRENCES of it, so a
+    /// properties of the entry as written, and the §2023:13.18.38 Format 3 subtree replay binds OCCURRENCES of it, so a
     /// screen inside <c>BindReportEntry</c> would report once per repetition (kb/Work PB884).
     /// <list type="bullet">
     /// <item>SR10 — "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM
@@ -1234,7 +1234,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <item>SR13 — "A COLUMN clause shall be specified in each elementary entry that has a VALUE clause." A
     /// column-less VALUE entry printed nothing, in silence.</item>
     /// <item>SR15 — "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified."</item>
-    /// <item>§13.18.28.3 SR1 — "The GROUP INDICATE clause may be specified only within a detail report group
+    /// <item>§2023:13.18.28.3 SR1 — "The GROUP INDICATE clause may be specified only within a detail report group
     /// description, in an elementary entry that also contains a COLUMN clause and a SOURCE or VALUE clause." Its
     /// elementary half is SR11 above; the detail-group, COLUMN and SOURCE-or-VALUE halves had NO site, so the
     /// clause in a control heading, or on an entry that prints nothing, compiled in silence (kb/Work PB1245).
@@ -1246,9 +1246,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// build has open (kb/Work PB1224).</item>
     /// <item>SR12 — a PICTURE clause in every elementary entry that has a SOURCE or SUM clause, printable or not.</item>
     /// </list>
-    /// SR8 is <see cref="ScreenReportLineNesting"/> (its §13.18.35.3 SR4 twin); the VALUE-implied picture of §13.15.3
+    /// SR8 is <see cref="ScreenReportLineNesting"/> (its §2023:13.18.35.3 SR4 twin); the VALUE-implied picture of §2023:13.15.3
     /// SR14 is the binder's PICTURE arm, which needs the analysed picture.
-    /// An entry is ELEMENTARY when the entry after it is not subordinate to it (§13.15.4 GR1: "The report group is
+    /// An entry is ELEMENTARY when the entry after it is not subordinate to it (§2023:13.15.4 GR1: "The report group is
     /// defined by this entry and all its subordinate entries").</summary>
     private void ScreenReportEntryClausePresence(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
@@ -1281,35 +1281,35 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // (kb/Work PB1288).
             if (level == 1 && !type)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 1 entry with no TYPE clause; "
-                    + "the TYPE clause shall be specified in every level 1 entry (ISO §13.15.3 SR5)");
+                    + "the TYPE clause shall be specified in every level 1 entry (ISO §2023:13.15.3 SR5)");
             else if (level != 1 && type)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} writes a TYPE clause at level {level}; "
-                    + "the TYPE clause may be specified only in a level 1 entry (ISO §13.15.3 SR5)");
+                    + "the TYPE clause may be specified only in a level 1 entry (ISO §2023:13.15.3 SR5)");
             // SR9 — "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry
-            // with a LINE clause" (and §13.18.14.3 SR3, the same rule from the COLUMN clause's side). It is a rule
+            // with a LINE clause" (and §2023:13.18.14.3 SR3, the same rule from the COLUMN clause's side). It is a rule
             // about the entry's ANCESTRY, so it reads the level hierarchy — never the line the build happens to have
             // opened last, which a COLUMN entry that follows a LINE entry's subtree without being subordinate to it
             // would wrongly inherit (kb/Work PB1224).
             if (elementary && column && !line && !SubordinateToLineClause(entries, i))
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but neither a LINE "
                     + "clause of its own nor an entry above it that has one; every elementary entry with a COLUMN clause "
-                    + "but no LINE clause shall be subordinate to an entry with a LINE clause (ISO §13.15.3 SR9, "
-                    + "§13.18.14.3 SR3)");
+                    + "but no LINE clause shall be subordinate to an entry with a LINE clause (ISO §2023:13.15.3 SR9, "
+                    + "§2023:13.18.14.3 SR3)");
             // SR12 — "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause."
             // The rule has no COLUMN condition: an unprintable SOURCE entry and a SUM entry that prints nothing need
-            // one too (§13.18.54.4 GR1 sizes the counter from it). SR14's VALUE-implied picture is the VALUE
+            // one too (§2023:13.18.54.4 GR1 sizes the counter from it). SR14's VALUE-implied picture is the VALUE
             // clause's alone.
             if (elementary && (source || sum) && !picture)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a {(sum ? "SUM" : "SOURCE")} clause "
                     + "but no PICTURE clause; a PICTURE clause shall be specified in every elementary entry that has a "
-                    + "SOURCE or SUM clause (ISO §13.15.3 SR12)");
-            // §13.18.54.2 — the SUM clause is the repeated `SUM OF … [UPON …]` group followed by ONE RESET phrase and ONE
+                    + "SOURCE or SUM clause (ISO §2023:13.15.3 SR12)");
+            // §2023:13.18.54.2 — the SUM clause is the repeated `SUM OF … [UPON …]` group followed by ONE RESET phrase and ONE
             // rounded-phrase; the grammar's reportSumClause takes the groups together, so a SECOND clause in an entry
             // means a RESET or ROUNDED phrase (or another clause) was written BETWEEN two SUM groups (kb/Work PB1295).
             if (ge.reportGroupClause().Count(c => c.reportSumClause() is not null) > 1)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} writes its SUM clause in more than one "
                     + "piece: the RESET phrase and the rounded-phrase come once, after the whole repeated SUM … UPON "
-                    + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO §13.18.54.2)");
+                    + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO §2023:13.18.54.2)");
             if (!elementary)
             {
                 var written = new List<string>();
@@ -1322,28 +1322,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (written.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a group entry and writes "
                         + $"{string.Join(", ", written)}; the PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE "
-                        + "clauses may be written only in an elementary entry (ISO §13.15.3 SR11)");
+                        + "clauses may be written only in an elementary entry (ISO §2023:13.15.3 SR11)");
             }
             else
             {
                 if (column && !source && !value && !sum)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but no "
                         + "SOURCE, VALUE or SUM clause; every elementary entry with a COLUMN clause shall also "
-                        + "contain either a SOURCE, VALUE or SUM clause (ISO §13.15.3 SR10)");
+                        + "contain either a SOURCE, VALUE or SUM clause (ISO §2023:13.15.3 SR10)");
                 if (value && !column)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a VALUE clause but no "
                         + "COLUMN clause; a COLUMN clause shall be specified in each elementary entry that has a "
-                        + "VALUE clause (ISO §13.15.3 SR13)");
+                        + "VALUE clause (ISO §2023:13.15.3 SR13)");
             }
             if (justifiedOrBwz && !column)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} specifies BLANK WHEN ZERO or "
                     + "JUSTIFIED without a COLUMN clause; if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN "
-                    + "clause shall also be specified (ISO §13.15.3 SR15)");
+                    + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
             if (groupIndicate)
             {
-                // §13.18.28.3 SR1 — the three placement conditions the elementary rule (§13.15.3 SR11, above)
+                // §2023:13.18.28.3 SR1 — the three placement conditions the elementary rule (§2023:13.15.3 SR11, above)
                 // leaves open. The COLUMN and SOURCE-or-VALUE halves are asked of an elementary entry only: a group
-                // entry writing the clause is already the §13.15.3 error, and naming its missing COLUMN too would
+                // entry writing the clause is already the §2023:13.15.3 error, and naming its missing COLUMN too would
                 // report one fault twice.
                 var faults = new List<string>();
                 if (groupKind != ReportGroupKindModel.Detail)
@@ -1354,34 +1354,34 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportGroupIndicatePlacement, $"{where} specifies GROUP INDICATE "
                         + $"but {string.Join(" and ", faults)}; the GROUP INDICATE clause may be specified only within "
                         + "a detail report group description, in an elementary entry that also contains a COLUMN "
-                        + "clause and a SOURCE or VALUE clause (ISO §13.18.28.3 SR1)");
+                        + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)");
             }
         }
     }
 
     /// <summary>
     /// The mutable state of one RD's group build — what the flat entry walk carries from entry to entry, and what
-    /// a REPEATING ENTRY's replay (ISO §13.18.38 Format 3) therefore has to carry across its repetitions.
+    /// a REPEATING ENTRY's replay (ISO §2023:13.18.38 Format 3) therefore has to carry across its repetitions.
     /// </summary>
     private sealed class ReportGroupBuild
     {
         public ReportGroupModel? Group;
         public ReportLineModel? Line;
         /// <summary>The entry scope stack: one frame per entry on the current level path. It carries the
-        /// PRESENT WHEN condition (§13.18.41.4 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3), so
-        /// §13.18.63.3 SR35 / §13.18.53.3 SR6 can read "the repeating entry, and any number of successive
+        /// PRESENT WHEN condition (§2023:13.18.41.4 GR2b) AND the frame entry's REPETITION COUNT (§2023:13.15.4 GR3), so
+        /// §2023:13.18.63.3 SR35 / §2023:13.18.53.3 SR6 can read "the repeating entry, and any number of successive
         /// repeating entries at higher levels" off the stack instead of a hand-maintained special case
         /// (kb/Work PB506).</summary>
-        /// <para>The frame also carries the entry's EFFECTIVE usage (ISO §13.18.60.4 GR1 — "If the USAGE
+        /// <para>The frame also carries the entry's EFFECTIVE usage (ISO §2023:13.18.60.4 GR1 — "If the USAGE
         /// clause is specified or implied at a group level, it applies only to each elementary item in the
         /// group"), so a printable item inherits the usage written on a group entry above it instead of the
         /// clause being discarded (kb/Work PB541).</para>
         public readonly List<(int Level, Core.ConditionContext? Cond, int Reps, string? Name)> Chain = [];
         /// <summary>Stack frames whose conditions the CURRENT line already carries.</summary>
         public int LineChainDepth;
-        /// <summary>The repeating entries enclosing the entry being bound, outermost first (§13.18.38 Format 3).</summary>
+        /// <summary>The repeating entries enclosing the entry being bound, outermost first (§2023:13.18.38 Format 3).</summary>
         public readonly List<ReportRepetitionFrame> Repetitions = [];
-        /// <summary>The VARYING declarations in scope for the entry being bound (§13.18.64.3 SR2 — "only within the
+        /// <summary>The VARYING declarations in scope for the entry being bound (§2023:13.18.64.3 SR2 — "only within the
         /// current entry or a subordinate entry"), outermost first: the declaring entry, its counters, and the
         /// repetition frame whose ordinal is the occurrence being bound (null for a leaf that repeats only through
         /// a multiple COLUMN clause, whose occurrences are its placements).</summary>
@@ -1391,7 +1391,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         /// PLACEMENT of a repeating entry whose base column is relative (see <see cref="ReportColumnKindModel"/>).</summary>
         public readonly Dictionary<(Core.ReportGroupEntryContext Entry, int Operand, string Undisplaced), int> Anchors = [];
         /// <summary>The VERTICAL twin, keyed the same way over LINE operands — one slot per report LINE of a
-        /// STEP'd vertically repeating entry whose line is relative (§13.18.38.4 GR12c/GR12d). Separate from
+        /// STEP'd vertically repeating entry whose line is relative (§2023:13.18.38.4 GR12c/GR12d). Separate from
         /// <see cref="Anchors"/> because the two live in different storage: a column anchor is compose-local to
         /// ONE line, a line anchor spans the whole group presentation and belongs to the engine.</summary>
         public readonly Dictionary<(Core.ReportGroupEntryContext Entry, int Operand, string Undisplaced), int> LineAnchors = [];
@@ -1404,7 +1404,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         /// (kb/Work PB1294) — the twin of <see cref="SumFamilies"/> for the entries a rolled total may name.</summary>
         public readonly Dictionary<Core.ReportGroupEntryContext, ReportSourceFamily> SourceFamilies = [];
         /// <summary>The bind-time EXPECTED vertical offset of the last relative line placed in the group under
-        /// construction, measured from the group's own start. It is the §13.18.35.4 GR4c trial sum read
+        /// construction, measured from the group's own start. It is the §2023:13.18.35.4 GR4c trial sum read
         /// forwards: each line's <see cref="ReportLineModel.TrialInterval"/> is its expected offset minus this
         /// cursor, so Σ intervals is exactly "the expected position of the last line of the report group" for an
         /// all-relative group, whatever mixture of plain repetition and STEP displacement produced it.</summary>
@@ -1414,7 +1414,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         public readonly Dictionary<int, int> AnchorOffset = [];
 
         /// <summary>Σ ordinalⱼ × integer-3ⱼ over the enclosing repeating entries THAT REPEAT ON
-        /// <paramref name="axis"/> — the displacement §13.18.38.4 GR12 gives this repetition ("integer-3 columns
+        /// <paramref name="axis"/> — the displacement §2023:13.18.38.4 GR12 gives this repetition ("integer-3 columns
         /// to the right of the column they occupy in the preceding occurrence" horizontally, GR12a/GR12b;
         /// "integer-3 lines vertically beneath the line they occupy in the preceding occurrence" vertically,
         /// GR12c/GR12d), which is additive across nested repeating entries of the same axis. A frame on the OTHER
@@ -1433,11 +1433,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             string.Join(".", Repetitions.Where(r => StepOn(r, axis) == 0).Select(r => r.Ordinal));
 
         /// <summary>One frame's integer-3 as it acts on <paramref name="axis"/>: its STEP when the entry repeats
-        /// on that axis, else 0 (ISO §13.18.38.4 GR12).</summary>
+        /// on that axis, else 0 (ISO §2023:13.18.38.4 GR12).</summary>
         private static int StepOn(ReportRepetitionFrame f, ReportRepetitionAxis axis) =>
             f.Spec.Axis == axis ? f.Spec.Step ?? 0 : 0;
 
-        /// <summary>The §13.18.38.4 GR13 presence tests this placement inherits (one per enclosing repeating
+        /// <summary>The §2023:13.18.38.4 GR13 presence tests this placement inherits (one per enclosing repeating
         /// entry with a DEPENDING phrase), outermost first.</summary>
         public List<ReportRepetitionGuard> GuardsHere()
         {
@@ -1456,11 +1456,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>
-    /// Bind the report group entries in <c>[start, end)</c>. A REPEATING ENTRY (ISO §13.18.38 Format 3) binds its
+    /// Bind the report group entries in <c>[start, end)</c>. A REPEATING ENTRY (ISO §2023:13.18.38 Format 3) binds its
     /// own subtree once per repetition — "it causes the entry to define integer-2 distinct report items"
-    /// (§13.18.38.4 GR10) — which is the ONE place repetition is expressed, so every clause of every repeated
+    /// (§2023:13.18.38.4 GR10) — which is the ONE place repetition is expressed, so every clause of every repeated
     /// entry gets GR11's "same effect on each repetition as they would on a single data item without the OCCURS
-    /// clause" for free, §13.18.63.4 GR21's import of GR9 included.
+    /// clause" for free, §2023:13.18.63.4 GR21's import of GR9 included.
     /// </summary>
     private void BindReportEntries(
         Core.ReportGroupEntryContext[] entries, int start, int end, ReportModel model, ReportGroupBuild st)
@@ -1469,10 +1469,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             var ge = entries[i];
             int.TryParse(ge.levelNumber().GetText(), out int entryLevel);
-            // ⛔ §13.18.63.3 SR30 — "Condition-name and content-validation formats shall not be specified in
+            // ⛔ §2023:13.18.63.3 SR30 — "Condition-name and content-validation formats shall not be specified in
             // the report section" — NEEDS NO SCREEN OF ITS OWN HERE, and this comment is why (kb/Work PB558).
-            // Both formats it names are level-88 formats: §13.18.63.3 SR33, "Formats 3 and 5 may be specified
-            // only when the level-number of the subject of the entry is 88." And §13.18.33.3 SR4 already bounds
+            // Both formats it names are level-88 formats: §2023:13.18.63.3 SR33, "Formats 3 and 5 may be specified
+            // only when the level-number of the subject of the entry is 88." And §2023:13.18.33.3 SR4 already bounds
             // this section's level-numbers — "Report group description entries that are subordinate to an RD
             // entry shall have level-numbers with the values 1 through 49" — enforced over the whole parse tree
             // by LevelNumberPass, COBOL1746. The conjunction is exact: a format-3 or format-5 VALUE clause in
@@ -1484,13 +1484,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // and a later `IF condition-name` compiled and then aborted at RUN time. PB485 (14d0b9d93,
             // 2026-09-05) gave the level-number a domain on both its axes and closed it — measured again here
             // before writing this, not assumed.
-            // The entry's SUBTREE: itself plus every following entry of a higher level number (§13.15 — the
+            // The entry's SUBTREE: itself plus every following entry of a higher level number (§2023:13.15 — the
             // level-number hierarchy). It is what a repeating entry replays.
             int subtreeEnd = i + 1;
             while (subtreeEnd < end && int.TryParse(entries[subtreeEnd].levelNumber().GetText(), out int lv)
                    && lv > entryLevel) subtreeEnd++;
 
-            // The entry's VARYING counters (§13.18.64.1): made ONCE for this entry within the enclosing occurrence being
+            // The entry's VARYING counters (§2023:13.18.64.1): made ONCE for this entry within the enclosing occurrence being
             // bound, and in scope for the entry and its subtree — which a repeating entry's replay encloses, so
             // every repetition shares the counter and GR3's occurrence number is the repetition's ordinal.
             var counters = VaryingCountersOf(ge, st);
@@ -1516,7 +1516,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
     }
 
-    /// <summary>The VARYING counters the entry <paramref name="ge"/> declares (ISO §13.18.64.2 — <c>VARYING { data-name-1
+    /// <summary>The VARYING counters the entry <paramref name="ge"/> declares (ISO §2023:13.18.64.2 — <c>VARYING { data-name-1
     /// [FROM arithmetic-expression-1] [BY arithmetic-expression-2] } …</c>), empty for an entry with no VARYING
     /// clause. The rules over the WRITTEN clause (SR1–SR3) are asked once per written entry by
     /// <see cref="ScreenReportVaryingClauses"/>, not here, so a replay cannot multiply them.</summary>
@@ -1547,17 +1547,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>
-    /// ⛔ THE ONE REPETITION VEHICLE OF A REPORT GROUP DESCRIPTION ENTRY. ISO §13.15.4 GR3 names three — "An
+    /// ⛔ THE ONE REPETITION VEHICLE OF A REPORT GROUP DESCRIPTION ENTRY. ISO §2023:13.15.4 GR3 names three — "An
     /// entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said
-    /// to be a repeating entry" — and two of them drive the SUBTREE REPLAY: the OCCURS clause (§13.18.38 Format
-    /// 3) and the multiple LINE clause. §13.18.35.4 GR9 is what makes the second one the first: "A multiple LINE
+    /// to be a repeating entry" — and two of them drive the SUBTREE REPLAY: the OCCURS clause (§2023:13.18.38 Format
+    /// 3) and the multiple LINE clause. §2023:13.18.35.4 GR9 is what makes the second one the first: "A multiple LINE
     /// clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS
     /// clause whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE
     /// clause allows the report lines to be defined at unequal vertical intervals" — so it IS a simple,
     /// STEP-less, vertical OCCURS whose per-repetition operand the LINE clause supplies, and modelling it as one
     /// is the standard's own reduction rather than a second copy of repetition.
     /// <para>The third vehicle, the multiple COLUMN clause, is an operand LIST on ONE printable item rather than
-    /// a replay (§13.18.14.3 SR10), and <see cref="ReportFieldModel.Columns"/> carries it.</para>
+    /// a replay (§2023:13.18.14.3 SR10), and <see cref="ReportFieldModel.Columns"/> carries it.</para>
     /// </summary>
     private ReportOccursSpec? ReportRepetitionOf(
         Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd,
@@ -1572,15 +1572,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': a multiple LINE clause and an "
                 + "OCCURS clause may not both be present in the same report group description entry (ISO "
-                + "§13.18.35.3 SR10d)");
+                + "§2023:13.18.35.3 SR10d)");
             return occurs;
         }
-        // §13.18.35.4 GR9's equivalence, written as the spec writes it: a simple OCCURS of `ops` repetitions on
+        // §2023:13.18.35.4 GR9's equivalence, written as the spec writes it: a simple OCCURS of `ops` repetitions on
         // the VERTICAL axis. No STEP — GR9's "unequal vertical intervals" ARE the several LINE operands.
         return new ReportOccursSpec(0, ops, null, [], null) { Axis = ReportRepetitionAxis.Vertical };
     }
 
-    /// <summary>The operand count of this entry's MULTIPLE LINE clause (ISO §13.18.35.3 SR10) with SR10 a/b/c
+    /// <summary>The operand count of this entry's MULTIPLE LINE clause (ISO §2023:13.18.35.3 SR10) with SR10 a/b/c
     /// enforced, or null when the entry has no LINE clause or a single-operand one.</summary>
     private int? MultipleLineOperands(Core.ReportGroupEntryContext ge, ReportModel model)
     {
@@ -1597,14 +1597,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // a) "The NEXT PAGE phrase, if specified, shall appear only with the first operand."
             if (k > 0 && ops[k].NEXT() is not null)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
-                    + "NEXT PAGE phrase shall appear only with the first operand (ISO §13.18.35.3 SR10a)");
+                    + "NEXT PAGE phrase shall appear only with the first operand (ISO §2023:13.18.35.3 SR10a)");
             if (ops[k].integerOperand() is not { } lit) continue;   // a bare `ON NEXT PAGE` operand
             if (ops[k].reportRelativeSign() is not null) { relativeSeen = true; continue; }
             // b) "All absolute operands, if present, shall precede all relative operands, if present."
             if (relativeSeen)
             {
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause all "
-                    + "absolute operands shall precede all relative operands (ISO §13.18.35.3 SR10b)");
+                    + "absolute operands shall precede all relative operands (ISO §2023:13.18.35.3 SR10b)");
                 continue;
             }
             // c) "The occurrences of integer-1, if present, shall be in ascending numerical order."
@@ -1612,14 +1612,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (lastAbsolute > int.MinValue && v <= lastAbsolute)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
                     + $"occurrences of integer-1 shall be in ascending numerical order — {v} follows "
-                    + $"{lastAbsolute} (ISO §13.18.35.3 SR10c)");
+                    + $"{lastAbsolute} (ISO §2023:13.18.35.3 SR10c)");
             lastAbsolute = v;
         }
         return ops.Length;
     }
 
     /// <summary>
-    /// The OCCURS clause of one report group description entry, as ISO §13.18.38 FORMAT 3 — the report-writer
+    /// The OCCURS clause of one report group description entry, as ISO §2023:13.18.38 FORMAT 3 — the report-writer
     /// format, <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]</c> —
     /// with its syntax rules enforced; null when the entry is not a repeating entry or a syntax rule rejected it.
     /// </summary>
@@ -1637,22 +1637,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}' entry '{name}'";
         int.TryParse(ge.levelNumber().GetText(), out int level);
 
-        // The report-writer format has NO DYNAMIC, KEY or INDEXED BY phrase (§13.18.38.2 Format 3, verified
-        // against the printed general-format diagram); §13.18.38.3 SR3/SR7/SR8 place those in Formats 1, 2 and 4.
+        // The report-writer format has NO DYNAMIC, KEY or INDEXED BY phrase (§2023:13.18.38.2 Format 3, verified
+        // against the printed general-format diagram); §2023:13.18.38.3 SR3/SR7/SR8 place those in Formats 1, 2 and 4.
         if (oc.DYNAMIC() is not null || oc.occursKeyClause().Length > 0 || oc.INDEXED() is not null)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause in a report group description "
                 + "entry is the report-writer format — OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON "
                 + "data-name-1] [STEP integer-3]; the DYNAMIC, ASCENDING/DESCENDING KEY and INDEXED BY phrases "
-                + "belong to formats 1, 2 and 4 (ISO §13.18.38.2)");
+                + "belong to formats 1, 2 and 4 (ISO §2023:13.18.38.2)");
             return null;
         }
         // SR1a — "The OCCURS clause shall not be specified in a data description entry that … has a level-number
-        // of 01, 66, 77, or 88". A report group description entry's level-number is 1 through 49 (§13.15.3 SR3).
+        // of 01, 66, 77, or 88". A report group description entry's level-number is 1 through 49 (§2023:13.15.3 SR3).
         if (level == 1)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the OCCURS clause shall not be specified in an "
-                + "entry that has a level-number of 01 (ISO §13.18.38.3 SR1a)");
+                + "entry that has a level-number of 01 (ISO §2023:13.18.38.3 SR1a)");
             return null;
         }
 
@@ -1667,7 +1667,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (hasTo != (depending is not null))
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the TO and DEPENDING phrases shall either be "
-                + "both absent or both present (ISO §13.18.38.3 SR24)");
+                + "both absent or both present (ISO §2023:13.18.38.3 SR24)");
             return null;
         }
         // SR16 (formats 2 and 3) — "Integer-1 shall be greater than or equal to zero and integer-2 shall be
@@ -1675,13 +1675,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (hasTo && (min < 0 || max <= min))
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: OCCURS {min} TO {max} — integer-1 shall be greater "
-                + "than or equal to zero and integer-2 shall be greater than integer-1 (ISO §13.18.38.3 SR16)");
+                + "than or equal to zero and integer-2 shall be greater than integer-1 (ISO §2023:13.18.38.3 SR16)");
             return null;
         }
         if (max <= 0)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: OCCURS {max} TIMES — integer-2 is the number of "
-                + "repetitions the entry defines and shall be positive (ISO §13.18.38.4 GR10)");
+                + "repetitions the entry defines and shall be positive (ISO §2023:13.18.38.4 GR10)");
             return null;
         }
         // SR27 — "A report group description entry that contains an OCCURS clause with a DEPENDING phrase may be
@@ -1690,7 +1690,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             && int.TryParse(entries[subtreeEnd].levelNumber().GetText(), out int nextLevel) && nextLevel > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an entry with an OCCURS … DEPENDING clause may be "
-                + "followed within that report group only by entries subordinate to it (ISO §13.18.38.3 SR27)");
+                + "followed within that report group only by entries subordinate to it (ISO §2023:13.18.38.3 SR27)");
             return null;
         }
         // SR10 (formats 1 and 3) — an OCCURS may nest only when the DEPENDING phrase is absent.
@@ -1698,11 +1698,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause may be subordinate to an entry "
                 + "containing another OCCURS clause only if the DEPENDING ON phrase is not specified (ISO "
-                + "§13.18.38.3 SR10)");
+                + "§2023:13.18.38.3 SR10)");
             return null;
         }
 
-        // ⛔ THE REPETITION AXIS (§13.18.38.4 GR10/GR12). GR10c/GR10d and GR12c/GR12d are the LINE arms and
+        // ⛔ THE REPETITION AXIS (§2023:13.18.38.4 GR10/GR12). GR10c/GR10d and GR12c/GR12d are the LINE arms and
         // GR10a/GR10b and GR12a/GR12b the COLUMN arms, so the SAME integer-3 is a vertical interval on one
         // entry and a horizontal one on another — which arm applies is fixed HERE, once, by the clause the
         // entry (or its subtree) carries: "If the entry contains a LINE clause, each successive occurrence is
@@ -1733,7 +1733,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
                     + "repeating entry contains, or has subordinate to it, an absolute LINE clause "
-                    + "(ISO §13.18.38.3 SR25a/SR25b) — without it every repetition would print on the "
+                    + "(ISO §2023:13.18.38.3 SR25a/SR25b) — without it every repetition would print on the "
                     + "same line");
                 return null;
             }
@@ -1742,7 +1742,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
                     + "repeating entry contains an absolute COLUMN clause, or is subordinate to an entry with a "
-                    + "LINE clause and has one subordinate to it (ISO §13.18.38.3 SR25c/SR25d) — without it "
+                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c/SR25d) — without it "
                     + "every repetition would print in the same column");
                 return null;
             }
@@ -1764,10 +1764,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (span > 0 && sv < span)
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: STEP {sv} is not sufficient to prevent the "
                     + $"overlapping of two consecutive repetitions — the repeated report item occupies {span} "
-                    + unit + " (ISO §13.18.38.3 SR26)");
+                    + unit + " (ISO §2023:13.18.38.3 SR26)");
         }
 
-        // ⛔ data-name-1 IS A QUALIFIED-DATA-NAME, SCREENED (kb/Work PB885). ISO §13.18.38.3 SR2 (all formats):
+        // ⛔ data-name-1 IS A QUALIFIED-DATA-NAME, SCREENED (kb/Work PB885). ISO §2023:13.18.38.3 SR2 (all formats):
         // "Data-name-1 and data-name-2 shall not be subscripted." The grammar's shared dataReference admits a
         // subscript, and the bare KeyReference capture used here DROPPED it in silence — `DEPENDING ON WS-TE (2)`
         // bound to the unsubscripted name and printed the wrong number of repetitions. ClauseDataName is the ONE
@@ -1784,21 +1784,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return new ReportOccursSpec(min, max, dn, dq, step) { Axis = axis, DependingAt = dAt };
     }
 
-    /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §13.18.38 Format 3) and apply
-    /// §13.18.38.3 SR17 — "Data-name-1 shall describe an integer". Reported once per repeating entry.</summary>
+    /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §2023:13.18.38 Format 3) and apply
+    /// §2023:13.18.38.3 SR17 — "Data-name-1 shall describe an integer". Reported once per repeating entry.</summary>
     private void ResolveReportOccursDepending(ReportOccursSpec spec, ReportModel model, HashSet<ReportOccursSpec> seen)
     {
         if (spec.DependingName is null || !seen.Add(spec)) return;
-        // The ONE clause-operand resolver (§8.4.2.2 uniqueness; silent for an operand the capture refused).
+        // The ONE clause-operand resolver (§2023:8.4.2.2 uniqueness; silent for an operand the capture refused).
         spec.DependingItem = _d.ResolveClauseOperand(spec.DependingName, spec.DependingQualifiers,
             $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt, inReportSection: true);
         if (spec.DependingItem is null) return;
         // SR17 read exactly as the data-division OCCURS reads it (an index item is NOT an integer data item).
         if (spec.DependingItem.Pic is not { IsIntegerDescription: true })
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
-                + $"'{spec.DependingName}' — data-name-1 shall describe an integer (ISO §13.18.38.3 SR17)");
+                + $"'{spec.DependingName}' — data-name-1 shall describe an integer (ISO §2023:13.18.38.3 SR17)");
         // SR18 is a FORMATS 2 AND 3 rule (kb/Work PB1261): a report group entry is subordinate to its report
-        // description entry, which §13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
+        // description entry, which §2023:13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
         // Passes/OdoResolvePass.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
         if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
         {
@@ -1806,17 +1806,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "
                 + $"'{spec.DependingName}' — the report is global and data-name-1 is not a global name: \"If the OCCURS "
                 + "clause is specified in an entry subordinate to one containing the GLOBAL clause, data-name-1, if "
-                + "specified, shall be a global name\" (ISO §13.18.38.3 SR18)");
+                + "specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)");
         }
     }
 
     /// <summary>The display width of one report group entry's PICTURE, or null when it has none (a group entry).
-    /// The §13.18.38.3 SR26 overlap test measures the repeated item against integer-3.</summary>
+    /// The §2023:13.18.38.3 SR26 overlap test measures the repeated item against integer-3.</summary>
     private int? ReportEntryPictureWidth(Core.ReportGroupEntryContext ge, ReportModel model)
     {
         foreach (var clause in ge.reportGroupClause())
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
-                // The SAME character-position count the print columns use (§13.18.14.4 GR9), through the ONE rule.
+                // The SAME character-position count the print columns use (§2023:13.18.14.4 GR9), through the ONE rule.
                 return PictureAnalyzer.Analyze(
                     _d.Constants.UnitHasConstants ? _d.Constants.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
@@ -1830,12 +1830,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <param name="ge">The entry.</param>
     /// <param name="anchorKey">The entry whose identity keys this placement's step anchors — the same context,
     /// except that a repeating entry's own replayed copies must share one anchor per placement.</param>
-    /// <param name="ownOccurs">This entry's OWN §13.15.4 GR3 repetition vehicle when it is a live repeating
-    /// entry — the report-writer OCCURS clause (§13.18.38 Format 3) or the multiple LINE clause's §13.18.35.4
+    /// <param name="ownOccurs">This entry's OWN §2023:13.15.4 GR3 repetition vehicle when it is a live repeating
+    /// entry — the report-writer OCCURS clause (§2023:13.18.38 Format 3) or the multiple LINE clause's §2023:13.18.35.4
     /// GR9 equivalent — carrying its repetition count and the evidence that the vehicle was not refused, which
-    /// is what the §13.18.63.3 SR35 / §13.18.53.3 SR6 operand-count screen needs.</param>
+    /// is what the §2023:13.18.63.3 SR35 / §2023:13.18.53.3 SR6 operand-count screen needs.</param>
     /// <param name="ordinal">This repetition's zero-based ordinal within <paramref name="ownOccurs"/> — what
-    /// selects the LINE operand of a multiple LINE clause (§13.18.35.4 GR9).</param>
+    /// selects the LINE operand of a multiple LINE clause (§2023:13.18.35.4 GR9).</param>
     private void BindReportEntry(
         ReportEntryLocation at, Core.ReportGroupEntryContext anchorKey, ReportModel model,
         ReportGroupBuild st, ReportOccursSpec? ownOccurs = null, int ordinal = 0)
@@ -1846,8 +1846,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             int.TryParse(ge.levelNumber().GetText(), out int level);
             string? entryName = ge.dataName().NameOrNull();
             // ⛔ A level-01 entry that repeats (the multiple LINE clause, the only vehicle a level-01 entry may carry:
-            // §13.18.38.3 SR1 a) refuses its OCCURS) is still ONE report group — one name, one TYPE, one set of lines
-            // — whose report lines the replay multiplies (§13.18.35.4 GR9; kb/Work PB4109). Only the FIRST repetition
+            // §2023:13.18.38.3 SR1 a) refuses its OCCURS) is still ONE report group — one name, one TYPE, one set of lines
+            // — whose report lines the replay multiplies (§2023:13.18.35.4 GR9; kb/Work PB4109). Only the FIRST repetition
             // opens the group, so a GENERATE names exactly one group (a replay used to add one per operand, and
             // ReportGroupResolution then found the name twice in one RD: a false COBOL1920).
             bool opensGroup = level == 1 && ordinal == 0;
@@ -1856,7 +1856,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 st.Group = new ReportGroupModel { Name = entryName, Entry = ge };
                 model.Groups.Add(st.Group);
                 st.Line = null;
-                st.VerticalCursor = 0;   // the §13.18.35.4 GR4c trial sum is measured per report group
+                st.VerticalCursor = 0;   // the §2023:13.18.35.4 GR4c trial sum is measured per report group
             }
             var group = st.Group;
             if (group is null)
@@ -1867,7 +1867,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             var chain = st.Chain;
             while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
 
-            // The clauses that DESCRIBE the entry's item — PICTURE, USAGE (its own, and the one §13.18.60.4 GR1 hands
+            // The clauses that DESCRIBE the entry's item — PICTURE, USAGE (its own, and the one §2023:13.18.60.4 GR1 hands
             // down from an enclosing entry), SIGN, JUSTIFIED, BLANK WHEN ZERO and the VALUE literals — decoded once per
             // entry by the reader a constant's length phrase also asks (DataBinder.ReportItemDescription.cs, kb/Work
             // PB1941). The rest of the entry's clauses are the walk's, captured below (clauses may appear in any order
@@ -1875,33 +1875,33 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             var described = _d.DescribeReportItem(at);
             string? picText = described.PicText, usageText = described.UsageText;
             string? inheritedUsage = described.InheritedUsage;
-            // The VALUE clause's operand list (§13.18.63.2 format 4) and the count WRITTEN — the SR35 check
+            // The VALUE clause's operand list (§2023:13.18.63.2 format 4) and the count WRITTEN — the SR35 check
             // reads the written count so a rejected operand cannot make an illegal clause look legal.
             var valueRaws = new List<string>(described.ValueRaws);
             int valueOpsWritten = 0;
-            List<EditingPhraseSpec>? reportEditing = described.Editing;   // PICTURE EDITING phrases (§13.18.40.2)
+            List<EditingPhraseSpec>? reportEditing = described.Editing;   // PICTURE EDITING phrases (§2023:13.18.40.2)
             LocaleEditSpec? reportLocale = described.Locale;   // PICTURE format 2 — the LOCALE phrase (PB113 / PB64 T6)
             SignSpec? ownSign = described.OwnSign;
             bool justified = described.Justified, blankWhenZero = described.BlankWhenZero, groupIndicate = false;
-            // A repetition VEHICLE that was REFUSED (an OCCURS clause a §13.18.38.3 syntax rule rejected):
-            // the entry's §13.15.4 GR3 repetition count is then not knowable, so the operand-count screen
+            // A repetition VEHICLE that was REFUSED (an OCCURS clause a §2023:13.18.38.3 syntax rule rejected):
+            // the entry's §2023:13.15.4 GR3 repetition count is then not knowable, so the operand-count screen
             // below stands down rather than emitting a second diagnostic about it (kb/Work PB506).
             bool staysLoud = false;
             var columns = new List<ReportColumnSpec>();
-            // The SOURCE clause's operand list (§13.18.53.2 — one entry per written identifier-1); empty when
+            // The SOURCE clause's operand list (§2023:13.18.53.2 — one entry per written identifier-1); empty when
             // the entry carries no SOURCE clause.
             var sourceOps = new List<ReportFieldSource>();
             int sourceOpsWritten = 0;   // operands WRITTEN (a staged/unresolvable one adds none to sourceOps)
-            // §13.18.53.3 SR3 — set when the clause writes an arithmetic-expression operand or a ROUNDED phrase.
+            // §2023:13.18.53.3 SR3 — set when the clause writes an arithmetic-expression operand or a ROUNDED phrase.
             bool sourceNeedsNumericEntry = false;
             ReportLineModel? opened = null;
-            // The LINE clause operand this repetition places by, and its index within the clause (§13.18.35.3
-            // SR10 / §13.18.35.4 GR9) — resolved after the clause loop, where the enclosing repetitions' STEP
+            // The LINE clause operand this repetition places by, and its index within the clause (§2023:13.18.35.3
+            // SR10 / §2023:13.18.35.4 GR9) — resolved after the clause loop, where the enclosing repetitions' STEP
             // displacement is known.
             Core.ReportLineOperandContext? lineOperand = null;
             int lineOperandIndex = 0;
-            // ⛔ ONE CLAUSE, MANY GROUPS (kb/Work PB482, PB1295): ISO §13.18.54.3 SR1 — "The whole clause is referred to as
-            // a SUM clause even though the SUM keyword may appear more than once", and §13.18.54.4 GR1 gives the
+            // ⛔ ONE CLAUSE, MANY GROUPS (kb/Work PB482, PB1295): ISO §2023:13.18.54.3 SR1 — "The whole clause is referred to as
+            // a SUM clause even though the SUM keyword may appear more than once", and §2023:13.18.54.4 GR1 gives the
             // ENTRY one counter. The grammar's reportSumClause holds every `SUM … [UPON …]` group of the clause
             // (reportSumGroup) and its one RESET and one rounded-phrase, so each group becomes a term of the counter;
             // keeping a single group silently DISCARDED the rest: `SUM WS-A UPON DET SUM WS-B UPON DET2` totalled
@@ -1913,14 +1913,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (clause.reportTypeClause()?.reportGroupType() is { } t)
                 {
-                    // §13.15.3 SR5 — the TYPE clause belongs to the level 1 entry alone (ScreenReportEntryClausePresence
+                    // §2023:13.15.3 SR5 — the TYPE clause belongs to the level 1 entry alone (ScreenReportEntryClausePresence
                     // refuses it anywhere else), so a stray one never retypes the group it is written inside.
                     if (opensGroup) BindGroupType(t, group, model);
                 }
                 else if (clause.reportLineClause() is { } lc)
                 {
-                    // The multiple LINE clause (§13.18.35.3 SR10) is a §13.15.4 GR3 repetition VEHICLE, read by
-                    // ReportRepetitionOf before this entry is bound: §13.18.35.4 GR9 makes it "functionally
+                    // The multiple LINE clause (§2023:13.18.35.3 SR10) is a §2023:13.15.4 GR3 repetition VEHICLE, read by
+                    // ReportRepetitionOf before this entry is bound: §2023:13.18.35.4 GR9 makes it "functionally
                     // equivalent to a LINE clause with a single operand, together with a simple OCCURS clause
                     // whose integer is equal to the number of operands", so this replay takes the operand its
                     // own ORDINAL names and the entry opens one report line per repetition. The modulo is the
@@ -1931,13 +1931,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
                 else if (clause.reportNextGroupClause() is { } ngc)
                 {
-                    // Captured on the level 1 entry's group; its syntax rules (and §13.15.3 SR6 for any other
+                    // Captured on the level 1 entry's group; its syntax rules (and §2023:13.15.3 SR6 for any other
                     // level) are screened once the group is complete — BindNextGroupClauses (kb/Work PB957).
                     if (opensGroup) group.NextGroupClause = ngc;
                 }
                 else if (clause.reportColumnClause() is { } cc)
                 {
-                    // §13.18.14.3 SR9 — the alignment word (LEFT assumed when none is written) and its absolute-only
+                    // §2023:13.18.14.3 SR9 — the alignment word (LEFT assumed when none is written) and its absolute-only
                     // rule: "If LEFT, CENTER, or RIGHT is specified, all the operands shall be absolute." The word
                     // belongs to the clause, so every operand of a multiple COLUMN clause carries it.
                     var written = cc.reportColumnAlignment();
@@ -1947,33 +1947,33 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Edition.Error(DiagnosticCatalog.ReportColumnAlignmentNotAbsolute, $"RD '{model.Name}' entry "
                             + $"'{entryName ?? "FILLER"}': the COLUMN clause writes "
                             + $"{written.GetText().ToUpperInvariant()} and a relative (PLUS) operand; "
-                            + "if LEFT, CENTER, or RIGHT is specified, all the operands shall be absolute (ISO §13.18.14.3 SR9)");
+                            + "if LEFT, CENTER, or RIGHT is specified, all the operands shall be absolute (ISO §2023:13.18.14.3 SR9)");
                     foreach (var op in cc.reportColumnOperand())
                     {
                         bool relative = op.reportRelativeSign() is not null;
                         int column = _d.Constants.IntegerOperandValue(op.integerOperand(), $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'")
                             ?? ConstantEntryBinder.RecoveredIntegerOperand;
-                        // §13.18.14.3 SR6 — "Neither integer-1 nor integer-2 shall exceed the page width": the
+                        // §2023:13.18.14.3 SR6 — "Neither integer-1 nor integer-2 shall exceed the page width": the
                         // absolute column and the relative offset are both written integers, so the rule is
                         // decidable here against ReportModel.PageWidth (the PAGE clause's integer-2, else GR5's 999).
                         if (column > model.PageWidth)
                             Edition.Error(DiagnosticCatalog.ReportColumnBeyondPageWidth, $"RD '{model.Name}' entry "
                                 + $"'{entryName ?? "FILLER"}': the COLUMN clause's {(relative ? "relative offset" : "column")} "
                                 + $"{column} exceeds the page width {model.PageWidth}"
-                                + (model.PageWidthWritten ? "" : " (assumed 999, §13.18.39.4 GR5)")
-                                + " (ISO §13.18.14.3 SR6)");
+                                + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
+                                + " (ISO §2023:13.18.14.3 SR6)");
                         columns.Add(new ReportColumnSpec(relative, column, alignment));
                     }
                 }
                 else if (clause.reportSourceClause() is { } sc)
                 {
-                    // Every written operand of the clause (§13.18.53.2's ellipsis) — the SR6 count below reads
+                    // Every written operand of the clause (§2023:13.18.53.2's ellipsis) — the SR6 count below reads
                     // the WRITTEN count, so a staged operand (a subscripted reference, another report's
                     // counter) cannot make an illegal clause look legal.
                     var sops = sc.reportValueOperand();
                     sourceOpsWritten += sops.Length;
                     ScreenSourceOperandParens(sops, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");   // SR7
-                    // §13.18.53.3 SR3 — an arithmetic-expression operand, or the ROUNDED phrase, requires the
+                    // §2023:13.18.53.3 SR3 — an arithmetic-expression operand, or the ROUNDED phrase, requires the
                     // ENTRY to define a numeric or numeric-edited item. The entry's PICTURE is analyzed below
                     // (it needs the COLUMN block's usage/editing context), so the obligation is recorded here
                     // and discharged there, where `pic` exists.
@@ -1986,13 +1986,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (clause.reportGroupIndicateClause() is not null)
                     groupIndicate = true;
                 else if (clause.reportPresentWhenClause() is { } pw)
-                    // condition-1 is any condition (§13.18.41.2 Format 1), a function-identifier included: its
+                    // condition-1 is any condition (§2023:13.18.41.2 Format 1), a function-identifier included: its
                     // activation runs at each evaluation (ReportWriterBinder.BindReportGroupClauses, kb/Work PB4517).
                     ownCond = pw.condition();
                 else if (clause.reportVaryingClause() is not null)
                 {
                     // The counters are made by the walk (VaryingCountersOf), once per entry per enclosing occurrence,
-                    // and reach this entry's printable item through ReportGroupBuild.Varying (§13.18.64.3 SR2).
+                    // and reach this entry's printable item through ReportGroupBuild.Varying (§2023:13.18.64.3 SR2).
                 }
                 else if (clause.pictureClause() is not null || clause.usageClause() is not null
                          || clause.signClause() is not null || clause.justifiedClause() is not null
@@ -2002,7 +2002,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
                 else if (clause.occursClause() is not null)
                 {
-                    // The repeating entry itself (ISO §13.18.38 Format 3) is read by ReportOccursOf BEFORE this
+                    // The repeating entry itself (ISO §2023:13.18.38 Format 3) is read by ReportOccursOf BEFORE this
                     // entry is bound — it drives the REPLAY, so there is nothing to capture per repetition.
                     // A clause ReportOccursOf REFUSED (a syntax rule) leaves ownOccurs null and the entry's
                     // repetition count unknowable.
@@ -2010,7 +2010,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
                 else if (clause.valueClause() is { } value)
                 {
-                    // Format 4 (report-section), ISO §13.18.63.2 — `{literal-1}…`: its literals are the description's
+                    // Format 4 (report-section), ISO §2023:13.18.63.2 — `{literal-1}…`: its literals are the description's
                     // (DescribeReportItem); the connective and the WRITTEN count are the walk's.
                     _d.CheckValueConnective(value, pairedConnective: true,
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
@@ -2018,31 +2018,31 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
             }
 
-            // GROUP INDICATE shall not share an entry with PRESENT WHEN (ISO §13.15.3 SR17 — GROUP INDICATE IS
-            // a fixed-condition PRESENT WHEN, §13.18.28.4 GR1).
+            // GROUP INDICATE shall not share an entry with PRESENT WHEN (ISO §2023:13.15.3 SR17 — GROUP INDICATE IS
+            // a fixed-condition PRESENT WHEN, §2023:13.18.28.4 GR1).
             if (groupIndicate && ownCond is not null)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': the GROUP "
                     + "INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is "
-                    + "specified (ISO §13.15.3 SR17)");
+                    + "specified (ISO §2023:13.15.3 SR17)");
 
             // ⛔ THE MULTI-OPERAND REPETITION RULE, ONE READER FOR BOTH CLAUSES (kb/Work PB506). ISO
-            // §13.18.63.3 SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and their
-            // general rules (§13.18.63.4 GR23 / §13.18.53.4 GR4) are likewise twins — so the screen is written
+            // §2023:13.18.63.3 SR35 (VALUE) and §2023:13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and their
+            // general rules (§2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4) are likewise twins — so the screen is written
             // once and each clause supplies its own operand count, diagnostic and citation. Skipped when a
-            // repetition vehicle was REFUSED (staysLoud): the entry's §13.15.4 GR3 count is then not knowable
+            // repetition vehicle was REFUSED (staysLoud): the entry's §2023:13.15.4 GR3 count is then not knowable
             // here and a second diagnostic would be noise.
             if (!staysLoud)
             {
                 var repChain = RepetitionChain(columns, ownOccurs, chain);
                 ScreenRepeatingOperandCount(valueOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
-                    "VALUE", DiagnosticCatalog.ReportValueOperandCount, "ISO §13.18.63.3 SR35");
+                    "VALUE", DiagnosticCatalog.ReportValueOperandCount, "ISO §2023:13.18.63.3 SR35");
                 ScreenRepeatingOperandCount(sourceOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
-                    "SOURCE", DiagnosticCatalog.ReportSourceOperandCount, "ISO §13.18.53.3 SR6");
+                    "SOURCE", DiagnosticCatalog.ReportSourceOperandCount, "ISO §2023:13.18.53.3 SR6");
             }
 
-            // ISO §13.18.60.3 SR2 — "If the USAGE clause is written in the data description entry for a group
+            // ISO §2023:13.18.60.3 SR2 — "If the USAGE clause is written in the data description entry for a group
             // item, it may also be written in the data description entry for any subordinate elementary item or
-            // group item, but the same usage shall be specified in both entries." §13.15.4 GR2 imports the data
+            // group item, but the same usage shall be specified in both entries." §2023:13.15.4 GR2 imports the data
             // description entry's clause rules into the report group description entry, so the pair is a rule
             // here too, and it is the only thing that makes GR1's inheritance unambiguous (kb/Work PB541).
             if (usageText is not null && inheritedUsage is not null
@@ -2051,7 +2051,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"'{entryName ?? "FILLER"}': USAGE {usageText} contradicts the USAGE {inheritedUsage} "
                     + "written on the group entry above it — when a USAGE clause is written on a group item and "
                     + "on an entry subordinate to it, the same usage shall be specified in both (ISO "
-                    + "§13.18.60.3 SR2, imported into the report group description entry by §13.15.4 GR2)");
+                    + "§2023:13.18.60.3 SR2, imported into the report group description entry by §2023:13.15.4 GR2)");
 
             if (lineOperand is { } lop)
                 opened = RepeatedLine(lop, lineOperandIndex, group.Lines.Count == 0, anchorKey, st);
@@ -2060,21 +2060,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 opened.Entry = ge;
                 st.Line = opened;
                 group.Lines.Add(opened);
-                // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41.4 GR2b).
+                // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§2023:13.18.41.4 GR2b).
                 foreach (var (_, c, _, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) opened.PresentWhenCtxs.Add(ownCond);
-                // §13.18.38.4 GR13 on the VERTICAL axis: a repetition the DEPENDING count excludes has no line.
+                // §2023:13.18.38.4 GR13 on the VERTICAL axis: a repetition the DEPENDING count excludes has no line.
                 opened.RepetitionGuards.AddRange(st.GuardsHere());
                 st.LineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
             }
             var line = st.Line;
 
-            // A SUM entry establishes a counter whether or not it is printable (§13.18.54.4 GR1/GR3) — ONE PER
+            // A SUM entry establishes a counter whether or not it is printable (§2023:13.18.54.4 GR1/GR3) — ONE PER
             // OCCURRENCE of a repeating entry (kb/Work PB1271): this replay's counters are the occurrences its
-            // ordinals select, one per COLUMN operand of a multiple COLUMN clause (§13.18.14.4 GR12 makes those
+            // ordinals select, one per COLUMN operand of a multiple COLUMN clause (§2023:13.18.14.4 GR12 makes those
             // operands a simple OCCURS level, so its printable items are occurrences too). Each counter's FULL
             // chain and this replay's OCCURS … DEPENDING tests govern the GR10 print/reset suppression
-            // (§13.18.41.4 GR3g).
+            // (§2023:13.18.41.4 GR3g).
             var sums = new List<ReportSumModel>();
             if (sumClause is not null)
             {
@@ -2092,7 +2092,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
                     sum.RepetitionGuards.AddRange(st.GuardsHere());
                     sums.Add(sum);
-                    // §13.18.54.4 GR6 — the counter occurrence is what a SUM clause's data-name-1 adds when it names
+                    // §2023:13.18.54.4 GR6 — the counter occurrence is what a SUM clause's data-name-1 adds when it names
                     // this entry; its presence chain IS the counter's (kb/Work PB1294).
                     var counterOccurrence = new ReportItemOccurrence
                     {
@@ -2103,10 +2103,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
             }
 
-            // ⛔ AN UNPRINTABLE SOURCE ENTRY IS STILL AN ENTRY (kb/Work PB1294). §13.18.53.4 GR3: "If the entry
+            // ⛔ AN UNPRINTABLE SOURCE ENTRY IS STILL AN ENTRY (kb/Work PB1294). §2023:13.18.53.4 GR3: "If the entry
             // containing the SOURCE clause contains no COLUMN clause and therefore defines an unprintable item, the
             // SOURCE clause causes no action, except where the entry is referred to by means of a SUM clause" — so
-            // it prints nothing and has no printable field, but §13.18.54.4 GR6 gives a SUM clause's data-name-1 "the
+            // it prints nothing and has no printable field, but §2023:13.18.54.4 GR6 gives a SUM clause's data-name-1 "the
             // operand of the SOURCE … clause" of it to add. (A printable entry's occurrences are recorded where its
             // field is made, below, beside the operands that field cycles through.)
             if (columns.Count == 0 && sums.Count == 0 && sourceOps.Count > 0)
@@ -2123,14 +2123,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (line is null)
                 {
                     // No report line has been opened in this group, so no entry above this one has a LINE clause
-                    // and ScreenReportEntryClausePresence has refused the COLUMN entry (§13.15.3 SR9) — said once,
+                    // and ScreenReportEntryClausePresence has refused the COLUMN entry (§2023:13.15.3 SR9) — said once,
                     // at the written entry, never here per replay. (The converse is not what this test means: a
                     // line opened by an EARLIER entry says nothing about this entry's ancestry, kb/Work PB1224.)
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), entryName));
                     return;
                 }
                 // ⛔ NO OPERAND, NO PRINTABLE ITEM (kb/Work PB853). An entry with a COLUMN clause and no SOURCE,
-                // VALUE or SUM operand is either an ISO §13.15.3 SR10 violation ScreenReportEntryClausePresence
+                // VALUE or SUM operand is either an ISO §2023:13.15.3 SR10 violation ScreenReportEntryClausePresence
                 // already refused, or one whose written operands were each refused at their own clause. A
                 // figurative SPACE sender used to be FABRICATED here in place of the missing operand — the
                 // compiler inventing source the programmer did not write — which printed `000` under PIC 999.
@@ -2139,8 +2139,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), entryName));
                     return;
                 }
-                // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
-                // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
+                // The printable item (§2023:13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
+                // MOVE conversion path renders the §2023:13.18.53.4 GR1 implicit MOVE. A printable item is a
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
                 // The one analysis a constant's length phrase measures the item by, too (kb/Work PB1941).
@@ -2155,20 +2155,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"RD '{model.Name}': printable item at COLUMN {col} "
                             + "has a VALUE clause but no PICTURE clause, and none is implied: the PICTURE clause may be "
                             + "omitted only when an alphanumeric, boolean or national literal that is not a zero-length "
-                            + "literal is specified in the VALUE clause (ISO §13.15.3 SR14)");
+                            + "literal is specified in the VALUE clause (ISO §2023:13.15.3 SR14)");
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), entryName));
                     return;
                 }
-                // §13.18.60.3 SR7 over a usage NO clause ever stated — one IMPLIED by the picture
-                // character-string (§13.18.60.4 GR7/GR8: "The implicit or explicit USAGE DISPLAY clause…", "The
+                // §2023:13.18.60.3 SR7 over a usage NO clause ever stated — one IMPLIED by the picture
+                // character-string (§2023:13.18.60.4 GR7/GR8: "The implicit or explicit USAGE DISPLAY clause…", "The
                 // implicit or explicit USAGE NATIONAL clause…"). A usage this entry or an enclosing group entry
                 // WROTE was already screened at its clause, which is the rule's own subject, so re-asking here
                 // would report one violation twice. Same rule, same message, one text: ScreenReportUsage. The
                 // gate this replaced admitted DISPLAY alone and refused the NATIONAL half of the rule under a
-                // §13.15 citation that does not say it (kb/Work PB541).
+                // §2023:13.15 citation that does not say it (kb/Work PB541).
                 if (usageText is null && inheritedUsage is null)
                     ScreenReportUsage(pic.Usage, model.Name, entryName, picText is null ? null : $"PICTURE {picText}");
-                // §13.18.52.3 SR1's report bullet — "a numeric report group description entry whose picture
+                // §2023:13.18.52.3 SR1's report bullet — "a numeric report group description entry whose picture
                 // character-string contains the symbol 'S'" — and SR2, through the ONE elementary-subject test the
                 // data description entry reads (kb/Work PB537: this arm had no screen at all).
                 if (ownSign is not null
@@ -2178,10 +2178,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {signDefect}");
                     ownSign = null;
                 }
-                // ⛔ §13.15.4 GR2 — "the USAGE, PICTURE, BLANK WHEN ZERO and JUSTIFIED clauses are the same clauses as
+                // ⛔ §2023:13.15.4 GR2 — "the USAGE, PICTURE, BLANK WHEN ZERO and JUSTIFIED clauses are the same clauses as
                 // those that are described under the general format for a data description entry and shall obey the
                 // syntax rules and general rules defined for each clause." The SUBJECT rules of the last two (what the
-                // elementary item they are written on may BE: §13.18.8.3 SR1/SR2, §13.18.32.3 SR3) are the data
+                // elementary item they are written on may BE: §2023:13.18.8.3 SR1/SR2, §2023:13.18.32.3 SR3) are the data
                 // division's CheckClauseSubjects, and these are its predicates, not a second copy of them (kb/Work
                 // PB507, PB1288). The clause is cleared on a violation, as the data division clears it, so nothing
                 // downstream applies it to an item it may not describe.
@@ -2197,7 +2197,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {justifiedFault}");
                     justified = false;
                 }
-                // ⛔ §13.18.63.3 SR6 NAMES FORMAT 4 — "literals in formats 1, 2, and 4 of the VALUE clause may be
+                // ⛔ §2023:13.18.63.3 SR6 NAMES FORMAT 4 — "literals in formats 1, 2, and 4 of the VALUE clause may be
                 // numeric" — so a report-section printable item's numeric literal rides the SAME COBOL-2023
                 // introduction (Annex E.3.3 item 43) as its format-1 and format-2 siblings. It did not: the
                 // report entry's VALUE operands never pass through the data-division literal funnel (they are
@@ -2205,7 +2205,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // `10 COLUMN 1 PIC ZZ9.99 VALUE 10.` compiled clean at --std 85 and PRINTED the 2023 edited image
                 // ` 10.00`, while `01 X PIC ZZ9.99 VALUE 10.` was refused there (kb/Work PB921, the third arm).
                 // ⛔ AND IT IS NOT THE ONLY ALL-FORMATS RULE THE REPORT ARM SKIPPED (kb/Work PB586's sibling sweep):
-                // §13.18.63.3 SRs 1-9 open "ALL FORMATS", so SR2's range ("all literals in the VALUE clause shall
+                // §2023:13.18.63.3 SRs 1-9 open "ALL FORMATS", so SR2's range ("all literals in the VALUE clause shall
                 // be numeric and shall be permissible values within the range indicated by the PICTURE clause"),
                 // SR3's sign and SR4/SR5's class bind a format-4 literal exactly as a format-1 one. MEASURED
                 // before: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45` and `PIC 9(2) VALUE -3` printed `03` —
@@ -2214,22 +2214,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // edition gate included, which is why the narrower call that stood here is gone), and the text it
                 // returns — the --permissive rewrite, or a fixed-point subject's expansion of a floating-point
                 // literal — is what the printable item stores. The subject is an ELEMENTARY item: a printable item
-                // is one (§13.18.14), and its size is its PICTURE's, written or §13.15.3 SR14-implied.
-                // Per operand, once the picture is settled — a multi-operand format-4 clause (§13.18.63.3 SR35)
+                // is one (§2023:13.18.14), and its size is its PICTURE's, written or §2023:13.15.3 SR14-implied.
+                // Per operand, once the picture is settled — a multi-operand format-4 clause (§2023:13.18.63.3 SR35)
                 // screens each of its literals.
                 for (int vr = 0; vr < valueRaws.Count; vr++)
                     valueRaws[vr] = _d.ScreenValueLiteral(pic, valueRaws[vr],
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
                         ValueSubject.ForElementary(pic, isDynamicLength: false, isAnyLength: false,
                             implicitPicture: picText is null));
-                // §13.18.53.3 SR3 — "If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry
+                // §2023:13.18.53.3 SR3 — "If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry
                 // shall define either a numeric data item or a numeric-edited data item." The receiving operand
                 // of GR2's implicit COMPUTE is this printable item (kb/Work PB852).
                 if (sourceNeedsNumericEntry && pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
                     Edition.Error(DiagnosticCatalog.ReportSourceExpressionNotNumeric, $"RD '{model.Name}' entry "
                         + $"'{entryName ?? "FILLER"}': the SOURCE clause specifies an arithmetic-expression or the "
                         + $"ROUNDED phrase, so the entry shall define a numeric or numeric-edited data item (ISO "
-                        + $"§13.18.53.3 SR3); its PICTURE '{picText}' describes a {pic.Category} item.");
+                        + $"§2023:13.18.53.3 SR3); its PICTURE '{picText}' describes a {pic.Category} item.");
                 int uid = _d.TakeUid();
                 var item = new DataItem
                 {
@@ -2244,7 +2244,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 };
                 item.Uid = uid;
                 // The collected image fact — compose wants the printable CHARACTER image. ⛔ THE IMAGE-FORM QUESTION,
-                // so the ONE predicate that asks it (PicInfo.IsCharacterFormNumeric): §13.18.60.3 SR7 admits USAGE
+                // so the ONE predicate that asks it (PicInfo.IsCharacterFormNumeric): §2023:13.18.60.3 SR7 admits USAGE
                 // NATIONAL for a report group item and SR12 a numeric picture with it, and a printable item is
                 // composed into the line and stored nowhere else, so the carriage concern that keeps the data
                 // division's whole-group promotion DISPLAY-only does not arise here. The DISPLAY-only shape that
@@ -2252,9 +2252,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // backend refused the generated C# (CS1503) at every edition (kb/Work PB3280).
                 if (pic.IsCharacterFormNumeric)
                     _d.State.ImageForcedItems.Add(item);
-                // THE OPERAND LIST (§13.18.63.2 format 4 / §13.18.53.2 — both clauses write `{ operand } …`).
-                // SUM wins the entry (§13.18.54.4 GR4 — the sum counter acts as the source item); then the
-                // SOURCE operands; then the VALUE operands. There is no fourth arm: §13.15.3 SR10 forbids the
+                // THE OPERAND LIST (§2023:13.18.63.2 format 4 / §2023:13.18.53.2 — both clauses write `{ operand } …`).
+                // SUM wins the entry (§2023:13.18.54.4 GR4 — the sum counter acts as the source item); then the
+                // SOURCE operands; then the VALUE operands. There is no fourth arm: §2023:13.15.3 SR10 forbids the
                 // operand-less entry, and the guard above returns before one reaches here (kb/Work PB853).
                 // A multiple COLUMN SUM entry supplies one counter PER printable item (kb/Work PB1271), paired with
                 // its repetition by the same SourceAt reader a multi-operand SOURCE uses.
@@ -2276,14 +2276,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 for (int ci = Math.Min(st.LineChainDepth, chain.Count); ci < chain.Count; ci++)
                     if (chain[ci].Cond is { } c) field.PresentWhenCtxs.Add(c);
                 if (ownCond is not null && opened is null) field.PresentWhenCtxs.Add(ownCond);
-                // The VARYING counters in scope (§13.18.64.3 SR2): this entry's own and every enclosing entry's, each with the
+                // The VARYING counters in scope (§2023:13.18.64.3 SR2): this entry's own and every enclosing entry's, each with the
                 // occurrence of its declaring entry this placement lies in (GR3). An enclosing entry's occurrence is its
                 // replay's ordinal; this entry's own, when it repeats through a multiple COLUMN clause as well, is
                 // counted per placement (the emitter adds the placement index), after the replay ordinal's columns.
                 field.Varyings.AddRange(VaryingUsesOf(ge, columns.Count, st));
                 field.RepetitionGuards.AddRange(st.GuardsHere());
                 line.Fields.Add(field);
-                // The entry's occurrences as a rolled total's addends (§13.18.54.4 GR6 — the operand of its SOURCE or
+                // The entry's occurrences as a rolled total's addends (§2023:13.18.54.4 GR6 — the operand of its SOURCE or
                 // VALUE clause), one per placement, each taking the operand the field's own cycling gives it. A SUM
                 // entry's occurrences were recorded with its counters above.
                 if (sums.Count == 0)
@@ -2300,7 +2300,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>
-    /// This repetition's placements for one entry's COLUMN operands (ISO §13.18.38.4 GR12 — "The STEP phrase, if
+    /// This repetition's placements for one entry's COLUMN operands (ISO §2023:13.18.38.4 GR12 — "The STEP phrase, if
     /// specified, defines the vertical or horizontal interval between successive occurrences of the associated
     /// report item after the first occurrence … each successive occurrence is printed at a horizontal distance
     /// integer-3 columns to the right of the preceding occurrence").
@@ -2342,7 +2342,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>
     /// ⛔ THE VERTICAL TWIN OF <see cref="RepeatedPlacements"/> — this repetition's placement for one LINE
-    /// clause operand (ISO §13.18.38.4 GR12c/GR12d: "If the entry contains a LINE clause, each successive
+    /// clause operand (ISO §2023:13.18.38.4 GR12c/GR12d: "If the entry contains a LINE clause, each successive
     /// occurrence is positioned integer-3 lines vertically beneath the preceding occurrence" / "If the entry is
     /// a group entry having subordinate entries with LINE clauses, report lines in successive occurrences are
     /// positioned integer-3 lines vertically beneath the line they occupy in the preceding occurrence").
@@ -2351,25 +2351,25 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// compile-time page line at all, so its FIRST occurrence seeds an engine-held anchor with the line it lands
     /// on and every later occurrence places at anchor + displacement — the anchor is that line's base position,
     /// never mutated, because GR12d measures from the PRECEDING OCCURRENCE'S line while LINE-COUNTER holds the
-    /// last line PRINTED (§13.18.35.4 GR1), and the lines between them belong to other occurrences.</para>
+    /// last line PRINTED (§2023:13.18.35.4 GR1), and the lines between them belong to other occurrences.</para>
     /// <para>With NO step phrase there is nothing to displace: GR12's closing sentence — "If no STEP phrase is
     /// specified, the vertical or horizontal interval between successive occurrences is defined by the relative
     /// LINE or COLUMN numbers … specified in the corresponding report section entries" — and the replayed
     /// relative line reproduces exactly that against LINE-COUNTER. That is also the whole of a multiple LINE
-    /// clause's §13.18.35.4 GR9 equivalence, whose "unequal vertical intervals" are its several operands.</para>
+    /// clause's §2023:13.18.35.4 GR9 equivalence, whose "unequal vertical intervals" are its several operands.</para>
     /// </summary>
-    /// <para>THE NEXT PAGE PHRASE (ISO §13.18.35.2 Format 1; kb/Work PB1001) is a FLAG on the group's first line,
+    /// <para>THE NEXT PAGE PHRASE (ISO §2023:13.18.35.2 Format 1; kb/Work PB1001) is a FLAG on the group's first line,
     /// never a kind: <c>integer-1 ON NEXT PAGE</c> is an absolute line and the bare <c>ON NEXT PAGE</c> operand a
     /// relative one, so every placement rule below and in the engine stays the phrase-less rule, and the phrase
-    /// adds exactly what §13.18.35.4 GR4a ("no page fit test takes place and the page fit is declared
+    /// adds exactly what §2023:13.18.35.4 GR4a ("no page fit test takes place and the page fit is declared
     /// unsuccessful") and GR5a ("the first line is printed beginning on a new page" — a report footing) say.
     /// <paramref name="groupFirstLine"/> is true only for the group's first report line — the only one SR7 lets
     /// carry the phrase — so a later occurrence of a repeated clause places as its phrase-less twin.</para>
     /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md, the LINE NEXT PAGE block): the bare operand writes no
-    /// integer. §13.18.35.4 GR4c's "relative … without the NEXT PAGE phrase" names it a relative clause, and its
+    /// integer. §2023:13.18.35.4 GR4c's "relative … without the NEXT PAGE phrase" names it a relative clause, and its
     /// integer-2 is never read where the phrase applies — GR5b3 places the first body group on a page at the
     /// FIRST DETAIL integer whatever integer-2 says, and a report footing on a page by itself starts at its
-    /// §13.18.57.4 GR7f upper limit, the HEADING integer. The only place an integer-2 IS read is a LATER
+    /// §2023:13.18.57.4 GR7f upper limit, the HEADING integer. The only place an integer-2 IS read is a LATER
     /// occurrence of a repeated bare clause, which advances one line (<see cref="BareNextPageInterval"/>).</para>
     private ReportLineModel RepeatedLine(
         Core.ReportLineOperandContext op, int operand, bool groupFirstLine, Core.ReportGroupEntryContext anchorKey,
@@ -2413,7 +2413,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private const int BareNextPageInterval = 1;
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a LINE clause with an ABSOLUTE operand
-    /// (ISO §13.18.38.3 SR25a/SR25b).</summary>
+    /// (ISO §2023:13.18.38.3 SR25a/SR25b).</summary>
     private static bool AbsoluteLineClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
@@ -2425,7 +2425,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a COLUMN clause with an ABSOLUTE operand
-    /// (ISO §13.18.38.3 SR25c/SR25d).</summary>
+    /// (ISO §2023:13.18.38.3 SR25c/SR25d).</summary>
     private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
@@ -2436,7 +2436,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when the entry at <paramref name="self"/> is a report GROUP — the entry after it is subordinate to it
-    /// (§13.15.4 GR1: "The report group is defined by this entry and all its subordinate entries"); otherwise it is
+    /// (§2023:13.15.4 GR1: "The report group is defined by this entry and all its subordinate entries"); otherwise it is
     /// ELEMENTARY. The ONE reader of that fact for the flat screens (<see cref="ScreenReportEntryClausePresence"/>,
     /// <see cref="DataBinder.ScreenReportSignClauses"/>), over one run of the flat entry array.</summary>
     internal static bool IsReportGroupEntry(Core.ReportGroupEntryContext[] entries, int self) =>
@@ -2445,8 +2445,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         && int.TryParse(entries[self + 1].levelNumber().GetText(), out int next) && next > level;
 
     /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
-    /// qualifier ISO §13.18.38.3 SR25d and §13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
-    /// preceding entry with a strictly lower level-number, taken innermost-first (the §13.15 level hierarchy).</summary>
+    /// qualifier ISO §2023:13.18.38.3 SR25d and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
+    /// preceding entry with a strictly lower level-number, taken innermost-first (the §2023:13.15 level hierarchy).</summary>
     private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)
     {
         if (!int.TryParse(entries[self].levelNumber().GetText(), out int level)) return false;
@@ -2461,10 +2461,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>The number of report LINES one occurrence of a vertically repeating entry occupies — the span
-    /// ISO §13.18.38.3 SR26 measures ("sufficient to prevent the overlapping of any line (in the case of
+    /// ISO §2023:13.18.38.3 SR26 measures ("sufficient to prevent the overlapping of any line (in the case of
     /// vertical repetition) … of any two consecutive repetitions"). All-relative lines span
     /// 1 + Σ integer-2 over every line but the first; all-absolute lines span max − min + 1. A MIXED entry
-    /// returns 0 (not measurable at bind): §13.18.35.3 SR6e already confines that shape to lines under
+    /// returns 0 (not measurable at bind): §2023:13.18.35.3 SR6e already confines that shape to lines under
     /// different PRESENT WHEN clauses, whose overlap the standard leaves to GR3's EC-REPORT-LINE-OVERLAP.</summary>
     private int ReportEntryLineSpan(Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd)
     {
@@ -2508,13 +2508,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return false;
     }
 
-    /// <summary>THE ONE TYPE READER: the report group type a TYPE clause names (ISO §13.18.57 Format 2 + the SR9
+    /// <summary>THE ONE TYPE READER: the report group type a TYPE clause names (ISO §2023:13.18.57 Format 2 + the SR9
     /// abbreviations). <see cref="BindGroupType"/> and the flat-entry screens that need the TYPE before the group is
     /// built (<see cref="ScreenReportLineClauses"/>) both read it here.</summary>
     private static ReportGroupKindModel GroupKindOf(Core.ReportGroupTypeContext t) => t.Start.Type switch
     {
         // Decided by the phrase's FIRST token (and the word after REPORT / PAGE / CONTROL): `PAGE` is also a
-        // terminal of a control heading's OR PAGE phrase (§13.18.57.2), so a test on `t.PAGE()` would classify
+        // terminal of a control heading's OR PAGE phrase (§2023:13.18.57.2), so a test on `t.PAGE()` would classify
         // `CONTROL HEADING CX OR PAGE` as a page heading.
         CobolLexer.RH => ReportGroupKindModel.ReportHeading,
         CobolLexer.PH => ReportGroupKindModel.PageHeading,
@@ -2535,12 +2535,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private static ReportGroupKindModel WrittenGroupKind(Core.ReportGroupEntryContext ge) =>
         WrittenGroupType(ge) is { } t ? GroupKindOf(t) : ReportGroupKindModel.Detail;
 
-    /// <summary>The TYPE phrase an entry writes (the last one when a repeated clause was written — §13.18.57 has no
+    /// <summary>The TYPE phrase an entry writes (the last one when a repeated clause was written — §2023:13.18.57 has no
     /// ellipsis and <see cref="UnrepeatedElements"/> diagnoses it elsewhere), or null.</summary>
     private static Core.ReportGroupTypeContext? WrittenGroupType(Core.ReportGroupEntryContext ge) =>
         ge.reportGroupClause().Select(c => c.reportTypeClause()?.reportGroupType()).LastOrDefault(t => t is not null);
 
-    /// <summary>Map a TYPE clause (ISO §13.18.57 Format 2 + the SR9 abbreviations) onto the group model,
+    /// <summary>Map a TYPE clause (ISO §2023:13.18.57 Format 2 + the SR9 abbreviations) onto the group model,
     /// capturing the CH/CF control operand.</summary>
     private void BindGroupType(Core.ReportGroupTypeContext t, ReportGroupModel group, ReportModel model)
     {
@@ -2554,37 +2554,37 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (name.dataReference() is { } dref)
                     group.ControlOperand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlTypeOperand,
                         $"RD '{model.Name}': TYPE {(group.Kind == ReportGroupKindModel.ControlHeading ? "CH" : "CF")} operand",
-                        "ISO §13.18.57.3 SR10");
+                        "ISO §2023:13.18.57.3 SR10");
             }
-            // Omitted operand: legal only with a one-operand CONTROL clause (§13.18.57.3 SR11) — resolved later.
-            // §13.18.57.2: the OR PAGE phrase belongs to the control HEADING (the grammar writes it nowhere else).
+            // Omitted operand: legal only with a one-operand CONTROL clause (§2023:13.18.57.3 SR11) — resolved later.
+            // §2023:13.18.57.2: the OR PAGE phrase belongs to the control HEADING (the grammar writes it nowhere else).
             group.OrPage = t.OR() is not null;
         }
-        // PH/PF and the OR PAGE phrase require a PAGE clause that defines the page limit (§13.18.57.3 SR12).
+        // PH/PF and the OR PAGE phrase require a PAGE clause that defines the page limit (§2023:13.18.57.3 SR12).
         if ((group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting || group.OrPage)
             && !model.Paged)
             Edition.Error(DiagnosticCatalog.ReportPageTypeRequiresPage, $"RD '{model.Name}': "
                 + (group.OrPage ? "the OR PAGE phrase of TYPE CONTROL HEADING" : $"TYPE {group.Kind}")
-                + " requires a PAGE clause that defines the page limit (ISO §13.18.57.3 SR12)");
+                + " requires a PAGE clause that defines the page limit (ISO §2023:13.18.57.3 SR12)");
     }
 
-    /// <summary>THE §13.15.4 GR3 REPETITION COUNT of one report group description entry: "An entry that contains
+    /// <summary>THE §2023:13.15.4 GR3 REPETITION COUNT of one report group description entry: "An entry that contains
     /// either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a repeating
     /// entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of
     /// operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of an entry that
     /// is not a repeating entry is defined to be 1."
     /// <para>ALL THREE of GR3's vehicles are LIVE (kb/Work PB565): the multiple COLUMN clause as an operand
-    /// list on one printable item, and the report-writer OCCURS clause (§13.18.38 Format 3) and the multiple
-    /// LINE clause (§13.18.35.4 GR9's "simple OCCURS clause") as the subtree replay, on either axis. An entry
+    /// list on one printable item, and the report-writer OCCURS clause (§2023:13.18.38 Format 3) and the multiple
+    /// LINE clause (§2023:13.18.35.4 GR9's "simple OCCURS clause") as the subtree replay, on either axis. An entry
     /// whose vehicle a syntax rule REFUSED never reaches the operand-count screen. An entry carrying both an
     /// OCCURS and a multiple COLUMN clause defines integer-2 × operands distinct report items — the replay
     /// produces exactly that — so GR3's "whichever is applicable" is their product here; an OCCURS and a
-    /// multiple LINE clause cannot share an entry (§13.18.35.3 SR10d).</para></summary>
+    /// multiple LINE clause cannot share an entry (§2023:13.18.35.3 SR10d).</para></summary>
     private static int EntryRepetitions(List<ReportColumnSpec> columns, ReportOccursSpec? occurs = null)
         => (columns.Count > 1 ? columns.Count : 1) * (occurs?.Max ?? 1);
 
-    /// <summary>The repetition counts governing an entry, INNERMOST FIRST: the entry's own (§13.15.4 GR3) then
-    /// each enclosing entry's, so §13.18.63.3 SR35 / §13.18.53.3 SR6 read "the repeating entry … multiplied by
+    /// <summary>The repetition counts governing an entry, INNERMOST FIRST: the entry's own (§2023:13.15.4 GR3) then
+    /// each enclosing entry's, so §2023:13.18.63.3 SR35 / §2023:13.18.53.3 SR6 read "the repeating entry … multiplied by
     /// the number of repetitions of any number of successive repeating entries at higher levels" straight off
     /// the scope stack.</summary>
     private static List<int> RepetitionChain(List<ReportColumnSpec> columns, ReportOccursSpec? occurs,
@@ -2595,8 +2595,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return reps;
     }
 
-    /// <summary>⛔ THE MULTI-OPERAND REPETITION RULE — ONE READER, TWO CLAUSES (kb/Work PB506). ISO §13.18.63.3
-    /// SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) are the same rule written twice: "If the … clause has more than
+    /// <summary>⛔ THE MULTI-OPERAND REPETITION RULE — ONE READER, TWO CLAUSES (kb/Work PB506). ISO §2023:13.18.63.3
+    /// SR35 (VALUE) and §2023:13.18.53.3 SR6 (SOURCE) are the same rule written twice: "If the … clause has more than
     /// one operand, the entry shall be a repeating entry or shall be subordinate to a repeating entry. The number
     /// of operands … shall be equal to the number of repetitions of the repeating entry or the same number
     /// multiplied by the number of repetitions of any number of successive repeating entries at higher levels
@@ -2616,7 +2616,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(code, $"{where}: a {clause} clause with more than one operand ({written} written) requires "
                 + $"the entry to be a repeating entry or to be subordinate to a repeating entry ({rule}); this entry "
                 + "has no repetition — a multiple COLUMN clause, a multiple LINE clause or an OCCURS clause "
-                + "(ISO §13.15.4 GR3)");
+                + "(ISO §2023:13.15.4 GR3)");
             return;
         }
         if (!admissible.Contains(written))
@@ -2626,8 +2626,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{string.Join(" / ", admissible.Distinct())} admissible");
     }
 
-    /// <summary>⛔ THE ONE CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883). §13.18.53.2 and
-    /// §13.18.54.2 both print `{ identifier-1 | arithmetic-expression-1 }` (SUM adds data-name-1, also an
+    /// <summary>⛔ THE ONE CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883). §2023:13.18.53.2 and
+    /// §2023:13.18.54.2 both print `{ identifier-1 | arithmetic-expression-1 }` (SUM adds data-name-1, also an
     /// identifier), and the grammar gives both clauses ONE production, so the form is decided HERE for both:
     /// returns the operand's bare <c>dataReference</c> when the whole expression is nothing but that reference —
     /// no operator, no parentheses, no function — else null, meaning arithmetic-expression-1. Writing the test
@@ -2647,7 +2647,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return un[0].primaryExpression()?.dataReference();
     }
 
-    /// <summary>True when the operand is written enclosed in parentheses — the shape §13.18.53.3 SR7 requires of
+    /// <summary>True when the operand is written enclosed in parentheses — the shape §2023:13.18.53.3 SR7 requires of
     /// every operand of a multi-operand SOURCE clause that contains an arithmetic-expression. The parenthesized
     /// form is <c>primaryExpression : LPAREN arithmeticExpression RPAREN</c> reached with no operator above it,
     /// so it is the same walk as <see cref="BareReferenceOf"/> ending one alternative over.</summary>
@@ -2660,15 +2660,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var pow = mul[0].powerExpression();
         if (pow.Length != 1 || pow[0].POWER().Length > 0) return false;
         var un = pow[0].unaryExpression();
-        // GROUPING-PAREN-ONLY: §13.18.53.3 SR7 asks whether the operand is "enclosed in parentheses", and the
+        // GROUPING-PAREN-ONLY: §2023:13.18.53.3 SR7 asks whether the operand is "enclosed in parentheses", and the
         // only paren that encloses an OPERAND is `primaryExpression : LPAREN arithmeticExpression RPAREN`. A
-        // FUNCTION argument list's paren (FNARG_LPAREN, §8.4.3.2.3 SR6) belongs to `functionCall`, a different
+        // FUNCTION argument list's paren (FNARG_LPAREN, §2023:8.4.3.2.3 SR6) belongs to `functionCall`, a different
         // alternative of the same rule, and does not enclose the operand — `SOURCES ARE FUNCTION MAX(A B) (C)`
         // leaves the first operand unparenthesized, which is exactly what SR7 refuses.
         return un.Length == 1 && un[0].primaryExpression()?.LPAREN() is not null;
     }
 
-    /// <summary>ISO §13.18.53.3 SR7 — "If the SOURCE clause has more than one operand of which at least one is an
+    /// <summary>ISO §2023:13.18.53.3 SR7 — "If the SOURCE clause has more than one operand of which at least one is an
     /// arithmetic-expression, each operand shall be enclosed in parentheses." ENFORCED, not assumed from the
     /// grammar's shape: operands are separated by nothing but a space, so without the parentheses the standard's
     /// own general format would not say where one operand ends. EVERY operand takes them, including the bare
@@ -2680,23 +2680,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var o in ops.Where(o => !IsParenthesized(o)))
             Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
                 + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
-                + $"shall be enclosed in parentheses (ISO §13.18.53.3 SR7); '{o.GetText()}' is not.");
+                + $"shall be enclosed in parentheses (ISO §2023:13.18.53.3 SR7); '{o.GetText()}' is not.");
     }
 
     /// <summary>⛔ THE ONE FORM CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883 × PB1316): the bare
     /// <c>dataReference</c> an operand IS when it is written as identifier-1 / data-name-1 — else null, meaning
     /// arithmetic-expression-1. <see cref="BareReferenceOf"/> is the SYNTACTIC walk; this adds the one semantic fact
-    /// the syntax cannot say: a bare word that names a CONSTANT is no identifier. §13.10.3 SR2 lets a constant-name
+    /// the syntax cannot say: a bare word that names a CONSTANT is no identifier. §2023:13.10.3 SR2 lets a constant-name
     /// "be used anywhere that a format specifies a literal of the class and category of constant-name-1", the
-    /// operand brace of §13.18.53.2 / §13.18.54.2 specifies an arithmetic-expression, and an arithmetic-expression's
+    /// operand brace of §2023:13.18.53.2 / §2023:13.18.54.2 specifies an arithmetic-expression, and an arithmetic-expression's
     /// operand may be a numeric literal — so `SOURCE KC` is arithmetic-expression-1 whose one operand is the constant
-    /// (SR3 then asks the entry for a numeric item, a non-numeric constant is §8.8.1.1's refusal), never an
+    /// (SR3 then asks the entry for a numeric item, a non-numeric constant is §2023:8.8.1.1's refusal), never an
     /// identifier that fails to resolve in storage. SOURCE and SUM both ask it here, so neither can drift.</summary>
     private Core.DataReferenceContext? IdentifierOperandOf(Core.ReportValueOperandContext op) =>
         BareReferenceOf(op) is { } dref && _d.Constants.ConstantOf(dref) is null ? dref : null;
 
-    /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes
-    /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §13.18.53.4 GR1's implicit MOVE sender; an
+    /// <summary>Bind ONE SOURCE clause operand (ISO §2023:13.18.53.2 — the clause writes
+    /// `{ identifier-1 | arithmetic-expression-1 } …`). identifier-1 is §2023:13.18.53.4 GR1's implicit MOVE sender; an
     /// arithmetic-expression-1 operand, an identifier under the clause's ROUNDED phrase (SR5) and a constant-name
     /// are <see cref="FieldComputeSource"/>, GR2's implicit COMPUTE. BOTH arms keep the operand as its parse tree
     /// and bind it in the PROCEDURE phase through the ONE host binder (the kb/Work PB482 argument: a subscript may
@@ -2705,18 +2705,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// report, a VARYING counter in scope — is bound by the machinery that already knows it.</summary>
     private ReportFieldSource BindSourceOperand(Core.ReportValueOperandContext op, Core.RoundedPhraseContext? rounded)
     {
-        // §13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
+        // §2023:13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
         // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
         if (IdentifierOperandOf(op) is not { } dref || rounded is not null)
             return new FieldComputeSource(op, DataBinder.WrittenText(op)) { Rounded = rounded };
         return new FieldReferenceSource(dref, DataBinder.WrittenText(op));
     }
 
-    /// <summary>⛔ ISO §13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of
+    /// <summary>⛔ ISO §2023:13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of
     /// digits, excluding insertion editing characters, in the PICTURE clause of the entry containing the SUM
     /// clause". It is the counter's CAPACITY: an addition past it is the GR3 size error, and a set size error
     /// indicator prints the item as spaces (GR4), so an undercount is a wrong answer on every report (kb/Work
-    /// PB1296). The count is per category, over the categories §13.18.54.3 SR2 admits (a receiving operand of a
+    /// PB1296). The count is per category, over the categories §2023:13.18.54.3 SR2 admits (a receiving operand of a
     /// numeric MOVE):
     /// <list type="bullet">
     /// <item>numeric — the '9' positions (<see cref="PicInfo.Digits"/>, the digits the item stores);</item>
@@ -2724,7 +2724,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// floating-insertion positions), not <see cref="PicInfo.Digits"/>, which counts only the '9's — PIC ZZ9 is a
     /// three-digit counter, and reading it as a one-digit one made every total past 9 print as spaces;</item>
     /// <item>alphanumeric / national, edited or not — each character position except an insertion editing
-    /// character ('B', '0', '/' — the simple insertion of §13.18.40.5 GR1): the MOVE of an unsigned integer into such an
+    /// character ('B', '0', '/' — the simple insertion of §2023:13.18.40.5 GR1): the MOVE of an unsigned integer into such an
     /// item places one digit per position, so X(4) holds a four-digit counter. The clamp this replaced read the
     /// category's zero '9' count as ONE digit, printing "4" for a total of 24 (or spaces once the size error
     /// indicator existed).</item>
@@ -2743,16 +2743,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// found again by every later one (kb/Work PB1271). Creating it RESERVES the family's counter-id block (the next
     /// <see cref="ReportSumFamily.Count"/> ids after the previous family's), builds the register the counter is as
     /// a data item (GR1), and publishes the counter's name (GR5).
-    /// <para><b>The extents</b> are §13.15.4 GR3's repetition vehicles, outermost first: one per enclosing
+    /// <para><b>The extents</b> are §2023:13.15.4 GR3's repetition vehicles, outermost first: one per enclosing
     /// repeating entry (<see cref="ReportGroupBuild.Repetitions"/> — an OCCURS clause, or a multiple LINE clause by
-    /// §13.18.35.4 GR9), then the entry's own multiple COLUMN clause by §13.18.14.4 GR12 ("functionally equivalent to
+    /// §2023:13.18.35.4 GR9), then the entry's own multiple COLUMN clause by §2023:13.18.14.4 GR12 ("functionally equivalent to
     /// a COLUMN clause with a single operand, together with a simple OCCURS clause whose integer is equal to the
-    /// number of operands"). §13.18.14.3 SR10 a) forbids an OCCURS clause in the same entry as a multiple COLUMN
+    /// number of operands"). §2023:13.18.14.3 SR10 a) forbids an OCCURS clause in the same entry as a multiple COLUMN
     /// clause, so the entry's own vehicle is at most one of the two.</para>
     /// <para><b>The register</b> is the counter's ONE description, shared by every occurrence: the GR1 profile
     /// (<see cref="PicInfo.SumCounterItem"/>), and for a repeating entry a synthetic ancestor per enclosing
     /// repetition with <see cref="DataItem.Occurs"/> = its extent, the register itself carrying the COLUMN extent —
-    /// so §8.4.2.3.3 SR3's count (<see cref="DataItem.SubscriptArity"/>) and order
+    /// so §2023:8.4.2.3.3 SR3's count (<see cref="DataItem.SubscriptArity"/>) and order
     /// (<see cref="DataItem.SubscriptLevels"/>) are the ordinary ones.</para>
     /// </summary>
     private ReportSumFamily SumFamilyOf(Core.ReportGroupEntryContext ge, string? entryName, string? picText,
@@ -2761,14 +2761,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (st.SumFamilies.TryGetValue(ge, out var known)) return known;
         // Scale-derivation analysis (GR1) — threads the edition + the program currency symbol like every other
-        // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
+        // Analyze site (a custom §2023:12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
             ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currencies: _d.State.Configuration.CurrencySigns,
                 decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma)
             : null;
-        ScreenReportEntryPicture(ge, pic, picText, sumWhere, summed: true);   // §13.18.40.3 SR14, §13.18.54.3 SR2
-        // ⛔ THE COUNTER'S SCALE IS THE ENTRY PICTURE'S RECEIVER SCALE, NOT `pic.Scale` (kb/Work PB1685). §13.18.54.4 GR1
+        ScreenReportEntryPicture(ge, pic, picText, sumWhere, summed: true);   // §2023:13.18.40.3 SR14, §2023:13.18.54.3 SR2
+        // ⛔ THE COUNTER'S SCALE IS THE ENTRY PICTURE'S RECEIVER SCALE, NOT `pic.Scale` (kb/Work PB1685). §2023:13.18.54.4 GR1
         // derives the counter's digits — integral AND fractional — from the entry's PICTURE excluding insertion editing
         // characters, and a NUMERIC-EDITED PicInfo carries Scale 0 (its fraction lives in the mask), so `PIC 99.99 SUM
         // WS-F` registered a scale-0 counter and truncated every addend to an integer (2.75 twice printed 04.00 for the
@@ -2800,7 +2800,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Repetitions = [.. st.Repetitions.Select(f => f.Spec)],
             Columns = Math.Max(1, columnCount),
             Scale = sumScale,
-            // §8.4.2.2.3 SR4 — the counter is subordinate to every level above its entry (PB1454).
+            // §2023:8.4.2.2.3 SR4 — the counter is subordinate to every level above its entry (PB1454).
             Qualification = [.. Enumerable.Reverse(chain).Select(f => f.Name)],
             // The counter AS A DATA ITEM (GR1) — the implicitly-defined register a procedure division reference
             // resolves to (GR5 names it, GR12 permits altering it). Off ByName/Roots, exactly like the OCCURS
@@ -2824,7 +2824,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         st.SumFamilies[ge] = family;
         model.SumFamilies.Add(family);
         model.EntryFamilies.Add(family);
-        // §13.18.54.4 GR5 — a data-name immediately after the level number names THE COUNTER. Publish it into
+        // §2023:13.18.54.4 GR5 — a data-name immediately after the level number names THE COUNTER. Publish it into
         // the source element's name space so GR12's permission to read or alter it can be exercised; the entry
         // keeps its own counter whether or not another entry spells its name the same way (GR1, kb/Work PB882).
         if (entryName is not null)
@@ -2837,7 +2837,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>The <see cref="ReportSourceFamily"/> of SOURCE / VALUE entry <paramref name="ge"/> — created at the
     /// entry's FIRST replay and found again by every later one (kb/Work PB1294), the twin of
     /// <see cref="SumFamilyOf"/>: the same repetition geometry, so a rolled total maps an addend's occurrences onto a
-    /// counter's by one arithmetic (§13.18.54.4 GR8).</summary>
+    /// counter's by one arithmetic (§2023:13.18.54.4 GR8).</summary>
     private ReportSourceFamily SourceFamilyOf(Core.ReportGroupEntryContext ge, string? entryName, int columnCount,
         List<(int Level, Core.ConditionContext? Cond, int Reps, string? Name)> chain,
         ReportModel model, ReportGroupBuild st)
@@ -2850,7 +2850,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Group = st.Group!,
             Repetitions = [.. st.Repetitions.Select(f => f.Spec)],
             Columns = Math.Max(1, columnCount),
-            // §8.4.2.2.3 SR4 — the entry is subordinate to every level above it (kb/Work PB1454).
+            // §2023:8.4.2.2.3 SR4 — the entry is subordinate to every level above it (kb/Work PB1454).
             Qualification = [.. Enumerable.Reverse(chain).Select(f => f.Name)],
         };
         st.SourceFamilies[ge] = family;
@@ -2860,9 +2860,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>Record the occurrences of a SOURCE / VALUE entry for THIS replay (kb/Work PB1294): <paramref name="placements"/>
     /// of them — one per COLUMN operand of a multiple COLUMN clause, else one — each taking operand
-    /// <c>(first ordinal + j) mod count</c> of <paramref name="operands"/> (§13.18.53.4 GR4 / §13.18.63.4 GR23:
+    /// <c>(first ordinal + j) mod count</c> of <paramref name="operands"/> (§2023:13.18.53.4 GR4 / §2023:13.18.63.4 GR23:
     /// "successive operands are assigned to successive repeating printable items … If no further operands remain,
-    /// assignment begins again from the first operand"), and each carrying the FULL presence chain §13.18.54.4 GR11
+    /// assignment begins again from the first operand"), and each carrying the FULL presence chain §2023:13.18.54.4 GR11
     /// asks of data-name-1 — the conditions of every enclosing entry and of its own, and this replay's OCCURS …
     /// DEPENDING tests — exactly as a SUM entry's counter carries them (GR10).</summary>
     private void RecordSourceOccurrences(ReportSourceFamily family, IReadOnlyList<ReportFieldSource> operands,
@@ -2894,7 +2894,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
     }
 
-    /// <summary>The VARYING counters in scope at entry <paramref name="ge"/> (§13.18.64.3 SR2): its own and every
+    /// <summary>The VARYING counters in scope at entry <paramref name="ge"/> (§2023:13.18.64.3 SR2): its own and every
     /// enclosing entry's, outermost first, each with the occurrence of its declaring entry the placement lies in
     /// (GR3). An enclosing entry's occurrence is its replay's ordinal; this entry's own, when it repeats through a
     /// multiple COLUMN clause as well, is counted per placement (the emitter adds the placement index), after the
@@ -2913,7 +2913,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return uses;
     }
 
-    /// <summary>The category of an UNPRINTABLE SOURCE entry's PICTURE — what §13.18.54.3 SR4's "numeric data item"
+    /// <summary>The category of an UNPRINTABLE SOURCE entry's PICTURE — what §2023:13.18.54.3 SR4's "numeric data item"
     /// asks of data-name-1 when no printable item was analysed for it (kb/Work PB1294). Null for an entry with no
     /// PICTURE. The analysis is the printable item's own, so an entry's PICTURE is judged by one analyzer; it is run
     /// ONLY for the unprintable entry, whose printable twin does not exist, so no diagnostic is raised twice.</summary>
@@ -2936,11 +2936,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>⛔ THE RULES THAT NEED A REPORT ENTRY'S ANALYSED PICTURE, asked once per written entry from every site
     /// that analyses one (the printable item, the SUM counter, the unprintable SOURCE entry):
     /// <list type="bullet">
-    /// <item>ISO §13.18.40.3 SR14 (kb/Work PB1687): §13.15.4 GR2 makes the PICTURE of a report group description entry
+    /// <item>ISO §2023:13.18.40.3 SR14 (kb/Work PB1687): §2023:13.15.4 GR2 makes the PICTURE of a report group description entry
     /// "the same clause" as a data description entry's, "obeying the syntax rules and general rules defined for" it,
     /// so the digit-position limit — 31, and COBOL-85's 18 — is asked through the data division's own
     /// <see cref="DataBinder.ScreenPictureDigitCapacity"/>.</item>
-    /// <item>ISO §13.18.54.3 SR2 (kb/Work PB1295), for an entry with a SUM clause (<paramref name="summed"/>): "The
+    /// <item>ISO §2023:13.18.54.3 SR2 (kb/Work PB1295), for an entry with a SUM clause (<paramref name="summed"/>): "The
     /// category of the subject of the entry shall be valid as the category of a receiving operand in a MOVE
     /// statement for a sending operand of the category numeric" — asked of the one MOVE validity chain
     /// (<see cref="MoveTable16.NumericSenderRefusal"/>).</item>
@@ -2953,24 +2953,24 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportSumEntryCategory, $"{where}: its PICTURE {picText} is of a category that cannot "
                 + $"receive a numeric sum, and the entry contains a SUM clause: {why}. The category of the subject of the entry "
                 + "shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the "
-                + "category numeric (ISO §13.18.54.3 SR2)");
+                + "category numeric (ISO §2023:13.18.54.3 SR2)");
     }
 
-    /// <summary>Bind ONE OCCURRENCE of an entry's SUM clause (ISO §13.18.54) into the <see cref="ReportSumModel"/>
+    /// <summary>Bind ONE OCCURRENCE of an entry's SUM clause (ISO §2023:13.18.54) into the <see cref="ReportSumModel"/>
     /// whose id is <paramref name="id"/> (<see cref="ReportSumFamily.IdAt"/>): the addend TERMS, their UPON
     /// operands, and the RESET operand. The counter's name, register and scale are the entry's
     /// (<paramref name="family"/>).
-    /// <para>⛔ IT TAKES EVERY <c>SUM …</c> GROUP OF THE CLAUSE, not one (kb/Work PB482). §13.18.54.3 SR1 — "The
+    /// <para>⛔ IT TAKES EVERY <c>SUM …</c> GROUP OF THE CLAUSE, not one (kb/Work PB482). §2023:13.18.54.3 SR1 — "The
     /// whole clause is referred to as a SUM clause even though the SUM keyword may appear more than once" — and
-    /// §13.18.54.4 GR1 establishes ONE counter per ENTRY, so the groups are terms of a single counter and each
+    /// §2023:13.18.54.4 GR1 establishes ONE counter per ENTRY, so the groups are terms of a single counter and each
     /// keeps its OWN UPON list (GR7c2 attaches the phrase to its group). The clause's one RESET phrase and one
-    /// rounded-phrase follow the groups (§13.18.54.2; kb/Work PB1295), and the grammar says so.</para></summary>
+    /// rounded-phrase follow the groups (§2023:13.18.54.2; kb/Work PB1295), and the grammar says so.</para></summary>
     private ReportSumModel BindSumClause(Core.ReportSumClauseContext clause, ReportSumFamily family,
         int id, string? entryName, ReportGroupModel group, ReportModel model, bool hasColumn)
     {
         var sum = new ReportSumModel
         {
-            // §13.18.54.4 GR1 — one counter per ENTRY OCCURRENCE: the identity is the occurrence's id within the
+            // §2023:13.18.54.4 GR1 — one counter per ENTRY OCCURRENCE: the identity is the occurrence's id within the
             // report description, and GR5's data-name rides on the family as the counter's NAME (kb/Work PB882).
             Id = id,
             Family = family,
@@ -2982,52 +2982,52 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             foreach (var op in sg.reportValueOperand())
                 term.Addends.Add(SumAddendRef(op, model));
             // UPON data-name-2 (SR7) — the WHOLE written reference: the one qualifier the rule allows is a
-            // report-name, and §8.4.3.3.3 SR5's NOTE bars a ref-mod wherever a general format writes
+            // report-name, and §2023:8.4.3.3.3 SR5's NOTE bars a ref-mod wherever a general format writes
             // data-name-n. Resolution waits for ResolveReports (a detail may be described after this entry).
             foreach (var up in sg.dataReference())
                 if (UponDetailRef(up, model) is { } det) term.Upon.Add(det);
             sum.Terms.Add(term);
         }
-        // §13.18.54.2 — the rounded-phrase sits OUTSIDE the repeated SUM … UPON group (PDF p487 rendered), so the
-        // clause has at most one. It governs §13.18.54.4 GR4's delivery of the counter to the printable item, which
+        // §2023:13.18.54.2 — the rounded-phrase sits OUTSIDE the repeated SUM … UPON group (PDF p487 rendered), so the
+        // clause has at most one. It governs §2023:13.18.54.4 GR4's delivery of the counter to the printable item, which
         // is why SR3 requires the COLUMN clause that defines that item (kb/Work PB852's sibling sweep).
         if (clause.roundedPhrase() is { } rnd)
         {
             if (!hasColumn)
                 Edition.Error(DiagnosticCatalog.ReportSumRoundedWithoutColumn, $"RD '{model.Name}' entry "
                     + $"'{entryName ?? "FILLER"}': the SUM clause writes a ROUNDED phrase, which is permitted "
-                    + "only if the COLUMN clause is specified for the subject of the entry (ISO §13.18.54.3 "
-                    + "SR3) — the phrase governs §13.18.54.4 GR4's transfer of the sum counter to the "
+                    + "only if the COLUMN clause is specified for the subject of the entry (ISO §2023:13.18.54.3 "
+                    + "SR3) — the phrase governs §2023:13.18.54.4 GR4's transfer of the sum counter to the "
                     + "printable item, and this entry defines none.");
             else
                 sum.Rounded = rnd;
         }
-        // §13.18.54.2 — the RESET phrase sits OUTSIDE the repeated SUM … UPON group, so the clause has at most one.
+        // §2023:13.18.54.2 — the RESET phrase sits OUTSIDE the repeated SUM … UPON group, so the clause has at most one.
         if (clause.reportSumReset() is { } reset)
         {
             if (reset.FINAL() is not null) sum.ResetFinal = true;
             else if (reset.dataReference() is { } rref)
                 sum.ResetOperand = ControlOperandRef(rref, DiagnosticCatalog.ReportResetNotControlOperand,
-                    $"RD '{model.Name}': SUM … RESET ON operand", "ISO §13.18.54.3 SR8");
+                    $"RD '{model.Name}': SUM … RESET ON operand", "ISO §2023:13.18.54.3 SR8");
         }
         model.Sums.Add(sum);   // in binding order; SealSumCounters puts the list in id order
         return sum;
     }
 
     /// <summary>⛔ THE ONE CAPTURE OF A SUM ADDEND (kb/Work PB482). An addend written as <c>identifier-1</c> is an
-    /// ORDINARY IDENTIFIER — §8.4.3.1.2 Format 2, <i>qualified-data-name-with-subscripts</i> — so the whole
+    /// ORDINARY IDENTIFIER — §2023:8.4.3.1.2 Format 2, <i>qualified-data-name-with-subscripts</i> — so the whole
     /// written reference is kept and the VALUE is bound in the procedure phase through the one expression binder.
     /// Only the shape a syntax rule forbids is screened here, lexically:
-    /// <para>A REFERENCE-MODIFIED addend is rejected. §13.18.54.3 SR5 requires identifier-1 to "specify a numeric
-    /// data item", and §8.4.3.3.4 GR6 c) makes the unique data item reference modification creates "class and
+    /// <para>A REFERENCE-MODIFIED addend is rejected. §2023:13.18.54.3 SR5 requires identifier-1 to "specify a numeric
+    /// data item", and §2023:8.4.3.3.4 GR6 c) makes the unique data item reference modification creates "class and
     /// category alphanumeric" unless the usage is national — never numeric — so no reference-modified spelling
     /// can satisfy SR5. It was being DROPPED silently: <c>SUM WS-TXT(1:2)</c> summed the whole item.</para>
-    /// <para>The SUBSCRIPT is NOT screened — it is the legal spelling this helper exists to carry (§8.4.2.3
+    /// <para>The SUBSCRIPT is NOT screened — it is the legal spelling this helper exists to carry (§2023:8.4.2.3
     /// subscripting an identifier), and it reaches the emitter as a bound expression.</para>
-    /// <para>⛔ THE THIRD ADDEND FORM (kb/Work PB883). §13.18.54.3 SR1 — "Each data-name-1, identifier-1 or
+    /// <para>⛔ THE THIRD ADDEND FORM (kb/Work PB883). §2023:13.18.54.3 SR1 — "Each data-name-1, identifier-1 or
     /// arithmetic-expression-1 is an addend" — and an EXPRESSION addend is not a reference at all: its rule is
     /// SR6 ("any identifiers it contains may reference entries in any section of the data division other than
-    /// the report section"), never SR4/SR5's, and §13.18.54.4 GR3 gives it the COMPUTE-with-ON-SIZE-ERROR
+    /// the report section"), never SR4/SR5's, and §2023:13.18.54.4 GR3 gives it the COMPUTE-with-ON-SIZE-ERROR
     /// accumulation in place of the ADD. It carries no base name to screen here; the whole tree goes to the ONE
     /// expression binder, and the SR6 screen runs at resolution where the report-section name set is known.</para></summary>
     private ReportSumAddend SumAddendRef(Core.ReportValueOperandContext op, ReportModel model)
@@ -3044,20 +3044,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (sfx.RefMods > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{written}' is reference-modified. "
-                + "The addend shall specify a numeric data item (ISO §13.18.54.3 SR5), and reference "
+                + "The addend shall specify a numeric data item (ISO §2023:13.18.54.3 SR5), and reference "
                 + "modification creates a data item of class and category alphanumeric unless the usage is "
-                + "national (§8.4.3.3.4 GR6 c), so a reference-modified addend is never numeric.");
+                + "national (§2023:8.4.3.3.4 GR6 c), so a reference-modified addend is never numeric.");
             addend.Rejected = true;
         }
         return addend;
     }
 
-    /// <summary>⛔ THE ONE CAPTURE OF AN <c>UPON data-name-2</c> OPERAND (kb/Work PB482). ISO §13.18.54.3 SR7:
+    /// <summary>⛔ THE ONE CAPTURE OF AN <c>UPON data-name-2</c> OPERAND (kb/Work PB482). ISO §2023:13.18.54.3 SR7:
     /// "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name." The operand is
     /// therefore a report-group reference exactly as <c>GENERATE data-name-1</c> writes one, and it resolves
     /// through the ONE funnel (<see cref="ReportGroupResolution"/>) in <see cref="ResolveReports"/>, once every
     /// group is described. Here only the SHAPE is screened — a data-name-n position admits no reference
-    /// modification (§8.4.3.3.3 SR5 NOTE) and no subscript (§8.4.2.3.3 SR2 permits one only for an item that has
+    /// modification (§2023:8.4.3.3.3 SR5 NOTE) and no subscript (§2023:8.4.2.3.3 SR2 permits one only for an item that has
     /// an OCCURS clause, which a report group never does), and SR7 allows at most ONE qualifier.
     /// <para>Before this, the operand was reduced to <c>up.cobolWord()?.GetText()</c> — the first word — so the
     /// report-name qualifier was dropped and nothing checked that the name was a detail at all: <c>UPON CFT</c>
@@ -3072,15 +3072,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' is "
                 + $"{(sfx.RefMods > 0 ? "reference-modified" : "subscripted")}. Data-name-2 shall be the name of "
-                + "a detail (ISO §13.18.54.3 SR7) — a report group is named, never indexed, and where a general "
-                + "format writes data-name-n reference modification is not permitted (§8.4.3.3.3 SR5 NOTE).");
+                + "a detail (ISO §2023:13.18.54.3 SR7) — a report group is named, never indexed, and where a general "
+                + "format writes data-name-n reference modification is not permitted (§2023:8.4.3.3.3 SR5 NOTE).");
             return null;
         }
         if (quals.Count > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' carries "
                 + $"{quals.Count} qualifiers; data-name-2 \"may be qualified only by a report-name\" (ISO "
-                + "§13.18.54.3 SR7), which is one qualifier (§8.4.2.2.2 Format 1).");
+                + "§2023:13.18.54.3 SR7), which is one qualifier (§2023:8.4.2.2.2 Format 1).");
             return null;
         }
         return new ReportDetailRef(name, quals.Count == 1 ? quals[0] : null);
@@ -3088,11 +3088,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>⛔ THE FD SIDE OF THE report-name ↔ REPORT-clause CORRESPONDENCE (kb/Work PB1285). The binding below walks
     /// the RDs and takes the first FD that names each, so the rules about the FDs' own REPORT clauses were never asked:
-    /// §13.18.46.3 SR1 — "Each report-name-1 shall be the subject of a report description entry in the report
-    /// section of the same source element" (a REPORT clause naming no RD), and §13.18.46.3 SR2 — "Each report-name-1
-    /// may appear in only one REPORT clause" (with §13.14.3 SR1, "one and only one REPORT clause specifying
+    /// §2023:13.18.46.3 SR1 — "Each report-name-1 shall be the subject of a report description entry in the report
+    /// section of the same source element" (a REPORT clause naming no RD), and §2023:13.18.46.3 SR2 — "Each report-name-1
+    /// may appear in only one REPORT clause" (with §2023:13.14.3 SR1, "one and only one REPORT clause specifying
     /// report-name-1": a name repeated inside one clause is the same violation). The RD named by NO clause is the
-    /// third arm of §13.14.3 SR1 and is reported where the file is resolved.</summary>
+    /// third arm of §2023:13.14.3 SR1 and is reported where the file is resolved.</summary>
     private void ScreenReportClauseNames()
     {
         var rdNames = new HashSet<string>(_scope.Declared.Select(r => r.Name), CobolNames.Comparer);
@@ -3104,20 +3104,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (!rdNames.Contains(name))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is not the subject of a report description entry in the report section: each "
-                        + "report-name-1 shall be (ISO §13.18.46.3 SR1)");
+                        + "report-name-1 shall be (ISO §2023:13.18.46.3 SR1)");
                 else if (firstClause.TryGetValue(name, out var first))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is already named by the REPORT clause of file '{first.CobolName}': each "
-                        + "report-name-1 may appear in only one REPORT clause (ISO §13.18.46.3 SR2; §13.14.3 SR1)");
+                        + "report-name-1 may appear in only one REPORT clause (ISO §2023:13.18.46.3 SR2; §2023:13.14.3 SR1)");
                 else
                     firstClause[name] = file;
             }
     }
 
-    /// <summary>ISO §13.18.12.3 SR3 — "If the CODE clause is specified for any report, it shall be specified for each
+    /// <summary>ISO §2023:13.18.12.3 SR3 — "If the CODE clause is specified for any report, it shall be specified for each
     /// report associated with the same report file." The code is what tells one report's records from another's on a
-    /// shared file (§13.18.12.1), so a file whose reports disagree about having one has records that cannot be told
-    /// apart. Asked of the reports each FD's REPORT clause names (§13.18.46), over what was WRITTEN.</summary>
+    /// shared file (§2023:13.18.12.1), so a file whose reports disagree about having one has records that cannot be told
+    /// apart. Asked of the reports each FD's REPORT clause names (§2023:13.18.46), over what was WRITTEN.</summary>
     private void ScreenReportCodeAgreement()
     {
         foreach (var file in _d.State.Files.Declared)
@@ -3132,14 +3132,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"{string.Join(", ", members.Where(r => r.CodeWritten).Select(r => $"'{r.Name}'"))} but not for "
                     + $"{string.Join(", ", members.Where(r => !r.CodeWritten).Select(r => $"'{r.Name}'"))}: if the CODE clause is "
                     + "specified for any report, it shall be specified for each report associated with the same report file "
-                    + "(ISO §13.18.12.3 SR3)");
+                    + "(ISO §2023:13.18.12.3 SR3)");
             }
         }
     }
 
     /// <summary>Post-build resolution for every report (the <c>ResolveFiles</c> pattern — runs after the storage
-    /// forest is complete): the owning FILE (§13.18.46), SOURCE / CONTROL / SUM-addend data items, CH/CF control
-    /// levels (§13.18.57.3 SR10/SR11), RESET levels, and the report's line width.</summary>
+    /// forest is complete): the owning FILE (§2023:13.18.46), SOURCE / CONTROL / SUM-addend data items, CH/CF control
+    /// levels (§2023:13.18.57.3 SR10/SR11), RESET levels, and the report's line width.</summary>
     internal void ResolveReports()
     {
         ScreenReportClauseNames();
@@ -3151,15 +3151,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // with no file and line. The report's own position is the floor; the loops below narrow it to the entry,
             // the printable item, the CODE clause or the SUM addend the rule is about.
             using var reportAt = Edition.At(model.At);
-            // The owning file: the FD whose REPORT(S) clause names this report (§13.14.3 SR1 — one and only one such
+            // The owning file: the FD whose REPORT(S) clause names this report (§2023:13.14.3 SR1 — one and only one such
             // clause; a name in none is reported here, a name in several by ScreenReportClauseNames). A report may
-            // share its file with others (§13.18.46.4 GR1 — each has its own engine over the one connector).
+            // share its file with others (§2023:13.18.46.4 GR1 — each has its own engine over the one connector).
             model.File = _d.State.Files.Declared.FirstOrDefault(f =>
                 f.ReportNames.Any(rn => CobolNames.Same(rn.Name, model.Name)));
             if (model.File is null)
                 Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"RD '{model.Name}' is not named in any file description "
                     + "entry's REPORT clause: there shall be one and only one REPORT clause specifying report-name-1 "
-                    + "(ISO §13.14.3 SR1)");
+                    + "(ISO §2023:13.14.3 SR1)");
 
             foreach (var ctl in model.Controls)
                 if (!ctl.IsFinal && ctl.Operand is { } op)
@@ -3167,28 +3167,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     ctl.Item = LookupQualified(op.Name, op.Qualifiers, $"RD '{model.Name}': CONTROL operand", out bool ctlAmbiguous);
                     if (ctl.Item is null && !ctlAmbiguous)
                     {
-                        // §13.18.16.3 SR2 — "Data-name-1 shall not be defined in the report section." The report
+                        // §2023:13.18.16.3 SR2 — "Data-name-1 shall not be defined in the report section." The report
                         // section's own names never enter ByName, so such an operand FAILS RESOLUTION: the right
                         // verdict under the wrong rule, and it would change meaning the day those names join
                         // ByName. This arm gives SR2 its own rejection, asked only AFTER resolution failed —
-                        // a name declared in ordinary storage TOO resolves there (§8.4.2.1) and is not an SR2
-                        // reference, which is the §13.15.3 SR16 scan's own reasoning.
+                        // a name declared in ordinary storage TOO resolves there (§2023:8.4.2.1) and is not an SR2
+                        // reference, which is the §2023:13.15.3 SR16 scan's own reasoning.
                         if (IsReportSectionOnlyName(op.Name))
                             Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{op}' names a "
                                 + "report section data item: data-name-1 shall not be defined in the report "
-                                + "section (ISO §13.18.16.3 SR2)");
+                                + "section (ISO §2023:13.18.16.3 SR2)");
                         else
                             Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
-                                + "resolve to a data item (ISO §8.4.2.1)");
+                                + "resolve to a data item (ISO §2023:8.4.2.1)");
                     }
                     else if (ctl.Item is { } ctlItem && ControlOperandShapeViolation(ctlItem) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
-                    // §8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
+                    // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
                     else if (op.RefModStart is not null && ctl.Item is not null
                              && RefModBinder.RefModExclusion(ctl.Item) is { } why)
                         Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted, $"RD '{model.Name}': CONTROL operand '{op}': reference "
-                            + $"modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
+                            + $"modification of {why} is not permitted (ISO §2023:8.4.3.3.3 SR1)");
                     // The literal BOUNDS are screened by the same one screen the procedure division uses (kb/Work
                     // PB1707 part 1): a CONTROL operand's positions are integer literals by SR4 and no statement
                     // exists here for an EC-BOUND-REF-MOD checking directive to govern, so a violation is the
@@ -3201,12 +3201,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             $"RD '{model.Name}': CONTROL operand '{op}': {outOfRange}");
                 }
 
-            ResolveReportCode(model);   // §13.18.12.3 SR2 / GR2 — the CODE clause's identifier and length
+            ResolveReportCode(model);   // §2023:13.18.12.3 SR2 / GR2 — the CODE clause's identifier and length
 
             var seenOccurs = new HashSet<ReportOccursSpec>(ReferenceEqualityComparer.Instance);
             foreach (var group in model.Groups)
             {
-                // CH/CF control level (§13.18.57.3 SR10/SR11): match the operand against the CONTROL hierarchy;
+                // CH/CF control level (§2023:13.18.57.3 SR10/SR11): match the operand against the CONTROL hierarchy;
                 // an omitted operand selects the sole control.
                 if (group.Kind is ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting)
                 {
@@ -3218,16 +3218,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (group.ControlLevel < 0)
                         Edition.Error(DiagnosticCatalog.ReportControlTypeOperand, $"RD '{model.Name}': the TYPE C{(group.Kind == ReportGroupKindModel.ControlHeading ? "H" : "F")} operand "
                             + $"{(group.ControlOperand is { } d ? $"'{d}' " : "")}shall be the same as one of the "
-                            + "operands of the CONTROL clause (ISO §13.18.57.3 SR10/SR11)");
+                            + "operands of the CONTROL clause (ISO §2023:13.18.57.3 SR10/SR11)");
                 }
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
                     {
                         using var fieldAt = Edition.At(f.Entry);   // the printable item's entry (kb/Work PB2034)
-                        foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§13.18.53.2)
+                        foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§2023:13.18.53.2)
                             switch (fs)
                             {
-                                // §13.18.53.3 SR4 — "If identifier-1 specifies a report section item, it shall be a report
+                                // §2023:13.18.53.3 SR4 — "If identifier-1 specifies a report section item, it shall be a report
                                 // counter identifier or a sum counter defined in the current report." identifier-1 is
                                 // screened by the SAME walk the expression arm is (below), and resolved by the same
                                 // host binder in the procedure phase (kb/Work PB1292).
@@ -3236,10 +3236,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                         + $"'{rs.Written}' names the report section item '{badRef}', which is neither a "
                                         + "report counter nor a sum counter of this report. If identifier-1 specifies a "
                                         + "report section item, it shall be a report counter identifier or a sum counter "
-                                        + "defined in the current report (ISO §13.18.53.3 SR4).");
+                                        + "defined in the current report (ISO §2023:13.18.53.3 SR4).");
                                     rs.Rejected = true;
                                     break;
-                                // §13.18.53.3 SR4, last sentence — "This same Syntax rule applies to any
+                                // §2023:13.18.53.3 SR4, last sentence — "This same Syntax rule applies to any
                                 // identifier appearing in arithmetic-expression-1": a report-section identifier
                                 // inside the expression shall be a report counter or a sum counter OF THIS
                                 // REPORT. The identifiers themselves are resolved by the ONE expression binder
@@ -3250,20 +3250,20 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                         + "is neither a report counter nor a sum counter of this report. An "
                                         + "identifier of a SOURCE clause — including any identifier inside "
                                         + "arithmetic-expression-1 — may name a report section item only in those "
-                                        + "two shapes (ISO §13.18.53.3 SR4).");
+                                        + "two shapes (ISO §2023:13.18.53.3 SR4).");
                                     cs.Rejected = true;
                                     break;
                             }
-                        // OCCURS … DEPENDING ON data-name-1 (§13.18.38 Format 3): resolved on the SOURCE operand's
+                        // OCCURS … DEPENDING ON data-name-1 (§2023:13.18.38 Format 3): resolved on the SOURCE operand's
                         // pattern, ONCE per repeating entry (every repetition's guard shares its one spec).
                         foreach (var g in f.RepetitionGuards)
                             ResolveReportOccursDepending(g.Spec, model, seenOccurs);
                     }
             }
 
-            // §13.18.35.3 SR6 — the line set of each group, asked once every group's control level is resolved (the
-            // §13.18.57.4 GR7 d) limits of a body group read the OR PAGE control headings by level).
-            ScreenReportGroupCensus(model);   // §13.18.57.3 SR13–SR15, over the resolved control levels
+            // §2023:13.18.35.3 SR6 — the line set of each group, asked once every group's control level is resolved (the
+            // §2023:13.18.57.4 GR7 d) limits of a body group read the OR PAGE control headings by level).
+            ScreenReportGroupCensus(model);   // §2023:13.18.57.3 SR13–SR15, over the resolved control levels
             ScreenReportGroupLines(model);
 
             foreach (var sum in model.Sums)
@@ -3273,7 +3273,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     foreach (var addend in term.Addends) ResolveSumAddend(addend, term, sum, model);
                     foreach (var det in term.Upon) ResolveUponDetail(det, model);
                 }
-                // A SUM entry with no printable item still carries its occurrence's DEPENDING tests (§13.18.54.4
+                // A SUM entry with no printable item still carries its occurrence's DEPENDING tests (§2023:13.18.54.4
                 // GR10 — the reset of an absent occurrence is suppressed), so its specs resolve here too; the
                 // seen-set keeps it once per repeating entry.
                 foreach (var g in sum.RepetitionGuards)
@@ -3284,30 +3284,30 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     sum.ResetLevel = ControlLevelOf(model, rn);
                 if ((sum.ResetFinal || sum.ResetOperand is not null) && sum.ResetLevel < 0)
                     Edition.Error(DiagnosticCatalog.ReportResetNotControlOperand, $"RD '{model.Name}': RESET ON '{sum.ResetOperand?.ToString() ?? "FINAL"}' is "
-                        + "not an operand of the CONTROL clause (ISO §13.18.54.3 SR8)");
+                        + "not an operand of the CONTROL clause (ISO §2023:13.18.54.3 SR8)");
             }
 
-            // PRESENT WHEN SR16 (§13.15.3): condition-1 shall not reference a sum counter, LINE-COUNTER,
+            // PRESENT WHEN SR16 (§2023:13.15.3): condition-1 shall not reference a sum counter, LINE-COUNTER,
             // PAGE-COUNTER, or another report section data item. Scanned over each DISTINCT captured condition
             // (an entry's condition appears in every subordinate chain) against this RD's report-section names.
             CheckConditionOperands(model);
 
-            // §8.4.2.3.3 SR8 — no sum counter, LINE-COUNTER or PAGE-COUNTER as a report section subscript, asked once
+            // §2023:8.4.2.3.3 SR8 — no sum counter, LINE-COUNTER or PAGE-COUNTER as a report section subscript, asked once
             // every report is described (a sum counter may belong to a later report description).
             ScreenReportSubscripts(model);
 
-            // VARYING SR2 (§13.18.64.3): data-name-1 shall not be defined elsewhere in the source element — the arm over
+            // VARYING SR2 (§2023:13.18.64.3): data-name-1 shall not be defined elsewhere in the source element — the arm over
             // what ELSE defines the name (the two over other VARYING clauses are ScreenReportVaryingClauses'). A data
             // item or constant is in ByName; a report group entry, printable item or sum counter is a report section
             // name of some report of the source element, all of which are described by now.
             foreach (var name in model.VaryingNames)
                 if (_d.State.Forest.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
-                        + "data-name shall not be defined elsewhere in the source element (ISO §13.18.64.3 SR2)");
+                        + "data-name shall not be defined elsewhere in the source element (ISO §2023:13.18.64.3 SR2)");
 
             // Line width: the FD's fixed RECORD CONTAINS, else the widest NOMINAL field extent — absolute
             // operands at column + width − 1; relative (PLUS) operands walked against the line's horizontal
-            // counter with every item present (§13.18.14.4 GR7–GR9; presentation-time absence only SHRINKS the
+            // counter with every item present (§2023:13.18.14.4 GR7–GR9; presentation-time absence only SHRINKS the
             // occupied extent, so the all-present walk is the width bound).
             int widest = 1;
             var arrangementReported = new HashSet<(Core.ReportGroupEntryContext?, Core.ReportGroupEntryContext?, int)>();
@@ -3324,15 +3324,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             Edition.Error(DiagnosticCatalog.ReportColumnLeftOfLine, $"RD '{model.Name}' entry "
                                 + $"'{p.Field.PrintItem.CobolName ?? "FILLER"}': COLUMN {p.Spec.Alignment.ToString().ToUpperInvariant()} "
                                 + $"{p.Spec.Value} with a printable-size of {p.Size} puts the item's leftmost column at {p.Left}, "
-                                + "before column 1 (ISO §13.18.14.4 GR6 c)/d))");
+                                + "before column 1 (ISO §2023:13.18.14.4 GR6 c)/d))");
                         }
                         widest = Math.Max(widest, p.Right);
                     }
                     ScreenReportColumnArrangement(model, ln, arrangementReported);
                 }
-            // §13.18.12.4 GR2 — the CODE characters "are not included in the descriptions of the lines in the report,
+            // §2023:13.18.12.4 GR2 — the CODE characters "are not included in the descriptions of the lines in the report,
             // but are included in the logical record size": the record is the code PLUS the line. The record's size is
-            // the maximum the RECORD clause establishes (§14.9.30.4 GR6) in ANY of its three formats (§13.18.43.4 GR6
+            // the maximum the RECORD clause establishes (§2023:14.9.30.4 GR6) in ANY of its three formats (§2023:13.18.43.4 GR6
             // integer-1, GR7 integer-3, GR18 integer-5; kb/Work PB2519), the one reading FileModel.RecordClause gives
             // every consumer.
             // A column past it is cut from the record (the Annex A.1 159) latitude, docs/CONFORMANCE.md DOC-A.1-159) —
@@ -3350,15 +3350,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private readonly record struct NominalPlacement(
         ReportFieldModel Field, int Operand, ReportColumnSpec Spec, int Size, int Left)
     {
-        /// <summary>The rightmost column — the value that becomes the horizontal counter (§13.18.14.4 GR9).</summary>
+        /// <summary>The rightmost column — the value that becomes the horizontal counter (§2023:13.18.14.4 GR9).</summary>
         public int Right => Left + Size - 1;
     }
 
-    /// <summary>⛔ THE ONE NOMINAL HORIZONTAL WALK OF A REPORT LINE (ISO §13.18.14.4 GR6–GR9), read by the line-width
+    /// <summary>⛔ THE ONE NOMINAL HORIZONTAL WALK OF A REPORT LINE (ISO §2023:13.18.14.4 GR6–GR9), read by the line-width
     /// computation and by <see cref="ScreenReportColumnArrangement"/>, so the two cannot place an item in different
     /// columns: absolute operands at the leftmost column <see cref="ReportColumnSpec.AbsoluteLeftmost"/> gives,
     /// relative (PLUS) operands against the line's horizontal counter, a step anchor's later repetitions at the
-    /// anchor plus their displacement (§13.18.38.4 GR12). Every field of <paramref name="ln"/> is present unless
+    /// anchor plus their displacement (§2023:13.18.38.4 GR12). Every field of <paramref name="ln"/> is present unless
     /// <paramref name="included"/> says otherwise — presentation-time absence only shrinks what is occupied, so the
     /// all-present walk is the bound, and the walk over the unconditional fields alone is the floor.</summary>
     private static List<NominalPlacement> NominalPlacements(ReportLineModel ln, Func<ReportFieldModel, bool>? included = null)
@@ -3369,7 +3369,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var f in ln.Fields)
         {
             if (included is not null && !included(f)) continue;
-            int size = f.PrintItem.DisplayTextWidth;   // the printable-size (§13.18.14.4 GR3)
+            int size = f.PrintItem.DisplayTextWidth;   // the printable-size (§2023:13.18.14.4 GR3)
             for (int op = 0; op < f.Columns.Count; op++)
             {
                 var spec = f.Columns[op];
@@ -3389,8 +3389,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>The PRESENT WHEN clauses a printable item is subject to BELOW its report line — the line's own chain
-    /// gates every item on it alike and so tells two of them apart never (§13.18.41.4 GR2b). A GROUP INDICATE clause
-    /// "has the same effect as a PRESENT WHEN clause" (§13.18.28.4 GR1): its entry stands as that clause.</summary>
+    /// gates every item on it alike and so tells two of them apart never (§2023:13.18.41.4 GR2b). A GROUP INDICATE clause
+    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1): its entry stands as that clause.</summary>
     private static List<object> PresentWhenClausesOf(ReportFieldModel f)
     {
         var clauses = new List<object>(f.PresentWhenCtxs);
@@ -3398,14 +3398,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return clauses;
     }
 
-    /// <summary>"Each subject to a different PRESENT WHEN clause" (§13.18.14.3 SR7, SR8 a) and §13.18.35.3 SR6 a)–e)):
+    /// <summary>"Each subject to a different PRESENT WHEN clause" (§2023:13.18.14.3 SR7, SR8 a) and §2023:13.18.35.3 SR6 a)–e)):
     /// each of the two carries a clause the other does not. Two items under the very same clause — or one whose
     /// clauses the other also has — are present together, which is what the rule exists to refuse.</summary>
     private static bool DifferentPresentWhen(IReadOnlyList<object> a, IReadOnlyList<object> b) =>
         a.Any(x => !b.Contains(x)) && b.Any(x => !a.Contains(x));
 
-    /// <summary>"Unless each of them is subject to a different PRESENT WHEN clause" (§13.18.14.3 SR8 c),
-    /// §13.18.35.3 SR6 d)): every item carries a clause and every pair differs (<see cref="DifferentPresentWhen"/>).
+    /// <summary>"Unless each of them is subject to a different PRESENT WHEN clause" (§2023:13.18.14.3 SR8 c),
+    /// §2023:13.18.35.3 SR6 d)): every item carries a clause and every pair differs (<see cref="DifferentPresentWhen"/>).
     /// An item subject to no clause is never excused, so one such item makes the answer no.</summary>
     private static bool EachDifferentPresentWhen(IReadOnlyList<IReadOnlyList<object>> clauses)
     {
@@ -3418,7 +3418,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return true;
     }
 
-    /// <summary>⛔ THE PRINTABLE ITEMS OF ONE REPORT LINE, AS A SET (ISO §13.18.14.3 SR7, SR8; kb/Work PB1222), asked
+    /// <summary>⛔ THE PRINTABLE ITEMS OF ONE REPORT LINE, AS A SET (ISO §2023:13.18.14.3 SR7, SR8; kb/Work PB1222), asked
     /// of each line after the whole source element is described, because the printable-size is a picture's. The
     /// walk is the NOMINAL one (<see cref="NominalPlacements"/>), so a rule is judged on what the entries as
     /// written place, never on one presentation's presence pattern:
@@ -3427,15 +3427,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// not in increasing numerical order shall be subject to a different PRESENT WHEN clause."</item>
     /// <item>SR8 a) — "If any two or more items overlap each other, they shall each be subject to a different
     /// PRESENT WHEN clause." Two placements of ONE entry are never compared (the repetitions of an OCCURS entry belong to
-    /// the STEP rule of §13.18.38.3 SR26, the out-of-order operands of a multiple COLUMN clause to the SR10 b) screen of
-    /// §13.18.14.3); the operands of one multiple COLUMN clause that overlap are, having one clause between them.</item>
+    /// the STEP rule of §2023:13.18.38.3 SR26, the out-of-order operands of a multiple COLUMN clause to the SR10 b) screen of
+    /// §2023:13.18.14.3); the operands of one multiple COLUMN clause that overlap are, having one clause between them.</item>
     /// <item>SR8 b) — "The rightmost column positions of all absolute items shall not exceed the page width."</item>
     /// <item>SR8 c) — "If the report line ends in a set of relative printable items or consists only of such, they shall
     /// not cause the page width to be exceeded unless each of them is subject to a different PRESENT WHEN clause, in
     /// which case this rule applies only to the largest of them." The tail is the placements after the last absolute
     /// one, judged whole (every item present) unless <see cref="EachDifferentPresentWhen"/>, and then by the one that
     /// ends furthest right when it alone of the tail is present. Items under different clauses may all be present at
-    /// run time, which is what the run-time EC-REPORT-PAGE-WIDTH (§13.18.14.4 GR5) and EC-REPORT-COLUMN-OVERLAP (GR4)
+    /// run time, which is what the run-time EC-REPORT-PAGE-WIDTH (§2023:13.18.14.4 GR5) and EC-REPORT-COLUMN-OVERLAP (GR4)
     /// are left to report.</item>
     /// </list>
     /// Reported once per pair of WRITTEN entries (<paramref name="reported"/>), however many lines and repetitions
@@ -3462,9 +3462,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (pj.Spec.Kind == ReportColumnKindModel.Absolute && pj.Right > model.PageWidth)
                 Report(pj, null, Sr8b, $"the absolute item '{EntryName(pj.Field)}' at COLUMN {pj.Spec.Value} ends in column "
                     + $"{pj.Right}, past the page width {model.PageWidth}"
-                    + (model.PageWidthWritten ? "" : " (assumed 999, §13.18.39.4 GR5)")
+                    + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                     + "; the rightmost column positions of all absolute items shall not exceed the page width "
-                    + "(ISO §13.18.14.3 SR8 b))");
+                    + "(ISO §2023:13.18.14.3 SR8 b))");
             for (int i = 0; i < j; i++)
             {
                 var pi = all[i];
@@ -3483,14 +3483,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 {
                     Report(pj, pi, Sr7, $"the absolute items '{EntryName(pi.Field)}' (COLUMN {pi.Spec.Value}) and "
                         + $"'{EntryName(pj.Field)}' (COLUMN {pj.Spec.Value}) are not in increasing numerical order and are not "
-                        + "each subject to a different PRESENT WHEN clause (ISO §13.18.14.3 SR7)");
+                        + "each subject to a different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR7)");
                     continue;
                 }
                 // SR8 a)
                 if (pj.Left <= pi.Right && pi.Left <= pj.Right)
                     Report(pj, pi, Sr8a, $"the items '{EntryName(pi.Field)}' (columns {pi.Left}-{pi.Right}) and "
                         + $"'{EntryName(pj.Field)}' (columns {pj.Left}-{pj.Right}) overlap and are not each subject to a "
-                        + "different PRESENT WHEN clause (ISO §13.18.14.3 SR8 a))");
+                        + "different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR8 a))");
             }
         }
 
@@ -3509,21 +3509,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             var widest = tail.OrderByDescending(p => p.Right).First();
             Report(widest, null, Sr8c, $"the report line ends in relative items, and they reach column {extent}, past the page "
-                + $"width {model.PageWidth}" + (model.PageWidthWritten ? "" : " (assumed 999, §13.18.39.4 GR5)")
+                + $"width {model.PageWidth}" + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                 + " although they are not each subject to a different PRESENT WHEN clause, or the largest of those that "
                 + "are is itself too wide; relative printable items at the end of a report line shall not cause the "
-                + "page width to be exceeded (ISO §13.18.14.3 SR8 c))");
+                + "page width to be exceeded (ISO §2023:13.18.14.3 SR8 c))");
         }
     }
 
-    /// <summary>⛔ THE ONE ARM CHOICE FOR A SUM ADDEND (kb/Work PB482). ISO §13.18.54.3 SR1 admits three addend
+    /// <summary>⛔ THE ONE ARM CHOICE FOR A SUM ADDEND (kb/Work PB482). ISO §2023:13.18.54.3 SR1 admits three addend
     /// forms and the arms differ by WHERE the operand is defined, so the choice is made once, here, after the
     /// whole storage forest and every report description exist:
     /// <list type="number">
     /// <item>SR4's <c>data-name-1</c> — "the name of a numeric data item IN THE REPORT SECTION" (a rolled total,
-    /// §13.18.54.4 GR6), resolved by <see cref="ResolveRolledAddend"/>.</item>
+    /// §2023:13.18.54.4 GR6), resolved by <see cref="ResolveRolledAddend"/>.</item>
     /// <item>SR4 g)'s cross-report form — the operand qualified by a REPORT-name: the same arm, the report-name being
-    /// the outermost qualifier of the entry (§8.4.2.2.2 Format 1).</item>
+    /// the outermost qualifier of the entry (§2023:8.4.2.2.2 Format 1).</item>
     /// <item>SR5's <c>identifier-1</c> — "it shall specify a numeric data item NOT defined in the report
     /// section". Both halves of that sentence are screened: resolution against ordinary storage (report-section
     /// names never enter <see cref="ForestSlice.ByName"/>) and the CATEGORY, which nothing checked before —
@@ -3536,7 +3536,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (addend.Rejected) return;
         using var addendAt = Edition.At(addend.Ctx);   // every rule below is about this addend as written (kb/Work PB2034)
         addend.Rejected = true;   // cleared only by the one success path at the end
-        // ⛔ AN ARITHMETIC-EXPRESSION ADDEND TAKES SR6, NOT SR4/SR5 (ISO §13.18.54.3 SR6 — "If the addend is
+        // ⛔ AN ARITHMETIC-EXPRESSION ADDEND TAKES SR6, NOT SR4/SR5 (ISO §2023:13.18.54.3 SR6 — "If the addend is
         // arithmetic-expression-1, any identifiers it contains may reference entries in any section of the data
         // division other than the report section"; kb/Work PB883). There is no base name to look up: the whole
         // tree binds through the ONE expression binder in the procedure phase, and the only DATA-phase question
@@ -3548,13 +3548,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Edition.Error(DiagnosticCatalog.ReportExpressionOperandSection, $"RD '{model.Name}': SUM addend "
                     + $"'{addend.Written}' contains '{rsName}', which names a report section item. If the addend "
                     + "is arithmetic-expression-1, any identifiers it contains may reference entries in any "
-                    + "section of the data division OTHER THAN the report section (ISO §13.18.54.3 SR6).");
+                    + "section of the data division OTHER THAN the report section (ISO §2023:13.18.54.3 SR6).");
                 return;
             }
             addend.Rejected = false;
             return;
         }
-        // §8.4.3.14.3 SR1 — a bare LINAGE-COUNTER addend names no data item, so the lookup below would answer "does
+        // §2023:8.4.3.14.3 SR1 — a bare LINAGE-COUNTER addend names no data item, so the lookup below would answer "does
         // not resolve" under SR5, a sentence about a different rule (kb/Work PB1431). The expression forms bind through
         // ExpressionBinder.LinageFileOf, which asks the same rule by binding context.
         if (addend.Reference?.LINAGE_COUNTER() is not null)
@@ -3563,9 +3563,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return;
         }
         // SR4's data-name-1 — a report-section item: a name ALSO declared in ordinary storage resolves THERE
-        // (§8.4.2.1) and is an SR5 identifier-1 (`IsRolledAddendName`).
+        // (§2023:8.4.2.1) and is an SR5 identifier-1 (`IsRolledAddendName`).
         // SR4 g) — "If data-name-1 specifies an entry in a different report description". The qualifier that
-        // says so is a REPORT-name (§8.4.2.2.2 Format 1), and `dataReference` swallows it as an ordinary IN/OF
+        // says so is a REPORT-name (§2023:8.4.2.2.2 Format 1), and `dataReference` swallows it as an ordinary IN/OF
         // qualification, so the spelling is recognised HERE rather than at `sumOperand`'s own `OF reportName`
         // alternative, which the qualification tail makes unreachable — it is the same arm, the report-name being
         // the outermost qualifier of the entry.
@@ -3578,19 +3578,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (sumAmbiguous) return;
             Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{addend.Written}' does not resolve "
-                + "to a data item outside the report section (ISO §13.18.54.3 SR5)");
+                + "to a data item outside the report section (ISO §2023:13.18.54.3 SR5)");
             return;
         }
         // SR5's category half. A group item and every non-numeric category fail it — the addend is added into
-        // the counter by §13.18.54.4 GR3's ADD, which has no meaning for a non-numeric sending operand.
-        // A USAGE INDEX item is class INDEX, never numeric (§8.5.2.1 Table 2), but its storage PicInfo carries category
+        // the counter by §2023:13.18.54.4 GR3's ADD, which has no meaning for a non-numeric sending operand.
+        // A USAGE INDEX item is class INDEX, never numeric (§2023:8.5.2.1 Table 2), but its storage PicInfo carries category
         // Numeric — the R27/PB640 trap the INSPECT tally counter (PB1127) had (kb/Work PB1830).
         if (item.Pic is not { Category: PicCategory.Numeric, Usage: not Usage.Index })
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{addend.Written}' is "
                 + $"{(item.IsGroup ? "a group item" : $"of category {item.Pic?.Category.ToString().ToLowerInvariant() ?? "unknown"}")}; "
-                + "the addend shall specify a numeric data item (ISO §13.18.54.3 SR5) — its content is added "
-                + "into the sum counter by an implicit ADD (§13.18.54.4 GR3).");
+                + "the addend shall specify a numeric data item (ISO §2023:13.18.54.3 SR5) — its content is added "
+                + "into the sum counter by an implicit ADD (§2023:13.18.54.4 GR3).");
             return;
         }
         addend.Item = item;
@@ -3598,8 +3598,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>Is this addend SR4's <c>data-name-1</c> (a report section item) rather than SR5's identifier-1? A name
-    /// declared in the report section AND NOWHERE ELSE is (<see cref="IsReportSectionOnlyName"/> — the set §13.18.16.3
-    /// SR2 and §13.15.3 SR16 use: a name ALSO declared in ordinary storage resolves THERE, §8.4.2.1); so is one a
+    /// declared in the report section AND NOWHERE ELSE is (<see cref="IsReportSectionOnlyName"/> — the set §2023:13.18.16.3
+    /// SR2 and §2023:13.15.3 SR16 use: a name ALSO declared in ordinary storage resolves THERE, §2023:8.4.2.1); so is one a
     /// REPORT-name qualifier points at an entry of (SR4 g) — the report-name says which report description's entry
     /// is meant, whatever else the word names).</summary>
     private bool IsRolledAddendName(ReportSumAddend addend) =>
@@ -3613,8 +3613,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private readonly Dictionary<Core.ReportValueOperandContext, ReportEntryFamily?> _rolledAddendEntries =
         new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>⛔ SR4's DATA-NAME-1 — A ROLLED TOTAL (ISO §13.18.54.3 SR4; kb/Work PB1294). The addend names an entry
-    /// of the report section whose VALUE §13.18.54.4 GR6 adds: the sum counter of an entry that contains a SUM clause,
+    /// <summary>⛔ SR4's DATA-NAME-1 — A ROLLED TOTAL (ISO §2023:13.18.54.3 SR4; kb/Work PB1294). The addend names an entry
+    /// of the report section whose VALUE §2023:13.18.54.4 GR6 adds: the sum counter of an entry that contains a SUM clause,
     /// else "the operand of the SOURCE or VALUE clause". Resolved once per written addend against every entry of every
     /// report description of the source element (a report-name qualifier picks the description, SR4 g)), then screened
     /// by the rules that govern it —
@@ -3625,7 +3625,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <item>SR4 f): the combination of report group TYPEs, within one report description (g lifts it across two);</item>
     /// <item>SR4 e): the chain of references terminates — <see cref="ScreenRolledChains"/>, once every report is resolved.</item>
     /// </list>
-    /// and finally mapped per COUNTER OCCURRENCE (§13.18.54.4 GR8): this addend object belongs to ONE occurrence of the
+    /// and finally mapped per COUNTER OCCURRENCE (§2023:13.18.54.4 GR8): this addend object belongs to ONE occurrence of the
     /// counter, and takes every occurrence of data-name-1 that corresponds to it. The additions themselves are
     /// registered with the engine whose group contains data-name-1 (GR7 a)/b)), which is why the addend carries
     /// OCCURRENCES and not a value.</summary>
@@ -3662,7 +3662,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         string where = $"RD '{model.Name}': SUM addend '{addend.Written}'";
         // The entry the word names — the qualifiers are consumed against each entry's own hierarchy, the REPORT-name
-        // last (§8.4.2.2.3 SR4, §8.4.2.2.2 Format 1), exactly as a sum counter's reference is (kb/Work PB1454).
+        // last (§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1), exactly as a sum counter's reference is (kb/Work PB1454).
         var candidates = _scope.Declared.SelectMany(r => r.EntryFamilies)
             .Where(f => CobolNames.Same(f.Name, addend.Name)
                 && DataBinder.QualifierWalk(f.Qualification, addend.Qualifiers,
@@ -3671,8 +3671,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (candidates.Count > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} is ambiguous — {candidates.Count} entries of the report "
-                + "section carry that name. A reference shall uniquely identify one resource (ISO §8.4.2.2.1); qualify it "
-                + "by report group entry or report-name (§8.4.2.2.3 SR4, §8.4.2.2.2 Format 1).");
+                + "section carry that name. A reference shall uniquely identify one resource (ISO §2023:8.4.2.2.1); qualify it "
+                + "by report group entry or report-name (§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1).");
             return null;
         }
         if (candidates.Count == 0)
@@ -3682,19 +3682,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // outside the one funnel, `ReportGroupResolution` — kb/Work PB365.)
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names no entry of the report section that carries "
                 + "a value (a report group is not an elementary item, and an entry with no SUM, SOURCE or VALUE clause has "
-                + "nothing to add): data-name-1 shall be the name of a numeric data item in the report section (ISO §13.18.54.3 SR4), and "
-                + "§13.18.54.4 GR6 adds the sum counter of an entry containing a SUM clause or the operand of its SOURCE or "
+                + "nothing to add): data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4), and "
+                + "§2023:13.18.54.4 GR6 adds the sum counter of an entry containing a SUM clause or the operand of its SOURCE or "
                 + "VALUE clause — an entry with none of them has no value to add.");
             return null;
         }
         var data = candidates[0];
-        // SR4 — "a numeric data item". A SUM entry's counter is one by definition (§13.18.54.4 GR1: "a conceptual data
+        // SR4 — "a numeric data item". A SUM entry's counter is one by definition (§2023:13.18.54.4 GR1: "a conceptual data
         // item that behaves as a data item of the category numeric"); a SOURCE / VALUE entry's PICTURE says.
         if (data is ReportSourceFamily { Category: not PicCategory.Numeric } source)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names the entry '{data.Name}', whose PICTURE is "
                 + $"{(source.Category is { } cat ? $"of category {cat.ToString().ToLowerInvariant()}" : "absent")}: "
-                + "data-name-1 shall be the name of a numeric data item in the report section (ISO §13.18.54.3 SR4).");
+                + "data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4).");
             return null;
         }
         // SR4 — "If it is associated with an OCCURS clause, it shall be specified without the subscripting normally
@@ -3702,15 +3702,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (addend.Reference is { } reference && RefModBinder.ReadOperandSuffixes(reference).Subscripts > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} is subscripted: if data-name-1 is associated with an "
-                + "OCCURS clause, it shall be specified without the subscripting normally required (ISO §13.18.54.3 SR4) — "
-                + "§13.18.54.4 GR8 adds each occurrence of a repeating addend into the corresponding occurrence of the counter.");
+                + "OCCURS clause, it shall be specified without the subscripting normally required (ISO §2023:13.18.54.3 SR4) — "
+                + "§2023:13.18.54.4 GR8 adds each occurrence of a repeating addend into the corresponding occurrence of the counter.");
             return null;
         }
         // SR4 a)
         if (term.Upon.Count > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} is data-name-1, and the SUM clause also writes an UPON "
-                + "phrase: when data-name-1 is specified the UPON phrase shall not be specified (ISO §13.18.54.3 SR4 a)) — a "
+                + "phrase: when data-name-1 is specified the UPON phrase shall not be specified (ISO §2023:13.18.54.3 SR4 a)) — a "
                 + "rolled total is added when the group that contains it is processed, not on a GENERATE.");
             return null;
         }
@@ -3727,14 +3727,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{ReportGroupTypeWords(data.Group.Kind)} report group, and the SUM entry is in a "
                 + $"{ReportGroupTypeWords(target.Group.Kind)} report group: that combination of report types is not one SR4 f) permits "
                 + "(a control footing: a detail or a control footing of a lower level of control; a detail: a different detail; "
-                + "a report footing: any other group but the report heading; a page footing: any body group — ISO §13.18.54.3 SR4 f)).");
+                + "a report footing: any other group but the report heading; a page footing: any body group — ISO §2023:13.18.54.3 SR4 f)).");
             return null;
         }
         return data;
     }
 
     /// <summary>SR4 b)/c)/d) — what a rolled addend's repetition may be against its counter's, or null when it fits.
-    /// "Levels of repetition" are <see cref="ReportEntryFamily.Extents"/> (§13.15.4 GR3's three vehicles, all OCCURS
+    /// "Levels of repetition" are <see cref="ReportEntryFamily.Extents"/> (§2023:13.15.4 GR3's three vehicles, all OCCURS
     /// levels). b) data-name-1 in the SAME report group description as the subject "shall be a repeating item … and
     /// subject to at least one more level of repetition than the subject of the entry"; c) in a DIFFERENT one it
     /// "either shall not reference a repeating item or shall reference a repeating item that is subject to at least
@@ -3749,27 +3749,27 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (d == 0)
                 return "it is in the same report group description as the SUM entry, so it shall be a repeating item "
-                    + "(ISO §13.18.54.3 SR4 b))";
+                    + "(ISO §2023:13.18.54.3 SR4 b))";
             if (d < t + 1)
                 return $"it is in the same report group description as the SUM entry, so it shall be subject to at least one more "
-                    + $"level of repetition than the subject of the entry ({d} against {t}) (ISO §13.18.54.3 SR4 b))";
+                    + $"level of repetition than the subject of the entry ({d} against {t}) (ISO §2023:13.18.54.3 SR4 b))";
         }
         else if (d > 0 && d < t)
             return $"it is in a different report group description and is a repeating item, so it shall be subject to at least "
-                + $"the same number of levels of repetition as the subject of the entry ({d} against {t}) (ISO §13.18.54.3 SR4 c))";
+                + $"the same number of levels of repetition as the subject of the entry ({d} against {t}) (ISO §2023:13.18.54.3 SR4 c))";
         for (int k = 0; k < Math.Min(d, t); k++)
             if (data.Extents[d - 1 - k] != target.Extents[t - 1 - k])
                 return $"its maximum number of repetitions at level {k + 1} counted from the innermost "
                     + $"({data.Extents[d - 1 - k]}) differs from the subject's ({target.Extents[t - 1 - k]}): the maximum number of "
                     + "repetitions shall be equal at each corresponding level taken in order beginning with the lowest level of "
-                    + "nesting (ISO §13.18.54.3 SR4 d))";
+                    + "nesting (ISO §2023:13.18.54.3 SR4 d))";
         return null;
     }
 
     /// <summary>SR4 f) — within ONE report description, the report types of the SUM entry's group (<paramref name="current"/>)
     /// and of the group that defines data-name-1 (<paramref name="defining"/>) that are permitted together.
     /// "Associated with a lower level of control" is a LARGER index in the control hierarchy, which runs major → minor
-    /// (§13.18.16.4 GR1); a body group is a detail, a control heading or a control footing (§13.18.57.3 SR15).</summary>
+    /// (§2023:13.18.16.4 GR1); a body group is a detail, a control heading or a control footing (§2023:13.18.57.3 SR15).</summary>
     private static bool GroupCombinationPermitted(ReportGroupModel current, ReportGroupModel defining) => current.Kind switch
     {
         ReportGroupKindModel.ControlFooting => defining.Kind == ReportGroupKindModel.Detail
@@ -3812,7 +3812,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 using var cycleAt = Edition.At(firstAddend[f].Ctx);
                 Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, "a chain of SUM data-name-1 references never terminates: "
                     + $"{string.Join(" → ", cycle)} — any chain of reference shall terminate at an entry that does not contain a SUM "
-                    + "clause referring to a data-name-1 defined in the report section (ISO §13.18.54.3 SR4 e))");
+                    + "clause referring to a data-name-1 defined in the report section (ISO §2023:13.18.54.3 SR4 e))");
                 return;
             }
             if (!done.Add(f)) return;
@@ -3823,11 +3823,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var f in edges.Keys.ToList()) Visit(f);
     }
 
-    /// <summary>Resolve one <c>UPON data-name-2</c> operand (ISO §13.18.54.3 SR7 — "Data-name-2 shall be the name
+    /// <summary>Resolve one <c>UPON data-name-2</c> operand (ISO §2023:13.18.54.3 SR7 — "Data-name-2 shall be the name
     /// of a detail. It may be qualified only by a report-name") through the ONE report-group funnel, which owns
-    /// the §8.4.2.2.3 SR1 ambiguity rule as well (kb/Work PB365). The TYPE test is SR7's own sentence: a
-    /// control footing or a report heading is not a detail, and §13.18.54.4 GR7 c) 2) can only fire for a detail,
-    /// because only a detail is GENERATE-able (§14.9.16.3 SR1).</summary>
+    /// the §2023:8.4.2.2.3 SR1 ambiguity rule as well (kb/Work PB365). The TYPE test is SR7's own sentence: a
+    /// control footing or a report heading is not a detail, and §2023:13.18.54.4 GR7 c) 2) can only fire for a detail,
+    /// because only a detail is GENERATE-able (§2023:14.9.16.3 SR1).</summary>
     private void ResolveUponDetail(ReportDetailRef det, ReportModel model)
     {
         string where = $"RD '{model.Name}': the UPON operand '{det}'";
@@ -3835,15 +3835,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 out var owner, out var group) == ReportGroupResolution.Match.None)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} does not name a report group. Data-name-2 shall be "
-                + "the name of a detail (ISO §13.18.54.3 SR7).");
+                + "the name of a detail (ISO §2023:13.18.54.3 SR7).");
             return;
         }
         if (group!.Kind is not ReportGroupKindModel.Detail)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a report group of TYPE "
                 + $"{ReportGroupTypeWords(group.Kind)}; data-name-2 shall be the name of a DETAIL (ISO "
-                + "§13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§14.9.16.3 SR1), "
-                + "which is the event §13.18.54.4 GR7 c) 2) accumulates on.");
+                + "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
+                + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.");
             return;
         }
         // A detail of ANOTHER report (SR7's report-name qualifier): GR7 c) 2) accumulates on a GENERATE of that detail,
@@ -3853,7 +3853,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         det.Owner = owner;
     }
 
-    /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §13.18.57.2).</summary>
+    /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §2023:13.18.57.2).</summary>
     private static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
     {
         ReportGroupKindModel.ReportHeading => "REPORT HEADING",
@@ -3865,7 +3865,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         _ => "DETAIL",
     };
 
-    /// <summary>The §13.15.3 SR16 scan: no PRESENT WHEN condition of <paramref name="model"/> may reference
+    /// <summary>The §2023:13.15.3 SR16 scan: no PRESENT WHEN condition of <paramref name="model"/> may reference
     /// LINE-COUNTER, PAGE-COUNTER, a sum counter, or another report section data item (group / printable-entry
     /// names). Token-level scan over each PRESENT WHEN condition the report WRITES — read off the written entries
     /// (<see cref="ReportModel.WrittenEntries"/>), the <see cref="ScreenReportEntryClausePresence"/> shape, because
@@ -3876,7 +3876,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private void CheckConditionOperands(ReportModel model)
     {
         // Each condition refused here is recorded, so the procedure phase does not bind it a second time and word the
-        // same reference again under §13.8.6.2.3, the other sections' rule (kb/Work PB4226's sibling: one verdict).
+        // same reference again under §2023:13.8.6.2.3, the other sections' rule (kb/Work PB4226's sibling: one verdict).
         var conds = new List<Core.ConditionContext>();
         foreach (var ge in model.WrittenEntries)
             foreach (var clause in ge.reportGroupClause())
@@ -3885,7 +3885,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
         // A name also declared in ordinary storage resolves THERE (never to the report item), so it is not an
         // SR16 reference — only report-section-exclusive names are scanned (no textual false positives). The SAME
-        // set answers §13.18.16.3 SR2 for a CONTROL operand, so it is built in ONE place (kb/Work PB205).
+        // set answers §2023:13.18.16.3 SR2 for a CONTROL operand, so it is built in ONE place (kb/Work PB205).
         var names = _scope.Declared.SelectMany(r => ReportSectionOnlyNames(r)).Distinct(CobolNames.Comparer).ToList();
 
         foreach (var cond in conds)
@@ -3897,14 +3897,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (HasWord(cond, "LINE-COUNTER") || HasWord(cond, "PAGE-COUNTER"))
             {
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
-                    + "reference LINE-COUNTER or PAGE-COUNTER (ISO §13.15.3 SR16)");
+                    + "reference LINE-COUNTER or PAGE-COUNTER (ISO §2023:13.15.3 SR16)");
                 _scope.RefusePresentWhen(cond);
             }
             foreach (var n in names)
                 if (HasWord(cond, n))
                 {
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
-                        + $"reference the report section data item '{n}' (ISO §13.15.3 SR16)");
+                        + $"reference the report section data item '{n}' (ISO §2023:13.15.3 SR16)");
                     _scope.RefusePresentWhen(cond);
                     break;
                 }
@@ -3913,10 +3913,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>⛔ THE ONE "is this one of the CONTROL clause's operands" TEST (kb/Work PB205) — the level of the
     /// CONTROL operand <paramref name="operand"/> names, or −1. Both clauses that name a control level ask this
-    /// question in the same words: §13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
-    /// clause of the corresponding report description entry") and §13.18.54.3 SR8 ("shall be an operand of the
+    /// question in the same words: §2023:13.18.57.3 SR10 ("shall be the same as one of the operands of the CONTROL
+    /// clause of the corresponding report description entry") and §2023:13.18.54.3 SR8 ("shall be an operand of the
     /// CONTROL clause of the current report description"), so one comparison serves both — over the WRITTEN
-    /// reference, ref-mod included, which is what §13.18.16.3 SR6 makes unique.</summary>
+    /// reference, ref-mod included, which is what §2023:13.18.16.3 SR6 makes unique.</summary>
     private static int ControlLevelOf(ReportModel model, ReportControlRef operand)
     {
         for (int i = 0; i < model.Controls.Count; i++)
@@ -3925,8 +3925,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when <paramref name="name"/> is defined in the report section AND NOWHERE ELSE — the test
-    /// §13.18.16.3 SR2 needs of a CONTROL operand and §13.15.3 SR16 needs of a PRESENT WHEN condition. A name
-    /// also declared in ordinary storage resolves THERE (§8.4.2.1), so it is not a report-section reference; the
+    /// §2023:13.18.16.3 SR2 needs of a CONTROL operand and §2023:13.15.3 SR16 needs of a PRESENT WHEN condition. A name
+    /// also declared in ordinary storage resolves THERE (§2023:8.4.2.1), so it is not a report-section reference; the
     /// set is therefore "report-section-exclusive", never "every report-section name".</summary>
     private bool IsReportSectionOnlyName(string name)
     {
@@ -3940,27 +3940,27 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// PB852 × PB883). Both clauses constrain which items the identifiers INSIDE the expression may name, and
     /// they draw the line in different places — so one walk, one caller-supplied policy:
     /// <list type="bullet">
-    /// <item>SUM, ISO §13.18.54.3 SR6: "If the addend is arithmetic-expression-1, any identifiers it contains may
+    /// <item>SUM, ISO §2023:13.18.54.3 SR6: "If the addend is arithmetic-expression-1, any identifiers it contains may
     /// reference entries in any section of the data division other than the report section." Nothing of the
-    /// report section is admitted — not a sum counter, and (by §8.4.3.15.3 SR1, "In the report section,
+    /// report section is admitted — not a sum counter, and (by §2023:8.4.3.15.3 SR1, "In the report section,
     /// PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause") not a report counter either.
     /// Pass <paramref name="countersOf"/> = null.</item>
-    /// <item>SOURCE, ISO §13.18.53.3 SR4: "If identifier-1 specifies a report section item, it shall be a report
+    /// <item>SOURCE, ISO §2023:13.18.53.3 SR4: "If identifier-1 specifies a report section item, it shall be a report
     /// counter identifier or a sum counter defined in the current report. This same Syntax rule applies to any
     /// identifier appearing in arithmetic-expression-1." Pass the CURRENT report.</item>
     /// </list>
     /// Returns the first offending identifier as written, or null when every identifier is admissible.</summary>
     private string? ReportSectionNameIn(Antlr4.Runtime.Tree.IParseTree node, ReportModel? countersOf = null)
     {
-        // A subscript list's names are read by SubscriptWordsOfReference below, which leaves §8.4.2.3.3 SR8's counters
+        // A subscript list's names are read by SubscriptWordsOfReference below, which leaves §2023:8.4.2.3.3 SR8's counters
         // to ScreenReportSubscripts; walking into the list as well would judge a counter subscript a second time.
         if (node is Core.SubscriptPartContext) return null;
         if (node is Core.DataReferenceContext dref)
         {
             if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null)
             {
-                // A report counter is admissible only in a SOURCE clause (§8.4.3.15.3 SR1), and — "report counter
-                // identifier", SR4's first admitted item — of ANY report: §8.4.2.2.3 SR9/SR10's third sentence says
+                // A report counter is admissible only in a SOURCE clause (§2023:8.4.3.15.3 SR1), and — "report counter
+                // identifier", SR4's first admitted item — of ANY report: §2023:8.4.2.2.3 SR9/SR10's third sentence says
                 // how the counter of a DIFFERENT report is referenced ("shall be qualified explicitly by the
                 // report-name associated with the different report"), so that spelling is legal. A qualifier that
                 // names no report is the qualification rule's own error, reported where the counter is bound
@@ -3975,10 +3975,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     && countersOf.SumFamilies.Any(s => s.Name is { } sn && CobolNames.Same(sn, w));
                 return ownCounter ? null : dref.GetText();
             }
-            // identifier-1 is a qualified-data-name-with-subscripts (§8.4.3.1.2): a name inside a SUBSCRIPT or a
+            // identifier-1 is a qualified-data-name-with-subscripts (§2023:8.4.3.1.2): a name inside a SUBSCRIPT or a
             // reference-modification is an identifier of the clause too (SR4's "any identifier appearing in…"). A
             // subscript's words are read here (kb/Work PB1295): a report section item other than a sum counter or a
-            // counter register — those are §8.4.2.3.3 SR8's, said once by ScreenReportSubscripts — is a report section
+            // counter register — those are §2023:8.4.2.3.3 SR8's, said once by ScreenReportSubscripts — is a report section
             // name like any other.
             foreach (var subscripted in SubscriptWordsOfReference(dref))
                 if (!IsReportSubscriptCounter(subscripted) && IsReportSectionOnlyName(subscripted)) return subscripted;
@@ -3994,7 +3994,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>The words of the SUBSCRIPTS of one written reference (kb/Work PB1295, PB1474): every name written in
     /// its subscript lists (<c>subscriptPart</c>). The reference counts only when its base word is a data item or a
     /// report section entry — a keyword-omitted function call has the same parenthesised shape, and its arguments
-    /// are not subscripts (§8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
+    /// are not subscripts (§2023:8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
     private IEnumerable<string> SubscriptWordsOfReference(Core.DataReferenceContext dref)
     {
         if (dref.cobolWord()?.GetText() is not { } baseWord || !(_d.State.Forest.DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
@@ -4013,23 +4013,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             .Where(t => SubscriptBinder.IsNameToken(t.Symbol) || t.Symbol.Type is Core.LINE_COUNTER or Core.PAGE_COUNTER)
             .Select(t => t.GetText());
 
-    /// <summary>Is <paramref name="word"/> one of the identifiers ISO §8.4.2.3.3 SR8 bars as a report section subscript:
+    /// <summary>Is <paramref name="word"/> one of the identifiers ISO §2023:8.4.2.3.3 SR8 bars as a report section subscript:
     /// the LINE-COUNTER or PAGE-COUNTER register, or a sum counter — the name of a report section entry (and of no
-    /// ordinary-storage item, §8.4.2.1) that contains a SUM clause.</summary>
+    /// ordinary-storage item, §2023:8.4.2.1) that contains a SUM clause.</summary>
     private bool IsReportSubscriptCounter(string word) =>
         CobolNames.Same(word, "LINE-COUNTER")
         || CobolNames.Same(word, "PAGE-COUNTER")
         || (!_d.State.Forest.DeclaresOwnDataName(word) && _scope.Declared.Any(r => r.NamedEntries.Any(e =>
             e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
-    /// <summary>⛔ ISO §8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
+    /// <summary>⛔ ISO §2023:8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
     /// and PAGE-COUNTER identifiers may be used as a subscript." Asked ONCE per written entry, over every clause that
     /// can carry a subscripted reference — SOURCE, SUM, VARYING, OCCURS … DEPENDING ON — because the rule is about the
     /// SUBSCRIPT wherever it is written, not about one clause's operand: three arms each resolved the base name and
-    /// evaluated the subscript in the procedure phase, and none asked it. A PRESENT WHEN condition is §13.15.3 SR16's
+    /// evaluated the subscript in the procedure phase, and none asked it. A PRESENT WHEN condition is §2023:13.15.3 SR16's
     /// (it refuses every sum counter, register and report section item the condition references, subscript or not),
     /// so it is not asked twice. A report section item that is neither is the clause's own section rule
-    /// (<see cref="ReportSectionNameIn"/>, §13.18.53.3 SR4 / §13.18.54.3 SR6).</summary>
+    /// (<see cref="ReportSectionNameIn"/>, §2023:13.18.53.3 SR4 / §2023:13.18.54.3 SR6).</summary>
     private void ScreenReportSubscripts(ReportModel model)
     {
         foreach (var ge in model.WrittenEntries)
@@ -4044,7 +4044,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Edition.Error(DiagnosticCatalog.ReportSubscriptCounter, $"RD '{model.Name}' entry "
                             + $"'{ge.dataName().NameOrNull() ?? "FILLER"}': '{word}' is used as a subscript. In the report "
                             + "section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used "
-                            + "as a subscript (ISO §8.4.2.3.3 SR8)");
+                            + "as a subscript (ISO §2023:8.4.2.3.3 SR8)");
                     }
             }
     }
@@ -4057,8 +4057,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// unprintable SOURCE entry's — each only when <see cref="ForestSlice.ByName"/> does not also carry it (see
     /// <see cref="IsReportSectionOnlyName"/> for why). Read off the WRITTEN entries (<see cref="ReportModel.WrittenEntries"/>):
     /// the set is about NAMES the programmer declared, and the bound products (lines, fields, counters) exist only
-    /// for the entries that make one, so a name on any other entry was invisible to the §13.18.16.3 SR2 and
-    /// §13.15.3 SR16 questions (kb/Work PB1289). A sum counter's name is its entry's (kb/Work PB882).</summary>
+    /// for the entries that make one, so a name on any other entry was invisible to the §2023:13.18.16.3 SR2 and
+    /// §2023:13.15.3 SR16 questions (kb/Work PB1289). A sum counter's name is its entry's (kb/Work PB882).</summary>
     private List<string> ReportSectionOnlyNames(ReportModel model)
     {
         var names = new List<string>();
@@ -4070,7 +4070,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>How many report entries the written reference also reaches in the SAME source element as
     /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="ReportScope.NearerEntryHides"/>): a
-    /// report entry is a data-name §8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
+    /// report entry is a data-name §2023:8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
@@ -4082,10 +4082,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
     /// procedure division statement, a clause of any section of the data division other than the report section, or a
-    /// report section clause whose operand §13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
+    /// report section clause whose operand §2023:13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §2023:13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the
     /// data division or by any other procedure division statements, except in the following cases: 1) Sum counters may
     /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
-    /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way" than in a GENERATE
+    /// statement", and §2023:13.15.3 SR7: "The data-name shall not be referenced in any other way" than in a GENERATE
     /// statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM
     /// clause, or as an operand in a SUM clause. A reference of those admitted shapes never reaches here (the
     /// statements name a report group through <see cref="ReportGroupResolution"/>, and a procedure division sum
@@ -4093,24 +4093,24 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// report entry is a reference the standard forbids — and saying "not defined" about a name the report section
     /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
     /// reported; false when the written reference names no report entry, or when it reaches several
-    /// <paramref name="dataItems"/> (kb/Work PB3767: §8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
+    /// <paramref name="dataItems"/> (kb/Work PB3767: §2023:8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
     /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <see cref="DataBinder.QualifiedCandidates"/> leaves
-    /// no data item that a NEARER report entry hides (<see cref="ReportScope.NearerEntryHides"/>, ISO §8.4.6.2.1 3) a)), so the data
+    /// no data item that a NEARER report entry hides (<see cref="ReportScope.NearerEntryHides"/>, ISO §2023:8.4.6.2.1 3) a)), so the data
     /// items an arm passes are already the ones that rank with the report entries, and several of them are the ambiguity
     /// whichever report entries spell the same.</summary>
     /// <param name="dataItems">The data items the written reference reaches (<see cref="DataBinder.QualifiedCandidates"/>, the
     /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
     /// <param name="inReportSection">The reference is an operand of a clause of the REPORT SECTION itself (an RD's
-    /// <c>OCCURS … DEPENDING ON</c>, kb/Work PB4226). §13.8.6.2.3 bars only the OTHER sections and the procedure
-    /// division, so it is not the rule broken there; §13.15.3 SR7 is, and a sum counter is admitted in the report section
-    /// only where a rule names it (a SOURCE clause, §13.18.53.3 SR4; a SUM clause, SR7 itself).</param>
+    /// <c>OCCURS … DEPENDING ON</c>, kb/Work PB4226). §2023:13.8.6.2.3 bars only the OTHER sections and the procedure
+    /// division, so it is not the rule broken there; §2023:13.15.3 SR7 is, and a sum counter is admitted in the report section
+    /// only where a rule names it (a SOURCE clause, §2023:13.18.53.3 SR4; a SUM clause, SR7 itself).</param>
     internal bool ReportEntryReferenceRefused(NameCandidates<DataItem> dataItems, string subject, string name,
                                               IReadOnlyList<string> qualifiers, bool inReportSection = false)
     {
         if (dataItems.Count > 1) return false;
         if (_scope.EntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
-        const string sr7 = "ISO §13.15.3 SR7: \"The data-name shall not be referenced in any other way\" than in a GENERATE "
+        const string sr7 = "ISO §2023:13.15.3 SR7: \"The data-name shall not be referenced in any other way\" than in a GENERATE "
             + "statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM "
             + "clause, or as an operand in a SUM clause.";
         Edition.Error(DiagnosticCatalog.ReportItemReference,
@@ -4118,10 +4118,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             + "here may not name. "
             + (inReportSection
                 ? sr7 + (entry.IsSumCounter
-                    ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §13.18.53.3 SR4) or a "
+                    ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §2023:13.18.53.3 SR4) or a "
                       + "SUM clause."
                     : "")
-                : "ISO §13.8.6.2.3: \"Report items shall not be accessed or referred to by any clauses in any other section "
+                : "ISO §2023:13.8.6.2.3: \"Report items shall not be accessed or referred to by any clauses in any other section "
                   + "of the data division or by any other procedure division statements, except in the following cases: "
                   + "1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type DETAIL "
                   + "are accessed by the GENERATE statement\"; and " + sr7
@@ -4130,18 +4130,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>⛔ THE ONE CAPTURE OF A CONTROL-CLAUSE OPERAND REFERENCE, shared by the THREE clauses that write
-    /// one (kb/Work PB205): the CONTROL clause itself (§13.18.16.3), a TYPE CH/CF operand (§13.18.57.3 SR10) and a
-    /// SUM … RESET ON operand (§13.18.54.3 SR8). It keeps the WHOLE written reference — base word, IN/OF
+    /// one (kb/Work PB205): the CONTROL clause itself (§2023:13.18.16.3), a TYPE CH/CF operand (§2023:13.18.57.3 SR10) and a
+    /// SUM … RESET ON operand (§2023:13.18.54.3 SR8). It keeps the WHOLE written reference — base word, IN/OF
     /// qualifiers AND reference modification — because all three clauses expressly permit the ref-mod and all
     /// three identify a control level BY the written form. Before this, all three kept only part of it
     /// (<c>KeyReference</c> drops <c>refModPart</c>; TYPE and RESET kept the bare <c>cobolWord</c>) and compared
     /// by NAME, so <c>CX(1:3)</c> and <c>CX(4:3)</c> were one operand.
     /// <para>The rule the three clauses SHARE is screened here, once — "If [data-name-1] is reference-modified,
-    /// leftmost-position and length shall be integer literals" (§13.18.16.3 SR4, and word-for-word in §13.18.54.3 SR8
-    /// and §13.18.57.3 SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
-    /// so each site keeps its own citation. Two ref-mods are §8.4.3.3.3 SR3 (the existing COBOL1630). A
-    /// SUBSCRIPT is rejected outright: §13.18.16.3 SR3 bars an operand subject to an OCCURS clause and
-    /// §8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it
+    /// leftmost-position and length shall be integer literals" (§2023:13.18.16.3 SR4, and word-for-word in §2023:13.18.54.3 SR8
+    /// and §2023:13.18.57.3 SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
+    /// so each site keeps its own citation. Two ref-mods are §2023:8.4.3.3.3 SR3 (the existing COBOL1630). A
+    /// SUBSCRIPT is rejected outright: §2023:13.18.16.3 SR3 bars an operand subject to an OCCURS clause and
+    /// §2023:8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it
     /// was being dropped on the floor exactly as the ref-mod was.</para></summary>
     private ReportControlRef ControlOperandRef(
         Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, string rule)
@@ -4150,17 +4150,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0)
             Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
-                + "to an OCCURS clause (ISO §13.18.16.3 SR3), and a subscript may be written only for an item that "
-                + "has one (§8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+                + "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
         if (sfx.RefMods > 1)
             Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "
-                + "modifications; a reference-modified item cannot itself be reference-modified (ISO §8.4.3.3.3 "
+                + "modifications; a reference-modified item cannot itself be reference-modified (ISO §2023:8.4.3.3.3 "
                 + "SR3). Compose the positions into one modifier instead.");
         else if (sfx.NonLiteral)
             Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is reference-modified with a leftmost-position or "
                 + $"length that is not an integer literal. The operand may be reference-modified, but if it is, "
                 + $"leftmost-position and length shall be integer literals ({rule}) — the prior control has the "
-                + "same data description as the slice (§13.18.16.4 GR3), so its extent is fixed at compile time.");
+                + "same data description as the slice (§2023:13.18.16.4 GR3), so its extent is fixed at compile time.");
         else if (sfx.BeyondHostLimit)
             // kb/Work PB1579: the literals ARE integer literals (the rule above holds), but one lies beyond the host
             // range, and the slice is laid out as the prior control's own description — the limit a written
@@ -4174,12 +4174,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>⛔ THE ONE SHAPE SCREEN FOR A CONTROL OPERAND — the syntax rules over data-name-1, one arm per
     /// rule (kb/Work PB177 arm C). Returns the diagnostic to raise and the clause of the message naming the rule
     /// violated, or null when the operand is legal. Each arm carries its OWN descriptor, so a rule from outside
-    /// §13.18.16.3 keeps its own citation instead of being folded into a clause list it does not belong to.
+    /// §2023:13.18.16.3 keeps its own citation instead of being folded into a clause list it does not belong to.
     /// <para>Every arm was MISSING and each was measured before it was written: SR3 and SR5 compiled and RAN
     /// silently; SR7 and the INDEX shape compiled and then staged a RUNTIME loud — a syntax rule demands a
     /// compile-time rejection, and the emitter's loud is a backstop, not the verdict. Note the SR5/SR7 pair is
     /// exactly the trap <c>feedback_validate_the_premise_not_only_the_rule</c> names: an occurs-DEPENDING table
-    /// does NOT make a group "variable-length" (§8.5.1.12.1 defines that term over dynamic-length elementary
+    /// does NOT make a group "variable-length" (§2023:8.5.1.12.1 defines that term over dynamic-length elementary
     /// items and dynamic-CAPACITY tables), so SR7 does not reach the ODO shape and SR5 exists precisely because
     /// it does not — two rules, two arms, and a screen written for only one of them would leave the other
     /// open.</para>
@@ -4187,30 +4187,30 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// (kb/Work PB177 arm C follow-up). <see cref="DataItem.Occurs"/> is the FIXED physical capacity and is NULL
     /// for a Format-4 dynamic-capacity table, so the first spelling missed BOTH dynamic shapes — the operand that
     /// IS the dynamic table and the operand subordinate to one — and SR7 structurally cannot cover the first of
-    /// them (§8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group, so the table entry
+    /// them (§2023:8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group, so the table entry
     /// itself is never one). Measured: both compiled clean and reached ReportWriterEmitter's runtime loud. This is
     /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
     private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item)
     {
-        // "Subject to an OCCURS clause" is §8.4.2.3.3 SR2's question under another name, so it is asked through
+        // "Subject to an OCCURS clause" is §2023:8.4.2.3.3 SR2's question under another name, so it is asked through
         // THE one walk (DataItem.SubscriptLevels, outermost first — kb/Work PB877); the message names the
         // INNERMOST level, which is the one the hand-written self→parent loop used to report.
         if (item.SubscriptLevels() is [.., var innermost])
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.ClrName}': data-name-1 shall "
-                + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
+                + "not be subject to any OCCURS clauses (ISO §2023:13.18.16.3 SR3)");
         if (OdoModel.TableUnder(item) is { } odo)
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
-                + "(ISO §13.18.16.3 SR5)");
+                + "(ISO §2023:13.18.16.3 SR5)");
         if (item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
             return (DiagnosticCatalog.ReportControlOperandShape,
-                "is a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
+                "is a variable-length group (ISO §2023:8.5.1.12.1 — a dynamic-length elementary item or a "
                 + "dynamic-capacity table is subordinate to it): data-name-1 shall not reference a "
-                + "variable-length group (ISO §13.18.16.3 SR7)");
-        // §13.18.60.3 SR10 closes the set of contexts in which an index data item may be referenced EXPLICITLY,
-        // and §8.4.5 makes a data-division clause naming a data item exactly such an explicit reference: "a
+                + "variable-length group (ISO §2023:13.18.16.3 SR7)");
+        // §2023:13.18.60.3 SR10 closes the set of contexts in which an index data item may be referenced EXPLICITLY,
+        // and §2023:8.4.5 makes a data-division clause naming a data item exactly such an explicit reference: "a
         // specification in the environment or data division may specify the name of a data item as an explicit
         // reference in order to identify those data items that are to be referenced implicitly in procedure
         // division statements related to such specifications." The CONTROL clause is not on SR10's list.
@@ -4219,19 +4219,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 "is an index data item: an index data item may be referenced explicitly only in a SEARCH or SET "
                 + "statement, a relation condition, an intrinsic function argument, an inline method invocation "
                 + "argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or "
-                + "INVOKE statement (ISO §13.18.60.3 SR10; a CONTROL clause naming it is an explicit reference, "
-                + "§8.4.5)");
+                + "INVOKE statement (ISO §2023:13.18.60.3 SR10; a CONTROL clause naming it is an explicit reference, "
+                + "§2023:8.4.5)");
         return null;
     }
 
     /// <summary>Resolve a report clause's (possibly IN/OF-qualified) data-name — CONTROL, SOURCE, SUM — through the
-    /// ONE §8.4.2.2 resolver (<see cref="DataBinder.QualifiedCandidates"/>) and the ONE ambiguity verdict
+    /// ONE §2023:8.4.2.2 resolver (<see cref="DataBinder.QualifiedCandidates"/>) and the ONE ambiguity verdict
     /// (<see cref="DataBinder.UniqueOrReportAmbiguous"/>). <paramref name="ambiguous"/> says the null was reported here as
-    /// §8.4.2.2.3 SR1's ambiguity; any other null names nothing, which the caller's own clause rule reports.
+    /// §2023:8.4.2.2.3 SR1's ambiguity; any other null names nothing, which the caller's own clause rule reports.
     /// <para>⛔ THIS WAS A PRIVATE FIRST-MATCH TWIN (kb/Work PB978): an unqualified name took <c>ByName[n][0]</c>
     /// and a qualified one the first candidate whose chain matched, so <c>RD RPT CONTROL IS K OF G</c> with both
     /// <c>A.G.K</c> and <c>B.G.K</c> declared compiled clean and broke control on whichever K came first. Its
-    /// qualifier walk also knew nothing of the file-name qualifier (§8.4.2.2.2 Format 1).</para></summary>
+    /// qualifier walk also knew nothing of the file-name qualifier (§2023:8.4.2.2.2 Format 1).</para></summary>
     private DataItem? LookupQualified(string name, IReadOnlyList<string> qualifiers, string face, out bool ambiguous) =>
         _d.UniqueOrReportAmbiguous(_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program), face,
             DataBinder.WrittenQualified(name, qualifiers), out ambiguous);

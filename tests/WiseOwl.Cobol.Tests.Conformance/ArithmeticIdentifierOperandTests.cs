@@ -6,19 +6,19 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB1142 — the arithmetic verbs' operand screens over EVERY identifier format the grammar writes in an
-/// operand position: a data reference, a function-identifier (ISO §8.4.3.1.2 Format 1) and an inline method
+/// operand position: a data reference, a function-identifier (ISO §2023:8.4.3.1.2 Format 1) and an inline method
 /// invocation (Format 4).
 /// <para>
 /// <b>Receivers.</b> Format 1 of ADD / SUBTRACT / MULTIPLY / DIVIDE prints <c>{identifier-2 [rounded-phrase]}</c>
-/// (§14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2), a RECEIVER; §8.4.3.2.3 SR1 ("A function-identifier shall
-/// not be specified as a receiving operand") and §8.4.3.4.3 SR1 ("Inline method invocation shall not be specified
+/// (§2023:14.9.2.2 / §2023:14.9.44.2 / §2023:14.9.26.2 / §2023:14.9.12.2), a RECEIVER; §2023:8.4.3.2.3 SR1 ("A function-identifier shall
+/// not be specified as a receiving operand") and §2023:8.4.3.4.3 SR1 ("Inline method invocation shall not be specified
 /// as a receiving operand") bar the two non-data-name formats. Before the fix an inline invocation written there
 /// compiled clean with the receiver silently DROPPED (ADD / SUBTRACT / MULTIPLY) and crashed the compiler (DIVIDE:
 /// <c>InvalidOperationException: Sequence contains no elements</c> in the emitter).
 /// </para>
 /// <para>
-/// <b>Senders.</b> §14.9.2.3 SR2 / §14.9.44.3 SR2 ("shall reference numeric data items"), §14.9.26.3 SR1 and
-/// §14.9.12.3 SR1 ("of category numeric") and §8.8.1.1 ("An arithmetic expression may be an identifier referencing
+/// <b>Senders.</b> §2023:14.9.2.3 SR2 / §2023:14.9.44.3 SR2 ("shall reference numeric data items"), §2023:14.9.26.3 SR1 and
+/// §2023:14.9.12.3 SR1 ("of category numeric") and §2023:8.8.1.1 ("An arithmetic expression may be an identifier referencing
 /// a numeric data item") bar an alphanumeric function or invocation result as an arithmetic operand. COMPUTE
 /// rejected the function form; every other verb's written operand bound it unscreened and digit-decoded it, and
 /// NO position screened the invocation form.
@@ -143,13 +143,13 @@ public sealed class ArithmeticIdentifierOperandTests
         {
             string statement = string.Format(shape, id);
             var (ok, errors, _) = EditionHarness.CompileFull(Program("PB1142S", statement), 2023);
-            Assert.False(ok, $"'{statement}' must be rejected — ISO §8.8.1.1 admits only a NUMERIC identifier");
+            Assert.False(ok, $"'{statement}' must be rejected — ISO §2023:8.8.1.1 admits only a NUMERIC identifier");
             EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
 
     /// <summary>The THIRD spelling of a function-identifier — the word FUNCTION omitted under a REPOSITORY
-    /// entry (§8.4.3.2.3 SR2), which the grammar parses as a data reference — takes the same screen in every
+    /// entry (§2023:8.4.3.2.3 SR2), which the grammar parses as a data reference — takes the same screen in every
     /// arithmetic position (it bypassed it everywhere, COMPUTE included: <c>COMPUTE C = UPPER-CASE("12") + 1</c>
     /// gave 13 under STRICT); a SOLE one stays a legal relation operand.</summary>
     [Theory]
@@ -181,7 +181,7 @@ public sealed class ArithmeticIdentifierOperandTests
             Assert.True(ok, string.Join("\n", errors));
         else
         {
-            Assert.False(ok, $"'{statement}' must be rejected — ISO §8.8.1.1");
+            Assert.False(ok, $"'{statement}' must be rejected — ISO §2023:8.8.1.1");
             EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }

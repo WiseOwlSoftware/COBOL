@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 7 — strongly-typed formal and returning
+      *> ISO §2023:9.3.8.2.3 rule 7 — strongly-typed formal and returning
       *>   items of the SAME type
       *> Rule: "If either of the corresponding formal parameters or
       *>   returning items in interface-1 or interface-2 is a
@@ -13,24 +13,24 @@
       *> cite.py --check 9.3.8.2.3 "If either of the corresponding
       *>   formal parameters or returning items in interface-1 or
       *>   interface-2 is a strongly-typed group item, both are of the
-      *>   same type" -> OK  §9.3.8.2.3 7)  (Conformance between
+      *>   same type" -> OK  §2023:9.3.8.2.3 7)  (Conformance between
       *>   interfaces)
       *> cite.py --check 8.5.3.1 "Two type declarations are considered
       *>   equivalent when they have the same type-name, both have the
       *>   same presence or absence of the EXTERNAL clause and the
-      *>   STRONG phrase" -> OK  §8.5.3.1   (General)
+      *>   STRONG phrase" -> OK  §2023:8.5.3.1   (General)
       *> cite.py --check 10.6.2 "The data division may contain only a
-      *>   linkage section" -> OK  §10.6.2 4) e)  (Syntax rules)
+      *>   linkage section" -> OK  §2023:10.6.2 4) e)  (Syntax rules)
       *> cite.py --check 11.8.3 "Each method prototype in each
       *>   implemented interface shall be such that the object interface
       *>   of this class conforms to all implemented interfaces" -> OK
-      *>   §11.8.3 2)  (Syntax rules)
+      *>   §2023:11.8.3 2)  (Syntax rules)
       *> The admitting arm: interface-2 = L1C05UI, whose SWAPT has a
       *>   USING formal and a RETURNING item of the strong type TT (a
       *>   TYPEDEF STRONG in the prototype's linkage section, the only
-      *>   data section §10.6.2 SR4 e) allows); interface-1 = the object
+      *>   data section §2023:10.6.2 SR4 e) allows); interface-1 = the object
       *>   interface of L1C05UC (IMPLEMENTS L1C05UI), whose SWAPT
-      *>   declares an EQUIVALENT TT (§8.5.3.1: same type-name, same
+      *>   declares an EQUIVALENT TT (§2023:8.5.3.1: same type-name, same
       *>   STRONG, no EXTERNAL, same elementary layout) for both: the
       *>   same type, so it conforms, the program compiles and the call
       *>   runs. Rejecting arms:

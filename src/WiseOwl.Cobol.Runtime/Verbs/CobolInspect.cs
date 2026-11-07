@@ -5,18 +5,18 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// INSPECT TALLYING / REPLACING / CONVERTING over a field's character image (ISO/IEC 1989:2023 §14.9.22). The
+/// INSPECT TALLYING / REPLACING / CONVERTING over a field's character image (ISO/IEC 1989:2023 §2023:14.9.22). The
 /// emitter reads identifier-1's image once (GR4/GR6 — a signed numeric item is de-signed per GR4d and re-signed on
 /// the store), calls <see cref="Tally"/> and/or <see cref="Replace"/>/<see cref="Convert"/>, and stores the result
 /// back through the item's <c>Place</c>.
 /// <para>TALLYING and REPLACING each execute as ONE shared comparison cycle over the statement's ordered operands
-/// (§14.9.22.4 GR8), and the two share ONE engine (<see cref="RunCycle"/>): at each position the operands are tried
+/// (§2023:14.9.22.4 GR8), and the two share ONE engine (<see cref="RunCycle"/>): at each position the operands are tried
 /// in source order (GR8a); the first match tallies/replaces, the scan moves on (GR8c) and the cycle restarts from
 /// the first operand; no match moves the scan one position (GR8b); the cycle ends when the last character has
 /// participated or been considered (GR8d). CHARACTERS is an implied always-matching one-character operand (GR8e).
 /// This shared cycle is why an earlier <c>ALL "A"</c> starves a later <c>LEADING "AH"</c> to zero — the leading
 /// 'A' is consumed before the LEADING operand is ever tried.</para>
-/// <para>⛔ BACKWARD IS A DIRECTION OF THE SCAN, NEVER OF THE MATCHING (§14.9.22.4 GR8 NOTE 2, kb/Work PB1152).
+/// <para>⛔ BACKWARD IS A DIRECTION OF THE SCAN, NEVER OF THE MATCHING (§2023:14.9.22.4 GR8 NOTE 2, kb/Work PB1152).
 /// The current position walks from the rightmost character to the leftmost, and at each one a literal is compared
 /// LEFT-TO-RIGHT starting at that position — exactly as forward. The texts and the patterns are never reversed,
 /// because a reversed pattern matches the literal ENDING at the current position, which is the wrong rule (Annex
@@ -27,10 +27,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static class CobolInspect
 {
-    /// <summary>TALLYING operand kinds (§14.9.22.2 Format 1) — the binder's <c>InspectTallyKind</c> ordinals.</summary>
+    /// <summary>TALLYING operand kinds (§2023:14.9.22.2 Format 1) — the binder's <c>InspectTallyKind</c> ordinals.</summary>
     public const int TallyAll = 0, TallyLeading = 1, TallyCharacters = 2;
 
-    /// <summary>REPLACING operand kinds (§14.9.22.2 Format 2) — the binder's <c>InspectReplaceKind</c> ordinals.</summary>
+    /// <summary>REPLACING operand kinds (§2023:14.9.22.2 Format 2) — the binder's <c>InspectReplaceKind</c> ordinals.</summary>
     public const int ReplaceAll = 0, ReplaceFirst = 1, ReplaceLeading = 2, ReplaceCharacters = 3;
 
     /// <summary>The adjective an operand carries in the ONE comparison cycle — TALLYING's and REPLACING's kind
@@ -60,7 +60,7 @@ public static class CobolInspect
 
     /// <summary>
     /// One operand's eligible region [Start, End) in the text's OWN coordinates — fixed BEFORE the first comparison
-    /// cycle (§14.9.22.4 GR9), and a match [p, p + length) is eligible only when it lies wholly inside it.
+    /// cycle (§2023:14.9.22.4 GR9), and a match [p, p + length) is eligible only when it lies wholly inside it.
     /// <para>FORWARD — AFTER: eligibility starts immediately past the FIRST occurrence of its delimiter; absent ⇒
     /// the operand is NEVER eligible (GR9c — an empty region). BEFORE: eligibility ends at the first occurrence of
     /// its delimiter ENCOUNTERED FROM the AFTER-derived start; absent ⇒ as if BEFORE were not specified (GR9b — the
@@ -105,7 +105,7 @@ public static class CobolInspect
     }
 
     /// <summary>
-    /// ⛔ THE ONE COMPARISON CYCLE (§14.9.22.4 GR8/GR12/GR17), shared by TALLYING and REPLACING, forward and
+    /// ⛔ THE ONE COMPARISON CYCLE (§2023:14.9.22.4 GR8/GR12/GR17), shared by TALLYING and REPLACING, forward and
     /// backward. <paramref name="sink"/> is told each hit; comparison always reads the ORIGINAL text
     /// <paramref name="t"/> (every BEFORE/AFTER region is fixed from it before the first cycle too — GR9), so what the
     /// sink writes can never create or destroy a later hit. BACKWARD a later comparison can overlap an earlier hit
@@ -183,7 +183,7 @@ public static class CobolInspect
     }
 
     /// <summary>
-    /// The TALLYING comparison cycle (§14.9.22.4 GR8/GR12) over the statement's ordered operands (parallel arrays,
+    /// The TALLYING comparison cycle (§2023:14.9.22.4 GR8/GR12) over the statement's ordered operands (parallel arrays,
     /// source order across ALL counters — GR8a). Returns the per-operand match counts; the caller ADDS each count
     /// into its counter (GR11 — identifier-2 is not initialized by INSPECT). <paramref name="kinds"/> uses
     /// <see cref="TallyAll"/>/<see cref="TallyLeading"/>/<see cref="TallyCharacters"/>; a CHARACTERS operand has a
@@ -201,7 +201,7 @@ public static class CobolInspect
         return counts;
     }
 
-    /// <summary>⛔ THE ONE PLACE A LEADING RUN'S ANCHOR OPENS (kb/Work PB1124). §14.9.22.4 GR12 b) / GR17 c): the first
+    /// <summary>⛔ THE ONE PLACE A LEADING RUN'S ANCHOR OPENS (kb/Work PB1124). §2023:14.9.22.4 GR12 b) / GR17 c): the first
     /// LEADING occurrence must be "at the point where comparison began in the first comparison cycle in which
     /// literal-1 was eligible to participate" — so the anchor is the position of the first CYCLE that falls inside
     /// the operand's region, whichever operand that cycle then matches. Opened lazily inside the operand loop it
@@ -217,7 +217,7 @@ public static class CobolInspect
     }
 
     /// <summary>
-    /// The REPLACING comparison cycle (§14.9.22.4 GR8/GR17) over the statement's ordered operands; returns the
+    /// The REPLACING comparison cycle (§2023:14.9.22.4 GR8/GR17) over the statement's ordered operands; returns the
     /// replaced image (equal length — replacements are pattern-sized, so positions never shift). Matching reads
     /// the ORIGINAL content while writes go to a separate buffer (see <see cref="RunCycle"/>). A CHARACTERS operand (null pattern) replaces each matched
     /// character with its replacement's first character (GR17a); FIRST replaces only its first occurrence
@@ -267,12 +267,12 @@ public static class CobolInspect
     private static void Put(char[] chars, int pos, int size, string repl, bool fill)
     {
         if (!fill) { repl.CopyTo(0, chars, pos, size); return; }
-        // A figurative is never zero-length: §8.3.3.6.3 SR2's zero-length ALL literal-1 is a compile-time error
+        // A figurative is never zero-length: §2023:8.3.3.6.3 SR2's zero-length ALL literal-1 is a compile-time error
         // (COBOL1648) and every other figurative is one character — so there is no empty case to invent a value for.
         for (int i = 0; i < size; i++) chars[pos + i] = repl[i % repl.Length];
     }
 
-    /// <summary>§14.9.22.4 GR14 / GR15, asked of the whole statement before the first comparison cycle: every
+    /// <summary>§2023:14.9.22.4 GR14 / GR15, asked of the whole statement before the first comparison cycle: every
     /// non-figurative pattern/replacement pair of unequal size, and every CHARACTERS replacement that is not one
     /// character, sets EC-RANGE-INSPECT-SIZE (Table 13 fatal). GR14 compares the two SIZES and names no exemption,
     /// so a zero-length identifier-3 beside a non-empty replacement is a mismatch too.</summary>
@@ -286,19 +286,19 @@ public static class CobolInspect
             {
                 if (repl != 1)
                     ExceptionState.RangeInspectSizeError(
-                        $"INSPECT REPLACING CHARACTERS BY a {repl}-character replacement; ISO §14.9.22.4 GR15 requires one character");
+                        $"INSPECT REPLACING CHARACTERS BY a {repl}-character replacement; ISO §2023:14.9.22.4 GR15 requires one character");
                 continue;
             }
             int pat = patterns[k]?.Length ?? 0;
             if (pat != repl)
                 ExceptionState.RangeInspectSizeError(
                     $"INSPECT REPLACING operand {k + 1}: a {pat}-character pattern replaced by a {repl}-character "
-                    + "replacement; ISO §14.9.22.4 GR14 requires equal sizes");
+                    + "replacement; ISO §2023:14.9.22.4 GR14 requires equal sizes");
         }
     }
 
     /// <summary>
-    /// CONVERTING (§14.9.22.4 GR20): equivalent to a REPLACING with one <c>ALL c BY d</c> per character of
+    /// CONVERTING (§2023:14.9.22.4 GR20): equivalent to a REPLACING with one <c>ALL c BY d</c> per character of
     /// <paramref name="fromSet"/> (positional correspondence with <paramref name="toSet"/>) — since every operand
     /// is one character, this degenerates to a per-character map over the ONE region. A character duplicated in
     /// <paramref name="fromSet"/> maps by its FIRST occurrence (GR23 — <c>IndexOf</c>). The from/to maps are
@@ -306,7 +306,7 @@ public static class CobolInspect
     /// encountered (<see cref="Region"/>).
     /// <para>GR22: a FIGURATIVE literal-5 (<paramref name="toFigurative"/>) has the size of the from-set, so the
     /// to-set is its value repeated to that RUN-TIME size (an identifier-6 function-identifier's size is known only
-    /// here, kb/Work PB1126; an ALL literal repeats per §8.3.3.6.4 GR2). A non-figurative to-set of another size
+    /// here, kb/Work PB1126; an ALL literal repeats per §2023:8.3.3.6.4 GR2). A non-figurative to-set of another size
     /// sets EC-RANGE-INSPECT-SIZE (Table 13 fatal) before any character is converted; with checking off the results
     /// are undefined and the deterministic outcome maps only the common prefix.</para>
     /// </summary>
@@ -318,7 +318,7 @@ public static class CobolInspect
         if (!toFigurative && fromSet.Length != toSet.Length)
             ExceptionState.RangeInspectSizeError(
                 $"INSPECT CONVERTING a {fromSet.Length}-character set to a {toSet.Length}-character set; ISO "
-                + "§14.9.22.4 GR22 requires equal sizes");
+                + "§2023:14.9.22.4 GR22 requires equal sizes");
         var (start, end) = Region(t, before, after, backward);
         int mapLen = toFigurative ? fromSet.Length : Math.Min(fromSet.Length, toSet.Length);
         var chars = t.ToCharArray();

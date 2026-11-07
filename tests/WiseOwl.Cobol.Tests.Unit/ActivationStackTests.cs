@@ -8,8 +8,8 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>kb/Work PB2659 — the activation's stack is the runtime resource ISO §14.9.4.4 GR3c, §8.4.3.2.4 GR6c and
-/// §14.9.23.4 GR7b check (docs/CONFORMANCE.md DOC-A.1-14, -89, -102; <see cref="ActivationStack"/>). Before the fix a
+/// <summary>kb/Work PB2659 — the activation's stack is the runtime resource ISO §2023:14.9.4.4 GR3c, §2023:8.4.3.2.4 GR6c and
+/// §2023:14.9.23.4 GR7b check (docs/CONFORMANCE.md DOC-A.1-14, -89, -102; <see cref="ActivationStack"/>). Before the fix a
 /// RECURSIVE program died of a CLR stack overflow at a depth of about 250, which no handler can intercept. These facts
 /// drive the LIMIT path at the runtime surface, on threads whose stacks are small enough to exhaust in a unit test:
 /// each recursion must END in the defined condition and leave the run unit balanced, never take the process down
@@ -45,8 +45,8 @@ public sealed class ActivationStackTests
     }
 
     [Theory]
-    [InlineData(false, "§14.9.4.4 GR3c")]   // a CALL
-    [InlineData(true, "§8.4.3.2.4 GR6c")]   // a user-defined function activation
+    [InlineData(false, "§2023:14.9.4.4 GR3c")]   // a CALL
+    [InlineData(true, "§2023:8.4.3.2.4 GR6c")]   // a user-defined function activation
     public void RecursiveCall_PastTheStack_IsEcProgramResources_AndUnwindsBalanced(bool function, string rule)
     {
         var ru = new RunUnit();
@@ -62,7 +62,7 @@ public sealed class ActivationStackTests
         Assert.Equal("EC-PROGRAM-RESOURCES", cx.EcName);
         Assert.Contains(rule, cx.Message, StringComparison.Ordinal);
         Assert.True(depth > 10, $"the recursion stopped at depth {depth}, before the stack was used");
-        // §14.9.4.4 GR3i: the condition crossed every activation boundary above the one that failed, so no CALL site
+        // §2023:14.9.4.4 GR3i: the condition crossed every activation boundary above the one that failed, so no CALL site
         // above it may take it as its own failure — the boundary marks it, through an exception FILTER (a catch-and-
         // rethrow nested one dispatch per boundary and overflowed the stack while unwinding).
         Assert.True(cx.ControlTransferred);
@@ -70,7 +70,7 @@ public sealed class ActivationStackTests
         Assert.Equal(0, ru.Modules.CurrentActivation);
     }
 
-    /// <summary>§14.9.23.4 GR7b — the method arm: the emitted method prologue raises EC-OO-METHOD.</summary>
+    /// <summary>§2023:14.9.23.4 GR7b — the method arm: the emitted method prologue raises EC-OO-METHOD.</summary>
     [Fact]
     public void RecursiveMethod_PastTheStack_IsEcOoMethod()
     {
@@ -85,7 +85,7 @@ public sealed class ActivationStackTests
 
         var fx = Assert.IsType<CobolFatalException>(OnSmallStack(() => Method()));
         Assert.Equal("EC-OO-METHOD", fx.EcName);
-        Assert.Contains("§14.9.23.4 GR7b", fx.Message, StringComparison.Ordinal);
+        Assert.Contains("§2023:14.9.23.4 GR7b", fx.Message, StringComparison.Ordinal);
         Assert.True(depth > 10, $"the recursion stopped at depth {depth}, before the stack was used");
     }
 

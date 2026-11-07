@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.8.3 SR1 — "This identifier format may be specified
+      *> ISO §2023:8.4.3.8.3 SR1 — "This identifier format may be specified
       *> only in a method definition." SELF is the predefined object
       *> reference for the object the CURRENT METHOD is executing on
-      *> (§8.4.3.8.1), and a PROGRAM has no such object, so
+      *> (§2023:8.4.3.8.1), and a PROGRAM has no such object, so
       *> SET identifier TO SELF is refused in a program at every edition
       *> that has the format (COBOL-2002 introduced it).
       *>
       *> ⛔ AND THE CITATION IS THE OTHER HALF OF WHAT THIS PINS. The
-      *> message cited §14.9.39.3 SR12 c), which answers a DIFFERENT
+      *> message cited §2023:14.9.39.3 SR12 c), which answers a DIFFERENT
       *> question — SR12 governs a receiver described with an
       *> object-class-name, and its c)3./c)4. are about the FACTORY vs
       *> INSTANCE placement of a method that exists. WS-OBJ below is a

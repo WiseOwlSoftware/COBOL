@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.2.4 GR1, GR2 and GR3, SECOND PARAGRAPH of each -
+      *> ISO §2023:14.9.2.4 GR1, GR2 and GR3, SECOND PARAGRAPH of each -
       *> the ADD rules that exist only under standard arithmetic.
       *> GR1: "the result of the initial evaluation is equivalent to
       *> the result of the arithmetic expression (operand-11 +
@@ -20,17 +20,17 @@
       *>
       *> WHY THE ORDER IS VISIBLE HERE AND NOWHERE ELSE. Native
       *> addition is exact, so it is commutative and associative; an
-      *> SDIDI is decimal128 (§8.8.1.5.2: "a maximum precision of 34
+      *> SDIDI is decimal128 (§2023:8.8.1.5.2: "a maximum precision of 34
       *> decimal digits"), each addition is a correctly rounded
-      *> formatOf-addition (§8.8.1.5.3), and with no INTERMEDIATE
-      *> ROUNDING clause NEAREST-AWAY-FROM-ZERO is implied (§11.9.11.2
+      *> formatOf-addition (§2023:8.8.1.5.3), and with no INTERMEDIATE
+      *> ROUNDING clause NEAREST-AWAY-FROM-ZERO is implied (§2023:11.9.11.2
       *> GR3a). With X = 10**30 (31 digits) and Z = 0.0004, X + Z
       *> needs 35 digits and rounds to X: the 0.0004 is lost, so WHICH
       *> operands are added first decides the answer. Y = -(10**30).
-      *> Unparenthesized + runs left to right (§8.8.1.2 GR3). Every
-      *> store truncates (§14.7.4.3 GR2: no ROUNDED = TRUNCATION).
+      *> Unparenthesized + runs left to right (§2023:8.8.1.2 GR3). Every
+      *> store truncates (§2023:14.7.4.3 GR2: no ROUNDED = TRUNCATION).
       *> The composite-of-operands cap of 31 digits is a NATIVE rule
-      *> (§14.7.7 GR2), so these 35-digit composites are legal only
+      *> (§2023:14.7.7 GR2), so these 35-digit composites are legal only
       *> because standard-decimal arithmetic is in effect.
       *>
       *> TO-1  ADD X Z Y TO R1 (R1 = 0): initial evaluation
@@ -53,7 +53,7 @@
       *>       arithmetic would truncate 10**30 + 4.9996 to ...0004.
       *>       The pair Q (0.55 + 2.2 = 2.75 -> PIC 9V9 2.7) is exact
       *>       in both modes; SRC's S has no DST partner and DST's T
-      *>       none in SRC, so T keeps 9 (§14.7.6 rule 1).
+      *>       none in SRC, so T keeps 9 (§2023:14.7.6 rule 1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB228ASD.
        OPTIONS.

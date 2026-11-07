@@ -6,22 +6,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.21.4 GR3: "The INITIATE statement does not open any file connector with which report-name-1
+      *> ISO §2023:14.9.21.4 GR3: "The INITIATE statement does not open any file connector with which report-name-1
       *> is associated. Therefore, the INITIATE statement may be executed only if the corresponding file
       *> connector is open in the extend mode or the output mode. If the file connector is not open in the
       *> output or extend mode, the EC-REPORT-FILE-MODE exception condition is set to exist and no action is
-      *> taken on the report."  That is the DETECTION half of §14.9.27.4 GR7 ("The OPEN statement for a report
+      *> taken on the report."  That is the DETECTION half of §2023:14.9.27.4 GR7 ("The OPEN statement for a report
       *> file connector shall be executed before the execution of an INITIATE statement that references a
       *> report-name that is associated with file-name-1"); the other half — that nothing opens a report file
       *> connector implicitly — holds by construction.  Table 13 makes EC-REPORT-FILE-MODE Fatal, so under
-      *> >>TURN … CHECKING ON the declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) keeps the run alive.
+      *> >>TURN … CHECKING ON the declarative runs and RESUME AT NEXT STATEMENT (§2023:14.9.33) keeps the run alive.
       *>
       *> TWO ARMS, because the rule turns on the pair (is open, in which mode) and not on either alone:
-      *>   1. NOT OPEN AT ALL          -> EC-REPORT-FILE-MODE.  "No action is taken on the report", so §14.9.21.4
+      *>   1. NOT OPEN AT ALL          -> EC-REPORT-FILE-MODE.  "No action is taken on the report", so §2023:14.9.21.4
       *>      GR4 never places it in the active state, and the TERMINATE that follows is therefore itself
-      *>      unsuccessful with EC-REPORT-INACTIVE (§14.9.46.4 GR1) — the witness that GR3's "no action" held.
+      *>      unsuccessful with EC-REPORT-INACTIVE (§2023:14.9.46.4 GR1) — the witness that GR3's "no action" held.
       *>   3. OPEN OUTPUT, then OPEN EXTEND -> both legal; GR3 names the two modes and this pins BOTH.
-      *> (The former ARM 2 opened this report file INPUT, which §14.9.27.3 SR1 forbids — "The OPEN statement
+      *> (The former ARM 2 opened this report file INPUT, which §2023:14.9.27.3 SR1 forbids — "The OPEN statement
       *> for a report file shall not contain the INPUT phrase or the I-O phrase" — and which now draws
       *> COBOL2371 at compile time (kb/Work PB318). It was never conforming source, so it is gone.)
       *> Before kb/Work PB326 the condition was a catalogue row with no raise site anywhere in src: every arm

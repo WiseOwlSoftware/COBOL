@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.2 General format — both paragraphs of the
+      *> ISO §2023:12.4.2 General format — both paragraphs of the
       *>   input-output section are optional
       *> "INPUT-OUTPUT SECTION. [ file-control-paragraph ] [
       *>   i-o-control-paragraph ]"
-      *>   cite.py: OK  §12.4.2   (General format)
+      *>   cite.py: OK  §2023:12.4.2   (General format)
       *> The paragraphs themselves (the forms used below):
       *> "FILE-CONTROL. [ file-control-entry ] ..."
-      *>   cite.py: OK  §12.4.4.2   (General format)
+      *>   cite.py: OK  §2023:12.4.4.2   (General format)
       *> "I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause
       *>   }... ]. ]"
-      *>   cite.py: OK  §12.4.6.2   (General format)
+      *>   cite.py: OK  §2023:12.4.6.2   (General format)
       *> Each arm of the format is written once, one program per arm:
       *>   L1C16A  INPUT-OUTPUT SECTION. with NEITHER paragraph (both
       *>     optional)

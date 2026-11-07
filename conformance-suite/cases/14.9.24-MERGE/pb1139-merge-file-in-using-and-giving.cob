@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - A MERGE FILE NAMED IN BOTH USING AND GIVING IS REFUSED.
       *>   cite.py --check 14.9.24.3 "File-names shall not be repeated within the MERGE statement." ->
-      *>     OK §14.9.24.3 7)
+      *>     OK §2023:14.9.24.3 7)
       *> F2 is file-name-3 and file-name-4 at once: the rule is about the statement's file-names as a whole.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139F.

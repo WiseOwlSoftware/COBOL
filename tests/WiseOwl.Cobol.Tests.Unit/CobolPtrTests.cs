@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The data-pointer runtime rules (Phase-4b increment 2; ISO §8.8.4.2 pointer equality, §13.18.5 GR3/GR4,
-/// §14.9.3 GR1/GR2/GR6, §14.9.15 GR1, §14.9.39 F10 GR18/GR20). End-to-end behavior rides the three pointer
+/// The data-pointer runtime rules (Phase-4b increment 2; ISO §2023:8.8.4.2 pointer equality, §2023:13.18.5 GR3/GR4,
+/// §2023:14.9.3 GR1/GR2/GR6, §2023:14.9.15 GR1, §2023:14.9.39 F10 GR18/GR20). End-to-end behavior rides the three pointer
 /// goldens; these lock the carrier/cell semantics the emitters wire to.
 /// </summary>
 public sealed class CobolPtrTests
@@ -17,7 +17,7 @@ public sealed class CobolPtrTests
     public void SameTarget_IsStructural_OverCellAndOffset()
     {
         var cell = new StorageCell { Ref = "ABCDEFGHIJ" };
-        // Two INDEPENDENT window pointers to the same address compare EQUAL (§8.8.4.2 :9772 — "equal if
+        // Two INDEPENDENT window pointers to the same address compare EQUAL (§2023:8.8.4.2 :9772 — "equal if
         // they reference the same address"; increment 1's instance identity could not express this).
         Assert.True(ManagedPointer.SameTarget(ManagedPointer.At(cell, 3), ManagedPointer.At(cell, 3)));
         Assert.False(ManagedPointer.SameTarget(ManagedPointer.At(cell, 3), ManagedPointer.At(cell, 4)));
@@ -33,7 +33,7 @@ public sealed class CobolPtrTests
         var p = ManagedPointer.At(cell, 0);
         var p4 = CobolPtr.UpBy(p, 4);
         var p2 = CobolPtr.UpBy(p4, -2);
-        Assert.Equal(4, ((CellPointer)p4).Offset);      // §14.9.39 F10 GR20 — byte-granular
+        Assert.Equal(4, ((CellPointer)p4).Offset);      // §2023:14.9.39 F10 GR20 — byte-granular
         Assert.Equal(2, ((CellPointer)p2).Offset);
         Assert.Equal(0, ((CellPointer)p).Offset);       // pointers are VALUES — UpBy never mutates its operand
     }
@@ -43,12 +43,12 @@ public sealed class CobolPtrTests
     {
         var cell = new StorageCell { Ref = "ABCDEFGHIJ" };
         var p = ManagedPointer.At(cell, 0);
-        // 2.0 at scale 1 (scaled 20) IS an integer value — moves by 2 (§14.9.39.4 GR19 is a VALUE rule).
+        // 2.0 at scale 1 (scaled 20) IS an integer value — moves by 2 (§2023:14.9.39.4 GR19 is a VALUE rule).
         Assert.Equal(2, ((CellPointer)CobolPtr.UpByAmount(p, 20, 1, down: false)).Offset);
-        // DOWN is the flag, not a negated amount: §14.9.39.4 GR20 decrements by the same number of bytes.
+        // DOWN is the flag, not a negated amount: §2023:14.9.39.4 GR20 decrements by the same number of bytes.
         Assert.Equal(1, ((CellPointer)CobolPtr.UpByAmount(ManagedPointer.At(cell, 3), 20, 1, down: true)).Offset);
 
-        // 2.5 at scale 1 (scaled 25) is NOT an integer. §14.9.39.4 GR19 gives BOTH arms in one sentence: "the
+        // 2.5 at scale 1 (scaled 25) is NOT an integer. §2023:14.9.39.4 GR19 gives BOTH arms in one sentence: "the
         // EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is
         // unsuccessful, and the content of identifier-9 is unchanged" — so checking ON raises the named
         // condition, and checking OFF leaves the operand alone. It is never a silent truncation either way.
@@ -65,7 +65,7 @@ public sealed class CobolPtrTests
     }
 
     /// <summary>kb/Work PB2697 — a trailing-P amount (negative scale) displaces by its VALUE, the stored digits
-    /// × 10^|scale| (§13.18.40.4 GR14), and one whose value the widest carrier cannot hold IS an integer, so it is
+    /// × 10^|scale| (§2023:13.18.40.4 GR14), and one whose value the widest carrier cannot hold IS an integer, so it is
     /// GR20's EC-RANGE-PTR (no representable address results), never GR19's EC-SIZE-ADDRESS and never a
     /// displacement by 0 — the exact lane now answers what the native-float lane already did.</summary>
     [Fact]
@@ -86,7 +86,7 @@ public sealed class CobolPtrTests
     [Fact]
     public void UpBy_Null_RaisesWhenChecked_AndIsUnchangedWhenNot()
     {
-        // §14.9.39.4 GR18 — a NULL identifier-9 sets EC-DATA-PTR-NULL.
+        // §2023:14.9.39.4 GR18 — a NULL identifier-9 sets EC-DATA-PTR-NULL.
         ExceptionState.DataPtrNullChecking = true;
         try
         {
@@ -96,7 +96,7 @@ public sealed class CobolPtrTests
         finally { ExceptionState.DataPtrNullChecking = false; }
 
         // Checking OFF is LENIENT here and loud at Deref — the owner's rule, because GR19 names the unchanged
-        // outcome for a SET while §13.18.5.4 GR3/GR4 name none for a dereference (see Deref_Null_… below, which
+        // outcome for a SET while §2023:13.18.5.4 GR3/GR4 name none for a dereference (see Deref_Null_… below, which
         // still asserts the unconditional throw). A SET that cannot be performed leaves its operand NULL.
         Assert.True(CobolPtr.UpBy(ManagedPointer.Null, 1).IsNull);
     }
@@ -105,7 +105,7 @@ public sealed class CobolPtrTests
     public void Deref_Null_And_OutOfBounds_AreLoud()
     {
         Assert.Equal("EC-DATA-PTR-NULL",
-            Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.Null, 1)).EcName);   // §13.18.5 GR3
+            Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.Null, 1)).EcName);   // §2023:13.18.5 GR3
         var cell = new StorageCell { Ref = "ABCDE" };
         Assert.Equal("EC-BOUND-PTR",
             Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(ManagedPointer.At(cell, 4), 5)).EcName);   // GR4 — window past the end
@@ -115,7 +115,7 @@ public sealed class CobolPtrTests
     [Fact]
     public void Allocate_SizeRules_And_InitializedFill()
     {
-        Assert.True(CobolPtr.Allocate(0, ' ', out _).IsNull);        // §14.9.3 GR2 — ≤0 ⇒ NULL, no exception condition
+        Assert.True(CobolPtr.Allocate(0, ' ', out _).IsNull);        // §2023:14.9.3 GR2 — ≤0 ⇒ NULL, no exception condition
         Assert.True(CobolPtr.Allocate(-5, ' ', out _).IsNull);
         var p = (CellPointer)CobolPtr.Allocate(4, ' ', out _);
         Assert.Equal("    ", p.Cell.Ref);                // GR8 undefined — this implementation space-fills
@@ -124,7 +124,7 @@ public sealed class CobolPtrTests
         Assert.Equal("\0\0\0", z.Cell.Ref);              // GR6 INITIALIZED — binary zeros
     }
 
-    // kb/Work PB151 — §14.9.3.4 GR5: a not-available request answers NULL + the notAvail flag (the emitter's
+    // kb/Work PB151 — §2023:14.9.3.4 GR5: a not-available request answers NULL + the notAvail flag (the emitter's
     // checking-gated EC-STORAGE-NOT-AVAIL), never an unhandled OverflowException; and the size arrives as the
     // FULL Int128, so a 20-digit request cannot WRAP into a small valid allocation (the PB22 cast family).
     [Fact]
@@ -150,7 +150,7 @@ public sealed class CobolPtrTests
         Assert.True(naNan);
     }
 
-    // kb/Work PB151 — §14.9.39.4 GR19 on a native-float amount: non-integral leaves the pointer UNCHANGED
+    // kb/Work PB151 — §2023:14.9.39.4 GR19 on a native-float amount: non-integral leaves the pointer UNCHANGED
     // (the old (long)(double) truncation bypassed the integrality raise); an integral double displaces.
     [Fact]
     public void UpByAmountReal_IntegralityOnTheDouble()
@@ -164,7 +164,7 @@ public sealed class CobolPtrTests
 
     // ⛔ kb/Work PB465 — THE AXIS THE TWO TESTS ABOVE HOLD FIXED. Both drive the integrality axis
     // (integral vs fractional) with a SMALL amount; neither drives an INTEGRAL amount whose MAGNITUDE no address
-    // can hold, which is where §14.9.39.4 states a DIFFERENT rule with a DIFFERENT condition. GR19 is about the
+    // can hold, which is where §2023:14.9.39.4 states a DIFFERENT rule with a DIFFERENT condition. GR19 is about the
     // amount's VALUE ("does not evaluate to an integer" — EC-SIZE-ADDRESS); GR20 is about the RESULTING ADDRESS
     // ("outside the range of values allowed by the implementor for a data-pointer data item" — EC-RANGE-PTR).
     // Measured before the fix: an integral 1.0E19 set EC-SIZE-ADDRESS and terminated the run unit.

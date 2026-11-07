@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR4 + GR9 — after WRITE the record stays
+      *> ISO §2023:14.9.51.4 GR4 + GR9 — after WRITE the record stays
       *>   available through a SAME RECORD AREA peer, and the FROM
       *>   operand is untouched
       *> GR4: "The logical record released by the successful execution
@@ -19,7 +19,7 @@
       *>   available as a record of other files referenced in the same
       *>   SAME RECORD AREA clause as the associated output file, as
       *>   well as the file associated with record-name-1"
-      *>   -> OK  §14.9.51.4 4)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 4)  (General rules)
       *> GR9: "After the successful execution of a WRITE statement, the
       *>   information in the area referenced by identifier-1 is
       *>   available, provided that identifier-1 is not one or part of
@@ -29,7 +29,7 @@
       *>   referenced by identifier-1 is available, provided that
       *>   identifier-1 is not one or part of one of the record
       *>   descriptions subordinate to the file-description"
-      *>   -> OK  §14.9.51.4 9)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 9)  (General rules)
       *> DERIVATION. F1 and F2 share one record area (SAME RECORD AREA
       *> FOR F1 F2), both open OUTPUT.
       *>   WRITE R1 FROM WS-SRC ("ABCDEFGH"): GR5 a) moves it to R1,

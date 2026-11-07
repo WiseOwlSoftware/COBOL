@@ -6,16 +6,16 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// An EC-OO-UNIVERSAL message names each operand of a §14.8.2.2 / §14.8.3.2 variable-length violation by its own role
+/// An EC-OO-UNIVERSAL message names each operand of a §2023:14.8.2.2 / §2023:14.8.3.2 variable-length violation by its own role
 /// (kb/Work PB480, train 1021 review D finding 6): the description printed after "the argument" is the argument's and
 /// the one after "the formal parameter" the formal's, and likewise for the returning item (the method's, the sending
-/// operand, §14.8.3.1) and the receiving item (the invocation's). The two calls into <c>VariableLengthViolation</c>
+/// operand, §2023:14.8.3.1) and the receiving item (the invocation's). The two calls into <c>VariableLengthViolation</c>
 /// passed the role labels in the opposite order to the descriptions, so each message named one operand as the other.
 /// </summary>
 public sealed class ActivationRelationsRoleLabelTests
 {
     /// <summary>A variable-length group of <paramref name="lead"/> characters followed by a dynamic-length item: two of
-    /// different leads are incompatible (§8.5.1.12.2 — the dynamic-length items start at different positions).</summary>
+    /// different leads are incompatible (§2023:8.5.1.12.2 — the dynamic-length items start at different positions).</summary>
     private static ActivationDescription Var(int lead) => new()
     {
         Shape = ActivationShape.VariableLengthGroup, Category = ActivationCategory.Alphanumeric,

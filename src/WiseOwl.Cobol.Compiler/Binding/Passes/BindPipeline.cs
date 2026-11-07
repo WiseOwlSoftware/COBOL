@@ -68,7 +68,7 @@ internal static class BindPipeline
     /// diagnostics.</summary>
     public static IReadOnlyList<GroupBindPass> GroupTail() => new GroupBindPass[]
     {
-        // Every unit's PROCEDURE DIVISION binds (user-function signature table first — §8.4.3.2.4 GR1 forward refs).
+        // Every unit's PROCEDURE DIVISION binds (user-function signature table first — §2023:8.4.3.2.4 GR1 forward refs).
         new("ProcedureBinding", PassPhase.FilesResolved, PassPhase.ProcedureBound, BinderDriver.BindProcedures)
         {
             // MoveBinder's figurative-fill and ref-mod-store receivers; the resolver's NumericImagePlace wrap reads the

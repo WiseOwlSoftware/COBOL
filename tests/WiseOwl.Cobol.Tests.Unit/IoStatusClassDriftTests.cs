@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ ONE TABLE FROM AN I-O STATUS TO ITS CONDITION (kb/Work PB810). Every emitted phrase branch and both
 /// generated after-verb hooks decide "is this the at end condition / the invalid key condition / a successful
-/// completion" from the status's first character, and that decision is §9.1.13.1's table, written ONCE in
+/// completion" from the status's first character, and that decision is §2023:9.1.13.1's table, written ONCE in
 /// <c>CodeGen/Verbs/IoStatusClass.cs</c>. PB810 found the READ arms justifying the same comparison from two
-/// different clauses — one of them a rule about a DIFFERENT condition (§9.1.14, invalid key) — because each site
+/// different clauses — one of them a rule about a DIFFERENT condition (§2023:9.1.14, invalid key) — because each site
 /// wrote its own; this guard makes a new site ask the table instead.</summary>
 public sealed class IoStatusClassDriftTests
 {
@@ -40,12 +40,12 @@ public sealed class IoStatusClassDriftTests
             }
         }
         Assert.True(offenders.Count == 0,
-            "An I-O status is classified outside IoStatusClass (§9.1.13.1's table, kb/Work PB810) — "
+            "An I-O status is classified outside IoStatusClass (§2023:9.1.13.1's table, kb/Work PB810) — "
             + "call IoStatusClass.Successful/AtEnd/InvalidKey/Unsuccessful instead:\n" + string.Join("\n", offenders));
     }
 
-    /// <summary>The table's three phrase-driving classes, pinned to the values §9.1.13.2, §9.1.13.4 and
-    /// §9.1.13.5 give them — and '46' (§9.1.13.7 6), a logic error) in none of the phrase classes.</summary>
+    /// <summary>The table's three phrase-driving classes, pinned to the values §2023:9.1.13.2, §2023:9.1.13.4 and
+    /// §2023:9.1.13.5 give them — and '46' (§2023:9.1.13.7 6), a logic error) in none of the phrase classes.</summary>
     [Theory]
     [InlineData("00", true, false, false)]
     [InlineData("04", true, false, false)]

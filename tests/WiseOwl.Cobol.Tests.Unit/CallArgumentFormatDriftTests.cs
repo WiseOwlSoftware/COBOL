@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY ALTERNATIVE OF A CALL ARGUMENT IS NAMED BY THE ONE FORMAT-1 NARROWING, OR DECLARED PRINTED BY FORMAT 1
-/// (kb/Work PB3996). ISO §14.9.4.2 prints Format 1's USING as <c>[ BY REFERENCE ] { identifier-2 } …</c> or
+/// (kb/Work PB3996). ISO §2023:14.9.4.2 prints Format 1's USING as <c>[ BY REFERENCE ] { identifier-2 } …</c> or
 /// <c>BY CONTENT { identifier-2 } …</c>; Format 2 alone prints BY VALUE, OMITTED, arithmetic-expression-1,
 /// boolean-expression-1 and literal-2. The grammar parses the formats' shared <c>callArgument</c> wide, so a
 /// Format-2-only alternative reaches a binder arm that binds it. PB130 narrowed those spellings inside each arm,
@@ -34,14 +34,14 @@ public sealed class CallArgumentFormatDriftTests
 {
     private const string Classifier = "private Format2OnlySpelling? Format2OnlySpellingOf";
 
-    /// <summary>The alternatives §14.9.4.2 FORMAT 1 prints, per rule context — each is identifier-2 (or an
-    /// address-identifier, which §14.9.4.3 SR3 makes one). Every other accessor of these contexts is a Format-2-only
+    /// <summary>The alternatives §2023:14.9.4.2 FORMAT 1 prints, per rule context — each is identifier-2 (or an
+    /// address-identifier, which §2023:14.9.4.3 SR3 makes one). Every other accessor of these contexts is a Format-2-only
     /// spelling and must be read by the classifier.</summary>
     private static readonly IReadOnlyDictionary<Type, string[]> Format1Prints = new Dictionary<Type, string[]>
     {
         // callArgument: the bare identifier-2 is the arithmeticExpression the binder reduces to its sole reference.
         [typeof(CobolParserCore.CallArgumentContext)] = ["addressIdentifier"],
-        // callByReference: `[ BY REFERENCE ] { identifier-2 }`; NULL is read here only to be refused by §14.9.4.3 SR3.
+        // callByReference: `[ BY REFERENCE ] { identifier-2 }`; NULL is read here only to be refused by §2023:14.9.4.3 SR3.
         [typeof(CobolParserCore.CallByReferenceContext)] = ["addressIdentifier", "predefinedNull", "receivingIdentifier"],
         // callByContent: `BY CONTENT { identifier-2 }`; the expression operands are Format 2's.
         [typeof(CobolParserCore.CallByContentContext)] = ["addressIdentifier"],
@@ -76,7 +76,7 @@ public sealed class CallArgumentFormatDriftTests
     {
         string source = CallBinderSource();
         // callArgument's boolean and arithmetic alternatives reach the classifier through the ONE reduction
-        // (ConditionBinder.ReduceArgument, ISO §14.9.4.4 GR8), whose call is the statement that names them.
+        // (ConditionBinder.ReduceArgument, ISO §2023:14.9.4.4 GR8), whose call is the statement that names them.
         string reduction = Regex.Match(source, @"var bareArg = ConditionBinder\.ReduceArgument\([^;]*;").Value;
         Assert.True(reduction.Length > 0, "BindCall no longer reduces the keyword-less argument through "
             + "ConditionBinder.ReduceArgument as `var bareArg = …;` — re-point this test rather than deleting it.");
@@ -97,7 +97,7 @@ public sealed class CallArgumentFormatDriftTests
             $"CallBinder.Format2OnlySpellingOf never reads {unread.Count} alternative(s) of the CALL argument grammar: "
             + $"{string.Join(", ", unread)}. A spelling it does not name is bound by whichever arm parses it with no "
             + "Format-1 check at all (kb/Work PB3996: `USING W OMITTED` compiled clean). Classify it as Format 2 only "
-            + "(return its refusal) or, if ISO §14.9.4.2 Format 1 prints it, add it to Format1Prints with that clause.");
+            + "(return its refusal) or, if ISO §2023:14.9.4.2 Format 1 prints it, add it to Format1Prints with that clause.");
     }
 
     [Fact]

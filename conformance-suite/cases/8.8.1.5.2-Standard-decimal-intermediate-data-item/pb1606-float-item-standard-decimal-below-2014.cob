@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.1.5.1 / §8.8.1.5.2 rule 1: the conversion of a floating-point
+      *> ISO §2023:8.8.1.5.1 / §2023:8.8.1.5.2 rule 1: the conversion of a floating-point
       *> data item into a standard-decimal intermediate data item exists only
       *> when standard-decimal arithmetic is in effect, and STANDARD-DECIMAL is
       *> a COBOL-2014 keyword of the ARITHMETIC clause: below 2014 the clause is

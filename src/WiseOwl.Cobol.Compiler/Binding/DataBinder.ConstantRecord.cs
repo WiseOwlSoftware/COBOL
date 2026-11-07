@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>Whether <paramref name="item"/> is, or is subordinate to, a CONSTANT RECORD (ISO §13.18.15.3
+    /// <summary>Whether <paramref name="item"/> is, or is subordinate to, a CONSTANT RECORD (ISO §2023:13.18.15.3
     /// SR2 — "neither the data item described by the subject of the entry nor any data item subordinate to
     /// [it] shall be specified as a receiving data item"). The flag lives on the level-01 root; this walk
     /// covers the subtree.</summary>
@@ -22,10 +22,10 @@ public sealed partial class DataBinder
         return false;
     }
 
-    /// <summary>The §13.18.15.3 SR2 receiving-operand prohibition for CONSTANT RECORD content — "Neither the data
+    /// <summary>The §2023:13.18.15.3 SR2 receiving-operand prohibition for CONSTANT RECORD content — "Neither the data
     /// item described by the subject of the entry nor any data item subordinate to the subject of the entry shall be
     /// specified as a receiving data item". The <c>COBOL1548</c> message when the place is (or is subordinate to)
-    /// a structured constant, else null. It REPORTS NOTHING: the receiving chokepoint reports it, and §8.4.3.2.4
+    /// a structured constant, else null. It REPORTS NOTHING: the receiving chokepoint reports it, and §2023:8.4.3.2.4
     /// GR5's argument-manner test only asks it (kb/Work PB1418).
     /// <para>⛔ IT HAS EXACTLY ONE CALL SITE, AND THAT IS THE DESIGN: <c>ExpressionBinder.ReceivingPlaceBar</c>, the
     /// place half of the ONE receiving chokepoint's prohibition table. A verb reaches this rule by RESOLVING ITS
@@ -42,6 +42,6 @@ public sealed partial class DataBinder
         DataItem root = place.Item;
         while (root.Parent is { } p) root = p;
         return $"{what} names a data item of the CONSTANT RECORD '{root.CobolName ?? root.ClrName}' — the content "
-            + "of a structured constant cannot be modified (ISO §13.18.15.3 SR2)";
+            + "of a structured constant cannot be modified (ISO §2023:13.18.15.3 SR2)";
     }
 }

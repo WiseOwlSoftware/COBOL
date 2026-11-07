@@ -5,21 +5,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.2 — the DISPLAY statement's GENERAL FORMATS. Format 1 (device) prints:
+      *> ISO §2023:14.9.11.2 — the DISPLAY statement's GENERAL FORMATS. Format 1 (device) prints:
       *>     DISPLAY { identifier-1 | literal-1 } … [ UPON mnemonic-name-1 ] [ WITH NO ADVANCING ]
       *>              [ END-DISPLAY ]
       *> with DISPLAY, NO, ADVANCING and END-DISPLAY underlined and WITH and UPON's bracket optional.
       *>
       *> DERIVED BEFORE MEASURING, element for element:
       *>   · the brace repeats with "…", so ONE statement takes a LIST of operands mixing identifier-1 and
-      *>     literal-1 freely, and §14.9.11.4 GR1 transfers "the content of each operand … in the order
+      *>     literal-1 freely, and §2023:14.9.11.4 GR1 transfers "the content of each operand … in the order
       *>     listed" — one concatenated line, no separators of the compiler's own.
-      *>   · an identifier includes a FUNCTION-IDENTIFIER (§8.4.4.1), so FUNCTION UPPER-CASE(x) is a legal
+      *>   · an identifier includes a FUNCTION-IDENTIFIER (§2023:8.4.4.1), so FUNCTION UPPER-CASE(x) is a legal
       *>     identifier-1.
-      *>   · a figurative constant is a literal-1, and §14.9.11.4 GR3 says "only a single occurrence of
+      *>   · a figurative constant is a literal-1, and §2023:14.9.11.4 GR3 says "only a single occurrence of
       *>     the figurative constant is displayed" — SPACE contributes exactly one space, not the width of
       *>     any neighbouring item.
-      *>   · WITH is NOT underlined, so `NO ADVANCING` without it is the same statement (§5.2.3).
+      *>   · WITH is NOT underlined, so `NO ADVANCING` without it is the same statement (§2023:5.2.3).
       *>   · END-DISPLAY is optional, so the same list is legal with and without it.
       *> The UPON phrase's own element is pinned by conformance:cases/14.9.11-DISPLAY/l1_display_standard_device, which
       *> discriminates SYSERR from the standard display device; it is not repeated here.

@@ -14,13 +14,13 @@
       *> automatically test the current value of each control data item,
       *> in order major to minor, for equality with the corresponding
       *> prior control."
-      *>   cite.py: OK  §13.18.16.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.16.4 3)  (General rules)
       *> "The alphanumeric program collating sequence and national program
       *> collating sequence are used to determine the truth value of any
       *> alphanumeric comparisons and national comparisons, respectively,
       *> that are: ... c) Implicitly specified by the presence of a
       *> CONTROL clause in a report description entry."
-      *>   cite.py: OK  §12.3.6.4 11) c)  (General rules)
+      *>   cite.py: OK  §2023:12.3.6.4 11) c)  (General rules)
       *>
       *> DERIVATION. Alphabet SEQ-AB gives "A" and "B" ONE ordinal
       *> position (ALSO), so the relation WS-K = "B" is true when WS-K

@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.1.3 SR11 — qualified-linage-counter (OF / IN
+      *> ISO §2023:8.4.3.1.3 SR11 — qualified-linage-counter (OF / IN
       *> file-name) selects that file's own LINAGE-COUNTER.
       *> Rule: "Qualified-linage-counter-1 is defined in 8.4.2.2,
       *> Qualification."
-      *> cite.py: OK  §8.4.3.1.3 11)  (Syntax rules)
-      *> §8.4.2.2.3 SR8: "LINAGE-COUNTER shall be qualified if more
+      *> cite.py: OK  §2023:8.4.3.1.3 11)  (Syntax rules)
+      *> §2023:8.4.2.2.3 SR8: "LINAGE-COUNTER shall be qualified if more
       *> than one file description entry containing a LINAGE clause
       *> may be referenced within the source element"
-      *> cite.py: OK  §8.4.2.2.3 8)  (Syntax rules)
-      *> §13.18.34.4 GR7: "A separate LINAGE-COUNTER is supplied for
+      *> cite.py: OK  §2023:8.4.2.2.3 8)  (Syntax rules)
+      *> §2023:13.18.34.4 GR7: "A separate LINAGE-COUNTER is supplied for
       *> each file ... whose file description entry contains a LINAGE
       *> clause." / "The value of LINAGE-COUNTER is automatically set
       *> to one at the time an OPEN statement with the OUTPUT phrase
       *> is executed" / "When the ADVANCING phrase of the WRITE
       *> statement is not specified, the LINAGE-COUNTER is incremented
       *> by the value one."
-      *> cite.py: OK  §13.18.34.4 7) a)  (General rules)  [a), d), c)3.]
+      *> cite.py: OK  §2023:13.18.34.4 7) a)  (General rules)  [a), d), c)3.]
       *> DERIVATION: both FDs carry LINAGE, so SR8 requires the
       *> qualified forms used here (OF F1, IN F2).
       *>  O1: after OPEN OUTPUT both counters are 1 (7d) -> 01 01.

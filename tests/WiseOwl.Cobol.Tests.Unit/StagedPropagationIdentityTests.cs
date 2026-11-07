@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB892 Arm B — a condition staged by <c>GOBACK / EXIT … RAISING</c> names the ACTIVATION it was staged
-/// for, and only a pickup running in that activation takes it. ISO §14.9.18.4 GR1 b): "an exception condition is
+/// for, and only a pickup running in that activation takes it. ISO §2023:14.9.18.4 GR1 b): "an exception condition is
 /// raised in the activating runtime element if checking for that exception condition is enabled in the activating
 /// runtime element" — one element, the one the returning element returns to. The staged slot used to be
 /// anonymous, so the next pickup ANYWHERE took whatever an activator with no pickup (an EC-free group) had left.
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class StagedPropagationIdentityTests
 {
-    private const string AllOn = "+EC-USER";   // the activator's §7.3.25 profile — checking enabled for EC-USER
+    private const string AllOn = "+EC-USER";   // the activator's §2023:7.3.25 profile — checking enabled for EC-USER
 
     private static (ModuleStack Stack, ExceptionEngine Engine) NewRunUnitParts()
     {
@@ -64,7 +64,7 @@ public sealed class StagedPropagationIdentityTests
         Assert.False(e.TakeRaisedPropagation(AllOn, out _, out _));
     }
 
-    [Fact]   // The OBJECT slot answers the same question (§14.6.13.1.5 exception objects — the same §14.9.18.4 GR1 b) staging).
+    [Fact]   // The OBJECT slot answers the same question (§2023:14.6.13.1.5 exception objects — the same §2023:14.9.18.4 GR1 b) staging).
     public void TheObjectSlot_ObeysTheSameIdentity()
     {
         var (s, e) = NewRunUnitParts();
@@ -78,7 +78,7 @@ public sealed class StagedPropagationIdentityTests
         Assert.True(e.TakePropagatedObject(out _));    // MAIN, the activator, still can
     }
 
-    [Fact]   // §14.9.18.4 GR3 — the main program's GOBACK RAISING has no activator: nothing can ever take it.
+    [Fact]   // §2023:14.9.18.4 GR3 — the main program's GOBACK RAISING has no activator: nothing can ever take it.
     public void TheMainProgramsStaging_HasNoActivator()
     {
         var (s, e) = NewRunUnitParts();

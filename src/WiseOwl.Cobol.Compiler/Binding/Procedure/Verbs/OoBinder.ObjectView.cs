@@ -10,10 +10,10 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ <b>THE §8.4.3.1.2 FORMAT 5 IDENTIFIER — THE OBJECT-VIEW</b> (kb/Work PB1425): <c>identifier-1 AS { [FACTORY OF]
-/// object-class-name-1 [ONLY] | interface-name-1 | UNIVERSAL }</c>, §8.4.3.5.
+/// ⛔ <b>THE §2023:8.4.3.1.2 FORMAT 5 IDENTIFIER — THE OBJECT-VIEW</b> (kb/Work PB1425): <c>identifier-1 AS { [FACTORY OF]
+/// object-class-name-1 [ONLY] | interface-name-1 | UNIVERSAL }</c>, §2023:8.4.3.5.
 ///
-/// <para><b>What it binds to.</b> §8.4.3.5.4 GR1: "This reference of identifier-1 is treated at compile-time as though
+/// <para><b>What it binds to.</b> §2023:8.4.3.5.4 GR1: "This reference of identifier-1 is treated at compile-time as though
 /// it had the description specified by the AS phrase." The view is therefore a reference to identifier-1's object
 /// UNDER ANOTHER DESCRIPTION, and the binder gives it exactly that: a compiler temporary described by the AS phrase
 /// (<c>CompilerTemps.ForObjectView</c>), filled by a statement pre-op (<see cref="BoundObjectView"/>) that copies
@@ -23,14 +23,14 @@ using Core = CobolParserCore;
 /// arm of its own — <c>OoBindComputedObjectReference</c> is their one door.</para>
 ///
 /// <para><b>Why a temporary is the reference itself.</b> An object reference holds a reference, never the object
-/// (§13.18.60.4 GR22), so a copy of it designates the same object; and §8.4.3.5.3 SR2 forbids the view as a receiving
+/// (§2023:13.18.60.4 GR22), so a copy of it designates the same object; and §2023:8.4.3.5.3 SR2 forbids the view as a receiving
 /// operand, so nothing can write through it. The pre-op runs where every identifier's activation runs — at its place
-/// in the statement, before the statement's own action (the <c>PendingPreOps</c> hoist, §8.4.3.1.4 GR1's order).</para>
+/// in the statement, before the statement's own action (the <c>PendingPreOps</c> hoist, §2023:8.4.3.1.4 GR1's order).</para>
 /// </summary>
 internal sealed partial class OoBinder
 {
     /// <summary>Bind one object-view and return the expression that READS it — a <see cref="BoundNumRef"/> over the
-    /// view's temporary. Each AS phrase applies to the identifier on its left (§8.4.3.1.4 GR1 c)), so a repeated phrase
+    /// view's temporary. Each AS phrase applies to the identifier on its left (§2023:8.4.3.1.4 GR1 c)), so a repeated phrase
     /// re-views the previous view.</summary>
     internal BoundExpr OoBindObjectView(Core.ObjectViewContext ov)
     {
@@ -40,7 +40,7 @@ internal sealed partial class OoBinder
         if (term.selfAndSuper() is { } viewSelf && UnreservedPredefinedObjectRefusal(viewSelf) is { } unreserved)   // kb/Work PB4153
             return unreserved;
 
-        // §8.4.3.5.3 SR1: "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall
+        // §2023:8.4.3.5.3 SR1: "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall
         // not be specified." Both are admitted by the grammar (the P3 superset parse) so they are refused by THIS rule.
         if (term.predefinedNull() is not null || term.selfAndSuper()?.SUPER() is not null)
         {
@@ -49,12 +49,12 @@ internal sealed partial class OoBinder
                 + "shall not be specified as identifier-1");
         }
 
-        Place? source = null;   // null = SELF, the object the method was invoked on (§8.4.3.8.4)
+        Place? source = null;   // null = SELF, the object the method was invoked on (§2023:8.4.3.8.4)
         if (term.selfAndSuper() is not null)
         {
             if (!host.InMethod || host.OoCurrentClass is null)
             {
-                // The shared §8.4.3.8.3 SR1 refusal reports, at the SELF word; the expression channel carries it on.
+                // The shared §2023:8.4.3.8.3 SR1 refusal reports, at the SELF word; the expression channel carries it on.
                 using var atWord = ctx.Edition.At(term);   // kb/Work PB4652
                 _ = RefusePredefinedObjectOutsideMethod($"the object-view '{DataBinder.WrittenText(ov)}': SELF");
                 return BoundExprError.Refused(ctx.Edition, "object-view of SELF outside a method");
@@ -62,10 +62,10 @@ internal sealed partial class OoBinder
         }
         else if (OoBindComputedTerm(term) is { } computed)
         {
-            // A function-identifier (§8.4.3.1.2 Format 1) is an identifier-1 of class object exactly when the item it
-            // references is an object reference (§8.4.3.2.1) — asked of its temporary, named as written.
+            // A function-identifier (§2023:8.4.3.1.2 Format 1) is an identifier-1 of class object exactly when the item it
+            // references is an object reference (§2023:8.4.3.2.1) — asked of its temporary, named as written.
             if ((source = OoObjectReferenceTemporary(computed, term, DiagnosticCatalog.ObjectViewSubject.Code,
-                    "identifier-1 of an object-view shall be of class object (ISO §8.4.3.5.3 SR1)")) is null)
+                    "identifier-1 of an object-view shall be of class object (ISO §2023:8.4.3.5.3 SR1)")) is null)
                 return BoundExprError.Refused(ctx.Edition, "object-view of a non-object identifier-1");
         }
         else
@@ -83,7 +83,7 @@ internal sealed partial class OoBinder
 
     /// <summary>The AS phrases of <paramref name="ov"/> applied, in order, to identifier-1 already bound to
     /// <paramref name="source"/> (null = SELF): each phrase a temporary described by it, filled by a
-    /// <see cref="BoundObjectView"/> pre-op from the previous one (§8.4.3.5.4 GR1–GR7).</summary>
+    /// <see cref="BoundObjectView"/> pre-op from the previous one (§2023:8.4.3.5.4 GR1–GR7).</summary>
     private BoundExpr OoApplyViewPhrases(Place? source, string written, Core.ObjectViewContext ov)
     {
         foreach (var phrase in ov.objectViewPhrase())
@@ -93,8 +93,8 @@ internal sealed partial class OoBinder
                 ? ObjectRefDescriptor.Universal   // GR7
                 : ctx.Data.Oo.DescribeNamedReference(phrase, phrase.className().GetText(),
                     factory: phrase.FACTORY() is not null, only: phrase.ONLY() is not null,
-                    $"the object-view '{written} {phraseText}'", "ISO §8.4.3.5.2",
-                    DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §8.4.3.5.2; §8.4.3.5.4 GR6");
+                    $"the object-view '{written} {phraseText}'", "ISO §2023:8.4.3.5.2",
+                    DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §2023:8.4.3.5.2; §2023:8.4.3.5.4 GR6");
             if (ctx.Refs.Places.ResolveItem(ctx.Data.Temps.ForObjectView(view)) is not { } temp)
                 return BoundExprError.Unbuilt(ctx.Edition, "the object-view's temporary");
             ctx.Data.Procedure.PendingPreOps.Add(new BoundObjectView(temp, source, view, $"{written} {phraseText}"));
@@ -105,8 +105,8 @@ internal sealed partial class OoBinder
     }
 
     /// <summary>The resolver's view edge (<c>ObjectPropertyResolver.ApplyObjectView</c>): the object-view of a qualified data
-    /// item written as one chain, <c>A OF G AS C</c> (§8.4.3.1.4 GR1 a) before c)), over the item already resolved.
-    /// §8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
+    /// item written as one chain, <c>A OF G AS C</c> (§2023:8.4.3.1.4 GR1 a) before c)), over the item already resolved.
+    /// §2023:8.4.3.5.3 SR1 asks identifier-1's class here as it does for every other subject. Null having reported.</summary>
     internal Place? OoApplyObjectView(Place subject, Core.ObjectViewContext ov, string written)
     {
         if (subject.Item.Pic is not { Category: PicCategory.ObjectReference })
@@ -117,9 +117,9 @@ internal sealed partial class OoBinder
         return OoApplyViewPhrases(subject, written, ov) is BoundNumRef { Place: var viewed } ? viewed : null;
     }
 
-    /// <summary>§8.4.3.5.3 SR1's refusal, naming identifier-1 as written.</summary>
+    /// <summary>§2023:8.4.3.5.3 SR1's refusal, naming identifier-1 as written.</summary>
     private BoundExpr RefuseViewSubject(string written, string why) =>
         BoundExprError.Report(ctx.Edition, DiagnosticCatalog.ObjectViewSubject,
             $"the object-view of '{written}': {why} — identifier-1 shall be of class object; the predefined object "
-            + "references SUPER and NULL shall not be specified (ISO §8.4.3.5.3 SR1)", "object-view identifier-1");
+            + "references SUPER and NULL shall not be specified (ISO §2023:8.4.3.5.3 SR1)", "object-view identifier-1");
 }

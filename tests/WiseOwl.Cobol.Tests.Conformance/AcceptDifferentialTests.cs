@@ -9,9 +9,9 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ACCEPT (ISO §14.9.1) — SPEC-PINNED facts. These do not go through the shared <c>WiseOwlCobolCompiler</c> runner:
+/// ACCEPT (ISO §2023:14.9.1) — SPEC-PINNED facts. These do not go through the shared <c>WiseOwlCobolCompiler</c> runner:
 /// the device form needs a piped stdin and the temporal forms a pinned clock, two seams it does not thread. The
-/// temporal STORE rule is §14.9.1.4 GR6: the text is stored BY THE MOVE RULES, so a numeric receiver
+/// temporal STORE rule is §2023:14.9.1.4 GR6: the text is stored BY THE MOVE RULES, so a numeric receiver
 /// decimal-aligns and keeps LOW-order digits. Every expected value below is derived from the cited general rule.
 /// The clock pins through the <c>WISEOWL_COBOL_CLOCK</c> process seam (<c>AcceptSource.Now</c>'s default).
 /// </summary>
@@ -64,7 +64,7 @@ public sealed class AcceptDifferentialTests
             STOP RUN.
         """;
 
-    // §14.9.1.4 GR4a: a transfer SMALLER than the receiver stores aligned left — the receiver's tail is filled
+    // §2023:14.9.1.4 GR4a: a transfer SMALLER than the receiver stores aligned left — the receiver's tail is filled
     // by the (space-padded) remainder of the 80-character card image (GR2), not by MOVE-rule editing.
     [Fact]
     public void Device_ShortLine_StoresLeftAlignedSpaceFilled()
@@ -76,7 +76,7 @@ public sealed class AcceptDifferentialTests
             expected: "ABC       ]",
             stdin: "ABC\n");
 
-    // §14.9.1.4 GR1: "Any conversion of data required between the device and the data item referenced by identifier-1
+    // §2023:14.9.1.4 GR1: "Any conversion of data required between the device and the data item referenced by identifier-1
     // is defined by the implementor" — CONFORMANCE.md item 1: the device delivers characters of the UTF-16 repertoire
     // and an alphanumeric receiver stores them as-is, one per character position. A redirected standard input is
     // decoded as UTF-8 (kb/Work PB3193): the bytes C3 A9 are ONE character, é (U+00E9), whose ordinal position in the
@@ -93,9 +93,9 @@ public sealed class AcceptDifferentialTests
             stdin: "éZ€\n",
             dialect: 2023);
 
-    // §14.9.1.2 Format 1 `ACCEPT identifier-1 [ FROM mnemonic-name-1 ]`: the FROM operand is the WORD SPECIAL-NAMES
-    // declares (§8.3.2.2.16), associated here with SYSIN — this implementation's input device (§14.9.1.3 SR2) — so
-    // the transfer reads standard input exactly as the FROM-less form does (§14.9.1.4 GR4a: stored aligned to the
+    // §2023:14.9.1.2 Format 1 `ACCEPT identifier-1 [ FROM mnemonic-name-1 ]`: the FROM operand is the WORD SPECIAL-NAMES
+    // declares (§2023:8.3.2.2.16), associated here with SYSIN — this implementation's input device (§2023:14.9.1.3 SR2) — so
+    // the transfer reads standard input exactly as the FROM-less form does (§2023:14.9.1.4 GR4a: stored aligned to the
     // left, the tail space-filled). The positive half of kb/Work PB2499, whose negatives (negative/pb2499-accept-mnemonic-*) refuse a
     // subscript, reference modification or qualifier on the same word: the grammar slot became a word, and this
     // pins that the word itself still binds and runs.
@@ -120,7 +120,7 @@ public sealed class AcceptDifferentialTests
             expected: "BXYZ  ]",
             stdin: "BXYZ\n");
 
-    // §14.9.1.4 GR4b: a transfer LARGER than the receiver keeps only the LEFTMOST characters that fit; the rest
+    // §2023:14.9.1.4 GR4b: a transfer LARGER than the receiver keeps only the LEFTMOST characters that fit; the rest
     // of the record is IGNORED — the next ACCEPT starts a fresh record, never the leftover of this one.
     [Fact]
     public void Device_OverlongLine_KeepsLeftmost_RestOfRecordIgnored()
@@ -136,7 +136,7 @@ public sealed class AcceptDifferentialTests
             expected: "ABC]XY]",
             stdin: "ABCDEFGH\nXY\n");
 
-    // §14.9.1.4 GR4a + GR2: a receiver larger than one 80-character record requests ADDITIONAL records until
+    // §2023:14.9.1.4 GR4a + GR2: a receiver larger than one 80-character record requests ADDITIONAL records until
     // full; each short record is padded to the full card image, so record 2 lands at position 81.
     [Fact]
     public void Device_WideReceiver_ReadsAdditionalRecords()
@@ -148,7 +148,7 @@ public sealed class AcceptDifferentialTests
             expected: "1" + new string(' ', 79) + "2" + new string(' ', 19) + "]",
             stdin: "1\n2\n");
 
-    // §14.9.1.4 GR4a end-of-input: when the device can supply no further data, the unfilled remainder of the
+    // §2023:14.9.1.4 GR4a end-of-input: when the device can supply no further data, the unfilled remainder of the
     // receiver stays spaces (the legacy's NIST-proven EOF behavior; the leading "[" pins the full field width).
     [Fact]
     public void Device_EndOfInput_LeavesSpaces()
@@ -160,7 +160,7 @@ public sealed class AcceptDifferentialTests
             expected: "[     ]",
             stdin: "");
 
-    // §14.9.1.4 GR1: device data REPLACES the receiver's content with implementor-defined conversion — ours
+    // §2023:14.9.1.4 GR1: device data REPLACES the receiver's content with implementor-defined conversion — ours
     // decodes the zoned digit image into the native numeric value, so the item is immediately computable.
     [Fact]
     public void Device_NumericReceiver_ConvertsAndComputes()
@@ -173,7 +173,7 @@ public sealed class AcceptDifferentialTests
             expected: "0043",
             stdin: "0042\n");
 
-    // §14.9.1.4 GR1 + GR3/GR4 (kb/Work PB3513): the conversion the device and a numeric item need is the implementor's, and ours
+    // §2023:14.9.1.4 GR1 + GR3/GR4 (kb/Work PB3513): the conversion the device and a numeric item need is the implementor's, and ours
     // is the INVERSE of DISPLAY's decimal form (DOC-A.1-1, DOC-A.1-56): GR4b hands each DISPLAY receiver its own size in
     // leftmost characters, which are read as a signed decimal number, so DISPLAY's "00012.50" reads back as 12.50 into PIC
     // 9(5)V99; the seven characters of "-00012.50" end after the point, so PIC S9(5)V99 holds -12.00, and the three of
@@ -219,7 +219,7 @@ public sealed class AcceptDifferentialTests
 
     // The decimal form, receiver by receiver (DOC-A.1-1): a DISPLAY item reads its own size in characters, a binary or packed item
     // the whole record; the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
-    // integer digits is lost (§14.6.8.2 4), "zero fill or truncation on either end"); a COMP-5 container keeps every digit and
+    // integer digits is lost (§2023:14.6.8.2 4), "zero fill or truncation on either end"); a COMP-5 container keeps every digit and
     // wraps (1234567890 mod 2**16 = 722). SIGN LEADING SEPARATE has six positions, so "+12.567" reads "+12.56".
     [Fact]
     public void Device_NumericReceivers_ReadTheDecimalFormByUsage()
@@ -246,7 +246,7 @@ public sealed class AcceptDifferentialTests
             stdin: "12.5\n-12.5\n+12.567\n-00012.50\n1234567890\n1234567890\n123\n",
             dialect: 2023);
 
-    // Text that is not a number converts to ZERO and sets no exception (DOC-A.1-1; §14.6.13.2 leaves such content undefined):
+    // Text that is not a number converts to ZERO and sets no exception (DOC-A.1-1; §2023:14.6.13.2 leaves such content undefined):
     // a trailing sign, a letter before the last digit position is filled, a second decimal point. A DISPLAY item stops reading
     // when its last position is filled, so what follows never matters ("12.50CR" fills PIC 9(5)V99's fraction); a binary item
     // reads the whole record, where the same "CR" is a letter.
@@ -274,7 +274,7 @@ public sealed class AcceptDifferentialTests
             expected: "00000.00|\n00012.50|\n+00000.00|\n+00000.00|\n000.00|\n012.50|",
             stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.50CR\n12.50\n");
 
-    // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§14.6.8.2 4), and the
+    // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§2023:14.6.8.2 4), and the
     // characters ahead of the last digit dropped are skipped unexamined, a non-digit among them included, as GnuCOBOL 3.2.0
     // does (the results below are its own, measured 2026-10-25): "Y123" into PIC 9(2)V99 holds 23.00 where "1Y23" is not a
     // number; a binary or packed item converts through a 38-digit intermediate, so a non-digit is skipped there only
@@ -305,7 +305,7 @@ public sealed class AcceptDifferentialTests
             stdin: "Y123\n1Y23\n-X123\nX12345678901234567890123456789012345678\nX912345678901234567890123456789012345678\n" +
                    "Y912345678901234567890123456789012345678.5\n");
 
-    // §12.3.7.4 GR14 (DECIMAL-POINT IS COMMA exchanges the decimal separator and the grouping separator): the comma is the point
+    // §2023:12.3.7.4 GR14 (DECIMAL-POINT IS COMMA exchanges the decimal separator and the grouping separator): the comma is the point
     // the item reads, and a period is a grouping separator, skipped like a space.
     [Fact]
     public void Device_NumericReceiver_ReadsTheProgramsDecimalSeparator()
@@ -332,7 +332,7 @@ public sealed class AcceptDifferentialTests
             expected: "00012,50|\n00125,00|\n00000,00|",
             stdin: "12,5\n12.5\n1,5,7\n");
 
-    // §14.9.1.4 GR7: DATE is the conceptual 6-digit unsigned integer YYMMDD — an exact-width numeric receiver
+    // §2023:14.9.1.4 GR7: DATE is the conceptual 6-digit unsigned integer YYMMDD — an exact-width numeric receiver
     // shows precisely that format.
     [Fact]
     public void Date_FormatIsYYMMDD()
@@ -344,8 +344,8 @@ public sealed class AcceptDifferentialTests
             expected: "260610",
             clock: "2026-06-10T14:30:45.67");
 
-    // §14.9.1.4 GR6 + GR11: the temporal transfer follows THE MOVE RULES from a conceptual 8-digit integer
-    // (TIME = HHMMSScc); a smaller NUMERIC receiver decimal-aligns and keeps the LOW-order digits (§14.9.25.4 —
+    // §2023:14.9.1.4 GR6 + GR11: the temporal transfer follows THE MOVE RULES from a conceptual 8-digit integer
+    // (TIME = HHMMSScc); a smaller NUMERIC receiver decimal-aligns and keeps the LOW-order digits (§2023:14.9.25.4 —
     // 14304567 into 9(4) is 4567). The legacy's left-justified-raw store would give 1430 — the GR6 deviation
     // this fact pins to the spec.
     [Fact]
@@ -358,7 +358,7 @@ public sealed class AcceptDifferentialTests
             expected: "4567",
             clock: "2026-06-10T14:30:45.67");
 
-    // §14.9.1.4 GR11: TIME "behaves as if it had been described as an unsigned elementary integer data item of
+    // §2023:14.9.1.4 GR11: TIME "behaves as if it had been described as an unsigned elementary integer data item of
     // usage display eight digits in length" — positions 1-2 the hours past midnight "in the range 00 through 23",
     // 3-4 the minutes 00-59, 5-6 the seconds (00-59: no LEAP-SECOND directive is in effect), 7-8 the
     // "hundredths of a second past the second in the range 00 through 99". An EXACT-width receiver shows the
@@ -383,7 +383,7 @@ public sealed class AcceptDifferentialTests
             expected: expected,
             clock: clock);
 
-    // §14.9.1.4 GR7-GR10, the date siblings of GR11's image: DATE is six digits YYMMDD, DATE YYYYMMDD eight,
+    // §2023:14.9.1.4 GR7-GR10, the date siblings of GR11's image: DATE is six digits YYMMDD, DATE YYYYMMDD eight,
     // DAY five (YYDDD, the day of the year "in the range 001 through 366"), DAY YYYYDDD seven — each position
     // zero-padded. Exact-width alphanumeric receivers show each conceptual image whole. 2005-01-05 pins the
     // leading zeros (year 05, month 01, day 05, day-of-year 005); 2004-12-31 (a leap year) the upper endpoints
@@ -409,7 +409,7 @@ public sealed class AcceptDifferentialTests
             clock: clock,
             dialect: 2002);
 
-    // §14.9.1.4 GR6 + GR9: into an ALPHANUMERIC receiver the MOVE rules apply alphanumerically — the conceptual
+    // §2023:14.9.1.4 GR6 + GR9: into an ALPHANUMERIC receiver the MOVE rules apply alphanumerically — the conceptual
     // DAY image "26161" (YYDDD; 2026-06-10 is day 161) left-justifies and truncates on the RIGHT into X(4).
     [Fact]
     public void Day_AlphanumericReceiver_TruncatesRight()
@@ -421,7 +421,7 @@ public sealed class AcceptDifferentialTests
             expected: "2616]",
             clock: "2026-06-10T14:30:45.67");
 
-    // §14.9.1.4 GR12: DAY-OF-WEEK is a 1-digit integer where 1 IS MONDAY … 7 is Sunday (NOT the .NET Sunday=0
+    // §2023:14.9.1.4 GR12: DAY-OF-WEEK is a 1-digit integer where 1 IS MONDAY … 7 is Sunday (NOT the .NET Sunday=0
     // convention): 2026-06-08 is a Monday, 2026-06-14 a Sunday.
     [Theory]
     [InlineData("2026-06-08T09:00:00", "1")]
@@ -435,7 +435,7 @@ public sealed class AcceptDifferentialTests
             expected: expected,
             clock: clock);
 
-    // §14.9.1.4 GR8 + the version-gating rule: the DATE YYYYMMDD (four-digit-year) phrase was introduced by
+    // §2023:14.9.1.4 GR8 + the version-gating rule: the DATE YYYYMMDD (four-digit-year) phrase was introduced by
     // ISO/IEC 1989:2002 — rejected with the edition diagnostic at --std 85, and the 8-digit conceptual value at
     // 2002+ (feedback_version_test_matrix: a new construct is rejected below its introducing edition).
     [Fact]
@@ -446,13 +446,13 @@ public sealed class AcceptDifferentialTests
                 DISPLAY WS-D.
             """);
         var (ok85, diags) = EditionHarness.Compile(source, 85);
-        Assert.False(ok85, "ACCEPT FROM DATE YYYYMMDD must be rejected at --std 85 (introduced by ISO 2002, §14.9.1)");
+        Assert.False(ok85, "ACCEPT FROM DATE YYYYMMDD must be rejected at --std 85 (introduced by ISO 2002, §2023:14.9.1)");
         EditionHarness.AssertHasDiagnostic(diags, "COBOL0815");
 
         AssertOutputs(source, expected: "20260610", clock: "2026-06-10T14:30:45.67", dialect: 2002);
     }
 
-    // §14.9.1.4 GR2: one transfer is EXACTLY one 80-character record — an input line longer than 80
+    // §2023:14.9.1.4 GR2: one transfer is EXACTLY one 80-character record — an input line longer than 80
     // characters is CONSECUTIVE records, each padded to the card image, so line characters 81+ land at
     // position 81 and their record PADS to 80 before the next line contributes. (The old whole-line append
     // put the next line flush at position 91 — the GR2 deviation kb/Work PB139 measured.)
@@ -466,7 +466,7 @@ public sealed class AcceptDifferentialTests
             expected: new string('A', 80) + new string('B', 10) + new string(' ', 70) + "C" + new string(' ', 9) + "]",
             stdin: new string('A', 80) + new string('B', 10) + "\nC\n");
 
-    // §14.9.1.4 GR4b: a receiver needing only record 1 ignores the long line's REMAINING records along with
+    // §2023:14.9.1.4 GR4b: a receiver needing only record 1 ignores the long line's REMAINING records along with
     // the rest of record 1 — the next ACCEPT reads a fresh input line, never leftover characters 81+.
     [Fact]
     public void Device_LongLine_NarrowReceiver_RemainingRecordsIgnored()
@@ -482,10 +482,10 @@ public sealed class AcceptDifferentialTests
             expected: "ABCDE]XY]",
             stdin: "ABCDE" + new string('Z', 85) + "\nXY\n");
 
-    // §14.9.1.4 GR1 + GR2 for a FLOATING-POINT receiver (kb/Work PB887 — this aborted the run unit with a
-    // NotImplementedCobolFeatureException, although §14.9.1.3 SR1 excludes only index / message-tag / object /
+    // §2023:14.9.1.4 GR1 + GR2 for a FLOATING-POINT receiver (kb/Work PB887 — this aborted the run unit with a
+    // NotImplementedCobolFeatureException, although §2023:14.9.1.3 SR1 excludes only index / message-tag / object /
     // pointer). The determination, CONFORMANCE.md §7 DOC-A.1-1 / DOC-A.1-5: ONE 80-character record, read as the
-    // inverse of the DISPLAY image (the §15.69 NUMVAL-F argument format, spaces ignored); a record that does not
+    // inverse of the DISPLAY image (the §2023:15.69 NUMVAL-F argument format, spaces ignored); a record that does not
     // conform converts to zero with no exception. Expected values are that rule applied, then DISPLAYed by
     // DOC-A.1-56 (the invariant shortest-round-trip image): "-1.5E+03" is -1500; " +3.25 " into a binary32
     // FLOAT-SHORT is 3.25 exactly; "12ABC" and an empty record do not conform, so both are 0. Each ACCEPT
@@ -512,7 +512,7 @@ public sealed class AcceptDifferentialTests
     // The ROUND TRIP the determination is chosen for: what DISPLAY writes for a float, ACCEPT reads back as the
     // same value (DOC-A.1-1 is defined as DOC-A.1-56's inverse). 1.0E-5 displays "1E-05"; fed back, it compares
     // equal to the original. The original is set by a MOVE — the ONE correctly rounded (nearest) conversion of
-    // §14.6.8.3 (DOC-A.1-81) — because a COMPUTE without ROUNDED is §14.7.4.3 rule 2's TRUNCATION, which stores the
+    // §2023:14.6.8.3 (DOC-A.1-81) — because a COMPUTE without ROUNDED is §2023:14.7.4.3 rule 2's TRUNCATION, which stores the
     // binary64 just BELOW 1.0E-5 (kb/Work PB1196), a different value from the one ACCEPT's conversion reads.
     [Fact]
     public void Device_FloatReceiver_RoundTripsItsOwnDisplayImage()
@@ -529,7 +529,7 @@ public sealed class AcceptDifferentialTests
             stdin: "1E-05\n",
             dialect: 2023);
 
-    // A BINARY32 receiver takes the device record in ONE rounding (kb/Work PB1110; §14.6.8.3 rule 2: "in a manner
+    // A BINARY32 receiver takes the device record in ONE rounding (kb/Work PB1110; §2023:14.6.8.3 rule 2: "in a manner
     // consistent with the specifications of ISO/IEC 60559:2020" — cite.py-checked), never through binary64. The
     // binary32 neighbours of 1 are 1 and 1 + 2**-23 = 1.00000011920928955078125, midpoint 1 + 2**-24 =
     // 1.000000059604644775390625. "1.0000000596046448" lies ABOVE the midpoint by 2.5E-17 (under half a binary64
@@ -559,16 +559,16 @@ public sealed class AcceptDifferentialTests
             stdin: "1.0000000596046448\n1.0000000596046448E+0\n1.000000059604644775390625000001\n1.000000059604644775390625\n",
             dialect: 2023);
 
-    // §14.9.1.4 GR6 — the temporal transfer is "according to the rules for the MOVE statement", so EVERY receiver
+    // §2023:14.9.1.4 GR6 — the temporal transfer is "according to the rules for the MOVE statement", so EVERY receiver
     // category behaves as the MOVE from the GR7–GR12 conceptual unsigned integer would (kb/Work PB887: the transfer
     // is now that bound MOVE, rendered by the MOVE emitter, where the emitter used to carry its own copy of the
-    // rules). Clock 2026-06-10 14:30:45.67 (a Wednesday, day 161). Each value is §14.9.25.4 applied:
+    // rules). Clock 2026-06-10 14:30:45.67 (a Wednesday, day 161). Each value is §2023:14.9.25.4 applied:
     // numeric-edited 9999/99/99 inserts (GR6 edited) → 2026/06/10; ZZZ,ZZ9.99 takes DAY YYYYDDD 2026161 with
     // HIGH-order truncation to six integer digits → " 26,161.00"; alphanumeric-edited XX/XX/XX takes DATE
     // "260610" by simple insertion → 26/06/10; a JUSTIFIED RIGHT alphanumeric right-aligns DAY → "     26161";
     // a national receiver takes the TIME digit image left-justified → "14304567  "; COMP-2 takes the algebraic
     // value 20260610 and COMP-1 DAY-OF-WEEK 3; a group receiver is an alphanumeric move (GR4) → G1 "202"; a
-    // reference-modified slice is alphanumeric (§8.4.3.3.4 GR6) → "2606" into R(2:4); SIGN LEADING SEPARATE
+    // reference-modified slice is alphanumeric (§2023:8.4.3.3.4 GR6) → "2606" into R(2:4); SIGN LEADING SEPARATE
     // numeric takes TIME at scale 0 → "+014304567".
     [Fact]
     public void Temporal_EveryReceiverCategory_StoresByTheMoveRules()
@@ -604,7 +604,7 @@ public sealed class AcceptDifferentialTests
             clock: "2026-06-10T14:30:45.67",
             dialect: 2023);
 
-    // §14.9.1.3 SR1's COMPLEMENT: the DEVICE format permits a class-alphabetic receiver — only SR3 (the
+    // §2023:14.9.1.3 SR1's COMPLEMENT: the DEVICE format permits a class-alphabetic receiver — only SR3 (the
     // temporal format) excludes class alphabetic. The screen must not over-reject Format 1.
     [Fact]
     public void Device_AlphabeticReceiver_Permitted()
@@ -616,9 +616,9 @@ public sealed class AcceptDifferentialTests
             expected: "WORD  ]",
             stdin: "WORD\n");
 
-    // §14.9.1.4 GR1: the device-to-receiver conversion is implementor-defined; for a BOOLEAN receiver (which
+    // §2023:14.9.1.4 GR1: the device-to-receiver conversion is implementor-defined; for a BOOLEAN receiver (which
     // SR1 does NOT exclude) ours converts each transferred '1' to boolean one and every other character —
-    // including the card image's pad spaces — to boolean zero, keeping the §13.18.40.4 GR14 '0'/'1'
+    // including the card image's pad spaces — to boolean zero, keeping the §2023:13.18.40.4 GR14 '0'/'1'
     // representation invariant. (The old default-arm raw store put pad SPACES into boolean storage.)
     [Fact]
     public void Device_BooleanReceiver_ConvertsToBooleanCharacters()
@@ -631,7 +631,7 @@ public sealed class AcceptDifferentialTests
             stdin: "10\n",
             dialect: 2002);
 
-    // §14.9.1.4 GR6 + §14.6.8.5: a NATIONAL receiver takes the temporal digit image exactly like
+    // §2023:14.9.1.4 GR6 + §2023:14.6.8.5: a NATIONAL receiver takes the temporal digit image exactly like
     // alphanumeric on the character substrate — left-justified, space-filled (TIME's 8-digit image into
     // N(10)). NATIONAL is 2002+. The old emitter had no national arm and staged a loud reject of the
     // SR3-legal receiver (kb/Work PB139).
@@ -646,7 +646,7 @@ public sealed class AcceptDifferentialTests
             clock: "2026-06-10T14:30:45.67",
             dialect: 2002);
 
-    // §14.9.1.4 GR6 via §14.9.25.4 GR6c / §13.18.32: a JUSTIFIED receiver right-justifies the temporal
+    // §2023:14.9.1.4 GR6 via §2023:14.9.25.4 GR6c / §2023:13.18.32: a JUSTIFIED receiver right-justifies the temporal
     // image — left space-fill when larger, LEFT truncation when smaller (DAY's image "26161" keeps its
     // low-order characters "161" in X(3)). The old emitter ignored JUSTIFIED (kb/Work PB139).
     [Fact]
@@ -664,9 +664,9 @@ public sealed class AcceptDifferentialTests
             clock: "2026-06-10T14:30:45.67");
 
     // kb/Work PB180 — a BINARY member of a REDEFINES class (a Tier-B byte-form window) accepts by the
-    // SAME §14.9.1.4 GR1 conversion every numeric receiver takes: four typed device characters decode to
+    // SAME §2023:14.9.1.4 GR1 conversion every numeric receiver takes: four typed device characters decode to
     // the VALUE 1234 and re-encode as the window's TWO radix-2 bytes (04 D2 — pinned via FUNCTION ORD on
-    // the redefined X view, §15.70). The old image arm spliced the raw characters ("1234" → bytes 31 32 =
+    // the redefined X view, §2023:15.70). The old image arm spliced the raw characters ("1234" → bytes 31 32 =
     // the value 12594) — a silent wrong answer on shipping Tier B, and the discriminating first line
     // would have read 12594 with ORD 50/51.
     [Fact]
@@ -690,15 +690,15 @@ public sealed class AcceptDifferentialTests
 
     // kb/Work PB173 — the OMITTED-LENGTH ref-mod width over a GROUP-USAGE BIT receiver, the THIRD arm of the
     // pad family (PlaceRenderer.Write's boolean pad and MoveEmitter.SliceStore's fill were the first two).
-    // §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the position
+    // §2023:8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the position
     // identified by leftmost-position up to and including the rightmost position of the data item referenced by
     // identifier-1"; GR5a: "If the usage of identifier-1 is bit, positions used in evaluation are bit positions".
-    // So the omitted-length transfer size is m − start + 1 in BIT positions (m = 8 by §13.18.29.4 GR1b's as-if
+    // So the omitted-length transfer size is m − start + 1 in BIT positions (m = 8 by §2023:13.18.29.4 GR1b's as-if
     // PICTURE 1(8)), and the omitted form must equal its explicit-length twin. The emitter read raw `Pic`, which
     // is NULL for any group, and fell back to ImageWidth = ceil(8/8) = 1 PACKED CHARACTER: `(3:)` computed
     // 1 − 3 + 1 = −1 and `(1:)` computed 1, so EVERY start under-transferred and zero-filled the remainder
     // (measured before the fix: 11000000 for the (3:) leg, against the 11101010 both other legs produce).
-    // Each transferred character converts by the same §14.9.1.4 GR1 boolean conversion
+    // Each transferred character converts by the same §2023:14.9.1.4 GR1 boolean conversion
     // Device_BooleanReceiver_ConvertsToBooleanCharacters pins.
     [Fact]
     public void Device_OmittedLengthBitGroupSlice_TransfersBitPositions()
@@ -723,7 +723,7 @@ public sealed class AcceptDifferentialTests
             stdin: "101010\n101010\n10101010\n",
             dialect: 2023);
 
-    // kb/Work PB3128 — the same omitted-length width over a SIGN SEPARATE numeric receiver. §8.4.3.3.4 GR5c runs
+    // kb/Work PB3128 — the same omitted-length width over a SIGN SEPARATE numeric receiver. §2023:8.4.3.3.4 GR5c runs
     // the slice "up to and including the rightmost position of the data item referenced by identifier-1", and GR2
     // operates on a numeric display item as if it were alphanumeric, so its positions are its CHARACTER positions,
     // the separate sign's included: S PIC S9(4) SIGN LEADING SEPARATE holds "-0012", five positions, and S(2:) is the
@@ -766,8 +766,8 @@ public sealed class AcceptDifferentialTests
 
     // kb/Work PB3128 — the omitted-length width over an identifier-1 whose length is a RUN-TIME value. A
     // reference-modified DYNAMIC LENGTH item "is treated as a fixed-length data item whose length is the
-    // dynamic-length elementary item's current length" (§8.5.1.10.4), and an ANY LENGTH formal is n repetitions of
-    // its symbol, "where n is the length of the corresponding argument" (§13.18.2.4 GR1 b)). So D(3:) over the
+    // dynamic-length elementary item's current length" (§2023:8.5.1.10.4), and an ANY LENGTH formal is n repetitions of
+    // its symbol, "where n is the length of the corresponding argument" (§2023:13.18.2.4 GR1 b)). So D(3:) over the
     // ten-character D is eight positions (D keeps its length: the store is into a slice) and L(2:) over the
     // six-character argument X6 is five. The emitter read the PICTURE length (1) for both, so each slice took no
     // characters and was space-filled (measured: AB        ]10]A     ]).
@@ -801,7 +801,7 @@ public sealed class AcceptDifferentialTests
             stdin: "KLMNOPQRSTUV\nqrstuvwx\n",
             dialect: 2014);
 
-    // §14.9.1.4 GR3: "If a device is capable of transferring data of the same size as the receiving data
+    // §2023:14.9.1.4 GR3: "If a device is capable of transferring data of the same size as the receiving data
     // item, the transferred data is stored in the receiving data item." This implementation's transfer size
     // is one 80-character card-image record (GR2 — "the implementor shall define, for each device, the size
     // of a data transfer"), so an X(80) receiver is EXACTLY the same size as one transfer: the record is
@@ -819,7 +819,7 @@ public sealed class AcceptDifferentialTests
             expected: new string('A', 40) + new string('B', 40) + "]",
             stdin: new string('A', 40) + new string('B', 40) + "\n");
 
-    // §14.9.1.4 GR3 + GR2, the DISCRIMINATING leg: the transferred data is one RECORD — a short input line
+    // §2023:14.9.1.4 GR3 + GR2, the DISCRIMINATING leg: the transferred data is one RECORD — a short input line
     // padded to the full card image — so it is still the same size as an X(80) receiver and GR3 applies,
     // never GR4a. The proof is the SECOND ACCEPT: because GR3 stored the transfer whole and requested no
     // additional data, WS-Y reads a FRESH input line. Had the transfer been sized to the five typed
@@ -839,7 +839,7 @@ public sealed class AcceptDifferentialTests
             expected: "HELLO" + new string(' ', 75) + "]ZZ]",
             stdin: "HELLO\nZZ\n");
 
-    // §14.9.1.4 GR10 + the version-gating rule: DAY with the phrase YYYYDDD "behaves as if it had been
+    // §2023:14.9.1.4 GR10 + the version-gating rule: DAY with the phrase YYYYDDD "behaves as if it had been
     // described as an unsigned elementary integer data item of usage display SEVEN digits in length",
     // character positions 1-4 "four numeric characters of the year in the Gregorian calendar" and 5-7
     // "three numeric characters of the day of the year in the range 001 through 366". 2026-06-10 is day
@@ -856,20 +856,20 @@ public sealed class AcceptDifferentialTests
                 DISPLAY WS-D.
             """);
         var (ok85, diags) = EditionHarness.Compile(source, 85);
-        Assert.False(ok85, "ACCEPT FROM DAY YYYYDDD must be rejected at --std 85 (introduced by ISO 2002, §14.9.1)");
+        Assert.False(ok85, "ACCEPT FROM DAY YYYYDDD must be rejected at --std 85 (introduced by ISO 2002, §2023:14.9.1)");
         EditionHarness.AssertHasDiagnostic(diags, "COBOL0815");
         EditionHarness.AssertHasDiagnostic(diags, "ACCEPT FROM DAY YYYYDDD");
 
         AssertOutputs(source, expected: "2026161", clock: "2026-06-10T14:30:45.67", dialect: 2002);
     }
 
-    // kb/Work PB1013 — §14.9.1.4 GR3/GR4 size the device transfer by "the size of the receiving data item", and an
-    // ANY LENGTH receiver's size is its ARGUMENT's: §13.18.2.4 GR1 b) treats it "as though there were n repetitions
+    // kb/Work PB1013 — §2023:14.9.1.4 GR3/GR4 size the device transfer by "the size of the receiving data item", and an
+    // ANY LENGTH receiver's size is its ARGUMENT's: §2023:13.18.2.4 GR1 b) treats it "as though there were n repetitions
     // of the picture symbol … where n is the length of the corresponding argument". So a PIC X ANY LENGTH bound to a
     // 6-character argument takes the record's leftmost SIX characters (GR4b ignores the rest), a PIC N one bound to
     // N(4) takes four, a PIC 1 one bound to 1(5) takes five (each '1' boolean one, every other character boolean
     // zero — the documented GR1 conversion), and a short record is stored aligned left, space-filled (GR4a with the
-    // GR2 card image). The transfer used to be sized by the declared PICTURE — one symbol (§13.18.2.3 SR1) — so every
+    // GR2 card image). The transfer used to be sized by the declared PICTURE — one symbol (§2023:13.18.2.3 SR1) — so every
     // one of these stored ONE character. One record is consumed per ACCEPT.
     [Fact]
     public void Device_AnyLengthReceiver_TransfersTheArgumentsSize()
@@ -922,11 +922,11 @@ public sealed class AcceptDifferentialTests
             stdin: "QRSTUVWX\nwxyzv\n1011011\nAB\n",
             dialect: 2002);
 
-    // The same rule through a SEPARATELY COMPILED user-defined function (§13.18.2.3 SR2/SR4 — a function's BY
+    // The same rule through a SEPARATELY COMPILED user-defined function (§2023:13.18.2.3 SR2/SR4 — a function's BY
     // REFERENCE formal may be ANY LENGTH): the argument X5 is five characters, so the formal is five, and the
-    // ACCEPT's store is the argument's own storage, which the caller then shows. §13.7.3 SR5 forbids a function to
+    // ACCEPT's store is the argument's own storage, which the caller then shows. §2023:13.7.3 SR5 forbids a function to
     // store into its formal parameter, so the ACCEPT receives the EXTERNAL item X5 both programs describe and the
-    // formal, which occupies it (§14.2.3 GR8), reads the change; the ANY LENGTH formal itself as the ACCEPT
+    // formal, which occupies it (§2023:14.2.3 GR8), reads the change; the ANY LENGTH formal itself as the ACCEPT
     // receiver is the contained program's case just above.
     [Fact]
     public void Device_AnyLengthFunctionFormal_TransfersTheArgumentsSize()
@@ -966,7 +966,7 @@ public sealed class AcceptDifferentialTests
             dialect: 2002);
 
     // ⛔ kb/Work PB1653 — a NATIONAL GROUP receiver is the ELEMENTARY national item of its as-if PICTURE N(m)
-    // (§13.18.29.4 GR2 b)), so the device transfer of §14.9.1.4 (GR3 and GR4) is m characters, one per national position. The
+    // (§2023:13.18.29.4 GR2 b)), so the device transfer of §2023:14.9.1.4 (GR3 and GR4) is m characters, one per national position. The
     // device window used to be poured through the group's 2m-byte STORAGE image (FromImage), so "HELLO" read back
     // as five unrelated CJK characters. The same statement runs over the plain group and over a REDEFINES view of
     // alphanumeric storage (a Tier-B window), because the transfer is the group's VALUE channel in both shapes.
@@ -990,7 +990,7 @@ public sealed class AcceptDifferentialTests
             stdin: "HELLO\nWORLD\n",
             dialect: 2002);
 
-    // §14.9.1.4 GR1 + §13.18.29.4 GR1 b): a BIT GROUP receiver is the elementary boolean item of PICTURE 1(m);
+    // §2023:14.9.1.4 GR1 + §2023:13.18.29.4 GR1 b): a BIT GROUP receiver is the elementary boolean item of PICTURE 1(m);
     // each transferred '1' converts to boolean one and every other character to zero (the boolean receiver's own
     // implementor-defined conversion), m positions — never ceil(m/8) packed characters.
     [Fact]

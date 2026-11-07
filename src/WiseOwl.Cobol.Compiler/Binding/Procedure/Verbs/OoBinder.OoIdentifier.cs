@@ -10,16 +10,16 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ <b>THE OO IDENTIFIER FORMATS AS OPERANDS</b> (kb/Work PB1425, PB1782 step 2) — §8.4.3.1.2 Format 4 (the inline
+/// ⛔ <b>THE OO IDENTIFIER FORMATS AS OPERANDS</b> (kb/Work PB1425, PB1782 step 2) — §2023:8.4.3.1.2 Format 4 (the inline
 /// method invocation), Format 5 (the object-view) and Format 6's SELF / [object-class-name-1 OF] SUPER, written where
-/// the expression tier writes an identifier: a relation operand (§8.8.4.2.15, "An operand of class object may be
-/// compared with another operand of class object"), an argument, a SET sender. §8.4.3.1.3 SR1 makes every such slot
+/// the expression tier writes an identifier: a relation operand (§2023:8.8.4.2.15, "An operand of class object may be
+/// compared with another operand of class object"), an argument, a SET sender. §2023:8.4.3.1.3 SR1 makes every such slot
 /// "any of the formats for an identifier", so the grammar's `primaryExpression` carries all three and every consumer of
 /// a SOLE identifier asks ONE door, <see cref="OoBindOoIdentifier"/>, which binds the format to the expression that
 /// reads the temporary item it references.
-/// <para>Each format's own position rules are asked HERE, once: §8.4.3.8.3 SR1 (SELF and SUPER only in a method
+/// <para>Each format's own position rules are asked HERE, once: §2023:8.4.3.8.3 SR1 (SELF and SUPER only in a method
 /// definition), SR3 (SUPER only as the object an invocation or an object property applies to — never an operand of
-/// its own), §8.4.3.5.3 SR1 (inside <see cref="OoBindObjectView"/>). The object-reference positions that also admit
+/// its own), §2023:8.4.3.5.3 SR1 (inside <see cref="OoBindObjectView"/>). The object-reference positions that also admit
 /// SUPER (the INVOKE receiver, the inline receiver) bind it through <c>OoBindByReceiver</c>, never through here.</para>
 /// </summary>
 internal sealed partial class OoBinder
@@ -32,17 +32,17 @@ internal sealed partial class OoBinder
         Core.ObjectViewContext ov => OoBindObjectView(ov),
         Core.SelfAndSuperContext s => OoBindSelfOperand(s),
         _ => throw new InvalidOperationException(
-            $"OoBindOoIdentifier serves ISO §8.4.3.1.2 Formats 4, 5 and 6 only, not {id.GetType().Name}"),
+            $"OoBindOoIdentifier serves ISO §2023:8.4.3.1.2 Formats 4, 5 and 6 only, not {id.GetType().Name}"),
     };
 
     /// <summary><see cref="OoBindOoIdentifier"/> as an operand — the ONE expression→operand mapping
     /// (<see cref="IntrinsicBinder.OperandOf"/>) turns the temporary into a field operand, so a relation's class
-    /// dispatch reads the item's class object (§8.8.4.2.15).</summary>
+    /// dispatch reads the item's class object (§2023:8.8.4.2.15).</summary>
     internal BoundOperand OoIdentifierOperand(ParserRuleContext id) => IntrinsicBinder.OperandOf(OoBindOoIdentifier(id), functionValue: false);
 
     /// <summary>SELF or SUPER written as an operand. SELF binds to the temporary <see cref="BoundSelfReference"/> fills
-    /// (§8.4.3.8.4 GR1: "SELF and SUPER both reference the object that was used to invoke the method"); SUPER is
-    /// refused by §8.4.3.8.3 SR3, which admits it only where it selects a method search (the INVOKE receiver, the
+    /// (§2023:8.4.3.8.4 GR1: "SELF and SUPER both reference the object that was used to invoke the method"); SUPER is
+    /// refused by §2023:8.4.3.8.3 SR3, which admits it only where it selects a method search (the INVOKE receiver, the
     /// inline receiver, the object of an object property).</summary>
     private BoundExpr OoBindSelfOperand(Core.SelfAndSuperContext s)
     {
@@ -52,7 +52,7 @@ internal sealed partial class OoBinder
         if (s.SUPER() is not null)
             return BoundExprError.Report(ctx.Edition, DiagnosticCatalog.SuperPosition,
                 $"'{written}' is written as an operand: SUPER may be specified only as the object in an object-property "
-                + "identifier or as the object used to invoke a method (ISO §8.4.3.8.3 SR3)", "SUPER as an operand");
+                + "identifier or as the object used to invoke a method (ISO §2023:8.4.3.8.3 SR3)", "SUPER as an operand");
         if (!host.InMethod || host.OoCurrentClass is not { } cur)
         {
             _ = RefusePredefinedObjectOutsideMethod(written);

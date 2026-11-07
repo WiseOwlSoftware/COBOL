@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.8.3 1) — a REPORT SECTION is legal in a program, a
+      *> ISO §2023:13.8.3 1) — a REPORT SECTION is legal in a program, a
       *> function, a factory and an instance definition (positive half)
       *> SR1: "The report section may be specified in a function
       *>   definition or a program definition. Within a class
@@ -13,7 +13,7 @@
       *>   factory definition or an instance definition, but not in a
       *>   method definition. The report section shall not be specified
       *>   within an interface definition."
-      *>   cite.py: OK  §13.8.3 1)  (Syntax rule)
+      *>   cite.py: OK  §2023:13.8.3 1)  (Syntax rule)
       *> The two prohibitions are the negatives
       *>   conformance:cases/13.8-Report-section/l1m8-report-section-in-method and
       *>   conformance:cases/13.8-Report-section/l1m8-report-section-in-interface.
@@ -23,23 +23,23 @@
       *>   (the factory and object legs: see below). Each detail is the
       *>   chronologically
       *>   first body group of its report, so no page fit test applies
-      *>   (§13.18.35.4 4)), and its first LINE clause is absolute, so
+      *>   (§2023:13.18.35.4 4)), and its first LINE clause is absolute, so
       *>   "the report group's first line number is given by integer-1"
-      *>   (OK §13.18.35.4 5) a)) and LINE-COUNTER is set equal to it
-      *>   (§13.18.35.4 6)); with one line and no NEXT GROUP that is the
-      *>   final value (OK §8.4.3.15.4 4)). Distinct integers identify
+      *>   (OK §2023:13.18.35.4 5) a)) and LINE-COUNTER is set equal to it
+      *>   (§2023:13.18.35.4 6)); with one line and no NEXT GROUP that is the
+      *>   final value (OK §2023:8.4.3.15.4 4)). Distinct integers identify
       *>   the owner: program 2, function 3, factory 4, instance 5.
       *> The class inherits from BASE, so INVOKE ... "NEW" is available
       *>   for the instance leg.
       *> The FACTORY and OBJECT legs pin ACCEPTANCE only. A method is a
-      *>   separate source element (§3.164 "source unit excluding any
+      *>   separate source element (§2023:3.164 "source unit excluding any
       *>   contained source units"), and a report cannot be driven from
-      *>   it: §8.4.6.2.2 makes a constant-, data-, record-, file- or
+      *>   it: §2023:8.4.6.2.2 makes a constant-, data-, record-, file- or
       *>   type-name declared in an object definition global, but NOT a
       *>   report-name, so INITIATE/TERMINATE R-F (and so any GENERATE)
-      *>   is out of reach; §8.4.6.2.5 makes PAGE-COUNTER/LINE-COUNTER
-      *>   local unless the RD says GLOBAL, and §13.18.27.3 4) forbids
-      *>   GLOBAL in a factory or instance definition; §8.4.6.2.1 lets a
+      *>   is out of reach; §2023:8.4.6.2.5 makes PAGE-COUNTER/LINE-COUNTER
+      *>   local unless the RD says GLOBAL, and §2023:13.18.27.3 4) forbids
+      *>   GLOBAL in a factory or instance definition; §2023:8.4.6.2.1 lets a
       *>   local name be referenced only in its own source element. So
       *>   RUNF/RUNO name none of R-F, R-O, DET-F, DET-O, LINE-COUNTER or
       *>   PAGE-COUNTER. They OPEN/CLOSE the report file (a file-name

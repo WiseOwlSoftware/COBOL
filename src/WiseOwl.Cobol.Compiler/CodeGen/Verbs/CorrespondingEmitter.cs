@@ -10,16 +10,16 @@ namespace WiseOwl.Cobol.CodeGen;
 internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move, ArithmeticEmitter arith, EcEmitter ec)
 {
     /// <summary>
-    /// MOVE/ADD/SUBTRACT CORRESPONDING (ISO §14.7.6): render the bind-time-expanded pairs as the per-pair implied
-    /// statements, in D1 declaration order. MOVE pairs are ordinary MOVEs (MOVE GR11 §14.9.25.4 — "the same as if
+    /// MOVE/ADD/SUBTRACT CORRESPONDING (ISO §2023:14.7.6): render the bind-time-expanded pairs as the per-pair implied
+    /// statements, in D1 declaration order. MOVE pairs are ordinary MOVEs (MOVE GR11 §2023:14.9.25.4 — "the same as if
     /// the user had referred to each pair … in separate MOVE statements"), reusing the one MOVE emission path.
-    /// ADD/SUBTRACT pairs run inside ONE statement-level ON SIZE ERROR region (§14.7.6): the shared
+    /// ADD/SUBTRACT pairs run inside ONE statement-level ON SIZE ERROR region (§2023:14.7.6): the shared
     /// <c>EmitArith</c> flag latches across the per-pair guarded stores, an erring pair's receiver stays
-    /// UNCHANGED while the remaining pairs still execute (§14.7.5) — whether the pair erred while its sum was evaluated
+    /// UNCHANGED while the remaining pairs still execute (§2023:14.7.5) — whether the pair erred while its sum was evaluated
     /// or while it was stored, because each pair sits in its own guard — the ON imperative dispatches ONCE after all
     /// pairs complete, and the NOT branch is suppressed when any pair erred — never a per-pair phrase. With no phrase
     /// under EC-SIZE checking, the latched name is assigned per failing pair, so the condition raised after the loop is
-    /// the LAST erring pair's (§14.7.6).
+    /// the LAST erring pair's (§2023:14.7.6).
     /// </summary>
     public void Emit(BoundCorresponding c)
     {
@@ -33,7 +33,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
             });
             return;
         }
-        // ADD GR3 (§14.9.2.4): target ← target + source. SUBTRACT GR3 (§14.9.44.4): "data items in identifier-4
+        // ADD GR3 (§2023:14.9.2.4): target ← target + source. SUBTRACT GR3 (§2023:14.9.44.4): "data items in identifier-4
         // are subtracted from and stored in corresponding items in identifier-5" — target ← target − source (GR5's
         // reduction to separate `SUBTRACT a FROM b` statements settles the operand order over the inverted-looking
         // standard-arithmetic print at GR3).
@@ -43,10 +43,10 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
             EmitHoists(c.Hoists);
             Deferred(() =>
             {
-                // Each pair is ONE implied statement (§14.9.2.4 GR5 / §14.9.44.4 GR5: "separate ADD statements"),
+                // Each pair is ONE implied statement (§2023:14.9.2.4 GR5 / §2023:14.9.44.4 GR5: "separate ADD statements"),
                 // stored through the in-place store an explicit ADD uses, inside its own size-error guard, so a raise
                 // in one pair's evaluation leaves the later pairs to run (kb/Work PB229). ONE rounded-phrase mode for
-                // every pair (§14.7.4).
+                // every pair (§2023:14.7.4).
                 foreach (var p in c.Pairs)
                     arith.StoreInPlace(new Receiver(p.Target, c.Rounding), op, num.FieldNum(p.Source), ise);
             });
@@ -54,7 +54,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
     }
 
     /// <summary>
-    /// Run the implied statements inside the §14.7.6 EC-DATA-INCOMPATIBLE DEFERRAL region: "For any statement
+    /// Run the implied statements inside the §2023:14.7.6 EC-DATA-INCOMPATIBLE DEFERRAL region: "For any statement
     /// with the CORRESPONDING phrase, if any of the implied statements would set the EC-DATA-INCOMPATIBLE
     /// exception condition to exist, the EC-DATA-INCOMPATIBLE exception condition is set to exist AFTER ALL OF
     /// THE IMPLIED STATEMENTS ARE COMPLETED."
@@ -62,7 +62,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
     /// because EC-DATA-INCOMPATIBLE is fatal (Table 13) and the per-pair sending reads raise inline. The runtime
     /// LATCHES the first detail instead; the region is left in a <c>finally</c> so an unrelated fatal still exits
     /// it, and the deferred raise is emitted AFTER the try so it can never displace an exception already in
-    /// flight. The shape is §14.7.6's SIZE ERROR paragraph's: one latching flag, one dispatch after all pairs.</para>
+    /// flight. The shape is §2023:14.7.6's SIZE ERROR paragraph's: one latching flag, one dispatch after all pairs.</para>
     /// <para>Emitted only when EC-DATA-INCOMPATIBLE checking is enabled for this statement — with checking off
     /// no pair can raise, so the region would be pure overhead and the output stays byte-identical.</para>
     /// </summary>
@@ -78,7 +78,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         w.Line($"if ({pending} is not null) ExceptionState.DataIncompatibleError({pending});");
     }
 
-    /// <summary>Anchor each group operand ONCE before the first pair (§14.7.6 — all item identification, including
+    /// <summary>Anchor each group operand ONCE before the first pair (§2023:14.7.6 — all item identification, including
     /// the group operands' subscripts, is done at the START of the statement, not per implied statement): a
     /// <c>ref var</c> local aliases a member-path group (evaluating the ref-returning table-subscript accessor
     /// (<c>At</c>) exactly once, so the alias is a true lvalue the pair stores write through); a

@@ -4,7 +4,7 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The name-resolution SCOPE of one lookup (P6 Step 7): <see cref="Program"/> for program/object-level
-/// code, or a METHOD scope carrying the method's own name overlay (ISO §11.7.4 GR5 — method-local names SHADOW
+/// code, or a METHOD scope carrying the method's own name overlay (ISO §2023:11.7.4 GR5 — method-local names SHADOW
 /// object/program names and are invisible to sibling methods). The scope is an EXPLICIT parameter of every
 /// <see cref="SymbolTable"/> lookup — the "which overload" decision the old <c>LookupData</c>/
 /// <c>LookupDataInScopeOf</c> pair encoded in the METHOD NAME is now data.</summary>
@@ -19,19 +19,19 @@ public readonly record struct Scope(OoMethodDataScope? Method)
 /// <c>TryGetVisibleIndexField</c> / <c>IndexFieldFor</c> quadruple; the singular-pattern fix). Semantics are the
 /// quadruple's, verbatim:
 /// <list type="bullet">
-/// <item>§8.4.6.2.1 rule 3a / §11.7.4 GR5 — a method-local name REPLACES (never unions with) the object/program
+/// <item>§2023:8.4.6.2.1 rule 3a / §2023:11.7.4 GR5 — a method-local name REPLACES (never unions with) the object/program
 /// name: a lookup consults the scope's method overlay FIRST and falls through to the global maps only when the
-/// overlay has NO entry for the name. ⛔ §11.7.4 GR5 VERBATIM, re-derived on this tree (kb/Work PB467 doubted
+/// overlay has NO entry for the name. ⛔ §2023:11.7.4 GR5 VERBATIM, re-derived on this tree (kb/Work PB467 doubted
 /// it after probing for wording GR5 does not use): "If a given user-defined word is defined in the data division
 /// of this method definition and in the data division of the containing object definition, the use of that word
 /// in this method refers to the declaration in this method. The declaration in the containing object definition
 /// is inaccessible to this method." The rule is real, it is this clause, and it says exactly what this table
 /// implements.</item>
-/// <item>§8.4.6.2.3 — a method-local DATA-name shadows an object-level INDEX-name of the same spelling
+/// <item>§2023:8.4.6.2.3 — a method-local DATA-name shadows an object-level INDEX-name of the same spelling
 /// (<see cref="IndexCandidates"/> returns null; without this every index-first consumer would silently
 /// bind the subscript/SET target to the OBJECT's index cell — a torn read/write of the wrong storage).</item>
-/// <item>§11.7.4 GR5 index privacy — a method-local index-name has its OWN cell, never the shared global one.</item>
-/// <item>§8.4.6.2.1 3) for a CONTAINED program — the unit map holds its own names and every container's global
+/// <item>§2023:11.7.4 GR5 index privacy — a method-local index-name has its OWN cell, never the shared global one.</item>
+/// <item>§2023:8.4.6.2.1 3) for a CONTAINED program — the unit map holds its own names and every container's global
 /// names, each at its nesting depth, and <see cref="NearestDeclaring{T}"/> narrows a qualified candidate set to the
 /// nearest declaring source element (kb/Work PB1047 / PB1243).</item>
 /// </list>
@@ -48,12 +48,12 @@ public sealed class SymbolTable
 
     internal SymbolTable(DataBinder data) => _data = data;
 
-    /// <summary>Resolve a DATA-name in <paramref name="scope"/>: the method overlay first (§8.4.6.2.1 rule 3a),
+    /// <summary>Resolve a DATA-name in <paramref name="scope"/>: the method overlay first (§2023:8.4.6.2.1 rule 3a),
     /// else the unit's global multimap. False when the name is unknown in both. (← <c>LookupData</c> /
     /// <c>LookupDataInScopeOf</c> — the anchor-root-vs-active-method decision is now the caller's explicit
     /// <see cref="Scope"/>.) A method that declares the spelling in ANOTHER name class (a condition-name, an
     /// index-name, a CAPACITY register, a constant-name — <see cref="DataBinder.MethodDeclares"/>) makes the object's data-name of it
-    /// inaccessible (§11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
+    /// inaccessible (§2023:11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
     /// the lookup is false rather than the object's item (kb/Work PB3165 review R2-1's sibling arm).</summary>
     public bool TryResolve(string name, Scope scope, out List<DataItem> items)
     {
@@ -75,7 +75,7 @@ public sealed class SymbolTable
         return false;
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) — THE NEAREST-DECLARING-ELEMENT RULE for data-names and condition-names
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) — THE NEAREST-DECLARING-ELEMENT RULE for data-names and condition-names
     /// (kb/Work PB1047 / PB1243), the data-name twin of <see cref="IndexNameRegistry.Candidates"/>'s depth tiers. A
     /// contained program's name set holds its own names AND every container's global names (rule 1), so after the
     /// reference's qualifiers have been applied over that WHOLE set (rule 1: "the normal rules for qualification …
@@ -105,15 +105,15 @@ public sealed class SymbolTable
         return tier;
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
     /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <c>DataBinder.QualifiedCandidates</c> and
     /// <c>QualifiedConditionCandidates</c>, which own the qualifier walk and pass the survivors):
     /// <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and the report
     /// entries that element declares take part in the same ranking (kb/Work PB4196). A REPORT SECTION entry is a
-    /// data-name of the source element that declares its report (§8.4.2.2.3 SR1 counts it with the ordinary ones), so "if
+    /// data-name of the source element that declares its report (§2023:8.4.2.2.3 SR1 counts it with the ordinary ones), so "if
     /// the name is declared in source element B, the item in source element B is the referenced item": a report entry
     /// NEARER than the survivors' tier leaves NO survivor. The caller then meets an unidentified reference and names the
-    /// entry (§13.8.6.2.3, <c>ReportEntryReferenceRefused</c>) instead of using a container's GLOBAL item, which the entry
+    /// entry (§2023:13.8.6.2.3, <c>ReportEntryReferenceRefused</c>) instead of using a container's GLOBAL item, which the entry
     /// hides. <paramref name="qualifiers"/> are the ones the reference wrote, which the report entry's own qualification
     /// must also satisfy.
     /// <para>⛔ AND ACROSS THE TWO CLASSES (kb/Work PB4219's sibling): rule 1's set is "all names", so a condition-name and a
@@ -151,7 +151,7 @@ public sealed class SymbolTable
 
     /// <summary>Is <see cref="NearestDeclaringConditions"/>' empty answer for <paramref name="candidates"/> (the
     /// level-88s the written <paramref name="qualifiers"/> reach) the work of an ordinary DATA ITEM of the spelling
-    /// declared in a nearer source element (ISO §8.4.6.2.1 3) a))? A condition-only position then meets a reference that
+    /// declared in a nearer source element (ISO §2023:8.4.6.2.1 3) a))? A condition-only position then meets a reference that
     /// names a data item, which is neither a misqualified condition-name nor an undeclared one (kb/Work PB4219 review
     /// R1-1).</summary>
     public bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
@@ -160,9 +160,9 @@ public sealed class SymbolTable
         return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent));
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME AGAINST A NEARER CONDITION-NAME — does a level-88 of this spelling,
     /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
-    /// A type declaration's condition-name identifies nothing alone (§13.18.58.4 GR1), so it hides nothing. Free for a
+    /// A type declaration's condition-name identifies nothing alone (§2023:13.18.58.4 GR1), so it hides nothing. Free for a
     /// unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
@@ -175,12 +175,12 @@ public sealed class SymbolTable
     }
 
     /// <summary>The candidates an UNQUALIFIED data-name reference can name: <see cref="TryResolve"/>'s set narrowed
-    /// by <see cref="NearestDeclaringData"/> (ISO §8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
+    /// by <see cref="NearestDeclaringData"/> (ISO §2023:8.4.6.2.1 3) — with no qualifier to apply, the nearest declaring
     /// source element's items are the whole set, and a report entry of a nearer one hides them all). False when the
     /// word names no data item here, or only items a nearer report entry hides. ⛔ A caller that picks among the
-    /// candidates BY KIND (the FUNCTION-POINTER of §8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the
+    /// candidates BY KIND (the FUNCTION-POINTER of §2023:8.4.3.2.3 SR4, a dynamic-capacity table) filters THIS set, never the
     /// raw one: filtering first skips a nearer declaration of another kind — or counts a container's hidden global of
-    /// the same kind as a rival — and so resolves the name to an item §8.4.6.2.1 3) a) makes inaccessible (wave 69 Z,
+    /// the same kind as a rival — and so resolves the name to an item §2023:8.4.6.2.1 3) a) makes inaccessible (wave 69 Z,
     /// found by the train-68b review on <c>IntrinsicBinder.FunctionPointerNamed</c>).</summary>
     public bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
     {
@@ -190,8 +190,8 @@ public sealed class SymbolTable
     }
 
     /// <summary>Resolve a level-88 CONDITION-name in <paramref name="scope"/>: the method overlay first, else the
-    /// unit's global multimap (the same §8.4.6.2.1 rule-3a precedence the data-name lookup applies). A method-local
-    /// name of the spelling in any other class hides the object's condition-name (§11.7.4 GR5, as in
+    /// unit's global multimap (the same §2023:8.4.6.2.1 rule-3a precedence the data-name lookup applies). A method-local
+    /// name of the spelling in any other class hides the object's condition-name (§2023:11.7.4 GR5, as in
     /// <see cref="TryResolve"/>).</summary>
     public bool TryResolveCondition(string name, Scope scope, out List<Condition88> conds)
     {
@@ -213,15 +213,15 @@ public sealed class SymbolTable
         return false;
     }
 
-    /// <summary>⛔ THE ONE INDEX-NAME RESOLUTION (kb/Work PB919) — the §8.4.2.2 candidate set of a WRITTEN
-    /// index-name reference <c>name [OF|IN q] …</c> (§8.4.2.2.2 Format 3), or <see langword="null"/> when the
+    /// <summary>⛔ THE ONE INDEX-NAME RESOLUTION (kb/Work PB919) — the §2023:8.4.2.2 candidate set of a WRITTEN
+    /// index-name reference <c>name [OF|IN q] …</c> (§2023:8.4.2.2.2 Format 3), or <see langword="null"/> when the
     /// spelling names no index-name visible in <paramref name="scope"/> (the reference is then a data-name one).
-    /// Visibility is the data-name's (§8.4.6.2.3): a method-local DATA-name, condition-name, CAPACITY register or constant-name of the
-    /// spelling shadows every index-name (§11.7.4 GR5 — the caller must not treat the reference as an index); else the method's own
-    /// declarations (§11.7.4 GR5 privacy); else the unit's, where a nearer source element's declaration wins
-    /// (§8.4.6.2.1 3), <see cref="IndexNameRegistry.Candidates"/>). The qualifiers are matched from the TABLE
-    /// upward (§8.4.2.2.3 SR6). The COUNT is the caller's verdict — <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>
-    /// — so two tables' <c>INDEXED BY IX</c> referenced as a bare <c>IX</c> is §8.4.2.2.3 SR1's ambiguity, never a
+    /// Visibility is the data-name's (§2023:8.4.6.2.3): a method-local DATA-name, condition-name, CAPACITY register or constant-name of the
+    /// spelling shadows every index-name (§2023:11.7.4 GR5 — the caller must not treat the reference as an index); else the method's own
+    /// declarations (§2023:11.7.4 GR5 privacy); else the unit's, where a nearer source element's declaration wins
+    /// (§2023:8.4.6.2.1 3), <see cref="IndexNameRegistry.Candidates"/>). The qualifiers are matched from the TABLE
+    /// upward (§2023:8.4.2.2.3 SR6). The COUNT is the caller's verdict — <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>
+    /// — so two tables' <c>INDEXED BY IX</c> referenced as a bare <c>IX</c> is §2023:8.4.2.2.3 SR1's ambiguity, never a
     /// silently shared cell.
     /// <para>A table's OWN declared index (SEARCH's first index-name, the SET/PERFORM of a known table) is read off
     /// <see cref="DataItem.Indexes"/> directly — it is a declaration, not a reference, so it needs no
@@ -242,7 +242,7 @@ public sealed class SymbolTable
         if (!_data.State.Forest.IndexNames.Declares(name)) return null;
         var indexes = _data.State.Forest.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers),
             out int indexDepth);
-        // §8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
+        // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
@@ -254,7 +254,7 @@ public sealed class SymbolTable
     /// <summary>⛔ THE ONE CAPACITY-REGISTER-NAME LOOKUP (kb/Work PB3165) — the dynamic tables whose named OCCURS
     /// DYNAMIC <c>CAPACITY IN</c> register a written <paramref name="name"/> can reach in <paramref name="scope"/>, or
     /// <see langword="null"/> when it reaches none. The register is a data-name of its entry's source element
-    /// (§13.18.38.3 SR30), so it has the data-name's visibility (§11.7.4 GR5): a method sees its OWN registers first,
+    /// (§2023:13.18.38.3 SR30), so it has the data-name's visibility (§2023:11.7.4 GR5): a method sees its OWN registers first,
     /// and they REPLACE the object's; a method-local name of the spelling in any other class
     /// (<see cref="DataBinder.MethodDeclares"/>: a data-name, a condition-name, an index-name, a constant-name) hides an object-level register (the
     /// object's declaration is "inaccessible to this method"); a sibling method's registers are not in the scope at
@@ -269,7 +269,7 @@ public sealed class SymbolTable
         return _data.State.Forest.CapacityRegisters.TryGetValue(name, out var tables) ? tables : null;
     }
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,
     /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than
     /// <paramref name="depth"/>?" A name class resolved BEFORE the ordinary data-name lookup — an index-name
     /// (kb/Work PB1047), a named OCCURS DYNAMIC CAPACITY register (kb/Work PB1674) — asks it of its own nearest
@@ -277,12 +277,12 @@ public sealed class SymbolTable
     /// `01 CAP` hides its container's global table's index-name or register exactly as its `01 X` hides the
     /// container's global `X`. At EQUAL depth the other class keeps the reference. A REPORT SECTION entry is such a
     /// data-name of its source element too (<see cref="ReportScope.NearerEntryHides"/>, kb/Work PB4196): the
-    /// reference is then the report entry's, refused by the callers' unidentified-reference report (§13.8.6.2.3). Free
+    /// reference is then the report entry's, refused by the callers' unidentified-reference report (§2023:13.8.6.2.3). Free
     /// for a unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerDataNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
         NearerDataItemHides(name, qualifiers, depth) || _data.State.Reports.NearerEntryHides(name, qualifiers, depth);
 
-    /// <summary>⛔ ISO §8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
     /// (<see cref="IndexCandidates"/>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
     /// EVERY other class that is a name of the reference's own position: does a data-name
     /// (<see cref="NearerDataNameHides"/>) or a condition-name (<see cref="NearerConditionNameHides"/>) of the spelling,

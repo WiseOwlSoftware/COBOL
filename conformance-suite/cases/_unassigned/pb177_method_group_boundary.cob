@@ -7,9 +7,9 @@
 *>---
       *> kb/Work PB177 arm A. THE OO METHOD BOUNDARY'S GROUP-IMAGE CROSSING.
       *>
-      *> §14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the
+      *> §2023:14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the
       *> formal parameter occupies the same storage area as the argument" - which WiseOwl COBOL realizes through the
-      *> generated AsImage()/FromImage() round trip. §14.9.23.4 GR8 delivers the RETURNING item the same way.
+      *> generated AsImage()/FromImage() round trip. §2023:14.9.23.4 GR8 delivers the RETURNING item the same way.
       *> So every leaf value the invoker sets must come back byte-identical, whatever the leaf's usage.
       *>
       *> THE DEFECT: OoEmitter.EmitMethod spelled `{root}.FromImage({param})` and `{formal}.AsImage()` itself,
@@ -63,8 +63,8 @@
            SET IX TO 7.
            SET GN TO IX.
            INVOKE O "XFER" USING G RETURNING H.
-      *> §14.2.3 GR8 / §14.9.23.4 GR8 - the round trip is byte-identical, leaf kind by leaf kind. Compared
-      *> rather than DISPLAYed: §14.9.11.4 GR1 leaves the FORM of a signed COMP / PACKED / float display image
+      *> §2023:14.2.3 GR8 / §2023:14.9.23.4 GR8 - the round trip is byte-identical, leaf kind by leaf kind. Compared
+      *> rather than DISPLAYed: §2023:14.9.11.4 GR1 leaves the FORM of a signed COMP / PACKED / float display image
       *> to the implementor, and this golden is about the CROSSING, not about that latitude.
            IF HX = "abc"  DISPLAY "X=OK" ELSE DISPLAY "X=WRONG" END-IF.
            IF HC = -1234  DISPLAY "C=OK" ELSE DISPLAY "C=WRONG" END-IF.
@@ -131,7 +131,7 @@
            CONTINUE.
        END METHOD TIERCPTR.
 
-      *> LEG 3 - the surviving variable-length repro, on the RETURNING side (§14.9.23.4 GR8's delivery, the
+      *> LEG 3 - the surviving variable-length repro, on the RETURNING side (§2023:14.9.23.4 GR8's delivery, the
       *> third of the three sites). Also never invoked.
        METHOD-ID. TIERCVL.
        DATA DIVISION.

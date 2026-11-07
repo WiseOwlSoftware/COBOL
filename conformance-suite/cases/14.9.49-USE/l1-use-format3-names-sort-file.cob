@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR2 — "File-name-1 or file-name-2 shall not be a sort or a merge file."
+      *> ISO §2023:14.9.49.3 SR2 — "File-name-1 or file-name-2 shall not be a sort or a merge file."
       *> This is the FILE-NAME-2 arm, the second half of the same rule: a Format 3 USE
-      *> (§14.9.49.2 Format 3 — "exception-name-2 { FILE file-name-2 } …") names SRTF, an SD
+      *> (§2023:14.9.49.2 Format 3 — "exception-name-2 { FILE file-name-2 } …") names SRTF, an SD
       *> file. SR13 is satisfied — EC-I-O begins with 'EC-I-O' — so the only rule this program
       *> breaks is SR2. Format 3 is the exception-condition model introduced with COBOL 2002,
       *> so 1985 is not a rejecting edition for THIS arm (it is covered by the file-name-1 arm

@@ -7,10 +7,10 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// The reference format in effect at each physical line of ONE source file or library text (kb/Work PB1067) — what
-/// the §6.5 logical conversion decided while it read that text: the initial format, then each change a
-/// <c>&gt;&gt;SOURCE FORMAT</c> directive (§7.3.24.3 1)) or a <c>&gt;&gt;POP</c> of the format (§7.3.22) makes.
+/// the §2023:6.5 logical conversion decided while it read that text: the initial format, then each change a
+/// <c>&gt;&gt;SOURCE FORMAT</c> directive (§2023:7.3.24.3 1)) or a <c>&gt;&gt;POP</c> of the format (§2023:7.3.22) makes.
 /// <para>Its asker is the COPY statement: "The default reference format of library text is the reference format that
-/// was in effect for the COPY statement that resulted in processing of this library text" (§7.3.24.3 3)). The COPY
+/// was in effect for the COPY statement that resulted in processing of this library text" (§2023:7.3.24.3 3)). The COPY
 /// statement's physical line — its <see cref="Common.SourceOrigin"/> — is looked up in the map of the text it was
 /// written in, so a COPY inside library text asks that library text's map
 /// (<see cref="LibraryTextDefaultAt"/>).</para>
@@ -72,15 +72,15 @@ public sealed class ReferenceFormatMap
 
     /// <summary>The 1-based physical lines of this text that hold a WRITTEN directive the reference format answers to —
     /// a <c>&gt;&gt;SOURCE FORMAT</c>, <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> line — ascending, whether or not it
-    /// changed the format. What decides whether a §14.9.28.4 GR14 implicit PUSH ALL / POP ALL bracket can matter to the
+    /// changed the format. What decides whether a §2023:14.9.28.4 GR14 implicit PUSH ALL / POP ALL bracket can matter to the
     /// normalizer at all: a bracket that encloses no such line restores exactly the format it saved
     /// (<see cref="ImplicitFormatOps.Place"/>; kb/Work PB1066).</summary>
     public IReadOnlyList<int> DirectiveLines => _directiveLines;
 
     /// <summary>Whether 1-based physical <paramref name="line"/> of this text is a written <c>&gt;&gt;SOURCE FORMAT</c>,
     /// <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> line (<see cref="DirectiveLines"/>). The conversion DISCARDS a
-    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§6.5 1)) and leaves a blank one in its place, so a later stage that must ask
-    /// whether a blank line is one — the COPY or REPLACE statement a directive interrupts (§7.3.3 SR8 b), kb/Work
+    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 1)) and leaves a blank one in its place, so a later stage that must ask
+    /// whether a blank line is one — the COPY or REPLACE statement a directive interrupts (§2023:7.3.3 SR8 b), kb/Work
     /// PB1353 — asks the line's origin here.</summary>
     public bool HoldsDirectiveAt(int line) => Array.BinarySearch(_directiveLines, line) >= 0;
 
@@ -98,7 +98,7 @@ public sealed class ReferenceFormatMap
     /// <summary>Where the text at 0-based physical <paramref name="column"/> of 1-based physical <paramref name="line"/>
     /// stands with respect to COBOL-85's areas (kb/Work PB3147): it BEGINS its fixed-form line, in area A or in area B,
     /// or it follows other text of the line; <see cref="AreaPlacement.None"/> when the line was read in free form (which
-    /// has no areas, §6.4.1) or is not a line of this text. The column is the one a source map names
+    /// has no areas, §2023:6.4.1) or is not a line of this text. The column is the one a source map names
     /// (<see cref="Common.LineOrigin.Locate"/>), so a token's location answers the question directly.</summary>
     public AreaPlacement PlacementAt(int line, int column)
     {
@@ -115,7 +115,7 @@ public sealed class ReferenceFormatMap
 
     /// <summary>The cut of the physical <paramref name="line"/>, read in fixed form as <paramref name="fixedLine"/>, or null when
     /// it has none: its text past margin R is blank, it is a comment line, or its program-text area ends in an inline
-    /// comment (§6.3.7.3), whose rest the margin cuts.</summary>
+    /// comment (§2023:6.3.7.3), whose rest the margin cuts.</summary>
     private static MarginRCut? CutOf(PhysicalLine line, FixedFormLine fixedLine)
     {
         if (CobolSpace.IsBlank(fixedLine.BeyondMarginR)) return null;
@@ -127,10 +127,10 @@ public sealed class ReferenceFormatMap
     }
 
     /// <summary>The initial reference format of library text copied by a COPY statement at 1-based physical line
-    /// <paramref name="line"/> of this text — §7.3.24.3 3)'s "reference format that was in effect for the COPY
+    /// <paramref name="line"/> of this text — §2023:7.3.24.3 3)'s "reference format that was in effect for the COPY
     /// statement" — or null when this text holds no format to hand on and the library text's own is detected.
     /// <para>A format a directive stated, or one the library text inherited, is handed on as the rule says. A
-    /// DETECTED format comes only from the documented <c>--source-format auto</c> extension over §7.3.24.3 2)'s
+    /// DETECTED format comes only from the documented <c>--source-format auto</c> extension over §2023:7.3.24.3 2)'s
     /// fixed-form default (text is classified by its structure — kb/Work PB1362): a text detected FIXED showed the fixed
     /// column structure and hands fixed form on; a text detected FREE showed only that it is not column-bound —
     /// seven-space indentation is legal in both formats — which says nothing of the library text, so that library text

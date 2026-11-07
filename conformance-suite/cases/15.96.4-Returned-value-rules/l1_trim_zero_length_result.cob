@@ -5,24 +5,24 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.96.4 r4 — FUNCTION TRIM RETURNS A ZERO-LENGTH VALUE ON EACH OF THE RULE'S THREE ANTECEDENTS.
+      *> ISO §2023:15.96.4 r4 — FUNCTION TRIM RETURNS A ZERO-LENGTH VALUE ON EACH OF THE RULE'S THREE ANTECEDENTS.
       *> r4 word for word: "If argument-1 contains only characters that are argument-2, spaces if argument-2 is
       *> not specified, or argument-1 is of length zero, the returned value is of length zero."
       *>   python scripts/spec/cite.py --check 15.96.4 "If argument-1 contains only characters that are
       *>   argument-2, spaces if argument-2 is not specified, or argument-1 is of length zero, the returned value
-      *>   is of length zero."  ->  OK  §15.96.4 4)  (Returned value rules)
+      *>   is of length zero."  ->  OK  §2023:15.96.4 4)  (Returned value rules)
       *>
       *> ⛔ THE INSTRUMENT IS FUNCTION LENGTH OF THE RESULT, NOT A MOVE. r4 is a statement about the LENGTH of
       *> the returned value, and a MOVE into a fixed receiver renders an EMPTY result and a correct one
-      *> identically — §14.9.25.4 GR6a: "When an alphanumeric, alphanumeric-edited, national, or national-edited
+      *> identically — §2023:14.9.25.4 GR6a: "When an alphanumeric, alphanumeric-edited, national, or national-edited
       *> data item is a receiving operand, alignment and any necessary space filling shall take place as defined
       *> in 14.6.8" — so the fill is the RECEIVER's, not the function value's, and every one of the TRIM call
       *> sites already in the corpus would read the same whether r4 held or not.
-      *> §8.4.3.1.2's Format 1 is "function-identifier-1", so a function reference IS an identifier, and
-      *> §8.4.3.2.1 says "A function-identifier references the unique data item that results from the evaluation
-      *> of a function" — exactly what §15.50.3 r1 admits ("a data item of any class or category").
+      *> §2023:8.4.3.1.2's Format 1 is "function-identifier-1", so a function reference IS an identifier, and
+      *> §2023:8.4.3.2.1 says "A function-identifier references the unique data item that results from the evaluation
+      *> of a function" — exactly what §2023:15.50.3 r1 admits ("a data item of any class or category").
       *>
-      *>   ALLSP  argument-1 is five spaces and NO argument-2 is written, so §15.96.3 r3a supplies argument-2
+      *>   ALLSP  argument-1 is five spaces and NO argument-2 is written, so §2023:15.96.3 r3a supplies argument-2
       *>          "as though an alphanumeric space had been specified" — argument-1 then "contains only
       *>          characters that are argument-2" -> length 0.
       *>   LEAD   r4 carries NO LEADING/TRAILING qualifier, so it governs those forms too: r1's "leftmost
@@ -32,8 +32,8 @@
       *>   ALLA2  argument-1 is "0000" and argument-2 is the single character "0" — the explicit argument-2 form,
       *>          COBOL-2023 (Annex E.3.3 item 31: "FUNCTION TRIM. The TRIM function has been enhanced to
       *>          truncate removing characters other than space."). r4's FIRST antecedent, read literally -> 0.
-      *>   ZEROL  argument-1 is a DYNAMIC LENGTH item (§8.5.1.10) whose CURRENT length is zero after MOVE "" —
-      *>          r4's third antecedent, "argument-1 is of length zero". §15.96.3 r1 requires argument-1 to be
+      *>   ZEROL  argument-1 is a DYNAMIC LENGTH item (§2023:8.5.1.10) whose CURRENT length is zero after MOVE "" —
+      *>          r4's third antecedent, "argument-1 is of length zero". §2023:15.96.3 r1 requires argument-1 to be
       *>          "a DATA ITEM of class alphabetic, alphanumeric, or national", and a dynamic-length elementary
       *>          item at current length zero is the only zero-length data item the language provides; a
       *>          zero-length LITERAL would not satisfy r1, which is why this leg is not written

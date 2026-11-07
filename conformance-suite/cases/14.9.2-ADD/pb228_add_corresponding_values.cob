@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.2.4 GR3 and GR5 - ADD CORRESPONDING under native
+      *> ISO §2023:14.9.2.4 GR3 and GR5 - ADD CORRESPONDING under native
       *> arithmetic, at COBOL-2002. GR3: "data items in identifier-4
       *> are added to and stored in corresponding items in
-      *> identifier-5"; GR5: the pairs are chosen by §14.7.6 and "The
+      *> identifier-5"; GR5: the pairs are chosen by §2023:14.7.6 and "The
       *> results are the same as if the user had referred to each
       *> pair of corresponding identifiers in separate ADD
       *> statements". The rule has no edition delta; the xunit
@@ -18,13 +18,13 @@
       *>
       *> A    12 + 100 = 112 into PIC 999.
       *> B    1.25 + 2.1 = 3.35; no ROUNDED phrase means TRUNCATION
-      *>      (§14.7.4.3 GR2), so PIC 9V9 holds 3.3 and DISPLAYs 33.
+      *>      (§2023:14.7.4.3 GR2), so PIC 9V9 holds 3.3 and DISPLAYs 33.
       *> C    -5 + 3 = -2; SIGN IS LEADING SEPARATE shows -02.
       *> K    a pair one level down: GRP OF SRC and GRP OF DST give
-      *>      K the same qualifiers up to SRC and DST (§14.7.6
+      *>      K the same qualifiers up to SRC and DST (§2023:14.7.6
       *>      rule 1), so 2 + 40 = 42.
       *> N    SRC's N is alphanumeric, and an ADD pair needs both
-      *>      items numeric (§14.7.6 rule 3): no pair, N keeps 4.
+      *>      items numeric (§2023:14.7.6 rule 3): no pair, N keeps 4.
       *> T    DST's T has no partner in SRC (rule 1): T keeps 9.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB228ACN.

@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>Two halves. <b>Complete</b>: every <c>B_…</c> token the lexer defines is classified, and the classification
 /// names no token the lexer does not define, so the next boolean operator word fails here until it is placed in a
 /// tier. <b>Singular</b>: no other source file spells an operator token constant, so a fifth private list cannot
-/// appear — the one exemption is the §8.9 funnel's user-word list in <c>VersionConformancePass</c>, which answers a
+/// appear — the one exemption is the §2023:8.9 funnel's user-word list in <c>VersionConformancePass</c>, which answers a
 /// DIFFERENT question (which words are reserved at which edition) over the 2002 set only.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -96,7 +96,7 @@ public sealed class BooleanOperatorTokenDriftTests
         {
             "BooleanOperatorTokens.cs",   // THE list
             "CobolLexerWordSet.g.cs",     // generated from cobol-words.json
-            // The §8.9 funnel: which cobolWord TOKEN TYPES are checked position-blind for a reserved-word use. B-AND,
+            // The §2023:8.9 funnel: which cobolWord TOKEN TYPES are checked position-blind for a reserved-word use. B-AND,
             // B-OR, B-XOR and B-NOT are user words at 85 and funnel-0901'd from 2002, so that list holds the 2002 set
             // — a different question from "is this token a boolean operator", and the shifts are never user words.
             "VersionConformancePass.cs",

@@ -6,9 +6,9 @@
 *>---
       *> kb/Work PB994 - AN INDEXED FILE DESCRIBED WITH ACCESS MODE RANDOM IS REFUSED AS A MERGE USING FILE.
       *>   cite.py --check 14.9.24.3 "If file-name-2 or file-name-3 references a relative or an indexed file, its access
-      *>     mode shall be sequential or dynamic." -> OK §14.9.24.3 13)
+      *>     mode shall be sequential or dynamic." -> OK §2023:14.9.24.3 13)
       *>   cite.py --check 12.4.5.5.2 "The RANDOM clause shall not be specified for file-names specified in the USING or
-      *>     GIVING phrase of a SORT or MERGE statement" -> OK §12.4.5.5.2 1)
+      *>     GIVING phrase of a SORT or MERGE statement" -> OK §2023:12.4.5.5.2 1)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB994F.
        ENVIRONMENT DIVISION.

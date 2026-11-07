@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1173 — A TABLE SORT KEY OF CLASS BOOLEAN IS REFUSED BY SR14 c).
       *>   cite.py --check 14.9.40.3 "Key data items shall not be of class boolean, object, or pointer." ->
-      *>     OK §14.9.40.3 14)
+      *>     OK §2023:14.9.40.3 14)
       *> TB is PIC 1 USAGE BIT inside the table element TE. The Format-2 sort asked nothing of its keys' classes and
       *> compiled this clean. (USAGE BIT is a COBOL-2002 construct, as is the table format itself.)
        IDENTIFICATION DIVISION.

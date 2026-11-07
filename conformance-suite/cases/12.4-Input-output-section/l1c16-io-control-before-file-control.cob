@@ -4,12 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.2 General format — the i-o-control-paragraph follows
+      *> ISO §2023:12.4.2 General format — the i-o-control-paragraph follows
       *>   the
       *> file-control-paragraph: "INPUT-OUTPUT SECTION. [
       *>   file-control-paragraph ]
       *> [ i-o-control-paragraph ]"
-      *>   cite.py: OK  §12.4.2   (General format)
+      *>   cite.py: OK  §2023:12.4.2   (General format)
       *> Here I-O-CONTROL precedes FILE-CONTROL; the source is otherwise
       *>   valid
       *> (the same paragraphs in the format's order compile, see the

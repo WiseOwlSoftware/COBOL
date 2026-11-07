@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR14 — one phrase against ITSELF. The counting
+      *> ISO §2023:14.9.28.3 SR14 — one phrase against ITSELF. The counting
       *> domain the rule states is "in any of the WHEN phrases within
       *> the scope of a format 3 PERFORM statement", which is the
       *> statement's phrases taken together; two occurrences inside a

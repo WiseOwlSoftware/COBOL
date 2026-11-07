@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4865 - a unary sign SEPARATED from its operand is a unary operator applied to an expression (ISO §8.8.1.1; §8.3.3.3.2 rule 2 puts only
-      *> an ADJACENT sign inside a literal), so BY + FUNCTION TWO is no identifier-4 of §14.9.28.2 and is refused.
+      *> PB4865 - a unary sign SEPARATED from its operand is a unary operator applied to an expression (ISO §2023:8.8.1.1; §2023:8.3.3.3.2 rule 2 puts only
+      *> an ADJACENT sign inside a literal), so BY + FUNCTION TWO is no identifier-4 of §2023:14.9.28.2 and is refused.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. TWO.
        DATA DIVISION.

@@ -7,9 +7,9 @@
 *>---
       *> kb/Work PB1139 - THE EDITION SPLIT OF MERGE'S SORT/MERGE-PROCEDURE BAN: COBOL-2014 STILL ALLOWS IT (compile-only).
       *>   cite.py --check E.2 "A MERGE statement is now prohibited in an output procedure of another MERGE statement"
-      *>     -> the §14.9.24.3 SR1 text is new at 2023 (Annex E.2 item 20: "now prohibited"); the prior editions
+      *>     -> the §2023:14.9.24.3 SR1 text is new at 2023 (Annex E.2 item 20: "now prohibited"); the prior editions
       *>     allowed a MERGE there, so the same statement that negative/pb1139-merge-in-sort-procedure refuses at 2023
-      *>     compiles at 2014. A FILE SORT in the same place is refused at EVERY edition (its rule, §14.9.40.3 SR3,
+      *>     compiles at 2014. A FILE SORT in the same place is refused at EVERY edition (its rule, §2023:14.9.40.3 SR3,
       *>     "SORT already disallowed it"): negative/pb1139-sort-in-sort-procedure.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139M14.

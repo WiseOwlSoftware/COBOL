@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The inter-program file/storage joint edges (the IC-residue wave): the BY REFERENCE full-allocation rule for
-/// occurs-depending groups (ISO/IEC 1989:2023 §14.2.3 GR8 — IC207A), the EXTERNAL FD run-unit-shared connector
-/// and record area (§13.18.22.4 GR4a/GR4b — IC227A), GLOBAL FD visibility in contained programs (§13.18.30 —
-/// IC233A/IC234A), the cross-program GLOBAL USE dispatch (§14.9.49.4 GR4 — IC233A), and the cross-assembly
-/// run-unit composition probe (§14.6.1 / §14.9.4.4 GR3b — the implementor-defined locate step). Differential
+/// occurs-depending groups (ISO/IEC 1989:2023 §2023:14.2.3 GR8 — IC207A), the EXTERNAL FD run-unit-shared connector
+/// and record area (§2023:13.18.22.4 GR4a/GR4b — IC227A), GLOBAL FD visibility in contained programs (§2023:13.18.30 —
+/// IC233A/IC234A), the cross-program GLOBAL USE dispatch (§2023:14.9.49.4 GR4 — IC233A), and the cross-assembly
+/// run-unit composition probe (§2023:14.6.1 / §2023:14.9.4.4 GR3b — the implementor-defined locate step). Differential
 /// against the NIST-IC-green committed golden where it covers the construct; the cross-assembly probe is
 /// greenfield-only (the legacy's DiscoverProgram is its own mechanism) and asserted directly.
 /// </summary>
@@ -31,10 +31,10 @@ public sealed class InterProgramFileDifferentialTests
         Assert.Equal(expected, cout);
     }
 
-    // ── Fix C: BY REFERENCE ODO group — the FULL allocation crosses the boundary (§14.2.3 GR8) ────────────
+    // ── Fix C: BY REFERENCE ODO group — the FULL allocation crosses the boundary (§2023:14.2.3 GR8) ────────────
 
-    /// <summary>§14.2.3 GR8: BY REFERENCE — the formal "occupies the same storage area as the argument". The
-    /// STORAGE is the maximum allocation: an occurs-depending group's current-extent window (§13.18.38 GR8) is a
+    /// <summary>§2023:14.2.3 GR8: BY REFERENCE — the formal "occupies the same storage area as the argument". The
+    /// STORAGE is the maximum allocation: an occurs-depending group's current-extent window (§2023:13.18.38 GR8) is a
     /// sending-OPERAND rule for MOVE/compare, never a storage-aliasing rule. The callee (fixed OCCURS 5 formal)
     /// must see positions past the caller's current extent (EEE), and its store into position 4 must reach the
     /// caller's storage (IC207A's CONTENTS-OF-TABLE check).</summary>
@@ -71,9 +71,9 @@ public sealed class InterProgramFileDifferentialTests
                 EXIT PROGRAM.
             """);
 
-    // ── Fix D: EXTERNAL FD — ONE run-unit connector + ONE record area (§13.18.22.4 GR4a/GR4b) ─────────────
+    // ── Fix D: EXTERNAL FD — ONE run-unit connector + ONE record area (§2023:13.18.22.4 GR4a/GR4b) ─────────────
 
-    /// <summary>§13.18.22.4 GR4a (one EXTERNAL file connector per run unit) + GR4b (the record data is external,
+    /// <summary>§2023:13.18.22.4 GR4a (one EXTERNAL file connector per run unit) + GR4b (the record data is external,
     /// shared by every describer): the IC227A shape — the main OPENs OUTPUT and fills the record area; the
     /// separately-described subprogram WRITEs without opening (the open mode lives on the SHARED connector) and
     /// its differently-named record holds the MAIN's data (the SHARED record area, externalized by the FD name
@@ -121,9 +121,9 @@ public sealed class InterProgramFileDifferentialTests
                 EXIT PROGRAM.
             """, "GOT=MAIN-FILLED ]");
 
-    // ── Fix E: GLOBAL FD + cross-program GLOBAL USE (§13.18.30; §14.9.49.4 GR4) ────────────────────────────
+    // ── Fix E: GLOBAL FD + cross-program GLOBAL USE (§2023:13.18.30; §2023:14.9.49.4 GR4) ────────────────────────────
 
-    /// <summary>§13.18.30: the file-name (and record-names) of a GLOBAL FD are GLOBAL names — the contained
+    /// <summary>§2023:13.18.30: the file-name (and record-names) of a GLOBAL FD are GLOBAL names — the contained
     /// program (no file section of its own) OPENs, WRITEs the owner's record, and CLOSEs the owner's ONE
     /// connector; the container reads the data back (the IC233A file-visibility half).</summary>
     [Fact]
@@ -160,11 +160,11 @@ public sealed class InterProgramFileDifferentialTests
             END PROGRAM GLFD1.
             """);
 
-    /// <summary>§14.9.49.4 GR4b: with NO qualifying declarative in the contained program, "a qualifying
+    /// <summary>§2023:14.9.49.4 GR4b: with NO qualifying declarative in the contained program, "a qualifying
     /// declarative with the GLOBAL attribute in the next inclusive directly containing source element" runs —
-    /// in the DECLARING program's instance (§8.4.6.2, its data). The contained OPEN INPUT of a missing
+    /// in the DECLARING program's instance (§2023:8.4.6.2, its data). The contained OPEN INPUT of a missing
     /// non-OPTIONAL file (status 35, "in the process of being opened" — GR6b) fires the outer's USE GLOBAL …
-    /// ON INPUT (the IC233A dispatch half). SPEC-PINNED on the FS value: §12.4.5.8.4 GR1 NOTE 1 — "data-name-1
+    /// ON INPUT (the IC233A dispatch half). SPEC-PINNED on the FS value: §2023:12.4.5.8.4 GR1 NOTE 1 — "data-name-1
     /// is updated by references to file-name in contained programs even though data-name-1 is a local name" —
     /// so the handler sees 35; the legacy leaves the owner's local item at 00 (a verified hole: it dispatches
     /// the GLOBAL declarative but skips the NOTE-1 status routing).</summary>
@@ -206,8 +206,8 @@ public sealed class InterProgramFileDifferentialTests
             END PROGRAM GLUSE1.
             """, "GLOBAL-HANDLER FS=35\nSUB-CONT\nBACK");
 
-    /// <summary>§14.9.49.4 GR4a beats GR4b: the contained program's OWN declarative naming the inherited GLOBAL
-    /// file (legal — §13.18.30 makes the file-name visible; the IC234A bind shape that previously raised
+    /// <summary>§2023:14.9.49.4 GR4a beats GR4b: the contained program's OWN declarative naming the inherited GLOBAL
+    /// file (legal — §2023:13.18.30 makes the file-name visible; the IC234A bind shape that previously raised
     /// COBOL0897) is selected over the outer's GLOBAL one.</summary>
     [Fact]
     public void GlobalFd_ContainedOwnUseOnInheritedFile_BeatsOuterGlobal()
@@ -253,7 +253,7 @@ public sealed class InterProgramFileDifferentialTests
             END PROGRAM GLUSE2.
             """);
 
-    // ── Fix G: cross-assembly run-unit composition (§14.6.1; §14.9.4.4 GR3b — greenfield-only) ────────────
+    // ── Fix G: cross-assembly run-unit composition (§2023:14.6.1; §2023:14.9.4.4 GR3b — greenfield-only) ────────────
 
     private static void CompileTo(string source, string dir, string name, int dialect = 85)
     {
@@ -291,7 +291,7 @@ public sealed class InterProgramFileDifferentialTests
         """;
 
     /// <summary>"A run unit contains one or more runtime modules. A runtime module results from compiling a
-    /// compilation unit" (§14.6.1); §14.9.4.4 GR3b — the runtime "attempts to locate" the called program, the
+    /// compilation unit" (§2023:14.6.1); §2023:14.9.4.4 GR3b — the runtime "attempts to locate" the called program, the
     /// mechanics implementor-defined: the registry's rule-4 fallthrough probes the application directory for the
     /// sibling module <c>XASMS1.dll</c>, invokes the <c>EnsureRegistered()</c> of the registrar its <c>[assembly:
     /// CobolRepository]</c> record names, and the CALL
@@ -311,7 +311,7 @@ public sealed class InterProgramFileDifferentialTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>Without the sibling module the CALL still raises the EC-PROGRAM-NOT-FOUND surface (§14.9.4.4
+    /// <summary>Without the sibling module the CALL still raises the EC-PROGRAM-NOT-FOUND surface (§2023:14.9.4.4
     /// GR3b) — the probe is a quiet miss, never a behavior change for genuinely absent programs.</summary>
     [Fact]
     public void Call_AbsentSiblingModule_StillNotFound()
@@ -327,7 +327,7 @@ public sealed class InterProgramFileDifferentialTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    // ── UDF-3: separately-compiled function prototypes (ISO §11.5 Format 2 / §8.13 / §12.3.8; greenfield-only) ──
+    // ── UDF-3: separately-compiled function prototypes (ISO §2023:11.5 Format 2 / §2023:8.13 / §2023:12.3.8; greenfield-only) ──
 
     private const string UdfProtoCaller = """
         IDENTIFICATION DIVISION.
@@ -370,10 +370,10 @@ public sealed class InterProgramFileDifferentialTests
         END FUNCTION SQUARER.
         """;
 
-    /// <summary>ISO §12.3.8 GR11(c) / §8.4.3.2.4 GR6b — the caller declares only a FUNCTION-ID … IS PROTOTYPE for
+    /// <summary>ISO §2023:12.3.8 GR11(c) / §2023:8.4.3.2.4 GR6b — the caller declares only a FUNCTION-ID … IS PROTOTYPE for
     /// SQUARER (its signature) and invokes FUNCTION SQUARER(x); the separately-compiled DEFINITION lives in a
     /// sibling assembly SQUARER.dll. The prototype registers NO runtime module, so the UDF-lowered call falls
-    /// through to the registry's sibling probe (the same §14.9.4.4 GR3b path as cross-assembly CALL), loads
+    /// through to the registry's sibling probe (the same §2023:14.9.4.4 GR3b path as cross-assembly CALL), loads
     /// SQUARER.dll, and the RETURNING value crosses the assembly boundary. 7*7 = 49 ⇒ P=000049.</summary>
     [Fact]
     public void Udf_SeparatelyCompiledPrototypeTarget_ResolvesCrossAssembly()
@@ -390,7 +390,7 @@ public sealed class InterProgramFileDifferentialTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>ISO §8.4.3.2.4 GR6b + Table 13 — with the SQUARER definition absent, the UDF locate miss raises
+    /// <summary>ISO §2023:8.4.3.2.4 GR6b + Table 13 — with the SQUARER definition absent, the UDF locate miss raises
     /// EC-FUNCTION-NOT-FOUND (Fatal), NOT the CALL's EC-PROGRAM-NOT-FOUND: the run unit terminates loudly with the
     /// function-specific condition name (the prototype supplied a signature but no activation target exists).</summary>
     [Fact]

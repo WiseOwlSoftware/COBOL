@@ -16,9 +16,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ "IS THIS PROCEDURE RANGE EMPTY?" IS NOT A QUESTION THE NUMBERS CAN ANSWER, AND FOR YEARS EVERY CONSUMER
 /// ANSWERED IT WITH THE NUMBERS (kb/Work PB440).
-/// <para>A section with ZERO paragraphs is legal COBOL — ISO §14.4.2, "A section consists of a section header
+/// <para>A section with ZERO paragraphs is legal COBOL — ISO §2023:14.4.2, "A section consists of a section header
 /// followed by zero, one, or more successive paragraphs" — and it resolves to the pc pair <c>(s, s−1)</c>. So
-/// does a legal INVERTED THRU range whose two procedures are ADJACENT, which §14.9.28.4 GR6 explicitly permits
+/// does a legal INVERTED THRU range whose two procedures are ADJACENT, which §2023:14.9.28.4 GR6 explicitly permits
 /// ("There is no necessary relationship between procedure-name-1 and procedure-name-2") and NIST NC102A
 /// PFM-TEST-F1-10 exercises. One must execute NOTHING; the other must execute from <c>s</c> until control
 /// reaches <c>s−1</c>. Every hand-written <c>start &gt; end</c> / <c>Start &lt;= End</c> test was therefore
@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB367). Six selection paths — <c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>,
 /// <c>__EcObjDispatch</c>, <c>__RunGlobalUse</c> and the report engine's BEFORE REPORTING hook — each spelled the
 /// declarative's pc pair out themselves, so ONE wrong handler end (derived from paragraph SHAPE rather than from
-/// ISO §14.9.49.3 SR1's "remainder of the section") truncated the selected declarative on every USE format at
+/// ISO §2023:14.9.49.3 SR1's "remainder of the section") truncated the selected declarative on every USE format at
 /// once and no single place could be corrected. It is now
 /// <see cref="DispatchState.RunUseCall(int, PcRange)"/>, and these facts keep it that way.</para>
 /// </summary>
@@ -43,7 +43,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
     public void EmptinessIsNotDerivableFromTheNumbers()
     {
         // The zero-paragraph section at pc 5 and the ADJACENT inverted THRU range `PERFORM P5 THRU P4` are the
-        // same pair. Only the carried bit tells them apart (ISO §14.4.2 vs §14.9.28.4 GR6).
+        // same pair. Only the carried bit tells them apart (ISO §2023:14.4.2 vs §2023:14.9.28.4 GR6).
         PcRange empty = PcRange.EmptyAt(5);
         PcRange invertedAdjacent = PcRange.Of(5, 4);
 
@@ -64,7 +64,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
         Assert.False(PcRange.EmptyAt(3).IsParagraph);
     }
 
-    // ── §14.9.28.4 GR4/GR5b composition ──────────────────────────────────────────────────────────────────────
+    // ── §2023:14.9.28.4 GR4/GR5b composition ──────────────────────────────────────────────────────────────────────
 
     [Fact]
     public void ThroughComposesTheSpecifiedSet()
@@ -102,7 +102,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
     [Fact]
     public void ThroughSpansEveryParagraphOfBothOperandsInWhicheverOrder()
     {
-        // §14.9.40.3 SR3 reads the procedure lexically; §14.9.28.4 GR6 lets procedure-name-2 stand BEFORE
+        // §2023:14.9.40.3 SR3 reads the procedure lexically; §2023:14.9.28.4 GR6 lets procedure-name-2 stand BEFORE
         // procedure-name-1. S-A = pcs 2..3 physically before S-B = pcs 4..6, and `S-B THRU S-A` is the pair (4, 3).
         PcRange sectionA = PcRange.Of(2, 3);
         PcRange sectionB = PcRange.Of(4, 6);
@@ -158,7 +158,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
     private static readonly Dictionary<string, string> ExemptDispatchCalls = new(StringComparer.Ordinal)
     {
         ["__Dispatch({bound.EntryPc}, {topExit})"] =
-            "the WHOLE program's entry dispatch (ISO §14.2.3 GR1 — execution begins with the first "
+            "the WHOLE program's entry dispatch (ISO §2023:14.2.3 GR1 — execution begins with the first "
             + "nondeclarative procedure): its bounds are the unit's own pc space, never a resolved procedure range",
         ["{dispatchState.DispatchName}(__startPc, __endPc)"] =
             "inside the emitted __RunUse / __RunGlobalUse helper — the bounds are that helper's RUNTIME "
@@ -240,7 +240,7 @@ public sealed class ProcedureRangeEmptinessDriftTests
         }
         Assert.True(hits.Count == 0,
             "A procedure range's emptiness (or paragraph-ness) is being decoded from Start/End arithmetic. "
-            + "`End < Start` is ALSO true of a legal inverted THRU range (ISO §14.9.28.4 GR6), so the test is "
+            + "`End < Start` is ALSO true of a legal inverted THRU range (ISO §2023:14.9.28.4 GR6), so the test is "
             + "ambiguous — use PcRange.IsEmpty / PcRange.IsParagraph (kb/Work PB440):\n  "
             + string.Join("\n  ", hits));
     }
@@ -253,13 +253,13 @@ public sealed class ProcedureRangeEmptinessDriftTests
         var state = new DispatchState();
 
         // A declarative's range renders the bounded invoker. The pair is the SECTION's range and nothing
-        // narrows it: ISO §14.9.49.3 SR1 makes the use procedure "the remainder of the section", and
-        // §14.9.14.4 GR7's NOTE puts the USE return mechanism after that section's LAST paragraph.
+        // narrows it: ISO §2023:14.9.49.3 SR1 makes the use procedure "the remainder of the section", and
+        // §2023:14.9.14.4 GR7's NOTE puts the USE return mechanism after that section's LAST paragraph.
         Assert.Equal("__RunUse(0, 2, 6)", state.RunUseCall(0, PcRange.Of(2, 6)));
         Assert.Equal("__RunUse(3, 9, 9)", state.RunUseCall(3, PcRange.At(9)));
 
         // An empty one cannot arise — the binder gives a zero-paragraph declarative section one no-op pc so the
-        // SELECTOR can still stop at it (§14.9.49.4 GR3: no other declarative may then run). Asking for the call
+        // SELECTOR can still stop at it (§2023:14.9.49.4 GR3: no other declarative may then run). Asking for the call
         // anyway is an emitter bug, not something to render.
         var ex = Assert.Throws<InvalidOperationException>(() => state.RunUseCall(0, PcRange.EmptyAt(5)));
         Assert.Contains("EMPTY declarative range", ex.Message);
@@ -274,9 +274,9 @@ public sealed class ProcedureRangeEmptinessDriftTests
             "the emitted helper's own signature (class member for a program, local function for an OO method)",
         ["__RunUse(__u, __pc, __pc)"] =
             "the exception-checking PERFORM's imp-2 / imp-3 handler — a SYNTHETIC single-pc range appended above "
-            + "the pc space and selected by ISO §14.9.28.4 GR17, not a declarative (§14.9.49.4 GR3)",
+            + "the pc space and selected by ISO §2023:14.9.28.4 GR17, not a declarative (§2023:14.9.49.4 GR3)",
         ["__RunUse(__cu, __cpc, __cpc)"] =
-            "the same interceptor's WHEN COMMON handler (imp-4, §14.9.28.4 GR19) — likewise synthetic",
+            "the same interceptor's WHEN COMMON handler (imp-4, §2023:14.9.28.4 GR19) — likewise synthetic",
         ["__RunUse({id}, {range.Start}, {range.End})"] =
             "DispatchState.RunUseCall itself — THE one construction site",
         ["__RunUse({id}, …)"] =

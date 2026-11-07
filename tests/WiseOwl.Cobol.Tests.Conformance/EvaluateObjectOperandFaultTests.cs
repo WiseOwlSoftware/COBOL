@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A SELECTION OBJECT'S OWN FAULTS ARE INDICATED WHETHER OR NOT ITS PAIR IS PERMITTED (kb/Work PB4446). ISO
-/// §14.9.13.3 SR10 refuses a pair Table 15 leaves blank (COBOL1634); SR2 refuses a phrase whose object count differs from
+/// §2023:14.9.13.3 SR10 refuses a pair Table 15 leaves blank (COBOL1634); SR2 refuses a phrase whose object count differs from
 /// the subject count (COBOL2106). Each is a fault of the pair or the count. The object's own reference and expression
-/// faults are independent violations of the general formats and syntax rules (§4.2.2): an undefined or ambiguous name
-/// (§8.4.2.1), a subscript on a scalar (§8.4.2.3.3 SR2), an unsubscripted table element (SR5), a reference-modification
-/// position 0, an alphanumeric operand in an arithmetic expression (§8.8.1.1), a bad function argument and a range whose
-/// ends differ in class (§14.9.13.3 SR4). The binder used to return before it bound a refused pair's object, and never
+/// faults are independent violations of the general formats and syntax rules (§2023:4.2.2): an undefined or ambiguous name
+/// (§2023:8.4.2.1), a subscript on a scalar (§2023:8.4.2.3.3 SR2), an unsubscripted table element (SR5), a reference-modification
+/// position 0, an alphanumeric operand in an arithmetic expression (§2023:8.8.1.1), a bad function argument and a range whose
+/// ends differ in class (§2023:14.9.13.3 SR4). The binder used to return before it bound a refused pair's object, and never
 /// bound the surplus objects of a count breach at all, so each of these was hidden by the verdict about the pair.
 /// <para>Each case pins the EXACT set of diagnostics, so the pair's secondary checks (the SR7 a) relation checkpoint, a
 /// TRUE/FALSE word bound as a condition) stay suppressed: the guards at the end are the refusals that must keep drawing
@@ -69,7 +69,7 @@ public sealed class EvaluateObjectOperandFaultTests
     public void ARefusedPair_StillBindsARangeAPartialExpressionAndACondition(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
-    /// <summary>A BARE operand after a connective (kb/Work PB4606, ISO §8.8.4.12: <c>&gt; 1 AND UNDEFX</c> is
+    /// <summary>A BARE operand after a connective (kb/Work PB4606, ISO §2023:8.8.4.12: <c>&gt; 1 AND UNDEFX</c> is
     /// <c>&gt; 1 AND &gt; UNDEFX</c> over the selection subject) is the program's own reference like the operand of a
     /// stated relation, so a refused pair indicates its fault too. A level-88 condition-name is a condition of its
     /// own and has no value operand to fault: it keeps the one Table 15 verdict.</summary>
@@ -88,11 +88,11 @@ public sealed class EvaluateObjectOperandFaultTests
     public void ARefusedPair_StillBindsABareOperandAfterAConnective(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
-    /// <summary>⛔ THE INSERTION ENDS AT A COMPLETE SIMPLE CONDITION (kb/Work PB4627, ISO §8.8.4.12.4 GR1: "The insertion
+    /// <summary>⛔ THE INSERTION ENDS AT A COMPLETE SIMPLE CONDITION (kb/Work PB4627, ISO §2023:8.8.4.12.4 GR1: "The insertion
     /// of an omitted subject and/or relational operator terminates once a complete simple condition is encountered
     /// within a complex condition"). A bare value after a condition-name, a class or sign condition, a parenthesized
-    /// group or a truth word is no object of the carried relation and no condition either (COBOL2318, §8.8.4.2.1); an
-    /// abbreviated relation there has no subject (COBOL2552, §8.8.4.12.1); a STATED relation restarts the insertion,
+    /// group or a truth word is no object of the carried relation and no condition either (COBOL2318, §2023:8.8.4.2.1); an
+    /// abbreviated relation there has no subject (COBOL2552, §2023:8.8.4.12.1); a STATED relation restarts the insertion,
     /// so the value after it is its object. The refused pair draws these beside its Table 15 verdict, as the same
     /// condition in an IF draws them alone.</summary>
     [Theory]
@@ -118,11 +118,11 @@ public sealed class EvaluateObjectOperandFaultTests
     public void ARefusedPair_JudgesABareOperandAndAnAbbreviatedRelationByTheInsertion(string statement, string expected) =>
         Assert.Equal(expected.Split(' '), Codes(statement));
 
-    /// <summary>⛔ A BOOLEAN RELATION IS ASKED BEFORE THE INSERTION (kb/Work PB4707, ISO §8.8.4.12.3 SR1: "Relation-condition-1
+    /// <summary>⛔ A BOOLEAN RELATION IS ASKED BEFORE THE INSERTION (kb/Work PB4707, ISO §2023:8.8.4.12.3 SR1: "Relation-condition-1
     /// shall not be a boolean relation condition."). A relation of boolean expressions (<c>B1 B-AND B2 = B"0"</c>) is a boolean
     /// relation that carries NO subject, so a walk that asks whether an insertion is in flight first calls the bare value or
     /// address-identifier after it "no condition" (COBOL2318), where an IF refuses the abbreviation (COBOL2723). A bare
-    /// boolean operand is a simple boolean condition (§8.8.4.3) and draws SR1's length-1 screen (COBOL1511, §8.8.4.3.3 SR1),
+    /// boolean operand is a simple boolean condition (§2023:8.8.4.3) and draws SR1's length-1 screen (COBOL1511, §2023:8.8.4.3.3 SR1),
     /// which the analysis leaves to the wrapper.</summary>
     [Theory]
     [InlineData("           EVALUATE TRUE WHEN > 1 AND B1 B-AND B2 = B\"0\" AND 5 DISPLAY \"B\" END-EVALUATE.", "COBOL1634 COBOL2723")]
@@ -147,7 +147,7 @@ public sealed class EvaluateObjectOperandFaultTests
     /// <summary>The IF, whose condition the standalone walk mirrors: the refused abbreviation after a boolean relation asks
     /// the boolean relation first for an address-identifier too (kb/Work PB4707), and the object of an abbreviation that is
     /// refused (after a boolean relation, or with no subject to insert) is still a reference the program wrote, so its own
-    /// fault is indicated beside the refusal (§8.4.2.1, §8.4.2.3.3 SR2; the IF counterpart of kb/Work PB4446).</summary>
+    /// fault is indicated beside the refusal (§2023:8.4.2.1, §2023:8.4.2.3.3 SR2; the IF counterpart of kb/Work PB4446).</summary>
     [Theory]
     [InlineData("           IF B1 B-AND B2 = B\"0\" AND ADDRESS OF A DISPLAY \"T\" END-IF.", "COBOL2723")]
     [InlineData("           IF B1 = B2 AND ADDRESS OF A DISPLAY \"T\" END-IF.", "COBOL2723")]
@@ -162,8 +162,8 @@ public sealed class EvaluateObjectOperandFaultTests
 
     /// <summary>A bare class-name after a stated or leading relation is read as the carried relation's object, as an IF
     /// reads it, so the operand binder refuses the word (COBOL1639); after a complete simple condition it is no
-    /// condition (COBOL2318, §8.8.4.2.1), and a class-name that LEADS the object is the class condition without its
-    /// identifier (§14.9.13.3 SR5) and draws nothing of its own.</summary>
+    /// condition (COBOL2318, §2023:8.8.4.2.1), and a class-name that LEADS the object is the class condition without its
+    /// identifier (§2023:14.9.13.3 SR5) and draws nothing of its own.</summary>
     [Theory]
     [InlineData("WHEN > 1 AND MYCLS", "COBOL1634 COBOL1639")]
     [InlineData("WHEN MYCLS AND 5", "COBOL1634 COBOL2318")]

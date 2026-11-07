@@ -9,8 +9,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The <c>&gt;&gt;DEFINE</c> directive (ISO §7.3.11) Wave-D behaviour in <see cref="ConditionalCompilationProcessor"/>:
-/// the §7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOL1618), the GR3 OVERRIDE phrase, and the GR4
+/// The <c>&gt;&gt;DEFINE</c> directive (ISO §2023:7.3.11) Wave-D behaviour in <see cref="ConditionalCompilationProcessor"/>:
+/// the §2023:7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOL1618), the GR3 OVERRIDE phrase, and the GR4
 /// <c>AS PARAMETER</c> operating-environment source.
 /// </summary>
 public sealed class ConditionalCompilationDefineTests
@@ -24,7 +24,7 @@ public sealed class ConditionalCompilationDefineTests
 
     private static bool Has1618(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOL1618");
 
-    [Fact] // SR2 (§7.3.11.3 #2) — a no-OVERRIDE redefinition to a DIFFERENT value is rejected.
+    [Fact] // SR2 (§2023:7.3.11.3 #2) — a no-OVERRIDE redefinition to a DIFFERENT value is rejected.
     public void Redefine_DifferentValue_NoOverride_Rejected1618()
     {
         var (_, diags) = Run(">>DEFINE X AS 1\n>>DEFINE X AS 2\n");
@@ -53,8 +53,8 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     [Fact] // GR4 — AS PARAMETER sources the value from the operating environment (numeric here). The compilation-
-           // variable-name is a COBOL user-defined word (§8.3.2.1 — letters, digits, hyphen and underscore;
-           // ⚠ the lexer does not yet accept the underscore §8.3.2.1 permits — kb/Work PB159 reports it).
+           // variable-name is a COBOL user-defined word (§2023:8.3.2.1 — letters, digits, hyphen and underscore;
+           // ⚠ the lexer does not yet accept the underscore §2023:8.3.2.1 permits — kb/Work PB159 reports it).
     public void Parameter_SourcesFromEnvironment()
     {
         Environment.SetEnvironmentVariable("CN-CC-TEST-PARAM", "42");
@@ -75,7 +75,7 @@ public sealed class ConditionalCompilationDefineTests
         Assert.DoesNotContain("KEEP", text);   // undefined → the >>IF DEFINED is false → the line drops
     }
 
-    [Fact] // kb/Work PB1533 — a COBOL word is case-insensitive (§8.3.1), so two spellings of ONE compilation-variable-name
+    [Fact] // kb/Work PB1533 — a COBOL word is case-insensitive (§2023:8.3.1), so two spellings of ONE compilation-variable-name
            // read ONE environment variable: the implementor-defined method (DOC-A.1-49) names the variable by the
            // name's canonical UPPER-CASE spelling, whatever the spelling in the directive.
     public void Parameter_TwoSpellingsOfOneName_ReadOneVariable()
@@ -94,9 +94,9 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     [Theory] // DOC-A.1-49 (kb/Work PB1533, PB1626): the value's CATEGORY is SYNTACTIC, as GnuCOBOL 3.2 classifies it — NUMERIC
-             // exactly when the text is the spelling of a fixed-point numeric literal (§8.3.3.3.2: an optional leading sign,
+             // exactly when the text is the spelling of a fixed-point numeric literal (§2023:8.3.3.3.2: an optional leading sign,
              // digits, at most one decimal point that is not the rightmost character), a quoted value is that ONE literal,
-             // and every other text is ALPHANUMERIC exactly as given. §7.3.8.2 SR1 a): a relation's operands are of the same
+             // and every other text is ALPHANUMERIC exactly as given. §2023:7.3.8.2 SR1 a): a relation's operands are of the same
              // category, so the literal the relation compares against names the category the value has.
     [InlineData("7", "7")]
     [InlineData("-2.5", "-2.5")]
@@ -106,7 +106,7 @@ public sealed class ConditionalCompilationDefineTests
     [InlineData("7x", "\"7x\"")]
     [InlineData("1,000", "\"1,000\"")]   // the comma is no part of a numeric literal's spelling
     [InlineData("1,5", "\"1,5\"")]
-    [InlineData("5.", "\"5.\"")]         // §8.3.3.3.2 3): the decimal point is never the rightmost character
+    [InlineData("5.", "\"5.\"")]         // §2023:8.3.3.3.2 3): the decimal point is never the rightmost character
     [InlineData("1E5", "\"1E5\"")]       // no floating-point spelling: the classification is a fixed-point literal's
     [InlineData("7 ", "\"7 \"")]         // trailing white space is content, not ignored
     [InlineData("\"ab\"\"c\"", "\"ab\"\"c\"")]   // a quoted value is the literal as written: the doubled quotation symbol is content
@@ -125,7 +125,7 @@ public sealed class ConditionalCompilationDefineTests
         finally { Environment.SetEnvironmentVariable(name, null); }
     }
 
-    [Theory] // §7.3.11.4 GR4 (kb/Work PB1626): "If no value is made available from the operating environment, compilation-variable-name-1
+    [Theory] // §2023:7.3.11.4 GR4 (kb/Work PB1626): "If no value is made available from the operating environment, compilation-variable-name-1
              // is not defined." GnuCOBOL 3.2 reads an empty value, one that begins with a space, and an improperly quoted one as
              // no value — here a quoted value is held to ONE literal, so a quoted value followed by more text is no value too.
     [InlineData("")]
@@ -150,8 +150,8 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     [Theory] // kb/Work PB1626 — the classification is the SAME at every edition and is not System.Decimal's: a 31-digit value (the
-             // fixed-point literal capacity, §8.3.3.3.2) is NUMERIC, so it compares against the numeric literal it spells and is
-             // the SAME value as that literal written in a DEFINE (§7.3.11.3 SR2 raises no COBOL1618). Before PB1626 a 29-31
+             // fixed-point literal capacity, §2023:8.3.3.3.2) is NUMERIC, so it compares against the numeric literal it spells and is
+             // the SAME value as that literal written in a DEFINE (§2023:7.3.11.3 SR2 raises no COBOL1618). Before PB1626 a 29-31
              // digit value was alphanumeric and ">>IF X > 0" was refused (COBOL1619, 'Alphanumeric' vs 'Numeric').
     [InlineData(2002)]
     [InlineData(2014)]
@@ -174,7 +174,7 @@ public sealed class ConditionalCompilationDefineTests
         finally { Environment.SetEnvironmentVariable(name, null); }
     }
 
-    [Fact] // kb/Work PB1626 — a numeric spelling longer than the fixed-point literal capacity (§8.3.3.3.2: 1 through 31 digits) is
+    [Fact] // kb/Work PB1626 — a numeric spelling longer than the fixed-point literal capacity (§2023:8.3.3.3.2: 1 through 31 digits) is
            // refused where the literal is evaluated, exactly as `>>DEFINE X AS <32 digits>` is: at the DEFINITION, naming the
            // directive, and the name stays undefined (GnuCOBOL reports it at the use; the diagnostic's position is the only difference).
     public void Parameter_ThirtyTwoDigitValue_RefusedAtTheDefinition()
@@ -203,7 +203,7 @@ public sealed class ConditionalCompilationDefineTests
         finally { Environment.SetEnvironmentVariable(name, null); }
     }
 
-    [Fact] // kb/Work PB1367 — §7.3.11.3 SR2 reaches the PARAMETER alternative: without OVERRIDE, a name already defined
+    [Fact] // kb/Work PB1367 — §2023:7.3.11.3 SR2 reaches the PARAMETER alternative: without OVERRIDE, a name already defined
            // may be redefined only to the SAME value, and "no value from the environment" is not the same value.
     public void Parameter_NoValue_RedefiningADefinedName_WithoutOverride_Rejected1618()
     {
@@ -230,7 +230,7 @@ public sealed class ConditionalCompilationDefineTests
 
     private static bool Has1619(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOL1619");
 
-    [Fact] // ⛔ Ledger C2 — the CLOSED DEFECT: a MULTI-TOKEN arithmetic operand now EVALUATES (§7.3.6) instead of
+    [Fact] // ⛔ Ledger C2 — the CLOSED DEFECT: a MULTI-TOKEN arithmetic operand now EVALUATES (§2023:7.3.6) instead of
            // silently binding to its first token. >>DEFINE X AS 2 * 3 + 1 defines 7 (was 2), so >>IF X = 7 matches.
     public void Define_ArithmeticExpressionOperand_Evaluated()
     {
@@ -238,35 +238,35 @@ public sealed class ConditionalCompilationDefineTests
         Assert.Contains("KEEP", text);
     }
 
-    [Fact] // §7.3.11.4 GR5 — a single numeric literal keeps its fractional value (not INTEGER-PART truncated).
+    [Fact] // §2023:7.3.11.4 GR5 — a single numeric literal keeps its fractional value (not INTEGER-PART truncated).
     public void Define_SingleFractionLiteral_KeepsValue()
     {
         var (text, _) = Run(">>DEFINE Q AS 0.25\n>>IF Q = 0.25\nKEEP\n>>END-IF\n");
         Assert.Contains("KEEP", text);
     }
 
-    [Fact] // §7.3.7 — a boolean-EXPRESSION operand now EVALUATES: FLG = B"1100" B-OR B"0011" = B"1111".
+    [Fact] // §2023:7.3.7 — a boolean-EXPRESSION operand now EVALUATES: FLG = B"1100" B-OR B"0011" = B"1111".
     public void Define_BooleanExpressionOperand_Evaluated()
     {
         var (text, _) = Run(">>DEFINE FLG AS B\"1100\" B-OR B\"0011\"\n>>IF FLG = B\"1111\"\nKEEP\n>>END-IF\n");
         Assert.Contains("KEEP", text);
     }
 
-    [Fact] // §7.3.3 SR10 — a floating-point literal in a directive operand is a loud COBOL1619, not a value.
+    [Fact] // §2023:7.3.3 SR10 — a floating-point literal in a directive operand is a loud COBOL1619, not a value.
     public void Define_FloatLiteral_Rejected1619()
     {
         var (_, diags) = Run(">>DEFINE X AS 1.5E3\n");
         Assert.True(Has1619(diags));
     }
 
-    [Fact] // §7.3.6.2 SR1c — a division by zero in a compile-time arithmetic operand is COBOL1619.
+    [Fact] // §2023:7.3.6.2 SR1c — a division by zero in a compile-time arithmetic operand is COBOL1619.
     public void Define_DivByZero_Rejected1619()
     {
         var (_, diags) = Run(">>DEFINE X AS 5 / 0\n");
         Assert.True(Has1619(diags));
     }
 
-    [Fact] // §7.3.13.3 SR11 — an EVALUATE selection object of a different category than the subject is COBOL1619.
+    [Fact] // §2023:7.3.13.3 SR11 — an EVALUATE selection object of a different category than the subject is COBOL1619.
     public void Evaluate_ObjectCategoryMismatch_Rejected1619()
     {
         var (_, diags) = Run(">>EVALUATE 5\n>>WHEN \"A\"\nX\n>>END-EVALUATE\n");
@@ -274,9 +274,9 @@ public sealed class ConditionalCompilationDefineTests
     }
 
     /// <summary>&gt;&gt;PUSH / &gt;&gt;POP are recognized (consumed), not left as stray tokens.
-    /// ⛔ The operand is REQUIRED: §7.3.22.2 and §7.3.20.2 print <c>{ directive-name | ALL }</c> in plain braces
+    /// ⛔ The operand is REQUIRED: §2023:7.3.22.2 and §2023:7.3.20.2 print <c>{ directive-name | ALL }</c> in plain braces
     /// — verified against the printed page, folio 82 — so exactly one alternative shall be written, and
-    /// §7.3.22.4 GR1/GR2 define an effect only for each of the two. This test wrote the BARE forms until
+    /// §2023:7.3.22.4 GR1/GR2 define an effect only for each of the two. This test wrote the BARE forms until
     /// kb/Work PB794 and passed, which made it a green test pinning an under-rejection
     /// (feedback_green_test_can_hold_a_gap_open); the bare form's own diagnostic is asserted below.</summary>
     [Fact]
@@ -298,12 +298,12 @@ public sealed class ConditionalCompilationDefineTests
     private const string Undefined = "is not a previously-defined";
 
     /// <summary>kb/Work PB3119 — a refused <c>&gt;&gt;DEFINE</c> is reported ONCE, at the directive. A later operand that
-    /// names the variable fails silently in every arm that reads a name: a comparison operand (§7.3.8), an arithmetic
-    /// operand (§7.3.6.2 SR1b) and a boolean operand (§7.3.7.2 SR1). The control is the same operand over a name nobody
+    /// names the variable fails silently in every arm that reads a name: a comparison operand (§2023:7.3.8), an arithmetic
+    /// operand (§2023:7.3.6.2 SR1b) and a boolean operand (§2023:7.3.7.2 SR1). The control is the same operand over a name nobody
     /// wrote, which still says it was never defined — the cascade is cut, the diagnostic is not.</summary>
     [Theory]
     [InlineData(">>DEFINE FOO AS 1 +\n")]          // operand that is no expression
-    [InlineData(">>DEFINE FOO AS\n")]              // no operand (§7.3.11.2)
+    [InlineData(">>DEFINE FOO AS\n")]              // no operand (§2023:7.3.11.2)
     [InlineData(">>DEFINE FOO AS 'A' OFF\n")]      // a word after the operand
     public void RefusedDefine_ReportsOnce_LaterUsesAreSilent(string define)
     {
@@ -374,7 +374,7 @@ public sealed class ConditionalCompilationDefineTests
         Assert.DoesNotContain(errors, m => m.Contains("FOOOFX"));
     }
 
-    [Theory] // every standard §7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.
+    [Theory] // every standard §2023:7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.
     [InlineData(">>DISPLAY \"hi\"")]
     [InlineData(">>FLAG-02 ON")]
     [InlineData(">>FLAG-14 OFF")]

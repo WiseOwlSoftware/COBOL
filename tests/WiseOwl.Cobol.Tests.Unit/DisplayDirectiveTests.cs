@@ -11,8 +11,8 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The DISPLAY directive (ISO §7.3.12, kb/Work PB807 + PB1538). Every expectation is derived from the standard's rule or
-/// from the determination <c>docs/CONFORMANCE.md</c> records for the latitude §7.3.12.4 GR2 leaves (DOC-A.1-53 to
+/// The DISPLAY directive (ISO §2023:7.3.12, kb/Work PB807 + PB1538). Every expectation is derived from the standard's rule or
+/// from the determination <c>docs/CONFORMANCE.md</c> records for the latitude §2023:7.3.12.4 GR2 leaves (DOC-A.1-53 to
 /// DOC-A.1-55): GR1 the operands are transferred, GR3 a PARAMETER value comes from the environment and its absence
 /// means "no transfer shall take place", GR4 in the order written, GR5/GR6 the UPON phrase and its LISTING default. Every
 /// case runs the real merged driver and reads what it TRANSFERRED off the diagnostic bag.
@@ -48,7 +48,7 @@ public sealed class DisplayDirectiveTests
     }
 
     [Theory] // DOC-A.1-54: CONSOLE and SYSOUT are the compiler's standard output, SYSERR its standard error; a phrase that
-             // names several destinations writes the line once to each, in the order written (§5.2.6.4: the device group and
+             // names several destinations writes the line once to each, in the order written (§2023:5.2.6.4: the device group and
              // LISTING each at most once, in any order)
     [InlineData("UPON CONSOLE", "S")]
     [InlineData("UPON SYSOUT", "S")]
@@ -97,12 +97,12 @@ public sealed class DisplayDirectiveTests
     public void ConversionOfData_FollowsTheDeterminedImages(string operand, string image)
         => Assert.Equal([image], Std($" >>DISPLAY {operand}\n"));
 
-    [Fact] // §7.3.11.4 GR1: a compilation-variable-name is usable in any directive where a literal of its category is
+    [Fact] // §2023:7.3.11.4 GR1: a compilation-variable-name is usable in any directive where a literal of its category is
            // permitted — the DISPLAY directive reads the value the name was DEFINEd to, and its category decides the image
     public void ACompilationVariableName_IsAnOperand()
         => Assert.Equal(["3 wd 1100"], Std(" >>DEFINE N AS 3\n >>DEFINE W AS \"wd\"\n >>DEFINE B AS B\"1100\"\n >>DISPLAY N W B\n"));
 
-    [Fact] // §7.3.11.4 GR2: after DEFINE … OFF the name "shall not be used except in a defined condition" — the DISPLAY
+    [Fact] // §2023:7.3.11.4 GR2: after DEFINE … OFF the name "shall not be used except in a defined condition" — the DISPLAY
            // operand is a use (kb/Work PB1368)
     public void ANameAfterDefineOff_IsNotAnOperand()
     {
@@ -111,11 +111,11 @@ public sealed class DisplayDirectiveTests
         Assert.Empty(output);
     }
 
-    [Fact] // a later DEFINE revives the name (§7.3.11.4 GR2 "unless it is redefined in a subsequent DEFINE directive")
+    [Fact] // a later DEFINE revives the name (§2023:7.3.11.4 GR2 "unless it is redefined in a subsequent DEFINE directive")
     public void ANameRedefinedAfterOff_IsAnOperandAgain()
         => Assert.Equal(["2"], Std(" >>DEFINE X AS 1\n >>DEFINE X OFF\n >>DEFINE X AS 2\n >>DISPLAY X\n"));
 
-    [Fact] // PARAMETER is a §8.12 compiler-directive word, so no compilation variable is named PARAMETER (§7.3.11.3 SR1): the
+    [Fact] // PARAMETER is a §2023:8.12 compiler-directive word, so no compilation variable is named PARAMETER (§2023:7.3.11.3 SR1): the
            // word with no name after it is not an operand
     public void ParameterWithNoName_IsNotAnOperand()
     {
@@ -152,11 +152,11 @@ public sealed class DisplayDirectiveTests
     public void ADisplayInAnOmittedBranch_TransfersNothing()
         => Assert.Equal(["kept"], Std(" >>IF 1 = 2\n >>DISPLAY \"dropped\"\n >>ELSE\n >>DISPLAY \"kept\"\n >>END-IF\n"));
 
-    [Fact] // §7.3.12.4 GR4 across directives: directives are processed in the order encountered
+    [Fact] // §2023:7.3.12.4 GR4 across directives: directives are processed in the order encountered
     public void SeveralDirectives_TransferInTheOrderMet()
         => Assert.Equal(["one", "two 2"], Std(" >>DISPLAY \"one\"\n >>DEFINE N AS 2\n >>DISPLAY \"two\" N\n"));
 
-    [Theory] // §7.3.12.3 SR2 / SR3 and §7.3.3 SR10: the operand is not an arithmetic expression, a boolean expression, a
+    [Theory] // §2023:7.3.12.3 SR2 / SR3 and §2023:7.3.3 SR10: the operand is not an arithmetic expression, a boolean expression, a
              // literal or a PARAMETER phrase, or is a literal form a directive bars — one diagnostic, nothing transferred
     [InlineData(")( 3 +", "COBOL1619")]            // the PB807 repro: four alternatives, none matched
     [InlineData("\"A\" & \"B\"", "COBOL1619")]     // concatenation expression (SR10)

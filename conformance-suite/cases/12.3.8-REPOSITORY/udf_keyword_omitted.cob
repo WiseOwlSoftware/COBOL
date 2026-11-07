@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.2 SR2 / §12.3.8 GR13-GR14 — FUNCTION ALL INTRINSIC in the REPOSITORY lets the word
+      *> ISO §2023:8.4.3.2 SR2 / §2023:12.3.8 GR13-GR14 — FUNCTION ALL INTRINSIC in the REPOSITORY lets the word
       *> FUNCTION be OMITTED when referencing an intrinsic (SR6: a '(' after an intrinsic-function-name is
       *> always its argument list). MAX/MIN in COMPUTE and MOD in a MOVE sending position, all without the
       *> FUNCTION keyword. MAX(12,34)=34, MIN(12,34)=12, MOD(34,10)=4.

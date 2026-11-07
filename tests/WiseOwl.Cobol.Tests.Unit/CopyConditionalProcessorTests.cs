@@ -11,7 +11,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The MERGED conditional-compilation + COPY text-manipulation driver (ISO §7.2.1) —
+/// The MERGED conditional-compilation + COPY text-manipulation driver (ISO §2023:7.2.1) —
 /// <see cref="ConditionalCompilationProcessor.ProcessWithCopy"/>: directives INSIDE copybooks are processed
 /// (Step 1 incorporate → Step 2 CC over the expanded group), while a main-source <c>&gt;&gt;IF</c> still gates a
 /// COPY and an omitted-branch COPY is never expanded. Design SSOT: <c>docs/rearchitecture/DESIGN-cc-in-copy.md</c>.

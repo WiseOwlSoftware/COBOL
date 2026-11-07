@@ -5,34 +5,34 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.4 GR1 — the USAGE clause of an OCCURS entry
+      *> ISO §2023:13.18.38.4 GR1 — the USAGE clause of an OCCURS entry
       *> applies to each occurrence (formats 1 and 2): the storage form
       *> is the clause's, on the LAST occurrence as on the first.
       *>
       *> THE RULES.
-      *> §13.18.38.4 GR1: "Except for the OCCURS clause itself, all
+      *> §2023:13.18.38.4 GR1: "Except for the OCCURS clause itself, all
       *>   data description clauses associated with an item whose
       *>   description includes an OCCURS clause apply to each
       *>   occurrence of the item described."
-      *>   OK  §13.18.38.4 1)  (General rules)
-      *> §13.18.38.4 GR7: "The value of the data item referenced by
+      *>   OK  §2023:13.18.38.4 1)  (General rules)
+      *> §2023:13.18.38.4 GR7: "The value of the data item referenced by
       *>   data-name-1 represents the current number of occurrences of
       *>   the subject of the entry."
-      *>   OK  §13.18.38.4 7)  (General rules)
-      *> §13.18.38.4 GR8 a): when data-name-1 is outside the
+      *>   OK  §2023:13.18.38.4 7)  (General rules)
+      *> §2023:13.18.38.4 GR8 a): when data-name-1 is outside the
       *>   occurs-depending group, only that part of the table area
       *>   specified by its value at the start of the operation is
       *>   used (the printed text of GR8 a), read from the spec).
-      *> §14.9.25.4 GR4: "Any move that is not an elementary move, and
+      *> §2023:14.9.25.4 GR4: "Any move that is not an elementary move, and
       *>   does not reference a variable-length group, is treated
       *>   exactly as if it were an alphanumeric to alphanumeric
       *>   elementary move"
-      *>   OK  §14.9.25.4 4)  (General rules)
-      *> §14.6.8.5: alphanumeric receiving data is "aligned at the
+      *>   OK  §2023:14.9.25.4 4)  (General rules)
+      *> §2023:14.6.8.5: alphanumeric receiving data is "aligned at the
       *>   leftmost character position in the data item with space fill
       *>   or truncation to the right".
-      *>   OK  §14.6.8.5   (Receiving data items of categories ...)
-      *> §13.18.40.5 Table 8: '-' gives space for a positive or zero
+      *>   OK  §2023:14.6.8.5   (Receiving data items of categories ...)
+      *> §2023:13.18.40.5 Table 8: '-' gives space for a positive or zero
       *>   value, '-' for a negative value.
       *> The storage the clause gives one occurrence is the
       *>   implementor's determination, docs/CONFORMANCE.md DOC-A.1-205

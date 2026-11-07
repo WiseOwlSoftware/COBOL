@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// owner. A new deferral is a new member — <c>RefResolutionDriftTests</c> fails a member with no description.</summary>
 public enum DeferredShape
 {
-    /// <summary>LINAGE-COUNTER / LINE-COUNTER / PAGE-COUNTER (§8.4.3.14 / §8.4.3.15) reached the resolver at a
+    /// <summary>LINAGE-COUNTER / LINE-COUNTER / PAGE-COUNTER (§2023:8.4.3.14 / §2023:8.4.3.15) reached the resolver at a
     /// site that does not route the special register to its runtime source.</summary>
     UnroutedSpecialRegister,
     /// <summary>A whole (unsubscripted) OCCURS DYNAMIC table (data-model D9) outside the contexts that take one.</summary>

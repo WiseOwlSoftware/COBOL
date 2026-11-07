@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOEF1.
       *> M2-OO-1i inc 5: an EXTERNAL FD shared between a PROGRAM and an
-      *> OBJECT (§13.18.22.4 GR4a/GR4b) — ONE run-unit connector + ONE
+      *> OBJECT (§2023:13.18.22.4 GR4a/GR4b) — ONE run-unit connector + ONE
       *> record area, keyed ::EXT:: by the FD name. The program OPENs the
       *> connector; the object WRITEs through it (no open of its own) and
       *> through the SHARED record area.

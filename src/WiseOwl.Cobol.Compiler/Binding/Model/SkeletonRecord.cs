@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime.Repository;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// ⛔ EVERY COMPILE-TIME INPUT THAT CHANGES WHAT A SKELETON'S SOURCE MEANS (ISO §9.3.12: an expansion "is treated in all
+/// ⛔ EVERY COMPILE-TIME INPUT THAT CHANGES WHAT A SKELETON'S SOURCE MEANS (ISO §2023:9.3.12: an expansion "is treated in all
 /// respects the same as if it were a class that is not a parameterized class"; DESIGN-external-repository §6.1, §10.5; kb/Work
 /// PB2104). A parameterized definition published to the external repository is expanded by a compilation that was not the one
 /// it was written for, so the expansion is made under THIS state, not the expanding compilation's: the importer re-lexes the
@@ -40,17 +40,17 @@ internal sealed record CompileState(int Edition, bool Permissive, SignEncoding S
 }
 
 /// <summary>One class-specifier or interface-specifier of a skeleton's OWN REPOSITORY paragraph that is not a formal: the word
-/// it declares and the identity it stands for (ISO §12.3.8.4 GR2: the literal, else the word). The expansion binds the skeleton's
-/// own words to these identities wherever it is made, and its key holds the record of what each names (§10.5).</summary>
+/// it declares and the identity it stands for (ISO §2023:12.3.8.4 GR2: the literal, else the word). The expansion binds the skeleton's
+/// own words to these identities wherever it is made, and its key holds the record of what each names (§2023:10.5).</summary>
 internal sealed record ResolutionRecord(string Word, bool IsInterface, string Identity);
 
-/// <summary>What a parameterized class or interface publishes (§5.2 "ParameterizedClass / ParameterizedInterface"; §6.1): its
+/// <summary>What a parameterized class or interface publishes (§2023:5.2 "ParameterizedClass / ParameterizedInterface"; §2023:6.1): its
 /// formals with the kind each is declared as, its source after text manipulation, its specifier resolutions and the
 /// <see cref="CompileState"/> it was compiled under.</summary>
 internal sealed record SkeletonRecord(RecordList<string> Formals, RecordList<bool> FormalIsInterface, string Source,
     RecordList<ResolutionRecord> Resolutions, CompileState State);
 
-/// <summary>What an expansion publishes beside its class record (§5.2 "Expansion"; §10.5): the definition it expands and the
+/// <summary>What an expansion publishes beside its class record (§2023:5.2 "Expansion"; §2023:10.5): the definition it expands and the
 /// actuals, all by externalized name, the <see cref="Key"/> that says what it MEANS, and whether it is the only unit of an
 /// assembly of its own (placement (a)) or lives in the expanding group's assembly (placement (b)). <see cref="Parts"/> are the labeled
 /// digests of the components the key is made of (<c>ExpansionKey.Of</c>), so a compilation that finds this expansion stale can say

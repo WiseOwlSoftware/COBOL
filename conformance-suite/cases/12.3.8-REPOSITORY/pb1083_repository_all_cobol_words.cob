@@ -9,17 +9,17 @@
        >>COBOL-WORDS EQUATE "PI" WITH "MYPI"
        >>COBOL-WORDS SUBSTITUTE "E" BY "EULER"
       *> FUNCTION ALL INTRINSIC AFTER >>COBOL-WORDS (kb/Work PB1083).
-      *> ISO/IEC 1989:2023 §12.3.8.4 GR14: ALL is "as if each of the
+      *> ISO/IEC 1989:2023 §2023:12.3.8.4 GR14: ALL is "as if each of the
       *> intrinsic-function-names defined in 8.11, Intrinsic function
       *> names, except for those that may have been undefined by the
       *> COBOL-WORDS directive, were specified"; a SUBSTITUTE literal-4
       *> is replaced in that list by its literal-5, and an EQUATE
-      *> literal-2 is added to it. §12.3.8.3 SR13 then forbids only the
+      *> literal-2 is added to it. §2023:12.3.8.3 SR13 then forbids only the
       *> names ON the list as user-defined words. So SQRT (undefined) and
       *> E (substituted away) are legal data-names here, and MYPI / EULER
       *> are intrinsic-function-names the REPOSITORY identifies, written
-      *> without the word FUNCTION (§8.4.3.2.3 SR2): the approximations
-      *> of pi and e (§15.73, §15.27). It used to refuse SQRT and E
+      *> without the word FUNCTION (§2023:8.4.3.2.3 SR2): the approximations
+      *> of pi and e (§2023:15.73, §2023:15.27). It used to refuse SQRT and E
       *> (COBOL1649) and not know MYPI or EULER (COBOL1639).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083CW.

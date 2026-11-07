@@ -29,20 +29,20 @@ tags: [wiseowl-cobol, work, defect]
 # PB1 — LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
 
 > **`COBOL1627` (`intrinsic-argument-class`), edition-invariant, strict-reject with a `--permissive` warning —
-> the DA6 disposition for the sibling §8.8.1.1 question.** Five of the twelve rows CLOSE (ABS, PRESENT-VALUE,
+> the DA6 disposition for the sibling §2023:8.8.1.1 question.** Five of the twelve rows CLOSE (ABS, PRESENT-VALUE,
 > RANDOM, RANGE, REM — bare class constraints, now fully enforced); five go **PARTIAL** because their rule has a
 > second half this screen does not reach, and one is unaffected. Half a rule enforced is PARTIAL, not CONFORMS.
 >
 > **⛔ THE RECIPE BELOW WAS WRONG, AND THE CORRECTION IS THE VALUABLE PART.** "Consume `sig.ArgKind(i)`" is what
 > this entry prescribed. Doing exactly that made the comprehensive gate return **12 failing corpus programs, every
-> one of them legal COBOL** — `FUNCTION BYTE-LENGTH(<numeric>)` rejected, though §15.14.3 admits an argument of
+> one of them legal COBOL** — `FUNCTION BYTE-LENGTH(<numeric>)` rejected, though §2023:15.14.3 admits an argument of
 > ANY class, and the nine rows with an empty `ArgKinds` default to `'n'`, which would have screened `LENGTH` as
 > numeric-only. **The table is not merely UNREAD, it is UNVERIFIED — and it was unverified *because* it was
 > unread.** Those codes were dispatch hints that drifted freely for years precisely because nothing consulted
 > them. Wiring 79 unaudited declarations into a rejection path converts one silent defect into 79 chances to
 > reject valid source.
 > So the screen is driven by `IntrinsicArgumentRules.Verified` — a table whose every entry carries **the ISO
-> clause it was read from**. Eleven entries (§15.7, §15.70–15.79: exactly the functions Phase B adjudicated). A
+> clause it was read from**. Eleven entries (§2023:15.7, §2023:15.70–15.79: exactly the functions Phase B adjudicated). A
 > function absent from it is screened exactly as before, so landing this could not regress anything, and the table
 > grows as the review adjudicates each clause. Asserting the other 68 rules from an unaudited hint column would be
 > fabrication, not completeness.
@@ -59,7 +59,7 @@ tags: [wiseowl-cobol, work, defect]
 >
 > **GOLDENS** (all four registered in `tests/conformance/negative/manifest.json` in the same commit):
 > `pb1-numeric-arg-alphanumeric` · `pb1-string-arg-numeric` (the two hand reproductions) ·
-> `pb1-numeric-arg-numeric-edited` (§8.5.2.1 Table 2 — numeric-edited-when-display is class ALPHANUMERIC) ·
+> `pb1-numeric-arg-numeric-edited` (§2023:8.5.2.1 Table 2 — numeric-edited-when-display is class ALPHANUMERIC) ·
 > `pb1-numeric-arg2-alphanumeric` (REM's argument-2; a screen that stopped at the first argument would pass every
 > other fixture and still miss that rule's second half).
 >
@@ -73,7 +73,7 @@ tags: [wiseowl-cobol, work, defect]
 ### PB1 (as found) · the intrinsic ARGUMENT-CLASS table is declared 79 times and read zero times
 
 > **ONE architectural defect presenting as at least 12 separate rule violations.** Found by the first Phase-B
-> verdict batch (§15.7 + §15.70–15.79, 55 rules over 11 functions), and it is the reason that batch returned 18
+> verdict batch (§2023:15.7 + §2023:15.70–15.79, 55 rules over 11 functions), and it is the reason that batch returned 18
 > DIVERGES — most of them are not independent bugs.
 >
 > **THE DEFECT.** `IntrinsicCatalog.cs` gives every one of its **79** catalog rows an `ArgKinds` string declaring
@@ -95,17 +95,17 @@ tags: [wiseowl-cobol, work, defect]
 > **⛔ REPRODUCED BY HAND, both directions, at the CLI — not taken from an agent's report:**
 > ```cobol
 > 01 N PIC 9(4) VALUE 1234.   01 R PIC X(10).
->     MOVE FUNCTION REVERSE(N) TO R        *> §15.78.3 r1: alphabetic/alphanumeric/national ONLY
+>     MOVE FUNCTION REVERSE(N) TO R        *> §2023:15.78.3 r1: alphabetic/alphanumeric/national ONLY
 > ```
 > compiles clean and displays `4321      `. And the mirror:
 > ```cobol
 > 01 A PIC X(4) VALUE "ABCD". 01 R PIC S9(6)V99.
->     COMPUTE R = FUNCTION ABS(A)          *> §15.7.3 r1: argument-1 shall be of class numeric
+>     COMPUTE R = FUNCTION ABS(A)          *> §2023:15.7.3 r1: argument-1 shall be of class numeric
 > ```
 > compiles clean and displays `0000000{` — garbage from coercing `"ABCD"` through `CobolNum.FromAlphanumeric`.
 > Neither emits a diagnostic at any edition.
 >
-> **⚠ AND IT IS A HOLE IN DA6, WHICH LANDED HOURS EARLIER.** DA6 installed the §8.8.1.1 strict reject for an
+> **⚠ AND IT IS A HOLE IN DA6, WHICH LANDED HOURS EARLIER.** DA6 installed the §2023:8.8.1.1 strict reject for an
 > alphanumeric ARITHMETIC operand (`COBOL0844`). Function arguments bypass it: `BindArgOperand` routes through
 > `BindFunctionArgumentExpr`, whose `OperandContext.FunctionArgument` deliberately suppresses the
 > `ExpressionBinder.OperandRef` numeric screen. So `COMPUTE R = A` is correctly rejected while
@@ -120,7 +120,7 @@ tags: [wiseowl-cobol, work, defect]
 > **SCOPE — this is bigger than the 12 rows that found it.** §15 holds **216 AR rules across 43 functions**, of
 > which **47 are explicit class/category constraints**; only 11 functions have been adjudicated so far. Expect the
 > remaining §15 clauses to return the same verdict, and expect the count to grow as Phase B proceeds. The
-> VALUE-constraint rules ride along: §15.3 requires a bad argument VALUE to set **EC-ARGUMENT-FUNCTION**
+> VALUE-constraint rules ride along: §2023:15.3 requires a bad argument VALUE to set **EC-ARGUMENT-FUNCTION**
 > (`FUNCTION REM(x 0)`, `FUNCTION PRESENT-VALUE(-1 …)`, `FUNCTION RANDOM(-1)`, a zero-length literal to ORD-MAX),
 > and none of those raises today either.
 >

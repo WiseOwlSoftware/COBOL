@@ -59,7 +59,7 @@ A concept-first index into the vault. Start from an idea, jump to the note that 
 - **OO / INVOKE / `CobolObject`** → [[kb/Runtime/Execution Model]]
 - **EC / declaratives / `>>TURN`** → [[kb/Runtime/Execution Model]]
 - **Report Writer / `CobolReport`** → [[kb/Runtime/Execution Model]]
-- **Reserved words / §8.9 funnel** → [[kb/Semantics/Validation Rules]]
+- **Reserved words / §2023:8.9 funnel** → [[kb/Semantics/Validation Rules]]
 - **VCR / version matrix / edition gating** → [[kb/Spec/Version Targeting]]
 - **Audits / CA*/V* / fix queue** → [[kb/Modernization/Audit Artifacts]]
 

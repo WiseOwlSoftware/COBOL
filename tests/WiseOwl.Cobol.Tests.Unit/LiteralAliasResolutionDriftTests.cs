@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A WORD THAT STANDS FOR A LITERAL IS RESOLVED IN ONE PLACE (kb/Work PB1544). A constant-name ("as if literal-1 …
-/// were written where constant-name-1 is written", ISO §13.10.4 GR1) and a symbolic-character ("defines a figurative
-/// constant", §12.3.7.4 GR11 a)) both stand where a format specifies a literal, and every procedure-division position
+/// were written where constant-name-1 is written", ISO §2023:13.10.4 GR1) and a symbolic-character ("defines a figurative
+/// constant", §2023:12.3.7.4 GR11 a)) both stand where a format specifies a literal, and every procedure-division position
 /// asks <c>ExpressionBinder.LiteralAliasOf</c> for them. The chain used to be written separately in six binders, and the
 /// positions that lacked a half refused conforming source: CALL Format 2's BY CONTENT and BY VALUE literal-2 and INVOKE
 /// had no symbolic-character arm (COBOL1639 "not defined"), and BY CONTENT of an alphanumeric constant-name drew the

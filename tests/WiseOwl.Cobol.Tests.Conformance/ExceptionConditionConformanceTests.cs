@@ -8,8 +8,8 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The EC exception-condition model (ISO/IEC 1989:2023 §14.6.13 + §7.3.25 TURN + §14.9.29 RAISE + §14.9.33
-/// RESUME + §14.9.49 Format-3 USE + §14.9.18/§14.9.14 RAISING + §15.28–15.33 EXCEPTION-* functions;
+/// The EC exception-condition model (ISO/IEC 1989:2023 §2023:14.6.13 + §2023:7.3.25 TURN + §2023:14.9.29 RAISE + §2023:14.9.33
+/// RESUME + §2023:14.9.49 Format-3 USE + §2023:14.9.18/§2023:14.9.14 RAISING + §2023:15.28–15.33 EXCEPTION-* functions;
 /// CONDITIONS_EXCEPTIONS_DESIGN D9–D12): the per-GR conformance net. Every behavioral test is
 /// SPEC-PINNED (the former legacy engine has NO EC model — COBOL-2002+; expected values derive from the cited rules).
 /// All EC programs compile at <c>--std 2023</c>; the per-edition gating facts compile at 85 and assert the
@@ -27,7 +27,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Equal(expected, stdout);
     }
 
-    /// <summary>Compile-and-run; assert ABNORMAL run-unit termination (nonzero exit — the §14.6.13.1.3 #5/#7
+    /// <summary>Compile-and-run; assert ABNORMAL run-unit termination (nonzero exit — the §2023:14.6.13.1.3 #5/#7
     /// fatal default / the settled §18.16 implementor choice) whose stderr names the exception condition.</summary>
     private static void AssertFatal(string source, string ecName, string? expectedStdout = null)
     {
@@ -37,7 +37,7 @@ public sealed class ExceptionConditionConformanceTests
         if (expectedStdout is not null) Assert.Equal(expectedStdout, stdout);
     }
 
-    /// <summary>A declaratives-bearing program skeleton (sections after END DECLARATIVES per §14.3).</summary>
+    /// <summary>A declaratives-bearing program skeleton (sections after END DECLARATIVES per §2023:14.3).</summary>
     private static string Prog(string name, string turn, string env, string ws, string decls, string proc) => $"""
         {turn}
         IDENTIFICATION DIVISION.
@@ -55,9 +55,9 @@ public sealed class ExceptionConditionConformanceTests
         {proc}
         """;
 
-    // ── RAISE + TURN scoping (§14.9.29 / §7.3.25 / §14.6.13.1.1) ─────────────────────────────────────────────
+    // ── RAISE + TURN scoping (§2023:14.9.29 / §2023:7.3.25 / §2023:14.6.13.1.1) ─────────────────────────────────────────────
 
-    [Fact]   // §14.9.29 GR1 + §14.6.13.1.4: enabled nonfatal RAISE sets the last exception status and the F3
+    [Fact]   // §2023:14.9.29 GR1 + §2023:14.6.13.1.4: enabled nonfatal RAISE sets the last exception status and the F3
              // declarative handles it; RESUME AT NEXT STATEMENT continues past; the status persists after.
     public void Raise_Enabled_DeclarativeHandles_ResumeNextStatement_StatusPersists()
         => AssertSpec(Prog("ECT001", ">>TURN EC-USER-DEMO CHECKING ON", "", "", """
@@ -71,7 +71,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "HANDLER: EC-USER-DEMO\nAFTER: EC-USER-DEMO");
 
-    [Fact]   // §14.6.13.1.1 (default OFF, §7.3.25.4 GR1) + §14.6.13.1.4 first sentence: with checking not
+    [Fact]   // §2023:14.6.13.1.1 (default OFF, §2023:7.3.25.4 GR1) + §2023:14.6.13.1.4 first sentence: with checking not
              // enabled a NONFATAL raise acts as if the exception did not occur — no status, execution continues.
     public void Raise_CheckingOff_Nonfatal_ActsAsContinue()
         => AssertSpec($"""
@@ -91,7 +91,7 @@ public sealed class ExceptionConditionConformanceTests
     private const string RaiseAdvisory = "COBOL3803";
 
     [Fact]   // The Annex D.2.5 shape: a USE declarative for EC-USER-FATAL-ERROR, RAISEs of it and no TURN anywhere.
-             // §14.6.13.1.1 + §14.6.13.1.4: neither RAISE raises, so each is advised AT ITS OWN statement, and the
+             // §2023:14.6.13.1.1 + §2023:14.6.13.1.4: neither RAISE raises, so each is advised AT ITS OWN statement, and the
              // program still compiles clean.
     public void Raise_CheckingOff_Nonfatal_IsAdvisedAtEachStatement()
     {
@@ -112,8 +112,8 @@ public sealed class ExceptionConditionConformanceTests
         Assert.All(advised, w => Assert.Contains("RAISE EXCEPTION EC-USER-FATAL-ERROR", w));
     }
 
-    [Fact]   // Only the RAISE whose checking is off is advised: a level-2 TURN (§7.3.25.4 GR3) and an exception-checking
-             // PERFORM's implicit TURN over imperative-statement-1 (§14.9.28.4 GR14) both enable, and a later
+    [Fact]   // Only the RAISE whose checking is off is advised: a level-2 TURN (§2023:7.3.25.4 GR3) and an exception-checking
+             // PERFORM's implicit TURN over imperative-statement-1 (§2023:14.9.28.4 GR14) both enable, and a later
              // TURN … OFF (GR5/GR6, source order) disables again — one advisory, for EC-USER-A after the OFF.
     public void Raise_Advisory_FollowsTheStatementsEnablement()
     {
@@ -138,7 +138,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Contains("RAISE EXCEPTION EC-USER-A", advised);
     }
 
-    [Fact]   // Checking is LEXICAL (§7.3.25.4 GR6: "the procedure division statements … that follow in the compilation
+    [Fact]   // Checking is LEXICAL (§2023:7.3.25.4 GR6: "the procedure division statements … that follow in the compilation
              // group"): a TURN written before a PERFORM does not reach a paragraph that precedes it in the source, and
              // one written before a paragraph covers it however it is reached. P-BEFORE is advised; P-AFTER is not.
              // Same answer at 2002, RAISE's introducing edition.
@@ -166,7 +166,7 @@ public sealed class ExceptionConditionConformanceTests
         }
     }
 
-    [Fact]   // A FATAL name with checking off is not advised: it terminates the run unit (§14.6.13.1.3 8), the
+    [Fact]   // A FATAL name with checking off is not advised: it terminates the run unit (§2023:14.6.13.1.3 8), the
              // implementor arm Raise_Fatal_CheckingOff_TerminatesLoudly pins), which no reader of the run misses.
     public void Raise_CheckingOff_Fatal_IsNotAdvised()
     {
@@ -182,7 +182,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.DoesNotContain(warnings, w => w.Contains(RaiseAdvisory));
     }
 
-    [Fact]   // §7.3.25.4 GR5/GR6: a TURN applies to SUCCEEDING statements until the next toggle — ON…OFF scopes
+    [Fact]   // §2023:7.3.25.4 GR5/GR6: a TURN applies to SUCCEEDING statements until the next toggle — ON…OFF scopes
              // by source order within one paragraph.
     public void Turn_OffMidSource_ScopesBySourceOrder()
         => AssertSpec("""
@@ -200,7 +200,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, $"S1: EC-USER-A\nS2: [{new string(' ', 31)}]");
 
-    [Fact]   // §7.3.25.4 GR2: EC-ALL enables checking for every exception-name (here an EC-USER-* level-3).
+    [Fact]   // §2023:7.3.25.4 GR2: EC-ALL enables checking for every exception-name (here an EC-USER-* level-3).
     public void Turn_EcAll_CoversEveryName()
         => AssertSpec("""
             >>TURN EC-ALL CHECKING ON
@@ -213,7 +213,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "S: EC-USER-X");
 
-    [Fact]   // §7.3.25.4 GR3: a level-2 name enables checking for its level-3 children.
+    [Fact]   // §2023:7.3.25.4 GR3: a level-2 name enables checking for its level-3 children.
     public void Turn_Level2_CoversItsChildren()
         => AssertSpec("""
             >>TURN EC-USER CHECKING ON
@@ -226,7 +226,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "S: EC-USER-Y");
 
-    [Fact]   // §14.6.13.1.3 #8 (checking NOT enabled, fatal category): implementor-defined — this implementation
+    [Fact]   // §2023:14.6.13.1.3 #8 (checking NOT enabled, fatal category): implementor-defined — this implementation
              // terminates the run unit loudly (the §1.4 doctrine; recorded in the deep-dive).
     public void Raise_Fatal_CheckingOff_TerminatesLoudly()
         => AssertFatal("""
@@ -240,7 +240,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-SIZE-OVERFLOW", "BEFORE");
 
-    [Fact]   // §14.6.13.1.3 #5 NOTE 2 + §14.9.33.4 GR2: a declarative's RESUME AT NEXT STATEMENT suppresses the
+    [Fact]   // §2023:14.6.13.1.3 #5 NOTE 2 + §2023:14.9.33.4 GR2: a declarative's RESUME AT NEXT STATEMENT suppresses the
              // FATAL termination — execution continues after the RAISE.
     public void Raise_Fatal_DeclarativeResumes_SuppressesTermination()
         => AssertSpec(Prog("ECT007", ">>TURN EC-SIZE CHECKING ON", "", "", """
@@ -254,7 +254,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "HANDLER\nSURVIVED");
 
-    [Fact]   // §14.9.33.4 GR3: RESUME AT procedure-name transfers control as if a GO TO.
+    [Fact]   // §2023:14.9.33.4 GR3: RESUME AT procedure-name transfers control as if a GO TO.
     public void Resume_AtProcedureName_TransfersControl()
         => AssertSpec(Prog("ECT008", ">>TURN EC-USER CHECKING ON", "", "", """
             EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-J.
@@ -269,7 +269,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "RESUMED-AT");
 
-    [Fact]   // §14.9.49.4 GR3e before GR3g: the level-3 entry is selected over the EC-ALL entry regardless of
+    [Fact]   // §2023:14.9.49.4 GR3e before GR3g: the level-3 entry is selected over the EC-ALL entry regardless of
              // source order; an unmatched name falls to the EC-ALL tier.
     public void UseF3_SelectionTiers_Level3BeatsEcAll()
         => AssertSpec(Prog("ECT009", ">>TURN EC-USER CHECKING ON", "", "", """
@@ -288,12 +288,12 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "SPECIFIC-HANDLER\nALL-HANDLER\nDONE");
 
-    [Fact]   // §14.9.49.3 SR1 + §14.4.2: the use procedure is the WHOLE remainder of the declarative section, so
+    [Fact]   // §2023:14.9.49.3 SR1 + §2023:14.4.2: the use procedure is the WHOLE remainder of the declarative section, so
              // this tail-shaped one runs H1 AND H2 — a handler end derived from paragraph SHAPE stopped at D-EX and
-             // printed H1 alone (kb/Work PB367). §14.9.14.4 GR1 makes the bare EXIT a no-op and GR7 sends D-LAST's
+             // printed H1 alone (kb/Work PB367). §2023:14.9.14.4 GR1 makes the bare EXIT a no-op and GR7 sends D-LAST's
              // EXIT SECTION to the return mechanism after the section's LAST paragraph, so D-TAIL never runs — which
-             // is why the run does NOT stop there. It ends instead through §14.9.49.4 GR13 b): EC-BOUND-SUBSCRIPT is
-             // fatal (Table 13), the declarative completed normally, and §14.6.13.1.3 #5 terminates the run unit
+             // is why the run does NOT stop there. It ends instead through §2023:14.9.49.4 GR13 b): EC-BOUND-SUBSCRIPT is
+             // fatal (Table 13), the declarative completed normally, and §2023:14.6.13.1.3 #5 terminates the run unit
              // abnormally. Both halves are load-bearing: the stdout pins the truncation, the fatality pins GR13b.
     public void UseF3_UseProcedureIsTheWholeSection_ThenGr13bTerminates()
         => AssertFatal(Prog("ECT055", ">>TURN EC-BOUND-SUBSCRIPT CHECKING ON", "", """
@@ -320,9 +320,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "EC-BOUND-SUBSCRIPT", "H1\nH2");
 
-    // ── The EXCEPTION-* functions + WITH LOCATION (§15.28–15.33 / §7.3.25.4 GR7) ─────────────────────────────
+    // ── The EXCEPTION-* functions + WITH LOCATION (§2023:15.28–15.33 / §2023:7.3.25.4 GR7) ─────────────────────────────
 
-    [Fact]   // §15.32.3 r2 + §15.30.3 r2: WITH LOCATION captures the statement name and the three-part location.
+    [Fact]   // §2023:15.32.3 r2 + §2023:15.30.3 r2: WITH LOCATION captures the statement name and the three-part location.
     public void WithLocation_CapturesStatementAndLocation()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun("""
@@ -338,12 +338,12 @@ public sealed class ExceptionConditionConformanceTests
             """);
         Assert.True(ok, detail);
         Assert.Contains("STMT: RAISE", stdout);
-        Assert.Contains("LOC: ECT010; MAIN-PARA;", stdout);   // "element; paragraph; line-id" (§15.30.3 r2)
+        Assert.Contains("LOC: ECT010; MAIN-PARA;", stdout);   // "element; paragraph; line-id" (§2023:15.30.3 r2)
     }
 
-    [Fact]   // §15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column — "GO TO", never the
+    [Fact]   // §2023:15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column — "GO TO", never the
              // spelled leading token. A subscripted DEPENDING operand raises EC-BOUND-SUBSCRIPT INSIDE the GO TO
-             // (§8.4.2.3.4 GR2); the F3 declarative reads the name and RESUMEs past (kb/Work R04).
+             // (§2023:8.4.2.3.4 GR2); the F3 declarative reads the name and RESUMEs past (kb/Work R04).
     public void ExceptionStatement_GoTo_ReturnsTheTable12Name()
         => AssertSpec(Prog("ECT014", ">>TURN EC-BOUND-SUBSCRIPT CHECKING ON WITH LOCATION", "", """
             01 WS-TAB.
@@ -364,7 +364,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), $"STMT=[{"GO TO",-63}]\nPAST");
 
-    [Fact]   // §15.32.3 r3 + the optional word TO (goToStatement : GO TO? …): `GO PARA.` is the SAME statement
+    [Fact]   // §2023:15.32.3 r3 + the optional word TO (goToStatement : GO TO? …): `GO PARA.` is the SAME statement
              // kind with no TO token anywhere — the name must still be "GO TO". This spelling is the one that
              // defeats any token-derived name (kb/Work R04: first-token gave "GO"; longest-token-match also
              // gives "GO" because the tokens never spell TO).
@@ -388,7 +388,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), $"STMT=[{"GO TO",-63}]\nPAST");
 
-    [Fact]   // §15.32.3 r1 / §15.30.3 r1: WITHOUT the LOCATION phrase no location information is saved —
+    [Fact]   // §2023:15.32.3 r1 / §2023:15.30.3 r1: WITHOUT the LOCATION phrase no location information is saved —
              // EXCEPTION-STATEMENT is all spaces, EXCEPTION-LOCATION a single space.
     public void WithoutLocation_StatementAndLocationAreSpaces()
         => AssertSpec($"""
@@ -403,7 +403,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, $"T=[{new string(' ', 63)}]\nL=[ ]");
 
-    [Fact]   // §14.9.39 Format 13: SET LAST EXCEPTION TO OFF — the status indicates no exception condition.
+    [Fact]   // §2023:14.9.39 Format 13: SET LAST EXCEPTION TO OFF — the status indicates no exception condition.
     public void SetLastExceptionToOff_ClearsTheStatus()
         => AssertSpec($"""
             >>TURN EC-USER CHECKING ON
@@ -417,9 +417,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, $"S=[{new string(' ', 31)}]");
 
-    // ── The EC-SIZE bridge (§14.7.5 ↔ Table 13; arithmetic without the phrase) ───────────────────────────────
+    // ── The EC-SIZE bridge (§2023:14.7.5 ↔ Table 13; arithmetic without the phrase) ───────────────────────────────
 
-    [Fact]   // §14.7.5 case 2 + Table 13: a zero divisor under enabled EC-SIZE checking raises the PRECISE
+    [Fact]   // §2023:14.7.5 case 2 + Table 13: a zero divisor under enabled EC-SIZE checking raises the PRECISE
              // level-3 name EC-SIZE-ZERO-DIVIDE; the receiver is unchanged; RESUME AT NEXT STATEMENT continues.
     public void SizeError_ZeroDivide_DeclarativeSeesPreciseName_ReceiverUnchanged()
         => AssertSpec(Prog("ECT013", ">>TURN EC-SIZE CHECKING ON", "", """
@@ -438,7 +438,7 @@ public sealed class ExceptionConditionConformanceTests
             """), "H: EC-SIZE-ZERO-DIVIDE\nC=111");
 
     [Fact]   // Table 13 "EC-SIZE-TRUNCATION — significant digits truncated in store": a store overflow under
-             // enabled checking latches the truncation name; the receiver keeps its prior value (§14.7.5).
+             // enabled checking latches the truncation name; the receiver keeps its prior value (§2023:14.7.5).
     public void SizeError_StoreTruncation_LatchesTruncationName()
         => AssertSpec(Prog("ECT014", ">>TURN EC-SIZE CHECKING ON", "", """
             01 WS-A PIC 9(3) VALUE 900.
@@ -455,7 +455,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-SIZE-TRUNCATION\nC=111");
 
-    [Fact]   // §14.6.13.1.3 #5/#7: enabled EC-SIZE, no phrase, no qualifying declarative — the run unit
+    [Fact]   // §2023:14.6.13.1.3 #5/#7: enabled EC-SIZE, no phrase, no qualifying declarative — the run unit
              // terminates abnormally on the fatal condition.
     public void SizeError_NoPhraseNoDeclarative_FatalTerminates()
         => AssertFatal("""
@@ -475,7 +475,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-SIZE-ZERO-DIVIDE", "BEFORE");
 
-    [Fact]   // §14.6.13.1.3 #1 / §14.6.13.1.4 #1: the statement's own ON SIZE ERROR phrase handles the
+    [Fact]   // §2023:14.6.13.1.3 #1 / §2023:14.6.13.1.4 #1: the statement's own ON SIZE ERROR phrase handles the
              // condition — the declarative does NOT run; the last exception status IS set (checking enabled).
     public void SizeError_OnSizeErrorPhrase_WinsOverDeclarative()
         => AssertSpec(Prog("ECT016", ">>TURN EC-SIZE CHECKING ON", "", """
@@ -495,10 +495,10 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "PHRASE\nS: EC-SIZE-TRUNCATION");
 
-    // ── The EC-OVERFLOW bridge (STRING §14.9.43 GR8b / UNSTRING §14.9.48 GR16b) ──────────────────────────────
+    // ── The EC-OVERFLOW bridge (STRING §2023:14.9.43 GR8b / UNSTRING §2023:14.9.48 GR16b) ──────────────────────────────
 
-    [Fact]   // §14.9.43 GR8b: a STRING overflow without the ON OVERFLOW phrase raises EC-OVERFLOW-STRING
-             // (nonfatal — execution continues either way, §14.6.13.1.4 #3/#4); the receiver holds the
+    [Fact]   // §2023:14.9.43 GR8b: a STRING overflow without the ON OVERFLOW phrase raises EC-OVERFLOW-STRING
+             // (nonfatal — execution continues either way, §2023:14.6.13.1.4 #3/#4); the receiver holds the
              // transferred prefix.
     public void StringOverflow_NoPhrase_RaisesEcOverflowString()
         => AssertSpec(Prog("ECT017", ">>TURN EC-OVERFLOW CHECKING ON", "", """
@@ -513,7 +513,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-OVERFLOW-STRING\nR=ABC");
 
-    // ── The EC-I-O bridge (§9.1.13.1 status → EC) ────────────────────────────────────────────────────────────
+    // ── The EC-I-O bridge (§2023:9.1.13.1 status → EC) ────────────────────────────────────────────────────────────
 
     private const string IoEnv = """
         ENVIRONMENT DIVISION.
@@ -550,8 +550,8 @@ public sealed class ExceptionConditionConformanceTests
         {proc}
         """;
 
-    [Fact]   // §9.1.13.1: I-O status 10 with enabled EC-I-O checking raises EC-I-O-AT-END (nonfatal '1x'); the
-             // F3 declarative selects it; §15.28.4 r1c — EXCEPTION-FILE is the status + the SELECT file-name.
+    [Fact]   // §2023:9.1.13.1: I-O status 10 with enabled EC-I-O checking raises EC-I-O-AT-END (nonfatal '1x'); the
+             // F3 declarative selects it; §2023:15.28.4 r1c — EXCEPTION-FILE is the status + the SELECT file-name.
     public void IoAtEnd_NoPhrase_RaisesEcIoAtEnd_ExceptionFile()
         => AssertSpec(IoProg("ECT018", ">>TURN EC-I-O CHECKING ON", """
             EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END.
@@ -567,11 +567,11 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-I-O-AT-END\nF: 10TF\nAFTER-READS");
 
-    [Fact]   // §15.29.4 r1 — EXCEPTION-FILE-N, the national twin of EXCEPTION-FILE (P10 Step-11 EC-N wave):
+    [Fact]   // §2023:15.29.4 r1 — EXCEPTION-FILE-N, the national twin of EXCEPTION-FILE (P10 Step-11 EC-N wave):
              // r1a two national zeros before any EC-I-O condition; r1c the I-O status in national characters +
              // the SELECT file-name converted to the runtime national character set (the ONE NationalOf
-             // repertoire projection of the same File() rendering). §15.31.3 r1 — EXCEPTION-LOCATION-N is one
-             // national space when the enabling TURN lacked WITH LOCATION. FUNCTION LENGTH (§15.50) pins the
+             // repertoire projection of the same File() rendering). §2023:15.31.3 r1 — EXCEPTION-LOCATION-N is one
+             // national space when the enabling TURN lacked WITH LOCATION. FUNCTION LENGTH (§2023:15.50) pins the
              // character-position counts of the national results.
     public void IoAtEnd_ExceptionFileN_NationalTwin()
         => AssertSpec($"""
@@ -609,7 +609,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "P: 00\nFN: 10TF\nL1: 4 L2: 1");
 
-    [Fact]   // §9.1.13.1 / §14.6.13.1.4 #1: the statement's AT END phrase covers the '1x' family — the EC
+    [Fact]   // §2023:9.1.13.1 / §2023:14.6.13.1.4 #1: the statement's AT END phrase covers the '1x' family — the EC
              // declarative is NOT selected.
     public void IoAtEnd_AtEndPhrase_SuppressesDeclarative()
         => AssertSpec(IoProg("ECT019", ">>TURN EC-I-O CHECKING ON", """
@@ -623,7 +623,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "ATEND");
 
-    [Fact]   // §9.1.13.1 fatal classes ('3x') + §14.9.49.4 GR12c: an enabled fatal I-O status with no handler
+    [Fact]   // §2023:9.1.13.1 fatal classes ('3x') + §2023:14.9.49.4 GR12c: an enabled fatal I-O status with no handler
              // terminates the run unit abnormally (checking OFF keeps the historical continue-on-error).
     public void IoPermanentError_Enabled_NoHandler_FatalTerminates()
         => AssertFatal("""
@@ -646,9 +646,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-I-O-PERMANENT-ERROR", "BEFORE");
 
-    // ── The EC-PROGRAM bridge (CALL/CANCEL, §14.9.4.4 GR3b/GR3f) ─────────────────────────────────────────────
+    // ── The EC-PROGRAM bridge (CALL/CANCEL, §2023:14.9.4.4 GR3b/GR3f) ─────────────────────────────────────────────
 
-    [Fact]   // §14.9.4.4 GR3b: CALL of an unknown program under enabled EC-PROGRAM checking raises
+    [Fact]   // §2023:14.9.4.4 GR3b: CALL of an unknown program under enabled EC-PROGRAM checking raises
              // EC-PROGRAM-NOT-FOUND; the declarative's RESUME AT NEXT STATEMENT suppresses the fatal default.
     public void CallNotFound_Enabled_DeclarativeResumes()
         => AssertSpec(Prog("ECT021", ">>TURN EC-PROGRAM CHECKING ON", "", "", """
@@ -662,7 +662,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-PROGRAM-NOT-FOUND\nSURVIVED");
 
-    [Fact]   // §14.6.13.1.3 #5/#7: enabled EC-PROGRAM, no phrase, no declarative — fatal termination (every
+    [Fact]   // §2023:14.6.13.1.3 #5/#7: enabled EC-PROGRAM, no phrase, no declarative — fatal termination (every
              // EC-PROGRAM-* is fatal, Table 13).
     public void CallNotFound_Enabled_NoHandler_FatalTerminates()
         => AssertFatal("""
@@ -678,8 +678,8 @@ public sealed class ExceptionConditionConformanceTests
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
     [Theory] // docs/CONFORMANCE.md DOC-A.1-17, its abnormal half: a failed CALL's declarative that ends WITHOUT RESUME.
-             // §14.6.3 3): "In the declarative section for a fatal exception condition, there is no next executable
-             // statement" after its last statement, so the run unit terminates abnormally (§14.6.12): the declarative
+             // §2023:14.6.3 3): "In the declarative section for a fatal exception condition, there is no next executable
+             // statement" after its last statement, so the run unit terminates abnormally (§2023:14.6.12): the declarative
              // runs, control never reaches the end of the CALL. Every EC-PROGRAM condition is fatal (Table 13). The
              // RESUME half is the goldens doc_a1_17_call_other_effects and doc_a1_17_call_other_effects_2002.
     [InlineData("""
@@ -720,7 +720,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """) + "\nEND PROGRAM ECT022D.\n" + callee, ecName, $"BEFORE\nH: {ecName}");
 
-    [Fact]   // §14.9.4.4 GR3b names a condition DISTINCT from EC-PROGRAM-NOT-FOUND for the NULL case: "If the data
+    [Fact]   // §2023:14.9.4.4 GR3b names a condition DISTINCT from EC-PROGRAM-NOT-FOUND for the NULL case: "If the data
              // item referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL
              // exception condition is set to exist." (GR3g's "invalid program address … undefined" is the NON-null
              // bad-address case.) Fatal per Table 13, so with no handler the run unit terminates — the arm the
@@ -742,7 +742,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-PTR-NULL", "BEFORE");
 
-    [Fact]   // The FUNCTION-POINTER twin (kb/Work PB847). §8.4.3.2.4 GR6c: "If function-pointer-name-1 is NULL, the
+    [Fact]   // The FUNCTION-POINTER twin (kb/Work PB847). §2023:8.4.3.2.4 GR6c: "If function-pointer-name-1 is NULL, the
              // EC-FUNCTION-PTR-NULL exception condition is set to exist, no function is activated" — Fatal per
              // Table 13, so with checking on and no declarative the run unit terminates and the statement carrying
              // the function-identifier never completes. The declarative arm is the corpus golden
@@ -780,17 +780,17 @@ public sealed class ExceptionConditionConformanceTests
             END PROGRAM ECT847.
             """, "EC-FUNCTION-PTR-NULL", "BEFORE");
 
-    // ── §14.9.4.4 GR3h's three-way partition and GR3i's "the phrase is ignored" (kb/Work PB233) ──────────────
+    // ── §2023:14.9.4.4 GR3h's three-way partition and GR3i's "the phrase is ignored" (kb/Work PB233) ──────────────
     // GR3h routes a FAILED ACTIVATION three ways, and each arm below pins one of them. The three facts the arms
     // turn on are exactly the three the emitted catch used to conflate: WHICH phrase is written (only ON
     // EXCEPTION diverts), WHICH family the condition belongs to (only EC-PROGRAM/EC-EXTERNAL reach
     // imperative-statement-1), and WHETHER control had already been transferred (GR3i).
 
-    [Fact]   // §14.9.4.4 GR3h item 1 admits imperative-statement-1 only when "an ON EXCEPTION phrase is
-             // specified in the CALL statement", and §14.6.13.1.3 #1 says the same from the other side — only
+    [Fact]   // §2023:14.9.4.4 GR3h item 1 admits imperative-statement-1 only when "an ON EXCEPTION phrase is
+             // specified in the CALL statement", and §2023:14.6.13.1.3 #1 says the same from the other side — only
              // "a conditional phrase without the NOT phrase" processes a fatal condition. So a CALL carrying
              // ONLY NOT ON EXCEPTION is governed by item 2 or item 3 exactly as a phrase-free CALL is; checking
-             // is off here, so item 3 → §14.6.13.1.3 #8, this implementation's abnormal termination. Before
+             // is off here, so item 3 → §2023:14.6.13.1.3 #8, this implementation's abnormal termination. Before
              // PB233 the mere presence of the NOT phrase emitted an unconditional catch and the program ran to
              // completion with the failed activation discarded.
     public void CallNotOnExceptionOnly_ActivationFails_TerminatesLikeAPhraselessCall()
@@ -807,7 +807,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-NOT-FOUND", "BEFORE");
 
-    [Fact]   // §14.9.4.4 GR3h item 2, FIRST disjunct: checking enabled, an EC-PROGRAM condition, "and an ON
+    [Fact]   // §2023:14.9.4.4 GR3h item 2, FIRST disjunct: checking enabled, an EC-PROGRAM condition, "and an ON
              // EXCEPTION phrase is not specified" — the applicable exception processing statements run. "If
              // control is returned from these statements, control is then transferred to the end of the CALL
              // statement", so the NOT ON EXCEPTION phrase does NOT run: GR3i gives imperative-statement-2 only
@@ -827,10 +827,10 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-PROGRAM-NOT-FOUND\nSURVIVED");
 
-    [Fact]   // §14.9.4.4 GR3i: "If the program was successfully called, after control is returned from the
+    [Fact]   // §2023:14.9.4.4 GR3i: "If the program was successfully called, after control is returned from the
              // called program the ON EXCEPTION phrase, if specified, is ignored." ECT233CM IS successfully
              // called — it displays before it fails — so the outer CALL's phrase is not a party to its inner
-             // CALL's failure, which (no phrase, checking off) takes GR3h item 3 → §14.6.13.1.3 #8. Before
+             // CALL's failure, which (no phrase, checking off) takes GR3h item 3 → §2023:14.6.13.1.3 #8. Before
              // PB233 the outer catch spanned the whole activation, so ANY unhandled failure inside a callee
              // ran the ACTIVATOR's imperative-statement-1 and the run unit continued as if nothing was wrong.
     public void CallOnException_IsIgnoredWhenTheFailureIsTheCalleesOwn()
@@ -858,10 +858,10 @@ public sealed class ExceptionConditionConformanceTests
             END PROGRAM ECT233CM.
             """, "EC-PROGRAM-NOT-FOUND", "MAIN-BEFORE\nMID-BEFORE");
 
-    [Fact]   // §14.9.4.4 GR3h item 1's FAMILY restriction: imperative-statement-1 takes "any of the EC-PROGRAM
-             // or EC-EXTERNAL exception conditions" and nothing else. EC-FUNCTION-NOT-FOUND (§8.4.3.2.4 GR6b —
+    [Fact]   // §2023:14.9.4.4 GR3h item 1's FAMILY restriction: imperative-statement-1 takes "any of the EC-PROGRAM
+             // or EC-EXTERNAL exception conditions" and nothing else. EC-FUNCTION-NOT-FOUND (§2023:8.4.3.2.4 GR6b —
              // a user-defined-function locate miss) is neither, so with checking off it takes GR3h item 3 →
-             // §14.6.13.1.3 #8. The unfiltered catch used to route it into the phrase.
+             // §2023:14.6.13.1.3 #8. The unfiltered catch used to route it into the phrase.
     public void CallOnException_IsNotEnteredByFunctionNotFound()
         => AssertFatal("""
             IDENTIFICATION DIVISION.
@@ -908,9 +908,9 @@ public sealed class ExceptionConditionConformanceTests
             END PROGRAM ECT233D.
             """, "EC-FUNCTION-NOT-FOUND", "MAIN-BEFORE\nMID-BEFORE");
 
-    [Fact]   // §14.9.4.4 GR3h item 2's SECOND disjunct — "or if the exception condition is not one of the
+    [Fact]   // §2023:14.9.4.4 GR3h item 2's SECOND disjunct — "or if the exception condition is not one of the
              // EC-PROGRAM exception conditions, any applicable exception processing statements are executed" —
-             // and the general §14.6.13.1.3 #5 that stands behind it. EC-FUNCTION-NOT-FOUND had NO handling arm
+             // and the general §2023:14.6.13.1.3 #5 that stands behind it. EC-FUNCTION-NOT-FOUND had NO handling arm
              // of any kind before PB233: the CALL emitter's enabled-name filter selected only the
              // EC-PROGRAM/EC-EXTERNAL families, so an enabled EC-FUNCTION-NOT-FOUND could reach no declarative.
              // RESUME AT NEXT STATEMENT suppresses the fatal default, exactly as it does for an EC-PROGRAM name.
@@ -950,7 +950,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "H: EC-FUNCTION-NOT-FOUND\nSURVIVED");
 
-    [Fact]   // §14.9.18.4 GR1b is CONDITIONAL: "If the RAISING phrase is specified, an exception condition is
+    [Fact]   // §2023:14.9.18.4 GR1b is CONDITIONAL: "If the RAISING phrase is specified, an exception condition is
              // raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED in
              // the activating runtime element". V58MAIN enables none, so the callee's GOBACK RAISING raises
              // NOTHING in it and execution continues after the CALL. GR3 agrees for the main-program half: a
@@ -958,13 +958,13 @@ public sealed class ExceptionConditionConformanceTests
              // specified, is ignored."
              //
              // ⚠ SEPARATELY COMPILED, which exercises the arm where the activator is in another ASSEMBLY — but
-             // it is NOT "the only way this rule is reachable", as this comment used to claim. §7.3.25.4 GR6/GR8
+             // it is NOT "the only way this rule is reachable", as this comment used to claim. §2023:7.3.25.4 GR6/GR8
              // scope a directive to the statements "that follow in the compilation group", so two elements of ONE
              // file can sit in different checking states; the PB408 tests below measure exactly that, in both
              // directions, and it was the axis this test holds fixed (feedback_reachability_is_measured_not_deduced).
              //
              // Two defects were fixed on this path. ProgramTable's boundary default (removed by PB892) used to throw for a
-             // staged FATAL condition citing §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what
+             // staged FATAL condition citing §2023:14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what
              // may happen once a fatal condition EXISTS and GR1b stops it existing in an unchecked activator at
              // all. The staging side then made the same mistake one element further in (kb/Work PB408).
     public void GobackRaising_IntoUncheckedActivator_IsNotRaisedThere()
@@ -990,16 +990,16 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Equal("IN-SUB\nAFTER-CALL", stdout);
     }
 
-    [Fact]   // §14.9.23.4 GR7c raises EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the activated
+    [Fact]   // §2023:14.9.23.4 GR7c raises EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the activated
              // method and the activating runtime element". Here the >>TURN is switched OFF before the CLASS, so
              // only the ACTIVATOR has it enabled — the condition is therefore NOT set, the declarative must not
              // select, and NOTHING may be attributed to EC-OO-UNIVERSAL.
              //
              // The nonconforming crossing still cannot proceed (a PIC 9(4) returning item delivered into a PIC 9(6)
-             // one: §9.3.6 match rule 7 BINDS the method — a MOVE could deliver it — and §14.8.3.3's same-PICTURE
+             // one: §2023:9.3.6 match rule 7 BINDS the method — a MOVE could deliver it — and §2023:14.8.3.3's same-PICTURE
              // rule is then GR7c's, which only a universal receiver defers to run time; kb/Work PB1500 — an ARGUMENT
              // mismatch resolves no method at all and is EC-OO-METHOD), so it stops as a CobolImplementorFatalException
-             // — §14.6.13.1.1 NOTE 3 latitude, carrying NO exception-name. The assertion that the message does
+             // — §2023:14.6.13.1.1 NOTE 3 latitude, carrying NO exception-name. The assertion that the message does
              // NOT contain the EC name is the whole point of the test: attributing it would be the bug.
              // Its twin, where checking IS enabled in both, is the corpus golden ec_oo_universal_both.
     public void OoUniversal_EnabledInActivatorOnly_StopsWithoutAttributingTheCondition()
@@ -1061,7 +1061,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.DoesNotContain("AFTER", stdout);
     }
 
-    [Fact]   // §14.9.4.4 GR3h + §14.6.13.1.4 #1: the CALL's ON EXCEPTION phrase handles the condition — no
+    [Fact]   // §2023:14.9.4.4 GR3h + §2023:14.6.13.1.4 #1: the CALL's ON EXCEPTION phrase handles the condition — no
              // termination; the last exception status IS set (checking enabled).
     public void CallNotFound_OnExceptionPhrase_WinsAndStatusSet()
         => AssertSpec("""
@@ -1077,9 +1077,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "PHRASE\nS: EC-PROGRAM-NOT-FOUND");
 
-    // ── The EC-ARGUMENT-FUNCTION bridge (§15.3 / Table 13) ───────────────────────────────────────────────────
+    // ── The EC-ARGUMENT-FUNCTION bridge (§2023:15.3 / Table 13) ───────────────────────────────────────────────────
 
-    [Fact]   // §15.3: with checking DISABLED an intrinsic argument violation yields the default result 0.
+    [Fact]   // §2023:15.3: with checking DISABLED an intrinsic argument violation yields the default result 0.
     public void ArgumentFunction_CheckingOff_DefaultResultZero()
         => AssertSpec("""
             IDENTIFICATION DIVISION.
@@ -1112,7 +1112,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-ARGUMENT-FUNCTION", "BEFORE");
 
-    [Fact]   // §14.6.13.1.3 #5 NOTE 2: the declarative's RESUME AT NEXT STATEMENT suppresses the fatal
+    [Fact]   // §2023:14.6.13.1.3 #5 NOTE 2: the declarative's RESUME AT NEXT STATEMENT suppresses the fatal
              // termination; the aborted statement's receiver is unchanged.
     public void ArgumentFunction_Enabled_DeclarativeResumes_ReceiverUnchanged()
         => AssertSpec(Prog("ECT026", ">>TURN EC-ARGUMENT-FUNCTION CHECKING ON", "", """
@@ -1128,9 +1128,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-ARGUMENT-FUNCTION\nX=999");
 
-    // ── RAISING propagation (GOBACK / EXIT PROGRAM, §14.9.18 / §14.9.14) ─────────────────────────────────────
+    // ── RAISING propagation (GOBACK / EXIT PROGRAM, §2023:14.9.18 / §2023:14.9.14) ─────────────────────────────────────
 
-    [Fact]   // §14.9.18 GR: GOBACK RAISING stages the condition for the ACTIVATOR — raised at the end of the
+    [Fact]   // §2023:14.9.18 GR: GOBACK RAISING stages the condition for the ACTIVATOR — raised at the end of the
              // CALL; the caller's F3 declarative selects it and RESUME continues.
     public void GobackRaising_PropagatesToActivator_DeclarativeHandles()
         => AssertSpec("""
@@ -1157,12 +1157,12 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-PROP.
             """, "CAUGHT: EC-USER-PROP\nAFTER-CALL");
 
-    [Fact]   // §14.9.18.4 GR1b3a first sentence: "If an exception condition is currently raised, that exception
+    [Fact]   // §2023:14.9.18.4 GR1b3a first sentence: "If an exception condition is currently raised, that exception
              // condition is set to exist in the activating runtime element." The callee's PD header DOES specify
              // EC-USER-Q, so no substitution applies and the activator's matching declarative selects.
              //
              // ⚠ THE FIXTURE MOVED, TWICE OVER NON-CONFORMING BEFORE kb/Work PB408. (a) The GOBACK sat in an
-             // ordinary paragraph, which §14.9.18.3 SR5 forbids for the LAST phrase ("The LAST phrase may be
+             // ordinary paragraph, which §2023:14.9.18.3 SR5 forbids for the LAST phrase ("The LAST phrase may be
              // specified only in a declarative procedure or WHEN phrase of a PERFORM statement") — it is now in
              // the callee's own declarative. (b) The PD header carried no RAISING phrase, which is GR1b3a's
              // SUBSTITUTION case, not this one; that half is now its own test below. The old fixture asserted the
@@ -1199,18 +1199,18 @@ public sealed class ExceptionConditionConformanceTests
                 DISPLAY "NEVER".
             """, "CAUGHT: EC-USER-Q\nAFTER-CALL");
 
-    // ── §14.9.18.4 GR1 b): THE ENABLEMENT TEST IS THE ACTIVATOR'S (kb/Work PB408) ───────────────────────
+    // ── §2023:14.9.18.4 GR1 b): THE ENABLEMENT TEST IS THE ACTIVATOR'S (kb/Work PB408) ───────────────────────
     // GR1 b) names ONE runtime element twice: "an exception condition is raised in the activating runtime
     // element if checking for that exception condition is enabled in the activating runtime element". The
     // compiler used to fold the CALLEE's own >>TURN state into the RAISING phrase at bind time and act on that,
     // so the answer was a different element's. Each pair below flips the axis the old tests held fixed — they
     // all had checking enabled in BOTH elements, the one configuration in which the locus is invisible.
     //
-    // The two elements sit in ONE compilation group: §7.3.25.4 GR6 enables checking "for the procedure division
+    // The two elements sit in ONE compilation group: §2023:7.3.25.4 GR6 enables checking "for the procedure division
     // statements and procedure division headers that follow in the compilation group" and GR8 disables it the
     // same way, so a directive written between the elements separates their states.
 
-    [Fact]   // ACTIVATOR ON, CALLEE OFF → raised HERE: the activator's declarative selects (§14.6.13.1.4 #3).
+    [Fact]   // ACTIVATOR ON, CALLEE OFF → raised HERE: the activator's declarative selects (§2023:14.6.13.1.4 #3).
              // Measured WRONG before the fix: "IN-SUB / AFTER-CALL" — the declarative never ran.
     public void GobackRaising_ActivatorEnabled_CalleeDisabled_RaisesInTheActivator()
         => AssertSpec("""
@@ -1239,7 +1239,7 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-Z.
             """, "IN-SUB\nCAUGHT: EC-USER-Z\nAFTER-CALL");
 
-    [Fact]   // The MIRROR — ACTIVATOR OFF, CALLEE ON → not raised here at all (§14.6.13.1.1: "if checking for an
+    [Fact]   // The MIRROR — ACTIVATOR OFF, CALLEE ON → not raised here at all (§2023:14.6.13.1.1: "if checking for an
              // exception that occurs is not enabled, no exception condition is raised"), so the activator's
              // declarative must NOT run even though it names the condition. Measured WRONG before the fix: it ran.
     public void GobackRaising_ActivatorDisabled_CalleeEnabled_IsNotRaised()
@@ -1270,8 +1270,8 @@ public sealed class ExceptionConditionConformanceTests
             """, "IN-SUB\nAFTER-CALL");
 
     [Fact]   // The FATAL arm of the same pair. ACTIVATOR ON, CALLEE OFF: the condition comes into existence in
-             // the ACTIVATOR, so its declarative runs (§14.6.13.1.3 #5) and RESUME AT NEXT STATEMENT continues.
-             // Before the fix the callee threw a CobolFatalException at the GOBACK citing §14.6.13.1.3 #8, so the
+             // the ACTIVATOR, so its declarative runs (§2023:14.6.13.1.3 #5) and RESUME AT NEXT STATEMENT continues.
+             // Before the fix the callee threw a CobolFatalException at the GOBACK citing §2023:14.6.13.1.3 #8, so the
              // run unit died inside the element that had checking turned OFF.
     public void GobackRaising_Fatal_ActivatorEnabled_CalleeDisabled_RunsTheActivatorsDeclarative()
         => AssertSpec("""
@@ -1301,7 +1301,7 @@ public sealed class ExceptionConditionConformanceTests
             """, "IN-SUB\nCAUGHT: EC-SIZE-OVERFLOW\nAFTER-CALL");
 
     [Fact]   // Its mirror, and the sharpest one: a FATAL condition the callee has enabled and the activator has
-             // not. GR1b stops it coming into existence in the activator at all, so §14.6.13.1.3 — whose every
+             // not. GR1b stops it coming into existence in the activator at all, so §2023:14.6.13.1.3 — whose every
              // rule is conditioned on checking being enabled — has nothing to dispose of and execution simply
              // continues after the CALL. Before the fix the run unit terminated abnormally.
     public void GobackRaising_Fatal_ActivatorDisabled_CalleeEnabled_ExecutionContinues()
@@ -1324,7 +1324,7 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-SIZE-OVERFLOW.
             """, "IN-SUB\nAFTER-CALL");
 
-    [Fact]   // The EXIT PROGRAM twin: §14.9.14.4 GR3 sends an EXIT PROGRAM under a caller into the GOBACK rules,
+    [Fact]   // The EXIT PROGRAM twin: §2023:14.9.14.4 GR3 sends an EXIT PROGRAM under a caller into the GOBACK rules,
              // and both verbs stage through the one EmitRaisingStage — so the locus fix has to hold for both or
              // it is a one-armed fix (feedback_two_arm_dispatch).
     public void ExitProgramRaising_ActivatorEnabled_CalleeDisabled_RaisesInTheActivator()
@@ -1403,13 +1403,13 @@ public sealed class ExceptionConditionConformanceTests
             END CLASS ECT408FC.
             """, "IN-METHOD\nCAUGHT: EC-USER-Z\nAFTER-INVOKE");
 
-    [Fact]   // §14.9.18.4 GR1b3a, THE SUBSTITUTION: "If the exception condition is a level-3 exception for EC-USER
+    [Fact]   // §2023:14.9.18.4 GR1b3a, THE SUBSTITUTION: "If the exception condition is a level-3 exception for EC-USER
              // and that exception condition is not specified in the RAISING phrase of the procedure division
              // header of the source element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED
              // exception condition is set to exist in the activating runtime element instead of the EC-USER
              // exception condition." ECT408GS's header has no RAISING phrase, so the activator's EC-USER-Q
-             // declarative must NOT select; EC-RAISING-NOT-SPECIFIED is Fatal (Table 13, §14.6.13.1.6, whose third
-             // column names this very case) and has no applicable declarative → §14.6.13.1.3 #7.
+             // declarative must NOT select; EC-RAISING-NOT-SPECIFIED is Fatal (Table 13, §2023:14.6.13.1.6, whose third
+             // column names this very case) and has no applicable declarative → §2023:14.6.13.1.3 #7.
              //
              // This was the whole of the rule and none of it was implemented: the fixture below and its twin
              // above differ ONLY in the callee's PD-header RAISING phrase and produced byte-identical output.
@@ -1485,7 +1485,7 @@ public sealed class ExceptionConditionConformanceTests
                 DISPLAY "NEVER".
             """, "IN-DECL\nAFTER-CALL");
 
-    [Fact]   // §14.9.14 GR2: EXIT PROGRAM in a program NOT under the control of a calling runtime element is
+    [Fact]   // §2023:14.9.14 GR2: EXIT PROGRAM in a program NOT under the control of a calling runtime element is
              // CONTINUE — "no exception condition is raised even if the RAISING phrase is specified".
     public void ExitProgramRaising_InMainProgram_IsContinue()
         => AssertSpec("""
@@ -1499,7 +1499,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "FELL-THROUGH");
 
-    [Fact]   // §14.9.14 GR3 (the GOBACK rules): EXIT PROGRAM RAISING in a CALLED program stages the condition
+    [Fact]   // §2023:14.9.14 GR3 (the GOBACK rules): EXIT PROGRAM RAISING in a CALLED program stages the condition
              // for the activator exactly as GOBACK RAISING does.
     public void ExitProgramRaising_InCalledProgram_Propagates()
         => AssertSpec("""
@@ -1526,7 +1526,7 @@ public sealed class ExceptionConditionConformanceTests
                 EXIT PROGRAM RAISING EXCEPTION EC-USER-EXIT.
             """, "CAUGHT: EC-USER-EXIT\nAFTER-CALL");
 
-    [Fact]   // §14.9.18.4 GR3 (the P13 review C13 fix — this test previously pinned the PRE-fix behavior): a
+    [Fact]   // §2023:14.9.18.4 GR3 (the P13 review C13 fix — this test previously pinned the PRE-fix behavior): a
              // GOBACK in a program NOT under the control of a calling runtime element "operates as if executing
              // a STOP statement … A RAISING phrase, if specified, is ignored" — even with checking enabled and a
              // FATAL name. Normal termination, no condition raised (the earlier "run-unit boundary activator"
@@ -1544,7 +1544,7 @@ public sealed class ExceptionConditionConformanceTests
 
     // ── Diagnostics (the COBOL07xx/08xx band) ─────────────────────────────────────────────────────────────
 
-    [Fact]   // §14.9.29.3 SR1: only a LEVEL-3 exception-name may be raised.
+    [Fact]   // §2023:14.9.29.3 SR1: only a LEVEL-3 exception-name may be raised.
     public void Raise_Level2Name_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
             IDENTIFICATION DIVISION.
@@ -1557,14 +1557,14 @@ public sealed class ExceptionConditionConformanceTests
 
     /// <summary>PB596: the level-3 requirement is stated once per statement under its own clause, and the
     /// shared resolver prints the clause of the statement the user wrote, never RAISE's at an EXIT or GOBACK
-    /// (§14.9.29.3 SR1 · §14.9.18.3 SR2 · §14.9.14.3 SR3). The EC-USER-not-in-header leg (COBOL0717) exists only
+    /// (§2023:14.9.29.3 SR1 · §2023:14.9.18.3 SR2 · §2023:14.9.14.3 SR3). The EC-USER-not-in-header leg (COBOL0717) exists only
     /// for GOBACK and EXIT and cites the same ordinals.</summary>
     [Theory]
-    [InlineData("RAISE EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.29.3 SR1)")]
-    [InlineData("GOBACK RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.18.3 SR2)")]
-    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.14.3 SR3)")]
-    [InlineData("GOBACK RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §14.9.18.3 SR2 ")]
-    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §14.9.14.3 SR3 ")]
+    [InlineData("RAISE EXCEPTION EC-SIZE.", "COBOL0710", "ISO §2023:14.9.29.3 SR1)")]
+    [InlineData("GOBACK RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §2023:14.9.18.3 SR2)")]
+    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §2023:14.9.14.3 SR3)")]
+    [InlineData("GOBACK RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §2023:14.9.18.3 SR2 ")]
+    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §2023:14.9.14.3 SR3 ")]
     public void RaisingContext_DiagnosticCitesItsOwnClause(string statement, string code, string citation)
     {
         var diagnostics = EditionHarness.GetDiagnostics($"""
@@ -1579,7 +1579,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Contains(citation, line, StringComparison.Ordinal);
     }
 
-    [Fact]   // §14.6.13.1 / §7.3.25.3 SR2: an unknown exception-name is rejected.
+    [Fact]   // §2023:14.6.13.1 / §2023:7.3.25.3 SR2: an unknown exception-name is rejected.
     public void Raise_UnknownName_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
             IDENTIFICATION DIVISION.
@@ -1590,7 +1590,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0711");
 
-    [Fact]   // §14.9.33.3 SR1: RESUME only in a declarative.
+    [Fact]   // §2023:14.9.33.3 SR1: RESUME only in a declarative.
     public void Resume_OutsideDeclaratives_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
             IDENTIFICATION DIVISION.
@@ -1601,7 +1601,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0712");
 
-    [Fact]   // §14.9.33.3 SR2: RESUME shall not appear in a GLOBAL-phrase declarative.
+    [Fact]   // §2023:14.9.33.3 SR2: RESUME shall not appear in a GLOBAL-phrase declarative.
     public void Resume_InGlobalDeclarative_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics($"""
             IDENTIFICATION DIVISION.
@@ -1621,7 +1621,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0713");
 
-    [Fact]   // §14.9.49.3 SR13: FILE only with an exception-name beginning EC-I-O.
+    [Fact]   // §2023:14.9.49.3 SR13: FILE only with an exception-name beginning EC-I-O.
     public void UseF3_FileWithNonIoName_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics($"""
             IDENTIFICATION DIVISION.
@@ -1641,14 +1641,14 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0715");
 
-    // ── §14.9.49.3 SR7/SR8/SR9/SR14: the STATEMENT is the boundary (kb/Work PB364) ───────────────────────────
+    // ── §2023:14.9.49.3 SR7/SR8/SR9/SR14: the STATEMENT is the boundary (kb/Work PB364) ───────────────────────────
     // Four rules share one sentence — "the same X shall not be … in more than one USE statement within the same
     // procedure division" — and the compiler enforces all four through the ONE ConstructOperandRegister. These
     // hold BOTH arms of that boundary: a repeat ACROSS statements is the violation, and a repeat INSIDE one
     // statement is legal source that must compile. The accepting arms are the drift guard — a screen that
     // regresses to per-operand registration turns them red at once.
 
-    [Fact]   // §14.9.49.3 SR14: the same PAIR of exception-name-2 and file-name-2 in two USE statements of one
+    [Fact]   // §2023:14.9.49.3 SR14: the same PAIR of exception-name-2 and file-name-2 in two USE statements of one
              // procedure division is rejected. The pair is the rule's key, so the FILE phrase is essential to
              // the test: two BARE names are exception-name-1 and outside SR14 (see the accepting arm below).
     public void UseF3_DuplicatePairAcrossSections_Diagnosed()
@@ -1673,9 +1673,9 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0716");
 
-    [Theory]   // §14.9.49.3 SR14 is scoped to PAIRS. A bare exception-name in a Format-3 USE is
-    [InlineData(2002)]   // exception-name-1 (§14.9.49.2's figure puts exception-name-2 only in the FILE
-    [InlineData(2014)]   // alternative; §14.9.49.4 GR3 c)/d) against e)/f)/g) split on the same axis), so
+    [Theory]   // §2023:14.9.49.3 SR14 is scoped to PAIRS. A bare exception-name in a Format-3 USE is
+    [InlineData(2002)]   // exception-name-1 (§2023:14.9.49.2's figure puts exception-name-2 only in the FILE
+    [InlineData(2014)]   // alternative; §2023:14.9.49.4 GR3 c)/d) against e)/f)/g) split on the same axis), so
     [InlineData(2023)]   // repeating it across USE statements is legal — GR3 gives it its outcome (the FIRST
                          // declarative runs) instead of forbidding it. Every edition that HAS Format 3.
     public void UseF3_RepeatedBareExceptionName_IsAccepted(int edition)
@@ -1699,8 +1699,8 @@ public sealed class ExceptionConditionConformanceTests
         Assert.True(ok, $"[--std {edition}] a repeated exception-name-1 is legal: {string.Join("\n", diagnostics)}");
     }
 
-    [Theory]   // §14.9.49.3 SR14 forbids the pair in "more than one USE statement"; ONE statement writing it
-    [InlineData(2002)]   // twice is not more than one, and §14.9.49.2's inner `{ FILE file-name-2 } …` ellipsis
+    [Theory]   // §2023:14.9.49.3 SR14 forbids the pair in "more than one USE statement"; ONE statement writing it
+    [InlineData(2002)]   // twice is not more than one, and §2023:14.9.49.2's inner `{ FILE file-name-2 } …` ellipsis
     [InlineData(2014)]   // permits the repetition outright.
     [InlineData(2023)]
     public void UseF3_SamePairTwiceInOneStatement_IsAccepted(int edition)
@@ -1725,7 +1725,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.True(ok, $"[--std {edition}] one statement is not more than one: {string.Join("\n", diagnostics)}");
     }
 
-    [Theory]   // §14.9.49.3 SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION
+    [Theory]   // §2023:14.9.49.3 SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION
     [InlineData(85)]     // statement within the same procedure division." Format 1 exists at every edition, so
     [InlineData(2002)]   // the rejection must hold at all four — and so must its complement below.
     [InlineData(2014)]
@@ -1752,8 +1752,8 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, edition), "COBOL0897");
 
-    [Theory]   // §14.9.49.3 SR8's complement: ONE Format-1 USE naming the same file twice. The figure writes
-    [InlineData(85)]     // `{ file-name-1 } …` with nothing making the repetition illegal, and §14.9.49.4
+    [Theory]   // §2023:14.9.49.3 SR8's complement: ONE Format-1 USE naming the same file twice. The figure writes
+    [InlineData(85)]     // `{ file-name-1 } …` with nothing making the repetition illegal, and §2023:14.9.49.4
     [InlineData(2002)]   // GR6 a) associates the one procedure with the file however often it is written.
     [InlineData(2014)]
     [InlineData(2023)]
@@ -1811,7 +1811,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.Equal(1, diagnostics.Count(d => d.Contains("COBOL0897", StringComparison.Ordinal)));
     }
 
-    [Fact]   // §14.9.18.3 SR2 (¶27403): an EC-USER exception-name in GOBACK/EXIT RAISING shall be specified in
+    [Fact]   // §2023:14.9.18.3 SR2 (¶27403): an EC-USER exception-name in GOBACK/EXIT RAISING shall be specified in
              // the RAISING phrase of the procedure division header.
     public void GobackRaising_EcUserNotInPdHeader_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
@@ -1822,7 +1822,7 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-UNDECLARED.
             """, 2023), "COBOL0717");
 
-    [Fact]   // §7.3.25.3 SR3: a duplicated (exception-name, file-name) combination within one TURN directive.
+    [Fact]   // §2023:7.3.25.3 SR3: a duplicated (exception-name, file-name) combination within one TURN directive.
     public void Turn_DuplicateName_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
             >>TURN EC-SIZE EC-SIZE CHECKING ON
@@ -1833,7 +1833,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0718");
 
-    [Fact]   // §7.3.25.3 SR4: a file-name only with an EC-I-O… exception-name.
+    [Fact]   // §2023:7.3.25.3 SR4: a file-name only with an EC-I-O… exception-name.
     public void Turn_FileWithNonIoName_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
             >>TURN EC-SIZE SOME-FILE CHECKING ON
@@ -1924,7 +1924,7 @@ public sealed class ExceptionConditionConformanceTests
 
     /// <summary>The EC words are legal USER-DEFINED words at COBOL-85 only — the edition that predates the
     /// exception model. (The pre-validator posture said "legal at every edition"; the P2.4 mechanical tables
-    /// corrected it TWICE: DEVLOG 578 proved them §8.9-reserved at 2023, and the per-standard source lists
+    /// corrected it TWICE: DEVLOG 578 proved them §2023:8.9-reserved at 2023, and the per-standard source lists
     /// prove them reserved since 2002 — they are NOT among the Annex E.2 item-25 words newly reserved in 2023,
     /// so 2023-only was under-inclusive. DEVLOG 585.)</summary>
     [Fact]
@@ -1951,7 +1951,7 @@ public sealed class ExceptionConditionConformanceTests
     // ── The zero-scaffolding invariant (SSOT §18.16 / deep-dive D9–D10) ──────────────────────────────────────
 
     [Fact]   // An EC-free program's generated source carries NO exception machinery — no ExceptionState, no
-             // __EcDispatch, no Runtime.Exceptions using (checking OFF compiles to NOTHING, §7.3.25.4 GR1).
+             // __EcDispatch, no Runtime.Exceptions using (checking OFF compiles to NOTHING, §2023:7.3.25.4 GR1).
     public void ZeroScaffolding_EcFreeProgram_EmitsNoExceptionMachinery()
     {
         string dir = ScratchDirectory.Create("ec0");
@@ -1982,14 +1982,14 @@ public sealed class ExceptionConditionConformanceTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    // ── The §15.33 width collision (kb/Work R05 — Phase-B F6): r1 fixes EXCEPTION-STATUS at 31 characters
-    //    while COBOL-2023 words run to 63 (§8.3.2.1) and the §14.6.13.1.1 open-family suffixes are unbounded.
+    // ── The §2023:15.33 width collision (kb/Work R05 — Phase-B F6): r1 fixes EXCEPTION-STATUS at 31 characters
+    //    while COBOL-2023 words run to 63 (§2023:8.3.2.1) and the §2023:14.6.13.1.1 open-family suffixes are unbounded.
     //    The r1 width is implemented AS WRITTEN; COBOL1636 (Warning) makes the collision visible. ──────────
 
     /// <summary>44 characters — legal at 2023 only (the 31-char COBOL-2002 word limit rejects it below).</summary>
     private const string LongEc = "EC-USER-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    [Fact]   // §15.33.3 r1 IS the width: a 44-character legal name reads back as its 31-character prefix —
+    [Fact]   // §2023:15.33.3 r1 IS the width: a 44-character legal name reads back as its 31-character prefix —
              // the truncation is the rule's own, not an implementation choice.
     public void ExceptionStatus_LongUserName_ReturnsThe31CharPrefix()
         => AssertSpec($"""
@@ -2041,7 +2041,7 @@ public sealed class ExceptionConditionConformanceTests
              // tree-walk funnel. ⛔ This fact FAILED when first written: the evidence ledger's "correctly
              // rejected with COBOL1567" was measured on the RAISE spelling only, and the directive path
              // compiled the same word clean (CobolWordRule closed that hole — TURN operands now share the
-             // §8.3.2.1 ceiling). No advisory either: 1636 is a 2023-collision message, not a length error.
+             // §2023:8.3.2.1 ceiling). No advisory either: 1636 is a 2023-collision message, not a length error.
     public void LongUserName_At2002_TheWordItselfIsRejected()
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull($"""
@@ -2057,7 +2057,7 @@ public sealed class ExceptionConditionConformanceTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1636"));
     }
 
-    [Fact]   // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
+    [Fact]   // §2023:15.32.3 r1 / §2023:15.30.3 r1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
              // (WITH LOCATION) *and* EC-BOUND-SUBSCRIPT (without). The subscript raise must answer 63 spaces /
              // one space — under the old per-statement bool, the sibling's WITH LOCATION contaminated it and
              // EXCEPTION-STATEMENT returned "DIVIDE". The zero-divide raise keeps its location operands.
@@ -2098,17 +2098,17 @@ public sealed class ExceptionConditionConformanceTests
         Assert.StartsWith($"S=[{"DIVIDE",-63}] L=[ECT053; MAIN-PARA OF MAIN;", lines[1]);
     }
 
-    [Fact]   // kb/Work R07 + §15.32.3 r2 / §15.30.3 r2: GOBACK … RAISING under WITH LOCATION records the
+    [Fact]   // kb/Work R07 + §2023:15.32.3 r2 / §2023:15.30.3 r2: GOBACK … RAISING under WITH LOCATION records the
              // Table 12 name ("GOBACK") and the three-part location. SetPropagating's Set was TWO-ARG, so both
              // the returning element's status and what the activator reads answered 63 spaces / one space even
              // with LOCATION on — a silent wrong answer (BoundRaising had no location fields at all, unlike
              // its sibling BoundRaise).
              //
-             // §7.3.25.4 GR7 keys the operands on the directive governing THE SOURCE STATEMENT — "all information
+             // §2023:7.3.25.4 GR7 keys the operands on the directive governing THE SOURCE STATEMENT — "all information
              // necessary to identify a source statement … is made available to the run unit" — and that statement
              // is the CALLEE's GOBACK, so WITH LOCATION stays on the callee's directive here and the activator's
-             // is a plain CHECKING ON. The activator's ON is what kb/Work PB408 added: §14.9.18.4 GR1 b) raises the
-             // condition in the ACTIVATING element only if checking is enabled THERE, and §14.6.13.1.1 sets the
+             // is a plain CHECKING ON. The activator's ON is what kb/Work PB408 added: §2023:14.9.18.4 GR1 b) raises the
+             // condition in the ACTIVATING element only if checking is enabled THERE, and §2023:14.6.13.1.1 sets the
              // run unit's last exception status only for a condition that was RAISED — so with the activator
              // enabling nothing (as this fixture used to have it) there is no status for EXCEPTION-STATEMENT to
              // report, and the old expectation was reading a status the callee wrote for a raise that the
@@ -2140,11 +2140,11 @@ public sealed class ExceptionConditionConformanceTests
     }
 
     [Fact]   // The complement, and the one that makes the pair EVIDENCE rather than a single reading: with the
-             // activator enabling NOTHING, §14.9.18.4 GR1 b) raises nothing in it, so §14.6.13.1.1's run-unit last
+             // activator enabling NOTHING, §2023:14.9.18.4 GR1 b) raises nothing in it, so §2023:14.6.13.1.1's run-unit last
              // exception status — "set to indicate the last level-3 exception condition that was RAISED in the run
              // unit" — has nothing to record and both functions answer their no-information values. Before
              // kb/Work PB408 the RETURNING element wrote the status on its way out, so an activator that had
-             // turned the condition OFF could still read it back (§15.32.3 r1's spaces / §15.30.3 r1's one space).
+             // turned the condition OFF could still read it back (§2023:15.32.3 r1's spaces / §2023:15.30.3 r1's one space).
     public void GobackRaising_IntoUncheckedActivator_LeavesNoLastExceptionStatus()
     {
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunWith("""
@@ -2223,7 +2223,7 @@ public sealed class ExceptionConditionConformanceTests
         END CLASS K892.
         """;
 
-    [Fact]   // §14.9.18.4 GR1 b): "an exception condition is raised in the activating runtime element if checking for
+    [Fact]   // §2023:14.9.18.4 GR1 b): "an exception condition is raised in the activating runtime element if checking for
              // that exception condition is enabled in the activating runtime element". The activator of RAISE1 is the
              // EC-FREE main, which enables nothing — so EC-USER-BZ is raised NOWHERE. P892X is a DIFFERENT activation
              // (and not RAISE1's activator); its INVOKE of QUIET, which raises nothing, must not run its declarative.
@@ -2275,7 +2275,7 @@ public sealed class ExceptionConditionConformanceTests
              // raised there — and P892Y's CALL pickup, running in a DIFFERENT activation, must not take it either
              // (a fence at the CALL would not help: the staging happened INSIDE the call). Then P892Y INVOKEs
              // RAISE1 itself: now P892Y IS the activator and checking is enabled there, so GR1 b) raises the
-             // condition in P892Y and its declarative runs (normal completion → execution continues, §14.6.13.1.3).
+             // condition in P892Y and its declarative runs (normal completion → execution continues, §2023:14.6.13.1.3).
     public void GobackRaising_IsRaisedOnlyInItsOwnActivator_AcrossAnUncheckedIntermediate()
     {
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRunWith("""

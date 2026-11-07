@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT GUARD ON <see cref="FileControlKeyRules"/>'S TABLE (kb/Work PB699).
 /// <para>The table is the compiler's whole statement of what the FILE CONTROL ENTRY's key clauses require
-/// (ISO/IEC 1989:2023 §12.4.5.1 · §12.4.5.2 SR10 · §12.4.5.6.3 · §12.4.5.12.3 · §12.4.5.13.3). CLAUDE.md rule 1
+/// (ISO/IEC 1989:2023 §2023:12.4.5.1 · §2023:12.4.5.2 SR10 · §2023:12.4.5.6.3 · §2023:12.4.5.12.3 · §2023:12.4.5.13.3). CLAUDE.md rule 1
 /// names the failure mode it is exposed to: a clause number is INHERITED rather than re-derived, and
 /// <c>cite.py --check</c> on the number alone passes because the quoted sentence really is somewhere in the
 /// standard. This guard re-derives EVERY row from <c>specs/ISO_COBOL_2023.md</c> on every run — the clause region, and
@@ -43,7 +43,7 @@ public sealed class FileControlKeyRuleDriftTests
     // ── The guard itself ────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE SCANNER IS PROVEN TO BE ABLE TO FAIL BEFORE ANY ROW IS TRUSTED (a green check that never
-    /// looked at anything is not evidence). §12.4.5.13.3 has exactly three printed syntax rules; the region is
+    /// looked at anything is not evidence). §2023:12.4.5.13.3 has exactly three printed syntax rules; the region is
     /// bounded by the NEXT heading, so a sentence from the neighbouring clause must NOT be found in it.</summary>
     [Fact]
     public void TheClauseScanner_FindsTheRulesAndRejectsAForeignSentence()
@@ -53,7 +53,7 @@ public sealed class FileControlKeyRuleDriftTests
         Assert.Equal(3, rules.Count);
         Assert.Contains("shall not be subject to any OCCURS clauses", rules[1]);
 
-        // §12.4.5.12.3 SR1's sentence names data-name-2 as well; §12.4.5.13.3 SR1 does not. A region that
+        // §2023:12.4.5.12.3 SR1's sentence names data-name-2 as well; §2023:12.4.5.13.3 SR1 does not. A region that
         // silently swallowed its neighbours would find it here.
         string foreign = Norm("Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses");
         Assert.DoesNotContain(ClauseRegion(lines, "12.4.5.13.3"), l => Norm(l).Contains(foreign));
@@ -78,7 +78,7 @@ public sealed class FileControlKeyRuleDriftTests
     }
 
     /// <summary>⛔ THE REQUIRED MEMBERS OF EVERY GENERAL FORMAT ARE RE-DERIVED FROM THE FOUR PRINTED DIAGRAMS ON
-    /// EVERY RUN (kb/Work PB4236). §12.4.5.1's figure notes say no choice indicators appear and every stacked group
+    /// EVERY RUN (kb/Work PB4236). §2023:12.4.5.1's figure notes say no choice indicators appear and every stacked group
     /// is a plain brace or a plain bracket, so a clause whose line opens with NO bracket is a required member of the
     /// format. The old guard asserted one clause (Format 1's RECORD KEY) and so could not see that ASSIGN, printed
     /// unbracketed in all four, was screened by nothing. This one reads the diagrams: for each format, EVERY line
@@ -144,12 +144,12 @@ public sealed class FileControlKeyRuleDriftTests
 
     /// <summary>⛔ THE "READ THE WHOLE PRINTED RULE" CLAMP (kb/Work PB742 / PB743). Three of this table's rules
     /// state TWO obligations in one numbered sentence, and in each case the compiler once screened one arm and
-    /// shipped the other: §12.4.5.2 SR8 and SR9 each add "The associated file description entry shall not be a
-    /// sort-merge file description entry" to their format sentence, and §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 each
+    /// shipped the other: §2023:12.4.5.2 SR8 and SR9 each add "The associated file description entry shall not be a
+    /// sort-merge file description entry" to their format sentence, and §2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2 each
     /// join a CATEGORY to a LOCATION with the word "within". This test re-derives the split FROM THE SPEC — it
     /// finds the sentence boundary in the printed rule itself — and asserts the table carries a row quoting each
     /// side. A rule that grows a third obligation makes it fail rather than silently shipping two thirds.
-    /// <para>§12.4.5.2 SR11 (kb/Work PB773) is the fourth member. SR13 prints the same two-sentence shape and is
+    /// <para>§2023:12.4.5.2 SR11 (kb/Work PB773) is the fourth member. SR13 prints the same two-sentence shape and is
     /// deliberately NOT in this list: its first sentence ("Format 4 shall be specified only for a sort-merge
     /// file") cannot be broken by any entry, because Format 4 is a SUBSET of Format 3 — an entry with only SELECT,
     /// ASSIGN and SEQUENTIAL is a legal Format 3 entry for an FD — so the one row SR13 has (the SD's entry shall
@@ -184,7 +184,7 @@ public sealed class FileControlKeyRuleDriftTests
     }
 
     /// <summary>A row screened on a SORT-MERGE file quotes the sentence that speaks about one, and cites the only
-    /// clause that states it. §12.4.5.2 SR8/SR9/SR11/SR13 are the whole of that set: no key clause's own rules
+    /// clause that states it. §2023:12.4.5.2 SR8/SR9/SR11/SR13 are the whole of that set: no key clause's own rules
     /// mention a sort-merge file description entry, and a row that reached an SD without one would be a rule fired
     /// on a file it was never written about.</summary>
     [Fact]
@@ -207,7 +207,7 @@ public sealed class FileControlKeyRuleDriftTests
     /// <summary>What each <see cref="FileControlKeyRules.EntryClauseCatalog"/> row looks like IN A PRINTED DIAGRAM, with
     /// the diagram's markup stripped. This is the ORACLE the table is checked against, written independently of
     /// the table: a row that carries a clause in a format whose diagram does not print it — or omits one it does —
-    /// is red, so the set of formats per clause cannot drift from §12.4.5.1.</summary>
+    /// is red, so the set of formats per clause cannot drift from §2023:12.4.5.1.</summary>
     private static readonly (string Face, Regex Printed)[] DiagramOracle =
     [
         ("ORGANIZATION IS INDEXED", new(@"\bINDEXED\b")),
@@ -260,7 +260,7 @@ public sealed class FileControlKeyRuleDriftTests
     }
 
     /// <summary>⛔ THE FORMAT-MEMBERSHIP TABLE IS RE-DERIVED FROM THE FOUR PRINTED DIAGRAMS ON EVERY RUN (kb/Work
-    /// PB773). <see cref="FileControlKeyRules.EntryClauseCatalog"/> says which §12.4.5.1 formats print each clause
+    /// PB773). <see cref="FileControlKeyRules.EntryClauseCatalog"/> says which §2023:12.4.5.1 formats print each clause
     /// that is not in all four, and SR8, SR9, SR11 and SR13 are decided by it; this test reads the diagrams and
     /// asserts, per clause and per format, that the table agrees. It also states the SUBSET relation the SR13
     /// design rests on — Format 4 prints nothing that Format 3 does not — and that SELECT/ASSIGN, the clauses in no
@@ -301,7 +301,7 @@ public sealed class FileControlKeyRuleDriftTests
         var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
         foreach (var rule in FileControlKeyRules.Catalog)
         {
-            // An ALTERNATE RECORD KEY operand carries a SUPPRESS WHEN literal-1 too, so the §12.4.5.6.3 SR7 rows
+            // An ALTERNATE RECORD KEY operand carries a SUPPRESS WHEN literal-1 too, so the §2023:12.4.5.6.3 SR7 rows
             // render the operand they actually describe (kb/Work PB1072).
             var op = new FileKeyOperand(rule.Role, "KEY", "K", item, default,
                 SuppressWhen: new SuppressWhenOperand("ALL 'AB'", SuppressWhenForm.AllLiteral,
@@ -322,10 +322,10 @@ public sealed class FileControlKeyRuleDriftTests
     }
 
     /// <summary>⛔ THE INVARIANT THAT MAKES <see cref="FileControlKeyRule.ScreenedOn"/> LOAD-BEARING, and the one
-    /// a scalar column could not state. A row is screened either on EXACTLY the kind whose §12.4.5.1 format
+    /// a scalar column could not state. A row is screened either on EXACTLY the kind whose §2023:12.4.5.1 format
     /// carries its clause — a rule stated INSIDE the format — or on a set DISJOINT from it, which is what
-    /// §12.4.5.2 SR8/SR9 are: rules about a clause written where its format does not apply. A PARTIAL overlap
-    /// would be a rule the standard does not state, and only §12.4.5.2 can hold the disjoint half, because it is
+    /// §2023:12.4.5.2 SR8/SR9 are: rules about a clause written where its format does not apply. A PARTIAL overlap
+    /// would be a rule the standard does not state, and only §2023:12.4.5.2 can hold the disjoint half, because it is
     /// the only clause whose syntax rules are about which format an entry may be written in.</summary>
     [Fact]
     public void EveryRow_IsScreenedEitherOnItsOwnFormatOrDisjointFromIt()

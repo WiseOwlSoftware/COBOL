@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// decide: it CARRIES the line (<see cref="WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor.DebugLineCarrier"/>),
 /// the lexer turns the carrier into a hidden <c>DEBUG_LINE</c> marker and lexes the line's text as ordinary tokens, and
 /// this pass — which sees the whole token stream, the clause included — keeps those tokens (the line is source) or moves
-/// them to the <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel the parser, the §8.3.5 separator rules and every
+/// them to the <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel the parser, the §2023:8.3.5 separator rules and every
 /// other reader of the default channel never see (the line is a comment).</para>
-/// <para><b>Per source unit.</b> ISO §12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source
+/// <para><b>Per source unit.</b> ISO §2023:12.3.5.4 GR1: "All clauses of the SOURCE-COMPUTER paragraph apply to the source
 /// unit in which they are explicitly or implicitly specified and to any source unit contained within that source
 /// unit" (<c>cite.py --check 12.3.5.4</c>), so a debugging line is source when its own unit — or a unit that contains
 /// it (kb/Work PB1088, the binder's <c>ConfigurationStep</c> twin of this rule) — declares the mode. A unit is the
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// The clause itself is read from the tokens of the unit's SOURCE-COMPUTER paragraph, never from a debugging line
 /// (a mode switch written on a debugging line would decide its own line).</para>
 /// <para>A debugging line's tokens are those after its marker on the marker's own line; a fixed continuation line
-/// is joined to its line by the logical conversion (§6.5 6)), so it is part of the line.</para>
+/// is joined to its line by the logical conversion (§2023:6.5 6)), so it is part of the line.</para>
 /// <para><b>A line inside an open PICTURE or subscript region</b> (kb/Work PB1913) is the one shape this pass cannot
 /// settle by moving tokens. The lexer is in PICMODE or SUBSCRIPT there, and which of "source" and "comment" the line's
 /// text is decides whether the text moves the lexer's own mode (a <c>)</c> that closes the subscript, the PICTURE
@@ -160,7 +160,7 @@ public static class DebuggingLineRewriter
     /// <summary>Whether the SOURCE-COMPUTER paragraph whose header word is <paramref name="visible"/>[<paramref name="at"/>]
     /// holds <c>DEBUGGING MODE</c> (the <c>WITH</c> is optional in the clause, and the clause follows the computer-name;
     /// kb/Work PB830). The paragraph ends at its period; the empty form
-    /// <c>SOURCE-COMPUTER. OBJECT-COMPUTER. …</c> (§12.3.5.3 SR1 lets the second period go) ends at the next paragraph's
+    /// <c>SOURCE-COMPUTER. OBJECT-COMPUTER. …</c> (§2023:12.3.5.3 SR1 lets the second period go) ends at the next paragraph's
     /// header word.</summary>
     private static bool DeclaresMode(IList<IToken> tokens, List<int> visible, int at)
     {

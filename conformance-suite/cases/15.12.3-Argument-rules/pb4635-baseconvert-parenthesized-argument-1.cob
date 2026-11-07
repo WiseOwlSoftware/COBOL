@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R3-1 - ISO §15.12.3 r1: "Argument-1 is the input data item to be converted and shall be a usage display or national
-      *> data item or literal". (U2) is an arithmetic expression enclosed in parentheses (§8.8.1.1), not the data item it encloses: the
+      *> PB4635 review R3-1 - ISO §2023:15.12.3 r1: "Argument-1 is the input data item to be converted and shall be a usage display or national
+      *> data item or literal". (U2) is an arithmetic expression enclosed in parentheses (§2023:8.8.1.1), not the data item it encloses: the
       *> wrapper hid the item from the usage and unsigned-integer rules, and a signed or scaled item in parentheses converted to a wrong
       *> value or to an empty string where the bare spelling is refused.
        IDENTIFICATION DIVISION.

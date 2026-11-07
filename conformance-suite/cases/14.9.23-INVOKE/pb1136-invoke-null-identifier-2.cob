@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR7: "Identifier-2 may be specified only when identifier-1 is a universal object
-      *> reference." The predefined NULL is an object reference (SR1) but §8.4.3.7.3 SR2 says it "is not a
+      *> ISO §2023:14.9.23.3 SR7: "Identifier-2 may be specified only when identifier-1 is a universal object
+      *> reference." The predefined NULL is an object reference (SR1) but §2023:8.4.3.7.3 SR2 says it "is not a
       *> universal object reference", so a method name held in a data item is refused through it, while
       *> INVOKE NULL with literal-1 is legal (pb1136_invoke_null_receiver). kb/Work PB1136.
        IDENTIFICATION DIVISION.

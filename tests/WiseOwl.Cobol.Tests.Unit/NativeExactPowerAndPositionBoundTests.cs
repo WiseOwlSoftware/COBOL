@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The two exact lanes kb/Work PB2617 and PB2616 added, pinned at their kernels (the COBOL-level traces ride the
 /// <c>pb2617_*</c> and <c>pb2616_*</c> goldens). Expected values are exact decimal arithmetic by hand.
-/// <para><b>PB2617.</b> A scaled or SDIDI base raised to an integer exponent is the exact power (§8.8.1.3's native
+/// <para><b>PB2617.</b> A scaled or SDIDI base raised to an integer exponent is the exact power (§2023:8.8.1.3's native
 /// method follows GnuCOBOL's <c>mpz_pow_ui</c>, CLAUDE.md rule 1): <c>CobolExact.Pow</c> at run time,
 /// <c>CobolWide.Pow</c> for a compile-time literal exponent. <b>PB2616.</b> A directly rendered position is
-/// evaluated in the host's <c>long</c> only when its digit bound proves it cannot wrap (§8.4.2.3.4 1) b)).</para>
+/// evaluated in the host's <c>long</c> only when its digit bound proves it cannot wrap (§2023:8.4.2.3.4 1) b)).</para>
 /// </summary>
 public sealed class NativeExactPowerAndPositionBoundTests
 {
@@ -22,7 +22,7 @@ public sealed class NativeExactPowerAndPositionBoundTests
         => Assert.Equal(Int128.Parse("126215515697488187881"),
             CobolExact.Pow(CobolExact.FromDec(CobolDec.From(11234567891, 10)), 2).Image.ToUnscaledIntermediate(20, CobolRounding.Truncation));
 
-    // 2.0 ** -2 = 0.25 — §8.8.1.5.4 r3's reciprocal of the exact 4.00.
+    // 2.0 ** -2 = 0.25 — §2023:8.8.1.5.4 r3's reciprocal of the exact 4.00.
     [Fact]
     public void FractionalBase_NegativeExponentIsTheReciprocal()
         => Assert.Equal(25000, CobolExact.Pow(CobolExact.FromDec(CobolDec.From(20, 1)), -2).Image.ToUnscaledIntermediate(5, CobolRounding.Truncation));
@@ -42,7 +42,7 @@ public sealed class NativeExactPowerAndPositionBoundTests
         => Assert.Equal(Int128.Parse("253776255119685728762"),
             CobolExact.Pow(CobolExact.FromDec(CobolDec.From(11234567891, 10)), 8).Image.ToUnscaledIntermediate(20, CobolRounding.Truncation));
 
-    // §8.8.1.2 rule 6 a): a zero base needs an exponent greater than zero.
+    // §2023:8.8.1.2 rule 6 a): a zero base needs an exponent greater than zero.
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

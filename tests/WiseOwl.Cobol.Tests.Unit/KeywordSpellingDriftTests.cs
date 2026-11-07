@@ -9,20 +9,20 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// <b>ONE TOKEN PER RESERVED WORD</b> (kb/Work PB510) and the §13.18.40.3 SR7 separator-period rule (kb/Work
+/// <b>ONE TOKEN PER RESERVED WORD</b> (kb/Work PB510) and the §2023:13.18.40.3 SR7 separator-period rule (kb/Work
 /// PB569) — the two places the lexer used to erase a distinction the standard draws.
 /// <para>The lexer folded ZERO/ZEROS/ZEROES (and each figurative singular/plural pair) into one token, so every
-/// general format that prints ONE of them as a keyword (§5.2.2) — BLANK WHEN ZERO (§13.18.8.2), the sign
-/// condition's ZERO (§8.8.4.7.2), OPTIONS INITIALIZE's BINARY ZEROES / HIGH-VALUES / LOW-VALUES / SPACES
-/// (§11.9.10.2) — accepted every spelling. The spellings are now distinct tokens and their interchangeability is
+/// general format that prints ONE of them as a keyword (§2023:5.2.2) — BLANK WHEN ZERO (§2023:13.18.8.2), the sign
+/// condition's ZERO (§2023:8.8.4.7.2), OPTIONS INITIALIZE's BINARY ZEROES / HIGH-VALUES / LOW-VALUES / SPACES
+/// (§2023:11.9.10.2) — accepted every spelling. The spellings are now distinct tokens and their interchangeability is
 /// written ONCE, in the grammar's figurative-word rules; these tests keep that shape from regrowing and prove the
 /// refusal is live in both directions (a gate that can only go green is not evidence).</para>
 /// </summary>
 public sealed class KeywordSpellingDriftTests
 {
-    /// <summary>⛔ THE DRIFT GATE, derived from the spec tables and the LEXER ITSELF: no two §8.9 ∪ §8.10 words
+    /// <summary>⛔ THE DRIFT GATE, derived from the spec tables and the LEXER ITSELF: no two §2023:8.9 ∪ §2023:8.10 words
     /// share a token type, except PIC / PICTURE — the one pair the standard makes equivalent everywhere it is
-    /// written (§13.18.40.3 SR5 "PIC is an abbreviation for PICTURE"). A lexer rule that folds two reserved words
+    /// written (§2023:13.18.40.3 SR5 "PIC is an abbreviation for PICTURE"). A lexer rule that folds two reserved words
     /// again lands here, naming the words.</summary>
     [Fact]
     public void NoTwoReservedWords_ShareATokenType_ExceptPicAndPicture()
@@ -39,7 +39,7 @@ public sealed class KeywordSpellingDriftTests
     }
 
     /// <summary>The interchangeability is written ONCE per family — the FIRST set of its grammar rule is exactly
-    /// the §8.3.3.6.2 alternatives. The error strategy's COBOL2418 arm reads the families from here, so a
+    /// the §2023:8.3.3.6.2 alternatives. The error strategy's COBOL2418 arm reads the families from here, so a
     /// family rule that lost a spelling would silently stop naming it.</summary>
     [Fact]
     public void FigurativeWordRules_AreTheSpecFamilies()
@@ -109,7 +109,7 @@ public sealed class KeywordSpellingDriftTests
         else Assert.Contains(errors, e => e.Contains(expected, StringComparison.Ordinal));
     }
 
-    /// <summary>§13.18.40.3 SR7 in both directions (kb/Work PB569): a trailing ',' or '.' followed immediately
+    /// <summary>§2023:13.18.40.3 SR7 in both directions (kb/Work PB569): a trailing ',' or '.' followed immediately
     /// by the separator period is legal wherever the clause sits last; followed by a separator comma or
     /// semicolon it is refused — the ',' arm AND the '.' arm, which the refutation had called structural.</summary>
     [Theory]

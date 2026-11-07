@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.14 1) — invalid key: I-O status set and, if enabled,
+      *> ISO §2023:9.1.14 1) — invalid key: I-O status set and, if enabled,
       *>   EC-I-O-INVALID-KEY set to exist
       *> Rule: "The I-O status of the file connector associated with the
       *>   statement is set to a value indicating the invalid key
@@ -14,22 +14,22 @@
       *>   EC-I-O-INVALID-KEY exception condition is set to exist."
       *>   cite.py --check 9.1.14 "and, if enabled, the
       *>   EC-I-O-INVALID-KEY exception condition is set to exist"
-      *>   -> OK  §9.1.14 1)  (Invalid key condition)
+      *>   -> OK  §2023:9.1.14 1)  (Invalid key condition)
       *>   cite.py --check 9.1.14 "If the INVALID KEY phrase is
       *>   specified in the input-output statement, any applicable
       *>   exception processing statements are not executed, and
       *>   control is transferred to the imperative-statement specified
-      *>   in the INVALID KEY phrase" -> OK  §9.1.14 2)
+      *>   in the INVALID KEY phrase" -> OK  §2023:9.1.14 2)
       *>   cite.py --check 9.1.14 "If the INVALID KEY phrase is not
       *>   specified in the input-output statement, any applicable
       *>   exception processing statements are executed"
-      *>   -> OK  §9.1.14 3)
+      *>   -> OK  §2023:9.1.14 3)
       *>   cite.py --check 14.6.13.1.1 "the last exception status is
       *>   set to indicate that exception condition"
-      *>   -> OK  §14.6.13.1.1   (General)
+      *>   -> OK  §2023:14.6.13.1.1   (General)
       *>   cite.py --check 15.33.3 "A 31-character, left-justified,
       *>   alphanumeric character string that is the exception-name"
-      *>   -> OK  §15.33.3 1)  (Returned value rule)
+      *>   -> OK  §2023:15.33.3 1)  (Returned value rule)
       *> Checking for EC-I-O-INVALID-KEY is enabled by the >>TURN below.
       *> Derivation (the name is 18 characters, padded to 31):
       *>   W1=00                first WRITE of K1 succeeds.

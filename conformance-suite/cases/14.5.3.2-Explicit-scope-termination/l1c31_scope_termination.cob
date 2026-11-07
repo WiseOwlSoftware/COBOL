@@ -6,26 +6,26 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.5.3.2 2), §14.5.3.3 1) 3) 4) — explicit and implicit
+      *> ISO §2023:14.5.3.2 2), §2023:14.5.3.3 1) 3) 4) — explicit and implicit
       *> scope termination of statements.
       *> cite.py --check 14.5.3.2 "any unterminated statements that
       *>   appear between that statement-name and the explicit scope
-      *>   terminator" -> OK  §14.5.3.2 2)  (Explicit scope termination)
+      *>   terminator" -> OK  §2023:14.5.3.2 2)  (Explicit scope termination)
       *> cite.py --check 14.5.3.3 "the next-encountered statement-name"
-      *>   -> OK  §14.5.3.3 1) a)  (cite.py labels the run-in list
+      *>   -> OK  §2023:14.5.3.3 1) a)  (cite.py labels the run-in list
       *>   "1) a)" although the quoted text is item 1) b) -- the known
       *>   list-item mislabel, PB1554; the clause and item 1) are right)
       *> cite.py --check 14.5.3.3 "for a conditional statement not
       *>   contained within another statement, by a separator period"
-      *>   -> OK  §14.5.3.3 3)
+      *>   -> OK  §2023:14.5.3.3 3)
       *> cite.py --check 14.5.3.3 "If all permitted occurrences of a
       *>   phrase have already been specified for a given statement"
-      *>   -> OK  §14.5.3.3 4)
+      *>   -> OK  §2023:14.5.3.3 4)
       *> Every IF below holds a conditional statement as statement-1 or
-      *> statement-2 (§14.9.19.3 1) allows conditional statements there);
+      *> statement-2 (§2023:14.9.19.3 1) allows conditional statements there);
       *> no conditional is placed where a format writes
       *> imperative-statement.
-      *> S1 -- §14.5.3.2 2): "An explicit scope terminator terminates
+      *> S1 -- §2023:14.5.3.2 2): "An explicit scope terminator terminates
       *> the scope of: 1) the most-recently preceding unterminated
       *> statement having the statement-name ... and 2) any unterminated
       *> statements that appear between that statement-name and the
@@ -39,7 +39,7 @@
       *>  S1C IF false: "S1C AFTER".
       *>  S1D SEARCH finds no "Z": AT END "S1D END", then "S1D AFTER"
       *>      (were it still inside the last WHEN it would not print).
-      *> S2 -- §14.5.3.3 1): a single imperative statement not contained
+      *> S2 -- §2023:14.5.3.3 1): a single imperative statement not contained
       *> in another ends at the next statement-name or a period; until
       *> then its syntax continues, even across lines:
       *>  MOVE 7 TO A <newline> B -> B is a second receiver:
@@ -49,14 +49,14 @@
       *>  (Item a), an element other than a statement-name or period
       *>  following an exhausted top-level statement, has no conforming
       *>  top-level form distinct from b)/c) in these statements.)
-      *> S3 -- §14.5.3.3 3): a top-level conditional statement ends only
+      *> S3 -- §2023:14.5.3.3 3): a top-level conditional statement ends only
       *> at the separator period, so every statement up to it belongs to
       *> the conditional's phrase:
       *>  IF false DISPLAY "S3 WRONG1" DISPLAY "S3 WRONG2". -> neither
       *>      prints; the next sentence prints "S3 AFTER".
       *>  N=5: ADD 1 TO N ON SIZE ERROR DISPLAY "S3 SE1" DISPLAY
       *>      "S3 SE2". -> no size error, neither prints; "S3 N=006".
-      *> S4 -- §14.5.3.3 4): "Any phrase encountered is the next phrase
+      *> S4 -- §2023:14.5.3.3 4): "Any phrase encountered is the next phrase
       *> of the most-recently preceding unterminated statement with
       *>    which
       *> that phrase may be syntactically associated. If all permitted

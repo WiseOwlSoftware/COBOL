@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.2.3 GR2/GR5 — function reference, INVOKE USING, inline
+      *> ISO §2023:14.2.3 GR2/GR5 — function reference, INVOKE USING, inline
       *> invocation and implicit SET property arguments bind by
       *> position.
       *> RULE (14.2.3 GR2): "The arguments passed from the activating
@@ -19,15 +19,15 @@
       *> RULE (14.2.3 GR5): "Data-name-1 is a formal parameter for the
       *> function, method, or program."
       *> cite.py --check 14.2.3 "the arguments specified in an inline
-      *>   invocation of a method" -> OK  §14.2.3 2)  (General rules)
+      *>   invocation of a method" -> OK  §2023:14.2.3 2)  (General rules)
       *> cite.py --check 14.2.3 "the argument defined by the rules of
       *>   an object-property for invocation of an implicit SET property
-      *>   method" -> OK  §14.2.3 2)  (General rules)
+      *>   method" -> OK  §2023:14.2.3 2)  (General rules)
       *> cite.py --check 14.2.3 "The correspondence between the
       *>   arguments and the formal parameters is established on a
-      *>   positional basis" -> OK  §14.2.3 2)  (General rules)
+      *>   positional basis" -> OK  §2023:14.2.3 2)  (General rules)
       *> cite.py --check 14.2.3 "Data-name-1 is a formal parameter for
-      *>   the function, method, or program" -> OK  §14.2.3 5)
+      *>   the function, method, or program" -> OK  §2023:14.2.3 5)
       *> (The CALL arm is pinned at 85 by
       *> l1c22_call_positional_formals.)
       *> The caller names its items X and Y; the function and the method

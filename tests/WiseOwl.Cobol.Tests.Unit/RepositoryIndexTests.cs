@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The module's repository header and unit index, read WITHOUT loading the assembly (DESIGN-external-repository §5.4 item 3,
-/// §7.4, §15.1, §17.2; kb/Work PB2100): <see cref="RepositoryIndex"/> reads what the compiler's
+/// §7.4, §2023:15.1, §17.2; kb/Work PB2100): <see cref="RepositoryIndex"/> reads what the compiler's
 /// <c>RepositoryAttributeRenderer</c> wrote. The index equals the record set — every <c>[CobolUnit]</c> on a host entry is a
 /// row of <c>Units</c> and every row has its entry — and the unit-row encoding round-trips whatever an externalized name
 /// holds, because the three fields of a row split on <c>:</c> and a name may contain it (an AS literal's content,
@@ -83,7 +83,7 @@ public sealed class RepositoryIndexTests : WiseOwlCobolTestBase
         Assert.True(index.HasSignatures);   // --repository-update on, the default (DESIGN-external-repository §9.1)
         Assert.Contains("WiseOwl.Cobol.Runtime", index.AssemblyReferences);
 
-        // The prototype psub is not a unit of its own: its definition PSUB publishes the one entry (§7.2, kb/Work PB3872).
+        // The prototype psub is not a unit of its own: its definition PSUB publishes the one entry (§2023:7.2, kb/Work PB3872).
         Assert.Equal(
             [new RepositoryUnitRow(RepositoryUnitKind.Program, "PMAIN", "PMAIN"),
              new RepositoryUnitRow(RepositoryUnitKind.Program, "PSUB", "PSUB"),
@@ -139,7 +139,7 @@ public sealed class RepositoryIndexTests : WiseOwlCobolTestBase
         Assert.Equal(RepositoryReadFailure.NoRepositoryRecord, RepositoryIndex.Open(new MemoryStream(plain)).Failure);
     }
 
-    /// <summary>§7.5 and §15.1: the entry is read into memory and the file closed, so the next build can replace it while a
+    /// <summary>§7.5 and §2023:15.1: the entry is read into memory and the file closed, so the next build can replace it while a
     /// compilation still holds the index. The copy is deleted (Windows refuses while any handle is open) and the metadata is
     /// still readable.</summary>
     [Fact]

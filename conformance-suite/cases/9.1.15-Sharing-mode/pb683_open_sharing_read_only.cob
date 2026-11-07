@@ -5,19 +5,19 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §9.1.15 — "The SHARING phrase on an OPEN statement overrides
+      *> ISO §2023:9.1.15 — "The SHARING phrase on an OPEN statement overrides
       *> the SHARING clause in the file control entry for establishing the
       *> sharing mode."  A connector whose SELECT declares NEITHER a SHARING
       *> clause NOR a LOCK MODE clause is therefore open FOR FILE SHARING
       *> when its own OPEN statement writes SHARING WITH READ ONLY, and
-      *> §9.1.15 item 2 says of that mode "Record locks are in effect".
-      *> §9.1.16 — "While locked by a given file connector, a record is not
+      *> §2023:9.1.15 item 2 says of that mode "Record locks are in effect".
+      *> §2023:9.1.16 — "While locked by a given file connector, a record is not
       *> accessible to another file connector in the same or a different run
       *> unit, except by the execution of a READ statement with the IGNORING
-      *> LOCK phrase."  So the READ below is refused, and §14.9.30.4 GR9/GR10
+      *> LOCK phrase."  So the READ below is refused, and §2023:14.9.30.4 GR9/GR10
       *> b) price the refusal: "A value is placed into the I-O status
       *> associated with file-name-1 to indicate the record operation
-      *> conflict condition" — '51' (§9.1.13.8 item 1), and no record is made
+      *> conflict condition" — '51' (§2023:9.1.13.8 item 1), and no record is made
       *> available (GR10 c).
       *>
       *> ⛔ WHY THIS GOLDEN EXISTS (kb/Work PB683).  Every operand of that
@@ -27,7 +27,7 @@
       *> a connector like B or C to an UNGOVERNED runtime entry, which
       *> answered '00' and handed over a record another connector had locked.
       *> Leg C is the discriminator that made the defect unmistakable: RETRY
-      *> 0 TIMES is a behavioural NO-OP by §14.7.9.3 GR4 a) — "If the RETRY
+      *> 0 TIMES is a behavioural NO-OP by §2023:14.7.9.3 GR4 a) — "If the RETRY
       *> phrase is not specified or the result of the evaluation of
       *> arithmetic-expression-1 or arithmetic-expression-2 is negative or
       *> zero, the statement is unsuccessful" — yet writing it changed the
@@ -37,11 +37,11 @@
       *>
       *> Each leg is one physical file with two connectors.  A carries the
       *> clauses (SHARING WITH ALL OTHER needs a LOCK MODE clause by
-      *> §14.9.27.3 SR8) and locks the first record with an explicit WITH
-      *> LOCK phrase, legal under MANUAL locking (§12.4.5.9.4 GR5).  B and C
+      *> §2023:14.9.27.3 SR8) and locks the first record with an explicit WITH
+      *> LOCK phrase, legal under MANUAL locking (§2023:12.4.5.9.4 GR5).  B and C
       *> carry NO sharing or locking clause at all and become sharing
       *> participants only through their own OPEN statement.  Table 19
-      *> permits the opens: A is INPUT, and §9.1.15 item 2 refuses a READ
+      *> permits the opens: A is INPUT, and §2023:9.1.15 item 2 refuses a READ
       *> ONLY connector only when another connector's "open mode is other
       *> than input".
        IDENTIFICATION DIVISION.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.2.2 SR1 (cite.py --check 14.2.2 "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in
+      *> ISO §2023:14.2.2 SR1 (cite.py --check 14.2.2 "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in
       *> the linkage section" -> OK 1)): a USING parameter is a level 01 or 77 LINKAGE SECTION entry. WS-X is a
       *> WORKING-STORAGE item, so the header is refused (COBOL0888, kb/Work PB4463) at every edition.
 IDENTIFICATION DIVISION.

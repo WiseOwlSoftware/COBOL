@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB75 — the EC-SIZE family reaches NON-arithmetic statements through the generic fatal statement guard
-/// (<c>EcEmitter.FatalAmbientGates</c>), while ARITHMETIC statements own their §14.7.5 shape in
+/// (<c>EcEmitter.FatalAmbientGates</c>), while ARITHMETIC statements own their §2023:14.7.5 shape in
 /// <c>ArithmeticEmitter.EmitArith</c>. The seam between the two is the <see cref="IArithmeticStatement"/> marker: a
 /// statement that carries a SIZE ERROR phrase and does not declare it would be guarded TWICE (its own dispatch and
 /// the guard's), and one that declares it without EmitArith would be guarded by nobody. These pins hold the marker,
@@ -49,7 +49,7 @@ public sealed class EcSizeGuardDriftTests
         Assert.Contains("ec.Inner is IArithmeticStatement", src);
     }
 
-    /// <summary>The runtime hierarchy: a size error IS a fatal exception condition (§14.7.5 → §14.6.13.1.3), so the
+    /// <summary>The runtime hierarchy: a size error IS a fatal exception condition (§2023:14.7.5 → §2023:14.6.13.1.3), so the
     /// statement guard's <c>catch (CobolFatalException)</c> and RunMain's boundary catch both see it; its EcName is
     /// the Table 13 level-3 name the guard's <c>when</c> filter compares.</summary>
     [Fact]
@@ -59,7 +59,7 @@ public sealed class EcSizeGuardDriftTests
         var e = new CobolSizeError("x", "EC-SIZE-ZERO-DIVIDE");
         Assert.Equal("EC-SIZE-ZERO-DIVIDE", e.EcName);
         // The level-3 name is REQUIRED (kb/Work PB1147): a defaulted EC-SIZE-OVERFLOW is how the outermost-quotient
-        // PROHIBITED raise latched OVERFLOW where §14.7.4.3 r7 names EC-SIZE-TRUNCATION.
+        // PROHIBITED raise latched OVERFLOW where §2023:14.7.4.3 r7 names EC-SIZE-TRUNCATION.
         Assert.False(typeof(CobolSizeError).GetConstructors().Single().GetParameters()
             .Single(p => p.Name == "ecName").HasDefaultValue);
         Assert.StartsWith("EC-SIZE-ZERO-DIVIDE (fatal): x", e.Message);

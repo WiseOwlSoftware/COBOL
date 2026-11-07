@@ -83,14 +83,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
     /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.
     /// <para>⛔ THE LIST IS A REGION BOUNDARY (kb/Work PB441). Every member is a source statement of its own and
-    /// carries its own <c>BoundEcChecked</c> — or none, because §7.3.25.4 GR6 enables nothing at ITS line — so the
+    /// carries its own <c>BoundEcChecked</c> — or none, because §2023:7.3.25.4 GR6 enables nothing at ITS line — so the
     /// enclosing statement's EC region must not stay ambient across it. See
-    /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §14.9.28.4 GR14.</para></summary>
+    /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §2023:14.9.28.4 GR14.</para></summary>
     /// <summary>Emit the bounded dispatch that runs ONE procedure range from inside a statement — an out-of-line
     /// PERFORM, a SORT/MERGE INPUT or OUTPUT PROCEDURE. The ONE caller of <see cref="DispatchState.DispatchCall"/>
     /// (<c>ProcedureRangeCheckingDriftTests</c> pins that): the range's paragraphs are OTHER source statements, so
     /// when the enclosing statement's guard has run-time checking flags standing they run inside an all-off
-    /// <see cref="EcEmitter.EnterCheckingBaseline"/> scope and set only what their own lines enable (§7.3.25.4
+    /// <see cref="EcEmitter.EnterCheckingBaseline"/> scope and set only what their own lines enable (§2023:7.3.25.4
     /// GR6; kb/Work PB891). Nothing is emitted around the call when no flag guard encloses it.</summary>
     internal void EmitProcedureRange(PcRange range, string comment = "")
     {
@@ -133,7 +133,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── Control flow / no-op ─────────────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundStop n)
     {
-        // STOP RUN … WITH {NORMAL|ERROR} STATUS [value] (§14.9.42.4 GR5): pass the status to the OS (the process
+        // STOP RUN … WITH {NORMAL|ERROR} STATUS [value] (§2023:14.9.42.4 GR5): pass the status to the OS (the process
         // exit code) before unwinding. No status phrase ⇒ no SetExitStatus (exit stays 0 — byte-identical default).
         if (n.Status is { } st) _ctx.Writer.Line(RuntimeApi.SetExitStatus(_num.ExitStatus(st)) + ";");
         _ctx.Writer.Line("throw new StopRun();");
@@ -155,14 +155,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // loop, a DEPENDING switch) rather than to the dispatcher (kb/Work PB405; see EmitterState.cs).
     public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line(_dispatchState.ExplicitTransferOut(n.TargetPc)); return true; }
 
-    // EXIT PARAGRAPH (§14.9.14.4 GR6): control passes to "an implicit CONTINUE statement immediately following the
+    // EXIT PARAGRAPH (§2023:14.9.14.4 GR6): control passes to "an implicit CONTINUE statement immediately following the
     // last explicit statement of the current paragraph, preceding any return mechanisms for that paragraph" — pc+1,
     // where the dispatcher's at-exit test fires the paragraph's PERFORM/SORT/USE return. GR6's NOTE names those
     // return mechanisms (PERFORM, SORT, USE); an INLINE PERFORM is none of them — it is a loop inside the paragraph —
     // so an enclosing inline PERFORM has no standing to intercept the transfer (kb/Work PB405).
     public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line(_dispatchState.TransferOut(_dispatchState.CurrentPc + 1)); return true; }
 
-    // EXIT SECTION (§14.9.14.4 GR7): transfer to the unnamed empty paragraph after the section's last paragraph
+    // EXIT SECTION (§2023:14.9.14.4 GR7): transfer to the unnamed empty paragraph after the section's last paragraph
     // (SectionEndPc+1) from ANY paragraph of the section. When the enclosing bounded dispatch was entered with its
     // exit AT the section end (PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE / the top-level end
     // wall), the section's return mechanism must fire — an explicit `return __pc` that mirrors the bounded loop's
@@ -177,11 +177,11 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         var w = _ctx.Writer;
         _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);
         w.Line($"__pc = {n.SectionEndPc + 1};");
-        w.Line($"if (__exitPc == {n.SectionEndPc}) return __pc;   // §14.9.14.4 GR7 — the section's PERFORM/SORT/USE return");
+        w.Line($"if (__exitPc == {n.SectionEndPc}) return __pc;   // §2023:14.9.14.4 GR7 — the section's PERFORM/SORT/USE return");
         w.Line(_dispatchState.TransferJump());
         return true;
     }
-    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5; §14.9.28.4 GR16
+    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §2023:14.9.14.4 GR4/GR5; §2023:14.9.28.4 GR16
     {
         // Inside a Format-3 PERFORM: imp-1 → goto the implicit-CONTINUE-before-FINALLY label; a handler pc-range →
         // throw ExitPerformSignal (crosses the nested __Dispatch a goto cannot leave); FINALLY (imp-5) → goto the
@@ -190,37 +190,37 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         F3Region.Handler => Emit($"throw new ExitPerformSignal({_dispatchState.F3Cur.Id});", terminated: true),
         F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
         // Ordinary inline PERFORM: EXIT PERFORM → goto __pexit (past the loop, leaving EVERY nested VARYING level,
-        // §14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
-        // re-test still run, §14.9.14.4 GR5 b) / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
+        // §2023:14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
+        // re-test still run, §2023:14.9.14.4 GR5 b) / §2023:14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
         // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
         F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
         // ⛔ THE INVARIANT IS NOW ESTABLISHED, SO THIS ARM THROWS (kb/Work PB403). F3Region.None means "not inside
-        // any PERFORM", which ISO §14.9.14.3 SR8 forbids for EXIT PERFORM — and ControlFlowBinder.BindExit now
+        // any PERFORM", which ISO §2023:14.9.14.3 SR8 forbids for EXIT PERFORM — and ControlFlowBinder.BindExit now
         // REFUSES that program, so a BoundExitPerform can only reach here from a compiler defect. It used to emit
         // `break;`/`continue;` as a "defensive fallback (SR8: never reached for a valid bind)" while the binder
         // never established SR8, which made the comment false and the arm live: the bare `break` left the pc
         // dispatcher's `switch (__pc)` WITHOUT advancing __pc, so the enclosing `while` re-entered the same
         // paragraph forever. A fallback that silently means something is how that survived.
         _ => throw new InvalidOperationException(
-            "EXIT PERFORM emitted outside any PERFORM region (ISO §14.9.14.3 SR8 is enforced at bind time by "
+            "EXIT PERFORM emitted outside any PERFORM region (ISO §2023:14.9.14.3 SR8 is enforced at bind time by "
             + "ControlFlowBinder.BindExit — reaching this arm means the binder admitted a statement it must refuse)"),
     };
 
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
-    // COMMIT/ROLLBACK (ISO §14.9.7, §14.9.36; kb/Work PB3338): the run unit's commit control — GR1's CONTINUE when no
+    // COMMIT/ROLLBACK (ISO §2023:14.9.7, §2023:14.9.36; kb/Work PB3338): the run unit's commit control — GR1's CONTINUE when no
     // clause is active is the runtime's answer, because a clause of ANY element of the run unit makes it act.
     public bool Visit(BoundCommitRollback n) { _transactions.EmitStatement(n); return false; }
     public bool Visit(BoundCommunicationStatement n) { _communication.Emit(n); return false; }
-    // The messaging facility's statements (ISO §14.9.38, §14.9.31; kb/Work PB4743, PB4744): the binder builds them and the declined-statement seam still
+    // The messaging facility's statements (ISO §2023:14.9.38, §2023:14.9.31; kb/Work PB4743, PB4744): the binder builds them and the declined-statement seam still
     // answers COBOL1578 instead of passing them on, so none reaches here until the exchange is rendered.
     public bool Visit(BoundSendToServer n) => throw MessagingNotRendered(n);
     public bool Visit(BoundSendResponse n) => throw MessagingNotRendered(n);
     public bool Visit(BoundReceiveMessage n) => throw MessagingNotRendered(n);
     private static InvalidOperationException MessagingNotRendered(BoundStatement n) => new(
         $"{n.GetType().Name} reached code generation, which renders no messaging statement before kb/Work PB4744: StatementBinder answers COBOL1578 for SEND and RECEIVE instead of passing the node on");
-    /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §14.9.9.4 GR1: the sign
+    /// <summary>⛔ THE CONTINUE AFTER SUSPENSION CALL, ONE ARM PER CARRIER (kb/Work PB1529). §2023:14.9.9.4 GR1: the sign
     /// test (GR1a/GR1b: a fractional (-1,0) still sets the EC) and the m=0 truncation (the implicit COMPUTE without
     /// ROUNDED) are taken by <c>CobolTiming.ContinueAfter</c> from the value in ITS OWN DOMAIN, which then clamps to
     /// the maximum meaningful value through the carrier's SATURATING position reader. The emitter narrows nothing: a
@@ -238,7 +238,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     public bool Visit(BoundContinueAfter n)
     {
-        // CONTINUE AFTER n SECONDS (§14.9.9.4 GR1; kb/Work PB138, PB1529): the interval is evaluated ONCE and handed to
+        // CONTINUE AFTER n SECONDS (§2023:14.9.9.4 GR1; kb/Work PB138, PB1529): the interval is evaluated ONCE and handed to
         // the runtime on the carrier it evaluated on (ContinueAfterCall); the emitter narrows nothing.
         var x = _num.Render(n.Seconds, ReceiverContext.None);
         string check = n.CheckLessThanZero ? "true" : "false";
@@ -248,7 +248,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
             _ctx.Writer.Line(call + ";");
             return false;
         }
-        // §14.6.13.1.4 (kb/Work PB138): the NONFATAL condition's USE-declarative selection at the raise
+        // §2023:14.6.13.1.4 (kb/Work PB138): the NONFATAL condition's USE-declarative selection at the raise
         // point — the runtime reports the raise and the site dispatches; the nonfatal default is to
         // continue, so no throw arm. The recorded-but-never-dispatched status left the golden's own
         // generated handler pc as dead code.
@@ -259,7 +259,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     public bool Visit(BoundImplicitSeries n)
     {
-        // The implicit statements of a multi-operand verb, rendered consecutively — ISO §14.9.20.4 GR3 and its six
+        // The implicit statements of a multi-operand verb, rendered consecutively — ISO §2023:14.9.20.4 GR3 and its six
         // siblings (see BoundImplicitSeries). There is NOTHING to emit for the boundary itself: the boundary IS
         // each member's own statement site, which EcBinder.EcWrap gave it by distributing the checked wrapper, and
         // a declarative's RESUME … NEXT STATEMENT then falls out of that member's guard into the next member.
@@ -283,7 +283,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     public bool Visit(BoundNextSentence n)
     {
-        // §14.9.19.4 GR4 (the THEN phrase) and GR6 (the ELSE phrase) state the SAME transfer — "control is
+        // §2023:14.9.19.4 GR4 (the THEN phrase) and GR6 (the ELSE phrase) state the SAME transfer — "control is
         // transferred to an implicit CONTINUE statement immediately preceding the next separator period" — and the
         // binder does not record which arm the node came from, so ONE lowering serves both and the two arms cannot
         // diverge (kb/Work PB414). Within a paragraph that is the label planted at the sentence boundary; in the
@@ -375,11 +375,11 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundAccept n) { _acceptDisplay.EmitAccept(n); return false; }
     public bool Visit(BoundInitialize n) { _initialize.Emit(n); return false; }
 
-    // ── Report Writer (ISO §14.9) ────────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundInitiate n) { _reportWriter.EmitInitiate(n); return false; }     // §14.9.21
-    public bool Visit(BoundGenerate n) { _reportWriter.EmitGenerate(n); return false; }     // §14.9.16
-    public bool Visit(BoundTerminate n) { _reportWriter.EmitTerminate(n); return false; }   // §14.9.46
-    public bool Visit(BoundSuppress n) { _reportWriter.EmitSuppress(n); return false; }     // §14.9.45
+    // ── Report Writer (ISO §2023:14.9) ────────────────────────────────────────────────────────────────────────────
+    public bool Visit(BoundInitiate n) { _reportWriter.EmitInitiate(n); return false; }     // §2023:14.9.21
+    public bool Visit(BoundGenerate n) { _reportWriter.EmitGenerate(n); return false; }     // §2023:14.9.16
+    public bool Visit(BoundTerminate n) { _reportWriter.EmitTerminate(n); return false; }   // §2023:14.9.46
+    public bool Visit(BoundSuppress n) { _reportWriter.EmitSuppress(n); return false; }     // §2023:14.9.45
 
     // ── Interprogram: CALL / CANCEL / EXIT PROGRAM / GOBACK ──────────────────────────────────────────────────
     public bool Visit(BoundCallProgram n) => _call.EmitCall(n);
@@ -387,43 +387,43 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundExitProgram n) { _call.EmitExitProgram(n); return false; }
     public bool Visit(BoundGoback n) => _call.EmitGoback(n);
 
-    // ── OO: INVOKE / SET object ref (ISO §14.9.23/§14.9.39; deep-dive D5/D8/D10) ─────────────────────────────
-    public bool Visit(BoundInvoke n) { _oo.EmitInvoke(n); return false; }                 // §14.9.23
+    // ── OO: INVOKE / SET object ref (ISO §2023:14.9.23/§2023:14.9.39; deep-dive D5/D8/D10) ─────────────────────────────
+    public bool Visit(BoundInvoke n) { _oo.EmitInvoke(n); return false; }                 // §2023:14.9.23
     public bool Visit(BoundInvokeUniversal n) { _oo.EmitUniversalInvoke(n); return false; }   // D10 universal dispatch (GR7c)
-    public bool Visit(BoundInvokeNull n) { _oo.EmitNullInvoke(n); return false; }          // INVOKE NULL → EC-OO-NULL (§14.9.23.4 GR5)
-    public bool Visit(BoundSetObjectRef n) { _oo.EmitSetObjectRef(n); return false; }      // SET F5 (§14.9.39; D-U7)
-    public bool Visit(BoundObjectView n) { _oo.EmitObjectView(n); return false; }          // object-view pre-op (§8.4.3.5; kb/Work PB1425)
-    public bool Visit(BoundSelfReference n) { _oo.EmitSelfReference(n); return false; }    // SELF as an identifier operand (§8.4.3.8; kb/Work PB1425)
+    public bool Visit(BoundInvokeNull n) { _oo.EmitNullInvoke(n); return false; }          // INVOKE NULL → EC-OO-NULL (§2023:14.9.23.4 GR5)
+    public bool Visit(BoundSetObjectRef n) { _oo.EmitSetObjectRef(n); return false; }      // SET F5 (§2023:14.9.39; D-U7)
+    public bool Visit(BoundObjectView n) { _oo.EmitObjectView(n); return false; }          // object-view pre-op (§2023:8.4.3.5; kb/Work PB1425)
+    public bool Visit(BoundSelfReference n) { _oo.EmitSelfReference(n); return false; }    // SELF as an identifier operand (§2023:8.4.3.8; kb/Work PB1425)
 
-    // ── Pointers: SET / ALLOCATE / FREE (ISO §14.9.39/§14.9.3/§14.9.15; Phase-4b) ────────────────────────────
+    // ── Pointers: SET / ALLOCATE / FREE (ISO §2023:14.9.39/§2023:14.9.3/§2023:14.9.15; Phase-4b) ────────────────────────────
     public bool Visit(BoundSetPointer n) { _set.EmitSetPointer(n); return false; }               // SET F7 (the whole printed receiving list)
     public bool Visit(BoundSetLocale n) { _set.EmitSetLocale(n); return false; }                 // SET LOCALE F11 (T1)
     public bool Visit(BoundSaveLocale n) { _set.EmitSaveLocale(n); return false; }               // SET … TO LOCALE F12 (T1)
     public bool Visit(BoundSetProgramPointer n) { _set.EmitSetProgramPointer(n); return false; } // SET program-pointer F9 (P10 Step 7)
     public bool Visit(BoundSetFunctionPointer n) { _set.EmitSetFunctionPointer(n); return false; } // SET function-pointer F8 (kb/Work PB452)
     public bool Visit(BoundSetMessageTag n) { _set.EmitSetMessageTag(n); return false; }         // SET message-tag F17 (kb/Work PB4740)
-    public bool Visit(BoundSetFunctionAddress n) { _ptr.EmitSetFunctionAddress(n); return false; } // SET … TO ADDRESS OF FUNCTION (ISO §8.4.3.12)
-    public bool Visit(BoundSetEntry n) { _ptr.EmitSetEntry(n); return false; }                   // SET … TO ENTRY (§8.4.3.13)
+    public bool Visit(BoundSetFunctionAddress n) { _ptr.EmitSetFunctionAddress(n); return false; } // SET … TO ADDRESS OF FUNCTION (ISO §2023:8.4.3.12)
+    public bool Visit(BoundSetEntry n) { _ptr.EmitSetEntry(n); return false; }                   // SET … TO ENTRY (§2023:8.4.3.13)
     public bool Visit(BoundSetPointerUpDown n) { _ptr.EmitSetPointerUpDown(n); return false; }     // SET F10
-    public bool Visit(BoundAllocate n) { _ptr.EmitAllocate(n); return false; }                     // ALLOCATE §14.9.3
-    public bool Visit(BoundFree n) { _ptr.EmitFree(n); return false; }                             // FREE §14.9.15
+    public bool Visit(BoundAllocate n) { _ptr.EmitAllocate(n); return false; }                     // ALLOCATE §2023:14.9.3
+    public bool Visit(BoundFree n) { _ptr.EmitFree(n); return false; }                             // FREE §2023:14.9.15
 
     public bool Visit(BoundMethodReturn n)
     {
-        // method GOBACK/EXIT METHOD (D8). GR1b (§14.9.18.4): the RAISING stages BEFORE the throw; the entry's
+        // method GOBACK/EXIT METHOD (D8). GR1b (§2023:14.9.18.4): the RAISING stages BEFORE the throw; the entry's
         // catch(MethodReturn) still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
         // exception only AFTER the result — the result-before-exception ordering for free (D-EO6).
         if (n.Raising is { } mrr) _call.EmitRaisingStage(mrr, "GOBACK");
-        _ctx.Writer.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §14.9.18.4 GR4)");
+        _ctx.Writer.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §2023:14.9.18.4 GR4)");
         return true;
     }
 
-    // ── Exception-condition model (ISO §7.3.25 / §14.9.29 / §14.9.33 / §14.9.39) ─────────────────────────────
-    public bool Visit(BoundRaiseObject n) => _ecEmit.EmitRaiseObject(n);   // EC-OO (§14.9.29; §14.6.13.1.5)
-    public bool Visit(BoundEcChecked n) => _ecEmit.EmitChecked(n);         // TURN scope (§7.3.25)
-    public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §14.9.33.4 GR2 a) 2. (PB892)
+    // ── Exception-condition model (ISO §2023:7.3.25 / §2023:14.9.29 / §2023:14.9.33 / §2023:14.9.39) ─────────────────────────────
+    public bool Visit(BoundRaiseObject n) => _ecEmit.EmitRaiseObject(n);   // EC-OO (§2023:14.9.29; §2023:14.6.13.1.5)
+    public bool Visit(BoundEcChecked n) => _ecEmit.EmitChecked(n);         // TURN scope (§2023:7.3.25)
+    public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §2023:14.9.33.4 GR2 a) 2. (PB892)
     public bool Visit(BoundDebugTriggered n) => _debug.Emit(n, EmitStatement);   // X3.23-1985 USE FOR DEBUGGING general rules 5-8 (D20)
-    public bool Visit(BoundRaise n) => _ecEmit.EmitRaise(n);               // RAISE (§14.9.29)
-    public bool Visit(BoundResume n) => _ecEmit.EmitResume(n);   // RESUME (§14.9.33) — unwinds, unless GR1 makes it a CONTINUE
-    public bool Visit(BoundSetLastException n) { _ctx.Writer.Line("ExceptionState.Clear();   // SET LAST EXCEPTION TO OFF (ISO §14.9.39 F13)"); return false; }
+    public bool Visit(BoundRaise n) => _ecEmit.EmitRaise(n);               // RAISE (§2023:14.9.29)
+    public bool Visit(BoundResume n) => _ecEmit.EmitResume(n);   // RESUME (§2023:14.9.33) — unwinds, unless GR1 makes it a CONTINUE
+    public bool Visit(BoundSetLastException n) { _ctx.Writer.Line("ExceptionState.Clear();   // SET LAST EXCEPTION TO OFF (ISO §2023:14.9.39 F13)"); return false; }
 }

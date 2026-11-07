@@ -10,10 +10,10 @@ using WiseOwl.Cobol.Runtime.Repository;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The external repository one compilation reads (ISO §8.13; DESIGN-external-repository §8.6, §9.3): the
+/// <summary>The external repository one compilation reads (ISO §2023:8.13; DESIGN-external-repository §8.6, §9.3): the
 /// <c>--repository</c> directories in the order given — the output directory when none is given — then the
 /// <c>--reference</c> assemblies in order. <paramref name="OutputPath"/> is the assembly this compilation produces, which is
-/// never consulted for resolution (its previous build only by <paramref name="Check"/>'s comparison, §9.2).
+/// never consulted for resolution (its previous build only by <paramref name="Check"/>'s comparison, §2023:9.2).
 /// <paramref name="DirectoriesNamed"/> is true when the directories were written on the command line, so one that does not
 /// exist is an error (REPO-10) rather than an empty repository. <paramref name="Inputs"/> is the compilation's ambient-input
 /// record: every existence probe of a named place goes through it, and the provider marks it when it consults the
@@ -43,13 +43,13 @@ internal sealed record RepositorySearchSpace(
 
 /// <summary>The kinds of unit one question of the external repository asks for (DESIGN-external-repository §5.1): a program (a
 /// definition, else a prototype), a function (likewise), a class or an interface — an expansion is one of the last two, told by its
-/// record — or the skeleton of a parameterized class or interface (§10.5).</summary>
+/// record — or the skeleton of a parameterized class or interface (§2023:10.5).</summary>
 internal enum RepositoryFamily { Program, Function, Class, Interface, ParameterizedClass, ParameterizedInterface }
 
 /// <summary>An entry of the external repository: the assembly at <paramref name="Path"/> (module version id
 /// <paramref name="Mvid"/>) that publishes the unit <paramref name="Kind"/> <paramref name="ExternalizedName"/>
 /// (DESIGN-external-repository §8.0), whose assembly simple name is <paramref name="AssemblyName"/>. Its program or function is compiled elsewhere, so a CALL through it describes its
-/// operands for the run-time check (§4.2).</summary>
+/// operands for the run-time check (§2023:4.2).</summary>
 internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryUnitKind Kind, string ExternalizedName, string AssemblyName) : RepositoryOrigin
 {
     public override bool IsDefinitionCompiledHere => false;
@@ -60,13 +60,13 @@ internal sealed record RepositoryEntryOrigin(string Path, Guid Mvid, RepositoryU
 }
 
 /// <summary>
-/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER (ISO §12.3.8.4 GR10 c) / GR11 c), §8.13; DESIGN-external-repository §8.0, §8.2 step
-/// 3, §8.3, §8.6): what the compiled assemblies of the search space publish, read through the runtime's
+/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER (ISO §2023:12.3.8.4 GR10 c) / GR11 c), §2023:8.13; DESIGN-external-repository §8.0, §8.2 step
+/// 3, §2023:8.3, §2023:8.6): what the compiled assemblies of the search space publish, read through the runtime's
 /// <see cref="RepositoryLocator"/> (which file publishes a unit) and the compiler's <see cref="RepositoryReader"/> (its record),
 /// and bound into the throw-away forest by <see cref="RepositoryCodec.Decode"/>, which gives each decoded restricted pointer
-/// the identity of its prototype's signature (§6.4). Nothing is loaded: the reads are prefetched metadata (§15.1).
+/// the identity of its prototype's signature (§2023:6.4). Nothing is loaded: the reads are prefetched metadata (§2023:15.1).
 /// <list type="bullet">
-/// <item><b>Search order (§8.6).</b> Every location in order; in a location the definition before the prototype of the name.
+/// <item><b>Search order (§2023:8.6).</b> Every location in order; in a location the definition before the prototype of the name.
 /// The FIRST entry wins. A later entry from another build (another module version id) whose signature differs is REPO-2;
 /// the same build in two places is one entry.</item>
 /// <item><b>Every reader outcome is reported (§14).</b> An unreadable file the search names for the unit is REPO-3, a malformed
@@ -182,7 +182,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     private bool RefusedByName(RepositoryFamily family, string externalizedName) => _refused.Contains(Key(family, externalizedName));
 
     /// <summary>What REPO-1 says was searched for <paramref name="externalizedName"/>: every location in order, why a file named
-    /// after the unit was no answer, and the files the directory index skipped for their size (§15.2).</summary>
+    /// after the unit was no answer, and the files the directory index skipped for their size (§2023:15.2).</summary>
     public string Searched(RepositoryFamily family, string externalizedName)
     {
         if (_locations.Count == 0) return "no external repository is named (no --repository directory or --reference file, and no output directory)";
@@ -194,7 +194,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         return string.Join("; ", parts);
     }
 
-    /// <summary>Every entry the compilation opened that publishes a program or function — what §9.2's check compares the
+    /// <summary>Every entry the compilation opened that publishes a program or function — what §2023:9.2's check compares the
     /// group's units against beside the previous build of the output (DESIGN-external-repository §9.2 (b): "the entries the
     /// resolver already opened"), with the record of each unit.</summary>
     public IEnumerable<(string Path, RepositoryRecord Record)> OpenedRecords() =>
@@ -231,7 +231,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         _space.Inputs.RecordRepositoryRead();
     }
 
-    /// <summary>GR10 c) / GR11 c): the first entry of the search space publishing the name (§8.6), decoded; REPO-2 for a later
+    /// <summary>GR10 c) / GR11 c): the first entry of the search space publishing the name (§2023:8.6), decoded; REPO-2 for a later
     /// different entry whose signature differs.</summary>
     private Hit? ByName(RepositoryFamily family, string externalizedName)
     {
@@ -262,7 +262,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         if (entries.Count > 0)
         {
             hit = Answer(entries[0], report: true);
-            // An expansion is a class or an interface by what its record holds: a factory type makes it a class (§6.1 ClassRecord).
+            // An expansion is a class or an interface by what its record holds: a factory type makes it a class (§2023:6.1 ClassRecord).
             if (hit?.Record is { Kind: RepositoryUnitKind.Expansion, Class: { } expanded }
                 && (expanded.FactoryType is null) != (family == RepositoryFamily.Interface))
                 return _byName[key] = null;
@@ -272,7 +272,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
                     if (Answer(later, report: false) is { } shadowed && FirstDifference(hit, shadowed) is { } difference)
                         _edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers,
                             $"{hit.Origin.Describe(KindWord(family))} is used; {shadowed.Origin.Describe(KindWord(family))} "
-                            + $"comes later in the search order and differs in {difference} (ISO §8.13; DESIGN-external-repository §8.6)");
+                            + $"comes later in the search order and differs in {difference} (ISO §2023:8.13; DESIGN-external-repository §8.6)");
         }
         else if (typedMiss is not null)
         {
@@ -285,14 +285,14 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
 
         static void Add(List<RepositoryEntry> entries, RepositoryEntry entry)
         {
-            if (!entries.Exists(e => e.Mvid == entry.Mvid)) entries.Add(entry);   // one build in two places is one entry (§8.6)
+            if (!entries.Exists(e => e.Mvid == entry.Mvid)) entries.Add(entry);   // one build in two places is one entry (§2023:8.6)
         }
     }
 
-    /// <summary>D-R3's repository arms (§8.3): every function — definition or prototype — whose recorded WORD is
+    /// <summary>D-R3's repository arms (§2023:8.3): every function — definition or prototype — whose recorded WORD is
     /// <paramref name="word"/>, in search order, decoded.
     /// <list type="bullet">
-    /// <item><paramref name="otherThan"/> null — step 2. A word is how a later-compiled unit names a function (§8.4.6.7), so
+    /// <item><paramref name="otherThan"/> null — step 2. A word is how a later-compiled unit names a function (§2023:8.4.6.7), so
     /// the entry is the specifier's answer and one that cannot be read here is reported as the by-name search reports it.</item>
     /// <item><paramref name="otherThan"/> set — step 3's shadow look, after GR11 selected the function externalized
     /// <paramref name="otherThan"/>. An entry externalized <paramref name="otherThan"/> is that function again (or a stale copy of
@@ -338,7 +338,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             {
                 if (report)
                     _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
-                        $"the repository entry '{entry.Path}' lists {unit.Kind} \"{unit.ExternalizedName}\" in its index and carries no record of it (ISO §8.13)");
+                        $"the repository entry '{entry.Path}' lists {unit.Kind} \"{unit.ExternalizedName}\" in its index and carries no record of it (ISO §2023:8.13)");
             }
             else
             {
@@ -357,7 +357,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     }
 
     /// <summary>The entry's records, or null (the finding reported when <paramref name="report"/>): another runtime major or
-    /// call ABI, another schema, no signatures, an unreadable or malformed record (§14, §15.4).</summary>
+    /// call ABI, another schema, no signatures, an unreadable or malformed record (§14, §2023:15.4).</summary>
     private Loaded? Load(RepositoryEntry entry, bool report)
     {
         var key = (entry.Path, entry.Mvid);
@@ -367,7 +367,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         {
             if (report)
                 _edition.Error(DiagnosticCatalog.RepositoryEntryVersionSkew,
-                    $"the repository entry '{entry.Path}' cannot be used: {skew}; recompile it (ISO §8.13; Annex A.1 item 67)");
+                    $"the repository entry '{entry.Path}' cannot be used: {skew}; recompile it (ISO §2023:8.13; Annex A.1 item 67)");
         }
         else
         {
@@ -394,11 +394,11 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
                                 _edition.Error(DiagnosticCatalog.RepositoryEntryWithoutSignatures,
                                     $"the repository entry '{entry.Path}' was compiled with --repository-update off and carries no "
                                     + $"signature for {entry.Unit.Kind} \"{entry.Unit.ExternalizedName}\"; recompile it with "
-                                    + "--repository-update on (ISO §8.13)");
+                                    + "--repository-update on (ISO §2023:8.13)");
                                 break;
                             case RepositoryReadFailure.OtherSchemaVersion:
                                 _edition.Error(DiagnosticCatalog.RepositoryEntryVersionSkew,
-                                    $"the repository entry '{entry.Path}' cannot be read: {outcome.Detail}; recompile it (ISO §8.13; Annex A.1 item 67)");
+                                    $"the repository entry '{entry.Path}' cannot be read: {outcome.Detail}; recompile it (ISO §2023:8.13; Annex A.1 item 67)");
                                 break;
                             default:
                                 ReportFileFault(outcome.Failure, $"'{entry.Path}': {outcome.Detail}");
@@ -417,13 +417,13 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         switch (failure)
         {
             case RepositoryReadFailure.NotManagedAssembly or RepositoryReadFailure.Unreadable:
-                _edition.Error(DiagnosticCatalog.RepositoryEntryUnreadable, $"{reason}: it cannot be read as a repository entry (ISO §8.13)");
+                _edition.Error(DiagnosticCatalog.RepositoryEntryUnreadable, $"{reason}: it cannot be read as a repository entry (ISO §2023:8.13)");
                 break;
             case RepositoryReadFailure.OtherSchemaVersion:
-                _edition.Error(DiagnosticCatalog.RepositoryEntryVersionSkew, $"{reason} (ISO §8.13; Annex A.1 item 67)");
+                _edition.Error(DiagnosticCatalog.RepositoryEntryVersionSkew, $"{reason} (ISO §2023:8.13; Annex A.1 item 67)");
                 break;
             default:
-                _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed, $"{reason} (ISO §8.13)");
+                _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed, $"{reason} (ISO §2023:8.13)");
                 break;
         }
     }
@@ -442,14 +442,14 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             ? PrototypeSignatures.FirstDifference(chosen.Signature, shadowed.Signature)
             : chosen.Record != shadowed.Record ? "its record" : null;
 
-    /// <summary>Tell the provider the class table the identities of the records it decodes resolve in (§8.7): the group's, the
+    /// <summary>Tell the provider the class table the identities of the records it decodes resolve in (§2023:8.7): the group's, the
     /// one the class importer is asked through. Idempotent, and set before any record that names an object reference is decoded.</summary>
     public void UseClassTable(OoClassTable table) => _table ??= table;
 
     private OoClassTable Table => _table ?? throw new InvalidOperationException(
         "the repository provider decoded a record before it was given the group's class table (MetadataRepositoryProvider.UseClassTable)");
 
-    /// <summary>The record bound into its throw-away forest (§6.3), every class and interface identity it names decoded to the
+    /// <summary>The record bound into its throw-away forest (§2023:6.3), every class and interface identity it names decoded to the
     /// importing group's name for it (<see cref="RepositoryCodec.Names"/>, which imports a class the repository publishes), or null
     /// with REPO-11 (an identity nothing answers) or REPO-5 (a description the codec cannot rebuild) reported when
     /// <paramref name="report"/>.</summary>
@@ -469,22 +469,22 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         {
             if (report)
                 _edition.Error(DiagnosticCatalog.RepositoryDescriptionUnbuildable,
-                    $"the repository entry '{path}': {e.Message} (ISO §8.13; DESIGN-external-repository §6.3)");
+                    $"the repository entry '{path}': {e.Message} (ISO §2023:8.13; DESIGN-external-repository §6.3)");
             return null;
         }
     }
 
     /// <summary>REPO-11: <paramref name="what"/> names a class or interface identity that no class or interface of the
-    /// compilation group is and no entry of the external repository publishes (ISO §12.3.8.4 GR6).</summary>
+    /// compilation group is and no entry of the external repository publishes (ISO §2023:12.3.8.4 GR6).</summary>
     private void Unanswered(string what, bool isInterface, string identity) =>
         _edition.Error(DiagnosticCatalog.RepositoryIdentityUnanswered,
             $"{what} the {(isInterface ? "interface" : "class")} \"{identity}\", which no {(isInterface ? "interface" : "class")} of this "
-            + "compilation group defines and no entry of the external repository publishes (ISO §12.3.8.4 GR6; DESIGN-external-repository §14)");
+            + "compilation group defines and no entry of the external repository publishes (ISO §2023:12.3.8.4 GR6; DESIGN-external-repository §14)");
 
-    /// <summary>⛔ THE CLASS IMPORT (ISO §12.3.8.3 SR6 b), §12.3.8.4 GR6; DESIGN-external-repository §8.4 step 3, §10.1): the class
-    /// the first entry of the search space publishes under <paramref name="identity"/> (§8.6), as a symbol of
+    /// <summary>⛔ THE CLASS IMPORT (ISO §2023:12.3.8.3 SR6 b), §2023:12.3.8.4 GR6; DESIGN-external-repository §8.4 step 3, §2023:10.1): the class
+    /// the first entry of the search space publishes under <paramref name="identity"/> (§2023:8.6), as a symbol of
     /// <see cref="OoSymbolOrigin.Imported"/> — <see cref="OoClassSymbol.ClrName"/> the TypeDef's full name under <c>global::</c> in the
-    /// module's namespace (§4.5), the superclass resolved by identity through the table (transitively; the standard class BASE
+    /// module's namespace (§2023:4.5), the superclass resolved by identity through the table (transitively; the standard class BASE
     /// is the table's; one nothing answers is REPO-11), one <see cref="OoMethodSymbol"/> per recorded method over the decoded
     /// <see cref="DataItem"/>s, <see cref="OoMethodSymbol.OverrideOf"/> re-linked. Downstream — INVOKE binding,
     /// <c>ActivationDescriptions.Of</c>, the universal <c>__CobolInvoke</c>, typed object references, override checks — reads the
@@ -514,9 +514,9 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     }
 
     /// <summary>EVERY expansion of the search space published under the externalized name <paramref name="externalizedName"/>, in search
-    /// order, one build in two places once (§8.6): the fresh copy, the stale copies and a same-name expansion of another definition or
+    /// order, one build in two places once (§2023:8.6): the fresh copy, the stale copies and a same-name expansion of another definition or
     /// other actuals alike, because telling them apart is the caller's (the key, then the identities). An entry that cannot be read is
-    /// skipped quietly: what an expansion whose assembly is unreadable would have said, the expansion made here replaces (§10.5).</summary>
+    /// skipped quietly: what an expansion whose assembly is unreadable would have said, the expansion made here replaces (§2023:10.5).</summary>
     internal IReadOnlyList<PublishedExpansion> ExpansionsNamed(string externalizedName)
     {
         Consult();
@@ -529,7 +529,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         return found;
     }
 
-    /// <summary>What a file an expansion's own assembly would be written to holds (§10.5).</summary>
+    /// <summary>What a file an expansion's own assembly would be written to holds (§2023:10.5).</summary>
     internal enum TargetFile
     {
         /// <summary>Nothing: the file does not exist.</summary>
@@ -543,7 +543,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         Foreign,
     }
 
-    /// <summary>The directory the compilation's output lives in, where an expansion's own assembly is written (§10.5).</summary>
+    /// <summary>The directory the compilation's output lives in, where an expansion's own assembly is written (§2023:10.5).</summary>
     internal string OutputDirectory => Path.GetDirectoryName(_output ?? Path.GetFullPath("x.dll"))!;
 
     /// <summary>What <paramref name="path"/>, the file an expansion externalized <paramref name="externalizedName"/> would be written to, holds,
@@ -560,7 +560,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     }
 
     /// <summary>The assemblies of the search space that REFERENCE the assembly named <paramref name="assemblyName"/>, read from each
-    /// file's <c>AssemblyRef</c> table (nothing is loaded): the groups compiled against it (§10.5's stale-expansion scan), each once.</summary>
+    /// file's <c>AssemblyRef</c> table (nothing is loaded): the groups compiled against it (§2023:10.5's stale-expansion scan), each once.</summary>
     internal IReadOnlyList<string> ReferencersOf(string assemblyName)
     {
         Consult();
@@ -571,7 +571,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     /// assembly, <c>ICodeGenBackend</c>), or null for a compilation with no output path.</summary>
     internal string? OutputAssemblyName => _output is null ? null : Path.GetFileNameWithoutExtension(_output);
 
-    /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§4.5), or null.</summary>
+    /// <summary>The namespace the types of the module whose registrar type is <paramref name="registrar"/> live in (§2023:4.5), or null.</summary>
     private static ModuleNamespace? ModuleOf(string? registrar)
     {
         string suffix = "." + ModuleNamespace.RegistrarClass;
@@ -585,7 +585,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         return new ImportedSkeleton(hit.Record.Skeleton!, new ImportedFrom(hit.Origin.Path, hit.Origin.Mvid, "", hit.Origin.AssemblyName));
     }
 
-    /// <summary>⛔ THE INTERFACE IMPORT (ISO §12.3.8.3 SR9, §12.3.8.4 GR9; DESIGN-external-repository §10.6): the twin of
+    /// <summary>⛔ THE INTERFACE IMPORT (ISO §2023:12.3.8.3 SR9, §2023:12.3.8.4 GR9; DESIGN-external-repository §10.6): the twin of
     /// <see cref="Class"/> — <c>[CobolUnit(Kind = Interface)]</c> on the public CLR interface, its INHERITS list resolved by identity
     /// (transitively), one prototype per recorded method over the decoded forest.</summary>
     public ImportedInterface? Interface(string identity, OoClassTable table)
@@ -602,8 +602,8 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         return new ImportedInterface(symbol, () => Complete(symbol, hit, Table));
     }
 
-    /// <summary>The first entry of the search space publishing the class or interface <paramref name="identity"/> (§8.6) and the
-    /// namespace its types live in (the registrar type's, §4.5): null — with the finding reported and the question remembered as
+    /// <summary>The first entry of the search space publishing the class or interface <paramref name="identity"/> (§2023:8.6) and the
+    /// namespace its types live in (the registrar type's, §2023:4.5): null — with the finding reported and the question remembered as
     /// refused — when nothing answers, the entry names no registrar (REPO-4), or its namespace is another needed module's or this
     /// compilation's own (REPO-6).</summary>
     private (Hit Hit, ModuleNamespace Module)? Locate(RepositoryFamily family, string identity, OoClassTable table)
@@ -618,7 +618,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         {
             _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
                 $"the repository entry '{hit.Origin.Path}' publishes the {kind} \"{hit.Record.ExternalizedName}\" and names no registrar type, "
-                + "so the namespace its types live in is unknown (ISO §8.13; DESIGN-external-repository §4.5)");
+                + "so the namespace its types live in is unknown (ISO §2023:8.13; DESIGN-external-repository §4.5)");
             _refused.Add(key);
             return null;
         }
@@ -627,7 +627,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         {
             _edition.Error(DiagnosticCatalog.RepositoryAssemblyNamespaceCollision,
                 $"the repository entry '{hit.Origin.Path}' publishes the {kind} \"{hit.Record.ExternalizedName}\" in the namespace "
-                + $"{module.ClrName}, which {collision}; one assembly simple name names one assembly per load context (ISO §8.13; "
+                + $"{module.ClrName}, which {collision}; one assembly simple name names one assembly per load context (ISO §2023:8.13; "
                 + "DESIGN-external-repository §8.6)");
             _refused.Add(key);
             return null;
@@ -667,7 +667,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             if (!(dm.Record.IsFactory ? symbol.TryAddFactoryMethod(m) : symbol.TryAddMethod(m)))
                 _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
                     $"{hit.Origin.Path}: the class \"{hit.Record.ExternalizedName}\" records two {(dm.Record.IsFactory ? "factory " : "")}methods "
-                    + $"externalized \"{m.ExternalizedName}\" (ISO §8.13)");
+                    + $"externalized \"{m.ExternalizedName}\" (ISO §2023:8.13)");
             else if (dm.Record.Override)
                 m.OverrideOf = dm.Record.IsFactory ? symbol.Base?.FindFactoryMethod(m.ExternalizedName) : symbol.Base?.FindMethod(m.ExternalizedName);
         }
@@ -681,7 +681,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
     }
 
     /// <summary>The second half of an interface import: the interfaces it INHERITS by identity (a record's <c>Implements</c> is an
-    /// interface's INHERITS list, ISO §11.6.2) and its method prototypes over the decoded forest.</summary>
+    /// interface's INHERITS list, ISO §2023:11.6.2) and its method prototypes over the decoded forest.</summary>
     private void Complete(OoInterfaceSymbol symbol, Hit hit, OoClassTable table)
     {
         var facts = hit.Record.Class!;
@@ -696,14 +696,14 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
             if (!symbol.TryAddPrototype(proto))
                 _edition.Error(DiagnosticCatalog.RepositoryEntryMalformed,
                     $"{hit.Origin.Path}: the interface \"{hit.Record.ExternalizedName}\" records two methods externalized "
-                    + $"\"{proto.ExternalizedName}\" (ISO §8.13)");
+                    + $"\"{proto.ExternalizedName}\" (ISO §2023:8.13)");
         }
     }
 
-    /// <summary>One recorded method as a symbol of the importing group (§10.1): its signature is the decoded forest's, exactly the
+    /// <summary>One recorded method as a symbol of the importing group (§2023:10.1): its signature is the decoded forest's, exactly the
     /// shape <c>OoStandardClasses</c> gives the standard class's methods, so every consumer that reads a method's signature —
     /// override conformance, the activation descriptions, the universal dispatch — reads it as it reads a method written in COBOL.
-    /// An accessor is rostered under the pinned name its record carries (§11.7.4 GR1 a)); its externalized name is its property's.</summary>
+    /// An accessor is rostered under the pinned name its record carries (§2023:11.7.4 GR1 a)); its externalized name is its property's.</summary>
     private OoMethodSymbol MethodOf(OoClassSymbol? owner, DecodedMethod dm, string what)
     {
         var r = dm.Record;

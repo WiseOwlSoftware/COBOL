@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ THE WINDOWS HOST OF <see cref="RunUnitFileLock"/> (kb/Work PB3482): Table 19 as a lock between run units on the one
-/// host whose share modes are mandatory and per access. ISO §9.1.15's file lock <i>"prevent[s] other run units from
+/// host whose share modes are mandatory and per access. ISO §2023:9.1.15's file lock <i>"prevent[s] other run units from
 /// opening that file with incompatible sharing rules"</i>, and a Windows share mode can say that only as far as an
 /// access can: <see cref="FileShare.Read"/> refuses every writer, so a connector under SHARING WITH READ ONLY that
 /// meets an INPUT opener which still owes its transaction's writes (a handle open for writing, 2.2.1.10 in
@@ -160,7 +160,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// REFUSES (kb/Work PB3518): the request cannot be held (<see cref="RunUnitFileLock.Outcome.Unavailable"/>, and the OPEN
     /// goes on with the share modes alone), yet a column another run unit has already published and Table 19 refuses this
     /// request is a conflict this host CAN see, so it is <see cref="RunUnitFileLock.Outcome.Refused"/> exactly as after a
-    /// publication (§9.1.13.9 1)'s '61'). The converse never holds: no request is refused for failing to publish. The
+    /// publication (§2023:9.1.13.9 1)'s '61'). The converse never holds: no request is refused for failing to publish. The
     /// same two answers as <see cref="SidecarColumnLockHost"/> gives a lock directory this user may not write.
     /// <para><paramref name="failed"/> says WHY the publication failed. <see cref="RegionLockResult.Held"/> is an exhausted
     /// publication on a handle that carries locks, so the columns are there to be seen. <see cref="RegionLockResult.Unavailable"/>

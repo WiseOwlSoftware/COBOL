@@ -337,7 +337,7 @@ public static partial class CobolNames
         (0x1E91F, 0x1E941), (0x1E920, 0x1E942), (0x1E921, 0x1E943),
     ];
 
-    /// <summary>The pairs of Annex C.2, E.2 item 14 and E.3.3 item 6 that map an extended letter to a basic one, which the fold of a COBOL word does not apply (§8.1.3.2 GR4 b): the corresponding lowercase EXTENDED letter; kb/Work PB4420).</summary>
+    /// <summary>The pairs of Annex C.2, E.2 item 14 and E.3.3 item 6 that map an extended letter to a basic one, which the fold of a COBOL word does not apply (§2023:8.1.3.2 GR4 b): the corresponding lowercase EXTENDED letter; kb/Work PB4420).</summary>
     internal static readonly (int First, int Second)[] NotApplied =
     [
         (0x0130, 0x0069), (0x212A, 0x006B), (0x0131, 0x0069),

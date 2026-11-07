@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB722 (campaign PB3353: the abnormal path of RETURN ... INTO).
-      *> ISO §14.9.34.4 GR5 b): "The implied MOVE statement does not occur
+      *> ISO §2023:14.9.34.4 GR5 b): "The implied MOVE statement does not occur
       *> if the execution of the RETURN statement was unsuccessful. Item
       *> identification of the data item referenced by identifier-1 is
       *> done after the record has been read and immediately before it is
@@ -16,7 +16,7 @@
       *> the record is made available and after executing any implicit
       *> move resulting from the presence of an INTO phrase, control is
       *> transferred to imperative-statement-2".  This is the RETURN twin
-      *> of l1_read_into_unsuccessful (READ ... INTO, §14.9.30.4 GR5); the
+      *> of l1_read_into_unsuccessful (READ ... INTO, §2023:14.9.30.4 GR5); the
       *> success-path size witness is pb339_into_current_record leg G.
       *>
       *> LEG A - SUCCESS, MOVE BEFORE NOT AT END.  The SD record is the
@@ -32,12 +32,12 @@
       *> undefined, so any other value fails the rule).
       *> LEG C - ITEM IDENTIFICATION.  The receiver is TE(IDX), IDX = 5
       *> over a 3-occurrence table, so identifying it sets
-      *> EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2, Table 13 fatal).  C1 is a
+      *> EC-BOUND-SUBSCRIPT (§2023:8.4.2.3.4 GR2, Table 13 fatal).  C1 is a
       *> successful RETURN: identification is done "after the record has
       *> been read and immediately before it is moved", so the declarative
       *> MUST run - the positive control proving it is armed.  Its RESUME
-      *> is a not-normal completion (§14.6.13.1.2 1)), so the SORT whose
-      *> output procedure raised it is terminated (§14.9.40.4 GR17: "If a
+      *> is a not-normal completion (§2023:14.6.13.1.2 1)), so the SORT whose
+      *> output procedure raised it is terminated (§2023:14.9.40.4 GR17: "If a
       *> USE procedure invoked while a format 1 SORT statement is active
       *> does not complete normally, the SORT statement is terminated"):
       *> "C1-RETURNED" never prints and control resumes at "C1-SORT-END".

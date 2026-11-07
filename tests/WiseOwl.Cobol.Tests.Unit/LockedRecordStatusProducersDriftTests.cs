@@ -12,13 +12,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// R43 item 3; re-adjudicated by kb/Work PB3337). Item 152 — "circumstances other than a locked logical record that return
 /// a locked record status" — is conditionally required, "conditioned on the existence of such circumstances in an
 /// implementation" (A.1 item 152, <c>cite.py --check A.1 "conditioned on the existence of such circumstances in an
-/// implementation"</c> → OK §A.1 152)), the latitude §9.1.16 grants — "The implementor may specify circumstances
+/// implementation"</c> → OK §2023:A.1 152)), the latitude §2023:9.1.16 grants — "The implementor may specify circumstances
 /// other than a locked logical record that result in the return of a locked record status." (<c>cite.py --check
 /// 9.1.16</c> → OK). docs/CONFORMANCE.md §7 records the one circumstance: a transaction's HOLDING under an active APPLY
 /// COMMIT clause (of a relative or indexed file, a record it changed, a deleted record's identity, a unique alternate key
 /// value it freed — docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10; of a sequential file, the end of the file, a
 /// record it rewrote or appended, and the whole file once replaced — 2.2.2.3, kb/Work PB3340); otherwise I-O status '51'
-/// (§9.1.13.8 item 1, the record operation conflict) is produced ONLY for a record another file connector holds locked.
+/// (§2023:9.1.13.8 item 1, the record operation conflict) is produced ONLY for a record another file connector holds locked.
 ///
 /// <para>The determination is pinned where it lives: the set of places the runtime PRODUCES
 /// <see cref="FileStatusCode.RecordLocked"/>. Today there are four, each guarded by a lock or holding another connector

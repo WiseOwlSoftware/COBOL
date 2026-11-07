@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR1 b) 3 — "If the AT END phrase is not
+      *> ISO §2023:14.9.37.4 GR1 b) 3 — "If the AT END phrase is not
       *> specified and neither exception condition was raised because
       *> the checking for those exception conditions was not enabled,
       *> control is transferred to the end of the SEARCH statement."
-      *> §14.6.13.1.1: "By default, checking is not enabled for any
+      *> §2023:14.6.13.1.1: "By default, checking is not enabled for any
       *> exception condition", and this program contains no TURN
       *> directive and no declaratives, so no applicable exception
       *> processing statement exists and GR1b2 cannot apply either.
@@ -20,13 +20,13 @@
       *>        (the EC-RANGE-SEARCH-NO-MATCH shape);
       *>   A2 — an initial index of zero, which GR4 calls unsuccessful
       *>        before any comparison (the EC-RANGE-SEARCH-INDEX
-      *>        shape). §13.18.38.4 GR2 guarantees an index accepts at
+      *>        shape). §2023:13.18.38.4 GR2 guarantees an index accepts at
       *>        least occurrence (1 - 5), so SET IX TO 0 is legal here.
       *> The L23-EC line pins the OTHER conjunct of GR1b3's premise,
-      *> that neither condition was RAISED. §14.6.13.1.1: "if checking
+      *> that neither condition was RAISED. §2023:14.6.13.1.1: "if checking
       *> for an exception that occurs is not enabled, no exception
       *> condition is raised", so the last exception status still
-      *> indicates that no exception condition exists and §15.33.3
+      *> indicates that no exception condition exists and §2023:15.33.3
       *> rule 1 returns 31 alphanumeric spaces. Without that line a
       *> compiler that wrongly enabled EC-RANGE checking by default
       *> would print exactly the same output: both conditions are

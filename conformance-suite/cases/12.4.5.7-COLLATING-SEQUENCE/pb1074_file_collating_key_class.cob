@@ -6,12 +6,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1074 — the file-control COLLATING SEQUENCE applies BY THE KEY'S CLASS (ISO §12.4.5.7.4):
+      *> kb/Work PB1074 — the file-control COLLATING SEQUENCE applies BY THE KEY'S CLASS (ISO §2023:12.4.5.7.4):
       *> GR2 "An alphanumeric collating sequence referenced by alphabet-name-1 applies to any record keys of
       *> class alphanumeric", GR3 "A national collating sequence referenced by alphabet-name-2 applies to any
       *> record keys of class national", GR5 "If alphabet-name-2 is not specified ... the native national
       *> collating sequence applies to any record keys of class national". So an alphanumeric alphabet never
-      *> reorders a national key, nor re-judges its uniqueness (§12.4.5.12.4 GR1).
+      *> reorders a national key, nor re-judges its uniqueness (§2023:12.4.5.12.4 GR1).
       *> File IXF: national prime key, alphanumeric alternate key, FOR ALPHANUMERIC IS REV and FOR NATIONAL IS
       *> NNAT (the NATIVE national sequence): the prime key walks A M Z, the alternate key Z M A.
       *> File G: national prime key under COLLATING SEQUENCE IS EQV ("A" ALSO "B" — alphanumeric): N"A" and N"B"

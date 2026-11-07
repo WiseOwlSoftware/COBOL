@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// AS IT DID WHEN EVERYTHING FIT (kb/Work PB3339; docs/CONFORMANCE.md §3 D-SWK). Each test runs in its own run unit with
 /// the floor limit (64 KiB) and its own work directory, releases many times the limit, and checks three things: the
 /// result equals the order the standard prescribes, computed here independently (a stable sort — LINQ's OrderBy is
-/// stable — for §14.9.40.4 GR3 a)/b) "The order in which these records are released by an input procedure"; the
-/// stream-ordered merge for §14.9.24.4 GR4 a) "Follows the order of the associated input files as specified in the MERGE
+/// stable — for §2023:14.9.40.4 GR3 a)/b) "The order in which these records are released by an input procedure"; the
+/// stream-ordered merge for §2023:14.9.24.4 GR4 a) "Follows the order of the associated input files as specified in the MERGE
 /// statement"); the MEASURED peak of the store's resident records never passed the limit while the input was at least
 /// eight times it; and after the statement's end the work directory is empty.
 /// </summary>
@@ -30,7 +30,7 @@ public sealed class SortWorkBoundTests : IDisposable
 
     private static readonly CobolSort.Key[] AlnumKey = [new(0, 4, false, CobolSort.KeyClass.Alphanumeric, default)];
 
-    /// <summary>A zoned unsigned 4-digit key (USAGE DISPLAY, §8.8.4.2.4 — algebraic, never collated).</summary>
+    /// <summary>A zoned unsigned 4-digit key (USAGE DISPLAY, §2023:8.8.4.2.4 — algebraic, never collated).</summary>
     private static readonly NumProfile Zoned4 = new()
     {
         Digits = 4, FractionDigits = 0, Signed = false, Truncation = NumericTruncation.DigitCount,
@@ -149,7 +149,7 @@ public sealed class SortWorkBoundTests : IDisposable
             CobolSort.Sort(sd, duplicatesInOrder: true);
             CobolSort.Rewind(sd);
             var first = Drain(sd);
-            CobolSort.Rewind(sd);   // §14.9.40.4 GR15: the next GIVING file
+            CobolSort.Rewind(sd);   // §2023:14.9.40.4 GR15: the next GIVING file
             var second = Drain(sd);
             Assert.Equal(records.Count, first.Count);
             Assert.Equal(first, second);
@@ -160,7 +160,7 @@ public sealed class SortWorkBoundTests : IDisposable
     }
 
     /// <summary>Every key lane through the runs: a DESCENDING numeric (zoned) key first, then an ascending NATIONAL key
-    /// (its UTF-16BE byte pairs, §13.18.60.4 GR8 / D-N1) — the expected order computed from the values, not the bytes.</summary>
+    /// (its UTF-16BE byte pairs, §2023:13.18.60.4 GR8 / D-N1) — the expected order computed from the values, not the bytes.</summary>
     [Fact]
     public void NumericDescendingAndNationalKeys_OrderTheSameThroughRuns()
     {
@@ -193,7 +193,7 @@ public sealed class SortWorkBoundTests : IDisposable
     }
 
     /// <summary>A MERGE of three ordered USING streams many times the limit: equal keys follow the input files' order
-    /// (§14.9.24.4 GR4 a)) and each file keeps its own order (GR4 b)), and the streams' runs are deleted at the end.</summary>
+    /// (§2023:14.9.24.4 GR4 a)) and each file keeps its own order (GR4 b)), and the streams' runs are deleted at the end.</summary>
     [Fact]
     public void AMergeManyTimesTheLimit_KeepsInputFileOrder_WithinTheLimit()
     {
@@ -220,7 +220,7 @@ public sealed class SortWorkBoundTests : IDisposable
         Assert.True(WorkDirectoryIsEmpty());
     }
 
-    /// <summary>§14.9.24.4 GR6 on a stream that was written to its run before the merge: the out-of-order record is
+    /// <summary>§2023:14.9.24.4 GR6 on a stream that was written to its run before the merge: the out-of-order record is
     /// found as it arrives and raised by the MERGE, naming its record number, exactly as for a stream in memory.</summary>
     [Fact]
     public void AnOutOfOrderStreamOnDisk_RaisesSequence_NamingTheRecord()
@@ -301,7 +301,7 @@ public sealed class SortWorkBoundTests : IDisposable
         const string sd = "PB3339-FAIL-MERGE";
         var streams = Enumerable.Range(0, 3).Select(s => Records(6_000, seed: 30 + s)
             .OrderBy(r => r[..4], StringComparer.Ordinal).ToList()).ToList();
-        streams[1].Add(Sentinel("ZZZ1"));   // each stream stays in KEY order (§14.9.24.4 GR6)
+        streams[1].Add(Sentinel("ZZZ1"));   // each stream stays in KEY order (§2023:14.9.24.4 GR6)
         streams[2].Add(Sentinel("ZZZ2"));
         InRunUnit(() =>
         {

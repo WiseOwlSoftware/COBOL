@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.7.4 GR2 — linkage correspondence; index-names separate
+      *> ISO §2023:13.7.4 GR2 — linkage correspondence; index-names separate
       *> "The mechanism by which a correspondence is established between
       *>  the formal parameters and returning items described in the
       *>  linkage section and data items described in the activating
@@ -15,7 +15,7 @@
       *>  activating source elements always refer to separate indices."
       *> cite.py --check 13.7.4 "index-names in the activated and
       *>   activating source elements always refer to separate indices"
-      *>   -> OK §13.7.4 2)
+      *>   -> OK §2023:13.7.4 2)
       *> The caller passes table W-T (BY REFERENCE, the default) whose
       *> index is W-IX; the callee describes the same table as L-T with
       *> its OWN index L-IX.  The data item corresponds (the callee's

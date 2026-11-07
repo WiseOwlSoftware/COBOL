@@ -5,9 +5,9 @@ using Microsoft.Win32.SafeHandles;
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE REGION LOCKS OF A HOST WITH NO OPEN-FILE-DESCRIPTION LOCKS — macOS above all (kb/Work PB2936). ISO §9.1.16:
+/// ⛔ THE REGION LOCKS OF A HOST WITH NO OPEN-FILE-DESCRIPTION LOCKS — macOS above all (kb/Work PB2936). ISO §2023:9.1.16:
 /// <i>"While locked by a given file connector, a record is not accessible to another file connector in the same or a
-/// different run unit"</i>; §9.1.13.8 1): the access answers I-O status 51. Before this class a record lock and the
+/// different run unit"</i>; §2023:9.1.13.8 1): the access answers I-O status 51. Before this class a record lock and the
 /// store mutex of a shared RELATIVE or INDEXED file had no expression off Linux and Windows, so two run units sharing
 /// such a file under <c>SHARING WITH ALL OTHER</c> both read '00' for a record one of them held, wrote over each other's
 /// store and lost updates, silently.
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// cannot wait for a release it cannot see — the run unit then has only its own protection for that statement, the
 /// same degradation a directory it may not write has. A lock directory this user may enter but not LIST hides every
 /// holder in it and is unobservable as a whole (the train 1056b review: read as a lock the host cannot hold, it gave a
-/// READ WITH LOCK the record §9.1.13.8 1) refuses with '51').</para>
+/// READ WITH LOCK the record §2023:9.1.13.8 1) refuses with '51').</para>
 /// <para><b>Release and close.</b> A released byte's file is deleted before its descriptor closes
 /// (<see cref="SidecarLockFiles.LockFileHolder"/>), the endpoint's disposal releases every byte it still holds, and a
 /// run unit that is killed holds nothing — the kernel dropped its locks with its descriptors.</para>

@@ -4,17 +4,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.38.3 SR32 / §13.18.38.4 GR15 — the CAPACITY
+      *> ISO §2023:13.18.38.3 SR32 / §2023:13.18.38.4 GR15 — the CAPACITY
       *> register data-name-3 used as a PERFORM VARYING identifier.
       *> "32) Data-name-3 shall not be referenced as a receiving item,
       *>   except as the operand of a variable-table format SET
       *>   statement."
-      *>   OK  §13.18.38.3 32)  (Syntax rules)
+      *>   OK  §2023:13.18.38.3 32)  (Syntax rules)
       *> "15) ... Data-name-3 shall not be referenced as a receiving
       *>   operand."
-      *>   OK  §13.18.38.4 15)  (General rules)
+      *>   OK  §2023:13.18.38.4 15)  (General rules)
       *> PERFORM VARYING T-CAP ... stores into T-CAP (the VARYING
-      *> identifier is set and augmented, §14.9.27.4).
+      *> identifier is set and augmented, §2023:14.9.27.4).
       *> The statement is not a SET statement, so the exception does
       *> not apply and the source shall be rejected: COBOL1523,
       *> whose meaning is exactly this violation.

@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 GR6 — USAGE COMPUTATIONAL: the implementor's radix
+      *> ISO §2023:13.18.60.4 GR6 — USAGE COMPUTATIONAL: the implementor's radix
       *> and format, the alignment and representation including the algebraic
       *> sign, and the range of values the item may hold (Annex A.1 item 208;
       *> docs/CONFORMANCE.md DOC-A.1-208).
       *>
-      *> THE RULE. §13.18.60.4 GR6: "The USAGE COMPUTATIONAL clause specifies
+      *> THE RULE. §2023:13.18.60.4 GR6: "The USAGE COMPUTATIONAL clause specifies
       *> that a radix and format specified by the implementor is used to
       *> represent a numeric item in the storage of the computer. Each
       *> implementor specifies the precise effect of the USAGE COMPUTATIONAL
@@ -31,25 +31,25 @@
       *> This golden's job is to MEASURE that identity rather than restate it,
       *> because "identical to BINARY" is precisely the kind of claim that can
       *> rot into two code paths that agree on the common cases.
-      *> §13.18.60.3 SR6 supplies the second spelling: "COMP is an
+      *> §2023:13.18.60.3 SR6 supplies the second spelling: "COMP is an
       *> abbreviation for COMPUTATIONAL." The vendor synonym COMP-4 is
       *> deliberately NOT written here — it is not an ISO word, and a
       *> strict-conformance golden should not depend on one.
       *>
       *> W — width and alignment. All three spellings of the same picture
       *>     answer 2 (DOC-A.1-205: 3-4 digits -> 2 bytes). FUNCTION
-      *>     BYTE-LENGTH is §15.14.1, "an integer equal to the length of the
+      *>     BYTE-LENGTH is §2023:15.14.1, "an integer equal to the length of the
       *>     argument in bytes".
       *> BE — representation INCLUDING THE SIGN, on the COMPUTATIONAL item.
       *>     -1234 in 16 bits two's complement is 65 536 - 1234 = 64 302 =
       *>     X"FB2E", most significant byte first, so the group image holds
-      *>     X"FB" then X"2E". FUNCTION ORD is 1-based (§15.70.1, "The lowest
+      *>     X"FB" then X"2E". FUNCTION ORD is 1-based (§2023:15.70.1, "The lowest
       *>     ordinal position is 1") and the native alphanumeric ordinal of a
       *>     character is its code unit + 1, so the two bytes read 251+1 = 252
       *>     and 46+1 = 47. A little-endian implementation answers "47 252"; a
       *>     sign-magnitude or packed representation answers neither. The
       *>     bytes are reached through a GROUP move to an alphanumeric item,
-      *>     which §14.9.25.4 GR4 makes a byte transfer ("treated exactly as
+      *>     which §2023:14.9.25.4 GR4 makes a byte transfer ("treated exactly as
       *>     if it were an alphanumeric to alphanumeric elementary move"),
       *>     never a numeric conversion.
       *> IDENT — the identity claim itself, and the leg no earlier golden
@@ -61,7 +61,7 @@
       *> HOLD / SIZE / KEEP — the RANGE determination, which is the one that
       *>     distinguishes DOC-A.1-208's COMP from its COMP-5 neighbour.
       *>     COMP's range is the PICTURE's digit count, so PIC S9(4) holds
-      *>     9 999 (HOLD) and 10 000 is out of range: §14.7.5 case 3 makes the
+      *>     9 999 (HOLD) and 10 000 is out of range: §2023:14.7.5 case 3 makes the
       *>     size error condition exist "if, after radix point alignment and
       *>     any applicable rounding specifications, the result of an
       *>     arithmetic statement is further from zero than permitted for the
@@ -69,7 +69,7 @@
       *>     taken (SIZE). An implementation that gave COMPUTATIONAL its
       *>     CONTAINER's range — the documented COMP-5 discipline, a different
       *>     usage — would store 10 000 in those same two bytes and answer
-      *>     SIZE=NO. KEEP is §14.7.5's own consequence for the taken phrase:
+      *>     SIZE=NO. KEEP is §2023:14.7.5's own consequence for the taken phrase:
       *>     "the content of that resultant identifier is not changed from the
       *>     content that existed at the start of the execution of the
       *>     arithmetic statement", so RNG still holds the 9 999 put there

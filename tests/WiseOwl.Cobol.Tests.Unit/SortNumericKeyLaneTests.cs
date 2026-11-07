@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ A NUMERIC SORT KEY ORDERS BY ITS ALGEBRAIC VALUE ACROSS ITS WHOLE CONTAINER (kb/Work PB186).
-/// ISO §14.9.40.4 GR8 / GR19 compare key data items "according to the rules for comparison of operands in a
-/// relation condition" — for numeric operands §8.8.4.2.4's algebraic value. An UNSIGNED 16-byte binary key holds
+/// ISO §2023:14.9.40.4 GR8 / GR19 compare key data items "according to the rules for comparison of operands in a
+/// relation condition" — for numeric operands §2023:8.8.4.2.4's algebraic value. An UNSIGNED 16-byte binary key holds
 /// [0, 2^128), and the signed Int128 decode lane returns every value at or above 2^127 as a NEGATIVE number, so
 /// both SORT forms need the unsigned lane: the runtime key column (Format 1 and MERGE) and the emitted table
 /// comparer (Format 2), which now decodes through the ONE windowed reader instead of a private copy (the source

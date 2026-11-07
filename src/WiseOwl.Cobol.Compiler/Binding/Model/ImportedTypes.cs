@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The classes and interfaces this compilation IMPORTED from the external repository (DESIGN-external-repository §10.1), in
-/// the order they were first asked for: what the backend references and names in another assembly (§10.2). The bind hands
+/// the order they were first asked for: what the backend references and names in another assembly (§2023:10.2). The bind hands
 /// them to the backend as data on <see cref="BoundCompilation.Imported"/> (kb/Work PB2403), so no emitter asks the class
 /// table that imported them.
 /// </summary>

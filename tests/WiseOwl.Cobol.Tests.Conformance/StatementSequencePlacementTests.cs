@@ -11,15 +11,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///
 /// <para>The rules, each <c>cite.py --check</c>ed:
 /// <list type="bullet">
-///   <item>§14.9.14.3 SR1 — "The EXIT statement shall appear in a sentence by itself that shall be the only sentence
+///   <item>§2023:14.9.14.3 SR1 — "The EXIT statement shall appear in a sentence by itself that shall be the only sentence
 ///         in the paragraph or in a section without paragraphs." (FORMAT 1 only: EXIT PERFORM, EXIT PARAGRAPH and the
 ///         rest are Formats 2-4 and carry no such rule.)</item>
-///   <item>§14.9.17.3 SR2 — "If a GO TO statement represented by format 1 appears in a consecutive sequence of
+///   <item>§2023:14.9.17.3 SR2 — "If a GO TO statement represented by format 1 appears in a consecutive sequence of
 ///         imperative statements within a sentence, it shall appear as the last statement in that sequence."
-///         (Format 2, DEPENDING, is not constrained. A following CONDITIONAL statement — §14.5.1, "Any statement
+///         (Format 2, DEPENDING, is not constrained. A following CONDITIONAL statement — §2023:14.5.1, "Any statement
 ///         with a conditional phrase that is not terminated by its explicit scope terminator is a conditional
 ///         statement" — ends the imperative sequence, so the GO TO is its last statement; kb/Work PB2610.)</item>
-///   <item>§14.9.42.3 SR1 — "The STOP statement shall be specified only as the last statement in any discreet block
+///   <item>§2023:14.9.42.3 SR1 — "The STOP statement shall be specified only as the last statement in any discreet block
 ///         of code." Read as the same consecutive sequence (docs/CONFORMANCE.md D-SEQ); STOP RUN only, since the
 ///         X3.23-1985 STOP literal continues with the next statement.</item>
 /// </list></para>
@@ -34,7 +34,7 @@ public sealed class StatementSequencePlacementTests
     private const string GoToNotLast = "COBOL2967";
     private const string StopNotLast = "COBOL2968";
 
-    // ── §14.9.14.3 SR1 ───────────────────────────────────────────────────────────────────────────────────
+    // ── §2023:14.9.14.3 SR1 ───────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>A bare EXIT as the whole of a paragraph — the shape the rule admits — alone or among other
     /// paragraphs, and as the only sentence of a section without paragraphs.</summary>
@@ -70,7 +70,7 @@ public sealed class StatementSequencePlacementTests
             EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(Program(pid, procedure), edition), ExitNotAlone);
     }
 
-    // ── §14.9.17.3 SR2 ───────────────────────────────────────────────────────────────────────────────────
+    // ── §2023:14.9.17.3 SR2 ───────────────────────────────────────────────────────────────────────────────────
 
     [Theory]
     // Last of its sentence.
@@ -80,10 +80,10 @@ public sealed class StatementSequencePlacementTests
     [InlineData("SQG03", "MAIN-PARA.\n    IF W-N = 0 GO TO P2 ELSE GO TO P3 END-IF.\nP2.\n    STOP RUN.\nP3.\n    STOP RUN.\n")]
     // Format 2 (DEPENDING): control falls through to the next statement when no name is selected (GR2).
     [InlineData("SQG04", "MAIN-PARA.\n    GO TO P2 P3 DEPENDING ON W-N DISPLAY \"A\".\nP2.\n    STOP RUN.\nP3.\n    STOP RUN.\n")]
-    // kb/Work PB2610 — followed by a CONDITIONAL statement (§14.5.1: a conditional phrase written without the
+    // kb/Work PB2610 — followed by a CONDITIONAL statement (§2023:14.5.1: a conditional phrase written without the
     // explicit scope terminator), which ends the consecutive sequence of IMPERATIVE statements SR2 binds: an IF, an
     // EVALUATE, an ADD with ON SIZE ERROR, a STRING with ON OVERFLOW, a SEARCH with AT END and WHEN, and the same
-    // inside an IF's THEN phrase (§14.9.19.3 SR1 lets statement-1 end in a conditional statement).
+    // inside an IF's THEN phrase (§2023:14.9.19.3 SR1 lets statement-1 end in a conditional statement).
     [InlineData("SQG05", "MAIN-PARA.\n    GO TO P2\n    IF W-N = 0 DISPLAY \"A\".\nP2.\n    STOP RUN.\n")]
     [InlineData("SQG06", "MAIN-PARA.\n    GO TO P2\n    EVALUATE W-N WHEN 0 DISPLAY \"A\".\nP2.\n    STOP RUN.\n")]
     [InlineData("SQG07", "MAIN-PARA.\n    GO TO P2\n    ADD 1 TO W-N ON SIZE ERROR DISPLAY \"A\".\nP2.\n    STOP RUN.\n")]
@@ -109,7 +109,7 @@ public sealed class StatementSequencePlacementTests
     [InlineData("SQG14", "MAIN-PARA.\n    PERFORM 2 TIMES GO TO P2 DISPLAY \"A\" END-PERFORM.\nP2.\n    STOP RUN.\n")]
     [InlineData("SQG15", "MAIN-PARA.\n    ADD 1 TO W-N ON SIZE ERROR GO TO P2 DISPLAY \"A\" END-ADD.\nP2.\n    STOP RUN.\n")]
     // A statement written WITH its explicit scope terminator is a delimited scope statement, which is imperative
-    // (§14.5.3.2), so it continues the GO TO's sequence (kb/Work PB2610's boundary).
+    // (§2023:14.5.3.2), so it continues the GO TO's sequence (kb/Work PB2610's boundary).
     [InlineData("SQG16", "MAIN-PARA.\n    GO TO P2\n    IF W-N = 0 DISPLAY \"A\" END-IF.\nP2.\n    STOP RUN.\n")]
     [InlineData("SQG17", "MAIN-PARA.\n    GO TO P2\n    ADD 1 TO W-N ON SIZE ERROR DISPLAY \"A\" END-ADD.\nP2.\n    STOP RUN.\n")]
     // An ADD with no conditional phrase is imperative: it has no END-ADD and no phrase, and is no conditional statement.
@@ -120,7 +120,7 @@ public sealed class StatementSequencePlacementTests
             EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(Program(pid, procedure), edition), GoToNotLast);
     }
 
-    // ── §14.9.42.3 SR1 ───────────────────────────────────────────────────────────────────────────────────
+    // ── §2023:14.9.42.3 SR1 ───────────────────────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("SQS01", "MAIN-PARA.\n    DISPLAY \"A\" STOP RUN.\n")]
@@ -151,7 +151,7 @@ public sealed class StatementSequencePlacementTests
             EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(Program(pid, procedure), edition), StopNotLast);
     }
 
-    /// <summary>The X3.23-1985 STOP literal (deleted 2002) is NOT the statement §14.9.42.3 SR1 governs: §14.9.42 has
+    /// <summary>The X3.23-1985 STOP literal (deleted 2002) is NOT the statement §2023:14.9.42.3 SR1 governs: §2023:14.9.42 has
     /// only STOP RUN, which ends the run unit, while STOP literal communicates to the operator and then CONTINUES with
     /// the next statement — so the statement after it executes and the rule's reason does not hold. Found by the
     /// train-1031 lander's review: this case was refused at 85, legal source the edition runs.</summary>

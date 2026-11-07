@@ -6,15 +6,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.4.5.7 file-control COLLATING SEQUENCE clause (INDEXED record-key
+      *> ISO §2023:12.4.5.7 file-control COLLATING SEQUENCE clause (INDEXED record-key
       *> collating). The prime key collates under ALPHABET REV (Z..A), so the
       *> ascending key order is the REVERSE of native: records WRITTEN A, M, Z
-      *> read back (READ NEXT) as Z, M, A (§12.4.5.5.3 GR2c — ascending within a
+      *> read back (READ NEXT) as Z, M, A (§2023:12.4.5.5.3 GR2c — ascending within a
       *> key of reference according to that key's collating sequence). A START
       *> KEY >= "M" under REV positions at M and walks M, A (weights: Z<M<A).
       *> Then an equivalence-class alphabet (EQV maps 'A' and 'B' to one weight)
       *> makes two byte-different keys EQUAL: the second WRITE of a weight-equal
-      *> prime key is duplicate-key '22' (§12.4.5.12.4 GR1 — equality per the
+      *> prime key is duplicate-key '22' (§2023:12.4.5.12.4 GR1 — equality per the
       *> collating sequence). Native ordinal ordering would print A,M,Z and admit
       *> both keys; this golden is greenfield-only (the legacy has no clause).
        IDENTIFICATION DIVISION.

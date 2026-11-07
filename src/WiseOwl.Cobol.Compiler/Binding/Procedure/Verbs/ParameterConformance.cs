@@ -12,17 +12,17 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// rule that imports them differs between the activating statements.</summary>
 /// <param name="Callee">The activation as the message names it — <c>CALL … AS NESTED</c>,
 /// <c>CALL … program-prototype 'P'</c>, <c>FUNCTION F</c>.</param>
-/// <param name="ImportingRule">The syntax rule that makes §14.8.2 apply to this activation — §14.9.4.3 SR25 for a
-/// Format-2 CALL, §8.4.3.2.3 SR13 for a function-identifier.</param>
-/// <param name="Conformance">The descriptor a §14.8.2 non-conformance reports under.</param>
+/// <param name="ImportingRule">The syntax rule that makes §2023:14.8.2 apply to this activation — §2023:14.9.4.3 SR25 for a
+/// Format-2 CALL, §2023:8.4.3.2.3 SR13 for a function-identifier.</param>
+/// <param name="Conformance">The descriptor a §2023:14.8.2 non-conformance reports under.</param>
 internal sealed record ActivationSite(string Callee, string ImportingRule, DiagnosticDescriptor Conformance);
 
 /// <summary>
-/// ⛔ THE ONE ARGUMENT HALF OF ISO §14.8.2, PARAMETERS — for every activation whose activated element's formal
+/// ⛔ THE ONE ARGUMENT HALF OF ISO §2023:14.8.2, PARAMETERS — for every activation whose activated element's formal
 /// parameters are known when the activating statement binds (kb/Work PB1418 / PB1115). Two syntax rules import the
-/// same regime: §14.9.4.3 SR25 into a Format-2 CALL (the AS NESTED containment table or a program prototype's
-/// §12.3.8.4 GR10 a) definition), and §8.4.3.2.3 SR13 into a function-identifier that names a function prototype
-/// or a function pointer. §14.8.2.3.2 rule 2 then lists "a program for which there is a program-specifier …", "a
+/// same regime: §2023:14.9.4.3 SR25 into a Format-2 CALL (the AS NESTED containment table or a program prototype's
+/// §2023:12.3.8.4 GR10 a) definition), and §2023:8.4.3.2.3 SR13 into a function-identifier that names a function prototype
+/// or a function pointer. §2023:14.8.2.3.2 rule 2 then lists "a program for which there is a program-specifier …", "a
 /// program and the NESTED phrase …", "a method" and "a function" side by side — ONE rule over four activated
 /// elements.
 /// <para>⛔ WHY IT IS A COLLABORATOR OF ITS OWN. The CALL binder carried this regime privately, and the
@@ -34,33 +34,33 @@ internal sealed record ActivationSite(string Callee, string ImportingRule, Diagn
 /// again; <c>ActivationConformanceDriftTests</c> pins that both lanes ask it. INVOKE's third lane is
 /// <c>OoBinder</c>'s, which asks the same run-time relations (<see cref="ActivationRelations"/>; kb/Work PB2077, PB3101),
 /// and it asks this type for everything its statement words like CALL's (kb/Work PB1137): the storage-section rule and the keyword-less
-/// mode test built on it (<see cref="ScreenSection"/>, <see cref="MeetsByReferenceRules"/> — §14.9.23.3 SR9/SR11 and
-/// §14.9.23.4 GR6 a), CALL's §14.9.4.3 SR3/SR7 and §14.9.4.4 GR9 a)), the bit-alignment proof (SR12, CALL's SR6/SR8)
+/// mode test built on it (<see cref="ScreenSection"/>, <see cref="MeetsByReferenceRules"/> — §2023:14.9.23.3 SR9/SR11 and
+/// §2023:14.9.23.4 GR6 a), CALL's §2023:14.9.4.3 SR3/SR7 and §2023:14.9.4.4 GR9 a)), the bit-alignment proof (SR12, CALL's SR6/SR8)
 /// and the literal-2 verdict (<see cref="ContentConformanceReason"/>).</para>
 /// </summary>
 internal sealed class ParameterConformance(BinderContext ctx, StatementBinder host)
 {
     /// <summary>One bound argument against its corresponding formal parameter, reported under
     /// <paramref name="site"/>. <paramref name="position"/> is 1-based. An OMITTED argument is never asked:
-    /// §14.8.2's rules are about a formal parameter's DESCRIPTION, which an omitted argument has none of.
+    /// §2023:14.8.2's rules are about a formal parameter's DESCRIPTION, which an omitted argument has none of.
     /// <list type="bullet">
     /// <item>An ADDRESS-IDENTIFIER (kb/Work PB239) is a pointer value with no storage behind it; its law is the
     /// class-pointer paragraph both passing regimes share.</item>
-    /// <item>BY REFERENCE: §14.8.2.3.2 / §14.8.2.2 rule 1 — the run-time CALL lane's relation over the two
+    /// <item>BY REFERENCE: §2023:14.8.2.3.2 / §2023:14.8.2.2 rule 1 — the run-time CALL lane's relation over the two
     /// descriptions (<see cref="ByReferenceViolation"/>): rule 2's clause identity, "Additionally" d) / e) for ANY
     /// LENGTH, the class-pointer paragraph with its restricted-pointer sentence, the object-reference rules and the
     /// group rules.</item>
-    /// <item>BY CONTENT / BY VALUE: §14.8.2.3.3 / §14.8.2.2 rule 2 — the COMPUTE / SET / MOVE regime per formal
+    /// <item>BY CONTENT / BY VALUE: §2023:14.8.2.3.3 / §2023:14.8.2.2 rule 2 — the COMPUTE / SET / MOVE regime per formal
     /// category, asked of the same relation (<see cref="ContentConformanceReason"/>).</item>
     /// </list></summary>
     internal void CheckArgument(DataItem formal, BoundCallArg arg, int position, ActivationSite site)
     {
         if (arg.Omitted) return;
         // ⛔ A CARRIER RESIDUE, NOT A CONFORMANCE RULE (kb/Work PB1116, PB2087, PB1940). Two strong groups of one type
-        // CONFORM (§14.8.2.2 — OoConformance decides it for every lane). A group with a pointer or object-reference leaf has
+        // CONFORM (§2023:14.8.2.2 — OoConformance decides it for every lane). A group with a pointer or object-reference leaf has
         // no character image: its managed values (and a variable-length one's components, kb/Work PB3139) ride the
         // MANAGED SLOTS of a StorageCell, so the program ABI carries it
-        // only as an AREA — BY REFERENCE the argument's own (§14.2.3 GR8), BY CONTENT a detached copy of it (GR9's record,
+        // only as an AREA — BY REFERENCE the argument's own (§2023:14.2.3 GR8), BY CONTENT a detached copy of it (GR9's record,
         // CobolArgAdapt.ContentRecord) — and the activating element claims every such operand onto a cell
         // (PtrBindBasedAndAddressablesPass). The one argument left is storage no claim reaches (a LINKAGE item that
         // is not a formal): a copy of its image would silently drop the references, so it is refused HERE, naming why.
@@ -69,7 +69,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         {
             ctx.Edition.Error(site.Conformance,
                 $"{site.Callee} argument {position}: formal parameter '{formal.CobolName}' is a strongly-typed group with "
-                + $"an object-reference or pointer leaf; the argument conforms (ISO §14.8.2.2 — both of the same type), but {residue}");
+                + $"an object-reference or pointer leaf; the argument conforms (ISO §2023:14.8.2.2 — both of the same type), but {residue}");
             return;
         }
         if (arg.DataAddress is not null || arg.ProgramAddress is not null)
@@ -85,10 +85,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             if (ByReferenceViolation(ap, formal) is { } why)
                 ctx.Edition.Error(site.Conformance,
                     $"{site.Callee} argument {position} ('{ap.Item.CobolName}') does not conform to formal "
-                    + $"parameter '{formal.CobolName}': {why} (ISO §14.8.2 via {site.ImportingRule})");
+                    + $"parameter '{formal.CobolName}': {why} (ISO §2023:14.8.2 via {site.ImportingRule})");
             return;
         }
-        // §14.8.2.3.3 (BY CONTENT / BY VALUE) + §14.8.2.2 rule 2 — the OTHER ARM OF THE SAME DISPATCH (kb/Work
+        // §2023:14.8.2.3.3 (BY CONTENT / BY VALUE) + §2023:14.8.2.2 rule 2 — the OTHER ARM OF THE SAME DISPATCH (kb/Work
         // PB165). With no screen here, CobolArgAdapt's converting views silently ADAPTED a non-conforming pair:
         // `CALL "S" AS NESTED USING BY CONTENT A` with `A PIC X(4) VALUE "ABCD"` and a `PIC 9(4)` formal printed
         // `LA=0000` — a wrong answer, on source the standard says is in error, with no diagnostic.
@@ -98,14 +98,14 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                 + $"({(arg.Place is { } cp ? $"'{cp.Item.CobolName}'" : "the value operand")}) does not conform to "
                 + $"formal parameter '{formal.CobolName}' "
                 + $"{(arg.Mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")}: {cwhy} "
-                // §14.8.2 as a whole, as the BY REFERENCE arm says it: the reason names its own subclause —
-                // §14.8.2.3.3 for an elementary formal, §14.8.2.2 rule 2 for a group one (kb/Work PB1617).
-                + $"(ISO §14.8.2 via {site.ImportingRule})");
+                // §2023:14.8.2 as a whole, as the BY REFERENCE arm says it: the reason names its own subclause —
+                // §2023:14.8.2.3.3 for an elementary formal, §2023:14.8.2.2 rule 2 for a group one (kb/Work PB1617).
+                + $"(ISO §2023:14.8.2 via {site.ImportingRule})");
         else if (arg.Mode is CobolPassMode.Content)
             GateFigurativeEdition(formal, arg.Value, $"{site.Callee} argument {position}");
     }
 
-    /// <summary>⛔ §14.9.25.3 SR5's EDITION ROWS FOR A FIGURATIVE ARGUMENT BY CONTENT (kb/Work PB3755). §14.8.2.3.3 rule 2
+    /// <summary>⛔ §2023:14.9.25.3 SR5's EDITION ROWS FOR A FIGURATIVE ARGUMENT BY CONTENT (kb/Work PB3755). §2023:14.8.2.3.3 rule 2
     /// d): "Otherwise, the conformance rules are the same as for a MOVE statement with the argument as the sending
     /// operand and the corresponding formal parameter as the receiving operand" — so HIGH-VALUE, LOW-VALUE, QUOTE and a
     /// non-digit ALL literal BY CONTENT into a numeric-edited formal are under the rows the written MOVE is under: valid
@@ -114,9 +114,9 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// characters, Table 16), so the rows are asked here, after it passed, through the ONE body every asker of the MOVE
     /// rules shares (<see cref="FigurativeAssociation.GateSr5"/>); CALL AS NESTED, a user-defined function (both through
     /// <see cref="CheckArgument"/>) and INVOKE (<c>OoBinder.OoBindInvocationArg</c>) are one rule over four activated
-    /// elements (§14.8.2.3.3 rule 2) and call this one method.
+    /// elements (§2023:14.8.2.3.3 rule 2) and call this one method.
     /// <para>A NUMERIC formal is rule 2 a)'s COMPUTE, which takes no figurative but ZERO whatever the edition, so the
-    /// relation has refused the pair and no row is asked; a group formal is §14.8.2.2 rule 2's conversion-free group move,
+    /// relation has refused the pair and no row is asked; a group formal is §2023:14.8.2.2 rule 2's conversion-free group move,
     /// which SR5 does not reach. A call whose activated program is located by name at run time has no formal here (and no
     /// run-time lane carries an edition): its argument is the activation boundary's.</para></summary>
     /// <param name="formal">The corresponding formal parameter.</param>
@@ -129,17 +129,17 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             || FigurativeAssociation.Sr5ReceiverOf(formal) is not { } receiver) return;
         FigurativeAssociation.GateSr5(ctx.Edition.Edition, ctx.Edition.Sink, value, receiver.Category, receiver.Integer,
             $"{subject}: {figText} BY CONTENT to formal parameter '{formal.CobolName}' "
-            + "(the MOVE ISO §14.8.2.3.3 rule 2 d) requires to be valid)");
+            + "(the MOVE ISO §2023:14.8.2.3.3 rule 2 d) requires to be valid)");
     }
 
-    /// <summary>⛔ ISO §14.8.2.3.2 / §14.8.2.2 FOR A BY REFERENCE ARGUMENT, ASKED OF THE ONE RELATION (kb/Work PB3101,
+    /// <summary>⛔ ISO §2023:14.8.2.3.2 / §2023:14.8.2.2 FOR A BY REFERENCE ARGUMENT, ASKED OF THE ONE RELATION (kb/Work PB3101,
     /// PB3127): <see cref="ActivationRelations.CallArgumentViolation"/> — the copy a CALL located by name at run time
-    /// asks (§14.9.4.4 GR3 d)) — over the descriptions <see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions"/> builds
+    /// asks (§2023:14.9.4.4 GR3 d)) — over the descriptions <see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions"/> builds
     /// for both sides, so the bind-time and the run-time lanes cannot answer one pair differently. Every activation
-    /// this entry serves is one §14.8.2.3.2 rule 2 governs: "a program for which there is a program-specifier in the
+    /// this entry serves is one §2023:14.8.2.3.2 rule 2 governs: "a program for which there is a program-specifier in the
     /// REPOSITORY paragraph", "a program and the NESTED phrase is specified on the CALL statement", "a function" — so
     /// the rule-2 clause identity, never rule 1's length. A reference-modified argument is the unique data item
-    /// §8.4.3.3.4 GR5 creates, which has no PICTURE clause (docs/CONFORMANCE.md D-RM1, decision PB3098): it conforms to
+    /// §2023:8.4.3.3.4 GR5 creates, which has no PICTURE clause (docs/CONFORMANCE.md D-RM1, decision PB3098): it conforms to
     /// an alphanumeric group formal of no more bytes and to no elementary formal. Null when the pair conforms.</summary>
     private string? ByReferenceViolation(Place argument, DataItem formal)
     {
@@ -150,26 +150,26 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         return ActivationRelations.CallArgumentViolation(CobolPassMode.Reference, a, f, specifiedProgram: true);
     }
 
-    /// <summary>⛔ THE ONE RETURNING-ITEM HALF OF ISO §14.8.3 — for every activation whose activated element's returning
-    /// item is known when the activating statement binds (kb/Work PB1164): a Format-2 CALL (§14.9.4.3 SR25) and an
-    /// INVOKE (§14.9.23.4 GR7 c)). §14.8.3.1 makes "the returning item in the activated element the sending
+    /// <summary>⛔ THE ONE RETURNING-ITEM HALF OF ISO §2023:14.8.3 — for every activation whose activated element's returning
+    /// item is known when the activating statement binds (kb/Work PB1164): a Format-2 CALL (§2023:14.9.4.3 SR25) and an
+    /// INVOKE (§2023:14.9.23.4 GR7 c)). §2023:14.8.3.1 makes "the returning item in the activated element the sending
     /// operand, the corresponding returning item in the activating element the receiving operand".
     /// <list type="bullet">
-    /// <item>Both OBJECT REFERENCES — §14.8.3.3 rule 1: "the conformance rules are the same as if a SET statement were
+    /// <item>Both OBJECT REFERENCES — §2023:14.8.3.3 rule 1: "the conformance rules are the same as if a SET statement were
     /// performed in the activated runtime element with the returning item in the activated element as the sending
     /// operand and the corresponding returning item in the activating element as the receiving operand", so a
-    /// subclass-typed sender conforms to a class-typed or universal receiver (§14.9.39.3 SR12 a)2., SR8) and a
+    /// subclass-typed sender conforms to a class-typed or universal receiver (§2023:14.9.39.3 SR12 a)2., SR8) and a
     /// superclass sender does not; rule 2: an ACTIVE-CLASS returning item sends the description the INVOCATION gives
     /// it (<see cref="WiseOwl.Cobol.Compiler.Oo.OoConformance.ReturningSender"/>, <paramref name="invokedWith"/>) — a CALL
     /// has no invocation, and a program's returning item cannot be ACTIVE-CLASS, so rule 1 is its whole rule.
-    /// This is NOT §9.3.8.2.3's identity comparison, which CALL used to ask here and which refused every legal
+    /// This is NOT §2023:9.3.8.2.3's identity comparison, which CALL used to ask here and which refused every legal
     /// widening.</item>
     /// <item>Everything else — the run-time CALL lane's relation over the two descriptions
-    /// (<see cref="ActivationRelations.CallReturningViolation"/>; kb/Work PB3101): §14.8.3.2 groups (no prefix
-    /// latitude — "the same length"), §14.8.3.3's elementary identity and its "Additionally" 4) / 5) ANY LENGTH
+    /// (<see cref="ActivationRelations.CallReturningViolation"/>; kb/Work PB3101): §2023:14.8.3.2 groups (no prefix
+    /// latitude — "the same length"), §2023:14.8.3.3's elementary identity and its "Additionally" 4) / 5) ANY LENGTH
     /// rules.</item>
     /// </list>
-    /// A function-identifier asks nothing: its result temporary IS a clone of the RETURNING item (§8.4.3.2.4 GR1), so
+    /// A function-identifier asks nothing: its result temporary IS a clone of the RETURNING item (§2023:8.4.3.2.4 GR1), so
     /// the pair conforms by construction. Null when conformant.</summary>
     internal string? ReturningConformanceReason(DataItem activated, DataItem receiving,
         ObjectRefDescriptor? invokedWith = null)
@@ -181,12 +181,12 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                     WiseOwl.Cobol.Compiler.Oo.OoConformance.ReturningSender(
                         sendPic.ObjectRef ?? ObjectRefDescriptor.Universal, invokedWith ?? ObjectRefDescriptor.Universal),
                     recvPic.ObjectRef ?? ObjectRefDescriptor.Universal) is { } setReason
-                    ? $"{setReason} (§14.8.3.3 rule 1 — the conformance of a SET statement from the activated returning "
+                    ? $"{setReason} (§2023:14.8.3.3 rule 1 — the conformance of a SET statement from the activated returning "
                       + "item into the activating one)"
                     : null
                 : null;
-        // Everything else is the run-time CALL lane's relation over the two descriptions (kb/Work PB3101): §14.8.3.2's
-        // groups, §14.8.3.3's elementary identity and its "Additionally" 4) / 5) ANY LENGTH rules.
+        // Everything else is the run-time CALL lane's relation over the two descriptions (kb/Work PB3101): §2023:14.8.3.2's
+        // groups, §2023:14.8.3.3's elementary identity and its "Additionally" 4) / 5) ANY LENGTH rules.
         if (WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.Of(activated, host.OoClasses) is not { } sending)
             return WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.NoDescriptionReason(activated, "returning item");
         if (WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.Of(receiving, host.OoClasses) is not { } receivingItem)
@@ -210,13 +210,13 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     private static string? SlotCarrierResidue(Place? operand) =>
         operand is { Item.Root.Class: { IsCellBacked: true } } ? null
         : "this activation boundary carries such a group only as a storage area of a cell, and the operand's storage is "
-          + "not one (§14.2.3 GR8 / GR9; INTERPROGRAM_DESIGN, area formals)";
+          + "not one (§2023:14.2.3 GR8 / GR9; INTERPROGRAM_DESIGN, area formals)";
 
     /// <summary>⛔ THE ONE reading of a figurative ZERO argument into an elementary NUMERIC formal (kb/Work PB1617
-    /// for INVOKE, PB1634 for CALL). §14.8.2.3.3 2) a): "If the formal parameter is numeric, the conformance rules
+    /// for INVOKE, PB1634 for CALL). §2023:14.8.2.3.3 2) a): "If the formal parameter is numeric, the conformance rules
     /// are the same as for a COMPUTE statement with the argument as the sending operand", and a COMPUTE reads the
-    /// figurative ZERO as the numeric value zero (§8.8.1.1 names it among an arithmetic expression's operands;
-    /// §8.3.3.6.3 SR1 a) makes it the one figurative a numeric literal's position admits). So the argument IS the
+    /// figurative ZERO as the numeric value zero (§2023:8.8.1.1 names it among an arithmetic expression's operands;
+    /// §2023:8.3.3.6.3 SR1 a) makes it the one figurative a numeric literal's position admits). So the argument IS the
     /// numeric literal 0: it takes the numeric-literal verdict and the numeric carrier. The character fill is for
     /// a character-carried formal only. Before CALL asked this, a ZERO into a <c>PIC 9(4) BINARY</c> formal crossed
     /// as the one-character fill "0" and landed as its character code, 48, BY VALUE, BY CONTENT and keyword-less
@@ -226,28 +226,28 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             ? new BoundNumericLiteral("0")
             : value;
 
-    /// <summary>⛔ ISO §14.8.2.3.3 / §14.8.2.2 rule 2 FOR ONE BY CONTENT / BY VALUE ARGUMENT, ASKED OF THE ONE RELATION
+    /// <summary>⛔ ISO §2023:14.8.2.3.3 / §2023:14.8.2.2 rule 2 FOR ONE BY CONTENT / BY VALUE ARGUMENT, ASKED OF THE ONE RELATION
     /// (kb/Work PB3101): <see cref="ActivationRelations.CallArgumentViolation"/> — the copy a CALL located by name at run
-    /// time asks (§14.9.4.4 GR3 d)) — over the descriptions <see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions"/>
+    /// time asks (§2023:14.9.4.4 GR3 d)) — over the descriptions <see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions"/>
     /// builds for both sides: an identifier as the place it is (a reference-modified one as the unique data item
-    /// §8.4.3.3.4 GR5 creates), and a value with no storage as the sending operand rule 2 names
+    /// §2023:8.4.3.3.4 GR5 creates), and a value with no storage as the sending operand rule 2 names
     /// (<see cref="WiseOwl.Cobol.Compiler.Oo.ActivationDescriptions.OfValue"/>: a literal of its category, a figurative constant
     /// or an ALL literal of any, a numeric literal by its own digits — a BY VALUE literal bound as an expression too,
-    /// §14.9.4.4 GR8 —, an intrinsic function by its §15.4 result, an arithmetic expression as a numeric COMPUTE sender
+    /// §2023:14.9.4.4 GR8 —, an intrinsic function by its §2023:15.4 result, an arithmetic expression as a numeric COMPUTE sender
     /// with no character image, a boolean value, NULL). So the bind-time and the run-time lanes cannot answer one pair
-    /// differently. Every activation this entry serves is one §14.8.2.3.3 rule 2 governs ("a program for which there is a
+    /// differently. Every activation this entry serves is one §2023:14.8.2.3.3 rule 2 governs ("a program for which there is a
     /// program-specifier …", "… the NESTED phrase …", "a method", "a function"), so the COMPUTE / SET / MOVE regime, never
-    /// rule 1's length; §14.8.2.2's strongly-typed and variable-length sentences govern this mode as they govern BY
-    /// REFERENCE. A CONSTANT-NAME argument arrives already substituted as its literal (§13.10.4 GR1).
-    /// <para>⛔ ONE PAIR STAYS WITH THE CLASS TABLE: two object references. §14.8.2.3.3's SET paragraph over them is the
-    /// §14.9.39.3 table both phases ask (<see cref="ObjectReferenceSet"/>), but the compile-time pair reads the class facts
+    /// rule 1's length; §2023:14.8.2.2's strongly-typed and variable-length sentences govern this mode as they govern BY
+    /// REFERENCE. A CONSTANT-NAME argument arrives already substituted as its literal (§2023:13.10.4 GR1).
+    /// <para>⛔ ONE PAIR STAYS WITH THE CLASS TABLE: two object references. §2023:14.8.2.3.3's SET paragraph over them is the
+    /// §2023:14.9.39.3 table both phases ask (<see cref="ObjectReferenceSet"/>), but the compile-time pair reads the class facts
     /// AS A PAIR (<see cref="WiseOwl.Cobol.Compiler.Oo.OoClassTable.SetOperands"/>: a formal of a parameterized class stands for
     /// the actual most favourable to the pair, kb/Work PB2937), and an ACTIVE-CLASS formal's two alternatives are
     /// conditions on how the method is INVOKED (<paramref name="invokedWith"/>), which no description carries — the same
     /// split <see cref="ReturningConformanceReason"/> makes.</para>
     /// Null when conformant, and when the argument is a shape no description names (its binder has already reported
     /// whatever refused to bind).</summary>
-    /// <param name="invokedWith">INVOKE only: how the method is invoked (§14.8.2.3.3's ACTIVE-CLASS alternatives).</param>
+    /// <param name="invokedWith">INVOKE only: how the method is invoked (§2023:14.8.2.3.3's ACTIVE-CLASS alternatives).</param>
     internal string? ContentConformanceReason(DataItem formal, BoundCallArg arg, ObjectRefDescriptor? invokedWith = null)
     {
         if (formal.Pic is { Category: PicCategory.ObjectReference } formalPic
@@ -263,20 +263,20 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         return ActivationRelations.CallArgumentViolation(arg.Mode, a, f, specifiedProgram: true);
     }
 
-    /// <summary>The ISO §8.5.2.1 Table-2 class of an argument whose corresponding formal is BY VALUE — the question
-    /// §14.9.4.3 SR22 (CALL) and §8.4.3.2.3 SR10 (function) both ask ("shall be of class numeric, object, or
+    /// <summary>The ISO §2023:8.5.2.1 Table-2 class of an argument whose corresponding formal is BY VALUE — the question
+    /// §2023:14.9.4.3 SR22 (CALL) and §2023:8.4.3.2.3 SR10 (function) both ask ("shall be of class numeric, object, or
     /// pointer"). Null when not statically decidable (the screens fail open).
     /// <para>⛔ CLASSIFY THE UNDERLYING REFERENCE, NOT THE WRAPPER. <see cref="IntrinsicArgumentRules.ClassOf"/>
     /// maps any <see cref="BoundComputedOperand"/> to NUMERIC — correct for a genuine arithmetic expression — so a
     /// bare identifier or index-name that reached the binder inside an expression node must be unwrapped first:
     /// a <see cref="BoundNumRef"/> is the identifier's own item, and a <see cref="BoundIndexRef"/> is class index
-    /// (§8.5.2.1 Table 2's own row; kb/Work PB132).</para></summary>
+    /// (§2023:8.5.2.1 Table 2's own row; kb/Work PB132).</para></summary>
     internal static CobolClass? ValueArgumentClass(BoundOperand op) => op switch
     {
         BoundComputedOperand { Expr: BoundNumRef { Place: { } place } } =>
             IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place)),
         BoundComputedOperand { Expr: BoundIndexRef } => CobolClass.Index,
-        // A figurative constant's class is chosen by its context (§8.3.3.6.4 GR1/GR4), so the general classifier
+        // A figurative constant's class is chosen by its context (§2023:8.3.3.6.4 GR1/GR4), so the general classifier
         // answers "undecidable" for it. A BY VALUE position admits the one reading that can be numeric — ZERO —
         // and no figurative or ALL literal is ever of class object or pointer.
         BoundFigurative { Kind: 'Z' } => CobolClass.Numeric,
@@ -287,8 +287,8 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// <summary>⛔ THE STORAGE-SECTION MODE TEST (kb/Work PB1137), asked of a KEYWORD-LESS identifier argument before it
     /// is resolved: does it meet "the requirements of" the rule both activating statements write in the same words
     /// — an address-identifier or "a data item defined in the file, working-storage, local-storage, or linkage
-    /// section" that is not factory/instance object data (INVOKE §14.9.23.3 SR9 + SR10; CALL §14.9.4.3 SR3, whose
-    /// second sentence is the object-data half)? §14.9.23.4 GR6 a) (INVOKE) and §14.9.4.4 GR9 a) (Format-2 CALL)
+    /// section" that is not factory/instance object data (INVOKE §2023:14.9.23.3 SR9 + SR10; CALL §2023:14.9.4.3 SR3, whose
+    /// second sentence is the object-data half)? §2023:14.9.23.4 GR6 a) (INVOKE) and §2023:14.9.4.4 GR9 a) (Format-2 CALL)
     /// assume BY REFERENCE — a receiving operand — when it does, and BY CONTENT — a sending one — when it does not,
     /// so the answer decides the operand's ROLE and must come first. Non-diagnosing: a reference that identifies
     /// nothing answers true, and the BY REFERENCE resolution that follows reports it through the resolver's own rule.
@@ -305,10 +305,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         return probe.NonSectionKind is null && !ctx.Data.Oo.IsObjectData(probe.Item);
     }
 
-    /// <summary>The storage-section rule over a RESOLVED BY REFERENCE argument or RETURNING item — CALL §14.9.4.3
-    /// SR3/SR7, INVOKE §14.9.23.3 SR9/SR11 (kb/Work PB1137): <see cref="SectionDataItem"/> says what the place is
+    /// <summary>The storage-section rule over a RESOLVED BY REFERENCE argument or RETURNING item — CALL §2023:14.9.4.3
+    /// SR3/SR7, INVOKE §2023:14.9.23.3 SR9/SR11 (kb/Work PB1137): <see cref="SectionDataItem"/> says what the place is
     /// when it is not a data item of the four sections. An OBJECT PROPERTY is admitted whatever its temporary:
-    /// §8.4.3.9.3 SR5/SR6 let it "be specified wherever a data item with that description would be valid" as a
+    /// §2023:8.4.3.9.3 SR5/SR6 let it "be specified wherever a data item with that description would be valid" as a
     /// sending or receiving item. False having reported.</summary>
     /// <param name="p">The resolved operand.</param>
     /// <param name="written">The reference as written — the object-property test and the message text.</param>
@@ -330,12 +330,12 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         return false;
     }
 
-    /// <summary>The byte-boundary proof a bit data item passed BY REFERENCE owes — §14.9.4.3 SR6/SR8 (CALL),
-    /// §14.9.23.3 SR12 (INVOKE — kb/Work PB1137) and
-    /// §8.4.3.2.3 SR14 (function), which state the SAME two requirements: the item is "aligned on a byte
+    /// <summary>The byte-boundary proof a bit data item passed BY REFERENCE owes — §2023:14.9.4.3 SR6/SR8 (CALL),
+    /// §2023:14.9.23.3 SR12 (INVOKE — kb/Work PB1137) and
+    /// §2023:8.4.3.2.3 SR14 (function), which state the SAME two requirements: the item is "aligned on a byte
     /// boundary", and its subscripting and reference-modification leftmost position consist of only numeric
     /// literals or all-literal arithmetic expressions without exponentiation. The referenced occurrence's start
-    /// bit is computed from the §8.5.1.6.3 cursor walk (<see cref="BitLayout.StartBitWithin"/>) plus each table
+    /// bit is computed from the §2023:8.5.1.6.3 cursor walk (<see cref="BitLayout.StartBitWithin"/>) plus each table
     /// subscript times its element stride, plus a ref-mod's leftmost boolean position; a non-literal subscript is
     /// itself the violation. An operand shape the walk cannot model (an unmodelled overlay, an exotic carrier) is
     /// ACCEPTED — the screen must never reject legal source it cannot prove misaligned.</summary>
@@ -363,7 +363,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         if (start.Bits is { } bits && bits % BitLayout.BitsPerCharacter != 0)
             ctx.Edition.Error(code,
                 $"{subject} '{p.Item.CobolName}' starts at bit {bits} of its record — a bit item passed by "
-                + $"reference shall be aligned on a byte boundary (ISO {clause} / §8.5.1.6.3)");
+                + $"reference shall be aligned on a byte boundary (ISO {clause} / §2023:8.5.1.6.3)");
     }
 
     /// <summary>Why <see cref="BitStartOf"/> could not give a start bit: the operand is not statically placed.</summary>
@@ -382,10 +382,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// compile-time knowable.</summary>
     internal readonly record struct BitStart(long? Bits, BitStartFault Fault);
 
-    /// <summary>⛔ THE ONE STATIC-START WALK OF A BIT ITEM (§8.5.1.6.3 cursor walk), shared by every rule that wants a
+    /// <summary>⛔ THE ONE STATIC-START WALK OF A BIT ITEM (§2023:8.5.1.6.3 cursor walk), shared by every rule that wants a
     /// bit item "aligned on a byte boundary" with literal subscripts and reference-modification positions — CALL
-    /// §14.9.4.3 SR6/SR8, INVOKE §14.9.23.3 SR12, function §8.4.3.2.3 SR14 (through
-    /// <see cref="ScreenBitAlignment"/>) and the data-address-identifier §8.4.3.11.3 SR4 (kb/Work PB1407). It reports
+    /// §2023:14.9.4.3 SR6/SR8, INVOKE §2023:14.9.23.3 SR12, function §2023:8.4.3.2.3 SR14 (through
+    /// <see cref="ScreenBitAlignment"/>) and the data-address-identifier §2023:8.4.3.11.3 SR4 (kb/Work PB1407). It reports
     /// nothing; each rule words its own diagnostic.</summary>
     internal static BitStart BitStartOf(Place p)
     {
@@ -404,10 +404,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         // class's ONE backing, not a member path, so the walk below never saw it and the screen ACCEPTED the
         // operand unproven — a genuinely misaligned bit item crossed BY REFERENCE through any redefinition of
         // its record (measured: `05 R REDEFINES X. 10 RB1 PIC 1(3) BIT. 10 RB2 PIC 1(8) BIT.` passed RB2,
-        // which starts at bit 3). The position is still statically known: §13.18.44.4 GR1 — "Storage association
+        // which starts at bit 3). The position is still statically known: §2023:13.18.44.4 GR1 — "Storage association
         // for the subject of the entry starts at the first bit of the data item referenced by data-name-2" —
         // puts every redefinition at the redefined item's own first bit, so the class canonical's start within its
-        // record (the SAME §8.5.1.6.3 walk, over its own parent chain) plus the member's class-relative bit
+        // record (the SAME §2023:8.5.1.6.3 walk, over its own parent chain) plus the member's class-relative bit
         // offset (BitWindow.ClassRelative — its in-class offset and each in-class subscript's stride) IS the
         // occurrence's start. A BASED class's runtime displacement is whole bytes and cannot move the answer.
         if (core is RedefViewPlace { Bit: { } bw, ViewItem.Class: { } viewCls })
@@ -440,13 +440,13 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             if (tabled && subs.Count > 0)
             {
                 if (subs.Dequeue().ConstantValue is not { } k) return new BitStart(null, BitStartFault.NonLiteralSubscript);
-                bit += (k - 1) * (long)BitLayout.StrideBits(chain[i]);   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§13.18.1.4 GR2)
+                bit += (k - 1) * (long)BitLayout.StrideBits(chain[i]);   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§2023:13.18.1.4 GR2)
             }
         }
         return new BitStart(bit + extra, BitStartFault.None);
     }
 
-    /// <summary>The start bit of <paramref name="item"/> within its level-01 record — the §8.5.1.6.3 cursor walk
+    /// <summary>The start bit of <paramref name="item"/> within its level-01 record — the §2023:8.5.1.6.3 cursor walk
     /// (<see cref="BitLayout.StartBitWithin"/>) summed over its parent chain, with every OCCURS level at its
     /// FIRST occurrence; null when a link of the chain is unmodelled. Used for a REDEFINES class's canonical
     /// (kb/Work PB240), whose ancestors carry no OCCURS: a class whose backing sits inside a table has no place

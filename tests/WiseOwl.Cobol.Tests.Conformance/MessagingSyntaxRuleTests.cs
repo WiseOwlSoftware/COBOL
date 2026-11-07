@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE SYNTAX RULES OF SEND AND RECEIVE ARE ASKED OF EVERY OPERAND, ARM BY ARM (kb/Work PB4743; docs/rearchitecture/DESIGN-message-control.md §4.3).
-/// <para>ISO §14.9.38.3 SR3 and §14.9.31.3 SR2 list the clauses identifier-1 and its subordinates shall not contain: ANY LENGTH, BASED, DYNAMIC-LENGTH,
+/// <para>ISO §2023:14.9.38.3 SR3 and §2023:14.9.31.3 SR2 list the clauses identifier-1 and its subordinates shall not contain: ANY LENGTH, BASED, DYNAMIC-LENGTH,
 /// OBJECT-REFERENCE, POINTER, FUNCTION-POINTER, PROGRAM-POINTER, and an OCCURS DEPENDING ON whose object is not within identifier-1 (RECEIVE's list adds
 /// CONSTANT RECORD). <c>MessagingBinder.ForbiddenClause</c> is one switch over them, so a conformance case per arm would be eleven programs that differ in
 /// one line; the conformance cases (<c>conformance-suite/wiseowl/cases/14.9.38-SEND/pb4743-*</c>) pin the refusals through the harness, and this class
@@ -57,7 +57,7 @@ public sealed class MessagingSyntaxRuleTests
     {
         var diagnostics = EditionHarness.GetDiagnostics(Prog("PB4743T1", items, SendArea), 2023);
         EditionHarness.AssertHasDiagnostic(diagnostics, MessageArea);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "ISO §14.9.38.3 SR3");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "ISO §2023:14.9.38.3 SR3");
         Assert.True(diagnostics.Count(d => d.Contains(MessageArea, StringComparison.Ordinal)) == 1, $"{arm}: the statement is refused once");
     }
 
@@ -67,12 +67,12 @@ public sealed class MessagingSyntaxRuleTests
     {
         var diagnostics = EditionHarness.GetDiagnostics(Prog("PB4743T2", items, ReceiveArea), 2023);
         EditionHarness.AssertHasDiagnostic(diagnostics, MessageArea);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "ISO §14.9.31.3 SR2");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "ISO §2023:14.9.31.3 SR2");
         Assert.True(diagnostics.Count(d => d.Contains(MessageArea, StringComparison.Ordinal)) == 1, $"{arm}: the statement is refused once");
     }
 
     /// <summary>The two arms that need a declaration beside the item: a FUNCTION-POINTER names a function-prototype, and an ANY LENGTH item is a formal of
-    /// a contained program (§13.18.2.3 SR2: it may not be specified in an outermost program).</summary>
+    /// a contained program (§2023:13.18.2.3 SR2: it may not be specified in an outermost program).</summary>
     [Fact]
     public void AFunctionPointerArea_IsRefused_ForSendAndReceive()
     {
@@ -88,7 +88,7 @@ public sealed class MessagingSyntaxRuleTests
                 GOBACK.
             END FUNCTION PB4743FN.
             """;
-        foreach (var (statement, rule) in new[] { (SendArea, "ISO §14.9.38.3 SR3"), (ReceiveArea, "ISO §14.9.31.3 SR2") })
+        foreach (var (statement, rule) in new[] { (SendArea, "ISO §2023:14.9.38.3 SR3"), (ReceiveArea, "ISO §2023:14.9.31.3 SR2") })
         {
             var diagnostics = EditionHarness.GetDiagnostics(
                 Prog("PB4743T3", "01 MSG-AREA USAGE FUNCTION-POINTER TO PB4743FN.", statement, head: function), 2023);
@@ -99,8 +99,8 @@ public sealed class MessagingSyntaxRuleTests
     }
 
     [Theory]
-    [InlineData("SEND TO \"SRV\" FROM L-ANY RETURNING MT END-SEND.", "ISO §14.9.38.3 SR3")]
-    [InlineData("RECEIVE MT GIVING L-ANY WS-LEN END-RECEIVE.", "ISO §14.9.31.3 SR2")]
+    [InlineData("SEND TO \"SRV\" FROM L-ANY RETURNING MT END-SEND.", "ISO §2023:14.9.38.3 SR3")]
+    [InlineData("RECEIVE MT GIVING L-ANY WS-LEN END-RECEIVE.", "ISO §2023:14.9.31.3 SR2")]
     public void AnAnyLengthArea_IsRefused_ForSendAndReceive(string statement, string rule)
     {
         string source = $"""
@@ -130,7 +130,7 @@ public sealed class MessagingSyntaxRuleTests
     }
 
     /// <summary>The legal neighbours: an OCCURS DEPENDING ON whose object is WITHIN identifier-1 is none of the forbidden clauses, and a CONSTANT RECORD is
-    /// a message SEND reads (SEND's list does not name it) but a RECEIVE cannot write — the receiving funnel refuses it with COBOL1548 (§13.18.15.3 SR2),
+    /// a message SEND reads (SEND's list does not name it) but a RECEIVE cannot write — the receiving funnel refuses it with COBOL1548 (§2023:13.18.15.3 SR2),
     /// never with the message-area code.</summary>
     [Fact]
     public void LegalNeighbours_AreAccepted_AndAConstantRecordIsNotReceivedInto()
@@ -180,7 +180,7 @@ public sealed class MessagingSyntaxRuleTests
         else EditionHarness.AssertNoDiagnostic(diagnostics, OperandClass);
     }
 
-    /// <summary>⛔ A CONSTANT-NAME AFTER TO IS literal-1 (§13.10.3 SR2, §13.10.4 GR1; review R1-1): the statement binds the constant's literal, never the
+    /// <summary>⛔ A CONSTANT-NAME AFTER TO IS literal-1 (§2023:13.10.3 SR2, §2023:13.10.4 GR1; review R1-1): the statement binds the constant's literal, never the
     /// constant's NAME as a message-server-name-1, and SR1 is asked of the literal it stands for.</summary>
     [Fact]
     public void ATo_ConstantName_IsLiteral1_NotAServerName()
@@ -190,13 +190,13 @@ public sealed class MessagingSyntaxRuleTests
         EditionHarness.AssertNoDiagnostic(legal, OperandClass);
         var numeric = EditionHarness.GetDiagnostics(Prog("PB4743TC", items, "SEND TO K-NUM FROM WS-MSG RETURNING MT END-SEND."), 2023);
         EditionHarness.AssertHasDiagnostic(numeric, OperandClass);
-        EditionHarness.AssertHasDiagnostic(numeric, "ISO §14.9.38.3 SR1");
+        EditionHarness.AssertHasDiagnostic(numeric, "ISO §2023:14.9.38.3 SR1");
         // A constant-name is Format 1's literal-1: with RAISING it is a phrase of each format (COBOL5488), exactly as the written literal is.
         var both = EditionHarness.GetDiagnostics(Prog("PB4743TD", items, "SEND TO K-SRV FROM WS-MSG RAISING LAST END-SEND."), 2023);
         EditionHarness.AssertHasDiagnostic(both, "COBOL5488");
     }
 
-    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (§8.4.3.1.2 Format 1: a function-identifier; review R1-2), so a function value is a legal FROM
+    /// <summary>⛔ SEND's identifier-1 IS ANY IDENTIFIER (§2023:8.4.3.1.2 Format 1: a function-identifier; review R1-2), so a function value is a legal FROM
     /// operand and draws no syntax error.</summary>
     [Fact]
     public void SendFrom_AFunctionIdentifier_IsLegal()
@@ -208,7 +208,7 @@ public sealed class MessagingSyntaxRuleTests
         EditionHarness.AssertNoDiagnostic(diagnostics, MessageArea);
     }
 
-    /// <summary>⛔ A REFERENCE-MODIFIED identifier-1 is asked its base item's own data description entry (§8.4.3.3.4 GR5, GR6; review R1-4), so a slice of
+    /// <summary>⛔ A REFERENCE-MODIFIED identifier-1 is asked its base item's own data description entry (§2023:8.4.3.3.4 GR5, GR6; review R1-4), so a slice of
     /// a BASED or DYNAMIC LENGTH item is refused as the whole item is.</summary>
     [Theory]
     [InlineData("01 MSG-AREA BASED PIC X(8).", "BASED")]
@@ -222,7 +222,7 @@ public sealed class MessagingSyntaxRuleTests
         EditionHarness.AssertHasDiagnostic(receive, MessageArea);
     }
 
-    /// <summary>The word after CONTINUE AFTER MESSAGE is RECEIVED (§14.9.31.2): any other word is a parse error, and the data item named MESSAGE still
+    /// <summary>The word after CONTINUE AFTER MESSAGE is RECEIVED (§2023:14.9.31.2): any other word is a parse error, and the data item named MESSAGE still
     /// reads as arithmetic-expression-1 (kb/Work PB3794).</summary>
     [Theory]
     [InlineData("CONTINUE AFTER MESSAGE RECEIVED", false)]

@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The callee half of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630). NULL is
-/// an identifier of the FORMAL's class (ISO §8.4.3.1.2 Format 8; §8.4.3.10.3 SR1 a) "depending upon the associated
+/// an identifier of the FORMAL's class (ISO §2023:8.4.3.1.2 Format 8; §2023:8.4.3.10.3 SR1 a) "depending upon the associated
 /// data item's class"), so it crosses as the storage-free <see cref="PredefinedNullArgument"/> carrier and the
-/// formal's slot adapter supplies the null of its own carrier (§8.4.3.10.4 GR1–GR3, §8.4.3.7.4 GR1). These pin what
-/// the end-to-end witness (conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing) cannot reach: the §12.3.8.4 GR10 c)
+/// formal's slot adapter supplies the null of its own carrier (§2023:8.4.3.10.4 GR1–GR3, §2023:8.4.3.7.4 GR1). These pin what
+/// the end-to-end witness (conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing) cannot reach: the §2023:12.3.8.4 GR10 c)
 /// crossing, where the activating element knows no formal and a non-slot formal must refuse the carrier at
-/// activation as EC-PROGRAM-ARG-MISMATCH (§14.9.4.4 GR3 d)) rather than read it as characters.
+/// activation as EC-PROGRAM-ARG-MISMATCH (§2023:14.9.4.4 GR3 d)) rather than read it as characters.
 /// </summary>
 public sealed class PredefinedNullArgumentTests
 {
@@ -21,7 +21,7 @@ public sealed class PredefinedNullArgumentTests
     [Fact]
     public void IsAPresentArgument_NotTheOmittedOne()
     {
-        // §14.9.4.4 GR11: OMITTED makes the omitted-argument condition true; a NULL argument does not.
+        // §2023:14.9.4.4 GR11: OMITTED makes the omitted-argument condition true; a NULL argument does not.
         Assert.True(CobolArgAdapt.Present(Null(CobolPassMode.Content), 0));
     }
 
@@ -52,7 +52,7 @@ public sealed class PredefinedNullArgumentTests
     [Fact]
     public void EachActivation_GetsItsOwnDetachedCell()
     {
-        // BY CONTENT / BY VALUE are copies (§14.2.3 GR9/GR10): a callee's SET of its formal must not leak into the
+        // BY CONTENT / BY VALUE are copies (§2023:14.2.3 GR9/GR10): a callee's SET of its formal must not leak into the
         // next activation's NULL.
         var args = Null(CobolPassMode.Content);
         var first = CobolArgAdapt.Slot<ProgramPointer>(args, 0);
@@ -63,7 +63,7 @@ public sealed class PredefinedNullArgumentTests
     [Fact]
     public void CharacterFormal_RefusesIt_AsArgMismatch()
     {
-        // §14.8.2.3.3: a formal not of class object or pointer takes its argument by a MOVE, and §14.9.25.3 SR1 bars
+        // §2023:14.8.2.3.3: a formal not of class object or pointer takes its argument by a MOVE, and §2023:14.9.25.3 SR1 bars
         // class pointer from a MOVE — reached only when the activating element could not screen it at bind.
         var ex = Assert.Throws<CobolCallException>(() => CobolArgAdapt.Text(Null(CobolPassMode.Content), 0, 4, null, static () => ""));
         Assert.Equal("EC-PROGRAM-ARG-MISMATCH", ex.EcName);

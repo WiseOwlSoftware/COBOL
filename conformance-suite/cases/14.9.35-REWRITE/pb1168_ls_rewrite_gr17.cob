@@ -10,22 +10,22 @@
       *>   python scripts/spec/cite.py --check 14.9.35.4 "is greater than
       *>   the number of bytes in the record being replaced, the
       *>   execution of the REWRITE statement is unsuccessful"
-      *>                                    -> OK  §14.9.35.4 17) (b)
+      *>                                    -> OK  §2023:14.9.35.4 17) (b)
       *>   python scripts/spec/cite.py --check 14.9.35.4 "then a
       *>   sufficient number of the space character is appended"
-      *>                                    -> OK  §14.9.35.4 17) (c)
+      *>                                    -> OK  §2023:14.9.35.4 17) (c)
       *> F is RECORD VARYING, so GR16's equality rule -- stated "For a
       *> record sequential file" -- is not this file's rule: R1's 10
       *> bytes are FEWER than the 20 of the line being replaced, so
       *> GR17 c) space-fills R1 to 20 and the REWRITE succeeds ('00');
       *> the line becomes SHORT followed by 15 spaces. G1 is 10 bytes
       *> and G's line is AB (2 bytes -- the WRITE did not transfer the
-      *> trailing spaces, §14.9.51.4 GR21): 10 is GREATER than 2, so
+      *> trailing spaces, §2023:14.9.51.4 GR21): 10 is GREATER than 2, so
       *> GR17 b) makes the REWRITE unsuccessful ('44') and the line
       *> stays AB. GR17 has no trailing-space rule: comparing HI's
       *> trimmed length (2) instead would have replaced the line.
       *> The lines are read back through a second FD over each file
-      *> with a ONE-character record sequential record (§12.4.5.10.3
+      *> with a ONE-character record sequential record (§2023:12.4.5.10.3
       *> GR3), counting the characters before the line delimiter.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1168LS.

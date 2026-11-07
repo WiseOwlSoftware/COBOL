@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB1160 - §14.9.33.3 SR2 is a FLAT prohibition: "The RESUME statement shall not be specified in a
+*> kb/Work PB1160 - §2023:14.9.33.3 SR2 is a FLAT prohibition: "The RESUME statement shall not be specified in a
 *> declarative procedure for which the GLOBAL phrase is specified in the associated USE statement."
-*>   OK  §14.9.33.3 2)  (Syntax rules)
-*> A RESUME written in a WHEN phrase of an exception-checking PERFORM (§14.9.28.4) is still SPECIFIED in the
+*>   OK  §2023:14.9.33.3 2)  (Syntax rules)
+*> A RESUME written in a WHEN phrase of an exception-checking PERFORM (§2023:14.9.28.4) is still SPECIFIED in the
 *> declarative procedure G whose USE statement carries GLOBAL: SR2 has no exception for a statement nested in a
-*> WHEN phrase, and §14.9.33.3 SR1's permission for a WHEN phrase answers a different question (where a RESUME
+*> WHEN phrase, and §2023:14.9.33.3 SR1's permission for a WHEN phrase answers a different question (where a RESUME
 *> may appear), not whether SR2 is excused. The binder used to ask the WHEN-phrase question first and so let this
 *> RESUME through; it is now refused with COBOL0713 exactly as a RESUME written directly in G is.
 *> (The exception-checking PERFORM is a COBOL 2023 construct, so 2023 is the introducing edition for this shape;

@@ -9,7 +9,7 @@
        PROGRAM-ID. FLTNEG.
       *> negative + fractional fixed-point literals into a float, and a
       *> float back to PIC 9(4). (Exponent-form float LITERALS — 1.5E3 —
-      *> are a separate deferred leg, §8.3.3.3.3; a float item holds a
+      *> are a separate deferred leg, §2023:8.3.3.3.3; a float item holds a
       *> fixed-point literal directly.)
        DATA DIVISION.
        WORKING-STORAGE SECTION.

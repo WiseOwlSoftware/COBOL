@@ -5,10 +5,10 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>The edited-mask (digits, scale) geometry — ISO §13.18.40.3's P scaling against EVERY kind of
+/// <summary>The edited-mask (digits, scale) geometry — ISO §2023:13.18.40.3's P scaling against EVERY kind of
 /// digit position, not only the literal 9/Z/* (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its
 /// rightmost P run classified as LEADING and MaskScale answered +2 where the value is a multiple of 10^2,
-/// scale −2 — mis-shaping both the §14.7.7 composite of operands and the §13.18.63.3 VALUE window).
+/// scale −2 — mis-shaping both the §2023:14.7.7 composite of operands and the §2023:13.18.63.3 VALUE window).
 /// <see cref="CobolEdit.MaskScale"/>/<see cref="CobolEdit.MaskCapacity"/> are the ONE canonical geometry
 /// (DataBinder.StoredShapeOf consumes them), so these facts are its drift pin.</summary>
 public class CobolEditMaskGeometryTests

@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Subscripted Tier-B REDEFINES views (GAP-1) + the B2 layout accounting (ISO §13.18.44: a redefined table lays
+/// Subscripted Tier-B REDEFINES views (GAP-1) + the B2 layout accounting (ISO §2023:13.18.44: a redefined table lays
 /// its occurrences end-to-end in the ONE backing; an inner REDEFINES starts at its target's first position and
 /// adds no width; a sibling table contributes width × OCCURS), plus NEXT SENTENCE in an IF's THEN phrase
-/// (§14.9.19.4 GR4 — the ELSE-phrase rule GR6 is exercised by the spec-derived golden
+/// (§2023:14.9.19.4 GR4 — the ELSE-phrase rule GR6 is exercised by the spec-derived golden
 /// conformance-suite/cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline.cob, not here). Pinned to the
 /// former legacy engine (NIST-85 green over the REDEFINES table series) — a regression net, never a rule's witness.
 /// </summary>
@@ -86,13 +86,13 @@ public sealed class RedefinesSubscriptedViewDifferentialTests
             """);
 
     /// <summary>NEXT SENTENCE transfers to the implicit CONTINUE after the current sentence's period. BOTH cases
-    /// write it in the THEN phrase, so the rule under test is §14.9.19.4 GR4 twice: the first executes it (the
+    /// write it in the THEN phrase, so the rule under test is §2023:14.9.19.4 GR4 twice: the first executes it (the
     /// statement that trails the IF in the SAME sentence is skipped and the FOLLOWING sentence runs — the IF is
     /// closed by END-IF, because NEXT SENTENCE followed by a statement inside one THEN phrase matches neither
-    /// §14.9.19.2 format and is refused, COBOL2269, kb/Work PB446; END-IF over a Format-2 body is the
+    /// §2023:14.9.19.2 format and is refused, COBOL2269, kb/Work PB446; END-IF over a Format-2 body is the
     /// DESIGN-frontend-grammar §3.11 determination), and in the second the condition is FALSE, so GR5 ignores the THEN phrase and the ELSE arm
     /// runs. The IF branches are both exercised; the NEXT SENTENCE PLACEMENT is one arm, and the other —
-    /// NEXT SENTENCE in an ELSE phrase, §14.9.19.4 GR6 — is measured by the spec-derived golden
+    /// NEXT SENTENCE in an ELSE phrase, §2023:14.9.19.4 GR6 — is measured by the spec-derived golden
     /// conformance-suite/cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline.cob (kb/Work PB414).</summary>
     [Fact]
     public void NextSentence_SkipsTrailOfOwnSentence()

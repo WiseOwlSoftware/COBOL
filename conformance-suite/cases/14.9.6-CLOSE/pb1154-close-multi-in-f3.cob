@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.6.3 SR3 — "A CLOSE statement that specifies more than one
+      *> ISO §2023:14.9.6.3 SR3 — "A CLOSE statement that specifies more than one
       *> file-name shall not be specified in imperative-statement-1 in an
       *> exception-checking PERFORM statement."
-      *>   cite.py: OK  §14.9.6.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.6.3 3)  (Syntax rules)
       *> The statement is the only violation; the program is otherwise legal.
       *> Expected: COBOL1612, positioned at the offending statement (kb/Work PB1154).
       *> ONLY 2023 is named: the exception-checking PERFORM is new in

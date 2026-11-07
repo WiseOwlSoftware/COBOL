@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 2023 §14.9.39 Format 16 — SET [SIZE OF] data-name TO n sets the current length of a DYNAMIC LENGTH
+      *> ISO 2023 §2023:14.9.39 Format 16 — SET [SIZE OF] data-name TO n sets the current length of a DYNAMIC LENGTH
       *> elementary item. GR38 sets the length; GR39 initializes the positions ADDED when growing to SPACES (it
       *> NEVER restores previously-truncated content); shrinking drops the trailing positions. The program is
       *> deliberately shrink-then-grow (5→3→6) so the grown positions must be fresh spaces, not the dropped "LO".

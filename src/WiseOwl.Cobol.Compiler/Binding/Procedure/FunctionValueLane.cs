@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>
 /// ⛔ <b>WHICH CARRIER A NUMERIC FUNCTION'S RETURNED VALUE ARRIVES ON, ASKED AT BIND TIME</b> (kb/Work PB3268) — the
-/// question the intermediate result item of ISO §14.9.25.4 GR1 has to answer before the code generator has rendered
+/// question the intermediate result item of ISO §2023:14.9.25.4 GR1 has to answer before the code generator has rendered
 /// anything: is the value a <b>binary64</b> (a COMP-2 intermediate keeps it whole and each receiver's own float
 /// landing quantizes it once, at its own scale), or an exact value (a fixed-point intermediate described by the
-/// receivers)? §15.4.1: "When native arithmetic is in effect, the characteristics and representation of the returned
+/// receivers)? §2023:15.4.1: "When native arithmetic is in effect, the characteristics and representation of the returned
 /// value are defined by the implementor", and the implementor's determination is made by
 /// <c>IntrinsicRenderer.RenderNum</c>'s dispatch — three carriers (the exact scaled <c>Int128</c>, the SDIDI, binary64)
 /// chosen from the function and from the carriers of its ARGUMENTS.
@@ -20,9 +20,9 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// order: a function with a native SDIDI body (<see cref="NativeSdidiBodies"/>) takes an SDIDI-carried argument — a
 /// floating-point literal (owner decision D-B), a floating-point numeric-edited sender, an integer power — onto the
 /// SDIDI lane, ahead of the float lane; a mixed selection list (MAX / MIN / ORD-MAX / ORD-MIN / MEDIAN over a float
-/// beside a fixed-point item) rides the SDIDI too; the §15.4.1 floating-math family (<see cref="IntrinsicSig.Float"/>)
+/// beside a fixed-point item) rides the SDIDI too; the §2023:15.4.1 floating-math family (<see cref="IntrinsicSig.Float"/>)
 /// and any numeric-argument function given a binary64 argument then take the binary64 lane; everything else is exact.
-/// A decimal-engine arithmetic mode has no binary64 lane at all (§15.4.1: the returned value is "contained in a
+/// A decimal-engine arithmetic mode has no binary64 lane at all (§2023:15.4.1: the returned value is "contained in a
 /// temporary standard data item in the intermediate form defined for the arithmetic mode in effect").</para>
 /// <para><b>The argument-level facts are read from the BOUND TREE</b> by <see cref="ArgumentCarrier"/>, a visitor over
 /// the same two interfaces <c>NumericRenderer</c> implements — so a bound node added tomorrow is a COMPILE error here
@@ -56,10 +56,10 @@ internal static class FunctionValueLane
     }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The native SDIDI bodies whose value <c>IntrinsicRenderer.RenderDec</c> returns as an EXACT value
-    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§15.81.1), ORD-MAX / ORD-MIN
+    /// rather than on the SDIDI: SIGN reads an SDIDI argument and returns +1, 0 or -1 (§2023:15.81.1), ORD-MAX / ORD-MIN
     /// compare on the SDIDI and return "the ordinal number that corresponds to the position of the argument-1 having the
-    /// greatest [least] value" (§15.71.4 r1 / §15.72.4 r1), and MAX / MIN / MEDIAN return "the content of the argument" selected
-    /// (§15.59.4 r1 / §15.63.4 r1 / §15.61.1) as the exact value it is, whole (kb/Work PB4730). Every other member of
+    /// greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1), and MAX / MIN / MEDIAN return "the content of the argument" selected
+    /// (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.61.1) as the exact value it is, whole (kb/Work PB4730). Every other member of
     /// <see cref="NativeSdidiBodies"/> returns the SDIDI. <c>FunctionValueLaneDriftTests</c> derives this set from the renderer's switch as well (the native arms
     /// not wrapped in its <c>Dec(...)</c>).</summary>
     internal static readonly FrozenSet<string> NativeSdidiBodiesWithExactResult = new[]
@@ -69,11 +69,11 @@ internal static class FunctionValueLane
 
     /// <summary>The pure selections, which a MIXED list takes onto the SDIDI under native arithmetic so the compared and
     /// selected argument keeps its own carrier: MAX / MIN return "the content of the argument-1 having the greatest
-    /// [least] value" (§15.59.4 r1 / §15.63.4 r1), ORD-MAX / ORD-MIN "the ordinal number that corresponds to the position
-    /// of the argument-1 having the greatest [least] value" (§15.71.4 r1 / §15.72.4 r1), and MEDIAN over an odd count the
-    /// middle argument (§15.61.1 "returns the content of the argument whose value is the middle value"; §15.61.4 r2 makes
+    /// [least] value" (§2023:15.59.4 r1 / §2023:15.63.4 r1), ORD-MAX / ORD-MIN "the ordinal number that corresponds to the position
+    /// of the argument-1 having the greatest [least] value" (§2023:15.71.4 r1 / §2023:15.72.4 r1), and MEDIAN over an odd count the
+    /// middle argument (§2023:15.61.1 "returns the content of the argument whose value is the middle value"; §2023:15.61.4 r2 makes
     /// an even count the arithmetic mean of the two middle values, which is not a selection). Every comparison is made
-    /// "according to the rules for simple conditions" (§15.59.4 r1 / §15.63.4 r1 / §15.71.4 r2 / §15.72.4 r2 / §15.61.4 r3).</summary>
+    /// "according to the rules for simple conditions" (§2023:15.59.4 r1 / §2023:15.63.4 r1 / §2023:15.71.4 r2 / §2023:15.72.4 r2 / §2023:15.61.4 r3).</summary>
     private static readonly FrozenSet<string> Selections = new[]
     {
         "MaxScaled", "MinScaled", "OrdMax", "OrdMin", "MedianScaled",
@@ -81,7 +81,7 @@ internal static class FunctionValueLane
 
     /// <summary>True when <paramref name="call"/>'s returned value is a binary64 wherever no fixed-point scale governs the
     /// render — the lane <c>IntrinsicRenderer.RenderNum</c> reaches through <c>RenderFloat</c> under NATIVE arithmetic.
-    /// Always false under a decimal-engine mode. An INTEGER function (§15.2 item 5) is answered as any other is, because
+    /// Always false under a decimal-engine mode. An INTEGER function (§2023:15.2 item 5) is answered as any other is, because
     /// the renderer has no integer early-out (a binary64 argument takes INTEGER onto <c>FloorReal</c>); the intermediate
     /// of a TOP-LEVEL integer function asks it too, before its scale-0 item (<c>SendingValueTemp.IntermediatePic</c>,
     /// review R1-1).</summary>
@@ -105,11 +105,11 @@ internal static class FunctionValueLane
         // A function of a non-numeric result (reachable in a numeric context only under --permissive) is an exact value
         // (RenderNum's alphanumeric-decode arm). ⛔ AN INTEGER FUNCTION IS NOT EXEMPT (kb/Work PB3268, review R3-1):
         // RenderNum has no integer early-out, so INTEGER(1.5E0) computes FloorDec on the SDIDI, a SUM over wide integer
-        // items takes the PB621 arm onto the SDIDI, and INTEGER of a COMP-2 item takes FloorReal. §15.2 item 5 fixes the
+        // items takes the PB621 arm onto the SDIDI, and INTEGER of a COMP-2 item takes FloorReal. §2023:15.2 item 5 fixes the
         // value's TYPE ("an integer function has an operational sign and no digits to the right of the decimal point"),
         // never its carrier. The exemption that stood here predicted an exact value for a nested call the renderer hands
         // its caller on the SDIDI, so ANNUITY(INTEGER(1.5E0) 3) got a COMP-2 intermediate that rounded AnnuityDec's value
-        // in a multi-receiver MOVE (§15.4.1: "the returned value is the same for all instances of a given function").
+        // in a multi-receiver MOVE (§2023:15.4.1: "the returned value is the same for all instances of a given function").
         if (call.ResultCategory is not PicCategory.Numeric) return CarrierKind.Fixed;
         var args = call.Args.Select((a, i) => AtPosition(sig.Name, i, a.Accept(ArgumentCarrier.Instance))).ToList();
         bool anyDec = args.Any(a => a.Kind == CarrierKind.Dec);
@@ -151,7 +151,7 @@ internal static class FunctionValueLane
         NativeSdidiBodiesWithExactResult.Contains(runtimeMethod) ? CarrierKind.Fixed : CarrierKind.Dec;
 
     /// <summary>The argument as the renderer's intake (<c>IntrinsicRenderer.RawArg</c>) hands it to the lane predicates: at a
-    /// §15.3 type-6 (integer) position a binary64 or fractional fixed-point operand is already its INTEGER on the exact
+    /// §2023:15.3 type-6 (integer) position a binary64 or fractional fixed-point operand is already its INTEGER on the exact
     /// carrier, so it moves no call onto the float lane; an SDIDI operand stays on the SDIDI (as its integer).</summary>
     private static Carrier AtPosition(string functionName, int position, Carrier argument) =>
         argument.Kind != CarrierKind.Dec && !(argument.Kind == CarrierKind.Fixed && argument.Integral)

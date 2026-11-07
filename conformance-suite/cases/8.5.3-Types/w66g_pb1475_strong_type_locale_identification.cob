@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1475 -- §8.5.3.1 type-declaration equivalence reads
+      *> kb/Work PB1475 -- §2023:8.5.3.1 type-declaration equivalence reads
       *> the LOCALE phrase by its EXTERNAL IDENTIFICATION, never by the
       *> locale-NAME that carries it.
       *> cite.py --check 8.5.3.1 "both specify the same SIZE phrase in
-      *>   the LOCALE phrase of the PICTURE clause" -> OK §8.5.3.1 2)
+      *>   the LOCALE phrase of the PICTURE clause" -> OK §2023:8.5.3.1 2)
       *> cite.py --check 8.5.3.1 "where the external identification is
       *>   the external-locale-name or literal value associated with a
-      *>   locale-name" -> OK §8.5.3.1 2)
+      *>   locale-name" -> OK §2023:8.5.3.1 2)
       *> cite.py --check 14.8.2.2 "If either the formal parameter or the
       *>   corresponding argument is a strongly-typed group item, both
-      *>   shall be of the same type" -> OK §14.8.2.2 2)
+      *>   shall be of the same type" -> OK §2023:14.8.2.2 2)
       *> The caller names its locale LA, the callee LB; both are bound
       *> to the literal "fr_FR" and both pictures say SIZE 16, so the
       *> two T1 declarations are equivalent, A and L are of the same

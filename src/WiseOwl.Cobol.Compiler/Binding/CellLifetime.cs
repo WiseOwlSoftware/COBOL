@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The §8.6.4 storage duration of a cell-backed (<c>ADDRESS OF</c>-taken) record, which decides the event that
+/// <summary>The §2023:8.6.4 storage duration of a cell-backed (<c>ADDRESS OF</c>-taken) record, which decides the event that
 /// ENDS its <c>StorageCell</c>'s life (kb/Work PB1216) — classified once, by <c>DataBinder.LifetimeOfCell</c>.</summary>
 internal enum CellLifetime
 {

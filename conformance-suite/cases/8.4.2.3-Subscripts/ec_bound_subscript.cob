@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.2.3.4 GR2: "The value of a subscript shall be a positive integer. … If the value of the
+      *> ISO §2023:8.4.2.3.4 GR2: "The value of a subscript shall be a positive integer. … If the value of the
       *> subscript is not a positive integer or is less than one or is greater than the highest permissible
       *> occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist." Table 13: Fatal, so
-      *> the declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) keeps the run unit alive past it.
+      *> the declarative runs and RESUME AT NEXT STATEMENT (§2023:14.9.33) keeps the run unit alive past it.
       *>
       *> T has 3 occurrences and the subscript is 5. With checking OFF the reference reads a scratch slot and
-      *> continues — a conforming implementor choice, since §13.18.38.4 GR7 leaves out-of-bounds occurrence
+      *> continues — a conforming implementor choice, since §2023:13.18.38.4 GR7 leaves out-of-bounds occurrence
       *> content undefined; what checking ON adds is the NAMED condition and the chance to handle it. Before
       *> this fix the out-of-range read was silent at every checking state.
       >>TURN EC-BOUND-SUBSCRIPT CHECKING ON

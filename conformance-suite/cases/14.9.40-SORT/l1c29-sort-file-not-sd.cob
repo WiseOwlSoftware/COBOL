@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40.3 SR4 — SORT file-name-1 described by an FD, not an SD
+      *> ISO §2023:14.9.40.3 SR4 — SORT file-name-1 described by an FD, not an SD
       *> Rule: "File-name-1 shall be described in a sort-merge file
       *> description entry in the data division."
       *> cite.py --check 14.9.40.3 "File-name-1 shall be described in a
       *>   sort-merge file description entry in the data division"
-      *>   -> OK  §14.9.40.3 4)  (Syntax rules)
+      *>   -> OK  §2023:14.9.40.3 4)  (Syntax rules)
       *> WF is a sequential FD. Everything else is legal: the key WK is in
       *> WF's record (SR6 a), UF/GF are FDs (SR8), all records are 4
       *> character positions (SR5/SR11), and the program declares an SD

@@ -19,8 +19,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// by the auditor's own decoder (key order within each node, every key inside its separators, every leaf at one depth,
 /// no page over its body); the page layer's R2 and R3 hold throughout. The orders: ORDINAL bytes, the NUMERIC order of
 /// relative record numbers (8 bytes big-endian under the ordinal order), WEIGHTED (a declared alphabet "ZYX…A", whose
-/// order is not the bytes'), LOCALE (the root locale's CLDR/UCA order, §8.8.4.2.11, which is not prefix-consistent, so a
-/// START prefix is the sequential search of §14.9.41.4 GR17 c) and d) — the model's own <c>FindIndex</c> and
+/// order is not the bytes'), LOCALE (the root locale's CLDR/UCA order, §2023:8.8.4.2.11, which is not prefix-consistent, so a
+/// START prefix is the sequential search of §2023:14.9.41.4 GR17 c) and d) — the model's own <c>FindIndex</c> and
 /// <c>FindLastIndex</c>) and COMPOSITE (an alternate key with duplicates, then its release ordinal).</para>
 /// </summary>
 public sealed class BTreeModelTests
@@ -66,8 +66,8 @@ public sealed class BTreeModelTests
     }
 
     /// <summary>⛔ THE LOCALE ORDER'S START PREFIX IS THE SEQUENTIAL SEARCH (review w1122-a R1-1): the same model run under
-    /// the root locale's CLDR/UCA order (§8.8.4.2.11), whose qualifying entries for a partial key are not one run of the key
-    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) from its
+    /// the root locale's CLDR/UCA order (§2023:8.8.4.2.11), whose qualifying entries for a partial key are not one run of the key
+    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§2023:14.9.41.4 GR17 c) and d)) from its
     /// primary-level bound (LocalePartialStartTests), and every relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
     /// internal levels are enough to make the walk cross leaves; the three-level shape is the theory's, and a locale
     /// comparison costs a decoding and a collation key per key, so this run stays at a few hundred entries.</summary>
@@ -303,7 +303,7 @@ public sealed class BTreeModelTests
     }
 
     /// <summary><c>ALPHABET IS "ZYX…A"</c>: the 26 letters specified in reverse, every other character after them in native
-    /// order (§12.3.7.4 GR7 k), so the WEIGHTED order differs from the bytes' order for every pair of letters.</summary>
+    /// order (§2023:12.3.7.4 GR7 k), so the WEIGHTED order differs from the bytes' order for every pair of letters.</summary>
     internal static AlphanumericCollation ReversedAlphabet()
     {
         var codes = Enumerable.Range('A', 26).Select(c => (ushort)c).ToArray();

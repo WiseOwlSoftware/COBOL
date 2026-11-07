@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — ISO/IEC 1989:2023 §13.18.42.3 SR1: "The PROPERTY clause may be specified only in the
+      *> kb/Work PB1273 — ISO/IEC 1989:2023 §2023:13.18.42.3 SR1: "The PROPERTY clause may be specified only in the
       *> working-storage section of a factory definition or an instance definition." N is in a METHOD's
       *> LOCAL-STORAGE. Before the fix the clause was silently inert there (and in a program's working storage).
        IDENTIFICATION DIVISION.

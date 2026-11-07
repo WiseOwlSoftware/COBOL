@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </para>
 /// <para>
 /// Measured 2026-08-04, every one a SILENT under-rejection — a national result mislabelled alphanumeric walks
-/// straight through the §14.9.25.3 Table-16 MOVE guard, so <c>MOVE FUNCTION TRIM(national-item) TO PIC X</c>
+/// straight through the §2023:14.9.25.3 Table-16 MOVE guard, so <c>MOVE FUNCTION TRIM(national-item) TO PIC X</c>
 /// compiled clean where the standard requires a diagnostic. Eight functions: TRIM, SUBSTITUTE, CONCAT,
 /// BASECONVERT and the four FORMATTED-*.
 /// </para>
@@ -33,8 +33,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// merely making this case small (CLAUDE.md rule 5).
 /// </para>
 /// <para>
-/// ⚠ Keying on the TABLE and not on the sentence is deliberate: the clauses do not agree on wording. §15.38.1
-/// says "depends on the argument type", §15.39.1 "depends on the type of argument-1", §15.18.1 "depends upon the
+/// ⚠ Keying on the TABLE and not on the sentence is deliberate: the clauses do not agree on wording. §2023:15.38.1
+/// says "depends on the argument type", §2023:15.39.1 "depends on the type of argument-1", §2023:15.18.1 "depends upon the
 /// argument types". A first cut of this scanner keyed on the prose and silently found ten of the twenty — the
 /// dead-guard failure, inside the guard against a dead lookup.
 /// </para>
@@ -140,7 +140,7 @@ public sealed class IntrinsicResultTypeDriftTests
             "these §15 functions carry a RESULT-TYPE TABLE in the standard but their IntrinsicCatalog row still "
             + $"declares IntrinsicResultRule.Fixed: [{string.Join(", ", missing)}]. Their type DEPENDS ON THEIR "
             + "ARGUMENTS, so a scalar mislabels every call that selects another row of the table — silently, "
-            + "because a mislabelled national result passes the §14.9.25.3 Table-16 MOVE guard instead of being "
+            + "because a mislabelled national result passes the §2023:14.9.25.3 Table-16 MOVE guard instead of being "
             + "rejected by it. Add the Result: column; do not add a name to a list in the binder (PB15).");
     }
 

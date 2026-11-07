@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// STRING (ISO §14.9.43) + UNSTRING (ISO §14.9.48): the semantically subtle general rules — delimiter runs and
+/// STRING (ISO §2023:14.9.43) + UNSTRING (ISO §2023:14.9.48): the semantically subtle general rules — delimiter runs and
 /// SIZE defaulting, the never-space-filled receiver and pointer mechanics, ON/NOT ON OVERFLOW, the OR'd / ALL
 /// delimiter scans, DELIMITER IN / COUNT IN / TALLYING, and the two GR15 overflow situations vs plain source
 /// exhaustion. Differential against the committed golden (NIST NC217A/NC218A-green) everywhere the legacy is sound;
-/// the one legacy gap this family closes (the STRING pointer &lt; 1 check, §14.9.43.4 GR8) is spec-pinned.
+/// the one legacy gap this family closes (the STRING pointer &lt; 1 check, §2023:14.9.43.4 GR8) is spec-pinned.
 /// Space-padded fields are displayed ONE PER LINE so the legacy's known DISPLAY trailing-space trim cannot
 /// surface as an internal-spaces diff (see <see cref="CutRunner.Normalize"/>).
 /// </summary>
@@ -41,7 +41,7 @@ public sealed class StringUnstringDifferentialTests
 
     // ── STRING ─────────────────────────────────────────────────────────────────────────────────────────────
 
-    // §14.9.43.2 format + SR9: a DELIMITED phrase governs the whole run of senders before it; the trailing
+    // §2023:14.9.43.2 format + SR9: a DELIMITED phrase governs the whole run of senders before it; the trailing
     // phraseless run (legal only immediately before INTO) is DELIMITED BY SIZE. GR3b: the delimiter cuts each
     // governed sender and is itself never transferred. Expected: "AB" + "EF" + "IJK".
     // Compiled at 2002: the omitted trailing DELIMITED phrase is a post-1985 form (kb/Work PB1567, VCR row 7.31).
@@ -58,7 +58,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """), edition: 2002, goldenName: "string_delimited_run_trailing_size");
 
-    // §14.9.43.4 GR3b: a delimiter that is never encountered — here one LONGER than the sender — moves the whole
+    // §2023:14.9.43.4 GR3b: a delimiter that is never encountered — here one LONGER than the sender — moves the whole
     // sender (the NC217A "ABCDEFG" case).
     [Fact]
     public void String_DelimiterLongerThanSender_MovesWholeSender()
@@ -70,7 +70,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.43.4 GR4/GR6/GR7: the transfer starts at the POINTER value, the pointer advances exactly one per
+    // §2023:14.9.43.4 GR4/GR6/GR7: the transfer starts at the POINTER value, the pointer advances exactly one per
     // character moved (final value = start + characters written), and every receiver position outside the
     // written window keeps its PRIOR content — no space filling. Expected: "12AB5678", pointer 05.
     [Fact]
@@ -85,7 +85,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.43.4 GR8/GR9: a sender exceeding the receiver overflows at the first character past the end — the
+    // §2023:14.9.43.4 GR8/GR9: a sender exceeding the receiver overflows at the first character past the end — the
     // transferred prefix stays stored, ON OVERFLOW runs, NOT ON OVERFLOW is ignored (GR8e); a fitting statement
     // runs NOT ON OVERFLOW, and the receiver again keeps its untouched tail (GR7): "ABCD" then "XYCD".
     [Fact]
@@ -106,7 +106,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.43.4 GR8 — SPEC-PINNED (the former legacy engine never checked the < 1 arm): with POINTER 0, the check
+    // §2023:14.9.43.4 GR8 — SPEC-PINNED (the former legacy engine never checked the < 1 arm): with POINTER 0, the check
     // BEFORE the first character move finds the pointer less than one, so NOTHING transfers (GR8a), ON OVERFLOW
     // runs (GR8c), the receiver is fully preserved (GR7), and the pointer — changed only by character moves
     // (GR6), of which there were none — writes back unchanged.
@@ -128,7 +128,7 @@ public sealed class StringUnstringDifferentialTests
 
     // ── UNSTRING ───────────────────────────────────────────────────────────────────────────────────────────
 
-    // §14.9.48.4 GR8: two contiguous delimiters give the current receiver an EMPTY examination — space-filled
+    // §2023:14.9.48.4 GR8: two contiguous delimiters give the current receiver an EMPTY examination — space-filled
     // when alphanumeric, ZERO-filled when numeric. Expected: spaces, "000", "23".
     [Fact]
     public void Unstring_ContiguousDelimiters_SpaceFillAlphanumeric_ZeroFillNumeric()
@@ -145,7 +145,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.48.4 GR7: ALL collapses one-or-more contiguous occurrences into a single delimiting occurrence;
+    // §2023:14.9.48.4 GR7: ALL collapses one-or-more contiguous occurrences into a single delimiting occurrence;
     // GR11e/GR4: COUNT IN is the examined characters EXCLUDING delimiter characters. Expected fields X / Y / Z9,
     // counts 1 1 2.
     [Fact]
@@ -170,7 +170,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.48.4 GR10: OR'd delimiters — the EARLIEST match in the sender wins regardless of listing order, and a
+    // §2023:14.9.48.4 GR10: OR'd delimiters — the EARLIEST match in the sender wins regardless of listing order, and a
     // same-position tie goes to the delimiter listed FIRST ("AB" before "A" matches "AB"; reversed, "A" wins and
     // the next examination resumes inside what "AB" would have consumed). GR11d: DELIMITER IN receives the one
     // matched occurrence per the MOVE rules.
@@ -201,7 +201,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.48.4 GR11d/GR11e/GR14: DELIMITER IN takes each matched delimiter, COUNT IN the examined character
+    // §2023:14.9.48.4 GR11d/GR11e/GR14: DELIMITER IN takes each matched delimiter, COUNT IN the examined character
     // count, and TALLYING ADDS the number of receivers acted upon to the item's STARTING value (5 + 3 = 08).
     [Fact]
     public void Unstring_DelimiterIn_CountIn_TallyingAddsToCurrentValue()
@@ -230,7 +230,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.48.4 GR11b (no DELIMITED ⇒ examine exactly receiver-size characters from the POINTER position),
+    // §2023:14.9.48.4 GR11b (no DELIMITED ⇒ examine exactly receiver-size characters from the POINTER position),
     // GR13 (pointer advances per character examined — final 08), and GR15b/GR16c: every receiver acted upon with
     // sender characters still unexamined IS the overflow condition — ON OVERFLOW runs.
     [Fact]
@@ -251,7 +251,7 @@ public sealed class StringUnstringDifferentialTests
                 STOP RUN.
             """));
 
-    // §14.9.48.4 GR15/GR11g: exhausting the SENDER before the receivers is NOT an overflow — the remaining
+    // §2023:14.9.48.4 GR15/GR11g: exhausting the SENDER before the receivers is NOT an overflow — the remaining
     // receivers are not acted upon (left untouched, tally not bumped) and NOT ON OVERFLOW runs (GR17): "NOVF",
     // WS-R3 keeps "Z", tally 2.
     [Fact]

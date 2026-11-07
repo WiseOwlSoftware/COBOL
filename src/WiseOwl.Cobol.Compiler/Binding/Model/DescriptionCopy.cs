@@ -4,8 +4,8 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>What ONE <see cref="DataItem"/> field is to the data-description COPY that the TYPE clause
-/// (ISO §13.18.57.4 GR1), the SAME AS clause (§13.18.49.4 GR1/GR2a) and a TYPEDEF template's subordinate
-/// reproduction (§13.18.58.4 GR1) all perform.
+/// (ISO §2023:13.18.57.4 GR1), the SAME AS clause (§2023:13.18.49.4 GR1/GR2a) and a TYPEDEF template's subordinate
+/// reproduction (§2023:13.18.58.4 GR1) all perform.
 ///
 /// <para>⛔ THE SHAPE EXISTS BECAUSE A HAND LIST LOST A CLAUSE. Both copy helpers spelled their own field list
 /// in an object initializer, and a field absent from a list is invisible: <c>GroupUsage</c> — the one field
@@ -25,19 +25,19 @@ public enum DescriptionCopyKind
     None = 0,
 
     /// <summary>A data description clause carried by EVERY description copy — it appears in neither GR-1
-    /// exclusion list (§13.18.57.4 GR1 excludes only the level-number, the name, alignment, GLOBAL,
-    /// SELECT WHEN and TYPEDEF; §13.18.49.4 GR1 only the level-number, the name, CONSTANT RECORD, EXTERNAL,
+    /// exclusion list (§2023:13.18.57.4 GR1 excludes only the level-number, the name, alignment, GLOBAL,
+    /// SELECT WHEN and TYPEDEF; §2023:13.18.49.4 GR1 only the level-number, the name, CONSTANT RECORD, EXTERNAL,
     /// GLOBAL, REDEFINES and SELECT WHEN).</summary>
     Clause = 1,
 
-    /// <summary>An ALIGNMENT clause — SYNCHRONIZED (§13.18.55) or ALIGNED (§13.18.1). Carried by a SAME AS
-    /// copy and by a cloned subordinate, but NOT by a TYPE subject: §13.18.57.4 GR1 alone excludes
-    /// "alignment", and §13.18.49.4 GR1 does not.</summary>
+    /// <summary>An ALIGNMENT clause — SYNCHRONIZED (§2023:13.18.55) or ALIGNED (§2023:13.18.1). Carried by a SAME AS
+    /// copy and by a cloned subordinate, but NOT by a TYPE subject: §2023:13.18.57.4 GR1 alone excludes
+    /// "alignment", and §2023:13.18.49.4 GR1 does not.</summary>
     Alignment = 2,
 
-    /// <summary>Reproduced on a cloned SUBORDINATE (§13.18.58.4 GR1 — the subordinate entries ARE the type;
-    /// §13.18.49.4 GR2a — "the same names, descriptions, and hierarchy") but excluded from an ENTRY copy onto
-    /// a subject: the entry-name itself, OCCURS (§13.18.49.3 SR5 forbids it on data-name-1; §13.16.3 SR12/SR14
+    /// <summary>Reproduced on a cloned SUBORDINATE (§2023:13.18.58.4 GR1 — the subordinate entries ARE the type;
+    /// §2023:13.18.49.4 GR2a — "the same names, descriptions, and hierarchy") but excluded from an ENTRY copy onto
+    /// a subject: the entry-name itself, OCCURS (§2023:13.18.49.3 SR5 forbids it on data-name-1; §2023:13.16.3 SR12/SR14
     /// make a subject's own OCCURS the array-of-description form), REDEFINES (both GR-1 exclusion lists), the
     /// declaration cursor, and a nested TYPE / SAME AS reference that re-expands per clone.</summary>
     MemberOnly = 4,
@@ -50,11 +50,11 @@ public enum DescriptionCopyKind
     /// <summary>A data description clause carried by every ENTRY copy (TYPE subject, SAME AS subject, reproduced
     /// subordinate — it is in neither GR-1 exclusion list) but NOT onto a COMPILER TEMPORARY
     /// (<see cref="DescriptionCopyScope.CompilerTemp"/>): the VALUE clause in both its spellings, ANY LENGTH, and
-    /// BASED (§13.18.5 — a temporary is storage the pre-op creates, never a template awaiting an address).
-    /// A temporary is the ISO §8.4.3.2.4 GR1 / §8.4.3.4.4 GR1 / §14.9.25.4 GR1 item whose content is always
+    /// BASED (§2023:13.18.5 — a temporary is storage the pre-op creates, never a template awaiting an address).
+    /// A temporary is the ISO §2023:8.4.3.2.4 GR1 / §2023:8.4.3.4.4 GR1 / §2023:14.9.25.4 GR1 item whose content is always
     /// STORED by the pre-op that creates it before anything reads it, so an initial value is unobservable — and a
     /// Format-2 VALUE's FROM subscripts would address an OCCURS a temp's root never reproduces; ANY LENGTH is a
-    /// parameter shape §13.18.2.3 SR2 admits "only in an elementary level 1 entry in the linkage section", and a
+    /// parameter shape §2023:13.18.2.3 SR2 admits "only in an elementary level 1 entry in the linkage section", and a
     /// temporary is a level-1 item of the CALLER's working storage.</summary>
     EntryOnly = 16,
 }
@@ -64,18 +64,18 @@ public enum DescriptionCopyKind
 /// spells its own field list (<c>DescriptionCopyCompletenessDriftTests</c>).</summary>
 public enum DescriptionCopyScope
 {
-    /// <summary>The subject of a TYPE clause (ISO §13.18.57.4 GR1): every clause but alignment.</summary>
+    /// <summary>The subject of a TYPE clause (ISO §2023:13.18.57.4 GR1): every clause but alignment.</summary>
     TypeSubject,
 
-    /// <summary>The subject of a SAME AS clause (§13.18.49.4 GR1, which has no alignment exclusion) or a
-    /// reproduced subordinate of a TYPE / SAME AS description (§13.18.58.4 GR1, §13.18.49.4 GR2a): every
+    /// <summary>The subject of a SAME AS clause (§2023:13.18.49.4 GR1, which has no alignment exclusion) or a
+    /// reproduced subordinate of a TYPE / SAME AS description (§2023:13.18.58.4 GR1, §2023:13.18.49.4 GR2a): every
     /// clause.</summary>
     Entry,
 
     /// <summary>A compiler TEMPORARY cloned from a model item's description — a user-function result
-    /// (§8.4.3.2.4 GR1: "the description, class, and category of the temporary data item is that specified by
+    /// (§2023:8.4.3.2.4 GR1: "the description, class, and category of the temporary data item is that specified by
     /// the description in the linkage section of the item specified in the RETURNING phrase"), an inline method
-    /// invocation's result (§8.4.3.4.4 GR1), a property reference's temp, and §14.9.25.4 GR1's intermediate
+    /// invocation's result (§2023:8.4.3.4.4 GR1), a property reference's temp, and §2023:14.9.25.4 GR1's intermediate
     /// result item. The whole description travels — including alignment, which decides a group temp's slack
     /// bytes — except the <see cref="DescriptionCopyKind.EntryOnly"/> clauses.</summary>
     CompilerTemp,

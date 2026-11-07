@@ -10,8 +10,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §9.3.8.2.3's per-method conformance rules are written ONCE — <c>OoConformance.MethodConformanceMismatches</c>
-/// (plus its rule-9 helper <c>RaisingMismatches</c>) — and every asker CALLS it (kb/Work PB972). The §11.7.3 SR9
+/// ⛔ ISO §2023:9.3.8.2.3's per-method conformance rules are written ONCE — <c>OoConformance.MethodConformanceMismatches</c>
+/// (plus its rule-9 helper <c>RaisingMismatches</c>) — and every asker CALLS it (kb/Work PB972). The §2023:11.7.3 SR9
 /// override pass <c>ValidateOverrideSignatures</c> was a second hand-written copy of rules 1–6 and 8 with its own
 /// wording, and rule 9 (RAISING) was missing from BOTH copies. This pins the shape: the askers' bodies call the one
 /// rule set and contain no per-rule comparison or rule citation of their own.
@@ -42,9 +42,9 @@ public sealed class MethodConformanceRuleSetDriftTests
         // MethodConformanceMismatches is a second copy.
         foreach (string own in new[] { "SignatureDifference(", "ActivationRelations.", "OptionalMismatch(",
                                        "ObjectRefAssignmentMismatch(", "ReturningCircularity(", ".Raising",
-                                       "§9.3.8.2.3 rule", "§9.3.8.2)" })
+                                       "§2023:9.3.8.2.3 rule", "§2023:9.3.8.2)" })
             Assert.False(body.Contains(own, StringComparison.Ordinal),
-                $"{signature.Trim()} spells '{own}' itself — a second copy of a §9.3.8.2.3 rule; ask "
+                $"{signature.Trim()} spells '{own}' itself — a second copy of a §2023:9.3.8.2.3 rule; ask "
                 + "MethodConformanceMismatches instead");
     }
 
@@ -62,7 +62,7 @@ public sealed class MethodConformanceRuleSetDriftTests
             Assert.Contains(arm, rule9);
     }
 
-    /// <summary>§9.3.8.2.3's closing sentence — the mutual-reference ban between the two RETURNING descriptions (kb/Work
+    /// <summary>§2023:9.3.8.2.3's closing sentence — the mutual-reference ban between the two RETURNING descriptions (kb/Work
     /// PB1498, owner decision R63) — is one of the rule set's rules, so every asker applies it, and every asker names
     /// interface-1 and interface-2 for it.</summary>
     [Fact]

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// level-88 condition-names inside a TYPEDEF (Phase 6, data-model D17, increment 3; ISO §13.18.58.4 GR1): the
+/// level-88 condition-names inside a TYPEDEF (Phase 6, data-model D17, increment 3; ISO §2023:13.18.58.4 GR1): the
 /// condition-names are PART of the type, so each <c>TYPE</c> reference gets its own clone of them (testing / SETting
 /// its own storage), while the TEMPLATE's condition-names are NOT globally referenceable (GR1). The run-success
 /// corpus (<c>typedef_88</c>) byte-verifies the two-record independence + qualified resolution; this locks the
@@ -41,7 +41,7 @@ public sealed class TypedefConditionTests
     }
 
     /// <summary>Two records of the same TYPEDEF get INDEPENDENT condition-name clones — the duplicate names resolve
-    /// by qualifier (<c>OPEN-ST OF DOOR</c>) with no ambiguity error (§8.4.2.2 Format 2 over the cloned parents).</summary>
+    /// by qualifier (<c>OPEN-ST OF DOOR</c>) with no ambiguity error (§2023:8.4.2.2 Format 2 over the cloned parents).</summary>
     [Fact]
     public void TwoRecordsQualifiedConditions_CompileClean()
     {

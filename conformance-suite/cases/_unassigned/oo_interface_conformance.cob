@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §4.2.2 (conformance checking, the interface leg) via §14.9.23.3 SR4e + §14.8.2 STRICT:
+      *> ISO 1989:2023 §2023:4.2.2 (conformance checking, the interface leg) via §2023:14.9.23.3 SR4e + §2023:14.8.2 STRICT:
       *> an INVOKE through an INTERFACE-typed receiver resolves the method over the interface's prototype
       *> closure and its USING/RETURNING descriptions are conformance-checked against THE PROTOTYPE at bind
       *> time (the same ONE relation the class-typed path asks — ActivationRelations.MatchViolation and

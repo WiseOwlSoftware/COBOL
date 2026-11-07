@@ -5,7 +5,7 @@
       *>---
       *> kb/Work PB4797: pb4797_working_numerators_past_the_value_range
       *> uses a floating-point numeric literal, which COBOL-2002 introduced
-      *> (ISO §8.3.3.3.3 1; COBOL0900), so under --std 85
+      *> (ISO §2023:8.3.3.3.3 1; COBOL0900), so under --std 85
       *> the program is refused at the literal and no lane is reached.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4797E85.

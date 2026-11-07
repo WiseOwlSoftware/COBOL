@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1268 — EC-BOUND-ODO AT EVERY REFERENCE §13.18.38.4 GR7 NAMES: the subject of the entry, an item
+      *> kb/Work PB1268 — EC-BOUND-ODO AT EVERY REFERENCE §2023:13.18.38.4 GR7 NAMES: the subject of the entry, an item
       *> subordinate to it, and an item superordinate to it.
       *>
       *> THE RULE, --check validated:
       *>   cite.py --check 13.18.38.4 "If the value of the data item does not fall within the specified bounds, the
-      *>     EC-BOUND-ODO exception condition is set to exist" -> OK §13.18.38.4 7) — whose first sentence reads "At
+      *>     EC-BOUND-ODO exception condition is set to exist" -> OK §2023:13.18.38.4 7) — whose first sentence reads "At
       *>     the time the subject of entry is referenced or any data item subordinate or superordinate to the
       *>     subject of entry is referenced, the value of the data item referenced by data-name-1 shall fall within
       *>     the bounds from integer-1 through integer-2".

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.2.4 GR5 — hex alphanumeric literal: the DOCUMENTED
+      *> ISO §2023:8.3.3.2.4 GR5 — hex alphanumeric literal: the DOCUMENTED
       *>   no-corresponding-character result
       *> "The implementor defines the result of specifying a
       *>   hex-character-sequence-1 for which no
@@ -14,22 +14,22 @@
       *>     of specifying a
       *>     hex-character-sequence-1 for which no corresponding
       *>       character in that coded character set
-      *>     exists."  -> OK  §8.3.3.2.4 5)  (General rules)
+      *>     exists."  -> OK  §2023:8.3.3.2.4 5)  (General rules)
       *> GR4: the value is "a string of alphanumeric characters, each of
       *>   which has the bit configuration
       *> specified by one occurrence of hex-character-sequence-1"
-      *>   cite.py -> OK  §8.3.3.2.4 4)  (General rules)
+      *>   cite.py -> OK  §2023:8.3.3.2.4 4)  (General rules)
       *> SR6 (two digits per character is the implementor's choice,
       *>   docs/CONFORMANCE.md DOC-A.1-95):
       *>   cite.py --check 8.3.3.2.3 "Each hex-character-sequence-1
       *>     shall consist of the number of
       *>     hexadecimal digits that the implementor has specified as
       *>       the number of hexadecimal digits that
-      *>     map to an alphanumeric character."  -> OK  §8.3.3.2.3 6)
+      *>     map to an alphanumeric character."  -> OK  §2023:8.3.3.2.3 6)
       *>       (Syntax rules)
-      *> ORD (§15.70.4 1): "the ordinal position of argument-1 in the
+      *> ORD (§2023:15.70.4 1): "the ordinal position of argument-1 in the
       *>   current alphanumeric program
-      *> collating sequence"  -> cite.py OK  §15.70.4 1)
+      *> collating sequence"  -> cite.py OK  §2023:15.70.4 1)
       *> THE DOCUMENTED CHOICE (docs/CONFORMANCE.md row DOC-A.1-95):
       *>   "The case does not arise: every
       *> hex-character-sequence has a corresponding character." Group hh

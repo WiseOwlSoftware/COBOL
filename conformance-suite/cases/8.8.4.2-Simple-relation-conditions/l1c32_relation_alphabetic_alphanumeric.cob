@@ -5,9 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.4.2.1 2) 3) 7) — relations between alphabetic and alphanumeric operands
+      *> ISO §2023:8.8.4.2.1 2) 3) 7) — relations between alphabetic and alphanumeric operands
       *>
-      *> THE RULES. §8.8.4.2.1: "Comparisons are defined for the following:"
+      *> THE RULES. §2023:8.8.4.2.1: "Comparisons are defined for the following:"
       *>   2) "Two operands of class alphabetic."
       *>   3) "Two operands of class alphanumeric."
       *>   7) "Two operands of different classes where each operand is from the set of
@@ -15,24 +15,24 @@
       *> and, same clause: "For comparison, an alphanumeric group item shall be treated as
       *> an elementary alphanumeric data item. A class alphabetic operand shall be treated
       *> as though it were an operand of class alphanumeric."
-      *> The comparison itself is §8.8.4.2.7 (standard comparison; no PROGRAM COLLATING
+      *> The comparison itself is §2023:8.8.4.2.7 (standard comparison; no PROGRAM COLLATING
       *> SEQUENCE is declared, and only SPACE and the letters A-D are compared, which are
       *> ordered SPACE < A < B < C < D in the native sequence):
       *>   1) equal length: "The operand that contains the character that is positioned
       *>      higher in the alphanumeric collating sequence is the greater operand."
       *>   2) unequal length: "comparison proceeds as though the shorter operand were
       *>      extended on the right by sufficient alphanumeric spaces".
-      *> The NOTE of §8.8.4.2.1: "All comparisons involving numeric-edited data items are
+      *> The NOTE of §2023:8.8.4.2.1: "All comparisons involving numeric-edited data items are
       *> alphanumeric or national comparisons".
       *>
       *> cite.py (NOTE PB1554: cite.py labels the unnumbered group/alphabetic sentence of
-      *> §8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
-      *>   OK  §8.8.4.2.1 2)  (General)
-      *>   OK  §8.8.4.2.1 3)  (General)
-      *>   OK  §8.8.4.2.1 7)  (General)
-      *>   OK  §8.8.4.2.1 13)  (General)  [the group/alphabetic sentence]
-      *>   OK  §8.8.4.2.7 1)  (Comparison of alphanumeric operands)
-      *>   OK  §8.8.4.2.7 2)  (Comparison of alphanumeric operands)
+      *> §2023:8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
+      *>   OK  §2023:8.8.4.2.1 2)  (General)
+      *>   OK  §2023:8.8.4.2.1 3)  (General)
+      *>   OK  §2023:8.8.4.2.1 7)  (General)
+      *>   OK  §2023:8.8.4.2.1 13)  (General)  [the group/alphabetic sentence]
+      *>   OK  §2023:8.8.4.2.7 1)  (Comparison of alphanumeric operands)
+      *>   OK  §2023:8.8.4.2.7 2)  (Comparison of alphanumeric operands)
       *>
       *> DERIVATION of every expected line (T = condition true, F = false):
       *>  item 2 (alphabetic vs alphabetic)

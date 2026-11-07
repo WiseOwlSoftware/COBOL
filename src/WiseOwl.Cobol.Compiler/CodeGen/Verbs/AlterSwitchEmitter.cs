@@ -26,7 +26,7 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
             foreach (var s in para.Statements)
                 CollectFields(s, fields);
         foreach (var (field, defaultPc) in fields)
-            w.Line($"private int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4; instance — ALTER state is per-program-instance, ISO §14.6.2.3.2 resets it via a fresh instance)");
+            w.Line($"private int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4; instance — ALTER state is per-program-instance, ISO §2023:14.6.2.3.2 resets it via a fresh instance)");
     }
 
     /// <summary>Collect alterable-GO-TO fields from a statement and every nested statement — recursing over the
@@ -64,7 +64,7 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
             ctx.Writer.Line($"{e.AlterField} = {e.NewPc};");
     }
 
-    // ── SET Format 3 — external switches (ISO §14.9.39 F3 GR5; §12.3.7 GR3) ──────────────────────────────────
+    // ── SET Format 3 — external switches (ISO §2023:14.9.39 F3 GR5; §2023:12.3.7 GR3) ──────────────────────────────────
 
     /// <summary>Each (switch, position) pair assigns the run-unit switch store in source order — the switch is
     /// modified so its associated condition-names evaluate per the ON/OFF phrase (GR5).</summary>

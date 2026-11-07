@@ -5,21 +5,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.29.3 3) — RAISE identifier-1 is a SENDING operand
+      *> ISO §2023:14.9.29.3 3) — RAISE identifier-1 is a SENDING operand
       *> Rule: "Identifier-1 is a sending operand."
-      *>   cite.py: OK  §14.9.29.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.29.3 3)  (Syntax rules)
       *> Consequence exercised: identifier-1 may be an object reference that the standard forbids as a
       *> RECEIVING operand, and RAISE only reads it:
-      *>   §8.4.3.8.3 2) (SELF) "This identifier format shall not be specified as a receiving operand."
-      *>     cite.py: OK  §8.4.3.8.3 2)  (Syntax rules)
-      *>   §8.4.3.6.3 1) "EXCEPTION-OBJECT shall not be specified as a receiving operand."
-      *>     cite.py: OK  §8.4.3.6.3 1)  (Syntax rules)
+      *>   §2023:8.4.3.8.3 2) (SELF) "This identifier format shall not be specified as a receiving operand."
+      *>     cite.py: OK  §2023:8.4.3.8.3 2)  (Syntax rules)
+      *>   §2023:8.4.3.6.3 1) "EXCEPTION-OBJECT shall not be specified as a receiving operand."
+      *>     cite.py: OK  §2023:8.4.3.6.3 1)  (Syntax rules)
       *> Semantics used for the expected lines:
-      *>   §14.9.29.4 2) "If identifier-1 is specified, EXCEPTION-OBJECT is set to reference the object
+      *>   §2023:14.9.29.4 2) "If identifier-1 is specified, EXCEPTION-OBJECT is set to reference the object
       *>   referenced by identifier-1. If there is no applicable declarative, processing continues with
-      *>   the statement following the RAISE statement."   cite.py: OK  §14.9.29.4 2)  (General rules)
-      *>   §8.4.3.6.4 1) "EXCEPTION-OBJECT references the current exception object."
-      *>     cite.py: OK  §8.4.3.6.4 1)  (General rules)
+      *>   the statement following the RAISE statement."   cite.py: OK  §2023:14.9.29.4 2)  (General rules)
+      *>   §2023:8.4.3.6.4 1) "EXCEPTION-OBJECT references the current exception object."
+      *>     cite.py: OK  §2023:8.4.3.6.4 1)  (General rules)
       *> The object is L1C23Y's factory object (SELF in a factory method), so no instance creation is
       *> needed.  No declarative is declared anywhere, so each RAISE continues with the next statement.
       *> EXPECTED OUTPUT, derived:

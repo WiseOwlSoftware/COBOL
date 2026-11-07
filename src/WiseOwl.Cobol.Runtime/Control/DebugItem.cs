@@ -37,7 +37,7 @@ public enum DebugCause
 /// occurrence (<see cref="Populate"/>) before it runs the declarative body.
 /// <para>Layout (the X3.23-1985 implicit description — DEBUG-SUB-n is S9(4) SIGN LEADING SEPARATE, five
 /// characters; general rule 10). The register holds each member's IMAGE: DEBUG-SUB-n as <c>+0004</c> (the sign, then four digits), so a
-/// numeric use decodes it, and a MOVE to an alphanumeric item drops the separate sign (ISO MOVE GR6a, §14.9.25.4,
+/// numeric use decodes it, and a MOVE to an alphanumeric item drops the separate sign (ISO MOVE GR6a, §2023:14.9.25.4,
 /// specs/ISO_COBOL_2023.md:28921): the CCVS DB201A witness (<c>MOVE DEBUG-SUB-1 TO SUB-1-1</c>, <c>SUB-1-1 PIC X(5)</c>, then
 /// <c>IF SUB-1-1 = "0004"</c>) sees <c>"0004 "</c>. DEBUG-SUB is SPACES when the triggering reference is not subscripted.</para>
 /// <code>
@@ -99,7 +99,7 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
     /// referenced item's content.</summary>
     public string DebugContents { get; private set; } = new string(' ', MinContentsWidth);
 
-    /// <summary>The whole DEBUG-ITEM group image (§13.18 group MOVE reads this): the members concatenated with the
+    /// <summary>The whole DEBUG-ITEM group image (§2023:13.18 group MOVE reads this): the members concatenated with the
     /// single-space FILLER positions between them.</summary>
     public string Image =>
         DebugLine + " " + DebugName + " " + DebugSub1 + " " + DebugSub2 + " " + DebugSub3 + " " + DebugContents;

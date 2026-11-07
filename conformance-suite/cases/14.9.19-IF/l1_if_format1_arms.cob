@@ -5,9 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.19.4 GR1 and GR2 — the FORMAT 1 (delimited) rules.
+      *> ISO §2023:14.9.19.4 GR1 and GR2 — the FORMAT 1 (delimited) rules.
       *> Format 1 is "IF condition-1 THEN statement-1 [ ELSE
-      *> statement-2 ] END-IF" (§14.9.19.2), so every IF here carries
+      *> statement-2 ] END-IF" (§2023:14.9.19.2), so every IF here carries
       *> its END-IF.
       *> GR1 — "If condition-1 is true, control is transferred to the
       *> first statement of statement-1 and execution continues

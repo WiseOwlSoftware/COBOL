@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.39.2 Format 7 (data-pointer-assignment) — its sending
+      *> ISO §2023:14.9.39.2 Format 7 (data-pointer-assignment) — its sending
       *> brace is { NULL | ADDRESS OF identifier-5 | identifier-6 }, and
-      *> §14.9.39.3 SR17 makes identifier-6 "of category data-pointer".
-      *> SELF is a predefined object reference (§8.4.3.3), admissible as
+      *> §2023:14.9.39.3 SR17 makes identifier-6 "of category data-pointer".
+      *> SELF is a predefined object reference (§2023:8.4.3.3), admissible as
       *> a sending operand of Format 5 alone, so this statement is
       *> refused whatever the receivers are.
       *>

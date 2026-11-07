@@ -8,7 +8,7 @@ using Core = CobolParserCore;
 
 /// <summary>The special-register kind a <c>dataReference</c> names, or <see cref="None"/> for an ordinary
 /// (optionally qualified/subscripted) data-name reference. These registers are runtime-sourced, never a storage
-/// place (ISO §8.4.3.14/§8.4.3.15).</summary>
+/// place (ISO §2023:8.4.3.14/§2023:8.4.3.15).</summary>
 public enum SpecialRegister { None, LinageCounter, LineCounter, PageCounter }
 
 /// <summary>

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.3 SR20 — "If identifier-3 does not reference an
+      *> ISO §2023:14.9.23.3 SR20 — "If identifier-3 does not reference an
       *> address-identifier, identifier-3 is a receiving operand."
       *> (cite.py --check 14.9.23.3 OK, Syntax rule 20.)
       *> THE UNIVERSAL ARM of the same rule as l1-invoke-byref-constant-
@@ -13,7 +13,7 @@
       *> non-universal identifier-1) — but SR20 does not depend on the
       *> receiver: KA is not an address-identifier, so it is a
       *> receiving operand, and
-      *> §13.18.15.3 SR2 (cite.py --check OK, SR 2) — "Neither the data
+      *> §2023:13.18.15.3 SR2 (cite.py --check OK, SR 2) — "Neither the data
       *> item described by the subject of the entry nor any data item
       *> subordinate to the subject of the entry shall be specified as a
       *> receiving data item" — bars it, because KA is subordinate to

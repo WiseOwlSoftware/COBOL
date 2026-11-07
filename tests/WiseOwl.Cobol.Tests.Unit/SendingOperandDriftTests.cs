@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>The defect this exists for.</b> Every general format that writes an operand as <c>identifier-n |
 /// literal-n</c> in a SENDING role admits the same four grammar shapes: a literal, a data reference, a
-/// function-identifier (ISO §8.4.3.1.2 Format 1)
-/// and an inline method invocation (§8.4.3.1.2 Format 4). The grammar used to
+/// function-identifier (ISO §2023:8.4.3.1.2 Format 1)
+/// and an inline method invocation (§2023:8.4.3.1.2 Format 4). The grammar used to
 /// write that set out NINE times — the four arithmetic operands, MOVE's, the WRITE / REWRITE / RELEASE FROM
 /// phrases, INITIALIZE's REPLACING item and INSPECT's operand. Each copy was added separately (fix-queue PB45 and PB10 widened each one for the function-identifier, PB428 for Format 4), and
 /// each copy had its own binder dispatch over its own generated accessors, so one shape was bound in five places.
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// or integer, whose <c>integerLiteral</c> arm decides the format; the arithmetic expression spine) is not a copy.
 /// The one recorded exemption is <c>displayStatement</c>: naming the rule there parses every legal DISPLAY
 /// identically but moves the error-recovery boundary, so <c>DISPLAY COLUMN.</c> counts more syntax errors on the way
-/// to its named §8.9 diagnostic, and a unification that changes a parse is not one (see the grammar's note).</para>
+/// to its named §2023:8.9 diagnostic, and a unification that changes a parse is not one (see the grammar's note).</para>
 ///
 /// <para>⚠ It reads the GRAMMAR SOURCE, not the generated parser: a re-inlined copy accepts exactly the same input,
 /// so only the <c>.g4</c> can show it.</para>
@@ -142,8 +142,8 @@ public sealed class SendingOperandDriftTests
     public void TheDetector_FindsAPlantedCopy(string grammar, bool isCopy) =>
         Assert.Equal(isCopy, Copies(Rules(grammar)).Count == 1);
 
-    /// <summary>The receiving side admits neither identifier format — ISO §8.4.3.2.3 SR1, "A function-identifier
-    /// shall not be specified as a receiving operand", and §8.4.3.4.3 SR1, "Inline method invocation shall not be
+    /// <summary>The receiving side admits neither identifier format — ISO §2023:8.4.3.2.3 SR1, "A function-identifier
+    /// shall not be specified as a receiving operand", and §2023:8.4.3.4.3 SR1, "Inline method invocation shall not be
     /// specified as a receiving operand".</summary>
     [Fact]
     public void ReceivingOperandRules_AdmitNoComputedIdentifier()

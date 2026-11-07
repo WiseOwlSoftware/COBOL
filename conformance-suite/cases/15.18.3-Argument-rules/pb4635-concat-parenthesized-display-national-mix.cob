@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-1 - ISO §15.18.3 r2: "If any argument is usage national, all arguments shall be usage national, otherwise all
+      *> PB4635 review R1-1 - ISO §2023:15.18.3 r2: "If any argument is usage national, all arguments shall be usage national, otherwise all
       *> arguments shall be usage display." (cite.py --check OK). (BB) is a usage display boolean item, N"A" a national literal, so the
       *> mix is refused exactly as CONCAT(BB N"A") is.
        IDENTIFICATION DIVISION.

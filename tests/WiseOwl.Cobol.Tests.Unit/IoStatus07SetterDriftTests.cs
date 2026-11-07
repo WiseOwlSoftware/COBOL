@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ I-O STATUS '07' HAS EXACTLY TWO SETTERS, THE ONE OPEN DISPATCH'S NO REWIND ARM AND THE ONE CLOSE DISPATCH, AND NO
-/// OTHER INPUT-OUTPUT STATEMENT, ORGANIZATION OR EMITTER WRITES IT, AT ANY EDITION (kb/Work PB1515). ISO §9.1.13.2
+/// OTHER INPUT-OUTPUT STATEMENT, ORGANIZATION OR EMITTER WRITES IT, AT ANY EDITION (kb/Work PB1515). ISO §2023:9.1.13.2
 /// item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE statement with the NO REWIND,
 /// REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND phrase references a physical file on a
 /// non-reel/unit medium"</i>, and Annex E.2 item 16: <i>"The setting of I-O Status '07' is now restricted to the
@@ -21,8 +21,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// the structure that keeps the determination true.
 /// <para>Every write goes through <see cref="FileStatusCode.PhraseOnNonReelMedium"/>, and a second spelling of the
 /// value is a second setter nobody is guarding, so the test reads both: the named constant may be used only inside
-/// <c>FileRegistry.CloseByFormat</c> (Table 14's symbols e and g, §14.9.6.4 GR3) and
-/// <c>FileRegistry.NoRewindPhraseEffect</c> (§14.9.27.4 GR11), and the string <c>"07"</c> appears in the runtime and the
+/// <c>FileRegistry.CloseByFormat</c> (Table 14's symbols e and g, §2023:14.9.6.4 GR3) and
+/// <c>FileRegistry.NoRewindPhraseEffect</c> (§2023:14.9.27.4 GR11), and the string <c>"07"</c> appears in the runtime and the
 /// code generator nowhere but the constant's own declaration. A new medium or organization that needs the status
 /// changes those two dispatches, never a third site.</para>
 /// </summary>
@@ -52,7 +52,7 @@ public sealed class IoStatus07SetterDriftTests
                     ?? node.Ancestors().OfType<BaseTypeDeclarationSyntax>().First().Identifier.Text,
         };
 
-    /// <summary>The named constant is read in exactly the two dispatches §9.1.13.2 item 6 names statements for, and in
+    /// <summary>The named constant is read in exactly the two dispatches §2023:9.1.13.2 item 6 names statements for, and in
     /// both — a setter that moved, was deleted or was added fails here with its location.</summary>
     [Fact]
     public void TheNamedConstant_IsUsedOnlyByTheCloseDispatchAndTheOpenNoRewindArm()

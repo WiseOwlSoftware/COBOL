@@ -5,29 +5,29 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.40.3 SR5 PICTURE clause — "PIC is an abbreviation
+      *> ISO §2023:13.18.40.3 SR5 PICTURE clause — "PIC is an abbreviation
       *> for PICTURE."
       *>   python scripts/spec/cite.py --check 13.18.40.3 "PIC is an
       *>   abbreviation for PICTURE."
-      *>   -> OK  §13.18.40.3   (Syntax rules)  [5.]
+      *>   -> OK  §2023:13.18.40.3   (Syntax rules)  [5.]
       *>
       *> DERIVATION. An abbreviation is the SAME word, so the clause is
       *> the same clause however it is spelled and the two spellings
-      *> shall be interchangeable in every position the §13.18.40.2
+      *> shall be interchangeable in every position the §2023:13.18.40.2
       *> general format allows — including before the optional word IS.
       *> Four entries are written: PIC and PICTURE over one
       *> character-string, then PIC IS and PICTURE IS over another. If
       *> the two spellings are one clause, the pairs are identical data
       *> items, and identity is observable three ways, all displayed:
       *>   size — FUNCTION LENGTH of WS-A and of WS-B is 4 for both,
-      *>          because §13.18.40.4 GR4 sizes an item by the number
+      *>          because §2023:13.18.40.4 GR4 sizes an item by the number
       *>          of symbols in character-string-1 and both entries
       *>          carry the same character-string;
       *>   category and alignment — WS-A and WS-B are alphanumeric, so
-      *>          §14.6.8.5 aligns "AB" at the leftmost character
+      *>          §2023:14.6.8.5 aligns "AB" at the leftmost character
       *>          position with space fill to the right: [AB  ];
-      *>   editing — WS-C and WS-D are numeric-edited, so §14.6.8.2
-      *>          rule 5 hands the transfer to §13.18.40's editing
+      *>   editing — WS-C and WS-D are numeric-edited, so §2023:14.6.8.2
+      *>          rule 5 hands the transfer to §2023:13.18.40's editing
       *>          rules. ZZ9.99 has three integer digit positions and
       *>          two fractional ones; 12.34 aligns on the decimal
       *>          point as 012.34; editing rule 7a replaces the leading

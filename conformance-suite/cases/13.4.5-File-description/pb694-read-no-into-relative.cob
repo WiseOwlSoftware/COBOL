@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO/IEC 1989:2023 §13.4.5.3 syntax rule 3 c): "When no record description entries
+*> ISO/IEC 1989:2023 §2023:13.4.5.3 syntax rule 3 c): "When no record description entries
 *> are specified: ... c) an INTO phrase shall be specified on all READ statements
 *> associated with the file." SR3 is a FORMATS 1 AND 2 rule, so it binds a RELATIVE
 *> file too (SR7 withdraws the record-less permission for an INDEXED file only). RLF

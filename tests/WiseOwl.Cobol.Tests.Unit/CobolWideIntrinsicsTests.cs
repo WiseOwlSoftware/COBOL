@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>CobolIntrinsics.*Wide</c> bodies, the <see cref="CobolWide"/> primitives they stand on, and the temporary DISPLAY shows
 /// (<see cref="FunctionValueField.OfWide"/>). Every expected value is computed by <see cref="BigInteger"/>, an independent
 /// arbitrary-precision oracle the runtime deliberately does not use (DESIGN §1.2 invariant 2), from the function's returned-value
-/// rule: ABS §15.7.4, INTEGER §15.44.4, INTEGER-PART §15.49.4, FRACTION-PART §15.42.4, MOD §15.64.4 (floored), REM §15.77.4
-/// (truncated), MEDIAN §15.61.4, MIDRANGE §15.62.4.
+/// rule: ABS §2023:15.7.4, INTEGER §2023:15.44.4, INTEGER-PART §2023:15.49.4, FRACTION-PART §2023:15.42.4, MOD §2023:15.64.4 (floored), REM §2023:15.77.4
+/// (truncated), MEDIAN §2023:15.61.4, MIDRANGE §2023:15.62.4.
 /// </summary>
 public sealed class CobolWideIntrinsicsTests
 {
@@ -74,7 +74,7 @@ public sealed class CobolWideIntrinsicsTests
         Assert.Equal(0, Of(CobolIntrinsics.FractionPartWide(W(Product39), 0)));
     }
 
-    /// <summary>Product39 ends …000999, so a − b × INTEGER (a / b) is 999 / 1 / −1 / −999 by the sign table of §15.64.4's NOTE (the
+    /// <summary>Product39 ends …000999, so a − b × INTEGER (a / b) is 999 / 1 / −1 / −999 by the sign table of §2023:15.64.4's NOTE (the
     /// result takes the divisor's sign), and a − b × INTEGER-PART (a / b) keeps the dividend's: 999 or −999.</summary>
     [Theory]
     [InlineData(1, 1000, 999, 999)]
@@ -132,7 +132,7 @@ public sealed class CobolWideIntrinsicsTests
     /// <summary>kb/Work PB3953 review R1-1: a wide temporary against a NON-wide one of up to 39 exact digits is ordered by the exact
     /// values. <c>a</c> = 170141183460469231731687303715884105000 fits Int128 (an exact SDIDI temporary, off the 34-digit grid);
     /// <c>a + 1000</c> is past it, and its 34-digit round-to-odd image (…884100000 + 1 ulp at most) lies BELOW <c>a</c>, so an image
-    /// order picks the smaller value as MAX. Expected values: §15.59.4 1) / §15.63.4 1) select the greatest / least value, §15.61.4
+    /// order picks the smaller value as MAX. Expected values: §2023:15.59.4 1) / §2023:15.63.4 1) select the greatest / least value, §2023:15.61.4
     /// the middle of the sorted list, computed here by <see cref="BigInteger"/>.</summary>
     [Fact]
     public void AWideTemporary_OrdersExactlyAgainstANarrowOneOffTheImageGrid()

@@ -46,7 +46,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// "Nothing was learned on the first attempt" holds only for a child that left nothing behind. A compiled COBOL
 /// program killed at the budget has already created, appended to and rewritten files in its run directory, and a retry
 /// over those files measures a different input: NIST IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 (file
-/// present, created by the killed attempt) where ISO/IEC 1989:2023 §14.9.27.4 GR17 requires 05, one red in 17,812.
+/// present, created by the killed attempt) where ISO/IEC 1989:2023 §2023:14.9.27.4 GR17 requires 05, one red in 17,812.
 /// A caller that runs a program in a directory names it (<c>runDirectory</c>); the observer records that directory
 /// before the first attempt and restores it before the retry (<see cref="RunDirectoryState"/>), or raises the
 /// non-observation when it cannot.

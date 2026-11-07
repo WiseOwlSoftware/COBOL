@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 11: "If object-class-name-1 is specified and the data item
+      *> ISO §2023:14.9.39.3 syntax rule 11: "If object-class-name-1 is specified and the data item
       *> referenced by identifier-3 is described with an interface-name that identifies the
       *> interface int-1, the factory object of object-class-name-1 shall be described with an
-      *> IMPLEMENTS clause that references int-1."  §14.9.39.4 GR10 makes the class NAME send
+      *> IMPLEMENTS clause that references int-1."  §2023:14.9.39.4 GR10 makes the class NAME send
       *> the class's FACTORY object, so it is the FACTORY definition that has to implement the
       *> interface.  Here the INSTANCE definition does and the FACTORY definition does not —
       *> the discriminator, because a screen that asked the instance-side closure (or asked

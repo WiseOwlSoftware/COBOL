@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY CREATION DECIDED ON AN ABSENT PRESENCE PROBE TAKES A HANDLE OPENED <c>FileMode.CreateNew</c>, IN EVERY ORGANIZATION (kb/Work
 /// PB3635; DESIGN-runtime-library.md 2.2.2.14). Two creations are decided that way: the WRITE that creates the file again after its run
 /// unit's ROLLBACK removed it, and the OPEN that creates it (OUTPUT of an absent file, I-O or EXTEND of an absent OPTIONAL one,
-/// §14.9.27.4 GR17, GR18). A file another run unit made at the path since the ROLLBACK is that run unit's (§9.1.17), so the WRITE answers
-/// '30' (§9.1.13.6 item 1) rather than appending to it, replacing it or journaling it as its own creation; a file made between an OPEN's
+/// §2023:14.9.27.4 GR17, GR18). A file another run unit made at the path since the ROLLBACK is that run unit's (§2023:9.1.17), so the WRITE answers
+/// '30' (§2023:9.1.13.6 item 1) rather than appending to it, replacing it or journaling it as its own creation; a file made between an OPEN's
 /// probe and its handle is met by an OPEN that is made again over it (<c>FileConnector.Open</c>). The probe alone leaves a window —
 /// another run unit's OPEN OUTPUT takes no entry mutex — which only a creating handle that refuses an existing file closes, so a creation
 /// spelled <c>Append</c>, <c>OpenOrCreate</c> or <c>Create</c> is the defect again. The behavioural witnesses (SequentialCommitControlTests,

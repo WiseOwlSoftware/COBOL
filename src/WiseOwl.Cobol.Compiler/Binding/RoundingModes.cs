@@ -11,8 +11,8 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// The single canonical mapping from a parsed rounding-mode keyword to its runtime <see cref="CobolRounding"/>
-/// (ISO/IEC 1989:2023 §14.7.4.3). Shared by every consumer — the per-statement ROUNDED phrase, the OPTIONS
-/// <c>DEFAULT ROUNDED</c> clause (§11.9.6), and the OPTIONS <c>INTERMEDIATE ROUNDING</c> clause (§11.9.11) — so
+/// (ISO/IEC 1989:2023 §2023:14.7.4.3). Shared by every consumer — the per-statement ROUNDED phrase, the OPTIONS
+/// <c>DEFAULT ROUNDED</c> clause (§2023:11.9.6), and the OPTIONS <c>INTERMEDIATE ROUNDING</c> clause (§2023:11.9.11) — so
 /// there is exactly one place that knows the keyword→mode correspondence.
 /// </summary>
 internal static class RoundingModes
@@ -28,7 +28,7 @@ internal static class RoundingModes
         : m.PROHIBITED() is not null ? CobolRounding.Prohibited
         : CobolRounding.Truncation;   // TRUNCATION
 
-    /// <summary>Map the restricted 4-mode <c>intermediateRoundingMode</c> (INTERMEDIATE ROUNDING clause, §11.9.11:
+    /// <summary>Map the restricted 4-mode <c>intermediateRoundingMode</c> (INTERMEDIATE ROUNDING clause, §2023:11.9.11:
     /// NEAREST-AWAY-FROM-ZERO | NEAREST-EVEN | PROHIBITED | TRUNCATION).</summary>
     public static CobolRounding MapIntermediate(Core.IntermediateRoundingModeContext m) =>
         m.NEAREST_AWAY_FROM_ZERO() is not null ? CobolRounding.NearestAwayFromZero

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// the first procedure-name and DISCARDED the rest without a diagnostic, and both
 /// <c>GO TO DEPENDING ON X.</c> and <c>MOVE A CORRESPONDING G1 TO G2.</c> compiled clean and aborted at run
 /// time on a loud stage that told the user a COBOL FEATURE was unimplemented — about source the standard has no
-/// format for. §4.2.2's first paragraph fixes what may be accepted ("An implementation shall accept the syntax
+/// format for. §2023:4.2.2's first paragraph fixes what may be accepted ("An implementation shall accept the syntax
 /// and provide the functionality for all standard language elements required by this Working Draft
 /// International Standard and the optional or processor-dependent language elements for which support is
 /// claimed"), and a construct no general format prints is neither.</para>
@@ -22,10 +22,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para><b>The formats, read from the printed figures</b> (canonical PDF page 660 / printed folio 630 for
 /// GO TO, page 694 for MOVE, because a general-format diagram is load-bearing — CLAUDE.md rule 1):
 /// <list type="bullet">
-///   <item>§14.9.17.2 Format 1 <c>GO TO procedure-name-1</c>; Format 2
+///   <item>§2023:14.9.17.2 Format 1 <c>GO TO procedure-name-1</c>; Format 2
 ///         <c>GO TO { procedure-name-1 } … DEPENDING ON identifier-1</c>. GO and DEPENDING are underlined; TO
-///         and ON are not, so §5.2.3 makes them optional words.</item>
-///   <item>§14.9.25.2 Format 1 <c>MOVE { identifier-1 | literal-1 } TO { identifier-2 } …</c>; Format 2
+///         and ON are not, so §2023:5.2.3 makes them optional words.</item>
+///   <item>§2023:14.9.25.2 Format 1 <c>MOVE { identifier-1 | literal-1 } TO { identifier-2 } …</c>; Format 2
 ///         <c>MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4</c>. Both put the whole sending
 ///         specification directly after the verb.</item>
 /// </list></para>
@@ -33,7 +33,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para>⚠ EVERY ROW RUNS AT ALL FOUR EDITIONS. Neither clause's formats changed shape across
 /// 1985/2002/2014/2023, so an edition-gated rejection would be wrong in both directions, and the old defects
 /// were measured accepted at every edition probed. The one arm that IS edition-dependent — the ANSI-85
-/// target-less <c>GO TO.</c>, which §14.9.17.2 prints no format for — keeps its named removal diagnostic rather
+/// target-less <c>GO TO.</c>, which §2023:14.9.17.2 prints no format for — keeps its named removal diagnostic rather
 /// than becoming a parse error, and is pinned here too.</para>
 /// </summary>
 public sealed class PrintedFormatComplementTests
@@ -68,10 +68,10 @@ public sealed class PrintedFormatComplementTests
 
         """;
 
-    // ── GO TO (§14.9.17.2) ──
+    // ── GO TO (§2023:14.9.17.2) ──
 
     /// <summary>Every spelling the two printed formats admit — the over-rejection guard for the narrowing.
-    /// TO omitted (§5.2.3), ON omitted, Format 2 with one procedure-name and with three.</summary>
+    /// TO omitted (§2023:5.2.3), ON omitted, Format 2 with one procedure-name and with three.</summary>
     [Theory]
     [InlineData("PBGT01", "GO TO P-A")]
     [InlineData("PBGT02", "GO P-A")]
@@ -89,8 +89,8 @@ public sealed class PrintedFormatComplementTests
     }
 
     /// <summary>The complement: more than one procedure-name with no DEPENDING phrase (only Format 2 prints the
-    /// list, and its DEPENDING is underlined — §5.2.2), and a DEPENDING phrase with no procedure-name (Format
-    /// 2's <c>{ procedure-name-1 } …</c> is a brace group, so §5.2.6.3 requires one). Refused at all four
+    /// list, and its DEPENDING is underlined — §2023:5.2.2), and a DEPENDING phrase with no procedure-name (Format
+    /// 2's <c>{ procedure-name-1 } …</c> is a brace group, so §2023:5.2.6.3 requires one). Refused at all four
     /// editions, by NAME — a bare COBOL0001 would leave a reader unable to tell a compiler limitation from a
     /// syntax mistake.</summary>
     [Theory]
@@ -103,7 +103,7 @@ public sealed class PrintedFormatComplementTests
         foreach (int edition in EditionHarness.Editions)
         {
             var (ok, diagnostics) = EditionHarness.Compile(Prog(pid + edition, body), edition);
-            Assert.False(ok, $"--std {edition}: accepted a shape §14.9.17.2 prints no format for");
+            Assert.False(ok, $"--std {edition}: accepted a shape §2023:14.9.17.2 prints no format for");
             EditionHarness.AssertHasDiagnostic(diagnostics, GoToShape);
         }
     }
@@ -129,7 +129,7 @@ public sealed class PrintedFormatComplementTests
         }
     }
 
-    // ── MOVE (§14.9.25.2) ──
+    // ── MOVE (§2023:14.9.25.2) ──
 
     /// <summary>Both printed formats, in every spelling — the over-rejection guard for deleting
     /// <c>moveReceivingPhrase</c>'s second alternative.</summary>
@@ -163,7 +163,7 @@ public sealed class PrintedFormatComplementTests
         foreach (int edition in EditionHarness.Editions)
         {
             var (ok, diagnostics) = EditionHarness.Compile(Prog(pid + edition, body), edition);
-            Assert.False(ok, $"--std {edition}: accepted a shape §14.9.25.2 prints no format for");
+            Assert.False(ok, $"--std {edition}: accepted a shape §2023:14.9.25.2 prints no format for");
             EditionHarness.AssertHasDiagnostic(diagnostics, MoveCorrPosition);
         }
     }

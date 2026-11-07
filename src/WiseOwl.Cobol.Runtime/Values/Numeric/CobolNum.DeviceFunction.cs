@@ -8,16 +8,16 @@ public static partial class CobolNum
 {
     /// <summary>
     /// ⛔ THE DEVICE FORM OF A NUMERIC FUNCTION'S RETURNED VALUE WHEN THE VALUE ALONE DESCRIBES ITS TEMPORARY (kb/Work PB3514;
-    /// ISO/IEC 1989:2023 §15.4 - "The evaluation of a function produces a returned value in a temporary elementary data item";
-    /// §15.4.1 - "When native arithmetic is in effect, the characteristics and representation of the returned value are defined
-    /// by the implementor"; §14.9.11.4 GR1; docs/CONFORMANCE.md DOC-A.1-92). The standard leaves the temporary's description to
+    /// ISO/IEC 1989:2023 §2023:15.4 - "The evaluation of a function produces a returned value in a temporary elementary data item";
+    /// §2023:15.4.1 - "When native arithmetic is in effect, the characteristics and representation of the returned value are defined
+    /// by the implementor"; §2023:14.9.11.4 GR1; docs/CONFORMANCE.md DOC-A.1-92). The standard leaves the temporary's description to
     /// the implementor, so CLAUDE.md rule 1's precedence gives it to GnuCOBOL 3.2.0, whose <c>cob_alloc_field</c> derives it
     /// from the value (<see cref="ReturnedValueProfile"/>), and DISPLAY then shows the temporary as it shows any numeric item of
     /// that description (<see cref="Compose"/>): <c>FUNCTION INTEGER(-12.5)</c> is <c>-000000013</c>, <c>FUNCTION NUMVAL("12.50")</c>
     /// is <c>00000012.5</c>, <c>FUNCTION NUMVAL("0.000000001")</c> is <c>.000000001</c>.
     /// </summary>
     /// <param name="value">The exact returned value (an SDIDI, which carries any scale the value has).</param>
-    /// <param name="commaMode">The unit's decimal separator (§12.3.7.4 GR14 a).</param>
+    /// <param name="commaMode">The unit's decimal separator (§2023:12.3.7.4 GR14 a).</param>
     public static string DeviceFunctionText(CobolDec value, bool commaMode) =>
         DeviceFunctionText(value, signedItem: value.Sig < 0, commaMode);
 
@@ -84,7 +84,7 @@ public static partial class CobolNum
     /// <param name="value">The exact returned value.</param>
     /// <param name="digits">The magnitude's digits after the trailing fraction zeros are dropped (unpadded).</param>
     /// <param name="storageBytes">The bytes the temporary occupies, which is what <c>FUNCTION LENGTH</c> and <c>FUNCTION BYTE-LENGTH</c> of the
-    /// call answer (§15.50.4 r3, §15.14.4 r1; kb/Work PB3951): 4 for the 4-byte binary item, 8 for the 8-byte one, otherwise the DISPLAY item's
+    /// call answer (§2023:15.50.4 r3, §2023:15.14.4 r1; kb/Work PB3951): 4 for the 4-byte binary item, 8 for the 8-byte one, otherwise the DISPLAY item's
     /// digit count (its sign is carried in the last digit and takes no position). The profile's <c>Digits</c> cannot say which, because it is
     /// the digit POSITIONS DISPLAY pads to (9 or 20 for a binary item).</param>
     internal static NumProfile ReturnedValueProfile(CobolDec value, out string digits, out int storageBytes)

@@ -14,7 +14,7 @@ internal sealed class BindSession
 {
     public required TurnState Turn { get; init; }
 
-    /// <summary>The group's POSITION-RULED directive sites (ISO §7.3.20.3 SR4, §7.3.22.3 SR4, §7.3.25.3 SR5):
+    /// <summary>The group's POSITION-RULED directive sites (ISO §2023:7.3.20.3 SR4, §2023:7.3.22.3 SR4, §2023:7.3.25.3 SR5):
     /// where each &gt;&gt;TURN / &gt;&gt;PUSH / &gt;&gt;POP was written, in the final line frame. Every unit's
     /// EC bind state receives it, so the ONE lexical-containment predicate (kb/Work PB595 / owner decision D20)
     /// can decide all three bans. Empty when the source carries none of the three.</summary>
@@ -22,35 +22,35 @@ internal sealed class BindSession
     public required OoClassTable OoClasses { get; init; }
     public required EditionContext Edition { get; init; }
 
-    /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §7.3.23) — the per-line
+    /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §2023:7.3.23) — the per-line
     /// zero-length allowance fold every unit's <see cref="ReferenceResolver"/> queries when building a ref-mod
     /// Place. Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default, no directive).</summary>
     public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
 
-    /// <summary>The group's compile-time <c>&gt;&gt;PROPAGATE</c> resolution (ISO §7.3.21; kb/Work PB1119) — folded
+    /// <summary>The group's compile-time <c>&gt;&gt;PROPAGATE</c> resolution (ISO §2023:7.3.21; kb/Work PB1119) — folded
     /// once per source element (<c>BinderDriver</c>: a program unit's <see cref="UnitChecking.AutomaticPropagation"/>,
-    /// a method's <c>OoMethodSymbol.Checking</c>; both written by <c>CheckingFold</c>). Defaults to the §7.3.21.4 GR4 OFF.</summary>
+    /// a method's <c>OoMethodSymbol.Checking</c>; both written by <c>CheckingFold</c>). Defaults to the §2023:7.3.21.4 GR4 OFF.</summary>
     public PropagateState Propagate { get; init; } = PropagateState.Empty;
 
-    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §7.3.10) — the per-compilation-group
+    /// <summary>The group's <c>&gt;&gt;COBOL-WORDS</c> override (ISO §2023:7.3.10) — the per-compilation-group
     /// reserved/context/intrinsic word-table modification. <see cref="VersionConformancePass"/> composes the
     /// effective <c>ReservedWordSet</c> from it (RESERVE/UNDEFINE/SUBSTITUTE), and the intrinsic binder resolves
     /// function-name synonyms through it. Defaults to <see cref="CobolWordsMap.Empty"/> (no directive).</summary>
     public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
 
-    /// <summary>The post-lex token decisions the tree was parsed under (kb/Work PB655 — the §8.9 words the token-level
+    /// <summary>The post-lex token decisions the tree was parsed under (kb/Work PB655 — the §2023:8.9 words the token-level
     /// gate freed, plus the <c>&gt;&gt;COBOL-WORDS</c> map), handed to every fragment re-parse so it reads each word as
     /// the tree does. From <c>CompilationUnitContext.TokenRetypes</c>.</summary>
     public Frontend.Parsing.TokenRetypes Retypes { get; init; } = Frontend.Parsing.TokenRetypes.None;
 
-    /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> resolution (ISO §7.3.17; kb/Work PB65, PB1378): folded per
+    /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> resolution (ISO §2023:7.3.17; kb/Work PB65, PB1378): folded per
     /// compilation unit at its first line — ON means a formatted-time argument's seconds subfield may be 60
-    /// (§15.3.3.3) and standard numeric time form is bounded at 86,401 (GR4). Every unit's
-    /// <see cref="DataBinder.LeapSecond"/> carries the answer to the intrinsic renderer. Defaults to the §7.3.17.4
+    /// (§2023:15.3.3.3) and standard numeric time form is bounded at 86,401 (GR4). Every unit's
+    /// <see cref="DataBinder.LeapSecond"/> carries the answer to the intrinsic renderer. Defaults to the §2023:7.3.17.4
     /// GR1 OFF.</summary>
     public LeapSecondState LeapSecond { get; init; } = LeapSecondState.Empty;
 
-    /// <summary>The group's <c>&gt;&gt;DEFINE</c> compilation-variable timeline (ISO §7.3.11.4 GR1; kb/Work PB1368) — what
+    /// <summary>The group's <c>&gt;&gt;DEFINE</c> compilation-variable timeline (ISO §2023:7.3.11.4 GR1; kb/Work PB1368) — what
     /// a constant entry's FROM phrase reads, as of the entry's own line. Every unit's
     /// <see cref="DataBinder.CompilationVariables"/> carries it. Empty when the group defines no variable.</summary>
     public Frontend.Preprocessor.DirectiveTimeline<Frontend.Preprocessor.CompilationVariableEvent> CompilationVariables { get; init; } =
@@ -80,7 +80,7 @@ internal sealed class BindSession
 
     /// <summary>The provider that reads <see cref="SearchSpace"/> (DESIGN-external-repository §8.0): the resolver's second
     /// provider and the class table's importer (<see cref="Compiler.Oo.IOoImporter"/>). Built by <c>BinderDriver.Bind</c>
-    /// BEFORE the class table, which asks it for a class a specifier names that the group does not define (§8.4 step 3).</summary>
+    /// BEFORE the class table, which asks it for a class a specifier names that the group does not define (§2023:8.4 step 3).</summary>
     internal required MetadataRepositoryProvider External { get; init; }
 
     /// <summary>The group's walk of the parse tree for storage-claim operands (<c>ADDRESS OF</c> heads, BY REFERENCE operands),

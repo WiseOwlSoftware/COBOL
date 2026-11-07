@@ -124,7 +124,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 optimizationLevel: OptimizationLevel.Release,
                 // The generated source is machine-emitted and self-consistent; nullable warnings on it are noise.
                 nullableContextOptions: NullableContextOptions.Disable,
-                // §15.99.3 r3's object-code half, decided EXPLICITLY (kb/Work PB120): deterministic PE — the
+                // §2023:15.99.3 r3's object-code half, decided EXPLICITLY (kb/Work PB120): deterministic PE — the
                 // COFF TimeDateStamp becomes a content hash and the MVID is content-derived, so the generated
                 // object code provides NO compilation date and time and r3's "if provided in … the generated
                 // object code" condition is not engaged (the only compilation time a produced program carries

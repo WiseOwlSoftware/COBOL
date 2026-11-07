@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.4.5.7.3 SR6 — a Format-2 (key-level) COLLATING SEQUENCE
+      *> ISO §2023:12.4.5.7.3 SR6 — a Format-2 (key-level) COLLATING SEQUENCE
       *> operand shall not be subscripted.
       *>   cite.py --check 12.4.5.7.3 "Data-name-1 and record-key-name-1
       *>     shall not be subscripted." -> OK 6)
@@ -12,7 +12,7 @@
       *> data-name-1. Everything else about the entry is legal: the file
       *> is INDEXED, IX-KEY is its declared RECORD KEY data-name (SR4)
       *> and REV is an alphanumeric alphabet (SR7), so the subscript is
-      *> the only ground for rejection. The §12.4.5.7.2 Format-2 operand
+      *> the only ground for rejection. The §2023:12.4.5.7.2 Format-2 operand
       *> is parsed as a data reference (a QUALIFIED data-name is legal,
       *> kb/Work PB1075), and the one data-name-n capture refuses the
       *> subscript by name: COBOL2024, which is what the .err holds

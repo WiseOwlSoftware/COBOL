@@ -7,11 +7,11 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>ISO §8.8.4.4.4 GR3 g)–m) and n) 1. b. — the floating-point class conditions, decided by
+/// <summary>ISO §2023:8.8.4.4.4 GR3 g)–m) and n) 1. b. — the floating-point class conditions, decided by
 /// <see cref="CobolFloatClass"/> on the carrier's raw ISO/IEC 60559:2020 bits (kb/Work PB225).
 /// <para>⛔ TWO AGREEMENTS ARE PINNED HERE, because each is one quantity with two surfaces:</para>
 /// <list type="bullet">
-/// <item>every canonical value SET Format 15 WRITES (<see cref="IeeeSpecials.Bits"/>, §14.9.39.4 GR33–GR35)
+/// <item>every canonical value SET Format 15 WRITES (<see cref="IeeeSpecials.Bits"/>, §2023:14.9.39.4 GR33–GR35)
 /// is classified as the kind it was written as — so <c>SET CONTENT OF X TO FLOAT-NOT-A-NUMBER-SIGNALING</c>
 /// followed by <c>IF X IS FLOAT-NOT-A-NUMBER-SIGNALING</c> is TRUE by construction, on both carriers;</item>
 /// <item>the float extremes <see cref="AlgebraicRanges"/> states (the HIGHEST-/SMALLEST-ALGEBRAIC and SET

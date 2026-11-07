@@ -33,8 +33,8 @@ public sealed class ReadingParsesFollowDriftTests
     }
 
     /// <summary>The fact <c>noHeaderWrittenHere</c> rests on (kb/Work PB4706): no format follows a data-name with SECTION or
-    /// DIVISION, so refusing the gated word before either loses no reading. And PROCEDURE is out of the rule: §8.9 reserves it
-    /// at every edition, so a data-name that begins with it is §8.3.2.1 1)'s violation.</summary>
+    /// DIVISION, so refusing the gated word before either loses no reading. And PROCEDURE is out of the rule: §2023:8.9 reserves it
+    /// at every edition, so a data-name that begins with it is §2023:8.3.2.1 1)'s violation.</summary>
     [Fact]
     public void ADataName_IsNeverFollowedByAHeadersClosingWord_AndNeverIsProcedure()
     {

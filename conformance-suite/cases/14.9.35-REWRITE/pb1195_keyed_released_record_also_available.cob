@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.51.4 GR4 (WRITE) and §14.9.35.4 GR6 (REWRITE) on the KEYED organizations - the twin of
+      *> ISO 1989:2023 §2023:14.9.51.4 GR4 (WRITE) and §2023:14.9.35.4 GR6 (REWRITE) on the KEYED organizations - the twin of
       *> pb1195_released_record_also_available_out_of_line, which pins the sequential and sort arms.
       *> The released logical record "is also available as a record of other file-names referenced in the same SAME
-      *> RECORD AREA clause ..., as well as the file associated with record-name-1" (§14.9.35.4 GR6; §14.9.51.4 GR4).
+      *> RECORD AREA clause ..., as well as the file associated with record-name-1" (§2023:14.9.35.4 GR6; §2023:14.9.51.4 GR4).
       *> K1's record is a DYNAMIC LENGTH elementary item (OUT OF LINE, docs/CONFORMANCE.md D-FRA: no window over the
       *> shared character area); K2's is a character record. The area is carried across by a store at each statement.
       *> The contents of the area BEYOND the released record are not defined by these rules, so only the released

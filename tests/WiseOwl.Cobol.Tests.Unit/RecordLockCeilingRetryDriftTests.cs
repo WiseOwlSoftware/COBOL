@@ -7,12 +7,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE §12.4.5.9.4 GR7 RECORD-LOCK CEILING IS JUDGED IN ONE PLACE, UNDER THE STATEMENT'S RETRY PHRASE, AND NO
+/// ⛔ THE §2023:12.4.5.9.4 GR7 RECORD-LOCK CEILING IS JUDGED IN ONE PLACE, UNDER THE STATEMENT'S RETRY PHRASE, AND NO
 /// GOVERNED VERB DISCARDS THE PHRASE IT WAS HANDED (kb/Work PB707). '53' and '54' are record operation conflict
-/// conditions by §9.1.13.8's own heading (<c>cite.py --check 9.1.13.8 "this file connector holds the maximum number of
-/// locks"</c> → OK §9.1.13.8 4)), §14.7.9.3 GR4 engages on every such condition (<c>cite.py --check 14.7.9.3 "unsuccessful
+/// conditions by §2023:9.1.13.8's own heading (<c>cite.py --check 9.1.13.8 "this file connector holds the maximum number of
+/// locks"</c> → OK §2023:9.1.13.8 4)), §2023:14.7.9.3 GR4 engages on every such condition (<c>cite.py --check 14.7.9.3 "unsuccessful
 /// on the first attempt because of a file sharing conflict condition or a record operation conflict condition"</c> → OK
-/// §14.7.9.3 4)), and <c>FileRegistry.RetryLoop</c> is the one place that discipline is written. The ceiling used to be
+/// §2023:14.7.9.3 4)), and <c>FileRegistry.RetryLoop</c> is the one place that discipline is written. The ceiling used to be
 /// asked straight from <c>PhysicalFileTable.PreflightNewLock</c> at three call sites, WRITE's with
 /// <c>_ = retryKind; _ = retryAmount;</c> beside it, so the rule lived at the call sites rather than in the loop. The
 /// answer was the same either way (a ceiling is this connector's and this run unit's own count, which no re-attempt

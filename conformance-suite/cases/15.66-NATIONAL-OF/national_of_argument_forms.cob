@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.66 NATIONAL-OF — both shapes of the general format (§15.66.2):
+      *> ISO §2023:15.66 NATIONAL-OF — both shapes of the general format (§2023:15.66.2):
       *>     FUNCTION NATIONAL-OF ( argument-1 [ argument-2 ] )
-      *> §15.66.3 r2: argument-2 is a one-character national substitution character; it substitutes only
+      *> §2023:15.66.3 r2: argument-2 is a one-character national substitution character; it substitutes only
       *> for characters with no national correspondent, and every character of "XY" has one, so both
       *> forms return N"XY" — the presence of argument-2 is exactly what this golden pins.
-      *> §15.66.4 r1: each alphanumeric character converts to its corresponding national representation;
-      *> §15.66.4 r4: the length is the national character positions required — 2, proven by LENGTH.
+      *> §2023:15.66.4 r1: each alphanumeric character converts to its corresponding national representation;
+      *> §2023:15.66.4 r4: the length is the national character positions required — 2, proven by LENGTH.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NATOFFORMS.
        DATA DIVISION.

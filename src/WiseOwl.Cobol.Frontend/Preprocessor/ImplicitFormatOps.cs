@@ -5,25 +5,25 @@ using WiseOwl.Cobol.Frontend.Common;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// ⛔ THE REFERENCE FORMAT'S SHARE OF ISO §14.9.28.4 GR14's IMPLICIT PUSH ALL / POP ALL (kb/Work PB1066): "An implicit
+/// ⛔ THE REFERENCE FORMAT'S SHARE OF ISO §2023:14.9.28.4 GR14's IMPLICIT PUSH ALL / POP ALL (kb/Work PB1066): "An implicit
 /// PUSH ALL followed by TURN OFF ALL is assumed at the end of imperative-statement-1. Immediately preceding the END
-/// PERFORM phrase, there is an implicit POP ALL". ALL is every pushable directive (§7.3.22.4 GR2), and the SOURCE FORMAT
+/// PERFORM phrase, there is an implicit POP ALL". ALL is every pushable directive (§2023:7.3.22.4 GR2), and the SOURCE FORMAT
 /// directive is one — so a <c>&gt;&gt;SOURCE FORMAT</c> written in a WHEN phrase's handler is undone before END-PERFORM,
 /// exactly as a <c>&gt;&gt;DEFINE</c> there is.
 /// <para>THE DIRECTIVE STATE LIVES WHERE THE DIRECTIVE IS PROCESSED, and the reference format is the one state that is
-/// settled BEFORE any parse: the §6.5 logical conversion reads the physical lines in order with the format in effect as
+/// settled BEFORE any parse: the §2023:6.5 logical conversion reads the physical lines in order with the format in effect as
 /// state (<see cref="ReferenceFormatProcessor"/>), so the ops that restore it cannot be keyed to the conditional-
 /// compilation driver's directive encounters (<see cref="ConditionalCompilationResult.KeyImplicitOps"/> — the driver
 /// runs on the already-normalized text) nor to the post-COPY resultant lines the line-scoped timelines use. They are
 /// keyed to PHYSICAL lines of the text they were written in: the parse places them in the resultant-line frame, and
 /// <see cref="Place"/> maps each through the source-line map to its file and physical line, because the format is read
 /// per physical line and each file — the compilation group and every library text — is converted by its own walker
-/// with its own format state (§7.3.24.3 5: a library text's format reverts when it ends).</para>
+/// with its own format state (§2023:7.3.24.3 5: a library text's format reverts when it ends).</para>
 /// <para><b>Where each op falls, in the line frame</b> (a reference format is a per-line property, so each op is a
 /// BOUNDARY between physical lines; <see cref="ReferenceFormatProcessor"/> applies them): the PUSH takes effect after the
 /// physical line that ends imperative-statement-1 ("at the end of"); the POP takes effect BEFORE the physical line that
 /// holds END-PERFORM ("immediately preceding the END PERFORM phrase") — so the END-PERFORM line itself is read in the
-/// RESTORED format, because the phrase is text that follows the POP (§7.3.24.3 1: a format governs "the source text …
+/// RESTORED format, because the phrase is text that follows the POP (§2023:7.3.24.3 1: a format governs "the source text …
 /// following the directive").</para>
 /// <para>Only a bracket that encloses a written format directive of its own file can change anything — it restores
 /// exactly the format it saved otherwise — so only those are kept, which is what lets an ordinary source converge on the
@@ -66,7 +66,7 @@ public sealed class ImplicitFormatOps : IEquatable<ImplicitFormatOps>
             if (ops[i].Kind == DirectiveStackKind.Push) { open.Push(i); continue; }
             if (open.Count == 0)
                 throw new InvalidOperationException(
-                    "§14.9.28.4 GR14 implicit POP ALL without its PUSH ALL — ExceptionPerformDirectiveScope emits them in pairs");
+                    "§2023:14.9.28.4 GR14 implicit POP ALL without its PUSH ALL — ExceptionPerformDirectiveScope emits them in pairs");
             int push = open.Pop();
             if (at[push].File == at[i].File && formats.TryGetValue(at[i].File, out var map)
                 && map.DirectiveLines.Any(d => d > at[push].Line && d < at[i].Line))
@@ -74,7 +74,7 @@ public sealed class ImplicitFormatOps : IEquatable<ImplicitFormatOps>
         }
         if (open.Count > 0)
             throw new InvalidOperationException(
-                "§14.9.28.4 GR14 implicit PUSH ALL without its POP ALL — ExceptionPerformDirectiveScope emits them in pairs");
+                "§2023:14.9.28.4 GR14 implicit PUSH ALL without its POP ALL — ExceptionPerformDirectiveScope emits them in pairs");
 
         var byFile = new Dictionary<string, List<DirectiveStackOp>>(StringComparer.Ordinal);
         for (int i = 0; i < ops.Count; i++)

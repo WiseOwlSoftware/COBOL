@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
       *> A SIGN SEPARATED FROM ITS DIGITS IN A PROCEDURE LITERAL SLOT (kb/Work PB1445).
-      *> MOVE's sending operand is identifier-1 or literal-1 (ISO/IEC 1989:2023 §14.9.25.2),
-      *> never an arithmetic expression, and §8.3.3.3.2 2) puts a sign INSIDE a literal only
+      *> MOVE's sending operand is identifier-1 or literal-1 (ISO/IEC 1989:2023 §2023:14.9.25.2),
+      *> never an arithmetic expression, and §2023:8.3.3.3.2 2) puts a sign INSIDE a literal only
       *> as its leftmost character — `- .5` separated by a space is not the literal -.5.
       *> The grammar's `signedNumericLiteral : (PLUS | MINUS)? numericLiteralCore` read it
       *> as -0.50 through GetText(); LiteralScreen now refuses it, COBOL2155.

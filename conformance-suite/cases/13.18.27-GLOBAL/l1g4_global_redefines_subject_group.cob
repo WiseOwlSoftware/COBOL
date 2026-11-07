@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.27.4 GR3 — GLOBAL on a REDEFINES entry: its subject (a group) is global
+      *> ISO §2023:13.18.27.4 GR3 — GLOBAL on a REDEFINES entry: its subject (a group) is global
       *> GR3: "If the GLOBAL clause is used in a data description entry
       *>   that contains the REDEFINES clause, it is only the subject of
       *>   that REDEFINES clause that possesses the global attribute."
-      *>   cite.py --check 13.18.27.4 -> OK §13.18.27.4 3)
+      *>   cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 3)
       *> GR1: "All data-names subordinate to a global name are global
-      *>   names."  cite.py --check 13.18.27.4 -> OK §13.18.27.4 1)
+      *>   names."  cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 1)
       *> GR2: "A statement in a program contained directly or indirectly
       *>   within a program that describes a global name may reference
       *>   that name without describing it again."
-      *>   cite.py --check 13.18.27.4 -> OK §13.18.27.4 2)
+      *>   cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 2)
       *> POSITIVE HALF: WS-B, the subject of "REDEFINES WS-A GLOBAL", is a
       *>   global name, so are WS-B1/WS-B2 (GR1); contained L1G4GRB
       *>   references them undeclared (GR2). WS-B IS WS-A's storage.

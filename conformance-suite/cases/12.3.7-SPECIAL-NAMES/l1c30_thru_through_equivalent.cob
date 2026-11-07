@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR12 — THROUGH and THRU are equivalent
+      *> ISO §2023:12.3.7.3 SR12 — THROUGH and THRU are equivalent
       *>   "12) The words THROUGH and THRU are equivalent."
       *>   cite.py --check 12.3.7.3 "The words THROUGH and THRU are
-      *>     equivalent." -> OK §12.3.7.3 12)
+      *>     equivalent." -> OK §2023:12.3.7.3 12)
       *>   cite.py --check 12.3.7.4 "may specify characters of the
       *>     native character set in either ascending or descending
-      *>     sequence" -> OK §12.3.7.4 7) 2.  (cite.py mislabels list
+      *>     sequence" -> OK §2023:12.3.7.4 7) 2.  (cite.py mislabels list
       *>     items, PB1554: the text is GR7 k) 5.)
       *>   cite.py --check 12.3.7.4 "Any characters of the native
       *>     collating sequence that are not specified in the literal
-      *>     phrase shall assume a position" -> OK §12.3.7.4 7) 2.
+      *>     phrase shall assume a position" -> OK §2023:12.3.7.4 7) 2.
       *>     (PB1554 again: the text is GR7 k) 3.)
       *>   cite.py --check 12.3.7.4 "The characters specified by the
       *>     values of the literals in this clause define the
       *>     exclusive set of characters of which class-name-1
-      *>     consists." -> OK §12.3.7.4 12)
+      *>     consists." -> OK §2023:12.3.7.4 12)
       *> Two SIBLING programs (not contained, so GR1 does not pass one
       *> unit's SPECIAL-NAMES to the other) define the SAME alphabet
       *> and class, L1C30C spelling the range THROUGH and L1C30D

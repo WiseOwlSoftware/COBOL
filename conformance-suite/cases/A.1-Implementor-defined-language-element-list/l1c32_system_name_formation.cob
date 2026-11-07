@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §A.1 198) / §8.3.2.3.1 — documented system-name formation (DOC-A.1-198)
+      *> ISO §2023:A.1 198) / §2023:8.3.2.3.1 — documented system-name formation (DOC-A.1-198)
       *>
-      *> THE RULE. §8.3.2.3.1: "A system-name is used to communicate with the operating
+      *> THE RULE. §2023:8.3.2.3.1: "A system-name is used to communicate with the operating
       *> environment. The implementor may define rules for the formation of a system-name
       *> that add restrictions to the rules for formation of a COBOL word." A computer-name
       *> is one of the listed system-names.
-      *>   cite.py: OK  §8.3.2.3.1   (General)
-      *>   cite.py: OK  §8.3.2.3.1   (General)  [— computer-name]
-      *>   cite.py: OK  §A.1 198)  (Implementor-defined language element list)
-      *> §8.3.2.1: a COBOL word is letters, digits, hyphen (and underscore), and "The
+      *>   cite.py: OK  §2023:8.3.2.3.1   (General)
+      *>   cite.py: OK  §2023:8.3.2.3.1   (General)  [— computer-name]
+      *>   cite.py: OK  §2023:A.1 198)  (Implementor-defined language element list)
+      *> §2023:8.3.2.1: a COBOL word is letters, digits, hyphen (and underscore), and "The
       *> hyphen or underscore shall not appear as the first or last character in such
-      *> words."  cite.py: OK  §8.3.2.1   (General)
+      *> words."  cite.py: OK  §2023:8.3.2.1   (General)
       *> The "at least one basic letter" requirement binds USER-DEFINED words only:
-      *>   cite.py: OK  §8.3.2.2 3)  (User-defined words)  [the sentence after list item
+      *>   cite.py: OK  §2023:8.3.2.2 3)  (User-defined words)  [the sentence after list item
       *>            3); cite.py may mislabel list items - PB1554]
       *>
       *> THE DOCUMENTED CHOICE. docs/CONFORMANCE.md#DOC-A.1-198: "Provided - one

@@ -5,14 +5,14 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>⛔ ONE REGISTRY OF NAMES A CONFIGURATION SECTION DECLARES, WHOSE EVERY RESOLUTION IS A §8.3.2.2 USE
-/// (kb/Work PB3153). The types of user-defined word ISO §8.4.6.1 lists as "<i>declared within a configuration
+/// <summary>⛔ ONE REGISTRY OF NAMES A CONFIGURATION SECTION DECLARES, WHOSE EVERY RESOLUTION IS A §2023:8.3.2.2 USE
+/// (kb/Work PB3153). The types of user-defined word ISO §2023:8.4.6.1 lists as "<i>declared within a configuration
 /// section</i>" (alphabet-name, class-name, a SPECIAL-NAMES condition-name, dynamic-length-structure-name,
 /// locale-name, mnemonic-name, ordering-name, symbolic-character) "<i>may be referenced only by statements and
 /// entries either in that source element that contains a configuration section or in any source element contained
 /// within that source element</i>", so a contained program, and a method of a class, resolves names that no
-/// declaration of its own announced (§12.3.4 GR1 hands them down; <see cref="ConfigurationStep"/>).
-/// §8.3.2.2 says "<i>Within a source element, a given user-defined word may be used as only one type of
+/// declaration of its own announced (§2023:12.3.4 GR1 hands them down; <see cref="ConfigurationStep"/>).
+/// §2023:8.3.2.2 says "<i>Within a source element, a given user-defined word may be used as only one type of
 /// user-defined word</i>": the element that writes <c>IF X IS DIGS</c> over an inherited class DIGS uses DIGS as a
 /// class-name, and a paragraph DIGS of its own is then a second type in that element (refused COBOL2692 like the
 /// flat program that declares both). The declaration funnel never saw such a use, because the name is declared in
@@ -31,11 +31,11 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
 
     /// <summary>The containment distance of each name <see cref="InheritFrom"/> took from a containing element, still
     /// unredeclared here: 1 for the direct container's own declaration, one more per level it came down. A name absent
-    /// here but in <see cref="_entries"/> is this source element's OWN declaration (§8.4.6.1).</summary>
+    /// here but in <see cref="_entries"/> is this source element's OWN declaration (§2023:8.4.6.1).</summary>
     private readonly Dictionary<string, int> _inherited = new(CobolNames.Comparer);
 
     /// <summary>The inherited names with their containment distances: the tier a same-spelled name declared in a
-    /// NEARER source element hides them at (§8.4.6.2.1 3); <c>InheritStep.DropShadowed</c>).</summary>
+    /// NEARER source element hides them at (§2023:8.4.6.2.1 3); <c>InheritStep.DropShadowed</c>).</summary>
     public IEnumerable<KeyValuePair<string, int>> InheritedDepths => _inherited;
 
     public int Count => _entries.Count;
@@ -54,7 +54,7 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     }
 
     /// <summary>Resolve a REFERENCE to <paramref name="name"/> in this type's position, and record it as a use of the
-    /// word as this table's type in the census of the source element <paramref name="site"/> lies in (§8.3.2.2).
+    /// word as this table's type in the census of the source element <paramref name="site"/> lies in (§2023:8.3.2.2).
     /// False, recording nothing, when no entry is named so.</summary>
     public bool TryUse(Antlr4.Runtime.RuleContext? site, string name, [MaybeNullWhen(false)] out T value)
     {
@@ -67,7 +67,7 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     /// asks, never a reference's resolution (that is <see cref="TryUse"/>).</summary>
     public bool Declares(string name) => _entries.ContainsKey(name);
 
-    /// <summary>⭐ THE CONTAINMENT TIER OF <paramref name="name"/> (§8.4.6.2.1 3): -1 when it is not declared, 0 when THIS
+    /// <summary>⭐ THE CONTAINMENT TIER OF <paramref name="name"/> (§2023:8.4.6.2.1 3): -1 when it is not declared, 0 when THIS
     /// source element's own configuration section declares it, n when only the n-th containing element did
     /// (<see cref="InheritFrom"/>). The ONE answer to "which source element declared this name", read to weigh the name
     /// against an identically spelled item of the data division (<c>DataBinder.SwitchConditionCompetes</c>, kb/Work PB3347)
@@ -80,7 +80,7 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     /// <see cref="TryUse"/>.</summary>
     public bool TryPeek(string name, [MaybeNullWhen(false)] out T value) => _entries.TryGetValue(name, out value);
 
-    /// <summary>Take every entry of a CONTAINING element's table this one does not declare (§12.3.4 GR1; the
+    /// <summary>Take every entry of a CONTAINING element's table this one does not declare (§2023:12.3.4 GR1; the
     /// containee's own declaration, where one is possible, wins), each one level farther out
     /// than the container had it.</summary>
     public void InheritFrom(ConfigurationNames<T> container)

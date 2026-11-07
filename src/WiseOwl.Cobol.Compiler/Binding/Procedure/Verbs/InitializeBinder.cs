@@ -23,26 +23,26 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private MethodLocal NextLoopVar() => new StatementLocal(StatementLocalRole.InitializeOccurrence, _initializeLoopVar++);
 
     /// <summary>What the statement's phrases select, threaded through the expansion: the receiver filter
-    /// (ISO §14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
+    /// (ISO §2023:14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
     /// <para>⛔ EVERY CATEGORY SLOT IS A <see cref="InitializeCategorySet"/>, BECAUSE category-name IS A SET
-    /// (§14.9.20.2's choice-indicator brace; §5.2.6.4). <paramref name="ValueCategories"/> EMPTY with
-    /// <paramref name="ToValue"/> means <c>ALL TO VALUE</c> — §14.9.20.4 GR2's "if ALL is specified in the VALUE
+    /// (§2023:14.9.20.2's choice-indicator brace; §2023:5.2.6.4). <paramref name="ValueCategories"/> EMPTY with
+    /// <paramref name="ToValue"/> means <c>ALL TO VALUE</c> — §2023:14.9.20.4 GR2's "if ALL is specified in the VALUE
     /// phrase it is as if all of the categories listed in category-name were specified", represented as the
-    /// absence of a restriction. ⛔ A BARE <c>TO VALUE</c> IS NOT ALL AND IS NOT CONFORMING: §14.9.20.2's brace
-    /// requires one of ALL / category-name and §5.2.6.3 makes that mandatory, so <c>Bind</c> rejects it
+    /// absence of a restriction. ⛔ A BARE <c>TO VALUE</c> IS NOT ALL AND IS NOT CONFORMING: §2023:14.9.20.2's brace
+    /// requires one of ALL / category-name and §2023:5.2.6.3 makes that mandatory, so <c>Bind</c> rejects it
     /// (COBOL1981) and only then recovers as if ALL. The former code read it as ALL on the strength of a
-    /// "§14.9.20.2 note 2" the clause does not have (kb/Work PB415).</para>
+    /// "§2023:14.9.20.2 note 2" the clause does not have (kb/Work PB415).</para>
     /// <para>⛔ <paramref name="HasReplacing"/> IS THE PHRASE'S PRESENCE, NOT <paramref name="Replacements"/>'s
-    /// COUNT. §14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
-    /// REPLACING phrase whose every item was dropped (the §14.9.20.3 SR6 duplicate-category skip) is still
+    /// COUNT. §2023:14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
+    /// REPLACING phrase whose every item was dropped (the §2023:14.9.20.3 SR6 duplicate-category skip) is still
     /// SPECIFIED, so an item of a non-matching category is left unchanged by GR5c and must NOT collect the GR6c
     /// category default. Reading the count made the two indistinguishable.</para></summary>
     private readonly record struct InitializeSpec(
         bool WithFiller, bool ToValue, InitializeCategorySet ValueCategories,
         IReadOnlyList<(InitializeCategorySet Cats, BoundOperand Value)> Replacements, bool HasReplacing, bool ToDefault);
 
-    /// <summary>⛔ WHY a possible receiving-operand IS a receiving-operand — ISO §14.9.20.4 GR5c's four
-    /// alternatives, collapsed to the ONE fact §14.9.20.4 GR6 then asks for. GR6 is not a free precedence over the
+    /// <summary>⛔ WHY a possible receiving-operand IS a receiving-operand — ISO §2023:14.9.20.4 GR5c's four
+    /// alternatives, collapsed to the ONE fact §2023:14.9.20.4 GR6 then asks for. GR6 is not a free precedence over the
     /// phrases: its arms are literally keyed on the qualification ("if the data item qualifies as a
     /// receiving-operand because of the VALUE phrase" → GR6a; "does not qualify because of the VALUE phrase, but
     /// does qualify because of the REPLACING phrase" → GR6b; "does not qualify in accordance with General rules 6a
@@ -51,7 +51,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ THE DEFECT THIS SHAPE EXISTS TO PREVENT (kb/Work PB418): the two rules used to be ONE method, whose
     /// VALUE arm returned a sender only when the item carried a Format-1 VALUE clause. That made "has a VALUE
     /// clause" the qualification premise where GR5c1 states a THREE-way test, so (i) a pointer / object-reference
-    /// receiver — which §13.18.63.3 SR9 and §8.4.3.10.3 forbid a VALUE clause on, and which GR5c1a therefore
+    /// receiver — which §2023:13.18.63.3 SR9 and §2023:8.4.3.10.3 forbid a VALUE clause on, and which GR5c1a therefore
     /// qualifies CATEGORICALLY — was never nulled, and (ii) a table-format VALUE (GR5c1c) was invisible, so
     /// <c>ALL TO VALUE</c> stored nothing and <c>ALL TO VALUE THEN TO DEFAULT</c> stored SPACES over the very
     /// values it exists to restore. A fused predicate cannot say "already qualified through VALUE, keep that
@@ -72,7 +72,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         ViaDefault,
     }
 
-    /// <summary>One entered OCCURS dimension on the way down to an elementary receiver, in §13.18.63.3 SR20's order
+    /// <summary>One entered OCCURS dimension on the way down to an elementary receiver, in §2023:13.18.63.3 SR20's order
     /// (most inclusive first) — the key a Format-2 (table) VALUE plan is looked up by. A dimension the expansion
     /// itself loops over is known only as its bind-time loop VARIABLE (the occurrence is a run-time value, so the
     /// GR5c1c test becomes an emitted branch); a dimension identifier-1 pinned with its own INTEGER-LITERAL
@@ -80,7 +80,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// supplied as a run-time expression, which no bind-time lookup can key.</summary>
     private readonly record struct OccurrenceDim(Position? Var, int? Fixed);
 
-    /// <summary>Bind INITIALIZE (ISO §14.9.20). The COBOL-85 surface — identifier-1‥n (full data references:
+    /// <summary>Bind INITIALIZE (ISO §2023:14.9.20). The COBOL-85 surface — identifier-1‥n (full data references:
     /// qualification AND subscripts) and the REPLACING phrase — binds completely; the 2002+ phrases (WITH FILLER,
     /// [ALL | category] TO VALUE, the THEN connective, THEN TO DEFAULT — Annex E additions) are edition-gated and
     /// bind for 2002+ targets. The whole receiver expansion happens here; the emitter renders each store through
@@ -92,11 +92,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         var replacing = ini.initializeReplacingPhrase();
         bool toDefault = ini.initializeDefaultPhrase() is not null;
 
-        // initialize-{filler,to-value,to-default,then-replacing}-2002 (§14.9.20): the pass owns the four
+        // initialize-{filler,to-value,to-default,then-replacing}-2002 (§2023:14.9.20): the pass owns the four
         // post-85-surface edition gates (Exec Step E).
 
         var replacements = new List<(InitializeCategorySet Cats, BoundOperand Value)>();
-        // §14.9.20.3 SR6 "the same category shall not be repeated in a REPLACING phrase" and §5.2.6.4's "any
+        // §2023:14.9.20.3 SR6 "the same category shall not be repeated in a REPLACING phrase" and §2023:5.2.6.4's "any
         // single alternative shall be specified only once" are ONE rule over ONE accumulator: the union of every
         // category already named in this phrase, whether by an earlier item or by an earlier word of THIS item.
         var namedSoFar = default(InitializeCategorySet);
@@ -105,21 +105,21 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             {
                 var cats = CategorySetOf(item.initializeCategory(), ref namedSoFar);
                 if (cats.IsEmpty) continue;   // every word was a repeat — reported by the pure check
-                // §14.9.20.3 SR4 makes identifier-2 "the SENDING item" of a MOVE, so it binds as MOVE's sending
-                // operand does, function-identifier included (§8.4.3.1.2 Format 1; §8.4.3.2.3 SR1 bars one only from
-                // a RECEIVING operand; fix-queue PB10) — with ONE difference on the literal slot: §8.4.3.10.3 SR1 a)/b)
+                // §2023:14.9.20.3 SR4 makes identifier-2 "the SENDING item" of a MOVE, so it binds as MOVE's sending
+                // operand does, function-identifier included (§2023:8.4.3.1.2 Format 1; §2023:8.4.3.2.3 SR1 bars one only from
+                // a RECEIVING operand; fix-queue PB10) — with ONE difference on the literal slot: §2023:8.4.3.10.3 SR1 a)/b)
                 // lets NULL "be used only as a sending operand in an INITIALIZE … statement", and NULL is identifier-2
-                // (§8.4.3.1.2 Format 8) carried on that slot.
+                // (§2023:8.4.3.1.2 Format 8) carried on that slot.
                 var send = item.sendingOperand();
                 var lit = send?.literal();
                 BoundOperand value = lit is not null ? host.Expr.NullAdmittingOperand(lit)
                     : send is not null ? host.Move.SendingOperand(send, "INITIALIZE REPLACING sending operand")
                     : BoundOperandError.Refused(ctx.Edition, "INITIALIZE REPLACING sending operand");
-                // ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE,
+                // ISO §2023:14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE,
                 // or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2
                 // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes
                 // the implicit statement a SET for exactly these five categories and no literal is a SET sending
-                // operand (§14.9.39). Unreachable until the words became spellable (kb/Work PB415).
+                // operand (§2023:14.9.39). Unreachable until the words became spellable (kb/Work PB415).
                 string senderText = lit?.GetText() ?? send?.dataReference()?.GetText()
                     ?? send?.functionCall()?.GetText() ?? "the sending operand";
                 // NULL is identifier-2, not literal-1 (kb/Work PB1427): SR3 is satisfied, and SR4's SET is valid for
@@ -128,7 +128,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     ctx.Validation.CheckInitializeReplacingSetCategoryIdentifier(cats, lit.GetText());
                 else
                     CheckSetFormCategoryAgreement(cats, value, senderText);
-                // ISO §14.9.20.3 SR4's SECOND paragraph — the MOVE half, for every category-name that is not one
+                // ISO §2023:14.9.20.3 SR4's SECOND paragraph — the MOVE half, for every category-name that is not one
                 // of GR4's five SET-form ones. It is asked HERE, over the phrase, because the rule's receiving
                 // operand is "an item of the specified category" and not any item identifier-1 happens to
                 // contain: the pair is legal or illegal before a single receiver has been walked (kb/Work PB416).
@@ -136,7 +136,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 replacements.Add((cats, value));
             }
 
-        // ISO §14.9.20.2 — the VALUE phrase's `{ ALL | category-name }` is a BRACE, and §5.2.6.3 makes one of its
+        // ISO §2023:14.9.20.2 — the VALUE phrase's `{ ALL | category-name }` is a BRACE, and §2023:5.2.6.3 makes one of its
         // alternatives mandatory. The grammar keeps the subrule optional purely so this rejection can NAME the
         // rule (see the CobolData.g4 note); the recovery is ALL, which is what the omission used to mean silently.
         var valueCats = default(InitializeCategorySet);
@@ -149,7 +149,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         var spec = new InitializeSpec(withFiller, toValue is not null, valueCats, replacements,
             HasReplacing: replacing is not null, toDefault);
 
-        // ⛔ ONE BoundInitialize PER identifier-1, NOT one flat expansion — ISO §14.9.20.4 GR3: "the result of
+        // ⛔ ONE BoundInitialize PER identifier-1, NOT one flat expansion — ISO §2023:14.9.20.4 GR3: "the result of
         // executing this INITIALIZE statement is the same as if a separate INITIALIZE statement had been written
         // for each identifier-1 in the same order as specified in the INITIALIZE statement. If an implicit
         // INITIALIZE statement results in the execution of a declarative procedure that executes a RESUME
@@ -159,8 +159,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // BoundImplicitSeries IS the per-implicit-statement boundary, and it collapses to the bare node for the
         // one-operand case the rule's "more than one" premise excludes.
         var members = new List<BoundStatement>();
-        // The written REPLACING phrase rides every implicit statement GR3 creates — §14.9.20.3 SR4's edition half
-        // (§14.9.25.3 SR5) is asked of it by VersionConformancePass (kb/Work PB879).
+        // The written REPLACING phrase rides every implicit statement GR3 creates — §2023:14.9.20.3 SR4's edition half
+        // (§2023:14.9.25.3 SR5) is asked of it by VersionConformancePass (kb/Work PB879).
         var replacingItems = replacements.Select(r => new InitializeReplacingItem(r.Cats, r.Value)).ToList();
         foreach (var dref in host.Expr.ReceivingReferences(ini.initializeOperandList().receivingIdentifier()))
         {
@@ -171,7 +171,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return BoundImplicitSeries.Of(members);
     }
 
-    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §14.9.3 GR7): "the allocated storage is
+    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3 GR7): "the allocated storage is
     /// initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were
     /// executed" — bind EXACTLY that statement's expansion over the based item (the ONE INITIALIZE mechanism:
     /// WITH FILLER, the bare-ALL TO VALUE, no REPLACING, THEN TO DEFAULT), sequenced by the ALLOCATE bind
@@ -180,7 +180,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// silent skip.</summary>
     public BoundInitialize BindAllocateInitialized(Core.DataReferenceContext basedRef)
     {
-        // ValueCategories empty = ALL (§14.9.20.4 GR2), which is the category-name §14.9.3.4 GR7's quoted
+        // ValueCategories empty = ALL (§2023:14.9.20.4 GR2), which is the category-name §2023:14.9.3.4 GR7's quoted
         // statement writes: "INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT".
         var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategories: default,
             Replacements: [], HasReplacing: false, ToDefault: true);
@@ -189,7 +189,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return new BoundInitialize(actions) { AllocateImplicit = true };
     }
 
-    /// <summary>Expand one identifier-1 (ISO §14.9.20 GR5): resolve its FULL data reference (qualification +
+    /// <summary>Expand one identifier-1 (ISO §2023:14.9.20 GR5): resolve its FULL data reference (qualification +
     /// subscripts), then walk its subtree in
     /// definition order (GR8) collecting the per-elementary stores. identifier-1 itself MAY have / sit under a
     /// REDEFINES (GR5a3's exclusion applies only BELOW it).</summary>
@@ -199,11 +199,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions, out Place? written)
     {
         written = null;
-        // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §14.9.20 GR10; data-model D9): the whole-table reference
+        // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §2023:14.9.20 GR10; data-model D9): the whole-table reference
         // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
-        // The candidates are the nearest declaring source element's (§8.4.6.2.1 3)): a contained program's own
+        // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 3)): a contained program's own
         // item hides a container's GLOBAL dynamic table of the same name (SymbolTable.TryResolveUnqualified).
         if (dref.dataReferenceSuffix().Length == 0
             && ctx.Symbols.TryResolveUnqualified(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
@@ -222,40 +222,40 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 $"INITIALIZE of the dynamic-capacity table '{dtbl.CobolName ?? "FILLER"}' (no capacity register)"));
             return;
         }
-        // ⛔ identifier-1 RESOLVES THROUGH THE ONE RECEIVING CHOKEPOINT, BECAUSE §14.9.20.3 SR7 SAYS IT IS THE
+        // ⛔ identifier-1 RESOLVES THROUGH THE ONE RECEIVING CHOKEPOINT, BECAUSE §2023:14.9.20.3 SR7 SAYS IT IS THE
         // RECEIVING OPERAND (kb/Work PB416). The statement used to call ctx.Refs.Resolve directly, which answers
         // "where does this reference live" and nothing else, so every receiving-operand PROHIBITION the compiler
-        // owns was invisible here: a CONSTANT RECORD was silently overwritten at run time (§13.18.15.3 SR2 /
+        // owns was invisible here: a CONSTANT RECORD was silently overwritten at run time (§2023:13.18.15.3 SR2 /
         // COBOL1548 — whose own doc claimed INITIALIZE as a caller), and the same held for a constant-name,
         // LINE-COUNTER, PAGE-COUNTER and the OCCURS DYNAMIC CAPACITY register. SR7 is not one check but a FUNNEL:
         // the standard's receiving-operand prohibitions are a growing set, and routing through ResolveReceiving
         // is what makes the NEXT one automatic instead of a second copy bolted onto this verb.
         // A null return is already diagnosed there (an undefined name by the resolver, a resolved-but-unsupported
         // receiver shape as COBOL0899), so the old run-time InitializeErrorAction staging is gone with it —
-        // §4.2.2 puts a syntax-rule violation in the compile-time mechanism.
+        // §2023:4.2.2 puts a syntax-rule violation in the compile-time mechanism.
         if (host.Expr.ResolveReceiving(dref) is not { } place) return;
         written = place;
-        // ISO §14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
+        // ISO §2023:14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
         // contain a RENAMES clause." ⛔ ON THE RESOLVED PATH, WHICH IS THE ONLY ARM THAT CAN REACH IT: the check
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired
         // and the violation shipped as an unhandled NotImplementedCobolFeatureException naming a missing
         // compiler feature instead of the reader's illegal program (kb/Work PB416).
         if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place)) return;
-        // ISO §14.9.20.3 SR1 — the class screen, asked of the ONE §8.5.2.1 Table-2 classifier. See
+        // ISO §2023:14.9.20.3 SR1 — the class screen, asked of the ONE §2023:8.5.2.1 Table-2 classifier. See
         // DiagnosticCatalog.InitializeTargetClass for why this cannot be folded into GR5a1's exclusion below.
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
                 $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is of class index, the one class ISO "
-                + "§14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
+                + "§2023:14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
                 + "alphanumeric, boolean, message-tag, national, numeric, object and pointer); only SET, SEARCH, "
-                + "a relation condition and the argument positions of §13.18.60.3 SR10 may reference an index "
+                + "a relation condition and the argument positions of §2023:13.18.60.3 SR10 may reference an index "
                 + "data item");
             return;
         }
         if (place is RefModPlace)
         {
-            // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §8.4.3.3.4 GR6 —
+            // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §2023:8.4.3.3.4 GR6 —
             // a reference-modifier defines a unique alphanumeric data item); no VALUE clause attaches to it, so
             // GR5c1b and GR5c1c are both false and GR5c1a does not name alphanumeric.
             var rq = Qualify(InitializeCategory.Alphanumeric, effectiveValue: null, spec);
@@ -264,11 +264,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             return;
         }
         // ⛔ AN IMPLICITLY-DEFINED ELEMENTARY REGISTER IS ONE RECEIVER, NOT A STORAGE FORM TO WALK (kb/Work
-        // PB429). A report's PAGE-COUNTER (ISO §8.4.3.15.4 GR1) and a REPORT SECTION sum counter (§13.18.54.4
-        // GR1) are elementary data items the source may name — §14.9.20.3 SR1 admits class numeric and SR7 makes
+        // PB429). A report's PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1) and a REPORT SECTION sum counter (§2023:13.18.54.4
+        // GR1) are elementary data items the source may name — §2023:14.9.20.3 SR1 admits class numeric and SR7 makes
         // identifier-1 the receiving operand — but no data description entry declares them and they occupy no
         // storage, so the cursor switch below (whose arms are the three STORAGE forms) has nothing to give them
-        // and the default arm staged a run-time abort on legal source. §14.9.20.4 GR4 covers this shape in its
+        // and the default arm staged a run-time abort on legal source. §2023:14.9.20.4 GR4 covers this shape in its
         // first words — "Whether identifier-1 references an elementary item or a group item, the effect of the
         // execution of the INITIALIZE statement is as though a series of implicit MOVE or SET statements, each of
         // which has an elementary data item as its receiving operand, were executed" — with GR6 supplying the
@@ -283,12 +283,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             return;
         }
         // ⛔ THE CURSOR IS BUILT OVER THE UNDECORATED PLACE (kb/Work PB393; PlaceCursor.Over). identifier-1 is a
-        // RECEIVING operand (§14.9.20.3 SR7), and none of the decorations change where its members live: an
-        // OdoGroupPlace answers §13.18.38.4 GR8 about the group's EXTENT — which GR8b already fixes at the maximum
+        // RECEIVING operand (§2023:14.9.20.3 SR7), and none of the decorations change where its members live: an
+        // OdoGroupPlace answers §2023:13.18.38.4 GR8 about the group's EXTENT — which GR8b already fixes at the maximum
         // for a receiving operand, and which the child walk below applies per-table for GR8a — and a bit/national
-        // group's image view is a §14.9.20.4 GR1 non-question ("identifier-1 is processed as a group item"). The
+        // group's image view is a §2023:14.9.20.4 GR1 non-question ("identifier-1 is processed as a group item"). The
         // cell path rides along so a pointer-class receiver inside a class reaches the area's managed slots
-        // (kb/Work PB231) — ALLOCATE … INITIALIZED lowers to exactly this expansion (§14.9.3.4 GR7).
+        // (kb/Work PB231) — ALLOCATE … INITIALIZED lowers to exactly this expansion (§2023:14.9.3.4 GR7).
         PlaceCursor? cursor = PlaceCursor.Over(place);
         if (cursor is null)
         {
@@ -298,7 +298,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         ExpandInitialize(cursor, spec, actions, place.Item, SeedOccurrenceKey(place), identifier1: true);
     }
 
-    /// <summary>The occurrence key identifier-1's OWN reference already pins (ISO §13.18.63.3 SR20 keys a Format-2
+    /// <summary>The occurrence key identifier-1's OWN reference already pins (ISO §2023:13.18.63.3 SR20 keys a Format-2
     /// VALUE by "one subscript … for each OCCURS clause for the subject of the entry or superordinate to that
     /// entry, specified in the same order as a subscripted reference to the subject of the entry would be
     /// specified" — which IS the order the resolved access path lays its table segments down in). The expansion
@@ -339,8 +339,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The <see cref="AllCount"/> a subordinate table's per-occurrence loop is bounded by — ISO
-    /// §14.9.20.4 GR8's "the number of occurrences initialized is determined by the rules of the OCCURS clause
-    /// for a RECEIVING data item", resolved against §13.18.38.4 (kb/Work PB393):
+    /// §2023:14.9.20.4 GR8's "the number of occurrences initialized is determined by the rules of the OCCURS clause
+    /// for a RECEIVING data item", resolved against §2023:13.18.38.4 (kb/Work PB393):
     /// <list type="bullet">
     ///   <item>Format 1 — GR4's fixed count.</item>
     ///   <item>Format 2 with data-name-1 OUTSIDE identifier-1's group — GR8a: "only that part of the table area
@@ -348,10 +348,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     ///     operation will be used", i.e. the CURRENT count (clamped, EC-BOUND-ODO outside per GR7).</item>
     ///   <item>Format 2 with data-name-1 INSIDE the group — GR8b: "If the group is a receiving operand, the
     ///     maximum length of the group will be used", i.e. integer-2. identifier-1 IS a receiving operand
-    ///     (§14.9.20.3 SR7), so the receiving arm is the only reachable one — and it is also the only SAFE one:
+    ///     (§2023:14.9.20.3 SR7), so the receiving arm is the only reachable one — and it is also the only SAFE one:
     ///     the walk initializes data-name-1 itself in definition order (GR8's own sentence), so a current-count
     ///     bound read afterwards would be reading a zero this very statement had just stored.</item>
-    ///   <item>Format 4 — §14.9.20.4 GR10's current capacity.</item>
+    ///   <item>Format 4 — §2023:14.9.20.4 GR10's current capacity.</item>
     /// </list>
     /// <see langword="null"/> when the count cannot be modelled (a dynamic table with no reachable capacity
     /// register, or an unresolvable data-name-1) — the caller stages the named loud.</summary>
@@ -361,11 +361,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             ? (table.Occurs is { } max ? new AllCount.Fixed(max) : null)                // GR8b — the maximum
             : OccurrenceCounts.Current(table, tablePath, ctx.Refs.Places);                      // GR4 / GR8a / GR10
 
-    /// <summary>The recursive receiver walk (ISO §14.9.20 GR5), in definition order (GR8). Exclusions: GR5a2 —
+    /// <summary>The recursive receiver walk (ISO §2023:14.9.20 GR5), in definition order (GR8). Exclusions: GR5a2 —
     /// an explicit-or-implicit FILLER elementary item (a null <see cref="DataItem.CobolName"/>) unless WITH FILLER
     /// (identifier-1 itself is always named, so the test applies only to contained items); GR5a3 — a subordinate
     /// whose entry has REDEFINES, and with it its whole subtree (level-66 entries are not storage children,
-    /// §13.18.45); GR5a1 — items that are not valid MOVE receivers (an index data item, §14.9.25.3 SR). A child
+    /// §2023:13.18.45); GR5a1 — items that are not valid MOVE receivers (an index data item, §2023:14.9.25.3 SR). A child
     /// with an OCCURS clause expands one loop per dimension (GR5b2 — every occurrence).</summary>
     private void ExpandInitialize(PlaceCursor cur, in InitializeSpec spec, List<InitializeAction> actions,
         DataItem? identifier1Item, IReadOnlyList<OccurrenceDim> key, bool identifier1 = false)
@@ -398,7 +398,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     $"INITIALIZE receiver '{child.CobolName ?? "FILLER"}' (unwired REDEFINES storage tier)"));
                 continue;
             }
-            // ⛔ A DYNAMIC-CAPACITY CHILD IS SPECIFIED, NOT DEFERRED (kb/Work PB393). §14.9.20.4 GR10: "When a
+            // ⛔ A DYNAMIC-CAPACITY CHILD IS SPECIFIED, NOT DEFERRED (kb/Work PB393). §2023:14.9.20.4 GR10: "When a
             // group containing a dynamic-capacity table is initialized, all the elements of the table up to
             // current capacity, if any, are initialized, whether or not the INITIALIZED phrase is present in the
             // OCCURS clause, and the current capacity of the table is left unchanged." It is the SAME
@@ -422,7 +422,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 else
                     actions.Add(new InitializeErrorAction($"INITIALIZE of the group member "
                         + $"'{child.CobolName ?? "FILLER"}' (a dynamic-capacity table in a storage form with no "
-                        + "table path — ISO §14.9.20.4 GR10)"));
+                        + "table path — ISO §2023:14.9.20.4 GR10)"));
                 continue;
             }
             if (child.IsTable)
@@ -436,7 +436,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     actions.Add(new InitializeLoop(v, count, body));
                 else if (body.Count > 0)
                     actions.Add(new InitializeErrorAction($"INITIALIZE of the table '{child.CobolName ?? "FILLER"}' "
-                        + "(its OCCURS DEPENDING ON object is not resolvable — ISO §14.9.20.4 GR8)"));
+                        + "(its OCCURS DEPENDING ON object is not resolvable — ISO §2023:14.9.20.4 GR8)"));
             }
             else
                 ExpandInitialize(childCur, spec, actions, identifier1Item, key);
@@ -444,16 +444,16 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (spec.WithFiller) ExpandImplicitFillers(cur, item, spec, actions);
     }
 
-    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §14.9.20.4 5) a) 2.: "If the FILLER
+    /// <summary>⛔ THE IMPLICIT FILLER BIT ITEMS OF A GROUP ARE RECEIVERS UNDER WITH FILLER (ISO §2023:14.9.20.4 5) a) 2.: "If the FILLER
     /// phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are not receiving
-    /// operands; §8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
+    /// operands; §2023:8.5.1.6.3 describes the bits the layout adds after a bit run and between the occurrences of an ALIGNED
     /// table as "implicitly described as a filler elementary bit data item"). Each stored filler (<see cref="BitLayout.FillersOf"/>) is the elementary boolean item
     /// <see cref="BitFiller.Item"/>, qualified and sent exactly as an explicit FILLER boolean item is (GR5c, GR6: the
     /// ZEROES default, or the REPLACING BOOLEAN operand) and stored by the ordinary implicit MOVE (kb/Work PB3564 review
     /// R1-4). Without the phrase they are not receivers, so a group MOVE's filler bits survive an INITIALIZE.
     /// <para>In a Tier-B class (a REDEFINES area, an EXTERNAL or BASED record, a LINKAGE area) the filler is bytes of the
     /// class's backing (<see cref="BitLayout.WindowFillersOf"/>), received through the class's view cursor like any other bit
-    /// member (kb/Work PB3564 review R2-1). ⛔ A TABLE PAD IS N - 1 FILLER ITEMS, NOT ONE (§8.5.1.6.3: each stretch of
+    /// member (kb/Work PB3564 review R2-1). ⛔ A TABLE PAD IS N - 1 FILLER ITEMS, NOT ONE (§2023:8.5.1.6.3: each stretch of
     /// positions that advances the next occurrence to its boundary is "a filler elementary bit data item"; kb/Work PB3597):
     /// both lanes receive them in ONE loop over the gaps, never one statement per gap, so a sender that is not the same for
     /// any length (a REPLACING BOOLEAN operand; the ZEROES default fills any length alike) reaches each gap as the
@@ -478,7 +478,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             if (gapCur is null)
             {
                 actions.Add(new InitializeErrorAction("INITIALIZE WITH FILLER of the implicit filler bits of "
-                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §2023:8.5.1.6.3)"));
                 continue;
             }
             if (ElementaryAction(gapCur, gap, InitializeCategory.Boolean, spec, effectiveValue: null) is not { } gapAction) continue;
@@ -490,7 +490,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             if (cur.Child(item) is not { } fillerCur)
             {
                 actions.Add(new InitializeErrorAction("INITIALIZE WITH FILLER of the implicit filler bits of "
-                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §2023:8.5.1.6.3)"));
                 continue;
             }
             if (filler.Kind is BitFillerKind.TablePad && qualification is InitializeQualification.ViaReplacing)
@@ -508,8 +508,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Gap <paramref name="loopVar"/> (1-based) of a stored table pad: the <paramref name="gapBits"/> boolean positions
-    /// that start at <c>(loopVar - 1) * gapBits + 1</c> of the pad string (§8.4.3.3.4 GR5a: a reference-modified bit item is
-    /// counted in bit positions), the elementary bit item §8.5.1.6.3 describes between two occurrences.</summary>
+    /// that start at <c>(loopVar - 1) * gapBits + 1</c> of the pad string (§2023:8.4.3.3.4 GR5a: a reference-modified bit item is
+    /// counted in bit positions), the elementary bit item §2023:8.5.1.6.3 describes between two occurrences.</summary>
     private static Place PadGapPlace(Place pad, MethodLocal loopVar, int gapBits)
     {
         var before = new PositionBinary(new PositionLocal(loopVar, AsLong: true), PositionOperator.Subtract, new PositionConstant(1));
@@ -520,7 +520,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 
     // ── GR5c (qualification) and GR6 (sender), which are TWO rules and used to be one method (kb/Work PB418) ────
 
-    /// <summary>ISO §14.9.20.4 GR5c — "each possible receiving-operand is a receiving-operand if at least one of
+    /// <summary>ISO §2023:14.9.20.4 GR5c — "each possible receiving-operand is a receiving-operand if at least one of
     /// the following is true", evaluated in the rule's own order so the answer also carries GR6's arm selector.
     /// <paramref name="effectiveValue"/> is the VALUE-clause literal that applies TO THIS OCCURRENCE (
     /// <see cref="DataItem.ValueAt"/> — the Format-1 text, or the Format-2 literal keyed to the occurrence's
@@ -532,7 +532,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // GR5c1 — "The VALUE phrase is specified, the category of the elementary data item is one of the categories
         // specified or implied in the VALUE phrase, and one of the following is true": GR5c1a (categorical),
         // GR5c1b (a data-item format VALUE clause) or GR5c1c (a table format VALUE clause keyed to this occurrence).
-        // ALL implies every category (GR2), which is the EMPTY ValueCategories set; otherwise it is §5.2.6.4
+        // ALL implies every category (GR2), which is the EMPTY ValueCategories set; otherwise it is §2023:5.2.6.4
         // membership in the category-name, which may name several categories at once.
         if (spec.ToValue && (spec.ValueCategories.IsEmpty || spec.ValueCategories.Contains(cat))
             && (QualifiesCategorically(cat) || effectiveValue is not null))
@@ -547,17 +547,17 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return InitializeQualification.None;
     }
 
-    /// <summary>ISO §14.9.20.4 GR5c1a — "Either the category of the elementary data item is data-pointer,
+    /// <summary>ISO §2023:14.9.20.4 GR5c1a — "Either the category of the elementary data item is data-pointer,
     /// message-tag, object-reference, or program-pointer". These categories are receiving-operands under the VALUE
-    /// phrase UNCONDITIONALLY, and the rule exists because they can never satisfy GR5c1b or GR5c1c: §13.18.63.3 SR9
+    /// phrase UNCONDITIONALLY, and the rule exists because they can never satisfy GR5c1b or GR5c1c: §2023:13.18.63.3 SR9
     /// forbids a VALUE clause on FUNCTION-POINTER / MESSAGE-TAG / OBJECT-REFERENCE / PROGRAM-POINTER outright, and
-    /// for a plain USAGE POINTER the only writable value, the predefined address NULL, may appear per §8.4.3.10.3
+    /// for a plain USAGE POINTER the only writable value, the predefined address NULL, may appear per §2023:8.4.3.10.3
     /// "only as a sending operand in an INITIALIZE or a SET statement", in an argument, or in a relation condition —
     /// never in a VALUE clause. Reading GR5c1b as the whole premise therefore left this arm 100% dead, and
     /// <c>INITIALIZE p ALL TO VALUE</c> silently did nothing to a pointer (kb/Work PB418).
     /// <para>⛔ FUNCTION-POINTER IS DELIBERATELY ABSENT, and that is the PRINTED standard, not a transcription
     /// loss: GR4's SET-form list, GR6a1's sender list and GR6c's fill table all name function-pointer, and GR5c1a
-    /// alone does not — verified against the licensed PDF (§14.9.20.4 GR5c1a, printed folio 639). A FUNCTION-POINTER
+    /// alone does not — verified against the licensed PDF (§2023:14.9.20.4 GR5c1a, printed folio 639). A FUNCTION-POINTER
     /// item is consequently NOT a receiving operand under the VALUE phrase alone (SR9 denies it GR5c1b and GR5c1c
     /// too); it is still one under REPLACING (GR5c2), DEFAULT (GR5c3) and the bare form (GR5c4), where GR6c gives
     /// it the predefined address NULL. Do not "even up" this list — the rule is quoted, not paraphrased.</para>
@@ -567,7 +567,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         cat is InitializeCategory.DataPointer or InitializeCategory.MessageTag
             or InitializeCategory.ObjectReference or InitializeCategory.ProgramPointer;
 
-    /// <summary>ISO §14.9.20.4 GR6 — "the sending-operand in each implicit MOVE and SET statement", whose three
+    /// <summary>ISO §2023:14.9.20.4 GR6 — "the sending-operand in each implicit MOVE and SET statement", whose three
     /// arms are keyed on WHY the item qualified, not on which phrases were written: GR6a "if the data item
     /// qualifies as a receiving-operand because of the VALUE phrase", GR6b "if the data item does not qualify …
     /// because of the VALUE phrase, but does qualify because of the REPLACING phrase", GR6c "if the data item does
@@ -597,10 +597,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
-    /// <summary>The REPLACING operand named for <paramref name="cat"/> (ISO §14.9.20.4 GR6b — "the literal-1 or
+    /// <summary>The REPLACING operand named for <paramref name="cat"/> (ISO §2023:14.9.20.4 GR6b — "the literal-1 or
     /// identifier-2 associated with the category specified in the REPLACING phrase"); null is unreachable once
     /// <see cref="Qualify"/> has answered <c>ViaReplacing</c>, which it does only on a match. The scan is over
-    /// category-name SETS, and §14.9.20.3 SR6 makes at most one of them contain <paramref name="cat"/>.</summary>
+    /// category-name SETS, and §2023:14.9.20.3 SR6 makes at most one of them contain <paramref name="cat"/>.</summary>
     private static BoundOperand? ReplacementFor(InitializeCategory cat, in InitializeSpec spec)
     {
         foreach (var (rcats, value) in spec.Replacements)
@@ -608,15 +608,15 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>ONE elementary receiver's action under ISO §14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
+    /// <summary>ONE elementary receiver's action under ISO §2023:14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
     /// GR5c leaves it unchanged. <paramref name="effectiveValue"/> is the VALUE-clause literal applying to that
     /// occurrence (<see cref="DataItem.ValueAt"/>).</summary>
-    /// <summary>⛔ THE ONE CONSTRUCTOR OF AN INITIALIZE STORE — §14.9.20.4 GR4's implicit <c>MOVE sending-operand
+    /// <summary>⛔ THE ONE CONSTRUCTOR OF AN INITIALIZE STORE — §2023:14.9.20.4 GR4's implicit <c>MOVE sending-operand
     /// TO receiving-operand</c>, BOUND through <c>MoveBinder.BindMoveOf</c> like every other implicit move (kb/Work
-    /// PB880): the §14.9.25.4 GR1 freeze, the per-target classification and the storage facts
+    /// PB880): the §2023:14.9.25.4 GR1 freeze, the per-target classification and the storage facts
     /// (<c>MarkFillImageStorage</c> / <c>MarkRefModStoreImage</c>) are collected HERE, at bind time, where
     /// <c>StorageFormPass</c> can see them. The phrase's <see cref="ImplicitMovePhrase.ValidityAskedByStatement"/>
-    /// keeps the per-receiver syntax screens silent: §14.9.20.3 SR4 has asked the same question per REPLACING
+    /// keeps the per-receiver syntax screens silent: §2023:14.9.20.3 SR4 has asked the same question per REPLACING
     /// category (<see cref="CheckReplacingMoveValidity"/>), and the GR6a/GR6c senders are valid by construction.</summary>
     private InitializeStore Store(Place target, BoundOperand source) =>
         new(host.Move.BindMoveOf(source, [target], ImplicitMovePhrase.Initialize));
@@ -628,7 +628,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     {
         var q = Qualify(cat, effectiveValue, spec);
         if (q is InitializeQualification.None) return null;                                     // GR5c — left unchanged
-        // §14.9.20.4 GR4: "if the category of a receiving-operand is data-pointer, function-pointer, message-tag,
+        // §2023:14.9.20.4 GR4: "if the category of a receiving-operand is data-pointer, function-pointer, message-tag,
         // object-reference, or program-pointer, the implicit statement is SET receiving-operand TO sending-operand"
         // — NOT a MOVE, so it must not route through the InitializeStore MOVE path (GR5a1 keeps these as receiving
         // operands, not MOVE-receiver-excluded). (CODE-SPEC-AUDIT CA2.)
@@ -637,20 +637,20 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // REPLACING the sending operand is identifier-2, an implicit `SET receiver TO identifier-2`, and
             // writing NULL there would be a wrong answer rather than a missing one. kb/Work PB415 made the five
             // category-names spellable, so the arm PB418 staged LOUD is now the real SET. ⛔ THE ERROR ARM IS A
-            // "CANNOT HAPPEN" GUARD, NOT A STAGED FEATURE: §14.9.20.3 SR3 (COBOL1982) has already refused
+            // "CANNOT HAPPEN" GUARD, NOT A STAGED FEATURE: §2023:14.9.20.3 SR3 (COBOL1982) has already refused
             // literal-1 for these categories, and SR4's category agreement (COBOL1983) refuses every sender
             // that is neither a data item of the named category nor the predefined NULL (identifier-2 by
-            // §8.4.3.1.2 Format 8, kb/Work PB1427) — a function-identifier among them, since no SET
-            // format admits one (§14.9.39). It stays because `EmitAction`'s switch has no default arm, so a
+            // §2023:8.4.3.1.2 Format 8, kb/Work PB1427) — a function-identifier among them, since no SET
+            // format admits one (§2023:14.9.39). It stays because `EmitAction`'s switch has no default arm, so a
             // non-place operand reaching the emitter would be dropped in silence rather than diagnosed.
             return q is InitializeQualification.ViaReplacing
                 ? ReplacementFor(cat, spec) switch
                 {
                     // GR4 + GR6b. ⛔ THE RECEIVER'S OWN RESTRICTION IS ASKED HERE, AT THE RECEIVER (kb/Work PB3817):
                     // SR4 can only ask the phrase's category ("an item of the specified category"), and this is the
-                    // first place the restricted program-/function-/data-pointer receiver is in hand. §13.18.60.4
+                    // first place the restricted program-/function-/data-pointer receiver is in hand. §2023:13.18.60.4
                     // GR23/GR25/GR26 forbid it to hold anything but NULL or an address of its type; the implicit SET
-                    // is the store GR4 describes, so §14.9.39.3 SR19/SR20/SR22 hold it, and SR10/SR12 an object
+                    // is the store GR4 describes, so §2023:14.9.39.3 SR19/SR20/SR22 hold it, and SR10/SR12 an object
                     // reference's class (SetBinder.ScreenImplicitSet).
                     BoundFieldOperand { Place: var sp } =>
                         host.Set.ScreenImplicitSet(cur.ToPlace(), sp,
@@ -660,8 +660,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     // action the GR6c default gives, written this time rather than implied.
                     BoundPredefinedNull => new InitializeSetNull(cur.ToPlace()),
                     _ => new InitializeErrorAction($"INITIALIZE REPLACING {cat} BY a function-identifier into "
-                        + $"'{item.CobolName ?? "FILLER"}' (ISO §14.9.20.4 GR4 makes the implicit statement a SET, "
-                        + "and §14.9.39 admits no function-identifier as a SET sending operand)"),
+                        + $"'{item.CobolName ?? "FILLER"}' (ISO §2023:14.9.20.4 GR4 makes the implicit statement a SET, "
+                        + "and §2023:14.9.39 admits no function-identifier as a SET sending operand)"),
                 }
                 : new InitializeSetNull(cur.ToPlace());                                        // GR4 SET … TO the predefined NULL
         // GR6a3 for a receiver whose MOVE would edit, justify or blank the VALUE literal a second time: the rule's
@@ -669,23 +669,23 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (q is InitializeQualification.ViaValue && effectiveValue is { } valueText && ValueIsNotAMoveResult(item, cat))
             return new InitializeStoreValue(receiver ?? cur.ToPlace(), valueText);
         if (SenderFor(q, cat, effectiveValue, spec) is not { } source) return null;
-        // §14.9.20.4 GR7: "When a dynamic-length elementary item is initialized, its length is set to zero."
+        // §2023:14.9.20.4 GR7: "When a dynamic-length elementary item is initialized, its length is set to zero."
         // ⚖ DETERMINATION D-DL1 (docs/CONFORMANCE.md §3; kb/Work PB418) — GR7 IS THE GR6c ARM'S RULE, NOT A
         // POST-PASS OVER ALL THREE. GR7 is printed unconditionally, and read that way it would erase the sender
         // GR6a and GR6b have just designated. It is read as the answer GR6c's fill table cannot give for a
         // dynamic-length receiver, for four reasons, each mechanically cited at docs/CONFORMANCE.md §3:
-        //   (i)   §14.6.2.3.2 GR7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
+        //   (i)   §2023:14.6.2.3.2 GR7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
         //         "The length of each dynamic-length elementary item that is specified WITHOUT a VALUE clause is
         //         set to zero" — so the standard's own parallel sentence excludes the VALUE case;
-        //   (ii)  §8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and
-        //         §14.9.20.4 GR6a3 demands a sender that "produces the same result as the initial value of the
+        //   (ii)  §2023:8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and
+        //         §2023:14.9.20.4 GR6a3 demands a sender that "produces the same result as the initial value of the
         //         data item as produced by the application of the VALUE clause" — under the unconditional
         //         reading no sender can satisfy GR6a3 for this population, i.e. the rule becomes unsatisfiable;
-        //   (iii) §14.9.20.3 SR8 designates literal-1 / identifier-2 as THE sending operand under REPLACING —
+        //   (iii) §2023:14.9.20.3 SR8 designates literal-1 / identifier-2 as THE sending operand under REPLACING —
         //         the unconditional reading makes that designation inert for every dynamic-length receiver;
-        //   (iv)  GR7 is NECESSARY only here: §8.3.3.6.4 GR3b gives a bare figurative constant a length of one
+        //   (iv)  GR7 is NECESSARY only here: §2023:8.3.3.6.4 GR3b gives a bare figurative constant a length of one
         //         character, so GR6c's "Figurative constant alphanumeric SPACES" would otherwise leave the item
-        //         at length 1 rather than at §13.18.19.4 GR1's minimum of zero.
+        //         at length 1 rather than at §2023:13.18.19.4 GR1's minimum of zero.
         // The empty sender flows through the same dynamic-length store, so the zeroing is the SENDER, not a
         // second write. (CODE-SPEC-AUDIT CA1.) Pinned at both poles by conformance:cases/14.9.20-INITIALIZE/initialize_dynamic_length
         // (the GR6c arm) and conformance:cases/14.9.20-INITIALIZE/pb418_initialize_dynamic_length_senders (the GR6a/GR6b arms).
@@ -694,19 +694,19 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Whether a MOVE of the item's VALUE literal would NOT leave the item's initial value — the receivers
-    /// whose MOVE (§14.9.25.4) applies a transform the VALUE clause does not: editing (alphanumeric-edited,
+    /// whose MOVE (§2023:14.9.25.4) applies a transform the VALUE clause does not: editing (alphanumeric-edited,
     /// national-edited and numeric-edited, whose BLANK WHEN ZERO is part of the same MOVE editing) and a JUSTIFIED
-    /// alignment. §13.18.63.4 GR7: "initialization is not affected by a JUSTIFIED clause and no editing takes
+    /// alignment. §2023:13.18.63.4 GR7: "initialization is not affected by a JUSTIFIED clause and no editing takes
     /// place"; GR8: BLANK WHEN ZERO "has no effect on initialization" for an alphanumeric or national literal;
-    /// §13.18.63.3 SR11 for the editing characters. Every other receiver's MOVE of the literal is its initial value,
+    /// §2023:13.18.63.3 SR11 for the editing characters. Every other receiver's MOVE of the literal is its initial value,
     /// and takes the sender <see cref="InitializeValueOperand"/> builds. A dynamic-length item is JUSTIFIED-free and
-    /// never edited (§8.6.4), so it stays on the MOVE arm whose D-DL1 length rule it needs.</summary>
+    /// never edited (§2023:8.6.4), so it stays on the MOVE arm whose D-DL1 length rule it needs.</summary>
     private static bool ValueIsNotAMoveResult(DataItem item, InitializeCategory cat) =>
         cat is InitializeCategory.AlphanumericEdited or InitializeCategory.NationalEdited
             or InitializeCategory.NumericEdited
         || item.Justified;
 
-    /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §14.9.20.4
+    /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §2023:14.9.20.4
     /// GR5c1c + GR6a3). The receiver's qualification and its sending-operand both depend on the occurrence, so one
     /// bind-time action cannot carry the whole element: this composes an
     /// <see cref="InitializeOccurrenceSelect"/> — one arm per DISTINCT literal (the occurrences sharing it
@@ -723,12 +723,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// variable, the ones identifier-1 pinned by its own subscript (an integer literal folds at bind time, any
     /// other expression is tested at run time). A key SHORTER than the plan's dimension list is the one shape
     /// nothing can answer — a storage form that carries no access path — and it is staged LOUD rather than
-    /// resolved to an arbitrary literal, because §14.9.20.4 GR6a3 names ONE literal per occurrence and a lane
+    /// resolved to an arbitrary literal, because §2023:14.9.20.4 GR6a3 names ONE literal per occurrence and a lane
     /// that cannot identify the occurrence has no honest answer.</para></summary>
     private void ExpandTableValue(PlaceCursor cur, DataItem item, InitializeCategory cat,
         in InitializeSpec spec, List<InitializeAction> actions, IReadOnlyList<OccurrenceDim> key, TableValuePlan plan)
     {
-        // The plan is keyed by the subject's FULL OCCURS chain in §13.18.63.3 SR20's order, so the key the walk
+        // The plan is keyed by the subject's FULL OCCURS chain in §2023:13.18.63.3 SR20's order, so the key the walk
         // carries has to be the same length and every dimension has to be identified.
         bool keyed = key.Count == plan.Dims.Count;
         if (keyed)
@@ -738,7 +738,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             actions.Add(new InitializeErrorAction($"INITIALIZE TO VALUE of '{item.CobolName ?? "FILLER"}', whose "
                 + "table-format VALUE clause is keyed to occurrences identifier-1 does not pin at compile time "
-                + "(ISO §14.9.20.4 GR5c1c/GR6a3)"));
+                + "(ISO §2023:14.9.20.4 GR5c1c/GR6a3)"));
             return;
         }
 
@@ -817,9 +817,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         actions.Add(new InitializeOccurrenceSelect(vars, arms, otherwise));
     }
 
-    /// <summary>The INITIALIZE category of an elementary item (ISO §8.5.2 via §14.9.20.2 category-name), or null
+    /// <summary>The INITIALIZE category of an elementary item (ISO §2023:8.5.2 via §2023:14.9.20.2 category-name), or null
     /// when the item is excluded (GR5a1 — an index data item is not a valid MOVE receiver; only SET stores it,
-    /// §14.9.39 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
+    /// §2023:14.9.39 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
     /// (the COBOL-85 alphabetic-edited category folds into alphanumeric-edited per the 2023 categorization).</summary>
     private static InitializeCategory? InitializeItemCategory(DataItem item) => item.Pic switch
     {
@@ -830,7 +830,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
         { Category: PicCategory.Alphanumeric } => InitializeCategory.Alphanumeric,
         { Category: PicCategory.Boolean } => InitializeCategory.Boolean,     // GR6c: boolean → ZEROES
-        // §8.5.2.11 national-edited is its OWN category, and the `EditMask: not null` pair is what the model
+        // §2023:8.5.2.11 national-edited is its OWN category, and the `EditMask: not null` pair is what the model
         // carries it as (the same shape alphanumeric-edited uses, one arm above). GR6c fills it with "Figurative
         // constant national SPACES" — the same fill as national — but GR5c's category-name MATCH must tell the
         // two apart, which a folded arm could not (kb/Work PB492).
@@ -846,10 +846,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
-    /// <summary>ISO §14.9.20.3 SR4 for the SET-form categories — "for each of the categories data-pointer,
+    /// <summary>ISO §2023:14.9.20.3 SR4 for the SET-form categories — "for each of the categories data-pointer,
     /// function-pointer, message-tag, object-reference, and program-pointer specified in the REPLACING phrase, a
     /// SET statement with identifier-2 as the sending operand and an item of the specified category as the
-    /// receiving operand shall be valid". §14.9.39's pointer and object-reference formats admit only a sending
+    /// receiving operand shall be valid". §2023:14.9.39's pointer and object-reference formats admit only a sending
     /// operand of the receiver's own category, so category agreement is the NECESSARY condition, checked here
     /// (the receiver-specific rules — a restricted pointer's type or signature, an object reference's class — are
     /// asked per RECEIVING OPERAND by <c>SetBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
@@ -861,9 +861,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         foreach (var cat in InitializeCategories.All)
         {
             if (!cats.Contains(cat) || !InitializeCategories.IsSetForm(cat)) continue;
-            // The predefined NULL is a valid SET sending operand for each of the five categories: §14.9.20.4 GR6's
-            // table gives it as the default of every one (the address NULL of §8.4.3.10.4 GR1–GR4, the null object
-            // reference of §8.4.3.7), so `SET <an item of the category> TO NULL` is valid, which is SR4's question.
+            // The predefined NULL is a valid SET sending operand for each of the five categories: §2023:14.9.20.4 GR6's
+            // table gives it as the default of every one (the address NULL of §2023:8.4.3.10.4 GR1–GR4, the null object
+            // reference of §2023:8.4.3.7), so `SET <an item of the category> TO NULL` is valid, which is SR4's question.
             if (value is BoundPredefinedNull) continue;
             var senderCat = value is BoundFieldOperand { Place.Item: { } si } ? InitializeItemCategory(si) : null;
             if (senderCat != cat)
@@ -871,11 +871,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         }
     }
 
-    /// <summary>⛔ ISO §14.9.20.3 SR4's MOVE HALF — "For each of the other categories specified in the REPLACING
+    /// <summary>⛔ ISO §2023:14.9.20.3 SR4's MOVE HALF — "For each of the other categories specified in the REPLACING
     /// phrase, a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified
     /// category as the receiving operand shall be valid" — the twin of
     /// <see cref="CheckSetFormCategoryAgreement"/>, which answers SR4's FIRST paragraph for GR4's five SET-form
-    /// categories. §14.9.20.4 GR4's "as though a series of implicit MOVE or SET statements" is what makes a rule
+    /// categories. §2023:14.9.20.4 GR4's "as though a series of implicit MOVE or SET statements" is what makes a rule
     /// about MOVE a rule about INITIALIZE.
     /// <para>The question is asked of <see cref="MoveTable16"/>, the SAME screen <c>MoveBinder</c> asks, so the
     /// implicit MOVE and the explicit one the programmer could write instead cannot answer differently. Before
@@ -885,9 +885,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <c>0000</c>, which no conforming program can produce and a later class-ALPHABETIC test then reads as
     /// false (kb/Work PB416).</para>
     /// <para>ONE message per REPLACING item, naming the first offending category — the same posture
-    /// §14.9.20.3 SR3's check takes, since one item's category-name may be a SET (§5.2.6.4) and a reader fixing
+    /// §2023:14.9.20.3 SR3's check takes, since one item's category-name may be a SET (§2023:5.2.6.4) and a reader fixing
     /// the phrase fixes it once.</para>
-    /// <para>⚠ SR4's ONE EDITION-DEPENDENT MOVE RULE IS NOT ASKED HERE: §14.9.25.3 SR5's figurative→numeric
+    /// <para>⚠ SR4's ONE EDITION-DEPENDENT MOVE RULE IS NOT ASKED HERE: §2023:14.9.25.3 SR5's figurative→numeric
     /// prohibition has three EDITION rows, which are the post-bind <c>VersionConformancePass</c>'s. The written
     /// REPLACING phrase rides <see cref="BoundInitialize.Replacing"/> and <c>VersionConformancePass.GateInitialize</c>
     /// asks the same rows <c>GateMove</c> asks, per category (kb/Work PB879) — so <c>INITIALIZE g REPLACING NUMERIC
@@ -904,8 +904,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // it was hoisted above the loop as "asked once" back when the only class it could refuse was INDEX, and
         // INDEX is not one of INITIALIZE's thirteen category-names. The moment SR1's screen gained its pointer
         // and object arms, `INITIALIZE g REPLACING DATA-POINTER DATA BY PTR` — the exact shape SR4's first
-        // paragraph and §14.9.20.4 GR4 describe, and which conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form
-        // pins — was refused as an invalid MOVE. The hoist stays (one message per REPLACING item, §5.2.6.4's
+        // paragraph and §2023:14.9.20.4 GR4 describe, and which conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form
+        // pins — was refused as an invalid MOVE. The hoist stays (one message per REPLACING item, §2023:5.2.6.4's
         // category-name is a SET), guarded by the paragraph that owns it.
         bool anyMoveFormCategory = false;
         foreach (var cat in InitializeCategories.All)
@@ -913,7 +913,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING BY {senderText}: ISO §14.9.20.3 SR4 requires the implicit MOVE to be "
+                $"INITIALIZE REPLACING BY {senderText}: ISO §2023:14.9.20.3 SR4 requires the implicit MOVE to be "
                 + $"valid, and {classRefusal}");
             return;
         }
@@ -927,16 +927,16 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
             if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §14.9.20.3 SR4 "
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §2023:14.9.20.3 SR4 "
                 + $"requires that `MOVE {senderText} TO <an item of category "
                 + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
             return;   // one message per REPLACING item, naming the first offending category
         }
     }
 
-    /// <summary>Decode ONE grammar <c>category-name</c> — the §5.2.6.4 SET of category words, accumulated left to
-    /// right. <paramref name="namedSoFar"/> is the running union that §14.9.20.3 SR6 ("the same category shall not
-    /// be repeated in a REPLACING phrase") and §5.2.6.4 ("any single alternative shall be specified only once")
+    /// <summary>Decode ONE grammar <c>category-name</c> — the §2023:5.2.6.4 SET of category words, accumulated left to
+    /// right. <paramref name="namedSoFar"/> is the running union that §2023:14.9.20.3 SR6 ("the same category shall not
+    /// be repeated in a REPLACING phrase") and §2023:5.2.6.4 ("any single alternative shall be specified only once")
     /// BOTH test against — one accumulator for one rule, so a word repeated within a category-name and a category
     /// repeated across REPLACING items are diagnosed identically. A repeated word is dropped, never doubled.</summary>
     private InitializeCategorySet CategorySetOf(Core.InitializeCategoryContext cat, ref InitializeCategorySet namedSoFar)
@@ -952,7 +952,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return set;
     }
 
-    /// <summary>The VALUE phrase's category-name (ISO §14.9.20.2). Its words are governed by §5.2.6.4's "only
+    /// <summary>The VALUE phrase's category-name (ISO §2023:14.9.20.2). Its words are governed by §2023:5.2.6.4's "only
     /// once" too, but by nothing else — SR6 is written about the REPLACING phrase alone — so the accumulator is
     /// local to this one category-name.</summary>
     private InitializeCategorySet CategorySetOf(Core.InitializeCategoryContext cat)
@@ -961,7 +961,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return CategorySetOf(cat, ref namedSoFar);
     }
 
-    /// <summary>Decode ONE printed category-name word (ISO §14.9.20.2 "where category-name is:"). Every one of
+    /// <summary>Decode ONE printed category-name word (ISO §2023:14.9.20.2 "where category-name is:"). Every one of
     /// the thirteen is a required word with one hyphenated spelling, so this is a total token switch — the
     /// two-token <c>ALPHANUMERIC EDITED</c> / <c>NUMERIC EDITED</c> forms the rule used to carry are in no
     /// edition of the standard and are gone with the EDITED lexer token (kb/Work PB415).</summary>
@@ -980,27 +980,27 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         : cat.OBJECT_REFERENCE() is not null ? InitializeCategory.ObjectReference
         : InitializeCategory.ProgramPointer;
 
-    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §14.9.20.4 GR6a3 — "<i>The actual
+    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §2023:14.9.20.4 GR6a3 — "<i>The actual
     /// sending-operand is a literal that, when moved to the receiving-operand with a MOVE statement, produces the
     /// same result as the initial value of the data item as produced by the application of the VALUE clause</i>"):
     /// the raw VALUE text decodes to the figurative / ALL-literal / string / numeric operand the MOVE path already
     /// renders, so TO VALUE re-produces the program-start state through MOVE semantics.
-    /// <para>⛔ THE §8.3.3.6.2 FORM IS READ BY <c>FigurativeConstants.Classify</c> AND NOWHERE ELSE
+    /// <para>⛔ THE §2023:8.3.3.6.2 FORM IS READ BY <c>FigurativeConstants.Classify</c> AND NOWHERE ELSE
     /// (kb/Work PB461, PB933). GR6a3 does not merely permit that — it REQUIRES it: the sending operand is defined
     /// as the one that reproduces "the initial value … as produced by the application of the VALUE clause", and
     /// that initial value is composed from the SAME text by <c>ValueInitializer</c> through THAT classifier, so a
     /// second word map here is a sender that fails to reproduce the very thing it is defined as reproducing. This
     /// site was the SIXTH private reading, and it differed: it sent <c>NULL</c> to a pointer-class
     /// NULL operand where the shared reading sends it to <c>'L'</c>. The standard is with the
-    /// shared reading here — §8.3.3.6.2 prints SEVEN figurative-constant formats and NULL is none of them
-    /// (§8.4.3.10.1: "<i>NULL is a predefined address of class pointer or a predefined content of class
+    /// shared reading here — §2023:8.3.3.6.2 prints SEVEN figurative-constant formats and NULL is none of them
+    /// (§2023:8.4.3.10.1: "<i>NULL is a predefined address of class pointer or a predefined content of class
     /// message-tag</i>"), which is why GR6c's own table spells the pointer rows "Predefined address NULL" and the
-    /// rest "Figurative constant …". A pointer-category receiver never reaches this method at all: §14.9.20.4 GR4
+    /// rest "Figurative constant …". A pointer-category receiver never reaches this method at all: §2023:14.9.20.4 GR4
     /// routes it to the SET arm, whose sender is GR6a1/GR6a2's predefined NULL.</para></summary>
     private static BoundOperand InitializeValueOperand(string raw)
     {
         // Formats 1-5 (ALL optional) and Format 6 (ALL required, literal-1 repeated to the receiver by
-        // §8.3.3.6.4 GR2 — "the string of characters is repeated character by character"); the category rides on
+        // §2023:8.3.3.6.4 GR2 — "the string of characters is repeated character by character"); the category rides on
         // literal-1 (PB71). Both the glued (`ALL"*"`) and spaced spellings the parse tree can produce are the
         // classifier's business, not this site's.
         var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw);

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE KEY OF <see cref="CompiledProgramCache"/> IS COMPLETE (kb/Work PB985 obligation 2;
-/// <c>DESIGN-test-build-ci.md</c> §3.12). A cache whose key omits one compiler input returns a STALE program — a
+/// <c>DESIGN-test-build-ci.md</c> §2023:3.12). A cache whose key omits one compiler input returns a STALE program — a
 /// green verdict about code that no longer exists — so every input axis is flipped here and each flip must MISS:
 /// every <see cref="CompilerDriver.Options"/> property (found by reflection, so a new option is covered the day it
 /// ships), the source text, a copybook's text, a copybook that newly SHADOWS the one found, a directive's
@@ -148,7 +148,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     [Fact]
     public void ACopybookThatNewlyShadowsTheOneFound_Misses()
     {
-        // Locating library text is implementor-defined (ISO §7.2.3.4 GR3) and the default library searches its
+        // Locating library text is implementor-defined (ISO §2023:7.2.3.4 GR3) and the default library searches its
         // places in order (DOC-A.1-40: the working directory, then each --copy DIR), so a copybook appearing in an
         // EARLIER --copy directory shadows the one the earlier compile found in a later one — an input that exists
         // only as a probe that answered "absent".
@@ -230,7 +230,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
     }
 
     /// <summary>A hit replays the compilation's OWN output — the lines its DISPLAY directives transferred (ISO
-    /// §7.3.12.4 1): "The DISPLAY directive causes the contents of each operand to be transferred to the source
+    /// §2023:7.3.12.4 1): "The DISPLAY directive causes the contents of each operand to be transferred to the source
     /// listing or compile-time-device-1") — exactly as the cold compile produced them. Before the entry carried them,
     /// a hit returned none, and a test reading them would have passed cold and failed warm.</summary>
     [Fact]

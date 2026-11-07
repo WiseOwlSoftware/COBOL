@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.6.4 2) — no automatic alignment, no FILLER
+      *> ISO §2023:8.5.1.6.4 2) — no automatic alignment, no FILLER
       *> A group of DISPLAY and BINARY items with NO SYNCHRONIZED
       *> clause is seen by REDEFINES and group MOVEs exactly packed.
       *>
       *> THE RULES.
-      *> §8.5.1.6.4 2): synchronization is accomplished "By
+      *> §2023:8.5.1.6.4 2): synchronization is accomplished "By
       *>   recognizing the appropriate natural boundaries and
       *>   organizing the data suitably without the use of the
       *>   SYNCHRONIZED clause." and "Each implementor who provides
       *>   for these special types of alignment shall describe the
       *>   effect of the implicit FILLER and the semantics of any
       *>   statement referencing these groups."
-      *>   OK  §8.5.1.6.4 2)  (Item alignment for increased
+      *>   OK  §2023:8.5.1.6.4 2)  (Item alignment for increased
       *>   object-code efficiency)  [both quotes]
-      *> §13.18.55.4 GR10: "An implementor may optionally specify
+      *> §2023:13.18.55.4 GR10: "An implementor may optionally specify
       *>   automatic alignment for any internal data representations"
-      *>   OK  §13.18.55.4 10)  (General rules)
+      *>   OK  §2023:13.18.55.4 10)  (General rules)
       *> Annex A.1 item 7 makes this alignment optional. The
       *>   documented choice, docs/CONFORMANCE.md DOC-A.1-7, is "Not
       *>   provided": every item sits immediately after its
@@ -29,16 +29,16 @@
       *>   a group differently because of alignment".
       *> Widths from DOC-A.1-205: BINARY of 5-9 digits = 4 bytes,
       *>   of 3-4 digits = 2 bytes.
-      *> §13.18.44.1: "The REDEFINES clause allows the same computer
+      *> §2023:13.18.44.1: "The REDEFINES clause allows the same computer
       *>   storage area to be described by different data description
       *>   entries."
-      *> §14.9.25.4 GR4: a group move "is treated exactly as if it
+      *> §2023:14.9.25.4 GR4: a group move "is treated exactly as if it
       *>   were an alphanumeric to alphanumeric elementary move"
-      *>   OK  §14.9.25.4 4)  (General rules)
-      *> §14.6.8.5: the data is "aligned at the leftmost character
+      *>   OK  §2023:14.9.25.4 4)  (General rules)
+      *> §2023:14.6.8.5: the data is "aligned at the leftmost character
       *>   position in the data item with space fill or truncation to
       *>   the right"
-      *>   OK  §14.6.8.5  (Receiving data items of categories
+      *>   OK  §2023:14.6.8.5  (Receiving data items of categories
       *>   alphabetic, alphanumeric, ...)
       *>
       *> DERIVATION. G = GA X(1) @1, GB S9(9) BINARY (4) @2-5,
@@ -51,7 +51,7 @@
       *> R6=C R9=E -- MOVE G TO R (X(12)) places the 9 bytes
       *>   leftmost, so R(6:1) = "C" and R(9:1) = "E".
       *> TAIL=[   ] -- the group is 9 bytes, so R positions 10-12
-      *>   are the space fill of §14.6.8.5.
+      *>   are the space fill of §2023:14.6.8.5.
       *> GA=P GC=U GE=X -- MOVE "PQRSTUVWXYZ" TO G is an
       *>   alphanumeric move into the 9-byte group, truncated on the
       *>   right: byte 1 "P", byte 6 "U", byte 9 "X".

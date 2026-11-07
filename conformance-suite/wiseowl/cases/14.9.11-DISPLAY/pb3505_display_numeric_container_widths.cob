@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.4 GR1 (Annex A.1 item 56, docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner
+      *> ISO §2023:14.9.11.4 GR1 (Annex A.1 item 56, docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner
       *> decision PB3467) under the default `--numeric-display decimal`: a BINARY-CAPACITY item
       *> (COMP-5, BINARY-CHAR / -SHORT / -LONG / -DOUBLE) holds any value of its CONTAINER
       *> (Annex A.1 item 208, docs/CONFORMANCE.md DOC-A.1-208: COMP-5 owns its full container range), past its PICTURE's digit count, so DISPLAY shows the

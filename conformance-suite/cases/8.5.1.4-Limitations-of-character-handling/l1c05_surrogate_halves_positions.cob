@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.4 rule 2 — each UTF-16 surrogate half is one
+      *> ISO §2023:8.5.1.4 rule 2 — each UTF-16 surrogate half is one
       *>   character position
       *> Rule: "The high-half 2 octets and the low-half 2 octets of a
       *>   four-octet sequence defined in the UTF-16 format of ISO/IEC
@@ -15,14 +15,14 @@
       *> cite.py --check 8.5.1.4 "The high-half 2 octets and the
       *>   low-half 2 octets of a four-octet sequence defined in the
       *>   UTF-16 format of ISO/IEC 10646 are each treated as a single
-      *>   character position." -> OK  §8.5.1.4 2)  (Limitations of
+      *>   character position." -> OK  §2023:8.5.1.4 2)  (Limitations of
       *>   character handling)
       *> cite.py --check 8.5.1.4 "Each two-octet code element of UTF-16
       *>   is treated in COBOL as though it were itself a character" ->
-      *>   OK  §8.5.1.4 2)  (Limitations of character handling)
+      *>   OK  §2023:8.5.1.4 2)  (Limitations of character handling)
       *> cite.py --check 8.5.1.4 "The following processing limitations
       *>   shall apply when ISO/IEC 10646 is chosen as a computer's
-      *>   coded character set" -> OK  §8.5.1.4   (Limitations of
+      *>   coded character set" -> OK  §2023:8.5.1.4   (Limitations of
       *>   character handling)
       *> The national set is UTF-16 (docs/CONFORMANCE.md DOC-A.1-188).
       *>   U+1F600 is the four-octet sequence D83D DE00: a high half and

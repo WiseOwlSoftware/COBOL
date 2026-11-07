@@ -10,14 +10,14 @@
       *>   python scripts/spec/cite.py --check 9.1.13.4 "the number of
       *>   significant digits in the relative record number is larger
       *>   than the size of the relative key data item described for
-      *>   the file"                            -> OK  §9.1.13.4 2)
+      *>   the file"                            -> OK  §2023:9.1.13.4 2)
       *>   python scripts/spec/cite.py --check 14.9.30.4 "number of
-      *>   significant digits"                  -> OK  §14.9.30.4 21) d)
-      *> DERIVATION. §9.1.13.4 2) and §14.9.30.4 GR21 d) state the test
+      *>   significant digits"                  -> OK  §2023:14.9.30.4 21) d)
+      *> DERIVATION. §2023:9.1.13.4 2) and §2023:14.9.30.4 GR21 d) state the test
       *> in DIGITS: I-O status 14 when the number of SIGNIFICANT DIGITS
       *> of the relative record number is larger than the SIZE of the
       *> relative key data item. The standard gives a PICTURE-less
-      *> BINARY-CHAR UNSIGNED a RANGE (§13.18.60.4 GR12: 0 <= n < 256),
+      *> BINARY-CHAR UNSIGNED a RANGE (§2023:13.18.60.4 GR12: 0 <= n < 256),
       *> never a digit size, so its size in digits is implementor-
       *> defined, and WiseOwl COBOL's is the decimal width of the range's
       *> maximum magnitude: 3 (PicInfo.BinaryItem; docs/CONFORMANCE.md
@@ -30,7 +30,7 @@
       *>              (a capacity reading, 0..255, would say '14' here;
       *>              no clause states it, which is what this leg pins)
       *>   RRN 1000 -> 4 digits, larger than 3                -> '14'
-      *> The third READ takes AT END (status class 1, §14.9.30.4 GR24 c).
+      *> The third READ takes AT END (status class 1, §2023:14.9.30.4 GR24 c).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1516G.
        ENVIRONMENT DIVISION.

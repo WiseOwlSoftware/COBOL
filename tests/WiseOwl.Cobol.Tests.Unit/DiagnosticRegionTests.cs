@@ -12,8 +12,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ WHO ANSWERS FOR THE TEXT OF AN EXPANSION (kb/Work PB4469; ISO §12.3.8.4 GR5 — an expansion is the skeleton's text with the formals
-/// replaced; ISO §9.3.12 — it is treated in all respects as a class that is not parameterized). The group binds the text of every expansion
+/// ⛔ WHO ANSWERS FOR THE TEXT OF AN EXPANSION (kb/Work PB4469; ISO §2023:12.3.8.4 GR5 — an expansion is the skeleton's text with the formals
+/// replaced; ISO §2023:9.3.12 — it is treated in all respects as a class that is not parameterized). The group binds the text of every expansion
 /// it makes, and an expansion placed in an assembly of its own is compiled apart, which binds the same text again. The group therefore
 /// withdraws the warnings it raised while binding the text of a skeleton read from the repository that another compilation compiles, and
 /// the facts that decide WHICH are these: the token an expansion's text is made of names its <see cref="DiagnosticRegion"/>, the cursor
@@ -138,7 +138,7 @@ public sealed class DiagnosticRegionTests
             FragmentParse.ParseTokens(tokens, edition, CobolWordsMap.Empty, p => p.compilationUnit()));
     }
 
-    /// <summary>⛔ kb/Work PB4649, ISO §8.3.2.1 + Annex B.3 (the word) and §8.3.3.1 (the literal): the two frontend token screens position a
+    /// <summary>⛔ kb/Work PB4649, ISO §2023:8.3.2.1 + Annex B.3 (the word) and §2023:8.3.3.1 (the literal): the two frontend token screens position a
     /// diagnostic of an expansion's text by <see cref="ExpansionToken.CursorOf"/>, as the binder's walkers do, so a text of a repository
     /// skeleton is printed at the EXPANDS entry naming the expansion and the group can withdraw it. A screen that read the token's line and
     /// column alone (<c>sink.At(line, column)</c>) printed a repository text's position, in a file it never was in.</summary>

@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// A configuration-section table tells the source element that declared a name from the ones it came down through
-/// (ISO §8.4.6.1; §8.4.6.2.1 3; kb/Work PB3347): a switch condition-name declared in the SAME element as a level-88 of
-/// the spelling competes with it under §8.4.2.2.1, one declared in a nearer element hides it, one a tier farther out
+/// (ISO §2023:8.4.6.1; §2023:8.4.6.2.1 3; kb/Work PB3347): a switch condition-name declared in the SAME element as a level-88 of
+/// the spelling competes with it under §2023:8.4.2.2.1, one declared in a nearer element hides it, one a tier farther out
 /// yields to it.
 /// </summary>
 public sealed class ConfigurationNamesTests
@@ -38,7 +38,7 @@ public sealed class ConfigurationNamesTests
         container.TryAdd("S-ON", 1);
         var containee = NewTable();
         containee.TryAdd("S-ON", 2);
-        containee.InheritFrom(container);   // the containee's own declaration wins (§12.3.4 GR1)
+        containee.InheritFrom(container);   // the containee's own declaration wins (§2023:12.3.4 GR1)
 
         Assert.Equal(0, containee.ContainmentDepth("S-ON"));
         Assert.True(containee.TryPeek("S-ON", out int value));

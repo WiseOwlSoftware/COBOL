@@ -13,13 +13,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN OCCURS DEPENDING TABLE RECORDS ONLY AN ADMITTED data-name-1 — AN INTEGER, NOT SUBSCRIPTED, OUTSIDE THE TABLE'S
-/// RANGE — SO NO CONSUMER OF <see cref="OccursSpec.Depending"/> CAN CYCLE (kb/Work PB3510). ISO §13.18.38.3 SR17:
+/// RANGE — SO NO CONSUMER OF <see cref="OccursSpec.Depending"/> CAN CYCLE (kb/Work PB3510). ISO §2023:13.18.38.3 SR17:
 /// "Data-name-1 shall describe an integer"; SR2: "Data-name-1 and data-name-2 shall not be subscripted"; SR20: "The
 /// data item defined by data-name-1 shall not occupy a byte position within the range of the first byte position
 /// defined by the data description entry containing the OCCURS clause and the last byte position defined by the record
 /// description entry containing that OCCURS clause."
 /// <para><b>The defect.</b> <c>OdoResolvePass</c> recorded the resolved data-name-1 first and reported the rules
-/// after, so a GROUP data-name-1 reached every consumer. The §13.18.38.4 GR8 group-operand slice
+/// after, so a GROUP data-name-1 reached every consumer. The §2023:13.18.38.4 GR8 group-operand slice
 /// (<c>PlaceBuilder.WrapIfOdoGroup</c>) resolves data-name-1's own place, and resolving a GROUP holding an
 /// occurs-depending table wraps it again: <c>DEPENDING ON</c> the record that holds the table (fuzz program fz01530),
 /// or two records each depending on the other, recursed without end and the compiler died of a stack overflow before
@@ -128,7 +128,7 @@ public sealed class OdoDependingAdmissionDriftTests
 
     /// <summary>Binding ends (a stack overflow would kill the test host), every recorded link is an elementary
     /// integer outside its table, and exactly the rules the shape violates report. The procedure division references
-    /// the record as a group operand — the §13.18.38.4 GR8 slice that recursed — as a sender and a receiver.</summary>
+    /// the record as a group operand — the §2023:13.18.38.4 GR8 slice that recursed — as a sender and a receiver.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]
     public void EveryRecordedDependingLink_IsAnElementaryIntegerOutsideItsTable(string shape, string ws, string[] codes)

@@ -45,7 +45,7 @@ never write "swept" without one.
 
 ## 4. Cite it in the code
 
-The exact section AND rule number (`§14.9.24 GR4d`), not "per the spec".
+The exact section AND rule number (`§2023:14.9.24 GR4d`), not "per the spec".
 
 ## 5. Write the test in the conformance suite
 

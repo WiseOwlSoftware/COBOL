@@ -20,7 +20,7 @@ using Core = CobolParserCore;
 /// close its <c>paragraphDefinition*</c> loop and be the division's own. Both derivations accept every token to the
 /// next section header or the end of the division, so full-context LL prediction (the pass every program whose SLL
 /// pass bails takes, <c>Frontend.ParsePass</c>) scans that far at EVERY paragraph header: a legal 400-paragraph section
-/// with one <c>SET p TO NULL</c> compiled in 112 s that way, CCVS DB201A in 58 s. ISO §14.4.2 says which reading is
+/// with one <c>SET p TO NULL</c> compiled in 112 s that way, CCVS DB201A in 58 s. ISO §2023:14.4.2 says which reading is
 /// right — "A section consists of a section header followed by zero, one, or more successive paragraphs. A section
 /// ends immediately before the next section or at the end of the procedure division" — and the grammar writes it as
 /// its shape (<c>sentence* paragraphDefinition* sectionDefinition*</c>), so no prediction choice is left to make.</para>

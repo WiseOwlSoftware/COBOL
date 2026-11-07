@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §14.9.40.2 Format 1 - the file SORT's KEY phrase is printed in BRACES with an
-      *> ellipsis, so at least one is required; only Format 2 brackets it (§14.9.40.3 SR15). kb/Work PB846
+      *> ISO/IEC 1989:2023 §2023:14.9.40.2 Format 1 - the file SORT's KEY phrase is printed in BRACES with an
+      *> ellipsis, so at least one is required; only Format 2 brackets it (§2023:14.9.40.3 SR15). kb/Work PB846
       *> relaxed the grammar's key-phrase list to zero-or-more for the table format, so the Format-1 arity is
       *> now screened in the binder - this case pins that the relaxation did not leak into the file format.
        IDENTIFICATION DIVISION.

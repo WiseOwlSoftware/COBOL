@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.57.3 SR16 — no GENERATE data-name, so no DETAIL is
+      *> ISO §2023:13.18.57.3 SR16 — no GENERATE data-name, so no DETAIL is
       *>   needed
       *> "If no GENERATE data-name statements are specified in the
       *>   procedure
@@ -14,23 +14,23 @@
       *>   statements are
       *>   specified in the procedure division, the report description
       *>     need not
-      *>   contain a DETAIL" -> OK §13.18.57.3 16) (Syntax rules)
-      *> R-ND has one body group (§13.18.57.3 SR15), a CONTROL
+      *>   contain a DETAIL" -> OK §2023:13.18.57.3 16) (Syntax rules)
+      *> R-ND has one body group (§2023:13.18.57.3 SR15), a CONTROL
       *>   FOOTING, and no
       *> DETAIL; the procedure division has only GENERATE report-name
       *>   (summary
-      *> reporting, §14.9.16.4 GR2). The program is therefore LEGAL
+      *> reporting, §2023:14.9.16.4 GR2). The program is therefore LEGAL
       *>   and must
       *> compile and run; an implementation demanding a DETAIL rejects
       *>   it.
       *> cite.py --check 13.18.57.3 "Each report description shall
       *>   include at
-      *>   least one body group" -> OK §13.18.57.3 15) (Syntax rules)
+      *>   least one body group" -> OK §2023:13.18.57.3 15) (Syntax rules)
       *> cite.py --check 13.18.57.4 "when the TERMINATE statement is
       *>   executed
       *>   for the report, provided that at least one GENERATE
       *>     statement has
-      *>   been executed" -> OK §13.18.57.4 6) e) 2.
+      *>   been executed" -> OK §2023:13.18.57.4 6) e) 2.
       *> DERIVATION: a USE BEFORE REPORTING procedure DISPLAYs "CF" at
       *>   each
       *> presentation of the footing.

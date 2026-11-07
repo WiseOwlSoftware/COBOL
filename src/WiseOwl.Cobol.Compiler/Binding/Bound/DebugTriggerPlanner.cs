@@ -168,7 +168,7 @@ internal static class DebugTriggerPlanner
     /// verb's emitter lands it on that arm through <c>LandFileNameAfterFailure</c>, spaces in DEBUG-CONTENTS, no record having been read);
     /// every other reference leaves spaces there (rule 23 d). WRITE and
     /// REWRITE are not listed, nor are the SORT and MERGE verbs, RELEASE and RETURN: they run no file-name section (GnuCOBOL's typeck.c agrees).
-    /// DELETE FILE (ISO/IEC 1989:2023 §14.9.10 Format 2, not in the 1985 text) is a DELETE statement that references the file-name, and runs it
+    /// DELETE FILE (ISO/IEC 1989:2023 §2023:14.9.10 Format 2, not in the 1985 text) is a DELETE statement that references the file-name, and runs it
     /// as GnuCOBOL's cb_emit_delete_file does, after the I-O and before the exception test.</summary>
     private static void PlanFile(BoundStatement leaf, BoundDebugTarget target, List<DebugFire> fires)
     {

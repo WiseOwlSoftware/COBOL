@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ <see cref="Table12StatementNames"/> IS ISO Table 12's 'Statement name' COLUMN, AND THIS RE-DERIVES IT FROM
 /// THE SPEC — BOTH DIRECTIONS.
 ///
-/// <para>§15.32.3 r3 makes the column the answer FUNCTION EXCEPTION-STATEMENT must give, and the resolver keys
+/// <para>§2023:15.32.3 r3 makes the column the answer FUNCTION EXCEPTION-STATEMENT must give, and the resolver keys
 /// on the parse rule because the spelled-token axis is wrong in a way no token can repair (kb/Work R04:
 /// <c>GO PARA.</c> is a GO TO statement whose tokens never contain TO). A resolver nothing re-derives is a
 /// hand-maintained list (CLAUDE.md rule 5) and a table nothing re-derives has never been contradicted
@@ -144,7 +144,7 @@ public sealed class Table12StatementNameDriftTests
     }
 
     /// <summary>⛔ THE TERMINATOR COLUMN IS WHAT <see cref="ConditionalStatements"/> ASKS, SO IT IS RE-DERIVED HERE.
-    /// §14.5.1 makes a statement conditional when a conditional phrase is written and "its explicit scope terminator"
+    /// §2023:14.5.1 makes a statement conditional when a conditional phrase is written and "its explicit scope terminator"
     /// is not; the classifier finds the terminator as the token <c>END_</c> + the statement name. That holds only if
     /// every terminator Table 12 prints is spelled <c>END-</c> + the row's name and the lexer carries that token, and
     /// only if every row with a conditional phrase HAS a terminator — each asserted from the scraped table, so a

@@ -13,7 +13,7 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// ⛔ THE STATEMENT SEQUENCE IS ONE PARSE-TREE FACT, AND THE THREE SEQUENCE RULES ASK IT OF ONE VIEW (kb/Work
-/// PB397, CLAUDE.md rule 5). ISO §14.9.14.3 SR1, §14.9.17.3 SR2 and §14.9.42.3 SR1 are stated over a sequence of
+/// PB397, CLAUDE.md rule 5). ISO §2023:14.9.14.3 SR1, §2023:14.9.17.3 SR2 and §2023:14.9.42.3 SR1 are stated over a sequence of
 /// statements; <c>StatementPosition</c> reads the sequence from a statement's own ancestors, which is total ONLY
 /// while the grammar writes a <c>statement</c> as an element of a <c>sentence</c> or a <c>statementBlock</c> and
 /// nowhere else. This net fails the moment a third container gains a <c>statement</c> child, so the new container is
@@ -53,9 +53,9 @@ public sealed class StatementSequenceDriftTests
         Assert.Same(statements[1], StatementPosition.Of(statements[0]).Following);
     }
 
-    /// <summary>kb/Work PB2610 — §14.9.17.3 SR2's "consecutive sequence of imperative statements" ends at a
-    /// CONDITIONAL statement (§14.5.1): the GO TO before an IF with no END-IF ends its run though it is not the last
-    /// statement of its sentence; before the same IF delimited by END-IF (imperative, §14.5.3.2) it does not.</summary>
+    /// <summary>kb/Work PB2610 — §2023:14.9.17.3 SR2's "consecutive sequence of imperative statements" ends at a
+    /// CONDITIONAL statement (§2023:14.5.1): the GO TO before an IF with no END-IF ends its run though it is not the last
+    /// statement of its sentence; before the same IF delimited by END-IF (imperative, §2023:14.5.3.2) it does not.</summary>
     [Theory]
     [InlineData("GO TO P IF X = 1 DISPLAY \"A\".", true)]
     [InlineData("GO TO P ADD 1 TO X ON SIZE ERROR DISPLAY \"A\".", true)]

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR14 — the CROSS-FORM occurrence. The rule
+      *> ISO §2023:14.9.28.3 SR14 — the CROSS-FORM occurrence. The rule
       *> opens "If file-name-1 OR file-name-2 is specified in a WHEN
       *> phrase, IT shall not be specified more than once in any of the
       *> WHEN phrases … unless ALL such instances are specified in

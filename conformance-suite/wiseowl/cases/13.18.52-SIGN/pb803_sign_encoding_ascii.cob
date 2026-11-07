@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *>
-      *> ISO §13.18.52.4 GR4 / GR5 b) under the NON-DEFAULT over-punch convention — Annex A.1 items
+      *> ISO §2023:13.18.52.4 GR4 / GR5 b) under the NON-DEFAULT over-punch convention — Annex A.1 items
       *> 177 and 178 (kb/Work PB803, owner decision 2026-09-09: "Keep both behind an option with the
       *> default being IBM and Micro Focus compatibility").
       *>
@@ -30,7 +30,7 @@
       *>   so an encoder that punched every sign would answer `1234|` only by accident and a decoder
       *>   that did not treat a plain digit as positive would lose the value.
       *> The `|` sentinel pins the width exactly as it does in the default golden: the fused sign
-      *>   occupies a DIGIT position under every convention (§13.18.52.4 GR5 a), which is normative
+      *>   occupies a DIGIT position under every convention (§2023:13.18.52.4 GR5 a), which is normative
       *>   and not part of the latitude), so PIC S9(4) is 4 characters here too.
       *> The class legs pin GR5 b)'s valid set for THIS convention, and the last two are the point:
       *>   `12C` and `12{` are valid signs under `ibm` and are NOT valid signs here.  A predicate

@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// kb/Work PB1925 — every diagnostic the conformance pass builds from a BOUND node names the file, line and column of
 /// the statement (or data entry) it is about. A bound node carries no parse-tree span, so the binder's one statement
 /// funnel stamps the cursor on <c>BoundStatement.At</c> and the pass positions its sink from it; this class pins both
-/// halves: the SORT / MERGE / COMMIT / ROLLBACK placement rules (ISO §14.9.40.3 SR3, §14.9.24.3 SR1, §14.9.7.3 SR2,
-/// §14.9.36.3 SR2), the SET / MOVE statement gates and the USAGE data gate. Each refusal is asserted with its
+/// halves: the SORT / MERGE / COMMIT / ROLLBACK placement rules (ISO §2023:14.9.40.3 SR3, §2023:14.9.24.3 SR1, §2023:14.9.7.3 SR2,
+/// §2023:14.9.36.3 SR2), the SET / MOVE statement gates and the USAGE data gate. Each refusal is asserted with its
 /// legal twin (the same statement outside the procedure, or at the edition that allows it), because a position
 /// stamped on the wrong statement, or a refusal that no longer fires, is the failure the success path alone cannot see.
 /// </summary>
@@ -95,7 +95,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
             $"expected '({line},{column}): {severity} {code}'; got:\n" + string.Join("\n", all.DefaultIfEmpty("(none)")));
     }
 
-    // ── §14.9.40.3 SR3 — a file SORT may not appear in an input or output procedure, at EVERY edition ─────────────────
+    // ── §2023:14.9.40.3 SR3 — a file SORT may not appear in an input or output procedure, at EVERY edition ─────────────────
 
     [Theory]
     [InlineData("sort-input", 85)]
@@ -131,7 +131,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("COBOL2700"));
     }
 
-    // ── §14.9.24.3 SR1 — a MERGE there is a COBOL-2023 removal (Annex E.2 item 20) ───────────────────────────────────
+    // ── §2023:14.9.24.3 SR1 — a MERGE there is a COBOL-2023 removal (Annex E.2 item 20) ───────────────────────────────────
 
     [Theory]
     [InlineData("sort-input")]
@@ -162,7 +162,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         Assert.True(ok, string.Join("\n", lines));
     }
 
-    // ── §14.9.7.3 SR2 / §14.9.36.3 SR2 — COMMIT and ROLLBACK there ───────────────────────────────────────────────────
+    // ── §2023:14.9.7.3 SR2 / §2023:14.9.36.3 SR2 — COMMIT and ROLLBACK there ───────────────────────────────────────────────────
 
     [Theory]
     [InlineData("sort-input", Commit)]
@@ -201,7 +201,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         return (r.Success, [.. r.Errors, .. r.Warnings]);
     }
 
-    [Fact] // SET pointer UP BY is a 2002 introduction; the gate is a bound-node gate (§14.9.39 Format 10)
+    [Fact] // SET pointer UP BY is a 2002 introduction; the gate is a bound-node gate (§2023:14.9.39 Format 10)
     public void SetPointerUpBy_Below2002_NamesTheStatement()
     {
         var (ok, lines) = CompileProgram("           MOVE 1 TO N.\n           SET P UP BY 1.\n",
@@ -210,7 +210,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         AssertAt(lines, 9, 12, "error", "COBOL0900");   // the SET, not the USAGE POINTER entry at line 6 (also refused)
     }
 
-    [Fact] // MOVE HIGH-VALUE TO a numeric item is a 2023 removal (§14.9.25.3 SR5; Annex E.2 item 1); SPACE is no
+    [Fact] // MOVE HIGH-VALUE TO a numeric item is a 2023 removal (§2023:14.9.25.3 SR5; Annex E.2 item 1); SPACE is no
            // removal, it is refused at every edition (kb/Work PB3605)
     public void MoveFigurativeToNumeric_At2023_NamesTheStatement()
     {
@@ -220,8 +220,8 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         AssertAt(lines, 8, 12, "error", "COBOL0902");
     }
 
-    [Theory] // §7.3.10.3 SR3 / SR4 run in the pass, after the directive text is gone: each names the directive's own place
-    [InlineData("UNDEFINE \"AUTHOR\"", "COBOL1623")]       // SR3: AUTHOR is in none of §8.9, §8.10, §8.11
+    [Theory] // §2023:7.3.10.3 SR3 / SR4 run in the pass, after the directive text is gone: each names the directive's own place
+    [InlineData("UNDEFINE \"AUTHOR\"", "COBOL1623")]       // SR3: AUTHOR is in none of §2023:8.9, §2023:8.10, §2023:8.11
     [InlineData("RESERVE \"DISPLAY\"", "COBOL1623")]       // SR4: DISPLAY is a reserved word, not a fresh user word
     public void CobolWordsDirectiveCategoryViolation_NamesTheDirective(string operation, string code)
     {

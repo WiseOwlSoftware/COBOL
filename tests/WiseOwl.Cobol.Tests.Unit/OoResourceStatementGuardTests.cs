@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB3102 — <b>EC-OO-RESOURCE is declared by the statement that raises it.</b> ISO §16.2.1.2 GR2: "If resources
+/// kb/Work PB3102 — <b>EC-OO-RESOURCE is declared by the statement that raises it.</b> ISO §2023:16.2.1.2 GR2: "If resources
 /// needed to create a new object are not available, the returned object reference is set to NULL, and the
 /// EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the
 /// New method." The runtime raise site (<c>BASE__FACTORY.__New</c> → <c>ExceptionState.OoResourceError</c>) fires only

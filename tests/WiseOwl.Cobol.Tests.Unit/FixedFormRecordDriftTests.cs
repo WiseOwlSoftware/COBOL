@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// RECORD AREA ENTERS A CONNECTOR AND LEAVES IT (kb/Work PB1562, docs/CONFORMANCE.md §3 D-FRA (vi)).
 /// </summary>
 /// <remarks>
-/// <para>An explicit RECORD CONTAINS integer-1 (§13.18.43.4 GR6) keeps the file FIXED, and §9.1.6 makes its record type and
+/// <para>An explicit RECORD CONTAINS integer-1 (§2023:13.18.43.4 GR6) keeps the file FIXED, and §2023:9.1.6 makes its record type and
 /// size attributes every program shares, so a record with dynamic-length members can neither be framed nor carry an extent
 /// table: it is its <c>CobolContiguousLayout.ToFixedForm</c>. The form is asked ONCE on the way out —
 /// <c>FileConnector.FixedForm</c> by the registry's governed WRITE and REWRITE and by <c>IndexedConnector.AreaKey</c> — and
@@ -64,7 +64,7 @@ public sealed class FixedFormRecordDriftTests
             + "ask FileModel.FixedFormRecords, or a record read from a fixed-length file is split by the take step with its padding.");
         string model = Compiler("Binding", "Model", "FileModel.cs");
         Assert.True(MemberAsks(model, "public bool ImpliesVariableFormat", "RecordContains is null"),
-            "An explicit Format 1 RECORD clause keeps the file FIXED (§13.18.43.4 GR6): ImpliesVariableFormat requires an "
+            "An explicit Format 1 RECORD clause keeps the file FIXED (§2023:13.18.43.4 GR6): ImpliesVariableFormat requires an "
             + "ABSENT RECORD clause, as GR5's implied clause does.");
     }
 

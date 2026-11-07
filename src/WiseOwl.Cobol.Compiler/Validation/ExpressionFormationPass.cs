@@ -10,9 +10,9 @@ using WiseOwl.Cobol.Binding.Passes;          // GroupBindContext — the texts t
 namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
-/// The EXPRESSION FORMATION pass — ISO §8.8.1.2 Table 3 and §8.8.2 Table 4, the two tables that state which
+/// The EXPRESSION FORMATION pass — ISO §2023:8.8.1.2 Table 3 and §2023:8.8.2 Table 4, the two tables that state which
 /// ordered pairs of adjacent symbols an expression may contain — and the formation ORDER of an expression's
-/// operand, the identifier (§8.4.2.3.2: qualifiers, then subscripts; §8.4.3.1.2 Format 3: then the reference
+/// operand, the identifier (§2023:8.4.2.3.2: qualifiers, then subscripts; §2023:8.4.3.1.2 Format 3: then the reference
 /// modifier; kb/Work PB1455). A SIBLING to <see cref="VersionConformancePass"/> and <c>FlagConformancePass</c>, run
 /// right after them in <c>BinderDriver</c>.
 ///
@@ -42,14 +42,14 @@ namespace WiseOwl.Cobol.Validation;
 internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
 {
     /// <summary>Screen every text of the group (<see cref="GroupBindContext.Texts"/>: the written tree and the text of each expansion of a
-    /// skeleton read from the repository, kb/Work PB4483) for §8.8.1.2 Table 3 / §8.8.2 Table 4 invalid symbol pairs.</summary>
+    /// skeleton read from the repository, kb/Work PB4483) for §2023:8.8.1.2 Table 3 / §2023:8.8.2 Table 4 invalid symbol pairs.</summary>
     internal static void Run(GroupBindContext group, IDiagnosticSink sink)
     {
         var pass = new ExpressionFormationPass(sink);
         foreach (var text in group.Texts) pass.VisitPositioned(text);
     }
 
-    /// <summary>§8.8.1.2 Table 3, row "Unary + or −" × column "Unary + or −" = '—'.</summary>
+    /// <summary>§2023:8.8.1.2 Table 3, row "Unary + or −" × column "Unary + or −" = '—'.</summary>
     public override object? VisitUnaryExpression(CobolParserCore.UnaryExpressionContext ctx)
     {
         if (ArithmeticFormationRules.StackedUnarySign(ctx) is { } sign)
@@ -60,7 +60,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
         return base.VisitChildren(ctx);
     }
 
-    /// <summary>§8.8.2 Table 4, row "B-NOT" × column "B-NOT" = '—'. The grammar comment above
+    /// <summary>§2023:8.8.2 Table 4, row "B-NOT" × column "B-NOT" = '—'. The grammar comment above
     /// <c>booleanExpression</c> used to assert that "the tiers enforce the formation rules 1–3 + Table 4 adjacency
     /// STRUCTURALLY"; that was true of every cell but this one, and a green-looking claim held the gap open.</summary>
     public override object? VisitBooleanFactor(CobolParserCore.BooleanFactorContext ctx)
@@ -73,7 +73,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
         return base.VisitChildren(ctx);
     }
 
-    /// <summary>§8.8.2 Table 4, row "B-SHIFT-L … B-SHIFT-RC": only "Identifier or literal" is permissible next —
+    /// <summary>§2023:8.8.2 Table 4, row "B-SHIFT-L … B-SHIFT-RC": only "Identifier or literal" is permissible next —
     /// rule 5's integer operand (kb/Work PB1370 / PB1413).</summary>
     public override object? VisitBooleanShiftSuffix(CobolParserCore.BooleanShiftSuffixContext ctx)
     {
@@ -86,8 +86,8 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
     }
 
     /// <summary>The IDENTIFIER's formation order (kb/Work PB1455, PB1426): every qualifier precedes the subscripts —
-    /// §8.4.2.3.2 Format 1 `qualified-data-name-1 [ ( subscript … ) ]` (Format 2 the condition-name twin) — and a
-    /// reference modifier follows the whole identifier (§8.4.3.1.2 Format 3 `identifier-1 reference-modifier-1`). The
+    /// §2023:8.4.2.3.2 Format 1 `qualified-data-name-1 [ ( subscript … ) ]` (Format 2 the condition-name twin) — and a
+    /// reference modifier follows the whole identifier (§2023:8.4.3.1.2 Format 3 `identifier-1 reference-modifier-1`). The
     /// grammar's <c>dataReferenceSuffix*</c> loop and <c>qualification</c>'s own <c>(subscriptPart | refModPart)*</c>
     /// tail admit them in any order, and every binder that reads a reference flattens the suffixes, so
     /// `E (1) OF T` used to resolve as if written `E OF T (1)` — silently, at every edition. Refused HERE, once per
@@ -109,13 +109,13 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
         DiagnosticCatalog.SuffixBeforeQualifier.Code, EditionSeverity.Error,
         DiagnosticCatalog.SuffixBeforeQualifier.Id,
         $"'{qualifier}' follows a subscript or reference modifier{(head is null ? "" : $" of '{head}'")}; the "
-        + "subscripts follow the WHOLE qualified name (ISO §8.4.2.3.2) and a reference modifier the whole "
-        + "identifier (§8.4.3.1.2 Format 3) — write the qualifiers first",
+        + "subscripts follow the WHOLE qualified name (ISO §2023:8.4.2.3.2) and a reference modifier the whole "
+        + "identifier (§2023:8.4.3.1.2 Format 3) — write the qualifiers first",
         "an identifier", DiagnosticCatalog.SuffixBeforeQualifier.IsoSection));
 
     /// <summary>The first qualifier written after a subscript or reference modifier of the same reference, or null.
     /// A qualification's OWN suffix tail counts: in `E OF T (1) OF G` the `(1)` hangs off `OF T`. A non-word property
-    /// object (`P (2) OF SELF`, §8.4.3.1.2 Format 7) is an `OF` too: what precedes it is the property-name, which takes
+    /// object (`P (2) OF SELF`, §2023:8.4.3.1.2 Format 7) is an `OF` too: what precedes it is the property-name, which takes
     /// neither a subscript nor a reference modifier there (kb/Work PB1425).</summary>
     private static Antlr4.Runtime.ParserRuleContext? QualifierAfterSuffix(CobolParserCore.DataReferenceContext ctx)
     {

@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The witness for Annex A.1 item 65 — "EXIT and GOBACK statements (execution continuation in a non-COBOL runtime
 /// element)" — and the determination <c>docs/CONFORMANCE.md</c> DOC-A.1-65 records for it. ISO/IEC 1989:2023
-/// §14.9.18.4 1) a) (cite.py OK): "If the activating runtime element is a non-COBOL element, execution continues in
+/// §2023:14.9.18.4 1) a) (cite.py OK): "If the activating runtime element is a non-COBOL element, execution continues in
 /// the activating element in an implementor-defined fashion"; EXIT PROGRAM reaches the same rule through
-/// §14.9.14.4 3) (cite.py OK: "execution proceeds as specified in 14.9.18, GOBACK statement, General rules 3 and 4").
+/// §2023:14.9.14.4 3) (cite.py OK: "execution proceeds as specified in 14.9.18, GOBACK statement, General rules 3 and 4").
 /// <para>DETERMINATION PINNED: the only non-COBOL activator is a .NET host, which references the compiled assembly
 /// and activates a program through the program's generated host entry, <c>Cobol.&lt;assembly&gt;.&lt;NAME&gt;.Call()</c>
 /// (DESIGN-external-repository §4.3; A.1 item 141), the one host interface. When the program executes GOBACK or EXIT

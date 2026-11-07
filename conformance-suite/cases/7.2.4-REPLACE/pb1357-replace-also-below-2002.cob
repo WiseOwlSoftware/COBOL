@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §7.2.4.2 format 1 REPLACE [ALSO] and format 2 REPLACE [LAST] OFF
+*> ISO §2023:7.2.4.2 format 1 REPLACE [ALSO] and format 2 REPLACE [LAST] OFF
 *> (cite.py --check 7.2.4.2 "REPLACE [ ALSO ]": OK). The stacking phrases
 *> are a COBOL-2002 introduction (constructs row replace-also-last-2002,
 *> a provisional pre-2023 edge): COBOL0900 at COBOL-85 (kb/Work

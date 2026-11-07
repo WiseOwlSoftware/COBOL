@@ -5,11 +5,11 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The CONTINUE AFTER timed-pause facility (ISO/IEC 1989:2023 §14.9.9 — a COBOL-2023 addition).
+/// The CONTINUE AFTER timed-pause facility (ISO/IEC 1989:2023 §2023:14.9.9 — a COBOL-2023 addition).
 /// </summary>
 public static class CobolTiming
 {
-    /// <summary>The implementor-defined maximum meaningful interval (§14.9.9.4 GR1 — "the implementor shall
+    /// <summary>The implementor-defined maximum meaningful interval (§2023:14.9.9.4 GR1 — "the implementor shall
     /// specify the maximum meaningful value"): a value above it suspends for the maximum. One day is a generous,
     /// non-blocking-forever cap.</summary>
     public const long MaxSeconds = 86_400;
@@ -25,19 +25,19 @@ public static class CobolTiming
     // the expression twice, once for its sign and once for its seconds).
 
     /// <summary>
-    /// CONTINUE AFTER n SECONDS (ISO §14.9.9.4 GR1) for a BINARY64 interval: suspend execution for
+    /// CONTINUE AFTER n SECONDS (ISO §2023:14.9.9.4 GR1) for a BINARY64 interval: suspend execution for
     /// <paramref name="seconds"/> seconds, then continue with the next statement. The implementor value of m (the
     /// fractional digit count of the temporary 9(n)V9(m) item) is 0 — fractional seconds truncate toward zero (the
     /// implicit COMPUTE without ROUNDED). GR1a — a value below zero is forced to 0; GR1b — when
     /// <paramref name="checkLessThanZero"/> (EC-CONTINUE-LESS-THAN-ZERO checking was enabled at the statement), the
     /// nonfatal EC-CONTINUE-LESS-THAN-ZERO is set to exist and REPORTED to the site by the return value, which runs
-    /// the §14.6.13.1.4 USE-declarative selection (kb/Work PB138). A value above <see cref="MaxSeconds"/> suspends
+    /// the §2023:14.6.13.1.4 USE-declarative selection (kb/Work PB138). A value above <see cref="MaxSeconds"/> suspends
     /// for the maximum. A NON-FINITE interval takes the rule of its kind (kb/Work PB2841): -Infinity is a value
     /// below zero, +Infinity a value above the maximum, and a NaN, which is no number, a zero interval.
     /// </summary>
     public static bool ContinueAfter(double seconds, bool checkLessThanZero)
     {
-        // ⛔ NO EC-DATA-NOT-FINITE SCREEN HERE (kb/Work PB2841, which corrects PB138's). §14.6.13.2 item 3 raises
+        // ⛔ NO EC-DATA-NOT-FINITE SCREEN HERE (kb/Work PB2841, which corrects PB138's). §2023:14.6.13.2 item 3 raises
         // EC-DATA-NOT-FINITE for a STANDARD floating-point SENDING OPERAND only, and that raise is made where such an
         // operand is READ (CobolFloat.Sending, wrapped by the emitter), so a NaN or an infinity that reaches this
         // method came from a NON-standard usage (FLOAT-LONG, COMP-2) or from a standard one with its checking off:
@@ -65,7 +65,7 @@ public static class CobolTiming
     public static bool ContinueAfter(UInt128 unscaled, int scale, bool checkLessThanZero) =>
         Continue(false, CobolNum.PositionOf(unscaled, scale), checkLessThanZero);
 
-    /// <summary>The standard-decimal interval (§8.8.1.5 SDIDI: an expression the arithmetic planner lifted to
+    /// <summary>The standard-decimal interval (§2023:8.8.1.5 SDIDI: an expression the arithmetic planner lifted to
     /// <see cref="CobolDec"/>). The sign is the significand's and the whole seconds are the saturating truncation
     /// <see cref="CobolNum.PositionOf(CobolDec)"/> reads, so 10^40 suspends for the maximum and not for the zero its
     /// 38 low-order digits make.</summary>

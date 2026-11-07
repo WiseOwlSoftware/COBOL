@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR6 b) — "If no such setting of the search index
+      *> ISO §2023:14.9.37.4 GR6 b) — "If no such setting of the search index
       *> exists, the final setting of the search index is undefined, the
       *> EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist,
       *> and execution proceeds as in General rule 1b."

@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The fatal default at an EMITTED raise site (kb/Work PB1549). ISO §14.6.13.1.3 5): with checking enabled and an
+/// The fatal default at an EMITTED raise site (kb/Work PB1549). ISO §2023:14.6.13.1.3 5): with checking enabled and an
 /// applicable USE statement, "If execution of the declarative completes normally the execution of the run unit is
 /// terminated abnormally"; 7): with no handler, "If checking for the exception condition is enabled, execution of
 /// the run unit is terminated abnormally as specified in 14.6.12". Only a RESUME continues (NOTE 2).
@@ -21,12 +21,12 @@ public sealed class FatalRaiseSelectionTests
     private static void AssertAbnormal(int exit, string stdout, string stderr, string expectedStdout, string ecName)
     {
         Assert.Equal(expectedStdout, stdout);                       // nothing after the failing statement runs
-        Assert.Equal(1, exit);                                      // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, exit);                                      // §2023:14.6.12 — the abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);
         Assert.Contains(ecName, stderr);
     }
 
-    /// <summary>§8.4.3.13.4 GR4 + §14.6.13.1.3 7): the PB1549 repro — no ON EXCEPTION, no declarative.</summary>
+    /// <summary>§2023:8.4.3.13.4 GR4 + §2023:14.6.13.1.3 7): the PB1549 repro — no ON EXCEPTION, no declarative.</summary>
     [Fact]
     public void SetAddressOfProgram_NotFound_NoHandler_TerminatesAbnormally()
     {
@@ -57,7 +57,7 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "PQ=SET", "EC-PROGRAM-NOT-FOUND");
     }
 
-    /// <summary>§14.6.13.1.3 5): the declarative runs, completes normally, and the run unit STILL terminates.</summary>
+    /// <summary>§2023:14.6.13.1.3 5): the declarative runs, completes normally, and the run unit STILL terminates.</summary>
     [Fact]
     public void SetAddressOfProgram_NotFound_DeclarativeCompletesNormally_TerminatesAbnormally()
     {
@@ -85,8 +85,8 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "NF-HANDLED", "EC-PROGRAM-NOT-FOUND");
     }
 
-    /// <summary>§14.6.13.1.3 8): with checking NOT enabled the continuation is the implementor's; this
-    /// implementation continues with the GR4-defined NULL value (the raise is not emitted — §14.6.13.1.4's
+    /// <summary>§2023:14.6.13.1.3 8): with checking NOT enabled the continuation is the implementor's; this
+    /// implementation continues with the GR4-defined NULL value (the raise is not emitted — §2023:14.6.13.1.4's
     /// "not raised" reading the pointer emitter has always used). Pins that the fix did not over-reach.</summary>
     [Fact]
     public void SetAddressOfProgram_NotFound_CheckingOff_Continues()
@@ -108,7 +108,7 @@ public sealed class FatalRaiseSelectionTests
         Assert.Equal(0, exit);
     }
 
-    /// <summary>kb/Work PB1453 — the relation-operand surface of §8.4.3.13.4 GR4 + §14.6.13.1.3 7): an ADDRESS OF PROGRAM
+    /// <summary>kb/Work PB1453 — the relation-operand surface of §2023:8.4.3.13.4 GR4 + §2023:14.6.13.1.3 7): an ADDRESS OF PROGRAM
     /// operand in an IF's condition raised nothing (the carrying statement's enabled set never named
     /// EC-PROGRAM-NOT-FOUND), so the IF ran on with the GR4 NULL. The operand, not the statement kind, declares the raise
     /// (<c>EcBinder.OperandRaisableNames</c>): no ON EXCEPTION, no declarative — the run unit terminates.</summary>
@@ -132,7 +132,7 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "BEFORE", "EC-PROGRAM-NOT-FOUND");
     }
 
-    /// <summary>§14.6.13.1.3 5) on the relation surface: the declarative runs, completes normally, and the run unit
+    /// <summary>§2023:14.6.13.1.3 5) on the relation surface: the declarative runs, completes normally, and the run unit
     /// STILL terminates — neither arm of the IF nor the statement after it executes.</summary>
     [Fact]
     public void RelationOperandAddressOfProgram_NotFound_DeclarativeCompletesNormally_TerminatesAbnormally()
@@ -163,7 +163,7 @@ public sealed class FatalRaiseSelectionTests
     }
 
     /// <summary>The operand-declared raise rides a statement kind with no node-kind arm of its own — a PERFORM UNTIL
-    /// condition — with no handler: §14.6.13.1.3 7).</summary>
+    /// condition — with no handler: §2023:14.6.13.1.3 7).</summary>
     [Fact]
     public void PerformUntilOperandAddressOfProgram_NotFound_NoHandler_TerminatesAbnormally()
     {
@@ -184,7 +184,7 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "BEFORE", "EC-PROGRAM-NOT-FOUND");
     }
 
-    /// <summary>§14.6.13.1.3 8) / §14.6.13.1.4: with checking NOT enabled the condition is not raised, and the value is
+    /// <summary>§2023:14.6.13.1.3 8) / §2023:14.6.13.1.4: with checking NOT enabled the condition is not raised, and the value is
     /// GR4's NULL — the relation is true and execution continues. Pins that the fix did not over-reach.</summary>
     [Fact]
     public void RelationOperandAddressOfProgram_NotFound_CheckingOff_Continues()
@@ -204,8 +204,8 @@ public sealed class FatalRaiseSelectionTests
         Assert.Equal(0, exit);
     }
 
-    /// <summary>The INVOKE-argument sibling (§14.9.23.3 SR9 — an address-identifier argument): unhandled,
-    /// §14.6.13.1.3 7) terminates the run unit before the method runs.</summary>
+    /// <summary>The INVOKE-argument sibling (§2023:14.9.23.3 SR9 — an address-identifier argument): unhandled,
+    /// §2023:14.6.13.1.3 7) terminates the run unit before the method runs.</summary>
     [Fact]
     public void InvokeArgumentAddressOfProgram_NotFound_NoHandler_TerminatesAbnormally()
     {
@@ -256,9 +256,9 @@ public sealed class FatalRaiseSelectionTests
     }
 
     /// <summary>kb/Work PB1531 / docs/CONFORMANCE.md DOC-A.1-100 — the EC-level-2-IMP names this implementation PROVIDES
-    /// stay valid when the EC-IMP-suffix arm is closed, and every one is fatal (§14.6.13.1.1: "The implementor defines …
+    /// stay valid when the EC-IMP-suffix arm is closed, and every one is fatal (§2023:14.6.13.1.1: "The implementor defines …
     /// the fatality"): RAISE EXCEPTION EC-PROGRAM-IMP under checking, unhandled, terminates the run unit
-    /// (§14.6.13.1.3 7).</summary>
+    /// (§2023:14.6.13.1.3 7).</summary>
     [Fact]
     public void RaiseLevel2ImpName_Provided_TerminatesAbnormally()
     {
@@ -299,8 +299,8 @@ public sealed class FatalRaiseSelectionTests
         END FUNCTION PB1549FZ.
         """;
 
-    /// <summary>The ADDRESS OF FUNCTION twin — §8.4.3.12.4 GR4 raises the fatal EC-FUNCTION-NOT-FOUND (Table 13);
-    /// unhandled, §14.6.13.1.3 7) terminates the run unit.</summary>
+    /// <summary>The ADDRESS OF FUNCTION twin — §2023:8.4.3.12.4 GR4 raises the fatal EC-FUNCTION-NOT-FOUND (Table 13);
+    /// unhandled, §2023:14.6.13.1.3 7) terminates the run unit.</summary>
     [Fact]
     public void SetAddressOfFunction_NotFound_NoHandler_TerminatesAbnormally()
     {
@@ -328,8 +328,8 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "BEFORE", "EC-FUNCTION-NOT-FOUND");
     }
 
-    /// <summary>§14.9.39.4 GR14 raises the fatal EC-FUNCTION-PTR-INVALID when the located function's signature
-    /// differs; unhandled, §14.6.13.1.3 7) terminates the run unit.</summary>
+    /// <summary>§2023:14.9.39.4 GR14 raises the fatal EC-FUNCTION-PTR-INVALID when the located function's signature
+    /// differs; unhandled, §2023:14.6.13.1.3 7) terminates the run unit.</summary>
     [Fact]
     public void SetAddressOfFunction_SignatureMismatch_NoHandler_TerminatesAbnormally()
     {
@@ -358,10 +358,10 @@ public sealed class FatalRaiseSelectionTests
         AssertAbnormal(exit, stdout, stderr, "BEFORE", "EC-FUNCTION-PTR-INVALID");
     }
 
-    /// <summary>§14.6.13.1.5 EXIT/GOBACK item 4 with checking ENABLED in the activator (kb/Work PB1121): the GOBACK of an
+    /// <summary>§2023:14.6.13.1.5 EXIT/GOBACK item 4 with checking ENABLED in the activator (kb/Work PB1121): the GOBACK of an
     /// exception object no declarative takes "is as if EXCEPTION EC-OO-EXCEPTION were specified in the RAISING phrase",
-    /// §14.9.18.4 GR1 b) raises it in the activating element because EC-OO-EXCEPTION checking is enabled THERE, and
-    /// §14.6.13.1.3 7) terminates the run unit (Table 13: fatal). The checking-OFF twin continues, and is golden
+    /// §2023:14.9.18.4 GR1 b) raises it in the activating element because EC-OO-EXCEPTION checking is enabled THERE, and
+    /// §2023:14.6.13.1.3 7) terminates the run unit (Table 13: fatal). The checking-OFF twin continues, and is golden
     /// <c>2002/pb1121_object_propagation_boundary</c>.</summary>
     [Fact]
     public void ObjectPropagation_ActivatorChecked_NoHandler_TerminatesAbnormally()

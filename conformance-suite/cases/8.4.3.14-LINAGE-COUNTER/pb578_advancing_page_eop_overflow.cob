@@ -7,26 +7,26 @@
       *>---
        >>TURN EC-I-O-EOP-OVERFLOW CHECKING ON
       *> kb/Work PB578 -- the implicit-increment sentence of ISO
-      *> §13.18.34.4 GR7 c) 1, made observable.
+      *> §2023:13.18.34.4 GR7 c) 1, made observable.
       *>   python scripts/spec/cite.py --check 13.18.34.4 "During the
       *>   resetting of LINAGE-COUNTER to the value one, the value of
       *>   LINAGE-COUNTER is implicitly incremented to exceed the value
       *>   specified by integer-1 or the data item referenced by
       *>   data-name-1."
-      *>                       -> OK  §13.18.34.4 7) c) 1.
-      *> A counter past the page size is §14.9.51.4 GR26 a)'s trigger:
+      *>                       -> OK  §2023:13.18.34.4 7) c) 1.
+      *> A counter past the page size is §2023:14.9.51.4 GR26 a)'s trigger:
       *>   python scripts/spec/cite.py --check 14.9.51.4 "This occurs
       *>   when the associated LINAGE-COUNTER is equal to or exceeds the
-      *>   page size."           -> OK  §14.9.51.4 26)
+      *>   page size."           -> OK  §2023:14.9.51.4 26)
       *> and GR27 names what that end-of-page condition sets to exist:
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   end-of-page condition was caused by the action in General
       *>   rule 26a, the EC-I-O-EOP-OVERFLOW exception condition is set
-      *>   to exist."            -> OK  §14.9.51.4 27)
+      *>   to exist."            -> OK  §2023:14.9.51.4 27)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the
       *>   END-OF-PAGE phrase is not specified, and there is an
       *>   applicable USE declarative, control is transferred to that
-      *>   declarative."         -> OK  §14.9.51.4 27)
+      *>   declarative."         -> OK  §2023:14.9.51.4 27)
       *> So every WRITE ADVANCING PAGE on a logical page enters the
       *> EC-I-O-EOP-OVERFLOW declarative, AFTER the successful write
       *> ("the WRITE statement is successful and then the following
@@ -46,13 +46,13 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "it continues
       *>   with the statement following the WRITE statement; the
       *>   LINAGE-COUNTER is set to 0 and remains at that value until
-      *>   the file is closed"   -> OK  §13.18.34.4 6) b) 2.
+      *>   the file is closed"   -> OK  §2023:13.18.34.4 6) b) 2.
       *> The USE procedure runs after the standard I-O exception
       *> routine, so after the WRITE's own I-O operation:
       *>   python scripts/spec/cite.py --check 14.9.49.4 "the procedures
       *>   associated with a USE statement are executed after completion
       *>   of the standard input-output exception routine"
-      *>                       -> OK  §14.9.49.4 6)
+      *>                       -> OK  §2023:14.9.49.4 6)
       *> and the counter it reads is GR6 b) 2's 0, never the transient
       *> value GR7 c) 1 passes through (the pb526_linage_ec_condition
       *> twin of the overflow arm reads the same 0). The violated WRITE

@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 
 /// <summary>
 /// ⛔ WHAT DISPLAY WRITES FOR A NUMERIC FUNCTION'S RETURNED VALUE under <c>--numeric-display decimal</c> (kb/Work PB3514;
-/// ISO/IEC 1989:2023 §15.4 - "The evaluation of a function produces a returned value in a temporary elementary data item";
-/// §15.4.1 - "When native arithmetic is in effect, the characteristics and representation of the returned value are defined
-/// by the implementor"; §14.9.11.4 GR1; docs/CONFORMANCE.md DOC-A.1-92). A function's temporary is a data item, DISPLAY shows a
+/// ISO/IEC 1989:2023 §2023:15.4 - "The evaluation of a function produces a returned value in a temporary elementary data item";
+/// §2023:15.4.1 - "When native arithmetic is in effect, the characteristics and representation of the returned value are defined
+/// by the implementor"; §2023:14.9.11.4 GR1; docs/CONFORMANCE.md DOC-A.1-92). A function's temporary is a data item, DISPLAY shows a
 /// data item by its description (<c>CobolNum.DisplayDecimal</c>, DOC-A.1-56), and the standard leaves the description to
 /// the implementor - so the precedence of CLAUDE.md rule 1 gives it to GnuCOBOL 3.2.0, whose temporary is
 /// <list type="bullet">
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// literal when GnuCOBOL folds the same call (<see cref="FunctionDeviceForm.Literal"/>: LENGTH, BYTE-LENGTH) and as the value
 /// of the call it replaced otherwise (the ALGEBRAIC family).
 /// <para>⛔ DISPLAY ONLY, like <see cref="OperandText.AsDeviceString"/> that asks it: <see cref="OperandText.AsString"/> serves MOVE, STRING
-/// and the comparisons, whose text §14.9.25.4 GR6 fixes, and keeps DOC-A.1-92's literal form there.</para>
+/// and the comparisons, whose text §2023:14.9.25.4 GR6 fixes, and keeps DOC-A.1-92's literal form there.</para>
 /// <para>The arguments are evaluated ONCE: a selecting function builds one <c>FunctionValueField</c> per argument (its value and
 /// its description) and the runtime picks, so a nested function, a RANDOM argument and a table(ALL) are each read a single time.</para>
 /// </summary>
@@ -158,8 +158,8 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } nested }:
                 return CallField(nested);
             // ⛔ A PARENTHESIZED ITEM OR LITERAL IS DESCRIBED AS THE ITEM OR LITERAL (kb/Work PB4635 review R2-2). The binder makes (I2) a
-            // computed operand (an arithmetic expression, §8.8.1.1, whose position rules refuse it where a data item is required), but
-            // the description of the returned value's temporary is implementor-defined (§15.4.1), CLAUDE.md rule 1 gives it to GnuCOBOL
+            // computed operand (an arithmetic expression, §2023:8.8.1.1, whose position rules refuse it where a data item is required), but
+            // the description of the returned value's temporary is implementor-defined (§2023:15.4.1), CLAUDE.md rule 1 gives it to GnuCOBOL
             // 3.2.0 (DOC-A.1-92), and its parser makes `(I2)` the identifier I2: ABS((I3)) shows +03 as ABS(I3) does, not the 9-digit
             // image of an expression such as I3 + 0.
             case BoundComputedOperand { EnclosedOperand: { } enclosed }:
@@ -172,7 +172,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 return LiteralField(lit);
             // ⛔ THE INTERMEDIATE RESULT ITEM A FROZEN ARGUMENT WAS HELD IN IS NOT A DATA ITEM THE PROGRAM DECLARED (kb/Work PB4124):
             // an argument that is a function's returned value or an arithmetic expression (the arguments this method describes by
-            // their value, below) is held for §8.4.3.2.4 GR2's order in a temporary whose description is the carrier's - 8 digits
+            // their value, below) is held for §2023:8.4.3.2.4 GR2's order in a temporary whose description is the carrier's - 8 digits
             // for A * B, 38 for a nested function's value - and describing the copy by THAT item made LENGTH (MAX (A * B, 3)) 4 and
             // LENGTH (MAX (A * B, UDF (A))) 8, one call with two answers. The held value is exactly the value the unheld argument
             // has, so it is described as the unheld argument is: by its value.
@@ -186,7 +186,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             case BoundFieldOperand { Place: { DenotedItem: not null, Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
                 // The copy's length is the item's own, by the one reading the binder gives FUNCTION LENGTH(field) and BYTE-LENGTH(field):
-                // positions (§15.50.4 r2/r3) and bytes (§15.14.4 r1) differ for a usage-national item.
+                // positions (§2023:15.50.4 r2/r3) and bytes (§2023:15.14.4 r1) differ for a usage-national item.
                 return pic.IsFloat
                     ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"), place.Item.ByteWidth)
                     : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName, ItemLength.Positions(place.Item), place.Item.ByteWidth);

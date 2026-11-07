@@ -10,10 +10,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY OBJECT-REFERENCE RETURN KIND ISO §9.3.8.2.3 RULE 5 a) ADMITS HAS A LEG ON BOTH PATHS THAT NEED THE C#
+/// ⛔ EVERY OBJECT-REFERENCE RETURN KIND ISO §2023:9.3.8.2.3 RULE 5 a) ADMITS HAS A LEG ON BOTH PATHS THAT NEED THE C#
 /// CONVERSION (kb/Work PB1499). Where interface-2's RETURNING item is universal, interface-1's may be any object
 /// reference, and interface-1 is a class IMPLEMENTING the prototype (the covariant-return adapter) and a method
-/// OVERRIDING the overridden one (§11.7.3 SR9). C# spells the two differently — an explicit interface implementation
+/// OVERRIDING the overridden one (§2023:11.7.3 SR9). C# spells the two differently — an explicit interface implementation
 /// over the adapter, an <c>override</c> keeping the overridden method's return type — and an INTERFACE-typed value
 /// converts to the universal class only by a cast, so a kind with no leg is a kind whose conversion nobody has seen
 /// compile. The theory is exhaustive over <see cref="ObjectRefKind"/> (the switch throws for a kind it does not name, so a

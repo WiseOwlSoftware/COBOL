@@ -40,7 +40,7 @@ DATE-COMPILED, SECURITY) accepted at 85 and edition-gated thereafter.
 
 ## Procedure Division
 - **Arithmetic**: ADD, SUBTRACT, MULTIPLY, DIVIDE (REMAINDER), COMPUTE (full precedence), ON SIZE ERROR, ROUNDED
-  (all §14.7.4 modes: NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, PROHIBITED, TRUNCATION).
+  (all §2023:14.7.4 modes: NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, PROHIBITED, TRUNCATION).
 - **Control flow**: IF/END-IF, EVALUATE/WHEN/OTHER, PERFORM (inline, out-of-line, THRU, TIMES, UNTIL, VARYING),
   GO TO, ALTER. See [[kb/IR/Control Flow]].
 - **Data movement**: MOVE (category-compatibility matrix), MOVE CORRESPONDING, INITIALIZE.
@@ -59,7 +59,7 @@ FIND-STRING, SUBSTITUTE, …) are edition-gated. See [[kb/Runtime/Execution Mode
 
 ## OO & post-85
 OO core (CLASS-ID, INHERITS single-dispatch method resolution, INVOKE); the exception-condition (EC) engine with
-declaratives and RESUME (§14.9.33); Report Writer nucleus (partial); JSON/XML GENERATE surface. Multiple inheritance
+declaratives and RESUME (§2023:14.9.33); Report Writer nucleus (partial); JSON/XML GENERATE surface. Multiple inheritance
 and parametric polymorphism are the *optional* A.4.10 items — not claimed.
 
 ## Key concepts

@@ -5,9 +5,9 @@
       *> portable: unverified
       *>---
       *> A data item of class index (USAGE INDEX): VALIDATE WS-I. Expected: COBOL4778.
-      *> ISO §14.9.50.3 SR2 - "Identifier-1 shall not reference a data item of class index, message-tag,
+      *> ISO §2023:14.9.50.3 SR2 - "Identifier-1 shall not reference a data item of class index, message-tag,
       *> object, or pointer."
-      *>   cite.py: OK  §14.9.50.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.50.3 2)  (Syntax rules)
       *> The VALIDATE facility is DECLINED (COBOL1580, docs/CONFORMANCE.md section 4 item 3): the statement is
       *> accepted inert. Declining the facility declines its BEHAVIOUR, never its syntax rules - the operand of the
       *> statement is still an identifier (kb/Work PB3568). The statement is the only violation; the program is

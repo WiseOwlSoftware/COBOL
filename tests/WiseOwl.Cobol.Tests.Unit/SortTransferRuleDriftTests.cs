@@ -17,19 +17,19 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class SortTransferRuleDriftTests
 {
     /// <summary>Each cell, as four letters (C continue · T terminate · B bypass): (fatal, USE completed) · (fatal,
-    /// otherwise) · (nonfatal, USE completed) · (nonfatal, otherwise). The default is §9.1.13.1's — a fatal status
+    /// otherwise) · (nonfatal, USE completed) · (nonfatal, otherwise). The default is §2023:9.1.13.1's — a fatal status
     /// transfers control "to the end of the statement that produced the fatal exception condition", the SORT/MERGE
-    /// — and §14.6.13.1.4's nonfatal "execution continues".</summary>
+    /// — and §2023:14.6.13.1.4's nonfatal "execution continues".</summary>
     public static TheoryData<bool, string, string> Cells => new()
     {
-        // SORT — §14.9.40.4 GR12 a)/b) (USING), GR15 (GIVING): fatal terminates, nonfatal continues, USE or not.
+        // SORT — §2023:14.9.40.4 GR12 a)/b) (USING), GR15 (GIVING): fatal terminates, nonfatal continues, USE or not.
         { false, "UsingOpen", "TTCC" },
         { false, "UsingRead", "TTCC" },
         { false, "UsingClose", "TTCC" },
         { false, "GivingOpen", "TTCC" },
         { false, "GivingWrite", "TTCC" },
         { false, "GivingClose", "TTCC" },
-        // MERGE — §14.9.24.4 GR7 a): a nonfatal OPEN terminates unless a USE procedure completes normally.
+        // MERGE — §2023:14.9.24.4 GR7 a): a nonfatal OPEN terminates unless a USE procedure completes normally.
         { true, "UsingOpen", "TTCT" },
         { true, "UsingRead", "TTCC" },
         // GR7's closing paragraph: a nonfatal CLOSE continues with a normal USE and with none.
@@ -114,7 +114,7 @@ public sealed class SortTransferRuleDriftTests
         Assert.Equal(1, code.Count(l => l.Contains("seqIo.EmitUncoveredFatalTermination(", StringComparison.Ordinal)));
     }
 
-    /// <summary>§9.1.13.1's fatal class is asked through <c>IoStatusClass.Fatal</c> (which renders the runtime's
+    /// <summary>§2023:9.1.13.1's fatal class is asked through <c>IoStatusClass.Fatal</c> (which renders the runtime's
     /// <c>ExceptionCatalog.IsFatalIoStatus</c>) — never re-spelled in the emitters.</summary>
     [Fact]
     public void FatalIoStatus_IsRenderedOnlyByIoStatusClass()

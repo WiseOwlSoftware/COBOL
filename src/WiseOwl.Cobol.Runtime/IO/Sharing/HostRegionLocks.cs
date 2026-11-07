@@ -19,7 +19,7 @@ internal enum RegionLockResult
 
 /// <summary>
 /// ⛔ A CONNECTOR'S ENDPOINT ON THE HOST'S REGION LOCKS — the one primitive by which a run unit tells ANOTHER run unit
-/// about a record lock (ISO §9.1.16) or claims a keyed store for the length of one statement (kb/Work PB2660, PB2936).
+/// about a record lock (ISO §2023:9.1.16) or claims a keyed store for the length of one statement (kb/Work PB2660, PB2936).
 /// A region is one "byte" of the map in <see cref="HostRegionLocks"/>; the endpoint says "hold byte N" (exclusively, or
 /// shared, waiting or not), "does anybody ELSE hold byte N" and "give byte N back", and gives everything it holds back
 /// when it is disposed. The policy that uses it — which bytes, when — is <see cref="KeyedConnector"/>'s (the store
@@ -187,7 +187,7 @@ internal static class HostRegionLocks
     /// 64-bit file offset.</summary>
     private const long RecordRegionMask = (1L << 60) - 1;
 
-    /// <summary>⛔ THE BYTE THAT STANDS FOR A RECORD across run units — §9.1.16's record identity (an RRN, a prime
+    /// <summary>⛔ THE BYTE THAT STANDS FOR A RECORD across run units — §2023:9.1.16's record identity (an RRN, a prime
     /// key value, a sequential ordinal: <c>FileConnector.LastReadRecordId</c>), hashed into the record region.
     /// <para>It is a HASH because a prime key may be any length and the region is 2^60 bytes; the identity must
     /// also be the same in every process, which <see cref="string.GetHashCode()"/> is not. SHA-256 of the

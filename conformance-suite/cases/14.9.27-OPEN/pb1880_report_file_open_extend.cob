@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §14.9.27.3 SR1: "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O
-      *> phrase", so OUTPUT and EXTEND are the two modes a report file opens in, and §9.1.13.2 item 1 gives a successful
-      *> OPEN the I-O status '00'. A report file has no record description (§13.4.5.3 SR8; §9.1.22): the bytes an earlier run
+      *> ISO 1989:2023 §2023:14.9.27.3 SR1: "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O
+      *> phrase", so OUTPUT and EXTEND are the two modes a report file opens in, and §2023:9.1.13.2 item 1 gives a successful
+      *> OPEN the I-O status '00'. A report file has no record description (§2023:13.4.5.3 SR8; §2023:9.1.22): the bytes an earlier run
       *> left in it are print lines with terminators, whose count has no relationship to the connector's width (the widest
       *> report line, here 3 columns), and OPEN EXTEND over them must simply succeed and append. WiseOwl COBOL once treated
       *> that width as a record length and answered every such OPEN with a "not a whole multiple of the record length"
       *> notice (kb/Work PB677); the notice is stderr-only and never changes the status, so what this program can witness
       *> is the standard's half - '00', and the appended report intact after the old one - while the emitter test
       *> ReportFileRegistrationEmitterTests and RecordLayoutNoticeTests pin the registration and the silence.
-      *> The exception paths of the same statements, each a status the standard assigns (§9.1.13.7, logic error condition):
+      *> The exception paths of the same statements, each a status the standard assigns (§2023:9.1.13.7, logic error condition):
       *>   OX2  OPEN EXTEND of the report file that is ALREADY OPEN -> '41' (item 1: "An OPEN statement ... is attempted for
       *>        a file connector in an open mode"); the report in progress is untouched.
       *>   CL2  CLOSE of the report file that is NOT OPEN           -> '42' (item 2: "A CLOSE ... statement is attempted

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Binding.Repository;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ WHAT THE GROUP PUBLISHES FOR PARAMETERIZED DEFINITIONS, AND WHERE EACH EXPANSION OF ONE LIVES (ISO §9.3.12, §9.3.13;
+/// ⛔ WHAT THE GROUP PUBLISHES FOR PARAMETERIZED DEFINITIONS, AND WHERE EACH EXPANSION OF ONE LIVES (ISO §2023:9.3.12, §2023:9.3.13;
 /// DESIGN-external-repository §10.5; kb/Work PB2104). It runs once the group is bound — a class's record is its surface, which exists only
 /// then — and does three things in order: it states each skeleton the group writes (its source, formals, the identity every specifier of
 /// its own REPOSITORY paragraph stands for, and the <see cref="CompileState"/> it was compiled under); it computes each expansion's
@@ -129,7 +129,7 @@ internal static class ExpansionPlacementPass
             string externalized = symbol is OoClassSymbol c0 ? c0.ExternalizedName : ((OoInterfaceSymbol)symbol).ExternalizedName;
             // The assemblies the classes it names live in (each resolution, then each actual), which its code is compiled against: the key
             // hashes a class's record, not its home, so an existing expansion serves this compilation only if it was made over these very
-            // homes (ISO §9.3.12: the expansion is the class it would have been here; kb/Work PB4650).
+            // homes (ISO §2023:9.3.12: the expansion is the class it would have been here; kb/Work PB4650).
             var homes = new RecordList<string>([.. resolutionEntries.Concat(actualEntries).Select(entry =>
             {
                 var (c, i) = table.ResolveSpecifier(entry);
@@ -140,7 +140,7 @@ internal static class ExpansionPlacementPass
             string mine = ExpansionKey.SurfaceText(RecordOf(symbol));
 
             // Import before expand; a stale copy is named and replaced; a same-name expansion of another definition or other actuals is
-            // another class under the same name, which §9.3.12 forbids to share a run unit. It is an ERROR where the two classes will
+            // another class under the same name, which §2023:9.3.12 forbids to share a run unit. It is an ERROR where the two classes will
             // necessarily share one: the other lives in an assembly this group references, or is the file placement (a) would overwrite.
             ExpansionPlacement? placement = null;
             string target = Path.Combine(external.OutputDirectory, ExternalizedNames.Form(externalized) + ".dll");
@@ -192,7 +192,7 @@ internal static class ExpansionPlacementPass
             }
             placements[symbol] = placement;
             // An imported expansion's text was compiled, and its warnings reported, by the compilation that made it; this one compiles
-            // nothing of it and binds it only to type its callers, as it reads any class it imports (ISO §9.3.12 "treated in all respects
+            // nothing of it and binds it only to type its callers, as it reads any class it imports (ISO §2023:9.3.12 "treated in all respects
             // the same as if it were a class that is not a parameterized class"; DiagnosticRegion; kb/Work PB4483).
             if (placement.Where is ExpansionWhere.Imported) edition.WithdrawWarningsOf(origin.Region);
             if (placement.Where is ExpansionWhere.OwnAssembly)
@@ -212,14 +212,14 @@ internal static class ExpansionPlacementPass
             {
                 case MetadataRepositoryProvider.TargetFile.Skewed:
                     edition.Warning(DiagnosticCatalog.RepositoryPreviousBuildSkew,
-                        $"the expansion assembly '{path}' for \"{externalized}\" is replaced: {why} (ISO §8.13; DESIGN-external-repository §10.5)");
+                        $"the expansion assembly '{path}' for \"{externalized}\" is replaced: {why} (ISO §2023:8.13; DESIGN-external-repository §10.5)");
                     break;
                 case MetadataRepositoryProvider.TargetFile.Foreign:
                     using (edition.At(origin.Entry))
                         edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                             $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: the expansion's own "
                             + $"assembly would be '{path}', which {why}; two classes with the same externalized name that are not expansions of one definition "
-                            + "with the same actuals shall not share a run unit (ISO §9.3.12, §9.3.13)");
+                            + "with the same actuals shall not share a run unit (ISO §2023:9.3.12, §2023:9.3.13)");
                     break;
             }
             var own = identity with { OwnAssembly = true };
@@ -238,11 +238,11 @@ internal static class ExpansionPlacementPass
                 + $"its {changed} changed since it was made, so it is not imported and this compilation makes the expansion. "
                 + (referencers.Count == 0 ? "No assembly of the search space references it."
                     : $"These were compiled against the earlier class and are its stale callers, to be recompiled: {string.Join(", ", referencers.Select(r => $"'{r}'"))}.")
-                + " (ISO §9.3.12, §8.13; DESIGN-external-repository §10.5)");
+                + " (ISO §2023:9.3.12, §2023:8.13; DESIGN-external-repository §10.5)");
         }
 
         // REPO-2 (a warning) for a same-name, different-triple expansion that is merely elsewhere in the search space; COBOL2240 where it
-        // is an assembly this group references or the file placement (a) would overwrite with a different class (§9.3.12's "shall not").
+        // is an assembly this group references or the file placement (a) would overwrite with a different class (§2023:9.3.12's "shall not").
         void ReportSameName(object symbol, ExpansionOrigin origin, string externalized, MetadataRepositoryProvider.PublishedExpansion other,
             bool shallNot)
         {
@@ -250,7 +250,7 @@ internal static class ExpansionPlacementPass
             string what = $"the expansion \"{externalized}\" in '{other.From.AssemblyFile}' expands {other.Identity.DefinitionIdentity} USING "
                 + $"{string.Join(" ", other.Identity.ActualIdentities)}, which is not what this compilation's expansion of that name is: two classes "
                 + "with different actual parameters are not the same class instance and shall not have the same externalized object-class-name "
-                + "within a run unit (ISO §9.3.12, §9.3.13; DESIGN-external-repository §10.5)";
+                + "within a run unit (ISO §2023:9.3.12, §2023:9.3.13; DESIGN-external-repository §10.5)";
             if (!shallNot) edition.Warning(DiagnosticCatalog.RepositoryEntryShadowedDiffers, what);
             else
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
@@ -264,7 +264,7 @@ internal static class ExpansionPlacementPass
             edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
                 $"{RepositoryWord(symbol)} '{externalized}' EXPANDS {origin.Skeleton.Name}: the skeleton was compiled under another compile state than this "
                 + $"compilation's, so its expansion must be compiled apart under that state, in an assembly of its own; but {whyNotApart} "
-                + "(ISO §9.3.12, §12.3.8.4 GR5; DESIGN-external-repository §10.5)");
+                + "(ISO §2023:9.3.12, §2023:12.3.8.4 GR5; DESIGN-external-repository §10.5)");
         }
 
         // The simple name of the assembly the class or interface a specifier names lives in, or null for a class the standard supplies: the
@@ -283,7 +283,7 @@ internal static class ExpansionPlacementPass
 
     private static string? LocalFactoryNameOf(object symbol) => symbol is OoClassSymbol c ? c.FactoryClrName : null;
 
-    /// <summary>The identity a specifier states when nothing answers it: its AS literal, else its word (ISO §12.3.8.4 GR2).</summary>
+    /// <summary>The identity a specifier states when nothing answers it: its AS literal, else its word (ISO §2023:12.3.8.4 GR2).</summary>
     private static string WrittenIdentity(OoClassTable table, Core.RepositoryEntryContext specifier)
     {
         var scope = table.RepositoryScopeFor(specifier);

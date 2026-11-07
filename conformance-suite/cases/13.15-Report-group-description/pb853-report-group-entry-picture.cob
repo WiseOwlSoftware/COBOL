@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> A GROUP REPORT ENTRY MAY NOT WRITE A PICTURE OR VALUE CLAUSE (kb/Work PB853's §13.15.3 sweep).
-      *> ISO/IEC 1989:2023 §13.15.3 SR11: "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE
+      *> A GROUP REPORT ENTRY MAY NOT WRITE A PICTURE OR VALUE CLAUSE (kb/Work PB853's §2023:13.15.3 sweep).
+      *> ISO/IEC 1989:2023 §2023:13.15.3 SR11: "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE
       *> clauses may be written only in an elementary entry." The 02 below has a subordinate 03, so it is a
       *> group entry; its PICTURE and VALUE were discarded in silence.
        IDENTIFICATION DIVISION.

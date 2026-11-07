@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.1 General formats - the ASSIGN clause is printed with
+      *> ISO §2023:12.4.5.1 General formats - the ASSIGN clause is printed with
       *>   NO bracket around it in all four formats, and the figure notes
       *>   say "every stacked group is a plain brace (exactly one) or a
       *>   plain bracket (zero or one)", so every SELECT entry specifies
       *>   one. The complement is the point of this witness: an entry
       *>   that DOES write the clause is read as written wherever the
-      *>   clause stands (§12.4.5.2 SR1: any order after SELECT) and
+      *>   clause stands (§2023:12.4.5.2 SR1: any order after SELECT) and
       *>   with the optional word TO omitted (TO is not underlined).
       *>   cite.py --check 12.4.5.1 "every stacked group is a plain
       *>   brace (exactly one) or a plain bracket (zero or one)"
-      *>   -> OK  §12.4.5.1  (General formats)
+      *>   -> OK  §2023:12.4.5.1  (General formats)
       *> F-SQ is Format 3, ASSIGN after ORGANIZATION with TO omitted.
       *> F-RL is Format 2, ASSIGN in the middle of its clauses.
       *> SRT is Format 4 (the sort-merge file of an SD): SELECT and

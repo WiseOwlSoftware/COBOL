@@ -3,15 +3,15 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE PHYSICAL LAYOUT OF ONE DYNAMIC-LENGTH ITEM IN A RECORD IMAGE (ISO §12.3.7.4 GR18 + GR19; docs/CONFORMANCE.md
+/// ⛔ THE PHYSICAL LAYOUT OF ONE DYNAMIC-LENGTH ITEM IN A RECORD IMAGE (ISO §2023:12.3.7.4 GR18 + GR19; docs/CONFORMANCE.md
 /// §3 determination D-DL3; kb/Work PB1094). A dynamic-length item named by a DYNAMIC LENGTH STRUCTURE clause occupies,
 /// in the record a file carries, its data PREFIXED by a length field (PREFIXED / SHORT PREFIXED, GR18) and FOLLOWED
 /// by a delimiter (DELIMITED, GR19), in that order whichever order the clause wrote them:
 /// <code>[ length field ][ data ][ delimiter ]</code>
-/// <para>The program never sees these characters. §8.5.1.11.2 makes a variable-length item behave "as though it were
+/// <para>The program never sees these characters. §2023:8.5.1.11.2 makes a variable-length item behave "as though it were
 /// in fact contiguous with its neighbors whenever a procedural operation is applied to a group containing it", so a
 /// MOVE, a comparison or a DISPLAY of the record is over the data alone; the layout is the FILE'S form of the record
-/// (§8.5.1.10.3 lets the item sit within the record it is subordinate to, which is what a record on a medium is),
+/// (§2023:8.5.1.10.3 lets the item sit within the record it is subordinate to, which is what a record on a medium is),
 /// and it is applied exactly once on the way out (<see cref="Frame"/>, through
 /// <see cref="CobolContiguousLayout.MediumImage"/>) and once on the way in (<see cref="ContentOf"/> /
 /// <see cref="TakeAt"/>, through <see cref="CobolContiguousLayout.Decompose"/>).</para>
@@ -32,7 +32,7 @@ public sealed class CobolDynStructure
     /// <summary>The structure of an item whose clause wrote <paramref name="prefixBytes"/> (0, 2 or 4) and
     /// <paramref name="delimited"/>, over data of <paramref name="unit"/> image characters per position.</summary>
     /// <exception cref="ArgumentOutOfRangeException">A length-field width GR18 does not name, a non-positive unit, or a
-    /// structure that is neither prefixed nor delimited (§12.3.7.4 requires one or more of the two).</exception>
+    /// structure that is neither prefixed nor delimited (§2023:12.3.7.4 requires one or more of the two).</exception>
     public CobolDynStructure(int prefixBytes, bool delimited, int unit = 1)
     {
         if (prefixBytes is not (0 or 2 or 4)) throw new ArgumentOutOfRangeException(nameof(prefixBytes));
@@ -73,7 +73,7 @@ public sealed class CobolDynStructure
     public static int UnitOf(int code) => code == 0 ? 1 : code >> 4;
 
     /// <summary>Does <paramref name="code"/> name a STRUCTURE — a length field or a delimiter around the data — and not
-    /// only a unit (<see cref="PlainCode"/>)? A structure always has one of the two (§12.3.7.4 GR18, GR19).</summary>
+    /// only a unit (<see cref="PlainCode"/>)? A structure always has one of the two (§2023:12.3.7.4 GR18, GR19).</summary>
     private static bool NamesStructure(int code) => (code & 15) != 0;
 
     // A structure is immutable and there are a handful of them (width x delimiter x unit), so each is made once.
@@ -113,7 +113,7 @@ public sealed class CobolDynStructure
         return content;
     }
 
-    // ── Out: the data, framed (§12.3.7.4 GR18, GR19) ────────────────────────────────────────────────────────────
+    // ── Out: the data, framed (§2023:12.3.7.4 GR18, GR19) ────────────────────────────────────────────────────────────
 
     /// <summary>The item's image in a record: its length field (GR18), the <paramref name="content"/> and its
     /// delimiter (GR19). <paramref name="content"/> is the item's data in the image's characters, so its length is a
@@ -137,7 +137,7 @@ public sealed class CobolDynStructure
     /// characters the extent table says it occupies. The length field names the data when there is one (clamped to what
     /// the extent holds, so a damaged field cannot read past it). A DELIMITED-only item whose extent ENDS in its
     /// delimiter is exactly the data before it: the extent table is the length, so data that itself holds a binary-zero
-    /// character survives the round trip (§12.3.7.4 GR19 puts a delimiter after the data and says nothing of data that
+    /// character survives the round trip (§2023:12.3.7.4 GR19 puts a delimiter after the data and says nothing of data that
     /// holds one; a reader with no table cannot tell, see <see cref="TakeAt"/>). Otherwise — the fixed form's padded
     /// extent — the first delimiter ends it, and an extent with none is all data.</summary>
     public string ContentOf(string extent)

@@ -10,16 +10,16 @@
       *> bit configuration is hh:
       *>   cite.py --check 8.3.3.2.4 "each of which has the bit
       *>     configuration specified by one occurrence of
-      *>     hex-character-sequence-1"  -> OK  §8.3.3.2.4 4)
+      *>     hex-character-sequence-1"  -> OK  §2023:8.3.3.2.4 4)
       *> A binary item's storage is two's complement, most significant
-      *> byte first (§13.18.60.4 GR4 leaves the precise representation
+      *> byte first (§2023:13.18.60.4 GR4 leaves the precise representation
       *> to the implementor, docs/CONFORMANCE.md DOC-A.1-205):
       *>   cite.py --check 13.18.60.4 "The USAGE BINARY clause
       *>     specifies that a radix of 2 is used to represent a numeric
-      *>     item in the storage of the computer"  -> OK  §13.18.60.4 4)
+      *>     item in the storage of the computer"  -> OK  §2023:13.18.60.4 4)
       *> so S = -2 in PIC S9(9) COMP is the four bytes FF FF FF FE, and
       *> an alphanumeric REDEFINES of it is the string of those four
-      *> bytes (§13.18.44.4 GR1: the redefining item's storage starts
+      *> bytes (§2023:13.18.44.4 GR1: the redefining item's storage starts
       *> at the first bit of the redefined item). Byte 0xFF is the
       *> character U+FFFF, the native
       *> HIGH-VALUE, in EVERY byte-to-character image (the storage-byte

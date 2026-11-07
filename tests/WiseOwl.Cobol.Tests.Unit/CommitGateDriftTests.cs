@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE RECORD-LOCK CEILING IS THE LAST CHECK OF A WRITE OR REWRITE, IN EVERY ORGANIZATION (kb/Work PB2848).
-/// <para>§12.4.5.9.4 GR7 — <i>"Any I-O statement that attempts to obtain a record lock that would exceed either limit is
+/// <para>§2023:12.4.5.9.4 GR7 — <i>"Any I-O statement that attempts to obtain a record lock that would exceed either limit is
 /// unsuccessful"</i> — judges the lock a statement REQUESTS, and that lock is the statement's effect on success
-/// (§14.9.51.4 GR11; §14.9.35.4 GR12), so docs/CONFORMANCE.md DOC-A.1-104 (2) puts it after the statement's own rules:
+/// (§2023:14.9.51.4 GR11; §2023:14.9.35.4 GR12), so docs/CONFORMANCE.md DOC-A.1-104 (2) puts it after the statement's own rules:
 /// a record that breaks GR14's / GR20's size rule is '44' however many locks the connector holds. The registry used to
 /// ask the ceiling BEFORE calling the organization, and four of the eight places that change the file therefore
 /// answered '54' for a record they would have refused. The mechanism is <see cref="FileConnector.CommitGate"/>,
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CommitGateDriftTests
 {
-    private const string Ceiling = "54";   // §9.1.13.8 item 4 — this file connector holds the maximum number of locks
+    private const string Ceiling = "54";   // §2023:9.1.13.8 item 4 — this file connector holds the maximum number of locks
 
     private static void Gate(FileConnector c, bool refusing) => c.CommitGate = refusing ? () => Ceiling : null;
 

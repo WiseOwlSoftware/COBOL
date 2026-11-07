@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// COBOL-85's areas A and B (kb/Work PB3147; <c>AreaPlacementPass</c>). ANSI X3.23-1985 begins an area-A item — a
 /// division, section or paragraph header, a level indicator, level-number 01 or 77, DECLARATIVES, END DECLARATIVES,
 /// an end marker — on its line in area A (positions 8–11), and every other line's text in area B; ISO/IEC 1989:2002
-/// removed the areas (ISO §6.3.1). Each case is compiled at --std 85, where the placement is refused, and at --std 2002,
+/// removed the areas (ISO §2023:6.3.1). Each case is compiled at --std 85, where the placement is refused, and at --std 2002,
 /// where the same source is legal. The positions are the reference format's own (a tab advances to the next tab stop,
 /// DOC-A.1-157) and travel through COPY (a header in library text is placed where the library text writes it).
 /// </summary>
@@ -159,7 +159,7 @@ public sealed class AreaPlacementPassTests
 
     /// <summary>The first 52 characters of a literal: positions 21-72 of a line whose DISPLAY stands in position 12, so the
     /// literal runs to margin R without a closing delimiter and the next line continues it with a FIXED continuation
-    /// indicator (§6.3.5 1)); that next line is the continuation line, by §6.3.5's paragraph common to both indicators:
+    /// indicator (§2023:6.3.5 1)); that next line is the continuation line, by §2023:6.3.5's paragraph common to both indicators:
     /// "the next line that is not a comment line or a blank line is the continuation line".</summary>
     private const string FirstPartOfContinuedLiteral = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

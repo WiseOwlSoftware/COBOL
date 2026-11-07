@@ -89,7 +89,7 @@ public sealed class CollationTailoringTests
     /// collation is — tailoring a letter moves every precomposed letter built on it, tailoring a mark moves every
     /// letter carrying it, and a contraction keyed by a precomposed first code point matches its decomposed spelling.
     /// The defect left ç at its root weights after c was moved after d, so ç sorted before d while c + cedilla
-    /// sorted after it (the two spellings of one text collating apart, contrary to §8.8.4.2.11's single LC_COLLATE
+    /// sorted after it (the two spellings of one text collating apart, contrary to §2023:8.8.4.2.11's single LC_COLLATE
     /// order).</summary>
     [Fact]
     public void SiteTailoring_IsCanonicallyClosed_OverComposites()

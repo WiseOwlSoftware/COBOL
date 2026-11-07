@@ -13,11 +13,11 @@
       *> `+` was a bare parse error where the standard makes it the word PLUS's synonym).
       *>
       *> THE RULES.
-      *> §13.18.37.3 SR2 / §13.18.35.3 SR1 / §13.18.14.3 SR2 — "PLUS and + are synonyms." DE-A writes
+      *> §2023:13.18.37.3 SR2 / §2023:13.18.35.3 SR1 / §2023:13.18.14.3 SR2 — "PLUS and + are synonyms." DE-A writes
       *>   NEXT GROUP PLUS 2 and DE-B writes NEXT GROUP + 2 (and LINE + 1 beside LINE PLUS 1); each pair
       *>   must place identically. (The relative COLUMN form is a 2002 addition, so the COLUMN spelling pair
       *>   is pinned by pb951_relative_sign_synonyms at 2002.)
-      *> §13.18.37.4 GR2 — the clause "modifies the value of the current report's LINE-COUNTER after the
+      *> §2023:13.18.37.4 GR2 — the clause "modifies the value of the current report's LINE-COUNTER after the
       *>   printing of the last line" of its group.
       *> GR3 b) (report heading, relative) — "integer-2 is added to LINE-COUNTER".
       *> GR4 a) (body group, absolute) — if LINE-COUNTER is less than integer-1 it is set to integer-1;
@@ -27,20 +27,20 @@
       *> GR4 b) (body, relative) — integer-2 is added when the sum is less than FOOTING.
       *> GR4 c) (body, NEXT PAGE) — "the FOOTING integer is moved to LINE-COUNTER".
       *> GR5 b) (page footing, relative) — integer-2 is added to LINE-COUNTER, which moves a report footing
-      *>   placed relative to it (§13.18.35.4 GR5 b) 5.: LINE-COUNTER + integer-2 after a page footing).
-      *> GR6 — WITH RESET: PAGE-COUNTER is set to 1 at the next page advance (§14.9.16.4 GR6 d)).
+      *>   placed relative to it (§2023:13.18.35.4 GR5 b) 5.: LINE-COUNTER + integer-2 after a page footing).
+      *> GR6 — WITH RESET: PAGE-COUNTER is set to 1 at the next page advance (§2023:14.9.16.4 GR6 d)).
       *>
-      *> THE PAGE: PAGE LIMIT 20, HEADING 1, FIRST DETAIL 5, LAST DETAIL 14, FOOTING 16 (§13.18.39).
+      *> THE PAGE: PAGE LIMIT 20, HEADING 1, FIRST DETAIL 5, LAST DETAIL 14, FOOTING 16 (§2023:13.18.39).
       *> DERIVATION, group by group (LC = LINE-COUNTER, PC = PAGE-COUNTER; INITIATE: LC 0, PC 1).
-      *>  GENERATE DE-A (the first GENERATE, §14.9.16.4 GR4):
+      *>  GENERATE DE-A (the first GENERATE, §2023:14.9.16.4 GR4):
       *>   RH    LINE 1 absolute -> line 1 "RH". GR3 b): LC 1 + 1 = 2.
-      *>   PH    relative, a report heading on this page -> LC + 1 = 3 (§13.18.35.4 GR5 b) 2.): "PH 1".
+      *>   PH    relative, a report heading on this page -> LC + 1 = 3 (§2023:13.18.35.4 GR5 b) 2.): "PH 1".
       *>         (Without the RH's NEXT GROUP it would print on line 2.)
       *>   DE-A  first body group on the page -> FIRST DETAIL 5 (GR5 b) 3.): "A05". GR4 b): 5 + 2 = 7.
       *>  GENERATE DE-B: page fit 7 + 1 = 8 <= 14 -> line 8 "B08". GR4 b) (+): 8 + 2 = 10.
       *>  GENERATE DE-C: 10 + 1 = 11 -> line 11 "C11". GR4 a): 11 < 12, so LC = 12.
       *>  GENERATE DE-A: 12 + 1 = 13 -> line 13 "A13". GR4 b): 13 + 2 = 15 < 16, so LC = 15.
-      *>  GENERATE DE-D: page fit 15 + 1 = 16 > 14 FAILS -> page advance (§14.9.16.4 GR6):
+      *>  GENERATE DE-D: page fit 15 + 1 = 16 > 14 FAILS -> page advance (§2023:14.9.16.4 GR6):
       *>   PF    FOOTING + 1 = 17 "PF 1"; GR5 b): LC 17 + 1 = 18. Form feed, PC 2, LC 0.
       *>   PH    no report heading on this page -> HEADING + 1 - 1 = 1: "PH 2".
       *>   DE-D  FIRST DETAIL 5 "D05". GR4 c): LC = FOOTING 16; GR6: the next advance resets PC.
@@ -51,7 +51,7 @@
       *>  GENERATE DE-B: GR4 a) — the page advance: PF line 17 "PF 1"; form feed; PC 2; PH line 1 "PH 2".
       *>   DE-B has only relative lines, so GR4 a) 3.: its first line is 6 + 1 = 7 (NOT FIRST DETAIL 5):
       *>   "B07". GR4 b): LC 9.
-      *>  TERMINATE (§14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; §13.18.37.4 GR5 b) LC 18; RF, a page
+      *>  TERMINATE (§2023:14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; §2023:13.18.37.4 GR5 b) LC 18; RF, a page
       *>   footing printed on this page -> LC + 1 = 19 "RF" (without the PF's NEXT GROUP, line 18).
       *>
       *> THE READ-BACK numbers every physical line of each page (the PB484 byte reader) and shows each form

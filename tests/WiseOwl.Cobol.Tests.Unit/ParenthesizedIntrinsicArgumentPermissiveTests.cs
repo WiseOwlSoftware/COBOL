@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A PARENTHESIZED ITEM AT A CHARACTER POSITION OF A STRING FUNCTION RUNS UNDER <c>--permissive</c> AS THE ITEM DOES (kb/Work PB4635,
-/// review R2-3). Strict conformance refuses it: <c>(X9)</c> is "an arithmetic expression enclosed in parentheses" (§8.8.1.1), whose operand
+/// review R2-3). Strict conformance refuses it: <c>(X9)</c> is "an arithmetic expression enclosed in parentheses" (§2023:8.8.1.1), whose operand
 /// must reference a numeric data item (COBOL0844), and an arithmetic expression is class numeric where TRIM and UPPER-CASE require a
-/// character class (§15.96.3 r1, §15.97.3 r1; COBOL1627). <c>--permissive</c> demotes both to warnings and coerces, and the coercion every
+/// character class (§2023:15.96.3 r1, §2023:15.97.3 r1; COBOL1627). <c>--permissive</c> demotes both to warnings and coerces, and the coercion every
 /// other operand that holds characters gets is its own image, so the enclosed item is rendered. The binder wraps the item as a computed
 /// operand to make it an expression; before the string-argument visitor read the item back out of the wrapper, the coercion reached the
 /// visitor's loud arm and the program died at run time with <c>NotImplementedCobolFeatureException</c>.
@@ -55,9 +55,9 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
 
     /// <summary>
     /// ⛔ THE SHAPE RULE OF A CHARACTER-READING POSITION HAS NO <c>--permissive</c> COERCION (kb/Work PB4635, review R3-1; R3-3 for LENGTH).
-    /// CONCAT's arguments are "data items or literals" (§15.18.3 r1) and BASECONVERT's argument-1 "a usage display or national data item
-    /// or literal" (§15.12.3 r1); a parenthesized item is an arithmetic expression (§8.8.1.1) and a parenthesized boolean item "a boolean
-    /// expression enclosed in parentheses" (§8.8.2), neither of them either. The coercion <c>--permissive</c> offers an operand that holds
+    /// CONCAT's arguments are "data items or literals" (§2023:15.18.3 r1) and BASECONVERT's argument-1 "a usage display or national data item
+    /// or literal" (§2023:15.12.3 r1); a parenthesized item is an arithmetic expression (§2023:8.8.1.1) and a parenthesized boolean item "a boolean
+    /// expression enclosed in parentheses" (§2023:8.8.2), neither of them either. The coercion <c>--permissive</c> offers an operand that holds
     /// characters is its image, and an expression has none, so the violation stays an error in the mode that demotes the class rules
     /// (FIND-STRING argument-3, an INTEGER position, reads the expression's value and keeps its coercion:
     /// <see cref="IntrinsicArgumentRules.IsCoercible"/>).
@@ -90,7 +90,7 @@ public sealed class ParenthesizedIntrinsicArgumentPermissiveTests : WiseOwlCobol
     }
     /// <summary>
     /// ⛔ A COMPOUND ARITHMETIC EXPRESSION AT A CHARACTER POSITION RUNS UNDER <c>--permissive</c> AS ITS VALUE'S TEXT (kb/Work PB4710).
-    /// <c>FUNCTION TRIM (I2 + 1)</c> is refused in every strict mode (class numeric where §15.96.3 r1 requires a character class,
+    /// <c>FUNCTION TRIM (I2 + 1)</c> is refused in every strict mode (class numeric where §2023:15.96.3 r1 requires a character class,
     /// COBOL1627); <c>--permissive</c> demotes the refusal and coerces. An expression has no characters, so its image is the value's
     /// text, the form a numeric function's returned value has at a character position (DOC-A.1-92): "3" for I2 = 2. It reached the
     /// string-argument visitor's loud arm and died at run time with <c>NotImplementedCobolFeatureException</c>. The negation and the

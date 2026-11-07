@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// CURRENT-DATE end to end, through the <c>WISEOWL_COBOL_CLOCK</c> seam — what a COBOL program actually receives in
-/// the §15.21.3 r1 21-character layout when the run unit's clock carries an extreme UTC offset.
+/// the §2023:15.21.3 r1 21-character layout when the run unit's clock carries an extreme UTC offset.
 ///
 /// <para>The unit table (<c>CurrentDateOffsetDeterminationTests</c>) pins the formatter position by position.
 /// This pins the whole path a user's program travels: the intrinsic reference binds, the renderer emits the
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// meaningful at this level: it says what a PROGRAM sees, and positions 18-19 carrying "14" is the observable it
 /// documents.</para>
 ///
-/// <para>Expected values are derived from §15.21.3 r1's table applied to the pinned instant (cite.py --check
+/// <para>Expected values are derived from §2023:15.21.3 r1's table applied to the pinned instant (cite.py --check
 /// 15.21.3 "The character positions returned, numbered from left to right, are" → OK), never copied from a run.
 /// Both signs are exercised: '+' at 14 exceeds r1's "00 through 13", and '–' at 14 exceeds its "00 through 12" —
 /// the minus side is unreachable from any IANA/Windows host zone but reachable through the pin, because
@@ -59,7 +59,7 @@ public sealed class CurrentDateOffsetPinTests
 
     [Fact]
     public void CurrentDate_PlusFourteen_ReportsTrueOffset_PinnedToSpec() =>
-        // Pacific/Kiritimati. §15.21.3 r1 positions 18-19 admit only "00 through 13" under a '+' sign, and the
+        // Pacific/Kiritimati. §2023:15.21.3 r1 positions 18-19 admit only "00 through 13" under a '+' sign, and the
         // table offers no other value for such a host — clamping to 13 would misreport and '0' would assert the
         // false "no facility to provide the local time differential factor" case. The owner determination is to
         // report the true offset; this is that determination's observable, documented in CONFORMANCE.md §7.

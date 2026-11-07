@@ -5,26 +5,26 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.1.3 Native arithmetic — the two halves of Annex A.1 item 123's determination that the
+      *> ISO §2023:8.8.1.3 Native arithmetic — the two halves of Annex A.1 item 123's determination that the
       *> intermediate's SIZE cannot reach (docs/CONFORMANCE.md#DOC-A.1-123). Its sibling
-      *> conformance:cases/11.9.5-ARITHMETIC/l1_native_arithmetic_intermediate measures the scaled-Int128 carrier at the §14.7.7
+      *> conformance:cases/11.9.5-ARITHMETIC/l1_native_arithmetic_intermediate measures the scaled-Int128 carrier at the §2023:14.7.7
       *> rule 2a boundary, and conformance:cases/15.4.1-Numeric-and-integer-functions/pb125_factorial_native_size measures its magnitude ceiling from
       *> both sides. NEITHER touches the two sentences below, and this file exists for them.
       *>   python scripts/spec/cite.py --check 8.8.1.3 "The implementor shall specify techniques used for native
-      *>   arithmetic."  ->  OK  §8.8.1.3
+      *>   arithmetic."  ->  OK  §2023:8.8.1.3
       *>   python scripts/spec/cite.py --check 14.7.7 "Otherwise, an implementor-defined intermediate data item
-      *>   is used."  ->  OK  §14.7.7 4) a)
-      *> No OPTIONS paragraph is written, so §11.9.5.2 GR4 puts native arithmetic in effect — the mode every
+      *>   is used."  ->  OK  §2023:14.7.7 4) a)
+      *> No OPTIONS paragraph is written, so §2023:11.9.5.2 GR4 puts native arithmetic in effect — the mode every
       *> other program in the corpus compiles under:
       *>   python scripts/spec/cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with
-      *>   the NATIVE phrase"  ->  OK  §11.9.5.2 4)
+      *>   the NATIVE phrase"  ->  OK  §2023:11.9.5.2 4)
       *>
       *> ── HALF ONE: THE FLOAT LANE. Row 123: "Any expression with a floating-point operand evaluates ENTIRELY
       *> in IEEE binary64 instead." That is a lane switch, not a widening, and 2**53 is where the two lanes part
       *> company: 60559:2020's binary64 significand is 53 bits, so 2**53 + 1 = 9 007 199 254 740 993 is the
       *> smallest positive integer it cannot represent, and round-to-nearest-ties-to-even answers 2**53.
       *>   NAT53   9007199254740992 + 1 with no float operand anywhere: the scaled-Int128 intermediate is exact,
-      *>           so the answer is 9007199254740993. (§14.9.2.4 GR4's "enough places shall be carried so as not
+      *>           so the answer is 9007199254740993. (§2023:14.9.2.4 GR4's "enough places shall be carried so as not
       *>           to lose any significant digits" is satisfied a fortiori — the value is 16 digits.)
       *>   FLT53   ⛔ THE MEASUREMENT. The SAME expression plus `+ FZ`, where FZ is a FLOAT-LONG item holding
       *>           ZERO. Adding zero changes no value; it changes the LANE, and the answer drops to
@@ -36,10 +36,10 @@
       *> ── HALF TWO: ONE ROUNDING, AT THE FINAL TRANSFER. Row 123: "a nested quotient carries up to 14 guard
       *> fraction digits and rounds once, at the final transfer". The standard's own words for the second half:
       *>   python scripts/spec/cite.py --check 14.7.7 "The ROUNDED phrase applies only to this transfer of data."
-      *>   ->  OK  §14.7.7 3)   (NOTE 1 to rule 3)
+      *>   ->  OK  §2023:14.7.7 3)   (NOTE 1 to rule 3)
       *> and the mode a bare ROUNDED carries:
       *>   python scripts/spec/cite.py --check 11.9.6.3 "If the DEFAULT ROUNDED clause is not specified, DEFAULT
-      *>   ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied."  ->  OK  §11.9.6.3 2)
+      *>   ROUNDED MODE IS NEAREST-AWAY-FROM-ZERO is implied."  ->  OK  §2023:11.9.6.3 2)
       *> ONE / THR is NESTED (the multiplication consumes it), so it is not the transfer and it must NOT round:
       *> it truncates at the receiver's scale plus guard digits, and the receiver's ROUNDED then applies ONCE to
       *> the whole expression's value.

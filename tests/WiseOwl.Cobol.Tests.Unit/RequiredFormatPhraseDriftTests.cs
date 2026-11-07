@@ -14,13 +14,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE FALSELY-PERMISSIVE TWIN OF THE OCR'S FALSELY-RESTRICTIVE BIAS, RE-DERIVED FROM THE TRANSCRIPTION.
 ///
-/// <para>ISO §5.2.6.2 makes BRACKETS the only convention that lets a portion of a general format be omitted, and
-/// §5.2.2 makes an underlined keyword required subject to those conventions. So a conditional phrase printed on
+/// <para>ISO §2023:5.2.6.2 makes BRACKETS the only convention that lets a portion of a general format be omitted, and
+/// §2023:5.2.2 makes an underlined keyword required subject to those conventions. So a conditional phrase printed on
 /// its own line with NO brackets is MANDATORY, and a grammar that writes it <c>phrase?</c> silently UNDER-REJECTS
 /// — the mirror of the audit that hunts optional words we wrongly require
 /// (<c>scripts/spec/audit_grammar_optional_words.py</c>), and the defect kb/Work PB350 reports: RETURN's AT END
 /// was optional in the grammar, so a RETURN with no AT END compiled at every edition and, at end of data, control
-/// fell THROUGH the statement onto a record area §14.9.34.4 GR3 leaves undefined.</para>
+/// fell THROUGH the statement onto a record area §2023:14.9.34.4 GR3 leaves undefined.</para>
 ///
 /// <para>ONE such line is not a pattern worth a hand-maintained list (CLAUDE.md rule 8) — so this SCRAPES them
 /// out of <c>specs/ISO_COBOL_2023.md</c> instead, and asserts that every one is adjudicated WITH THE MECHANISM THAT
@@ -41,7 +41,7 @@ public sealed class RequiredFormatPhraseDriftTests
     private static readonly HashSet<string> ConditionalLeadWords =
         new(StringComparer.Ordinal) { "AT", "NOT", "INVALID", "ON", "WHEN" };
 
-    /// <summary>Every unbracketed conditional-phrase line in a §14.9 general format, and the ONE mechanism that
+    /// <summary>Every unbracketed conditional-phrase line in a §2023:14.9 general format, and the ONE mechanism that
     /// makes it mandatory in this compiler. Adding a row is an adjudication: name the enforcement point, and add
     /// its re-derivation to <see cref="EachAdjudicatedMechanism_IsStillInPlace"/> — an adjudication no test
     /// re-derives is a dead lookup (feedback_a_dead_lookup_is_also_unverified).</summary>
@@ -55,7 +55,7 @@ public sealed class RequiredFormatPhraseDriftTests
             + "`searchAllWhenClause+` (and `searchWhenClause+` for Format 1), so no bind screen is needed",
     };
 
-    /// <summary>(clause, lead word, the printed line) for every unbracketed conditional-phrase line in a §14.9
+    /// <summary>(clause, lead word, the printed line) for every unbracketed conditional-phrase line in a §2023:14.9
     /// general format, plus the number of format blocks scanned.</summary>
     private static (List<(string Clause, string Lead, string Line)> Hits, int Blocks) ScrapeUnbracketedPhraseLines()
     {
@@ -76,8 +76,8 @@ public sealed class RequiredFormatPhraseDriftTests
             if (!inPre) continue;
 
             // Strip the underline markup, then keep only lines whose FIRST character is a letter: a bracket,
-            // brace, choice bar or box-drawing rule at the left edge means the line is enclosed, and §5.2.6.2 /
-            // §5.2.6.4 make an enclosed portion omissible.
+            // brace, choice bar or box-drawing rule at the left edge means the line is enclosed, and §2023:5.2.6.2 /
+            // §2023:5.2.6.4 make an enclosed portion omissible.
             string text = Regex.Replace(line, "</?u>", "").Trim();
             if (text.Length == 0 || !char.IsLetter(text[0])) continue;
             string lead = text.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0].TrimEnd('.', ',');
@@ -86,7 +86,7 @@ public sealed class RequiredFormatPhraseDriftTests
 
         // Shape before content. 114 blocks were measured on 2026-09-05; a large drop means the scrape lost the
         // format blocks and every assertion below would pass on an empty set.
-        Assert.True(blocks >= 100, $"scraped only {blocks} §14.9 general-format blocks — the scrape lost the spec");
+        Assert.True(blocks >= 100, $"scraped only {blocks} §2023:14.9 general-format blocks — the scrape lost the spec");
         return (hits, blocks);
     }
 
@@ -96,8 +96,8 @@ public sealed class RequiredFormatPhraseDriftTests
         var (hits, _) = ScrapeUnbracketedPhraseLines();
         var unadjudicated = hits.Where(h => !Adjudicated.ContainsKey($"{h.Clause}|{h.Lead}")).ToList();
         Assert.True(unadjudicated.Count == 0,
-            "a §14.9 general format prints a conditional phrase with NO brackets, and nothing in this compiler "
-            + "makes it mandatory. ISO §5.2.6.2 makes brackets the only convention that permits omission, so the "
+            "a §2023:14.9 general format prints a conditional phrase with NO brackets, and nothing in this compiler "
+            + "makes it mandatory. ISO §2023:5.2.6.2 makes brackets the only convention that permits omission, so the "
             + "phrase is required: screen it (StatementValidation.ScreenOmittedRequiredPhrase) or require it in "
             + "the grammar, then adjudicate it here with the mechanism:\n  "
             + string.Join("\n  ", unadjudicated.Select(h => $"§{h.Clause} — \"{h.Line}\"")));
@@ -108,13 +108,13 @@ public sealed class RequiredFormatPhraseDriftTests
     {
         var (hits, _) = ScrapeUnbracketedPhraseLines();
 
-        // §14.9.34.2 prints `AT END imperative-statement-1` bare, between a bracketed [ NOT AT END … ] and a
+        // §2023:14.9.34.2 prints `AT END imperative-statement-1` bare, between a bracketed [ NOT AT END … ] and a
         // bracketed [ END-RETURN ] — the line kb/Work PB350 is about.
         Assert.Contains(hits, h => h.Clause == "14.9.34.2" && h.Line.StartsWith("AT END imperative-statement-1",
             StringComparison.Ordinal));
 
-        // §14.9.30.2 Format 1 prints READ's AT END / NOT AT END pair inside BRACKETS WITH CHOICE INDICATORS,
-        // which §5.2.6.4 reads as "zero or more of the alternatives" — so READ's phrase really is optional and
+        // §2023:14.9.30.2 Format 1 prints READ's AT END / NOT AT END pair inside BRACKETS WITH CHOICE INDICATORS,
+        // which §2023:5.2.6.4 reads as "zero or more of the alternatives" — so READ's phrase really is optional and
         // must NOT be reported. A scrape that could not tell the two pages apart would fail here, and that
         // asymmetry is exactly what READ's phrase depends on.
         Assert.DoesNotContain(hits, h => h.Clause == "14.9.30.2");
@@ -132,7 +132,7 @@ public sealed class RequiredFormatPhraseDriftTests
         string binder = File.ReadAllText(TestRepo.Src(
             "WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "SortBinder.cs"));
 
-        // §14.9.34.2 — the grammar deliberately keeps the phrase OPTIONAL so the binder can name the rule …
+        // §2023:14.9.34.2 — the grammar deliberately keeps the phrase OPTIONAL so the binder can name the rule …
         // (comments stripped first: the rule's own comment block explains why.) `conditionalPhrases` matches empty,
         // which is what keeps the phrase optional to the PARSE (kb/Work PB3830).
         Assert.Matches(new Regex(@"returnStatement\s*:[^;]*?conditionalPhrases", RegexOptions.Singleline),
@@ -141,7 +141,7 @@ public sealed class RequiredFormatPhraseDriftTests
         // NOT-only arm too) rather than the phrase node (which would not).
         Assert.Contains("ScreenOmittedRequiredPhrase(atEnd is null", binder, StringComparison.Ordinal);
 
-        // §14.9.37.2 — SEARCH's WHEN needs no screen because the grammar already requires one or more.
+        // §2023:14.9.37.2 — SEARCH's WHEN needs no screen because the grammar already requires one or more.
         Assert.Matches(@"searchWhenClause\+", flow);
         Assert.Matches(@"searchAllWhenClause\+", flow);
     }

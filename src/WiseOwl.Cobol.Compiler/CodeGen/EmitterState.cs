@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.CodeGen;
 //  gate: the 32 characterization snapshots).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/// <summary>The lexical region governing what an <c>EXIT PERFORM</c> compiles to (ISO §14.9.14.4 GR4/GR5 /
-/// §14.9.28.4 GR16). For a Format-3 (exception-checking) PERFORM: a plain <c>goto</c> to the PERFORM's
+/// <summary>The lexical region governing what an <c>EXIT PERFORM</c> compiles to (ISO §2023:14.9.14.4 GR4/GR5 /
+/// §2023:14.9.28.4 GR16). For a Format-3 (exception-checking) PERFORM: a plain <c>goto</c> to the PERFORM's
 /// implicit-CONTINUE-before-FINALLY label in imperative-statement-1 (<see cref="Imp1"/>), a thrown
 /// <see cref="Runtime.Exceptions.ExitPerformSignal"/> from a handler pc-range (<see cref="Handler"/> — imp-2/3/4,
 /// which runs in a nested dispatcher a goto cannot leave), or a <c>goto</c> to the end label in FINALLY
@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// loop-control boundary (EXIT PERFORM CYCLE) — a bare C# <c>break</c>/<c>continue</c> cannot express GR5a/GR6
 /// when a multi-level VARYING is emitted as nested loops (it would leave/cycle only the innermost). Every inline
 /// PERFORM sets its OWN <see cref="Inline"/> region with a fresh id, so a nested inline PERFORM's EXIT PERFORM
-/// targets the innermost loop (§14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM").
+/// targets the innermost loop (§2023:14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM").
 /// <see cref="None"/> is a defensive fallback the binder never reaches for a valid EXIT PERFORM (SR8 permits it
 /// only inside an inline/F3 PERFORM).</summary>
 internal enum F3Region { None, Imp1, Handler, Finally, Inline }
@@ -67,7 +67,7 @@ internal sealed class DispatchState
     public int? F3HandlerBasePc { get; set; }
 
     /// <summary>The unit contains a RESUME statement (<c>EcFeatures.HasResume</c>) — so a <c>ResumeSignal</c> can
-    /// be thrown at all, and a PERFORM that enters a declarative needs its §14.9.33.4 GR2 b) landing. Set per unit
+    /// be thrown at all, and a PERFORM that enters a declarative needs its §2023:14.9.33.4 GR2 b) landing. Set per unit
     /// beside <see cref="DeclCount"/>; a unit without RESUME emits byte-identical PERFORMs.</summary>
     public bool UnitHasResume { get; set; }
 
@@ -76,18 +76,18 @@ internal sealed class DispatchState
     /// method has no USE declaratives of its own).</summary>
     public IReadOnlyList<int> GlobalDeclIds { get; set; } = [];
 
-    /// <summary>ISO §14.9.18.4 GR6's run-time question, rendered — "is one of THIS program's GLOBAL declarative
+    /// <summary>ISO §2023:14.9.18.4 GR6's run-time question, rendered — "is one of THIS program's GLOBAL declarative
     /// procedures currently activated and not yet returned", i.e. is the executing statement within its RANGE —
     /// or null when the unit declares no GLOBAL declarative and the test can never be true.
-    /// <para>⛔ IT IS THE SAME ARRAY §14.9.49.4 GR2's re-entrancy guard uses, and that is the point (kb/Work
+    /// <para>⛔ IT IS THE SAME ARRAY §2023:14.9.49.4 GR2's re-entrancy guard uses, and that is the point (kb/Work
     /// PB409): "within the range of a declarative procedure" is a DYNAMIC relation — a declarative may PERFORM
     /// arbitrary procedures — so no bind-time "is this paragraph inside a declarative" test can answer it, and
     /// <c>__RunUse</c> already maintains exactly the activated-and-not-yet-returned flag the rule asks for.
     /// "Specified in the same program as the GOBACK statement" comes free: the array is per program instance,
     /// and a container's GLOBAL declarative selected on behalf of a contained program (GR4 b)) runs in the
     /// CONTAINER's instance.</para>
-    /// <para>It is the ONE test of "within a global declarative's range" for BOTH rules that ask it: §14.9.18.4 GR6's
-    /// EC-FLOW-GLOBAL-GOBACK (<c>CallEmitter.EmitGoback</c>) and §14.9.33.4 GR1's RESUME-is-CONTINUE
+    /// <para>It is the ONE test of "within a global declarative's range" for BOTH rules that ask it: §2023:14.9.18.4 GR6's
+    /// EC-FLOW-GLOBAL-GOBACK (<c>CallEmitter.EmitGoback</c>) and §2023:14.9.33.4 GR1's RESUME-is-CONTINUE
     /// (<c>EcEmitter.EmitResume</c>, kb/Work PB1160).</para></summary>
     public string? InGlobalDeclarativeRangeTest =>
         GlobalDeclIds.Count == 0 ? null : string.Join(" || ", GlobalDeclIds.Select(i => $"__useActive[{i}]"));
@@ -106,8 +106,8 @@ internal sealed class DispatchState
     /// <summary>Render the bounded dispatch call for ONE resolved procedure range — the single place a
     /// <see cref="PcRange"/> becomes a <c>__Dispatch(start, end)</c> statement (out-of-line PERFORM, SORT/MERGE
     /// INPUT/OUTPUT PROCEDURE). <paramref name="comment"/> is appended as a trailing <c>//</c> note.
-    /// <para>⛔ An EMPTY range (a zero-paragraph section, ISO §14.4.2) has no first statement to transfer to
-    /// (§14.9.28.4 GR4/GR5), and the dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) can never
+    /// <para>⛔ An EMPTY range (a zero-paragraph section, ISO §2023:14.4.2) has no first statement to transfer to
+    /// (§2023:14.9.28.4 GR4/GR5), and the dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) can never
     /// fire on it — it would run from the range start to the END OF THE PC SPACE, executing the following
     /// sections once per iteration of whatever control phrase was written. Callers must therefore emit NOTHING
     /// for an empty range; asking for the call is an emitter bug and throws here rather than shipping that
@@ -117,28 +117,28 @@ internal sealed class DispatchState
         range.IsEmpty
             ? throw new InvalidOperationException(
                 $"internal: {DispatchName}{range} requested for an EMPTY procedure range — an empty specified "
-                + $"set of statements has no first statement to transfer to (ISO §14.9.28.4 GR4/GR5)")
+                + $"set of statements has no first statement to transfer to (ISO §2023:14.9.28.4 GR4/GR5)")
             : $"{DispatchName}({range.Start}, {range.End});{comment}";
 
     /// <summary>Render the invocation of ONE selected declarative's use procedure — the single place a
     /// <see cref="BoundDeclarative"/> becomes a <c>__RunUse(id, start, end)</c> expression, for every selection
     /// path there is (<c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>, <c>__EcObjDispatch</c>,
     /// <c>__RunGlobalUse</c> and the report engine's BEFORE REPORTING hook). The pair handed to
-    /// <c>__RunUse</c> is the DECLARATIVE SECTION'S OWN RANGE and nothing else: ISO §14.9.49.3 SR1 makes the use
-    /// procedure "the remainder of the section", and §14.9.14.4 GR7's NOTE puts the USE return mechanism after
+    /// <c>__RunUse</c> is the DECLARATIVE SECTION'S OWN RANGE and nothing else: ISO §2023:14.9.49.3 SR1 makes the use
+    /// procedure "the remainder of the section", and §2023:14.9.14.4 GR7's NOTE puts the USE return mechanism after
     /// that section's last paragraph. Deriving a shorter end from paragraph shape ran the selected declarative
     /// only in part (kb/Work PB367), and the way that stayed invisible was that SIX call sites each spelled the
     /// pair out themselves — so the pair is spelled ONCE, here.
     /// <para>The exception-checking (Format-3) PERFORM's <c>imp-2</c>/<c>imp-3</c>/<c>imp-4</c> handlers
     /// (<c>EcEmitter.EmitPerformInterceptor</c>) also go through the generated <c>__RunUse</c>, and they do NOT
     /// come through here — deliberately. They are not declaratives: they are single-pc SYNTHETIC ranges appended
-    /// above the pc space (<see cref="F3HandlerBasePc"/>) and selected by §14.9.28.4 GR17, not §14.9.49.4 GR3, and
+    /// above the pc space (<see cref="F3HandlerBasePc"/>) and selected by §2023:14.9.28.4 GR17, not §2023:14.9.49.4 GR3, and
     /// their pcs are runtime values of the interceptor rather than a bound node's. What this renderer owns is the
     /// question "what is a DECLARATIVE's range", which is the question PB367 was about.</para>
     /// <para>⛔ An EMPTY range cannot reach here. A declarative section with zero paragraphs is legal
-    /// (§14.4.2 / §14.9.49.3 SR1 "zero, one, or more procedural paragraphs"), but the binder gives it ONE no-op
+    /// (§2023:14.4.2 / §2023:14.9.49.3 SR1 "zero, one, or more procedural paragraphs"), but the binder gives it ONE no-op
     /// pc precisely so the bounded dispatch has a range to run — because the selector must still STOP at it
-    /// (§14.9.49.4 GR3: "The first declarative that satisfies the selection criteria is executed and no other
+    /// (§2023:14.9.49.4 GR3: "The first declarative that satisfies the selection criteria is executed and no other
     /// declaratives are executed"), which is not the same thing as emitting nothing the way
     /// <see cref="DispatchCall"/>'s callers must. If that invariant is ever relaxed, the selector arms — not this
     /// renderer — are what must learn to say "selected, ran nothing".</para></summary>
@@ -146,7 +146,7 @@ internal sealed class DispatchState
         range.IsEmpty
             ? throw new InvalidOperationException(
                 $"internal: __RunUse({id}, …) requested for an EMPTY declarative range — a declarative section "
-                + "always carries at least one pc so its bounded dispatch can run (ISO §14.9.49.3 SR1)")
+                + "always carries at least one pc so its bounded dispatch can run (ISO §2023:14.9.49.3 SR1)")
             : $"__RunUse({id}, {range.Start}, {range.End})";
 
     // ── Leaving the paragraph body: ONE idiom, one label (kb/Work PB405/PB414) ────────────────────────────────
@@ -156,7 +156,7 @@ internal sealed class DispatchState
     //  for/while/do (ControlFlowEmitter.EmitPerformLoop), GO TO … DEPENDING is a switch — so a `break` written
     //  for the dispatcher's `switch (__pc)` was CAPTURED by any such container the statement happened to sit in:
     //  the transfer was silently discarded and the paragraph's fall-through epilogue then overwrote the target
-    //  (§14.9.14.4 GR6/GR7 and §14.9.19.4 GR4/GR6 all measured wrong that way). A `goto` cannot be captured, so
+    //  (§2023:14.9.14.4 GR6/GR7 and §2023:14.9.19.4 GR4/GR6 all measured wrong that way). A `goto` cannot be captured, so
     //  the NEXT container the emitter learns to lower is correct by construction rather than by review; the
     //  DispatcherTransferIdiomDriftTests pin that. The same reasoning already governed EXIT PERFORM, which has
     //  used planted __pexit/__pcont labels since CA31/CA32 — this is that reasoning applied to the statements
@@ -188,14 +188,14 @@ internal sealed class DispatchState
 
     /// <summary>Render "leave the current paragraph body and re-dispatch at <paramref name="pcExpr"/>" — the
     /// single place a transfer of control out of a paragraph becomes C# (GO TO and its alterable/DEPENDING forms,
-    /// EXIT PARAGRAPH §14.9.14.4 GR6, EXIT SECTION GR7, NEXT SENTENCE in a last sentence §14.9.19.4 GR4/GR6, and
-    /// every RESUME AT landing §14.9.33.4 GR3). <paramref name="comment"/> is appended as a trailing <c>//</c>
+    /// EXIT PARAGRAPH §2023:14.9.14.4 GR6, EXIT SECTION GR7, NEXT SENTENCE in a last sentence §2023:14.9.19.4 GR4/GR6, and
+    /// every RESUME AT landing §2023:14.9.33.4 GR3). <paramref name="comment"/> is appended as a trailing <c>//</c>
     /// note. Marks <see cref="TransferUsed"/> so the dispatch emission plants the label.</summary>
     public string TransferOut(string pcExpr, string comment = "") => $"__pc = {pcExpr}; {TransferJump()}{comment}";
 
     /// <summary>The JUMP half of <see cref="TransferOut(string,string)"/>, for the one statement that must run
     /// something between setting <c>__pc</c> and leaving: EXIT SECTION fires the section's own return mechanism
-    /// first (§14.9.14.4 GR7 "preceding any return mechanisms for that section").</summary>
+    /// first (§2023:14.9.14.4 GR7 "preceding any return mechanisms for that section").</summary>
     public string TransferJump()
     {
         // ⛔ AN OPERAND-EVALUATION STEP NEVER LEAVES BY `goto` (kb/Work PB1432): it may be running inside a
@@ -216,18 +216,18 @@ internal sealed class DispatchState
 
     /// <summary>⛔ AN EXPLICIT TRANSFER — GO TO (and its alterable / DEPENDING forms) or a RESUME AT landing — is NOT a
     /// paragraph falling off its end (kb/Work PB1148). The dispatcher's return test
-    /// (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the §14.6.3 rule 1 implied return "from the last statement in
+    /// (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the §2023:14.6.3 rule 1 implied return "from the last statement in
     /// the procedure", so it must fire only for control that LEAVES the exit paragraph by completing it: fall-through,
-    /// EXIT PARAGRAPH (§14.9.14.4 GR6), EXIT SECTION (GR7), NEXT SENTENCE in a last sentence — all
+    /// EXIT PARAGRAPH (§2023:14.9.14.4 GR6), EXIT SECTION (GR7), NEXT SENTENCE in a last sentence — all
     /// <see cref="TransferOut(string,string)"/>. A GO TO whose target is the paragraph that physically follows the
-    /// exit paragraph is an explicit transfer out of the range (§14.9.28.4 GR5: the return mechanism sits after the
+    /// exit paragraph is an explicit transfer out of the range (§2023:14.9.28.4 GR5: the return mechanism sits after the
     /// last statement, which never executes), so this clears <c>__atExit</c> before the jump and the test cannot mistake
     /// the target for fall-through.</summary>
     public string ExplicitTransferOut(string pcExpr, string comment = "") => $"__pc = {pcExpr}; {ExplicitTransferJump()}{comment}";
 
     /// <summary>The JUMP half of <see cref="ExplicitTransferOut(string,string)"/>, for the explicit transfer whose
     /// <c>__pc</c> an earlier selector already set (GO TO … DEPENDING ON sets it inside its own selector
-    /// <c>switch</c>, §14.9.17.4 GR2): it clears <c>__atExit</c> and then takes <see cref="TransferJump"/>. Every
+    /// <c>switch</c>, §2023:14.9.17.4 GR2): it clears <c>__atExit</c> and then takes <see cref="TransferJump"/>. Every
     /// explicit transfer — format 1, ALTERed, DEPENDING, RESUME AT — leaves through here, so the one flag-clear
     /// cannot be forgotten by one arm (kb/Work PB3491: the DEPENDING arm used the bare jump, and a selected target
     /// physically after the PERFORM's exit paragraph was mistaken for the exit paragraph completing).</summary>
@@ -238,21 +238,21 @@ internal sealed class DispatchState
 
     /// <summary>Render the RESUME landing of one dispatch result: a USE declarative / Format-3 handler that
     /// completed with RESUME AT procedure-name returns that paragraph's pc, and the raise site transfers there
-    /// (ISO §14.9.33.4 GR3); a negative result is "no transfer" (normal completion, RESUME NEXT STATEMENT, or no
+    /// (ISO §2023:14.9.33.4 GR3); a negative result is "no transfer" (normal completion, RESUME NEXT STATEMENT, or no
     /// qualifying declarative) and falls through. Written ONCE here because every raise site there is — I/O,
     /// CALL, pointer, SEARCH, RAISE, size-error, CONTINUE AFTER — lands the same way, and each site that spelled
     /// it itself spelled the transfer as a capturable <c>break</c> (kb/Work PB405).</summary>
     /// <para>⛔ INSIDE AN OPERAND-EVALUATION STEP (<see cref="InOperandEvaluation"/>) THE SAME CALL UNWINDS
     /// (kb/Work PB892, PB1432): see <see cref="OperandEvaluationResume"/>. Every raise site of such a step — a
-    /// function activation's propagation pickup, a §15.4 subscript temporary store's size-error selection, any
+    /// function activation's propagation pickup, a §2023:15.4 subscript temporary store's size-error selection, any
     /// raise a sending-value temp's MOVE makes — lands through this one method, so none of them decides the landing
     /// itself and a new raise site inherits the right one.</para>
     /// <para>⛔ THE LANDING RUNS THE AFTER-STATEMENT DEBUGGING SECTIONS the statements around the raise site owe, before it leaves them
     /// (<see cref="OwedBeforeTransfer"/>; X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857): a RESUME AT
-    /// procedure-name is a GO TO (§14.9.33.4 GR3), so control never reaches the code after the statements it abandons, exactly as for a
+    /// procedure-name is a GO TO (§2023:14.9.33.4 GR3), so control never reaches the code after the statements it abandons, exactly as for a
     /// nested GO TO (docs/CONTROL_FLOW_DESIGN.md D20). RESUME NEXT STATEMENT continues after the lowest statement, which reaches its enclosing
     /// statements' ordinary fires, so it owes none here.</para>
-    public string ResumeTransfer(string resultVar, string comment = "   // RESUME AT procedure-name (§14.9.33.4 GR3)")
+    public string ResumeTransfer(string resultVar, string comment = "   // RESUME AT procedure-name (§2023:14.9.33.4 GR3)")
         => InOperandEvaluation
             ? OperandEvaluationResume(resultVar)
             : $"if (DispatchResult.IsTransfer({resultVar})) {{ {OwedBeforeTransferText()}{ExplicitTransferOut(resultVar)} }}{comment}";
@@ -285,8 +285,8 @@ internal sealed class DispatchState
 
     /// <summary>The RESUME landing of a dispatch result selected for a condition an OPERAND-EVALUATION step raised
     /// or propagated (<see cref="Binding.Bound.BoundStatement.OperandEvaluation"/> — a function reference, an inline
-    /// method invocation, an object-property accessor, a §15.4 subscript temporary store; kb/Work PB892, PB1432).
-    /// ISO §14.9.33.4 GR2 a) 2.: "for an inline invocation or a function invocation, it [the applicable statement]
+    /// method invocation, an object-property accessor, a §2023:15.4 subscript temporary store; kb/Work PB892, PB1432).
+    /// ISO §2023:14.9.33.4 GR2 a) 2.: "for an inline invocation or a function invocation, it [the applicable statement]
     /// is the statement in which the inline invocation or function invocation was specified", and GR2 a) 1. makes
     /// the statement a store was evaluated for "the one in which the exception condition was raised" — so RESUME
     /// AT NEXT STATEMENT leaves THAT statement, and GR3's RESUME AT procedure-name leaves it too. Neither can be
@@ -296,23 +296,23 @@ internal sealed class DispatchState
     /// would re-enter the very statement GR2 says to abandon. Both actions therefore unwind as
     /// <c>RaiseResumeSignal</c> to the carrying statement's <c>BoundActivationSite</c>, which lands them with
     /// <see cref="ResumeTransfer"/>. A declarative that completed normally (Normal) or no qualifying declarative (NoHandler)
-    /// leaves the activation's result in place and the statement continues (§14.9.18.4 GR1 b) "execution continues
+    /// leaves the activation's result in place and the statement continues (§2023:14.9.18.4 GR1 b) "execution continues
     /// … as specified in the rules for the activating statement after the result … is returned").</summary>
     private static string OperandEvaluationResume(string resultVar) =>
         $"if (DispatchResult.SuppressesFatal({resultVar})) throw new RaiseResumeSignal({resultVar});"
-        + "   // RESUME leaves the statement the activation was specified in (§14.9.33.4 GR2 a) 2.)";
+        + "   // RESUME leaves the statement the activation was specified in (§2023:14.9.33.4 GR2 a) 2.)";
 
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE
     /// declaratives).</summary>
     public bool UseDecls { get; set; }
 
-    /// <summary>A CONTAINING program has USE … GLOBAL declaratives (ISO §14.9.49.4 GR4b — the child's
+    /// <summary>A CONTAINING program has USE … GLOBAL declaratives (ISO §2023:14.9.49.4 GR4b — the child's
     /// <c>__IoCheck</c> walks outward). Set per unit by the program-class emission.</summary>
     public bool OuterGlobalUse { get; set; }
 
     /// <summary>The reports whose GENERATE / TERMINATE statements in the unit being emitted pass a USE BEFORE
-    /// REPORTING selector (ISO §14.9.49.4 GR4 / GR8; kb/Work PB369) — the reports the unit emitted a selector
+    /// REPORTING selector (ISO §2023:14.9.49.4 GR4 / GR8; kb/Work PB369) — the reports the unit emitted a selector
     /// member for. Written per unit by <c>ReportWriterEmitter.EmitBeforeReportingSelectors</c> before any statement
     /// of the unit is emitted; cleared by the OO class-unit emission.</summary>
     public HashSet<Binding.ReportModel> BeforeReportingSelectors { get; } = new(ReferenceEqualityComparer.Instance);
@@ -345,7 +345,7 @@ internal sealed class DispatchState
     }
 }
 
-/// <summary>The exception-condition emission state (ISO §14.6.13 / §7.3.25) shared by the EC wrappers, the
+/// <summary>The exception-condition emission state (ISO §2023:14.6.13 / §2023:7.3.25) shared by the EC wrappers, the
 /// arithmetic size-error emission, the I/O hooks, CALL propagation, and pointer checks.</summary>
 internal sealed class EcState
 {
@@ -357,7 +357,7 @@ internal sealed class EcState
     /// unit.</summary>
     public bool UnitHasF3 { get; set; }
 
-    /// <summary>The program class being emitted has an exception-checking (Format-3) PERFORM (§14.9.28) → the funnel
+    /// <summary>The program class being emitted has an exception-checking (Format-3) PERFORM (§2023:14.9.28) → the funnel
     /// emits <c>__EcPerform</c> (consult the ambient F3-frame stack before the USE dispatch) and the pc-range
     /// handler machinery is installed, EVEN when the unit declares no F3 USE declaratives (the <c>UnitHasF3</c>
     /// gate alone is insufficient — §9.5). Set per unit from <c>EcFeatures.HasF3Perform</c>; false for OO methods
@@ -367,14 +367,14 @@ internal sealed class EcState
     /// <summary>… has F4 (EXCEPTION OBJECT) declaratives (→ <c>__EcObjDispatch</c> exists). Set per unit.</summary>
     public bool UnitHasF4 { get; set; }
 
-    /// <summary>The source element being emitted runs with AUTOMATIC PROPAGATION enabled (ISO §7.3.21.4 GR1 — a
+    /// <summary>The source element being emitted runs with AUTOMATIC PROPAGATION enabled (ISO §2023:7.3.21.4 GR1 — a
     /// <c>&gt;&gt;PROPAGATE ON</c> precedes it; kb/Work PB1119), or null when it does not (GR4's OFF default). Set per
     /// program unit and per METHOD, restored after each; read only by <c>EcEmitter</c>, where the fatal default is
-    /// decided (§14.6.13.1.3 6)) and where an activator disposes of an exception object (§14.6.13.1.5).</summary>
+    /// decided (§2023:14.6.13.1.3 6)) and where an activator disposes of an exception object (§2023:14.6.13.1.5).</summary>
     public AutomaticPropagation? Propagation { get; set; }
 
     /// <summary>⛔ THE ONE CENSUS OF "AN APPLICABLE CLASS OR INTERFACE … SPECIFIED IN THE RAISING PHRASE OF THE
-    /// PROCEDURE DIVISION HEADER" (ISO §14.6.13.1.5 EXIT/GOBACK items 1 and 3; kb/Work PB1121): the C# types an
+    /// PROCEDURE DIVISION HEADER" (ISO §2023:14.6.13.1.5 EXIT/GOBACK items 1 and 3; kb/Work PB1121): the C# types an
     /// exception object must be an instance of for the element being emitted — each class entry's own type (a
     /// FACTORY OF entry: the factory type, "the presence or absence of the FACTORY phrase is the same", item 1 a)),
     /// and each interface entry's implementing types (item 1 b)). EVERY element with a header has one, so item 1
@@ -410,11 +410,11 @@ internal sealed class EcState
     public bool FlagsStanding { get; set; }
 
     /// <summary>The size error conditions whose checking is enabled at the statement being emitted (kb/Work PB91,
-    /// PB4092): §14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled", which is per
+    /// PB4092): §2023:14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled", which is per
     /// level-3 NAME, never per family. The receiver-less numeric renders inside the statement — a relation operand, a
     /// function argument, a subscript, a SET amount — take the CHECKED operators for exactly these (AddChecked /
     /// MulChecked, the checked NUMVAL landing), so an intermediate that leaves its range raises the CobolSizeError of an
-    /// ENABLED name for the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) and takes the
+    /// ENABLED name for the ambient EC-SIZE guard to dispatch (§2023:14.7.5 no-phrase rule 3 + §2023:14.6.13.1.3) and takes the
     /// not-enabled disposition (DOC-A.1-70: the unchecked value, execution continuing) for every other name. A name with
     /// no <see cref="SizeChecks"/> bit (EC-SIZE-ZERO-DIVIDE, -EXPONENTIATION) is raised by every kernel and dispatched or
     /// terminated by the statement's guard.
@@ -454,17 +454,17 @@ internal sealed class EcState
 
     /// <summary>The conditions the arithmetic statement being emitted TAKES (kb/Work PB4092, PB4093) — set with
     /// <see cref="SizeErrVar"/> by the two-phase wrapper (<c>ArithmeticEmitter.EmitArith</c>) and clear outside it.
-    /// <see cref="SizeChecks.All"/> for a statement with a SIZE ERROR phrase (§14.7.5: the phrase enables checking of
+    /// <see cref="SizeChecks.All"/> for a statement with a SIZE ERROR phrase (§2023:14.7.5: the phrase enables checking of
     /// every condition its operations meet); the <see cref="EnabledChecks"/> of a statement without one. A store takes the
     /// CHECKED landing (leaving the receiver unchanged on a size error) only when <see cref="SizeChecks.Truncation"/> is
     /// taken, and stores the low-order digits otherwise (DOC-A.1-70).</summary>
     public SizeChecks SizeErrChecks { get; set; }
 
     /// <summary>True while the statement being emitted has EC-SIZE-TRUNCATION specifically enabled (ISO
-    /// §7.3.25's TURN directive; §14.6.13.1.1 — "if checking for an exception condition is enabled", which is
+    /// §2023:7.3.25's TURN directive; §2023:14.6.13.1.1 — "if checking for an exception condition is enabled", which is
     /// per level-3 NAME, not per family). One bit of <see cref="EnabledChecks"/>, read by the ONE
     /// store shape that has no arithmetic statement to latch a flag in and therefore RAISES instead: the
-    /// §14.2.3 GR9/GR10 argument crossing performed by the ACTIVATING element, on both the CALL lane
+    /// §2023:14.2.3 GR9/GR10 argument crossing performed by the ACTIVATING element, on both the CALL lane
     /// (<c>CallEmitter.LandedForFormal</c>) and the INVOKE lane (<c>OoEmitter</c>'s BY CONTENT arms) — kb/Work
     /// PB640. It lives HERE rather than in either emitter because those two lanes are one rule, and a
     /// per-emitter copy of the enablement test is how they would come to disagree.</summary>
@@ -477,13 +477,13 @@ internal sealed class EcState
 
     /// <summary>The <c>__sizeErr</c> flag for a store that takes the CHECKED LANDING (kb/Work PB4093): <see cref="SizeErrVar"/>
     /// while the statement takes EC-SIZE-TRUNCATION (<see cref="SizeErrChecks"/>), else null - the store is then the
-    /// plain one, which keeps the result's low-order digits (§14.6.13.1.3 item 8; docs/CONFORMANCE.md DOC-A.1-70). Before
+    /// plain one, which keeps the result's low-order digits (§2023:14.6.13.1.3 item 8; docs/CONFORMANCE.md DOC-A.1-70). Before
     /// PB4093 any enabled EC-SIZE name made every store a Try store, so a truncation that was NOT enabled left the
     /// receiver unchanged as if a SIZE ERROR phrase had run.</summary>
     public string? SizeErrLandingVar => (SizeErrChecks & SizeChecks.Truncation) != 0 ? SizeErrVar : null;
 
     /// <summary>The EC-SIZE names a NO-PHRASE arithmetic statement's size-error catches take (kb/Work PB4092), or null
-    /// for a statement with a SIZE ERROR phrase, whose catches take everything (§14.7.5).</summary>
+    /// for a statement with a SIZE ERROR phrase, whose catches take everything (§2023:14.7.5).</summary>
     public IReadOnlyList<string>? SizeErrOnlyNames { get; set; }
 
     /// <summary>The current EC-SIZE name local while emitting a checked arithmetic body (else null) — the
@@ -495,11 +495,11 @@ internal sealed class EcState
 internal sealed class CallUnitState
 {
     /// <summary>The emitted unit's qualified program path (<see cref="BoundUnit.RegistryKey"/>) — the CALL/CANCEL calling-path
-    /// argument (§8.4.6.3). Set per unit; <see cref="NoProgramPath"/> in a method body.</summary>
+    /// argument (§2023:8.4.6.3). Set per unit; <see cref="NoProgramPath"/> in a method body.</summary>
     public string SelfPath { get; set; } = NoProgramPath;
 
     /// <summary>The calling path of a CALL or CANCEL written in a METHOD: a method is contained in no program, so
-    /// §8.4.6.3 3)'s outermost programs are the only ones it can name. No unit's path is empty (an outermost path is
+    /// §2023:8.4.6.3 3)'s outermost programs are the only ones it can name. No unit's path is empty (an outermost path is
     /// rooted at a non-empty externalized name), so this path names no program. The class name used to stand here,
     /// and it named any program whose path is spelled like it, exposing that program's containees to the method
     /// (kb/Work PB2843). It is not null: a null calling path is an activator outside every program, the host
@@ -510,11 +510,11 @@ internal sealed class CallUnitState
     /// Set per unit (methods deliver results via slice-2 RETURNING, never the program ABI).</summary>
     public Place? ReturningPlace { get; set; }
 
-    /// <summary>This unit's PROCEDURE DIVISION USING formals (ISO §14.2.3 GR2), so a CALL site can recognize
+    /// <summary>This unit's PROCEDURE DIVISION USING formals (ISO §2023:14.2.3 GR2), so a CALL site can recognize
     /// an argument that IS a whole formal parameter and forward its ARGUMENT CARRIER rather than a freshly
-    /// built one (kb/Work PB165). That recognition is what realizes §8.8.4.8.4 GR1c — "the omitted-argument
+    /// built one (kb/Work PB165). That recognition is what realizes §2023:8.8.4.8.4 GR1c — "the omitted-argument
     /// condition is true … if the argument corresponding to data-name-1 is itself a formal parameter for which
-    /// the omitted-argument condition is true" — and §14.9.4.4 GR12's "except as an argument" exemption: a
+    /// the omitted-argument condition is true" — and §2023:14.9.4.4 GR12's "except as an argument" exemption: a
     /// rebuilt carrier answers <c>IsNull</c> false, so the next callee saw a PRESENT argument, and a rebuilt
     /// BY CONTENT snapshot READ the omitted formal and raised EC-PROGRAM-ARG-OMITTED where the exemption
     /// applies. ⛔ The recognition is STRUCTURAL (identity against these items), never a <c>__lnk</c> name
@@ -525,10 +525,10 @@ internal sealed class CallUnitState
 
     /// <summary>The formals of the METHOD whose body is being emitted (empty outside a method body) — the method
     /// arm of the same recognition (kb/Work PB757): a method formal forwarded as a CALL or INVOKE argument carries
-    /// its omitted-presence flag on, per §8.8.4.8.4 GR1c. Set and cleared by <c>OoEmitter.EmitMethod</c>.</summary>
+    /// its omitted-presence flag on, per §2023:8.8.4.8.4 GR1c. Set and cleared by <c>OoEmitter.EmitMethod</c>.</summary>
     public IReadOnlyList<OoFormal> MethodFormals { get; set; } = [];
 
-    /// <summary>⛔ THE AREA A WHOLE FORMAL OF THIS SOURCE ELEMENT OCCUPIES, when <paramref name="p"/> is one (ISO §14.2.3
+    /// <summary>⛔ THE AREA A WHOLE FORMAL OF THIS SOURCE ELEMENT OCCUPIES, when <paramref name="p"/> is one (ISO §2023:14.2.3
     /// GR8; kb/Work PB2087, PB2089): the expression a forward of it BY REFERENCE states as its argument's area, so an area
     /// formal of the next activation is laid over the same positions. A program formal: a resident one's kept
     /// <c>ArgumentAreaField</c>, an area one's own pointer. A method formal: a resident one's area PARAMETER, an area
@@ -547,7 +547,7 @@ internal sealed class CallUnitState
     }
 
     /// <summary>⛔ THE ONE "IS THIS ARGUMENT A WHOLE FORMAL PARAMETER?" RECOGNITION, over BOTH activation ABIs
-    /// (§8.8.4.8.4 GR1c; kb/Work PB165 program arm, PB757 method arm): the presence fact to carry on, or null
+    /// (§2023:8.8.4.8.4 GR1c; kb/Work PB165 program arm, PB757 method arm): the presence fact to carry on, or null
     /// when the place is not a whole formal. A REFERENCE-MODIFIED view is never the formal itself (GR1c speaks
     /// of an argument that "is itself a formal parameter"); identity against the level-01/77 item is the
     /// whole-item test, since a subitem resolves to its own item and a level-01 entry carries no OCCURS.</summary>
@@ -563,15 +563,15 @@ internal sealed class CallUnitState
 }
 
 /// <summary>How an element compiled under <c>&gt;&gt;PROPAGATE ON</c> performs the "as if a GOBACK statement with the
-/// RAISING LAST EXCEPTION phrase were executed" of ISO §14.6.13.1.3 6) / §14.6.13.1.5 (kb/Work PB1119).</summary>
+/// RAISING LAST EXCEPTION phrase were executed" of ISO §2023:14.6.13.1.3 6) / §2023:14.6.13.1.5 (kb/Work PB1119).</summary>
 /// <param name="InMethod">The element is a METHOD: GOBACK returns through <c>MethodReturn</c> and there is always an
-/// activator. Otherwise a program or function: <c>ProgramReturn</c>, and only while <c>__asCalled</c> — §7.3.21.1
-/// propagates "to the activating runtime element", and a run unit's main program has none (§14.9.18.4 GR3 makes
-/// its GOBACK a STOP that ignores RAISING), so there the §14.6.13.1.3 7) termination stands.</param>
+/// activator. Otherwise a program or function: <c>ProgramReturn</c>, and only while <c>__asCalled</c> — §2023:7.3.21.1
+/// propagates "to the activating runtime element", and a run unit's main program has none (§2023:14.9.18.4 GR3 makes
+/// its GOBACK a STOP that ignores RAISING), so there the §2023:14.6.13.1.3 7) termination stands.</param>
 internal sealed record AutomaticPropagation(bool InMethod)
 {
     /// <summary>The element's automatic propagation, or null when it is OFF. The exception-OBJECT half of the
-    /// §14.6.13.1.5 disposition tests the element's header census, <see cref="EcState.PdRaisingObjectCsTypes"/>,
+    /// §2023:14.6.13.1.5 disposition tests the element's header census, <see cref="EcState.PdRaisingObjectCsTypes"/>,
     /// which every element has whether or not it is under PROPAGATE ON.</summary>
     public static AutomaticPropagation? Of(bool on, bool inMethod) => on ? new(inMethod) : null;
 }

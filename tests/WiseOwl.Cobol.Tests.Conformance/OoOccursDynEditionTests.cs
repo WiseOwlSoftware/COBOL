@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// EXACT-COUNT witnesses for the Step-14g.3 gates — the OO class/interface DEFINITION introductions (COBOL-2002,
-/// ISO §11.2/§11.3 / §11.5/§11.6) and the OCCURS DYNAMIC clause (COBOL-2014, ISO §13.18.38 Format 4) — relocated from
+/// ISO §2023:11.2/§2023:11.3 / §2023:11.5/§2023:11.6) and the OCCURS DYNAMIC clause (COBOL-2014, ISO §13.18.38 Format 4) — relocated from
 /// the bind-time <c>OoClassTable.Build</c> / <c>OdoBindOccursSpec</c> Checks to the post-bind
 /// <c>VersionConformancePass</c> parse-arm. All three gate on RECOGNITION (one parse node = one fire): a bound-arm home
 /// would UNDER-count the class/interface gates (OoClassTable drops a duplicate/colliding definition BEFORE it enters

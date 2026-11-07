@@ -7,12 +7,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The external-switch store reads its facility ONCE (kb/Work PB2771). ISO §12.3.7.4 GR4 leaves the scope of each
+/// The external-switch store reads its facility ONCE (kb/Work PB2771). ISO §2023:12.3.7.4 GR4 leaves the scope of each
 /// external switch and the facility that modifies it to the implementor; WiseOwl COBOL's documented definition
-/// (docs/CONFORMANCE.md DOC-A.1-191, required by §4.2.5) is "the value is read at the first interrogation and a later
+/// (docs/CONFORMANCE.md DOC-A.1-191, required by §2023:4.2.5) is "the value is read at the first interrogation and a later
 /// SET governs for the rest of the run unit". So the first interrogation latches the status whatever the environment
 /// held — an ABSENT variable latches OFF exactly as an empty one does — and the environment changing afterwards never
-/// changes a switch-status condition (§8.8.4.6). The facility's variable family is the closed switch-name set, not
+/// changes a switch-status condition (§2023:8.8.4.6). The facility's variable family is the closed switch-name set, not
 /// every <c>COBOL_</c>-prefixed word.
 /// </summary>
 [Collection("process-globals")]   // the tests set and restore PROCESS-global environment variables

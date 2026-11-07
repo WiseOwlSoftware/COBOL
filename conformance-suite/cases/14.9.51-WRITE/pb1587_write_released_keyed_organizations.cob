@@ -8,26 +8,26 @@
       *> kb/Work PB1587 - the RELATIVE and INDEXED twin of
       *> pb1587_write_released_to_input_reader: a record a WRITE released
       *> is in the physical file when the WRITE returns, so the INPUT
-      *> connector that §9.1.15 2) admits beside a SHARING WITH READ ONLY
+      *> connector that §2023:9.1.15 2) admits beside a SHARING WITH READ ONLY
       *> writer READs it, in EVERY organization.
       *>
       *> "The successful execution of a WRITE statement releases a
       *> logical record to the operating environment."
-      *>   cite.py: OK  §14.9.51.4 12)  (General rules)
+      *>   cite.py: OK  §2023:14.9.51.4 12)  (General rules)
       *> "The sharing with read only mode restricts concurrent access
       *> to a physical file through file connectors other than this
       *> one, to input mode."
-      *>   cite.py: OK  §9.1.15 2)  (Sharing mode)
+      *>   cite.py: OK  §2023:9.1.15 2)  (Sharing mode)
       *> "If the record is not in the sequence above, the execution of
       *> the WRITE statement is unsuccessful, the invalid key condition
       *> exists, and the I-O status for the write file connector is set
       *> to '21'."
-      *>   cite.py: OK  §14.9.51.4 38)  (General rules)
+      *>   cite.py: OK  §2023:14.9.51.4 38)  (General rules)
       *> "If the file position indicator indicates that an optional
       *> input file is not present or that no next or previous logical
       *> record exists, the I-O status value associated with file-name-1
       *> is set to '10', the at end condition exists"
-      *>   cite.py: OK  §14.9.30.4 21)  (General rules)
+      *>   cite.py: OK  §2023:14.9.30.4 21)  (General rules)
       *>
       *> DERIVATION. RW and IW are the READ ONLY writers of a relative
       *> and an indexed file (sequential access), RR and IR their
@@ -35,7 +35,7 @@
       *> beside a READ ONLY OUTPUT connector).
       *>   REL the file is empty: RR's READ is '10' (AT END phrase);
       *>     RW releases two records (relative record numbers 1 and 2 by
-      *>     §14.9.51.4 GR29 a)); a fresh RR reads both, then '10'.
+      *>     §2023:14.9.51.4 GR29 a)); a fresh RR reads both, then '10'.
       *>   IDX the file is empty: IR's READ is '10'; IW releases K001
       *>     and K002; a third WRITE of K002 is not in ascending
       *>     sequence (GR38): '21', handled by the INVALID KEY phrase,

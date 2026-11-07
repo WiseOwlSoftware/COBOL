@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.4 GR2 — a single numeric literal operand of the
+      *> ISO §2023:7.3.13.4 GR2 — a single numeric literal operand of the
       *> EVALUATE directive is a literal (keeps its fraction), not an
       *> arithmetic-expression (which is truncated to an integer).
       *> RULE 7.3.13.4 GR2: "If an operand of the EVALUATE directive
@@ -15,9 +15,9 @@
       *>   expression shall be truncated to the integer part of the
       *>   value ..."
       *> cite.py:
-      *>   OK  §7.3.13.4 2)  (General rules)
-      *>   OK  §7.3.6.3 3)  (General rules)
-      *>   OK  §7.3.13.4 4) b)  (General rules)
+      *>   OK  §2023:7.3.13.4 2)  (General rules)
+      *>   OK  §2023:7.3.6.3 3)  (General rules)
+      *>   OK  §2023:7.3.13.4 4) b)  (General rules)
       *> EXPECTED OUTPUT, DERIVED:
       *>   A-LIT-1.5         subject 1.5 is a literal (GR2): not = 1,
       *>                     = 1.5.

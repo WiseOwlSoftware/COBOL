@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A VARIABLE-LENGTH GROUP FORMAL IS LAID OVER ITS ARGUMENT'S AREA ONLY WHERE ITS COMPONENTS ARE THE AREA'S (kb/Work
-/// PB2094). ISO §14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the
+/// PB2094). ISO §2023:14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the
 /// formal parameter occupies the same storage area as the argument." A dynamic-length item and a dynamic-capacity table
 /// are slots of the cell, numbered in storage order, so a description can share an area that holds them only when every
 /// one of its components falls on the area's component of the same kind and extent
-/// (<see cref="GroupCompatibility.LaysOver"/>); a compatible pair of another shape (§8.5.1.12) takes a fresh area filled
+/// (<see cref="GroupCompatibility.LaysOver"/>); a compatible pair of another shape (§2023:8.5.1.12) takes a fresh area filled
 /// through the reshaping carrier. <see cref="CobolArgAdapt.Area(CellPointer, bool, int, GroupAtom[], Func{StorageCell})"/>
 /// is the one decision, and these facts pin its every arm.
 /// </summary>
@@ -37,7 +37,7 @@ public sealed class VariableLengthAreaOverlayTests
     [Fact]
     public void AShorterFixedTail_LaysOver_AndALongerOneDoesNot()
     {
-        // LC = XX + dyn + XX over W = XX + dyn + X(4): LC describes W's first positions (§8.5.1.12.2 constrains the
+        // LC = XX + dyn + XX over W = XX + dyn + X(4): LC describes W's first positions (§2023:8.5.1.12.2 constrains the
         // positions of the variable-length items only).
         Assert.True(GroupCompatibility.LaysOver([Fx(2), Dyn, Fx(2)], [Fx(2), Dyn, Fx(4)]));
         Assert.False(GroupCompatibility.LaysOver([Fx(2), Dyn, Fx(4)], [Fx(2), Dyn, Fx(2)]));
@@ -48,7 +48,7 @@ public sealed class VariableLengthAreaOverlayTests
     [Fact]
     public void AComponentOfAnotherKindOrPlace_DoesNotLayOver()
     {
-        // A fixed table opposite a dynamic-capacity one corresponds (§8.5.1.12.3) but is not the same storage.
+        // A fixed table opposite a dynamic-capacity one corresponds (§2023:8.5.1.12.3) but is not the same storage.
         Assert.False(GroupCompatibility.LaysOver([Fx(1), Dyn, new(GroupAtomKind.Table, 3, 3, 1, 1)], HDT));
         // A dynamic-length item one position later.
         Assert.False(GroupCompatibility.LaysOver([Fx(2), Dyn], [Fx(1), Dyn, Fx(1)]));

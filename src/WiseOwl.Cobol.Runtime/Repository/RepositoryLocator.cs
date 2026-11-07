@@ -102,14 +102,14 @@ public sealed class RepositoryFind
 ///     skipped.</item>
 /// </list>
 /// Two different assemblies (different module version ids) publishing one unit are a collision; identical copies are one
-/// entry. Reading throws nothing: an unreadable file is a reason or a skip (§15.2, §15.3).
+/// entry. Reading throws nothing: an unreadable file is a reason or a skip (§2023:15.2, §2023:15.3).
 /// <para>It is public for the same reason <see cref="RepositoryIndex"/> is (the compiler cannot see the runtime's internals) and
 /// is the compiler's and the probe's ABI, not an API for a hand-written caller.</para>
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static class RepositoryLocator
 {
-    /// <summary>The largest file the locator reads (§15.2): 256 MiB. A larger one is skipped.</summary>
+    /// <summary>The largest file the locator reads (§2023:15.2): 256 MiB. A larger one is skipped.</summary>
     public const long MaxFileBytes = 256L * 1024 * 1024;
 
     /// <summary>What reading one file of a directory established, by the file's path, length and last write time (a different
@@ -149,7 +149,7 @@ public static class RepositoryLocator
     }
 
     /// <summary>Locate the user-defined function — a definition or a function prototype — whose user-defined WORD is
-    /// <paramref name="word"/> (§8.3, the D-R3 word step: a function is reached by the word its FUNCTION-ID declares as well
+    /// <paramref name="word"/> (§2023:8.3, the D-R3 word step: a function is reached by the word its FUNCTION-ID declares as well
     /// as by its externalized name) in the directory index. The word rows of the <c>Units</c> index answer it; there is no
     /// named file to try, because a file is named for an externalized name.</summary>
     /// <param name="directory">The repository directory.</param>
@@ -183,7 +183,7 @@ public static class RepositoryLocator
     }
 
     /// <summary>The <c>*.dll</c> files of <paramref name="directory"/> the directory index skips for exceeding
-    /// <see cref="MaxFileBytes"/> (§15.2: the compiler's REPO-1 lists them), in ordinal path order.</summary>
+    /// <see cref="MaxFileBytes"/> (§2023:15.2: the compiler's REPO-1 lists them), in ordinal path order.</summary>
     /// <param name="directory">The repository directory.</param>
     public static IReadOnlyList<string> SkippedForSize(string directory) =>
         Listing(directory).Where(path => FactsOf(path) is { Length: > MaxFileBytes }).ToList();
@@ -238,7 +238,7 @@ public static class RepositoryLocator
     }
 
     /// <summary>The first function row — a definition or a function prototype, each of which a later-compiled unit may name by
-    /// the word it declares (§8.4.6.7) — whose word is <paramref name="word"/>.</summary>
+    /// the word it declares (§2023:8.4.6.7) — whose word is <paramref name="word"/>.</summary>
     private static RepositoryUnitRow? WordRowOf(FileFacts file, string word)
     {
         foreach (RepositoryUnitRow unit in file.Units)
@@ -281,7 +281,7 @@ public static class RepositoryLocator
     }
 
     /// <summary>The assemblies of <paramref name="directory"/> that REFERENCE the assembly named <paramref name="assemblyName"/>,
-    /// read from each file's <c>AssemblyRef</c> table and nothing loaded (§10.5's stale-expansion scan: the groups compiled against
+    /// read from each file's <c>AssemblyRef</c> table and nothing loaded (§2023:10.5's stale-expansion scan: the groups compiled against
     /// a superseded expansion), as full paths in ordinal order.</summary>
     /// <param name="directory">The repository directory.</param>
     /// <param name="assemblyName">The referenced assembly's simple name.</param>
@@ -329,7 +329,7 @@ public static class RepositoryLocator
     }
 
     /// <summary>What <paramref name="path"/> is, or null when there is no such file or it is not a plain file (a reparse point
-    /// is no repository entry, §15.2).</summary>
+    /// is no repository entry, §2023:15.2).</summary>
     private static FileFacts? FactsOf(string? path)
     {
         if (path is null) return null;

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A NAME SLOT IS <c>cobolWord</c>, NEVER A BARE <c>IDENTIFIER</c> (kb/Work PB2721, PB2732) — the converse of
 /// <see cref="FormatWordDriftTests"/>' "a keyword slot may not borrow cobolWord".
 /// <para>A user-defined word is DECLARED through <c>cobolWord</c> (<c>dataName</c>, <c>programName</c>, the SELECT
-/// file-name), and ISO §8.3.2.1 3) lets a §8.10 context-sensitive word be one outside its construct. Many such words
+/// file-name), and ISO §2023:8.3.2.1 3) lets a §2023:8.10 context-sensitive word be one outside its construct. Many such words
 /// carry a lexer token (CAPACITY, CYCLE, BYTES, …) that <c>cobolWord</c> admits and <c>IDENTIFIER</c> does not, so a
 /// REFERENCE slot spelled <c>IDENTIFIER</c> refuses a name its declaration accepted: <c>01 CAPACITY TYPEDEF …</c>
 /// then <c>TYPE CAPACITY</c>, and <c>FUNCTION-ID. CAPACITY.</c> then <c>FUNCTION CAPACITY(V)</c>, were COBOL0001.</para>
@@ -99,7 +99,7 @@ public sealed class UserWordSlotDriftTests
         var unargued = found.Where(r => !ArguedSites.ContainsKey(r)).OrderBy(r => r, StringComparer.Ordinal).ToList();
         Assert.True(unargued.Count == 0,
             $"rule(s) [{string.Join(", ", unargued)}] spell a bare IDENTIFIER. A user-defined-word slot is `cobolWord` — the "
-            + "word set its declaration admits, §8.10 context-sensitive words with tokens included (ISO §8.3.2.1 3), kb/Work "
+            + "word set its declaration admits, §2023:8.10 context-sensitive words with tokens included (ISO §2023:8.3.2.1 3), kb/Work "
             + "PB2721); a keyword recognized by text is `{wordAhead(\"…\")}? IDENTIFIER` or `formatWord`.");
         var stale = ArguedSites.Keys.Where(r => !found.Contains(r)).OrderBy(r => r, StringComparer.Ordinal).ToList();
         Assert.True(stale.Count == 0, $"argued rule(s) [{string.Join(", ", stale)}] no longer spell a bare IDENTIFIER — "

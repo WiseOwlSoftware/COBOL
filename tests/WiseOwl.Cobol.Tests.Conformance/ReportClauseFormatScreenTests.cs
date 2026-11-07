@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// negative goldens hold several violations each and so only prove that SOMETHING rejects; these tests compile
 /// each shape ALONE, at every edition, so a screen that stops seeing one arm goes red here by name.
 /// <list type="bullet">
-/// <item>COBOL2421 — ISO §13.18.16.2 prints <c>FINAL [ data-name-1 ] …</c>: FINAL once, first (§5.2.7).</item>
-/// <item>COBOL2423 — §13.14.2 / §13.18.39.2 print each RD clause and PAGE phrase in its own bracket with no
-/// ellipsis (§5.2.6.2, §5.2.7); §13.14.3 SR2 and §13.18.39.3 SR4 license ORDER only.</item>
-/// <item>COBOL2422 — §13.18.52.3 SR1 (the subject: a numeric entry with 'S', or an alphanumeric / national /
+/// <item>COBOL2421 — ISO §2023:13.18.16.2 prints <c>FINAL [ data-name-1 ] …</c>: FINAL once, first (§2023:5.2.7).</item>
+/// <item>COBOL2423 — §2023:13.14.2 / §2023:13.18.39.2 print each RD clause and PAGE phrase in its own bracket with no
+/// ellipsis (§2023:5.2.6.2, §2023:5.2.7); §2023:13.14.3 SR2 and §2023:13.18.39.3 SR4 license ORDER only.</item>
+/// <item>COBOL2422 — §2023:13.18.52.3 SR1 (the subject: a numeric entry with 'S', or an alphanumeric / national /
 /// strongly-typed group) and SR2 (an elementary subject's usage is display or national).</item>
 /// </list>
 /// </summary>

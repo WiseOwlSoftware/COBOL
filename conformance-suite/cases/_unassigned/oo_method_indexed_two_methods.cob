@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7.4 GR5 — two METHODS each declaring INDEXED BY IX must get DISTINCT index cells (method-private;
+      *> ISO §2023:11.7.4 GR5 — two METHODS each declaring INDEXED BY IX must get DISTINCT index cells (method-private;
       *> M2-OO-1h step 4). MA sets its IX=2 and INVOKEs MB (which sets ITS IX=3); on return MA's IX must still be 2
       *> (E1(IX)="BB"), NOT torn to 3 by a shared cell (which would give "CC").
        IDENTIFICATION DIVISION.

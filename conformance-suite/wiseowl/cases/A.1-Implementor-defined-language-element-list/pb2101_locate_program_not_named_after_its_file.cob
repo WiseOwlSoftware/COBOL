@@ -7,7 +7,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3 b) and Annex A.1 item 14: a CALL's program is LOCATED
+      *> ISO §2023:14.9.4.4 GR3 b) and Annex A.1 item 14: a CALL's program is LOCATED
       *> when it is registered in the run unit, and HOW a separately compiled
       *> program reaches the run unit is the implementor's (docs/CONFORMANCE.md
       *> DOC-A.1-14, DESIGN-external-repository §7.4, §11.2, kb/Work PB2101).

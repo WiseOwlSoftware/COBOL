@@ -8,11 +8,11 @@
 *> option is specified, the COBOL word that is the content of
 *> literal-2 shall be treated as a synonym for the COBOL word that is
 *> the content of literal-1".
-*>   cite.py: OK  §7.3.10.4 2)  (General rules)
+*>   cite.py: OK  §2023:7.3.10.4 2)  (General rules)
 *> COPY is a reserved word (8.9), so CPY is a synonym for a reserved
 *> word, and "Reserved words shall not be used as user-defined words
 *> or system-names."
-*>   cite.py: OK  §8.3.2.1 1)  (General)
+*>   cite.py: OK  §2023:8.3.2.1 1)  (General)
 *> The lexer has no token for COPY (the preprocessor reads it), so CPY
 *> stayed a plain word and 01 CPY compiled.
        >>COBOL-WORDS EQUATE "COPY" WITH "CPY"

@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.6.4 3) 5) — inline method invocation and object property evaluation precede reference modification (7)
-      *> RULE (§14.6.4, cite.py OK 3) and 5)): "The item identification
+      *> ISO §2023:14.6.4 3) 5) — inline method invocation and object property evaluation precede reference modification (7)
+      *> RULE (§2023:14.6.4, cite.py OK 3) and 5)): "The item identification
       *> steps that are applicable to that identifier are evaluated in the
       *> following order: ... 3) inline method invocation ... 5) object
       *> property evaluation ... 7) reference modification". Also "If a
       *> step in the evaluation of an identifier requires evaluation of
       *> another identifier or an arithmetic expression, that evaluation
       *> is done in full before proceeding to the next step." Agrees with
-      *> §8.4.3.1.4 1) e) / d) before g) "a reference modifier applies to
+      *> §2023:8.4.3.1.4 1) e) / d) before g) "a reference modifier applies to
       *> the identifier on the left" (cite.py OK).
       *> INSTRUMENT: the EXTERNAL counter L1IID-K. The factory method GETV
       *> and the get property method PV each CALL L1IIDBMP (K += 1) and

@@ -9,16 +9,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHERE A LITERAL BEGINS AND ENDS, AND WHAT A COMMENT INDICATOR IS, ARE <see cref="CobolSourceText"/>'S, AND NO TEXT
-/// STAGE SPELLS THEM AGAIN (kb/Work PB2621). ISO §8.3.5 5) gives the opening delimiters (a quotation symbol, and the
-/// prefixed <c>B" N" X" BX" NX"</c>) and the closing one, §8.3.3.2.3 3) makes a doubled quotation symbol content, and
-/// §6.2.3.1 makes <c>*&gt;</c> the floating comment indicator. Those facts were written five times in three types — three
+/// STAGE SPELLS THEM AGAIN (kb/Work PB2621). ISO §2023:8.3.5 5) gives the opening delimiters (a quotation symbol, and the
+/// prefixed <c>B" N" X" BX" NX"</c>) and the closing one, §2023:8.3.3.2.3 3) makes a doubled quotation symbol content, and
+/// §2023:6.2.3.1 makes <c>*&gt;</c> the floating comment indicator. Those facts were written five times in three types — three
 /// of which each called itself THE ONE — and the copies had begun to differ. Source-form guards over every stage that
 /// reads program text before the lexer: a stage that spells the comment indicator, the quotation-symbol pair, or a
 /// doubled-quotation test is growing a second literal scanner, so it asks <see cref="CobolSourceText"/> instead.
 /// </summary>
 public sealed class LiteralScanDriftTests
 {
-    /// <summary>The stages that read program text before the lexer: all of the preprocessor (the §6.5 conversion, text
+    /// <summary>The stages that read program text before the lexer: all of the preprocessor (the §2023:6.5 conversion, text
     /// manipulation, the directive stages), the directive-line parse they share, and the pipeline driver that reads
     /// physical lines when it locates an END-PERFORM.</summary>
     private static IEnumerable<string> StageFiles()
@@ -63,8 +63,8 @@ public sealed class LiteralScanDriftTests
         var offenders = Spellings().Where(l => !PendingStages.ContainsKey(l.File))
             .Select(l => $"{l.File}:{l.Line}: {l.Text.Trim()}").ToList();
         Assert.True(offenders.Count == 0,
-            "A text stage spells the comment indicator, the quotation-symbol pair or a doubled-quotation test. ISO §8.3.5 "
-            + "5), §8.3.3.2.3 3) and §6.2.3.1 are one fact about source text: ask CobolSourceText (CommentIndicator, "
+            "A text stage spells the comment indicator, the quotation-symbol pair or a doubled-quotation test. ISO §2023:8.3.5 "
+            + "5), §2023:8.3.3.2.3 3) and §2023:6.2.3.1 are one fact about source text: ask CobolSourceText (CommentIndicator, "
             + "CommentIndicatorAt, IsQuotationSymbol, TryOpeningDelimiterAt, ClosingDelimiterAt, LiteralEnd, "
             + "LiteralContent, InlineCommentAt) instead — kb/Work PB2621. Offending sites:\n  "
             + string.Join("\n  ", offenders));

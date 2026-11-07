@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.4 GR10 — the until-phrase's four sentences, one
+      *> ISO §2023:14.9.28.4 GR10 — the until-phrase's four sentences, one
       *> leg each. (FORMATS 1 AND 2.)
       *>
       *> S1 "the specified set of statements is performed until the

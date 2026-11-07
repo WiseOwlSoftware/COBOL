@@ -8,12 +8,12 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The STOP RUN / GOBACK termination-STATUS phrase → process exit-code wiring (ISO §14.9.42 STOP statement /
-/// §14.9.18 GOBACK statement). §14.9.42.4 GR5 and §14.9.18.4 GR10 pass the status VALUE to the operating system;
+/// The STOP RUN / GOBACK termination-STATUS phrase → process exit-code wiring (ISO §2023:14.9.42 STOP statement /
+/// §2023:14.9.18 GOBACK statement). §2023:14.9.42.4 GR5 and §2023:14.9.18.4 GR10 pass the status VALUE to the operating system;
 /// GR2/GR3 (STOP) and GR7/GR8 (main-program GOBACK) select an error-vs-normal termination indication. On .NET the
 /// single observable is the process exit code (<see cref="Runtime.RunUnit.ExitStatus"/> → <c>Environment.ExitCode</c>),
 /// so this compiler's documented implementor mapping (Annex A required-behavior items 192/193; docs/CONFORMANCE.md
-/// §4.2.16) collapses both into ONE integer: the STATUS value when present, else ERROR ⇒ 1 / NORMAL ⇒ 0.
+/// §2023:4.2.16) collapses both into ONE integer: the STATUS value when present, else ERROR ⇒ 1 / NORMAL ⇒ 0.
 /// These facts assert the NUMERIC exit code (the manifest golden harness only checks <c>ExitCode == 0</c> as a bool,
 /// so the value is unobservable there). The below-edition rejection of the phrase is covered by the version matrix
 /// (stop-run-status-2002 / goback-status-2023 → COBOL0900).
@@ -36,7 +36,7 @@ public sealed class StopGobackExitCodeTests
     /// ⛔ A STATUS VALUE PAST THE HOST'S 32-BIT EXIT CODE IS CLAMPED, NEVER WRAPPED (kb/Work PB1178). The value
     /// used to reach <c>Environment.ExitCode</c> through a bare <c>(int)</c> of a <c>long</c> (itself a bare
     /// <c>(long)</c> of the integer landing), so <c>STOP RUN WITH ERROR STATUS 4294967296</c> (2^32) exited 0 — the
-    /// operating system reported a NORMAL termination for an ERROR phrase (§14.9.42.4 GR2) because the value wrapped.
+    /// operating system reported a NORMAL termination for an ERROR phrase (§2023:14.9.42.4 GR2) because the value wrapped.
     /// docs/CONFORMANCE.md item 192 documents the range: the value saturates to [-2^31, 2^31 - 1], and a POSIX host
     /// then reports its low 8 bits (so 2^31 - 1 exits 255 there). The 9(20) arm is 2^64 + 3, which a 64-bit wrap
     /// made 3.
@@ -65,7 +65,7 @@ public sealed class StopGobackExitCodeTests
     }
 
     [Theory]
-    // STOP RUN — §14.9.42.4 GR5 (value passed) wins over the ERROR/NORMAL indication (GR2/GR3).
+    // STOP RUN — §2023:14.9.42.4 GR5 (value passed) wins over the ERROR/NORMAL indication (GR2/GR3).
     [InlineData("STOP RUN WITH ERROR STATUS 42.", 42)]     // GR5: the value is passed
     [InlineData("STOP RUN WITH ERROR.", 1)]                // GR2: no value → the error indication
     [InlineData("STOP RUN WITH NORMAL STATUS 7.", 7)]      // GR5: the value wins over NORMAL
@@ -73,7 +73,7 @@ public sealed class StopGobackExitCodeTests
     [InlineData("STOP RUN WITH NORMAL.", 0)]               // GR3: normal indication, no value
     [InlineData("STOP RUN WITH ERROR STATUS WS-CODE.", 13)]// GR5: a data-item status value
     [InlineData("STOP RUN.", 0)]                           // no status phrase — the default (regression lock)
-    // main-program GOBACK — §14.9.18.4 GR3 ("operates as if executing a STOP statement") / GR10 (value passed).
+    // main-program GOBACK — §2023:14.9.18.4 GR3 ("operates as if executing a STOP statement") / GR10 (value passed).
     [InlineData("GOBACK WITH ERROR STATUS 5.", 5)]
     [InlineData("GOBACK WITH NORMAL STATUS 0.", 0)]
     [InlineData("GOBACK WITH ERROR.", 1)]
@@ -89,14 +89,14 @@ public sealed class StopGobackExitCodeTests
     /// ⛔ <c>GOBACK RETURNING x</c> WITH NO HEADER RETURNING ITEM IS THE MAIN PROGRAM'S EXIT STATUS, AND A STATUS PHRASE
     /// IS NEVER DROPPED (kb/Work PB4335).
     /// <para>The accepted extension (<c>goback-returning</c>, GnuCOBOL / Micro Focus) moves the operand to the header's
-    /// RETURNING item (§14.9.18.4 GR2 — "If a RETURNING phrase is specified in the procedure division header …");
+    /// RETURNING item (§2023:14.9.18.4 GR2 — "If a RETURNING phrase is specified in the procedure division header …");
     /// with none, the old emit compiled clean and died at run time with NotImplementedCobolFeatureException. The
     /// vendor meaning in a main program (GR3: it "operates as if executing a STOP statement, with a status phrase, if
     /// any") is the exit status, the same value GR10 passes for identifier-2 — so the operand exits through the
     /// status path, DOC-A.1-192's mapping. A written status phrase is the standard's own and wins over the
     /// extension's operand.</para>
     /// <para>The RAISING arms are the sibling the fix swept: <c>GOBACK RAISING … WITH ERROR STATUS 3</c> used to
-    /// build its bound node WITHOUT the phrase (§14.9.18.2's choice indicators allow both), exiting 0; GR3 ignores
+    /// build its bound node WITHOUT the phrase (§2023:14.9.18.2's choice indicators allow both), exiting 0; GR3 ignores
     /// RAISING in a main program but GR10 still hands the status over.</para></summary>
     [Theory]
     [InlineData("GOBACK RETURNING WS-CODE.", 13)]                                  // the extension: operand ⇒ exit status
@@ -112,9 +112,9 @@ public sealed class StopGobackExitCodeTests
     }
 
     /// <summary>⛔ THE RETURNING OPERAND IS A MOVE SENDER, NOT A STATUS-PHRASE OPERAND (kb/Work PB4361). The operand of
-    /// the extension is screened as the sender of the move that §14.9.18.4 GR2 would make into a header RETURNING
-    /// item (§14.9.25.3 SR1 admits every class but index, message-tag, object and pointer), so a scaled COMP-3 and a
-    /// COMP-2 item are accepted — they were refused under §14.9.18.3 SR6, a phrase the program did not write — and
+    /// the extension is screened as the sender of the move that §2023:14.9.18.4 GR2 would make into a header RETURNING
+    /// item (§2023:14.9.25.3 SR1 admits every class but index, message-tag, object and pointer), so a scaled COMP-3 and a
+    /// COMP-2 item are accepted — they were refused under §2023:14.9.18.3 SR6, a phrase the program did not write — and
     /// GR5's truncation toward zero (docs/CONFORMANCE.md item 192) gives the exit status: 7.5 exits 7.</summary>
     [Theory]
     [InlineData("01 SCALED PIC S9(3)V99 COMP-3 VALUE 7.5.")]
@@ -138,7 +138,7 @@ public sealed class StopGobackExitCodeTests
     }
 
     /// <summary>⛔ A CALLED PROGRAM'S <c>GOBACK RETURNING x</c> WITH NO HEADER ITEM HAS NO RESULT TO HAND OVER (kb/Work
-    /// PB4335): §14.9.18.4 GR2's activation result exists only for a header RETURNING phrase, and a status is inert
+    /// PB4335): §2023:14.9.18.4 GR2's activation result exists only for a header RETURNING phrase, and a status is inert
     /// in a called program (GR3 confines it to a program "not under the control of a calling runtime element"). The
     /// activator continues and the run unit's exit status is the MAIN program's.</summary>
     [Fact]
@@ -170,10 +170,10 @@ public sealed class StopGobackExitCodeTests
 
     /// <summary>
     /// ⛔ THE NON-NUMERIC STATUS OPERAND — LEGAL COBOL THIS COMPILER USED TO REJECT (kb/Work PB169).
-    /// <para>§14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
-    /// <c>arithmetic-expression-1</c>, so §8.8.1.1 never governed the position — yet both arms were bound
+    /// <para>§2023:14.9.42.2 writes the operand <c>{identifier-1 | literal-1}</c>, not
+    /// <c>arithmetic-expression-1</c>, so §2023:8.8.1.1 never governed the position — yet both arms were bound
     /// through <c>ExpressionBinder.BindExpr</c>. Measured on 02c72682: <c>STATUS "ABEND"</c> AND
-    /// <c>STATUS WS-DISPLAY</c> (PIC X(3)) each drew COBOL0844 citing §8.8.1.1, while §14.9.42.3 SR2
+    /// <c>STATUS WS-DISPLAY</c> (PIC X(3)) each drew COBOL0844 citing §2023:8.8.1.1, while §2023:14.9.42.3 SR2
     /// explicitly admits "a data item with usage display or usage national" and SR3's conditional ("If literal-1
     /// IS numeric …") presupposes the non-numeric literal. The rejection quoted a rule the programmer had not
     /// broken — the COBOL1628 shape.</para>
@@ -191,7 +191,7 @@ public sealed class StopGobackExitCodeTests
     [InlineData("STOP RUN WITH ERROR STATUS WS-DISPLAY.", 7)]     // SR2: "usage display" — the half PB169's note omits
     [InlineData("STOP RUN WITH NORMAL STATUS WS-NAT.", 12)]       // SR2: "usage national"
     [InlineData("STOP RUN WITH ERROR STATUS WS-PACKED.", 9)]      // SR2's first alternative: an INTEGER data item, any usage
-    [InlineData("GOBACK WITH ERROR STATUS \"007\".", 7)]          // §14.9.18.3 SR6/SR7 — the shared phrase, the other verb
+    [InlineData("GOBACK WITH ERROR STATUS \"007\".", 7)]          // §2023:14.9.18.3 SR6/SR7 — the shared phrase, the other verb
     [InlineData("GOBACK WITH ERROR STATUS WS-DISPLAY.", 7)]
     public void NonNumericStatusOperand_IsLegalAndInterpretedNumerically(string proc, int expectedExit)
     {
@@ -257,14 +257,14 @@ public sealed class StopGobackExitCodeTests
 
     /// <summary>
     /// ⛔ EVERY <c>literal-1</c> FORM THE GENERAL FORMAT ADMITS, RENDERED — NOT REJECTED (kb/Work PB216).
-    /// <para>PB169's widening moved the STATUS literal onto the ONE §8.3.3 literal→operand mapping and then
+    /// <para>PB169's widening moved the STATUS literal onto the ONE §2023:8.3.3 literal→operand mapping and then
     /// screened only two of the six shapes that mapping produces. The rest reached the emitter as a
     /// <c>NotImplemented.Value&lt;long&gt;</c> — measured on this tree: <c>STATUS SPACE</c>, <c>STATUS ALL "5"</c>,
     /// <c>STATUS B"01"</c> and <c>STATUS B"1" &amp; B"0"</c> each compiled CLEAN and died at RUN TIME.</para>
-    /// <para><b>They are conforming source, so the remedy is a rendering.</b> §8.3.3.6.3 SR1 admits a figurative
+    /// <para><b>They are conforming source, so the remedy is a rendering.</b> §2023:8.3.3.6.3 SR1 admits a figurative
     /// constant "whenever 'literal' appears in a format", narrowed only (a) where "the literal is restricted to a
-    /// numeric literal" — and §14.9.42.3 SR3's conditional "If literal-1 IS numeric" is the proof that it is not —
-    /// and (b) where a syntax rule prohibits it, which none of SR2/SR3/SR4 does. §8.3.3.6.4 GR3 NOTE 2 names the
+    /// numeric literal" — and §2023:14.9.42.3 SR3's conditional "If literal-1 IS numeric" is the proof that it is not —
+    /// and (b) where a syntax rule prohibits it, which none of SR2/SR3/SR4 does. §2023:8.3.3.6.4 GR3 NOTE 2 names the
     /// STOP statement BY NAME and gives the figurative a length of ONE character there (GR3 b); GR3 c gives
     /// <c>ALL literal-1</c> the length of literal-1. Those characters then take docs/CONFORMANCE.md item 192's
     /// published GR5 mapping — <c>CobolNum.FromAlphanumeric</c>, a non-digit position contributing no digit — the
@@ -273,8 +273,8 @@ public sealed class StopGobackExitCodeTests
     /// <para>Every expected value below is DERIVED from that published determination before the run: a bare
     /// figurative is one character and none of SPACE / HIGH-VALUE / LOW-VALUE / QUOTE is a digit, so all four
     /// exit 0; <c>ALL "07"</c> is the two characters "07" ⇒ 7; <c>B"01"</c> is the two boolean characters '0','1'
-    /// ⇒ 1; the concatenation <c>B"1" &amp; B"0"</c> folds to "10" ⇒ 10 (§8.8.3.3 GR3); <c>X"3037"</c> is the
-    /// alphanumeric literal "07" ⇒ 7 (§8.3.3.2 Format 2).</para>
+    /// ⇒ 1; the concatenation <c>B"1" &amp; B"0"</c> folds to "10" ⇒ 10 (§2023:8.8.3.3 GR3); <c>X"3037"</c> is the
+    /// alphanumeric literal "07" ⇒ 7 (§2023:8.3.3.2 Format 2).</para>
     /// </summary>
     [Theory]
     [InlineData("STOP RUN WITH ERROR STATUS SPACE.", 0)]            // GR3 b: one character, not a digit
@@ -285,9 +285,9 @@ public sealed class StopGobackExitCodeTests
     [InlineData("STOP RUN WITH ERROR STATUS ALL ZEROS.", 0)]        // the grammar's own ALL ZERO alternative
     [InlineData("STOP RUN WITH ERROR STATUS ALL \"5\".", 5)]        // GR3 c: the length of literal-1
     [InlineData("STOP RUN WITH ERROR STATUS ALL \"07\".", 7)]
-    [InlineData("STOP RUN WITH ERROR STATUS B\"01\".", 1)]          // §8.3.3.4 — a boolean literal's characters
-    [InlineData("STOP RUN WITH ERROR STATUS B\"1\" & B\"0\".", 10)] // §8.8.3.3 GR3 — the folded equivalent literal
-    [InlineData("STOP RUN WITH ERROR STATUS X\"3037\".", 7)]        // §8.3.3.2 Format 2 — an alphanumeric literal
+    [InlineData("STOP RUN WITH ERROR STATUS B\"01\".", 1)]          // §2023:8.3.3.4 — a boolean literal's characters
+    [InlineData("STOP RUN WITH ERROR STATUS B\"1\" & B\"0\".", 10)] // §2023:8.8.3.3 GR3 — the folded equivalent literal
+    [InlineData("STOP RUN WITH ERROR STATUS X\"3037\".", 7)]        // §2023:8.3.3.2 Format 2 — an alphanumeric literal
     [InlineData("GOBACK WITH ERROR STATUS ALL \"5\".", 5)]          // the shared phrase, the other verb
     [InlineData("GOBACK WITH ERROR STATUS SPACE.", 0)]
     public void FigurativeAllAndBooleanStatusLiterals_RenderUnderTheGR5Mapping(string proc, int expectedExit)
@@ -303,22 +303,22 @@ public sealed class StopGobackExitCodeTests
     /// <c>IsGroup</c>, the exact spelling <c>DataItem.OperandPic</c>'s own doc comment forbids by name — and so
     /// rejected two shapes SR2 admits, with a diagnostic quoting the rule the operand SATISFIES.
     /// <list type="bullet">
-    ///   <item>A REFERENCE-MODIFIED display/national operand: §8.4.3.3.3 SR5 permits reference modification
-    ///   wherever such an identifier is permitted, and §8.4.3.3.4 GR6 gives the unique data item "the same class,
+    ///   <item>A REFERENCE-MODIFIED display/national operand: §2023:8.4.3.3.3 SR5 permits reference modification
+    ///   wherever such an identifier is permitted, and §2023:8.4.3.3.4 GR6 gives the unique data item "the same class,
     ///   category, and usage as that defined for identifier-1" — the three lettered exceptions rewrite class and
     ///   category only, never USAGE. So SR2's second alternative admits the slice.</item>
-    ///   <item>A GROUP-USAGE NATIONAL group: §13.18.29.3 SR3 implies USAGE NATIONAL for the subject and
-    ///   §13.18.29.4 GR2 b makes it "treated as though it were an elementary data item of usage national … with
+    ///   <item>A GROUP-USAGE NATIONAL group: §2023:13.18.29.3 SR3 implies USAGE NATIONAL for the subject and
+    ///   §2023:13.18.29.4 GR2 b makes it "treated as though it were an elementary data item of usage national … with
     ///   PICTURE N(m)".</item>
-    ///   <item>An ALPHANUMERIC group, and a slice of one (kb/Work PB411): §8.5.2.1 — "An alphanumeric group item
+    ///   <item>An ALPHANUMERIC group, and a slice of one (kb/Work PB411): §2023:8.5.2.1 — "An alphanumeric group item
     ///   is treated as though it had a usage of display" — so it IS a data item with usage display and SR2's
     ///   second alternative names it. The screen used to ask <c>DataItem.OperandPic</c>, which is null for such a
     ///   group, and read that null as "no usage at all"; the row asserting the rejection lived in the NEGATIVE
     ///   theory below and pinned it (<c>feedback_green_test_can_hold_a_gap_open</c>). The usage answer now comes
-    ///   from <c>ItemCategory.UsageOf</c>, the ONE §8.5.2.1 reader.</item>
+    ///   from <c>ItemCategory.UsageOf</c>, the ONE §2023:8.5.2.1 reader.</item>
     /// </list>
     /// Measured on this tree before each fix: every row drew COBOL1704. The reader settles all group kinds
-    /// with no hand-list — the BIT group stays rejected, and so do the two group kinds §3.11 excludes from
+    /// with no hand-list — the BIT group stays rejected, and so do the two group kinds §2023:3.11 excludes from
     /// "alphanumeric group item", which is what the negative half below asserts.</summary>
     [Theory]
     [InlineData("STOP RUN WITH ERROR STATUS WS-DISPLAY(2:2).", 7)]   // "007"(2:2) = "07"
@@ -329,14 +329,14 @@ public sealed class StopGobackExitCodeTests
     // preserved by GR6). ⚠ This row was first written as 34, i.e. the slice (3:2); the ordinal is one-based from
     // the LEFTMOST position, and the test caught the arithmetic before the expectation was believed.
     [InlineData("STOP RUN WITH ERROR STATUS WS-NUM9(2:2).", 23)]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-NATGRP.", 12)]        // §13.18.29.4 GR2 b
+    [InlineData("STOP RUN WITH ERROR STATUS WS-NATGRP.", 12)]        // §2023:13.18.29.4 GR2 b
     [InlineData("GOBACK WITH ERROR STATUS WS-DISPLAY(2:2).", 7)]
-    // §8.5.2.1's group arm (kb/Work PB411) — the whole group images "41", and BOTH verbs take it: §14.9.42.3 SR2
-    // and §14.9.18.3 SR6 are the same rule word for word, and they shared the one screen that rejected it.
+    // §2023:8.5.2.1's group arm (kb/Work PB411) — the whole group images "41", and BOTH verbs take it: §2023:14.9.42.3 SR2
+    // and §2023:14.9.18.3 SR6 are the same rule word for word, and they shared the one screen that rejected it.
     [InlineData("STOP RUN WITH ERROR STATUS WS-ANGRP.", 41)]
     [InlineData("GOBACK WITH ERROR STATUS WS-ANGRP.", 41)]
-    // A SLICE of an alphanumeric group: §8.4.3.3.3 SR5 permits reference modification of a class-alphanumeric
-    // identifier and §8.4.3.3.4 GR6 keeps identifier-1's usage, which §8.5.2.1 has just settled as display.
+    // A SLICE of an alphanumeric group: §2023:8.4.3.3.3 SR5 permits reference modification of a class-alphanumeric
+    // identifier and §2023:8.4.3.3.4 GR6 keeps identifier-1's usage, which §2023:8.5.2.1 has just settled as display.
     [InlineData("STOP RUN WITH ERROR STATUS WS-ANGRP(1:1).", 4)]
     public void RefModAndGroupStatusOperands_AreAdmittedBySR2(string proc, int expectedExit)
     {
@@ -362,44 +362,44 @@ public sealed class StopGobackExitCodeTests
         Assert.Equal(expectedExit, exit);
     }
 
-    /// <summary>The position's OWN syntax rules, which nothing enforced while §8.8.1.1 was standing in for them:
+    /// <summary>The position's OWN syntax rules, which nothing enforced while §2023:8.8.1.1 was standing in for them:
     /// SR4/SR8 (no zero-length literal), SR3/SR7 (a numeric literal-1 shall be an integer), SR2/SR6 (identifier-1
-    /// shall be an integer item or a display/national item — which a BIT group is not, and which §8.5.2.1 gives
-    /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §13.18.38.3 r7
+    /// shall be an integer item or a display/national item — which a BIT group is not, and which §2023:8.5.2.1 gives
+    /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §2023:13.18.38.3 r7
     /// (the STATUS phrase is not one of the five contexts admitting an index-name). Each compiled CLEAN on
     /// 02c72682 — the screen that WAS there rejected the legal shapes and admitted the illegal ones, in both
     /// directions at once. (The corpus fixtures pin the same rules at every edition; these assert the MESSAGE
     /// names the rule broken, which a reject-only fixture cannot.)</summary>
     [Theory]
-    [InlineData("STOP RUN WITH ERROR STATUS \"\".", "COBOL1704", "§14.9.42.3 SR4")]
-    [InlineData("STOP RUN WITH ERROR STATUS 1.5.", "COBOL1704", "§14.9.42.3 SR3")]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-IX.", "COBOL1637", "§13.18.38.3 r7")]
-    [InlineData("GOBACK WITH ERROR STATUS \"\".", "COBOL1704", "§14.9.18.3 SR8")]
-    // ⛔ THE SCREEN IS KEYED ON THE BOUND SHAPE, NOT ON THE PARSE ARM (kb/Work PB216). §13.10.4 GR1 makes a
+    [InlineData("STOP RUN WITH ERROR STATUS \"\".", "COBOL1704", "§2023:14.9.42.3 SR4")]
+    [InlineData("STOP RUN WITH ERROR STATUS 1.5.", "COBOL1704", "§2023:14.9.42.3 SR3")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-IX.", "COBOL1637", "§2023:13.18.38.3 r7")]
+    [InlineData("GOBACK WITH ERROR STATUS \"\".", "COBOL1704", "§2023:14.9.18.3 SR8")]
+    // ⛔ THE SCREEN IS KEYED ON THE BOUND SHAPE, NOT ON THE PARSE ARM (kb/Work PB216). §2023:13.10.4 GR1 makes a
     // constant-name's effect "as if literal-1 … were written where constant-name-1 is written", so SR3 governs a
     // constant-name status operand — which arrives on the dataReference arm and, while SR3 lived inside the
     // literal arm, skipped the rule entirely: measured, `STATUS WS-K` with `01 WS-K CONSTANT AS 1.5` compiled
     // clean and exited 1.
-    [InlineData("STOP RUN WITH ERROR STATUS WS-K.", "COBOL1704", "§14.9.42.3 SR3 via §13.10.4 GR1")]
-    // NULL is not literal-1 (§8.3.3.6.2 lists no NULL figurative format); it is an IDENTIFIER (§8.4.3.1.2 Format 8),
+    [InlineData("STOP RUN WITH ERROR STATUS WS-K.", "COBOL1704", "§2023:14.9.42.3 SR3 via §2023:13.10.4 GR1")]
+    // NULL is not literal-1 (§2023:8.3.3.6.2 lists no NULL figurative format); it is an IDENTIFIER (§2023:8.4.3.1.2 Format 8),
     // so it fills the identifier-1 slot, and the rule it breaks FIRST is the one deciding whether it may be written
-    // there at all: §8.4.3.10.3 SR1 confines it to INITIALIZE/SET, a prototype argument or a pointer-or-object-
-    // reference relation condition. §14.9.42.3 SR2's category test cannot even be asked — NULL references a
-    // data-pointer item only through an associated data item (§8.4.3.10.4 GR1), and a STATUS phrase associates
-    // none. So it draws the ONE §8.4.3.10.3 SR1 code (kb/Work PB1427), not the position's own 1704.
-    [InlineData("STOP RUN WITH ERROR STATUS NULL.", "COBOL2576", "§8.4.3.10.3 SR1")]
-    // A BIT group is neither an integer data item nor a display/national one — the arm the ONE §8.5.2.1 usage
+    // there at all: §2023:8.4.3.10.3 SR1 confines it to INITIALIZE/SET, a prototype argument or a pointer-or-object-
+    // reference relation condition. §2023:14.9.42.3 SR2's category test cannot even be asked — NULL references a
+    // data-pointer item only through an associated data item (§2023:8.4.3.10.4 GR1), and a STATUS phrase associates
+    // none. So it draws the ONE §2023:8.4.3.10.3 SR1 code (kb/Work PB1427), not the position's own 1704.
+    [InlineData("STOP RUN WITH ERROR STATUS NULL.", "COBOL2576", "§2023:8.4.3.10.3 SR1")]
+    // A BIT group is neither an integer data item nor a display/national one — the arm the ONE §2023:8.5.2.1 usage
     // reader keeps rejecting (usage bit) while it admits the NATIONAL and the ALPHANUMERIC group (PB217/PB411).
-    [InlineData("STOP RUN WITH ERROR STATUS WS-BITGRP.", "COBOL1704", "§14.9.42.3 SR2")]
-    // ⛔ THE TWO GROUP KINDS §3.11 EXCLUDES BY NAME from "alphanumeric group item" — "group item except for a
+    [InlineData("STOP RUN WITH ERROR STATUS WS-BITGRP.", "COBOL1704", "§2023:14.9.42.3 SR2")]
+    // ⛔ THE TWO GROUP KINDS §2023:3.11 EXCLUDES BY NAME from "alphanumeric group item" — "group item except for a
     // bit group item, a national group item, a strongly-typed group item, or a variable-length group item" — so
-    // §8.5.2.1's "treated as though it had a usage of display" does NOT reach them and neither alternative of
-    // SR2/SR6 admits them. Without these rows the §8.5.2.1 fix would read as "any group is display", which is
+    // §2023:8.5.2.1's "treated as though it had a usage of display" does NOT reach them and neither alternative of
+    // SR2/SR6 admits them. Without these rows the §2023:8.5.2.1 fix would read as "any group is display", which is
     // the over-correction the rule's own definition forbids (kb/Work PB411; the shape ItemCategory.UsageOf
     // answers null for).
-    [InlineData("STOP RUN WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§14.9.42.3 SR2 + §3.11")]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-VARLEN.", "COBOL1704", "§14.9.42.3 SR2 + §3.11")]
-    [InlineData("GOBACK WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§14.9.18.3 SR6 + §3.11")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§2023:14.9.42.3 SR2 + §2023:3.11")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-VARLEN.", "COBOL1704", "§2023:14.9.42.3 SR2 + §2023:3.11")]
+    [InlineData("GOBACK WITH ERROR STATUS WS-STRONG.", "COBOL1704", "§2023:14.9.18.3 SR6 + §2023:3.11")]
     public void TheStatusPositionsOwnRules_AreEnforcedAndCited(string proc, string code, string clause)
     {
         const string src = """
@@ -425,12 +425,12 @@ public sealed class StopGobackExitCodeTests
         var (ok, errors, _) = EditionHarness.CompileFull(src.Replace("@PROC@", proc), 2023);
         Assert.False(ok, $"'{proc}' must be rejected — {clause}");
         EditionHarness.AssertHasDiagnostic(errors, code);
-        // ⛔ AND IT MUST NAME THE RULE THE PROGRAMMER BROKE. Citing §8.8.1.1 here is the defect, not a detail:
+        // ⛔ AND IT MUST NAME THE RULE THE PROGRAMMER BROKE. Citing §2023:8.8.1.1 here is the defect, not a detail:
         // a diagnostic quoting a rule that does not govern the position sends the reader to the wrong clause.
-        Assert.DoesNotContain(errors, e => e.Contains("§8.8.1.1", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("§2023:8.8.1.1", StringComparison.Ordinal));
     }
 
-    /// <summary>A GOBACK status phrase in a CALLED subprogram is INERT (ISO §14.9.18.4 GR2 returns to the
+    /// <summary>A GOBACK status phrase in a CALLED subprogram is INERT (ISO §2023:14.9.18.4 GR2 returns to the
     /// activator; the STATUS/ERROR indication of GR3/GR7–GR10 applies "in a main program" only). The sub's
     /// <c>GOBACK WITH ERROR STATUS 9</c> must NOT set the exit code — the main resumes after the CALL and its
     /// plain STOP RUN leaves the exit code 0 (the <c>!__asCalled</c> emit guard).</summary>
@@ -458,11 +458,11 @@ public sealed class StopGobackExitCodeTests
     }
 
     /// <summary>The in-group companion to the cross-assembly case below: a status-free MAIN CALLs a sub whose
-    /// <c>STOP RUN … WITH STATUS</c> ends the whole run unit (ISO §14.9.42.4 GR6). STOP RUN passes its status
+    /// <c>STOP RUN … WITH STATUS</c> ends the whole run unit (ISO §2023:14.9.42.4 GR6). STOP RUN passes its status
     /// regardless of whether it runs in the main or a called program (unlike GOBACK, GR2/GR3 — see
     /// <see cref="CalledSubprogramGobackStatus_IsInert"/>). Locks that the runtime-side delivery (the
     /// run unit's <see cref="Runtime.RunUnit.ExitStatus"/>, written to the exit code by <c>ProgramTable.RunModule</c> when
-    /// the run unit ends) — not a compile-time parse-tree scan — carries the status to the exit code (§14.9.42.4 GR5).</summary>
+    /// the run unit ends) — not a compile-time parse-tree scan — carries the status to the exit code (§2023:14.9.42.4 GR5).</summary>
     [Fact]
     public void CalledSubprogram_StopRunWithStatus_SetsExitCode()
     {
@@ -497,7 +497,7 @@ public sealed class StopGobackExitCodeTests
     }
 
     /// <summary>V47 (§24 review ledger — CONFIRMED): STOP RUN terminates the WHOLE run unit from anywhere (ISO
-    /// §14.9.42.4 GR6) and its STATUS is "passed to the operating system" (GR5). When the <c>STOP RUN … WITH
+    /// §2023:14.9.42.4 GR6) and its STATUS is "passed to the operating system" (GR5). When the <c>STOP RUN … WITH
     /// STATUS</c> executes in a SEPARATELY-COMPILED CALLed module, the status is the RUN UNIT's, not the main
     /// program's — it must reach the process exit code even though the main program's own compilation group carries
     /// no status phrase (so a compile-time parse-tree scan of the main group can never see it). The exit-code delivery

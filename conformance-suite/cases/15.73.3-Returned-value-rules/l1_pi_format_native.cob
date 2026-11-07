@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.73.2 general format and §15.73.3 r1 — FUNCTION PI
+      *> ISO §2023:15.73.2 general format and §2023:15.73.3 r1 — FUNCTION PI
       *> The format is "<u>FUNCTION</u> <u>PI</u>": two required words
       *> and NO argument list at all - the one intrinsic shape in this
       *> family with no parentheses, which is why the complement
@@ -29,7 +29,7 @@
       *> second relation states BOTH, so by 8.8.4.12.4 GR1 it is "a
       *> complete simple condition" that terminates any insertion.
       *>
-      *> §15.73.3 r1: "If native arithmetic is in effect, the returned
+      *> §2023:15.73.3 r1: "If native arithmetic is in effect, the returned
       *> value is an implementor-defined approximation of the
       *> arithmetic expression (3 + 0.1415926535897932384626433832795)"
       *> NATIVE ARITHMETIC IS THE PRECONDITION AND IT IS ESTABLISHED,

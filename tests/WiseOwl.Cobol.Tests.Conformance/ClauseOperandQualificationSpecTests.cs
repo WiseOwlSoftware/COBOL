@@ -5,17 +5,17 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ A FILE CLAUSE'S data-name OPERAND IS A QUALIFIED-DATA-NAME, RESOLVED BY ISO/IEC 1989:2023 §8.4.2.2
+/// ⛔ A FILE CLAUSE'S data-name OPERAND IS A QUALIFIED-DATA-NAME, RESOLVED BY ISO/IEC 1989:2023 §2023:8.4.2.2
 /// (kb/Work PB489).
-/// <para>Every clause below prints <i>data-name-n</i> in its general format — LINAGE (§13.18.34.2), FILE STATUS
-/// (§12.4.5.8), RELATIVE KEY (§12.4.5.13), RECORD … DEPENDING ON (§13.18.43.2) — so each names a
-/// qualified-data-name (§8.4.2.2.2 Format 1) and §8.4.2.2.1's uniqueness requirement is in force over it:
+/// <para>Every clause below prints <i>data-name-n</i> in its general format — LINAGE (§2023:13.18.34.2), FILE STATUS
+/// (§2023:12.4.5.8), RELATIVE KEY (§2023:12.4.5.13), RECORD … DEPENDING ON (§2023:13.18.43.2) — so each names a
+/// qualified-data-name (§2023:8.4.2.2.2 Format 1) and §2023:8.4.2.2.1's uniqueness requirement is in force over it:
 /// "uniqueness shall be established through qualification for each user-defined name explicitly referenced".
 /// The binder used to keep only the operand's FIRST WORD and then resolve it with a first-match
 /// <c>ByName[n][0]</c>, so a qualified operand bound the WRONG data item and an ambiguous one bound the
 /// first-declared — both silently. On the LINAGE clause that was a measured wrong answer: the whole logical
 /// page was built on another item's value.</para>
-/// <para>⛔ EVERY CASE IS RUN ON ALL FOUR EDITIONS. The clauses, their operands and §8.4.2.2 all predate
+/// <para>⛔ EVERY CASE IS RUN ON ALL FOUR EDITIONS. The clauses, their operands and §2023:8.4.2.2 all predate
 /// COBOL-85, so an edition-shaped difference here would be a defect, and asserting it on 2023 alone would let
 /// one appear.</para>
 /// <para>⭐ THE DECOY IS DECLARED FIRST in every fixture. That is what makes these tests able to fail: a
@@ -46,9 +46,9 @@ public sealed class ClauseOperandQualificationSpecTests
         }
     }
 
-    // ── LINAGE (ISO §13.18.34) ──────────────────────────────────────────────────────────────────────────────
+    // ── LINAGE (ISO §2023:13.18.34) ──────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The qualified operand names GRP-B's SZ = 9, so §13.18.34.4 GR2's page size is 9: GR7 d) sets
+    /// <summary>The qualified operand names GRP-B's SZ = 9, so §2023:13.18.34.4 GR2's page size is 9: GR7 d) sets
     /// LINAGE-COUNTER to 1 at OPEN OUTPUT and GR7 c) 2 adds the ADVANCING 4, reaching 5 — inside a 9-line page
     /// body, so no end-of-page condition arises. Under the first-word defect the page size was GRP-A's 3 and the
     /// same write overflowed: EOP with the counter reset (measured).</summary>
@@ -56,34 +56,34 @@ public sealed class ClauseOperandQualificationSpecTests
     public void LinageOperand_QualifiedByItsGroup_UsesThatGroupsItem()
         => AssertRuns(TwoSzProgram("SZ OF GRP-B"), "NO-EOP\nLC=005");
 
-    /// <summary>§8.4.2.2.3 SR1 — two declarations of SZ and no qualifier, so no sequence of qualifiers precludes
-    /// the ambiguity and the reference identifies no resource (§8.4.2.1). It used to resolve to the
+    /// <summary>§2023:8.4.2.2.3 SR1 — two declarations of SZ and no qualifier, so no sequence of qualifiers precludes
+    /// the ambiguity and the reference identifies no resource (§2023:8.4.2.1). It used to resolve to the
     /// first-declared item and run.</summary>
     [Fact]
     public void LinageOperand_AmbiguousUnqualified_IsRejected()
         => AssertRejects(TwoSzProgram("SZ"), "COBOL1639");
 
-    /// <summary>§8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements"; a
-    /// file description entry is not one, and the register is an §8.4.3.1 Format 10 identifier rather than the
-    /// qualified-data-name §13.18.34.2 prints. It used to compile and die at OPEN naming the FILE as the missing
+    /// <summary>§2023:8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements"; a
+    /// file description entry is not one, and the register is an §2023:8.4.3.1 Format 10 identifier rather than the
+    /// qualified-data-name §2023:13.18.34.2 prints. It used to compile and die at OPEN naming the FILE as the missing
     /// data item, because the capture kept the first cobolWord — which for this alternative is the qualifier.</summary>
     [Fact]
     public void LinageOperand_WrittenAsTheRegister_IsRejected()
         => AssertRejects(TwoLinageFileProgram(), "COBOL2024");
 
-    /// <summary>A subscript is not part of §8.4.2.2.2 Format 1, and §13.18.34.3 SR1 forecloses the only reason to
+    /// <summary>A subscript is not part of §2023:8.4.2.2.2 Format 1, and §2023:13.18.34.3 SR1 forecloses the only reason to
     /// write one. The subscript used to be discarded silently and the program died at OPEN.</summary>
     [Fact]
     public void LinageOperand_Subscripted_IsRejected()
         => AssertRejects(TableOperandProgram("T-LINES (2)"), "COBOL2024");
 
-    /// <summary>§13.18.34.3 SR1 over the RESOLVED item — the unsubscripted spelling of the same violation, which
+    /// <summary>§2023:13.18.34.3 SR1 over the RESOLVED item — the unsubscripted spelling of the same violation, which
     /// no written-shape screen can see. The rule had no site in the compiler at all before kb/Work PB489.</summary>
     [Fact]
     public void LinageOperand_SubjectToOccurs_IsRejected()
         => AssertRejects(TableOperandProgram("T-LINES"), "COBOL2025");
 
-    /// <summary>§8.4.3.14.3 SR2 — "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand."
+    /// <summary>§2023:8.4.3.14.3 SR2 — "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand."
     /// The outcome was already a rejection; the SENTENCE was "a reference shape WiseOwl COBOL does not yet implement
     /// as a receiver", which describes permanently illegal source as a pending feature (kb/Work PB489).</summary>
     [Fact]
@@ -98,41 +98,41 @@ public sealed class ClauseOperandQualificationSpecTests
     // ── The siblings: the SAME capture and the SAME resolver, on the other clauses that reduce a written
     //    reference to a data-name (kb/Work PB489's sibling sweep — none of these was probed when it was filed).
 
-    /// <summary>FILE STATUS (ISO §12.4.5.8) — the status is placed in the QUALIFIED item, and the decoy declared
-    /// before it is left at its VALUE. §12.4.5.8.4 GR1 puts the I-O status in data-name-1 after every statement
+    /// <summary>FILE STATUS (ISO §2023:12.4.5.8) — the status is placed in the QUALIFIED item, and the decoy declared
+    /// before it is left at its VALUE. §2023:12.4.5.8.4 GR1 puts the I-O status in data-name-1 after every statement
     /// referencing the file, so a successful OPEN writes "00".</summary>
     [Fact]
     public void FileStatusOperand_QualifiedByItsGroup_UsesThatGroupsItem()
         => AssertRuns(FileStatusProgram("FS OF G-B"), "A=99 B=00");
 
-    /// <summary>§8.4.2.2.3 SR1 on the FILE STATUS operand — it used to take the first-declared FS silently.</summary>
+    /// <summary>§2023:8.4.2.2.3 SR1 on the FILE STATUS operand — it used to take the first-declared FS silently.</summary>
     [Fact]
     public void FileStatusOperand_AmbiguousUnqualified_IsRejected()
         => AssertRejects(FileStatusProgram("FS"), "COBOL1639");
 
-    /// <summary>RELATIVE KEY (ISO §12.4.5.13) — the qualifier used to be DROPPED ENTIRELY at capture (only the
+    /// <summary>RELATIVE KEY (ISO §2023:12.4.5.13) — the qualifier used to be DROPPED ENTIRELY at capture (only the
     /// base word was kept), so the clause could not even be written qualified without binding another item. The
     /// program writes record 2 through the qualified key and reads it back.</summary>
     [Fact]
     public void RelativeKeyOperand_QualifiedByItsGroup_UsesThatGroupsItem()
         => AssertRuns(RelativeKeyProgram("RK OF G-B"), "GOT=BBBB");
 
-    /// <summary>§8.4.2.2.3 SR1 on the RELATIVE KEY operand.</summary>
+    /// <summary>§2023:8.4.2.2.3 SR1 on the RELATIVE KEY operand.</summary>
     [Fact]
     public void RelativeKeyOperand_AmbiguousUnqualified_IsRejected()
         => AssertRejects(RelativeKeyProgram("RK"), "COBOL1639");
 
-    /// <summary>§8.4.2.2.3 SR1 on RECORD … DEPENDING ON (ISO §13.18.43) — the third clause whose capture kept
+    /// <summary>§2023:8.4.2.2.3 SR1 on RECORD … DEPENDING ON (ISO §2023:13.18.43) — the third clause whose capture kept
     /// only the base word.</summary>
     [Fact]
     public void RecordDependingOperand_AmbiguousUnqualified_IsRejected()
         => AssertRejects(DependingProgram("RL"), "COBOL1639");
 
-    /// <summary>…and the qualified spelling binds the qualified item: §13.18.43.4 GR13 a) makes the WRITE release
+    /// <summary>…and the qualified spelling binds the qualified item: §2023:13.18.43.4 GR13 a) makes the WRITE release
     /// a record as long as the DEPENDING item says, so naming G-A's RL (3) and naming G-B's RL (6) must put
     /// THREE more characters on the medium in the second case.
     /// <para>⭐ THE ASSERTION IS THE DIFFERENCE, NOT EITHER LENGTH. What the standard fixes is the RECORD's
-    /// length; how many bytes a record-sequential medium adds around it is §9.1.7's implementor-defined physical
+    /// length; how many bytes a record-sequential medium adds around it is §2023:9.1.7's implementor-defined physical
     /// mapping, and pinning an absolute byte count here would be pinning that instead of GR13 a). The difference
     /// cancels it exactly, and it is the discriminator that matters: under the first-word capture BOTH spellings
     /// resolved to the first-declared RL and the two runs produced the SAME length.</para></summary>

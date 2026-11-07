@@ -8,14 +8,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The P5 Step-8 keyed-offset BYTE-POSITION goldens. The step's mandated failing-first probe (a key after a
-/// WIDER redefiner) turned out to be ILLEGAL COBOL — ISO §13.18.44.3 SR8: the redefining storage area shall not
+/// WIDER redefiner) turned out to be ILLEGAL COBOL — ISO §2023:13.18.44.3 SR8: the redefining storage area shall not
 /// be larger than the redefined unless the redefined item is level 1 (and SR3 bans level-1 REDEFINES in the FILE
 /// SECTION entirely) — so on every LEGAL record the image and physical offset bases coincide and the
 /// RecordLayout unification is a pure port. What the probe DID expose: the compiler silently ACCEPTED the
 /// SR8-illegal shape and emitted an overlay with byte-position semantics no edition defines. These goldens pin
-/// (a) the new SR8 rejection, (b) §12.4.5.12.4 GR4 — "the identical BYTE POSITIONS referenced ... in any one
+/// (a) the new SR8 rejection, (b) §2023:12.4.5.12.4 GR4 — "the identical BYTE POSITIONS referenced ... in any one
 /// record description entry are implicitly referenced as keys for all other record description entries" — via a
-/// sibling-record START operand (§14.9.41.3 SR6b leftmost-position correspondence), and (c) key retrieval with a
+/// sibling-record START operand (§2023:14.9.41.3 SR6b leftmost-position correspondence), and (c) key retrieval with a
 /// LEGAL (narrower) redefinition ahead of the key.
 /// </summary>
 public sealed class KeyedOffsetSpecTests
@@ -35,7 +35,7 @@ public sealed class KeyedOffsetSpecTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>§13.18.44.3 SR8: a non-level-1 redefinition whose subject is LARGER than the redefined item is
+    /// <summary>§2023:13.18.44.3 SR8: a non-level-1 redefinition whose subject is LARGER than the redefined item is
     /// rejected (COBOL1539) — previously a silent acceptance with undefined overlay semantics.</summary>
     [Fact]
     public void Redefines_WiderThanTarget_NonLevel01_Rejected()
@@ -85,7 +85,7 @@ public sealed class KeyedOffsetSpecTests
         Assert.Contains("B=[", stdout);
     }
 
-    /// <summary>§12.4.5.12.4 GR4 + §14.9.41.3 SR6b: the START key of reference may be an item of a SIBLING record
+    /// <summary>§2023:12.4.5.12.4 GR4 + §2023:14.9.41.3 SR6b: the START key of reference may be an item of a SIBLING record
     /// description occupying the same leftmost byte position as the declared alternate key — the retrieval must
     /// return the record whose alternate key matches.</summary>
     [Fact]
@@ -144,7 +144,7 @@ public sealed class KeyedOffsetSpecTests
     }
 
     /// <summary>Key retrieval with a LEGAL (narrower) redefinition ahead of the key: the key's byte position is
-    /// unchanged by the overlay (§13.18.44 GR1 — the redefinition begins at the target's first position and, per
+    /// unchanged by the overlay (§2023:13.18.44 GR1 — the redefinition begins at the target's first position and, per
     /// SR8, cannot extend past it), and the declared alternate key retrieves correctly.</summary>
     [Fact]
     public void Start_DeclaredAlternateKey_AfterLegalRedefinition_Retrieves()

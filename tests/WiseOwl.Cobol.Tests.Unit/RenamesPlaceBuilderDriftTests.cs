@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A LEVEL-66 RENAMES ENTRY'S PLACE IS BUILT BY THE ONE ITEM→PLACE BUILDER, SO EVERY REFERENCE TO IT TAKES THE
 /// SAME TAIL AS EVERY OTHER ITEM (kb/Work PB1380). <c>ReferenceResolver</c> used to compose the alias in an arm of
 /// its own inside the syntactic resolver that RETURNED before the reference-modification tail, so <c>RN(2:3)</c>
-/// bound the whole alias: ISO §8.4.3.3.4 GR5's "unique data item that is a subset of the data item referenced by
-/// identifier-1" was never created, a zero-length slice never raised EC-BOUND-REF-MOD (§7.3.23.3 GR1), and the
-/// §8.4.3.3.3 SR1 screen never ran. The same arm was also the only place a RENAMES place could be built, so the
+/// bound the whole alias: ISO §2023:8.4.3.3.4 GR5's "unique data item that is a subset of the data item referenced by
+/// identifier-1" was never created, a zero-length slice never raised EC-BOUND-REF-MOD (§2023:7.3.23.3 GR1), and the
+/// §2023:8.4.3.3.3 SR1 screen never ran. The same arm was also the only place a RENAMES place could be built, so the
 /// by-item entries (<c>ResolveItem</c>, <c>ResolveItemRefMod</c>, <c>ResolveByName</c>) built none.
 /// <para>The rule, stated as what these tests hold: inside <c>PlaceBuilder.cs</c> (the model-layer builder, kb/Work
 /// PB2375; the reference-resolution subsystem keeps none) the RENAMES descriptor is

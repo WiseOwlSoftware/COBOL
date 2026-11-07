@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB432 — ISO §14.9.28.3 SR3: "Each literal shall be numeric." The varying-phrase's FROM slot
+      *> kb/Work PB432 — ISO §2023:14.9.28.3 SR3: "Each literal shall be numeric." The varying-phrase's FROM slot
       *> is parsed as a superset of the brace group so the LEGAL figurative ZERO can reach the binder at all
-      *> (§8.3.3.6.3 SR1 permits it precisely because SR3 restricts the literal to numeric); the prohibition
+      *> (§2023:8.3.3.6.3 SR1 permits it precisely because SR3 restricts the literal to numeric); the prohibition
       *> half is enforced at bind by the ONE numeric-context literal reading, which names SR3 as the rule that
-      *> closes this operand list rather than citing §8.8.1.1 alone.
+      *> closes this operand list rather than citing §2023:8.8.1.1 alone.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB432NEGSPACE.
        DATA DIVISION.

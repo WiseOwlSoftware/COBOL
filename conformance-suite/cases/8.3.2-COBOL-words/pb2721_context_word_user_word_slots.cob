@@ -9,26 +9,26 @@
       *> context-sensitive word with a lexer token is the same word
       *> in its REFERENCE slot as in its DECLARING slot, and an
       *> index-name is a DEFINING word.
-      *>  §8.3.2.1 3): "Context-sensitive words may be used as
+      *>  §2023:8.3.2.1 3): "Context-sensitive words may be used as
       *>    user-defined words and system-names in contexts other
       *>    than the language construct in which they are defined"
-      *>    (§8.10: CAPACITY OCCURS clause, CYCLE EXIT statement,
+      *>    (§2023:8.10: CAPACITY OCCURS clause, CYCLE EXIT statement,
       *>    BYTES RECORD clause, FOREVER RETRY phrase).
-      *>  §13.18.57.2 Format 1: TYPE TO type-name-1.
-      *>  §8.4.3.2.2: [ FUNCTION ] function-prototype-name-1 ...
-      *>  §13.18.38.2: [ INDEXED BY { index-name-1 } ... ]
+      *>  §2023:13.18.57.2 Format 1: TYPE TO type-name-1.
+      *>  §2023:8.4.3.2.2: [ FUNCTION ] function-prototype-name-1 ...
+      *>  §2023:13.18.38.2: [ INDEXED BY { index-name-1 } ... ]
       *> cite.py --check:
-      *>  OK  §8.3.2.1 3)  (General)
-      *>  OK  §8.10   (Context-sensitive words) | CAPACITY | CYCLE |
+      *>  OK  §2023:8.3.2.1 3)  (General)
+      *>  OK  §2023:8.10   (Context-sensitive words) | CAPACITY | CYCLE |
       *>      | BYTES | FOREVER |
-      *>  OK  §13.18.57.2   (General formats)  TO type-name-1
-      *>  OK  §8.4.3.2.2   (General format)  function-prototype-name-1
-      *>  OK  §13.18.38.2   (General formats)  BY { index-name-1 }
+      *>  OK  §2023:13.18.57.2   (General formats)  TO type-name-1
+      *>  OK  §2023:8.4.3.2.2   (General format)  function-prototype-name-1
+      *>  OK  §2023:13.18.38.2   (General formats)  BY { index-name-1 }
       *> Derivation: TYPE CYCLE makes T7 a PIC 9(3) item, so MOVE 7
       *>  gives 007; TYPE TO BYTES makes T4 a PIC X(4) item.
       *>  FUNCTION CAPACITY(3) returns 3 * 2 = 6 into a PIC 9 item.
       *>  INDEXED BY FOREVER, I2 declares two indexes (the comma is
-      *>  a separator, §8.3.5): SET FOREVER TO 2, SET I2 TO FOREVER,
+      *>  a separator, §2023:8.3.5): SET FOREVER TO 2, SET I2 TO FOREVER,
       *>  MOVE "Q" TO TB (I2) changes the 2nd of "ZZZ" -> ZQZ.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. CAPACITY.

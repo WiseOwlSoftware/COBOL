@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB722 (campaign PB3353): RETURN ... INTO's OWN exception
-      *> conditions, with a USE declarative.  ISO §14.9.34.4 GR1: "A
+      *> conditions, with a USE declarative.  ISO §2023:14.9.34.4 GR1: "A
       *> RETURN statement may be executed only when it is within the
       *> range of an output procedure being executed by a MERGE or SORT
       *> statement that references file-name-1.  If it is executed at any
@@ -17,10 +17,10 @@
       *> executed, the EC-SORT-MERGE-RETURN exception condition is set to
       *> exist".  Both are Table 13 fatal; the declarative runs under
       *> CHECKING ON and RESUME AT NEXT STATEMENT continues after the
-      *> offending statement (§14.6.13.1.3 5), NOTE 2) -- except that a
-      *> RESUME is a not-normal completion (§14.6.13.1.2 1)), which
+      *> offending statement (§2023:14.6.13.1.3 5), NOTE 2) -- except that a
+      *> RESUME is a not-normal completion (§2023:14.6.13.1.2 1)), which
       *> terminates the SORT whose output procedure raised it
-      *> (§14.9.40.4 GR17), so nothing after leg D's offending RETURN
+      *> (§2023:14.9.40.4 GR17), so nothing after leg D's offending RETURN
       *> runs inside that procedure.  Nothing of a
       *> RETURN with an INTO phrase happens for such a RETURN: GR5 b) "The
       *> implied MOVE statement does not occur if the execution of the

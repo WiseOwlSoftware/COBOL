@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// zero GAP = P14 done). Every completeness critic inside <c>scripts/spec/extract_rule_catalog.py</c> asks
 /// "did this rule block yield SOMETHING?" — and a block that yields 16 of its 42 rules passes all of them,
 /// because 16 is not zero. That is precisely what happened (fix-queue PB689): the transcription rendered the
-/// in-clause group label <c>SEQUENTIAL FILES</c> as <c>## SEQUENTIAL FILES</c> inside §14.9.51.4's general
+/// in-clause group label <c>SEQUENTIAL FILES</c> as <c>## SEQUENTIAL FILES</c> inside §2023:14.9.51.4's general
 /// rules, the block scan closed the block at it, and GR17–GR42 of the WRITE statement — twenty-six normative
 /// rules including the line-sequential '71' status — never became inventory rows. Five clauses were short by
 /// sixty rules in total, and the published GAP was therefore measured against a denominator that flattered the
@@ -135,7 +135,7 @@ public sealed class CatalogCoverageDriftTests
     /// and <c>$$</c> forms are earlier renderings).</summary>
     private static readonly Regex FmtDiagram = new(@"<pre\b|```|\$\$", RegexOptions.Compiled);
 
-    /// <summary>The numbered-and-named label of one format of a multi-format construct (§5.2.1: "the general
+    /// <summary>The numbered-and-named label of one format of a multi-format construct (§2023:5.2.1: "the general
     /// format is separated into multiple formats that are numbered and named").</summary>
     private static readonly Regex FmtLabel = new(@"\bFormat\s+\d+", RegexOptions.Compiled);
 
@@ -266,10 +266,10 @@ public sealed class CatalogCoverageDriftTests
     }
 
     /// <summary>⛔ AN FMT ROW IS A FORMAT THE STANDARD PRINTS (kb/Work PB1536 Q2). The extractor used to emit
-    /// one for any heading titled "General formats", and §5.2 — the description-techniques clause ABOUT general
-    /// formats, whose body is only its sub-clause §5.2.1 — manufactured FMT-5.2: a permanent GAP row whose text
+    /// one for any heading titled "General formats", and §2023:5.2 — the description-techniques clause ABOUT general
+    /// formats, whose body is only its sub-clause §2023:5.2.1 — manufactured FMT-5.2: a permanent GAP row whose text
     /// was a bare anchor. A row with neither a diagram nor a Format label is that shape again, or a format whose
-    /// diagram the transcription lost (§15.78.2 REVERSE printed as bare text until wave 60) — either way nothing
+    /// diagram the transcription lost (§2023:15.78.2 REVERSE printed as bare text until wave 60) — either way nothing
     /// a grammar rule can be verified against. Measured over the WRITTEN catalog, not the extractor's code.</summary>
     [Fact]
     public void EveryFmtRow_CarriesADiagramOrAFormatLabel()
@@ -284,7 +284,7 @@ public sealed class CatalogCoverageDriftTests
     }
 
     /// <summary>The clauses whose heading is a general-format heading in either spelling AND whose own body (to the
-    /// next heading) carries a diagram or a Format label — a format the clause PRINTS (§5.2.1).</summary>
+    /// next heading) carries a diagram or a Format label — a format the clause PRINTS (§2023:5.2.1).</summary>
     private static List<string> PrintedGeneralFormats(string[] lines)
     {
         var found = new List<string>();
@@ -364,7 +364,7 @@ public sealed class CatalogCoverageDriftTests
     /// <summary>⛔ ONE RULE, ONE PLACE: NO COMPILER OR TEST SOURCE SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work
     /// PB284, branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
     /// sibling copies of the heading regex kept keying on "format" alone: the figure sweep located 0 figures for
-    /// §14.9.7.2 and answered CHECK: clean, and was equally blind to §7.3.23.2 ("General format." with a period).
+    /// §2023:14.9.7.2 and answered CHECK: clean, and was equally blind to §2023:7.3.23.2 ("General format." with a period).
     /// The C# guards compose <c>SpecClauseText.GeneralFormatNoun</c>, the Python readers import
     /// <c>spec_headings.py</c> (the two are held to the same clause set by <c>spec_headings.py --self-test</c>, which
     /// also sweeps the scripts for a private copy). A pattern written anywhere else is a copy that will miss the next
@@ -392,7 +392,7 @@ public sealed class CatalogCoverageDriftTests
     }
 
     /// <summary>⛔ EVERY GENERAL FORMAT THE TRANSCRIPTION PRINTS HAS ITS ROW, WHATEVER THE HEADING SAYS (kb/Work
-    /// PB284). §14.9.7.2 is headed "General forms" — the one such heading in the standard — and the extractor, which
+    /// PB284). §2023:14.9.7.2 is headed "General forms" — the one such heading in the standard — and the extractor, which
     /// keyed on the word "format", never emitted FMT-14.9.7.2: no parse gap, no unrecognised heading, nothing. This
     /// reads the headings straight from the transcription in BOTH spellings and holds the written catalog to them.
     /// </summary>
@@ -410,7 +410,7 @@ public sealed class CatalogCoverageDriftTests
     }
 
     /// <summary>⛔ A PROSE CONCEPT CLAUSE ADMITTED AS PARAGRAPH ROWS IS HELD SENTENCE FOR SENTENCE (kb/Work PB284
-    /// part 3). §9.1.16 (record locking), §9.1.17 and §9.1.18 (commit and rollback) state their rules as running
+    /// part 3). §2023:9.1.16 (record locking), §2023:9.1.17 and §2023:9.1.18 (commit and rollback) state their rules as running
     /// prose with no numbered marker, so the numbered scan never opened them and the burn-down was measured against
     /// a denominator that did not hold the clause that SETS EC-FLOW-APPLY. The rows' text, in order, must be the
     /// clause's body.</summary>
@@ -445,10 +445,10 @@ public sealed class CatalogCoverageDriftTests
                          Squash(string.Join(" ", mine.Select(r => r.GetProperty("text").GetString()!))));
         }
 
-        // The sentence the whole group exists for: only §9.1.18.7 SETS EC-FLOW-APPLY.
+        // The sentence the whole group exists for: only §2023:9.1.18.7 SETS EC-FLOW-APPLY.
         Assert.Contains(rows, r => r.GetProperty("section").GetString() == "9.1.18.7"
                                    && r.GetProperty("text").GetString()!.Contains("EC-FLOW-APPLY", StringComparison.Ordinal));
-        // §9.1.16 paragraph 6 forbids what may be WRITTEN, so it is a syntax rule (§5.3.2); the rest of the clause is general.
+        // §2023:9.1.16 paragraph 6 forbids what may be WRITTEN, so it is a syntax rule (§2023:5.3.2); the rest of the clause is general.
         Assert.Contains(rows, r => r.GetProperty("id").GetString() == "SR-9.1.16-p6");
     }
 
@@ -474,7 +474,7 @@ public sealed class CatalogCoverageDriftTests
         Assert.Equal([1, 2], Bands(byId["GR-13.18.41.4-1"]));    // "FORMATS 1 AND 2": a SUBSET test must see both
         Assert.Empty(Bands(byId["SR-13.18.63.3-1"]));            // "ALL FORMATS": a band, but no format number
         Assert.Equal("ALL FORMATS", byId["SR-13.18.63.3-1"].GetProperty("band").GetString());
-        Assert.False(byId["SR-14.9.1.3-5"].TryGetProperty("band", out _)); // §14.9.1.3 prints no band at all
+        Assert.False(byId["SR-14.9.1.3-5"].TryGetProperty("band", out _)); // §2023:14.9.1.3 prints no band at all
         // A band that is not about formats still scopes: WRITE's first sixteen rules are 'ALL FILES', the next 'SEQUENTIAL FILES'.
         Assert.Equal("ALL FILES", byId["GR-14.9.51.4-1"].GetProperty("band").GetString());
         Assert.Equal("SEQUENTIAL FILES", byId["GR-14.9.51.4-17"].GetProperty("band").GetString());
@@ -530,7 +530,7 @@ public sealed class CatalogCoverageDriftTests
         Assert.Equal(1, PrintedOrdinalsByClause(intoAnnex)["16.2.2.2"]);
         Assert.Empty(InteriorHeadings(intoAnnex));
 
-        // PB1536 Q2: the row §5.2's heading manufactured (its text was only the anchor of §5.2.1) is reported; a
+        // PB1536 Q2: the row §2023:5.2's heading manufactured (its text was only the anchor of §2023:5.2.1) is reported; a
         // drawn format and a labelled multi-format construct are not.
         var undrawn = UndrawnFmtRows(
         [

@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.2 boolean-expression FORMATION and EVALUATION, in BOTH lanes — the compile-time boolean
-      *> expression (§7.3.7.2 SR1: "Compile-time boolean expressions shall be formed in accordance with 8.8.2";
-      *> §7.3.7.3 GR1: its precedence and evaluation "are shown in 8.8.2") and the runtime COMPUTE / IF forms
-      *> (kb/Work PB1370, PB1413). Every expected value is DERIVED from §8.8.2, never read off a run:
+      *> ISO §2023:8.8.2 boolean-expression FORMATION and EVALUATION, in BOTH lanes — the compile-time boolean
+      *> expression (§2023:7.3.7.2 SR1: "Compile-time boolean expressions shall be formed in accordance with 8.8.2";
+      *> §2023:7.3.7.3 GR1: its precedence and evaluation "are shown in 8.8.2") and the runtime COMPUTE / IF forms
+      *> (kb/Work PB1370, PB1413). Every expected value is DERIVED from §2023:8.8.2, never read off a run:
       *>   CT1/CT2/CT3, RT4/RT5, RT9  "a boolean expression enclosed in parentheses" is a boolean expression with
       *>        no operator in it: (B"101") is B"101". Fails if the operand is not recognized as boolean (it was
       *>        a malformed directive / a parse error — the discriminator looked only for B-operators).
@@ -20,9 +20,9 @@
       *>   CT6/RT3  the full rule-7b ladder B-NOT > B-AND > B-XOR > B-OR:
       *>        B-NOT 1100 B-OR 0101 B-XOR 0110 B-AND 0011 = 0011 B-OR (0101 B-XOR (0110 B-AND 0011))
       *>        = 0011 B-OR (0101 B-XOR 0010) = 0011 B-OR 0111 = 0111. Left-to-right would give 0001.
-      *>   CT7, RT6, RT7, CT8/RT8  rule 5 "The second operand shall be an integer operand" — §5.5 2): an integer
-      *>        literal (a leading sign is part of it, §8.3.3.3.2), an integer data item, an integer function, or
-      *>        (compile time) a numeric compilation variable holding an integer literal (§7.3.11.4 GR1).
+      *>   CT7, RT6, RT7, CT8/RT8  rule 5 "The second operand shall be an integer operand" — §2023:5.5 2): an integer
+      *>        literal (a leading sign is part of it, §2023:8.3.3.3.2), an integer data item, an integer function, or
+      *>        (compile time) a numeric compilation variable holding an integer literal (§2023:7.3.11.4 GR1).
       *>        1100 B-SHIFT-RC 2 = 0011; 1100 B-SHIFT-L 1 = 1000; INTEGER(2.5) = 2, 1100 B-SHIFT-RC 2 = 0011;
       *>        1100 B-SHIFT-LC +1 = 1001 (rule 8: circular left moves the leftmost digit to the right end).
       *>   RT9  INTEGER-OF-BOOLEAN((B"1010")) = 10 — the parenthesized literal is a boolean argument too.

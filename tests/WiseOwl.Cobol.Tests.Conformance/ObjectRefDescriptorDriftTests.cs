@@ -7,16 +7,16 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE §13.18.60.2 DESCRIPTOR DRIFT PIN (kb/Work PB389). The USAGE OBJECT REFERENCE general format prints
+/// ⛔ THE §2023:13.18.60.2 DESCRIPTOR DRIFT PIN (kb/Work PB389). The USAGE OBJECT REFERENCE general format prints
 /// THREE stacked alternatives over four independent axes —
 /// <code>
 /// OBJECT REFERENCE ⎡ interface-name-1                            ⎤
 ///                  ⎢ [ FACTORY OF ] ACTIVE-CLASS                 ⎥
 ///                  ⎣ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎦
 /// </code>
-/// — plus the bare form §13.18.60.4 GR22 b) calls a universal object reference: EIGHT writable shapes. The
+/// — plus the bare form §2023:13.18.60.4 GR22 b) calls a universal object reference: EIGHT writable shapes. The
 /// compiler modelled ONE axis (a nullable class name), so ACTIVE-CLASS and ONLY were rejected outright as legal
-/// COBOL-2002+ source, FACTORY OF was loud-staged, and every §14.9.39.3 SET format-5 rule that discriminates on
+/// COBOL-2002+ source, FACTORY OF was loud-staged, and every §2023:14.9.39.3 SET format-5 rule that discriminates on
 /// an unmodelled axis had no expressible subject.
 ///
 /// <para><b>What this pins, and why it is a ROUND TRIP rather than a shape check.</b> Each shape is DECLARED in
@@ -28,15 +28,15 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// every shape is ACCEPTED assigning to itself — which is what fails first if a new
 /// <c>ObjectRefKind</c> is added without an arm in <c>OoConformance.ObjectRefAssignmentMismatch</c>, since the
 /// unhandled kind falls to a refusing arm. The UNIVERSAL-SENDER theory proves the same shapes REFUSE a sender
-/// their rule's closed list excludes: §14.9.39.3 SR10 (an interface-name receiver), SR12 (an object-class-name
+/// their rule's closed list excludes: §2023:14.9.39.3 SR10 (an interface-name receiver), SR12 (an object-class-name
 /// receiver) and SR14 (an ACTIVE-CLASS receiver) each enumerate their permitted senders, and a universal
 /// reference is in none of the three lists. Only the bare receiver accepts it — SR8 with GR22 b).</para>
 /// </summary>
 public sealed class ObjectRefDescriptorDriftTests
 {
-    /// <summary>The EIGHT writable shapes of the §13.18.60.2 general format, as the USAGE phrase text that
+    /// <summary>The EIGHT writable shapes of the §2023:13.18.60.2 general format, as the USAGE phrase text that
     /// follows <c>USAGE OBJECT REFERENCE</c>. <c>DRIFTI</c> is an interface, <c>DRIFTC</c> a class implementing
-    /// it on both halves; ACTIVE-CLASS resolves to the containing class (§13.18.60.3 SR16 admits it in a
+    /// it on both halves; ACTIVE-CLASS resolves to the containing class (§2023:13.18.60.3 SR16 admits it in a
     /// method's LOCAL-STORAGE, which is where every item below is declared).</summary>
     public static TheoryData<string> Shapes =>
     [
@@ -72,8 +72,8 @@ public sealed class ObjectRefDescriptorDriftTests
         var (ok, detail) = Compile(Source(shape, "SET X TO U."));
         if (shape.Length == 0)
         {
-            Assert.True(ok, "a UNIVERSAL receiver accepts any object reference (ISO §14.9.39.3 SR8; "
-                            + "§13.18.60.4 GR22 b)): " + detail);
+            Assert.True(ok, "a UNIVERSAL receiver accepts any object reference (ISO §2023:14.9.39.3 SR8; "
+                            + "§2023:13.18.60.4 GR22 b)): " + detail);
             return;
         }
         Assert.False(ok, $"USAGE OBJECT REFERENCE{shape} accepted a UNIVERSAL sender — SR10 / SR12 / SR14 each "
@@ -82,7 +82,7 @@ public sealed class ObjectRefDescriptorDriftTests
     }
 
     /// <summary>⛔ The class-NAME sender's governing rule is READ OFF THE RECEIVER (kb/Work PB451). Every
-    /// <c>ObjectRefKind</c> shall map to its OWN §14.9.39.3 rule — SR11 for an interface-name receiver, SR13
+    /// <c>ObjectRefKind</c> shall map to its OWN §2023:14.9.39.3 rule — SR11 for an interface-name receiver, SR13
     /// for an object-class-name receiver, SR14 for an ACTIVE-CLASS receiver, SR8 for the universal one —
     /// because each of those rules names the receiver's description in its own precondition. A new kind added
     /// without an arm falls to the discard and collides with SR8, which is exactly the hard-coded-one-rule
@@ -96,18 +96,18 @@ public sealed class ObjectRefDescriptorDriftTests
         var collided = byRule.Where(g => g.Count() > 1)
                              .Select(g => $"{g.Key} ← {string.Join(", ", g)}").ToList();
         Assert.True(collided.Count == 0,
-            "two ObjectRefKind values share one §14.9.39.3 rule label — a kind added without an arm in "
+            "two ObjectRefKind values share one §2023:14.9.39.3 rule label — a kind added without an arm in "
             + "OoConformance.ClassNameSenderRule fell through to the discard: " + string.Join(" | ", collided));
-        Assert.Equal("ISO §14.9.39.3 SR11",
+        Assert.Equal("ISO §2023:14.9.39.3 SR11",
             WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.Interface));
-        Assert.Equal("ISO §14.9.39.3 SR13",
+        Assert.Equal("ISO §2023:14.9.39.3 SR13",
             WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ObjectClass));
-        Assert.Equal("ISO §14.9.39.3 SR14",
+        Assert.Equal("ISO §2023:14.9.39.3 SR14",
             WiseOwl.Cobol.Compiler.Oo.OoConformance.ClassNameSenderRule(WiseOwl.Cobol.Binding.Model.ObjectRefKind.ActiveClass));
     }
 
     /// <summary>Two items of the given shape (X the receiver, Y the sender), a universal U, and the statement
-    /// under test — all in the LOCAL-STORAGE of an instance method of DRIFTC, the one place §13.18.60.3 SR16
+    /// under test — all in the LOCAL-STORAGE of an instance method of DRIFTC, the one place §2023:13.18.60.3 SR16
     /// admits ACTIVE-CLASS alongside every other shape.</summary>
     private static string Source(string shape, string stmt) => ($$"""
         IDENTIFICATION DIVISION.

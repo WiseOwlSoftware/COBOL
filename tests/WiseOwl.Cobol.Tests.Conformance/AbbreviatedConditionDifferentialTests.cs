@@ -5,13 +5,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ABBREVIATED COMBINED RELATION CONDITIONS (ISO/IEC 1989:2023 §8.8.4.12). In a paren-free sequence of relations joined
+/// ABBREVIATED COMBINED RELATION CONDITIONS (ISO/IEC 1989:2023 §2023:8.8.4.12). In a paren-free sequence of relations joined
 /// by AND / OR / XOR, a succeeding relation may omit the subject (operator stated — <c>A &gt; B OR &lt; C</c>) or both
-/// the subject and operator (a bare operand — <c>A = B AND C</c> ≡ <c>A = C</c>). §8.8.4.12.4 GR1: the last STATED
+/// the subject and operator (a bare operand — <c>A = B AND C</c> ≡ <c>A = C</c>). §2023:8.8.4.12.4 GR1: the last STATED
 /// subject and the last STATED relational operator are inserted; a NOT may be part of a carried relational operator
 /// (<c>A NOT &lt; C</c>); a parenthesized sub-condition is a complete simple condition that starts a fresh scope.
 /// <para>
-/// SPEC-ANCHORED: each case asserts the result DERIVED FROM §8.8.4.12.4 (the ISO spec is the authority for behavior).
+/// SPEC-ANCHORED: each case asserts the result DERIVED FROM §2023:8.8.4.12.4 (the ISO spec is the authority for behavior).
 /// The expected value is computed by hand-expanding per GR1 with
 /// A=5, B=3, C=7, D=5 (shown in each case).
 /// </para>
@@ -36,7 +36,7 @@ public sealed class AbbreviatedConditionDifferentialTests
             STOP RUN.
         """;
 
-    /// <summary>Assert the program's result equals the SPEC-DERIVED <paramref name="expected"/> (ISO §8.8.4.12.4).</summary>
+    /// <summary>Assert the program's result equals the SPEC-DERIVED <paramref name="expected"/> (ISO §2023:8.8.4.12.4).</summary>
     private static void AssertSpec(string proc, string expected)
     {
         string source = Program(proc);
@@ -62,10 +62,10 @@ public sealed class AbbreviatedConditionDifferentialTests
     // Longer chains (operator carry updates as it goes):
     [InlineData("A < B OR < C OR < D", "Y")] // (5<3) OR (5<7) OR (5<5) = T
     [InlineData("A = D AND > B AND C", "N")] // (5=5) AND (5>3) AND (5>7): bare C carries the last stated op (>) = F
-    // The §8.8.4.12.4 worked example: A > B AND NOT < C OR D ≡ ((A>B) AND (A NOT< C)) OR (A NOT< D); the carried
+    // The §2023:8.8.4.12.4 worked example: A > B AND NOT < C OR D ≡ ((A>B) AND (A NOT< C)) OR (A NOT< D); the carried
     // operator for the trailing bare D is the NOT-< from the abbreviated relation.
     [InlineData("A > B AND NOT < C OR D", "Y")] // ((5>3) AND (5≥7)) OR (5≥5) = (T AND F) OR T = T
-    // A leading logical NOT on relation-condition-1 is NOT carried (the relation's own operator is): the §8.8.4.12.4
+    // A leading logical NOT on relation-condition-1 is NOT carried (the relation's own operator is): the §2023:8.8.4.12.4
     // NOTE — NOT a = b OR c ≡ (NOT (a=b)) OR (a=c).
     [InlineData("NOT A = B OR C", "Y")] // (NOT(5=3)) OR (5=7) = T OR F = T
     // A parenthesized sub-condition is a complete simple condition that starts a FRESH abbreviation scope (GR1): inside,

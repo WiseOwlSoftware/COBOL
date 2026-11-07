@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A PRINTABLE ENTRY WITH A COLUMN CLAUSE AND NO OPERAND (kb/Work PB853), the PICTURE-BEARING shape.
-      *> ISO/IEC 1989:2023 §13.15.3 SR10: "Every elementary entry with a COLUMN clause shall also contain
+      *> ISO/IEC 1989:2023 §2023:13.15.3 SR10: "Every elementary entry with a COLUMN clause shall also contain
       *> either a SOURCE, VALUE or SUM clause." The rule had no site, and the binder FABRICATED the missing
       *> operand — a figurative SPACE sender — so this entry printed 000 (and once aborted the run unit).
       *> Its PICTURE-less twin is pb853-report-column-no-operand-no-picture; both must draw the SR10

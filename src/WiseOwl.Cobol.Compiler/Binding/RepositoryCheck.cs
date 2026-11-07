@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Runtime.Repository;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// ⛔ <c>--repository-check</c>: ISO §8.13's "mechanism that allows the user to specify whether to flag differences in
+/// ⛔ <c>--repository-check</c>: ISO §2023:8.13's "mechanism that allows the user to specify whether to flag differences in
 /// prototypes and definitions in the compilation group from the information in the external repository"
 /// (DESIGN-external-repository §9.2; kb/Work PB2103). Every outermost program or function — definition or prototype — of
 /// the group is compared by the ONE signature comparison (<see cref="PrototypeSignatures.FirstDifference"/>, over the
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <item>(b) every entry the resolver already opened that publishes the same externalized name as a program or function
 ///   (a definition that differs from a published prototype, a prototype that differs from a published definition).</item>
 /// </list>
-/// A difference is REPO-9, a WARNING: a signature change is a normal event, this compilation is the update, and §10.6.2
+/// A difference is REPO-9, a WARNING: a signature change is a normal event, this compilation is the update, and §2023:10.6.2
 /// SR2 / SR3's "shall" is scoped to one compilation group. The cost is one prefetched read of the previous output when it
 /// exists (§16); the entries of (b) are already open.
 /// </summary>
@@ -44,7 +44,7 @@ internal static class RepositoryCheck
         if (records.Count == 0) return;
 
         // What the records describe is compared, never joined to the group's types (a signature identity is a function of
-        // the signature alone, so a decoded pointer and a group pointer of one signature compare equal, §6.4).
+        // the signature alone, so a decoded pointer and a group pointer of one signature compare equal, §2023:6.4).
         foreach (var unit in outermost)
             foreach (var (source, record, previous) in records)
             {
@@ -63,8 +63,8 @@ internal static class RepositoryCheck
                     $"the {kind}{(unit.IsPrototype ? " prototype" : "")} {unit.Name} AS \"{unit.ExternalizedName}\" differs from "
                     + $"{(record.Kind is RepositoryUnitKind.ProgramPrototype or RepositoryUnitKind.FunctionPrototype ? "the prototype" : "the definition")} "
                     + $"{source} records, first in {difference}: callers compiled against that entry are checked at run time "
-                    + "by ISO §14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise; "
-                    + "recompile them (ISO §8.13; --repository-check off does not compare)");
+                    + "by ISO §2023:14.9.4.4 GR3 d) when checking is enabled in both, and adopt the arguments positionally otherwise; "
+                    + "recompile them (ISO §2023:8.13; --repository-check off does not compare)");
             }
     }
 
@@ -87,7 +87,7 @@ internal static class RepositoryCheck
             {
                 session.SearchSpace.Inputs.RecordRepositoryRead();
                 session.Edition.Warning(DiagnosticCatalog.RepositoryPreviousBuildSkew,
-                    $"the previous build '{output}' is not compared with this compilation: {skew} (ISO §8.13; DESIGN-external-repository §9.2)");
+                    $"the previous build '{output}' is not compared with this compilation: {skew} (ISO §2023:8.13; DESIGN-external-repository §9.2)");
                 return [];
             }
             var outcome = RepositoryReader.Read(index);

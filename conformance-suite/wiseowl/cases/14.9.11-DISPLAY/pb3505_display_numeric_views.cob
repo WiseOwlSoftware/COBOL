@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.4 GR1 (Annex A.1 item 56; kb/Work PB3505, owner decision PB3467) under the default
+      *> ISO §2023:14.9.11.4 GR1 (Annex A.1 item 56; kb/Work PB3505, owner decision PB3467) under the default
       *> `--numeric-display decimal`: ONE storage, ONE form. A numeric item shows the same text whether it
       *> is read through its own description, through a REDEFINES description of the same storage
-      *> (§13.18.44.4 GR2: either data-name references the storage area), as a table element or after
+      *> (§2023:13.18.44.4 GR2: either data-name references the storage area), as a table element or after
       *> a MOVE into the character view of its group; the alphanumeric view of the same storage is
       *> NOT a numeric item and shows the stored characters.
       *>

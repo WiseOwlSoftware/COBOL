@@ -8,7 +8,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OPNFAT85.
-      *> ISO/IEC 1989:2023 §14.9.27.4 GR10 — the OPEN statement's fixed
+      *> ISO/IEC 1989:2023 §2023:14.9.27.4 GR10 — the OPEN statement's fixed
       *> file attribute comparison, and the Annex A.1 item 129 validated
       *> set it delegates to the implementor (kb/Work PB193).
       *>
@@ -31,14 +31,14 @@
       *>   PART A (steps 1-9), a RELATIVE subject. A relative store is
       *>   an implementor-defined structure whose layout IS the record
       *>   type and the record sizes, so those are validated along with
-      *>   the organization — §9.1.6's "primary attribute", of which
-      *>   §9.1.6 names exactly three: "There are three organizations:
+      *>   the organization — §2023:9.1.6's "primary attribute", of which
+      *>   §2023:9.1.6 names exactly three: "There are three organizations:
       *>   sequential, relative, and indexed". The indexed key
       *>   attributes are the 2023 twin, ..._conflict_ix.
       *>
       *>   PART B (steps 10-13), a FIXED-LENGTH SEQUENTIAL subject.
       *>   Such a file is PLAIN BYTES and records NOTHING, so nothing
-      *>   about it is validated: §9.1.7.2 puts its record lengths
+      *>   about it is validated: §2023:9.1.7.2 puts its record lengths
       *>   in the data and in the reading program rather than in the
       *>   file — "In record sequential files the length of each
       *>   record is determined by any information the implementor may
@@ -46,7 +46,7 @@
       *>   record length headers)", and WiseOwl COBOL adds none to a
       *>   fixed-length record sequential file — and the standard
       *>   answers the resulting disagreement with a SUCCESSFUL
-      *>   completion: §9.1.13.2 item 3, "I-O status = 04. A READ
+      *>   completion: §2023:9.1.13.2 item 3, "I-O status = 04. A READ
       *>   statement is successfully executed but the physical record
       *>   from the file is shorter than or longer than the minimum or
       *>   maximum length of records allowed for the fixed file
@@ -57,24 +57,24 @@
       *>   cannot interpret it at all.
       *>
       *>   PART C (steps 14-16), a RECORD VARYING SEQUENTIAL subject.
-      *>   §9.1.7.2's "such as record length headers" is exactly what
+      *>   §2023:9.1.7.2's "such as record length headers" is exactly what
       *>   WiseOwl COBOL adds to a VARYING record-sequential file — a
       *>   4-byte little-endian length prefix per record, by the method
-      *>   §12.4.5.11.4 GR5 leaves to the implementor ("If the RECORD
+      *>   §2023:12.4.5.11.4 GR5 leaves to the implementor ("If the RECORD
       *>   DELIMITER clause is not specified, the method used for
       *>   determining the length of a variable-length record is
       *>   specified by the implementor") — so that prefix is the one
-      *>   §9.1.6 attribute a sequential file DOES record, and the
+      *>   §2023:9.1.6 attribute a sequential file DOES record, and the
       *>   whole of what GR10 compares for one.
       *>
       *> The rule is version-invariant (inventory row GR-14.9.27.4-10:
       *> 85, 2002, 2014, 2023), so it is pinned at the OLDEST edition
       *> here and at the newest by the indexed twin.
       *>
-      *> STEP 6 pins the other half of the determination: §14.9.27.4
+      *> STEP 6 pins the other half of the determination: §2023:14.9.27.4
       *> GR18 — "If the OUTPUT phrase is specified, the successful
       *> execution of the OPEN statement creates the file" — makes an
-      *> OPEN OUTPUT a CREATION, and §9.1.6 fixes a file's attributes
+      *> OPEN OUTPUT a CREATION, and §2023:9.1.6 fixes a file's attributes
       *> "at the time it is created". So OPEN OUTPUT is never judged
       *> against the previous file's attributes; it ESTABLISHES them,
       *> and steps 7 and 8 show the roles of the two FDs swapped.
@@ -182,7 +182,7 @@
        PROCEDURE DIVISION.
        MAIN-P.
       *> 1. Create PART A's subject. GR18: the OPEN OUTPUT creates the
-      *>    file, so §9.1.6 fixes its attributes here — RELATIVE, fixed
+      *>    file, so §2023:9.1.6 fixes its attributes here — RELATIVE, fixed
       *>    record type, minimum and maximum logical record size 20.
            OPEN OUTPUT F-MAKE
            MOVE "ALPHA" TO MK-REC
@@ -192,9 +192,9 @@
            CLOSE F-MAKE
            DISPLAY "S1-MAKE=" MK-ST
       *> 2. Record size 40 against a RELATIVE file created with 20 —
-      *>    §9.1.6's "minimum and maximum logical record size in bytes"
+      *>    §2023:9.1.6's "minimum and maximum logical record size in bytes"
       *>    are validated for a relative store, whose slot layout IS
-      *>    those sizes, so GR10's comparison fails: '39' (§9.1.13.6
+      *>    those sizes, so GR10's comparison fails: '39' (§2023:9.1.13.6
       *>    item 7).
            OPEN INPUT F-BIG
            DISPLAY "S2-BIGGER=" BG-ST
@@ -221,7 +221,7 @@
       *>    reports on stderr above. ⛔ The CLOSE is load-bearing: an
       *>    OPEN that was unsuccessful left NO connector open, so
       *>    step 6's OPEN OUTPUT on this same physical file would
-      *>    otherwise meet a §9.1.15 sharing conflict ('61') instead
+      *>    otherwise meet a §2023:9.1.15 sharing conflict ('61') instead
       *>    of GR18's creation.
            READ F-SEQ
                AT END DISPLAY "S3-UNEXPECTED-AT-END"
@@ -262,7 +262,7 @@
            END-READ
            DISPLAY "R2=[" BG-REC "]"
            CLOSE F-BIG
-      *> 9. §9.1.6's "record type (fixed or variable)": a RECORD IS
+      *> 9. §2023:9.1.6's "record type (fixed or variable)": a RECORD IS
       *>    VARYING connector over a relative file created with
       *>    fixed-length records conflicts even though its MAXIMUM
       *>    size agrees — the record type and the minimum do not.
@@ -280,13 +280,13 @@
            DISPLAY "S10-MAKE-SEQ=" GM-ST
       *> 11. THE DETERMINATION. A 30-byte record description over a
       *>     sequential file created with 20-byte records is NOT a
-      *>     file attribute conflict: '00'. §9.1.7.2 makes the record
+      *>     file attribute conflict: '00'. §2023:9.1.7.2 makes the record
       *>     length a property of the reading program here, and the
       *>     standard's answer to the disagreement is step 12's '04',
       *>     which a '39' at this step would make unreachable.
            OPEN INPUT G-WIDE
            DISPLAY "S11-SEQ-WIDER=" GW-ST
-      *> 12. §9.1.13.2 item 3. The file holds 40 bytes; read through a
+      *> 12. §2023:9.1.13.2 item 3. The file holds 40 bytes; read through a
       *>     30-byte description that is one full 30-byte record
       *>     ('00', the length equals the maximum) and then a 10-byte
       *>     remainder, which is SHORTER than the minimum — '04', a
@@ -315,13 +315,13 @@
       *>     bytes the 40-byte file does not hold — so the file is not
       *>     framed, the connector's declared VARIABLE record type
       *>     contradicts the medium, and GR10's comparison fails: '39'
-      *>     (§9.1.13.6 item 7).
+      *>     (§2023:9.1.13.6 item 7).
            OPEN INPUT G-VARY
            DISPLAY "S14-VARY-FOREIGN=" GV-ST
       *> 15. The other direction, without which the check could pass by
       *>     refusing every varying file: a varying file WiseOwl COBOL
       *>     itself wrote parses, so the OPEN succeeds and the record
-      *>     comes back at the length it was written (§13.18.43 GR13,
+      *>     comes back at the length it was written (§2023:13.18.43 GR13,
       *>     reported by GR15 in the DEPENDING ON item).
            OPEN OUTPUT H-VARY
            MOVE 5 TO HV-LEN
@@ -341,7 +341,7 @@
       *>     (it names 5 bytes and the file holds them), so there is no
       *>     file attribute conflict and the OPEN succeeds. The
       *>     disagreement is the READ's, and the standard answers it
-      *>     with §9.1.13.2 item 3's '04' — a SUCCESSFUL completion
+      *>     with §2023:9.1.13.2 item 3's '04' — a SUCCESSFUL completion
       *>     that a '39' at this OPEN would have made unreachable.
            OPEN INPUT J-VARY
            DISPLAY "S16-VARY-BOUNDS-OPEN=" JV-ST

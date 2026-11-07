@@ -6,10 +6,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §15.93/§15.94 TEST-NUMVAL/-C position-reporting scanners (P11 Step 6) — the RUNTIME scan alone, at the
-/// shapes a golden would need a whole compilation unit for: the DECIMAL-POINT IS COMMA role swap (§15.67.3 r5
-/// substitutes for NUMVAL; §15.68.3 r4d SWAPS both separator roles for NUMVAL-C), the SDIDI 34-digit cap
-/// (§15.93.4 r1b sub-note 4), and the b)-vs-c)-leg discrimination for digit-free strings. Verdict values
+/// The §2023:15.93/§2023:15.94 TEST-NUMVAL/-C position-reporting scanners (P11 Step 6) — the RUNTIME scan alone, at the
+/// shapes a golden would need a whole compilation unit for: the DECIMAL-POINT IS COMMA role swap (§2023:15.67.3 r5
+/// substitutes for NUMVAL; §2023:15.68.3 r4d SWAPS both separator roles for NUMVAL-C), the SDIDI 34-digit cap
+/// (§2023:15.93.4 r1b sub-note 4), and the b)-vs-c)-leg discrimination for digit-free strings. Verdict values
 /// hand-derived in PHASE-11-scout-notes.md (spec:validators).
 /// <para>
 /// ⛔ EVERY TEST HERE PASSES THE DECISION AS A LITERAL, so none of them measures the COMPILER arm that computes
@@ -27,13 +27,13 @@ public sealed class TestNumvalScannerTests
     [Fact]
     public void CommaMode_SwapsSeparatorRoles()
     {
-        // NUMVAL under DECIMAL-POINT IS COMMA (§15.67.3 r5): the comma IS the decimal separator...
+        // NUMVAL under DECIMAL-POINT IS COMMA (§2023:15.67.3 r5): the comma IS the decimal separator...
         Assert.Equal(0, CobolIntrinsics.TestNumval("1,5", commaMode: true));
         // ...and the period is no longer a NUMVAL character at all.
         Assert.Equal(2, CobolIntrinsics.TestNumval("1.5", commaMode: true));
-        // NUMVAL-C (§15.68.3 r4d): BOTH roles swap — '.' groups, ',' is the decimal point.
+        // NUMVAL-C (§2023:15.68.3 r4d): BOTH roles swap — '.' groups, ',' is the decimal point.
         Assert.Equal(0, CobolIntrinsics.TestNumvalC("$1.234,56", "$", commaMode: true));
-        // A grouping separator after the decimal separator is not part of the format (§15.68.4 r2 scope):
+        // A grouping separator after the decimal separator is not part of the format (§2023:15.68.4 r2 scope):
         // in "$1,23.4" under comma mode the ',' is the decimal, so the '.' at position 6 is first in error.
         Assert.Equal(6, CobolIntrinsics.TestNumvalC("$1,23.4", "$", commaMode: true));
     }
@@ -53,15 +53,15 @@ public sealed class TestNumvalScannerTests
     public void NoDigit_BLegAtOffendingChar_CLegAtEnd()
     {
         // A digit-free scan that BROKE on a real character is r1b at that character ('$-123': the sign
-        // may not follow the currency — neither §15.68.3 format)...
+        // may not follow the currency — neither §2023:15.68.3 format)...
         Assert.Equal(2, CobolIntrinsics.TestNumvalC("$-123", "$"));
         // ...while a valid-but-incomplete prefix that ran off the end is r1c LENGTH+1 (a bare currency).
         Assert.Equal(2, CobolIntrinsics.TestNumvalC("$", "$"));
         Assert.Equal(4, CobolIntrinsics.TestNumval(" +."));
     }
 
-    /// <summary>kb/Work PB2631 - §15.68.3 r4a: the grouping separator is `digit [ , digit ] ...`, admitted only as
-    /// ", digit". The character after a separator that is not a digit is the first one in error (§15.94.4 r1b); a text
+    /// <summary>kb/Work PB2631 - §2023:15.68.3 r4a: the grouping separator is `digit [ , digit ] ...`, admitted only as
+    /// ", digit". The character after a separator that is not a digit is the first one in error (§2023:15.94.4 r1b); a text
     /// that ends right after it is valid-but-incomplete (r1c, LENGTH + 1). The value twin rides the same scan, so
     /// the non-conforming forms are rejected there too (no fabricated 1.5 / 12).</summary>
     [Theory]
@@ -87,14 +87,14 @@ public sealed class TestNumvalScannerTests
     {
         Assert.Equal(expected, CobolIntrinsics.TestNumvalC(text, "$", commaMode));
         // Never accepted by the value twin when the validator rejects (one scan, kb/Work PB60): checking off, the
-        // §15.3 default 0 comes back; a conforming text keeps its value (always nonzero here).
+        // §2023:15.3 default 0 comes back; a conforming text keeps its value (always nonzero here).
         bool conforming = expected == 0;
         CobolDec value = CobolIntrinsics.NumvalCDec(text, "$", commaMode);
         Assert.Equal(conforming, CobolDec.Compare(value, new CobolDec(0, 0)) != 0);
     }
 
-    /// <summary>kb/Work PB2631 - §15.68.3 r4 f defines ANYCASE by the LOWER-CASE fold, the SAME one FIND-STRING (§15.37.4
-    /// r4) and SUBSTITUTE (§15.87.4 r5) use. The KELVIN SIGN (U+212A) lowercases to "k" but its uppercase is itself, so a
+    /// <summary>kb/Work PB2631 - §2023:15.68.3 r4 f defines ANYCASE by the LOWER-CASE fold, the SAME one FIND-STRING (§2023:15.37.4
+    /// r4) and SUBSTITUTE (§2023:15.87.4 r5) use. The KELVIN SIGN (U+212A) lowercases to "k" but its uppercase is itself, so a
     /// lowercase-fold matcher accepts it for the currency "k" and an uppercase-fold one (OrdinalIgnoreCase, the old
     /// NUMVAL-C comparison) does not - the three families must agree on the same letters.</summary>
     [Fact]
@@ -112,13 +112,13 @@ public sealed class TestNumvalScannerTests
     {
         Assert.Equal(1, CobolIntrinsics.TestNumvalC("usd 12", "USD"));
         Assert.Equal(0, CobolIntrinsics.TestNumvalC("usd 12", "USD", anycase: true));
-        // The value parser mirrors the fold (§15.94.1 — TEST verifies what NUMVAL-C would accept).
+        // The value parser mirrors the fold (§2023:15.94.1 — TEST verifies what NUMVAL-C would accept).
         Assert.Equal((Int128)12, CobolIntrinsics.NumvalCDec("usd 12", "USD", anycase: true).ToUnscaled(0, CobolRounding.Truncation));
     }
 
-    /// <summary>kb/Work PB4511 - the trailing sign of format B is <c>+</c>, <c>-</c>, <c>CR</c> or <c>DB</c> (§15.67.3 r1). A C
-    /// or D that opens the pair is a valid prefix, so the first character IN ERROR (§15.93.4 1) b)) is the one that fails
-    /// to complete it, and text that ends right after it is valid-but-incomplete (§15.93.4 1) c): LENGTH + 1). With a
+    /// <summary>kb/Work PB4511 - the trailing sign of format B is <c>+</c>, <c>-</c>, <c>CR</c> or <c>DB</c> (§2023:15.67.3 r1). A C
+    /// or D that opens the pair is a valid prefix, so the first character IN ERROR (§2023:15.93.4 1) b)) is the one that fails
+    /// to complete it, and text that ends right after it is valid-but-incomplete (§2023:15.93.4 1) c): LENGTH + 1). With a
     /// leading sign no CR/DB is admitted, so the C or D itself is the character in error.</summary>
     [Theory]
     [InlineData("4.5 D", 6)]

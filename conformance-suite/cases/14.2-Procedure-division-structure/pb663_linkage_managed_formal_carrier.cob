@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.2.3 GR8 / GR10 + §14.8.2.3.2 — a LINKAGE formal of class
+      *> ISO §2023:14.2.3 GR8 / GR10 + §2023:14.8.2.3.2 — a LINKAGE formal of class
       *> POINTER or class OBJECT-REFERENCE is carried by ITS OWN class's
       *> carrier, exactly as a numeric formal is (kb/Work PB663).
       *> GR8: "If the argument is passed by reference, the activated
@@ -17,12 +17,12 @@
       *> statement" when "the formal parameter is of class object or
       *> pointer" — a DETACHED copy, so the callee's SET never reaches
       *> the caller.
-      *> §14.8.2.3.2: "If either the argument or the formal parameter is
+      *> §2023:14.8.2.3.2: "If either the argument or the formal parameter is
       *> of class pointer, the corresponding formal parameter or argument
       *> shall be of class pointer and the corresponding items shall be
       *> of the same category" — the two sides carry the same shape, so
       *> the crossing needs no conversion at all.
-      *> §14.9.4.3 SR10 bars a FORMAT 1 CALL from passing such an item BY
+      *> §2023:14.9.4.3 SR10 bars a FORMAT 1 CALL from passing such an item BY
       *> REFERENCE, so every activation here is Format 2 (AS NESTED) —
       *> which is exactly why this crossing had no arm for so long.
        IDENTIFICATION DIVISION.
@@ -40,7 +40,7 @@
            SET W-PTR TO NULL.
            CALL "PB663SUBP10" AS NESTED USING BY REFERENCE W-PTR.
       *> BY REFERENCE, a real address: the formal dereferences the
-      *> caller's own storage (§14.2.3 GR8 — the same storage area).
+      *> caller's own storage (§2023:14.2.3 GR8 — the same storage area).
            SET W-PTR TO ADDRESS OF W-AREA.
            CALL "PB663SUBP10" AS NESTED USING BY REFERENCE W-PTR.
       *> The callee SET the formal to NULL under BY REFERENCE, so GR8
@@ -72,7 +72,7 @@
            ELSE
                DISPLAY "AFTER-VAL=SET"
            END-IF.
-      *> FORMAT 1 BY CONTENT. §14.9.4.3 SR10 bars only the BY REFERENCE
+      *> FORMAT 1 BY CONTENT. §2023:14.9.4.3 SR10 bars only the BY REFERENCE
       *> phrase, so an ordinary Format-1 CALL may pass a class-pointer
       *> item BY CONTENT — and that takes GR9's FIRST branch ("no
       *> program-specifier ... and no NESTED phrase"), where the
@@ -88,12 +88,12 @@
                DISPLAY "AFTER-F1C=SET"
            END-IF.
       *> A PROGRAM-POINTER formal: the address crosses, and the CALL
-      *> through the formal reaches the addressed program (§8.4.3.13
-      *> GR1 — SET ... TO ENTRY; §14.9.4 Format 1 identifier-1).
+      *> through the formal reaches the addressed program (§2023:8.4.3.13
+      *> GR1 — SET ... TO ENTRY; §2023:14.9.4 Format 1 identifier-1).
            SET W-PPTR TO ENTRY "PB663TGTP10".
            CALL "PB663PPSUBP10" AS NESTED USING BY REFERENCE W-PPTR.
       *> An OBJECT REFERENCE formal: its initial state is NULL
-      *> (§13.18.63) and it crosses as the reference, not an image.
+      *> (§2023:13.18.63) and it crosses as the reference, not an image.
            CALL "PB663ORSUBP10" AS NESTED USING BY REFERENCE W-OREF.
            STOP RUN.
 

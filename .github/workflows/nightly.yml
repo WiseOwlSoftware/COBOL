@@ -87,7 +87,7 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
       # guard-fast.sh restores and builds the compiler under test itself, creates tests/nist/output and copies the runtime
       # DLL there; a fresh checkout needs no extra prep. It proves its own verdicts still MEAN what they say first
-      # (scripts/guard-verify.sh's evidence-rule witnesses, §3.10 corollary 3, kb/Work PB473) and is not ALL GREEN unless
+      # (scripts/guard-verify.sh's evidence-rule witnesses, §2023:3.10 corollary 3, kb/Work PB473) and is not ALL GREEN unless
       # they are.
       - name: Run parallel guard (scripts/guard-fast.sh)
         run: bash scripts/guard-fast.sh

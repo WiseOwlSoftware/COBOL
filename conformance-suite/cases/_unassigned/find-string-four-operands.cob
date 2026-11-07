@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.37.2 gives FIND-STRING exactly three argument positions —
+      *> ISO §2023:15.37.2 gives FIND-STRING exactly three argument positions —
       *>   FUNCTION FIND-STRING argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]
       *> — argument-1 and argument-2 required, argument-3 optional and written once. The format has no
       *> repetition, so a fourth operand argument is not a shape it produces and shall be rejected

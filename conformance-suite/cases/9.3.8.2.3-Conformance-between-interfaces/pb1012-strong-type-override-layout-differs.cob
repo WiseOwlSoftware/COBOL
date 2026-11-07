@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.3.8.2.3 rule 7 through §11.7.3 SR9 — an OVERRIDE whose
+      *> ISO §2023:9.3.8.2.3 rule 7 through §2023:11.7.3 SR9 — an OVERRIDE whose
       *>   strong type has the SAME type-name but a different layout
       *> Rule: "If either of the corresponding formal parameters or
       *>   returning items in interface-1 or interface-2 is a
@@ -12,22 +12,22 @@
       *> cite.py --check 9.3.8.2.3 "If either of the corresponding
       *>   formal parameters or returning items in interface-1 or
       *>   interface-2 is a strongly-typed group item, both are of the
-      *>   same type" -> OK  §9.3.8.2.3 7)  (Conformance between
+      *>   same type" -> OK  §2023:9.3.8.2.3 7)  (Conformance between
       *>   interfaces)
       *> cite.py --check 8.5.3.1 "starting at the same relative byte or
       *>   bit position and having the same length in bytes or bits"
-      *>   -> OK  §8.5.3.1   (General)
+      *>   -> OK  §2023:8.5.3.1   (General)
       *> cite.py --check 11.7.3 "the parameter declarations, returning
       *>   item, and exceptions that may be raised on the procedure
       *>   division header shall obey the rules of conformance
-      *>   according to 9.3.8.2.3" -> OK  §11.7.3 9)  (Syntax rules)
+      *>   according to 9.3.8.2.3" -> OK  §2023:11.7.3 9)  (Syntax rules)
       *> PB1012NB's SWAPT overrides PB1012NA's (interface-1 is the
       *>   override's object interface, interface-2 the overridden
       *>   one's). Both formals are TYPE TT, a TYPEDEF STRONG of the
       *>   same type-name, but TT-F is PIC X(4) in PB1012NA and PIC
       *>   X(5) in PB1012NB: the elementary items do not have the same
-      *>   length, so the declarations are not equivalent (§8.5.3.1),
-      *>   the formals are not of the same type and §11.7.3 SR9 is
+      *>   length, so the declarations are not equivalent (§2023:8.5.3.1),
+      *>   the formals are not of the same type and §2023:11.7.3 SR9 is
       *>   violated: COBOL0829.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1012NA INHERITS FROM BASE.

@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.2 — USAGE POINTER is a COBOL-2002 usage. kb/Work PB4235 made a TO-less
-      *> operand spelled with a §8.10 screen word (AUTO, context-sensitive in the "screen description entry",
-      *> a user-defined word elsewhere by §8.3.2.1 3)) the operand of a data description entry; this pins that
+      *> ISO/IEC 1989:2023 §2023:13.18.60.2 — USAGE POINTER is a COBOL-2002 usage. kb/Work PB4235 made a TO-less
+      *> operand spelled with a §2023:8.10 screen word (AUTO, context-sensitive in the "screen description entry",
+      *> a user-defined word elsewhere by §2023:8.3.2.1 3)) the operand of a data description entry; this pins that
       *> the reading does not leak below the edition that introduced the usage — the introduction gate still
       *> names POINTER, and the entry is never refused as "'AUTO' is not a clause" (the PB4235 COBOL1941).
        IDENTIFICATION DIVISION.

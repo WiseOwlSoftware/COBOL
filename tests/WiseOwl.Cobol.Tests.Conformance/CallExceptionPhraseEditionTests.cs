@@ -35,7 +35,7 @@ public sealed class CallExceptionPhraseEditionTests
             EXIT PROGRAM.
         """;
 
-    /// <summary>ON EXCEPTION compiles at every edition (X3.23-1985 CALL Format 2 → ISO §14.9.4 — a continuity
+    /// <summary>ON EXCEPTION compiles at every edition (X3.23-1985 CALL Format 2 → ISO §2023:14.9.4 — a continuity
     /// invariant; the construct was never introduced later nor removed).</summary>
     [Theory]
     [InlineData(85)]

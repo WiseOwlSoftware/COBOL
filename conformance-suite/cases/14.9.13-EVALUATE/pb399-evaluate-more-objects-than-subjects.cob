@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.13.3 SR2: "The number of selection objects within each set of selection objects shall be
+      *> ISO §2023:14.9.13.3 SR2: "The number of selection objects within each set of selection objects shall be
       *> equal to the number of selection subjects."  One selection subject, two selection objects.
       *>
-      *> A SYNTAX RULE VIOLATION IS A COMPILE-TIME DIAGNOSTIC (§4.2.2).  This used to be caught by a
+      *> A SYNTAX RULE VIOLATION IS A COMPILE-TIME DIAGNOSTIC (§2023:4.2.2).  This used to be caught by a
       *> DEFENSIVE INDEX GUARD inside the pairing loop, which returned a BoundUnsupported into the bound
       *> tree — so the "diagnostic" arrived as an unhandled NotImplementedCobolFeatureException at RUN TIME,
       *> and only if that WHEN phrase was actually reached (kb/Work PB399).

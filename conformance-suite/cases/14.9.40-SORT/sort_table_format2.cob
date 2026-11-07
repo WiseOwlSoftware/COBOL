@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.40 Format 2 — COBOL-2002 table SORT (sort a table in place). The "self-key" form sorts
+      *> ISO §2023:14.9.40 Format 2 — COBOL-2002 table SORT (sort a table in place). The "self-key" form sorts
       *> the elements of an OCCURS table on the elements themselves (ASCENDING/DESCENDING), with no input/
       *> output procedures or files. (Backfill regression test for the landed feature, DEVLOG 353.)
        IDENTIFICATION DIVISION.

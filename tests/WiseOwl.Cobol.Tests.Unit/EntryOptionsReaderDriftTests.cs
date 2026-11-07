@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY OPTIONS FACT A DATA ENTRY'S DESCRIPTION READS COMES FROM THE MODEL OF THE SOURCE ELEMENT THE ENTRY IS IN (kb/Work
-/// PB4464). ISO §11.9.4 GR1 makes an OPTIONS paragraph govern the source element it is written in, and a METHOD is a source
+/// PB4464). ISO §2023:11.9.4 GR1 makes an OPTIONS paragraph govern the source element it is written in, and a METHOD is a source
 /// element of its own, so its LOCAL-STORAGE and LINKAGE entries are described under the METHOD's model, not the class
 /// half's. <c>DataBinder.BindEntry</c> read the class half's model (<c>State.Configuration.Options</c>) for the FLOAT-BINARY
 /// endianness of a standard binary floating-point item with no endianness-phrase, so a method's own

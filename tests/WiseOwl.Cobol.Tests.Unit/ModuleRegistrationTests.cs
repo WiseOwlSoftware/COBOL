@@ -7,13 +7,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>kb/Work PB2097 — the run unit's ONE module-registration set (docs/rearchitecture/DESIGN-external-repository.md
-/// §11.2, §17.3 "One registration set"): <see cref="ProgramTable.RegisterModule"/> is the only writer of a run unit's
+/// §2023:11.2, §17.3 "One registration set"): <see cref="ProgramTable.RegisterModule"/> is the only writer of a run unit's
 /// programs, each module is registered once however it is reached (the emitted <c>Main</c>, the sibling-module probe, a
 /// host), and a module carrying an already-registered outermost name, or compiled against another runtime major or call
-/// ABI, registers NOTHING. ISO/IEC 1989:2023 §8.3.2.2 2) (cite.py OK): "Within a run unit, all instances of a given name
+/// ABI, registers NOTHING. ISO/IEC 1989:2023 §2023:8.3.2.2 2) (cite.py OK): "Within a run unit, all instances of a given name
 /// that is externalized to the operating environment shall identify the same kind of entity or item ... when two or more
 /// source elements identify something with the same externalized name, they refer to the same instance." A refusal is
-/// §14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located", cite.py OK).</summary>
+/// §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND ("If the program cannot be located", cite.py OK).</summary>
 public sealed class ModuleRegistrationTests
 {
     private sealed class Stub : ICobolProgram
@@ -89,7 +89,7 @@ public sealed class ModuleRegistrationTests
 
     [Theory]
     [InlineData(false)]   // the second module defines the name as a program again
-    [InlineData(true)]    // ... or as a function: one externalized name identifies one kind of entity (§8.3.2.2 2)
+    [InlineData(true)]    // ... or as a function: one externalized name identifies one kind of entity (§2023:8.3.2.2 2)
     public void AModuleCarryingAnAlreadyRegisteredName_IsRefusedWhole_NamingBothModules(bool asFunction)
     {
         var table = new RunUnit().Programs;
@@ -151,7 +151,7 @@ public sealed class ModuleRegistrationTests
 
     /// <summary>kb/Work PB2843: a registrar that repeats a path, inside its module or across modules, is a compiler
     /// defect, refused LOUDLY rather than replacing a node another unit registered. Like every registrar fault it is
-    /// §14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND naming the module and the fault (DESIGN-external-repository §11.2, kb/Work
+    /// §2023:14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND naming the module and the fault (DESIGN-external-repository §11.2, kb/Work
     /// PB2101): the module registers nothing.</summary>
     [Fact]
     public void ARepeatedPath_IsRefusedLoudly_NeverReplacingANode()
@@ -224,7 +224,7 @@ public sealed class ModuleRegistrationTests
         Assert.True(Located(table, "P5398D"));
     }
 
-    /// <summary>One module naming one externalized name twice is a registrar defect too (§8.3.2.2 2): refused whole, so the
+    /// <summary>One module naming one externalized name twice is a registrar defect too (§2023:8.3.2.2 2): refused whole, so the
     /// per-kind name dictionary never sees a duplicate.</summary>
     [Fact]
     public void AModuleCarryingOneOutermostNameTwice_RegistersNothing()

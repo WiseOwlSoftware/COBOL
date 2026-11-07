@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime.Exceptions;
 
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>The locale categories of ISO/IEC 1989:2023 §8.2.1 / §14.9.39 (SET LOCALE): LC_ALL names every category.</summary>
+/// <summary>The locale categories of ISO/IEC 1989:2023 §2023:8.2.1 / §2023:14.9.39 (SET LOCALE): LC_ALL names every category.</summary>
 public enum LocaleCategory
 {
     All = 0,
@@ -18,10 +18,10 @@ public enum LocaleCategory
     Time = 6,
 }
 
-/// <summary>A SET of locale categories — the operand shape of SET LOCALE format 11 (ISO §14.9.39.2: the LC_ brace
-/// carries choice indicators, so "one or more of the alternatives … each at most once … in any order" per §5.2.6.4;
+/// <summary>A SET of locale categories — the operand shape of SET LOCALE format 11 (ISO §2023:14.9.39.2: the LC_ brace
+/// carries choice indicators, so "one or more of the alternatives … each at most once … in any order" per §2023:5.2.6.4;
 /// DESIGN-locale-facility §4.3 — a scalar category would reject legal source). LC_ALL is every category
-/// (§8.2.1's table: WiseOwl COBOL's locale exposes exactly these six).</summary>
+/// (§2023:8.2.1's table: WiseOwl COBOL's locale exposes exactly these six).</summary>
 [Flags]
 public enum LocaleCategorySet
 {
@@ -36,9 +36,9 @@ public enum LocaleCategorySet
 }
 
 /// <summary>
-/// A LOCALE as COBOL sees it: a value per category (ISO §8.2.1 — "a locale specifies a set of cultural elements"
+/// A LOCALE as COBOL sees it: a value per category (ISO §2023:8.2.1 — "a locale specifies a set of cultural elements"
 /// grouped into categories). A locale identified by ONE external identification has the same tag in every slot
-/// (<see cref="Of"/>); a SAVED locale (SET format 12, §14.9.39.4 GR26) is the per-category snapshot of the state it
+/// (<see cref="Of"/>); a SAVED locale (SET format 12, §2023:14.9.39.4 GR26) is the per-category snapshot of the state it
 /// was taken from, which may name different locales per category (after a SET of LC_TIME alone). Immutable.
 /// Tags are BCP-47 / CLDR ("es-ES", "fr", ""); "" is the root.
 /// </summary>
@@ -66,7 +66,7 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
     };
 
     /// <summary>This value with the categories in <paramref name="categories"/> taken from <paramref name="from"/>
-    /// (§14.6.6 r3: "the current locale remains unchanged for categories that are not switched").</summary>
+    /// (§2023:14.6.6 r3: "the current locale remains unchanged for categories that are not switched").</summary>
     public LocaleValue With(LocaleCategorySet categories, LocaleValue from) => new(
         categories.HasFlag(LocaleCategorySet.Collate) ? from.Collate : Collate,
         categories.HasFlag(LocaleCategorySet.Ctype) ? from.Ctype : Ctype,
@@ -83,9 +83,9 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
 }
 
 /// <summary>
-/// The external identification of a locale (ISO §12.3.7.4 GR5 — "locale-name-1 references a locale identified by
+/// The external identification of a locale (ISO §2023:12.3.7.4 GR5 — "locale-name-1 references a locale identified by
 /// external-locale-name-1 or the value of literal-4. The implementor specifies the allowable external-locale-names
-/// and the allowable content of literal-4"; §8.3.2.3.7 — "An external-locale-name identifies a locale that
+/// and the allowable content of literal-4"; §2023:8.3.2.3.7 — "An external-locale-name identifies a locale that
 /// specifies a set of cultural elements. This locale is provided in the operating environment").
 /// <para><b>⚖ DETERMINATION L1 (DESIGN-locale-facility §4.1):</b> the identification is a locale TAG — a BCP-47 tag
 /// (<c>fr-FR</c>, <c>de-CH</c>, <c>ja-JP</c>, <c>zh-Hant</c>), which since PB105 is every CLDR locale, or the
@@ -95,24 +95,24 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
 /// collation type (<c>@phonebook</c>, <c>@pinyin</c>, <c>@stroke</c>, <c>@trad</c> …) becomes the BCP-47 extension
 /// <c>-u-co-&lt;type&gt;</c>, any other modifier makes the locale unavailable (EC-LOCALE-MISSING at use).
 /// <c>fr_FR</c>, <c>fr_FR.UTF-8</c> and <c>fr-FR</c> therefore SELECT the same locale — which matters because
-/// <c>fr_FR</c> is a legal COBOL word (§8.3.2.1 admits the underscore) and appears in the external-locale-name
+/// <c>fr_FR</c> is a legal COBOL word (§2023:8.3.2.1 admits the underscore) and appears in the external-locale-name
 /// branch while <c>"fr_FR.UTF-8"</c> appears in the literal branch. ⚠ Selecting the same locale is not having
-/// "the same external identification": §8.5.3.1 and the §9.3.8.2.3 / §14.8.2.3.2 / §14.8.3.3 PICTURE-clause
+/// "the same external identification": §2023:8.5.3.1 and the §2023:9.3.8.2.3 / §2023:14.8.2.3.2 / §2023:14.8.3.3 PICTURE-clause
 /// rules define that identification as "the external-locale-name or literal value" itself, so those compare the
 /// identification as WRITTEN (the compiler's <c>LocaleSymbol.SameExternalIdentificationAs</c>, kb/Work PB1166) and
 /// never this normalization.
-/// Availability is a RUN-TIME property (§8.1.5 — the ordering "is determined at runtime"): the compiler never
+/// Availability is a RUN-TIME property (§2023:8.1.5 — the ordering "is determined at runtime"): the compiler never
 /// resolves a tag; <see cref="IsAvailable"/> is the one rule, <see cref="CollationEngine.IsKnownLocale"/>.</para>
 /// </summary>
 public static class LocaleIdentification
 {
     /// <summary>Do two LOCALE phrases carry "the same external identification, where the external identification is
-    /// the external-locale-name or literal value associated with a locale-name in the LOCALE clause" (ISO §8.5.3.1
-    /// "Additionally", §9.3.6 match rule 3 e) 3. b., §9.3.8.2.3 rule 3 "Additionally", §14.8.2.3.2 "Additionally" a),
-    /// §14.8.3.3 "Additionally" 1))? The identification AS WRITTEN — never the locale <see cref="Normalize"/> resolves it
+    /// the external-locale-name or literal value associated with a locale-name in the LOCALE clause" (ISO §2023:8.5.3.1
+    /// "Additionally", §2023:9.3.6 match rule 3 e) 3. b., §2023:9.3.8.2.3 rule 3 "Additionally", §2023:14.8.2.3.2 "Additionally" a),
+    /// §2023:14.8.3.3 "Additionally" 1))? The identification AS WRITTEN — never the locale <see cref="Normalize"/> resolves it
     /// to (kb/Work PB1166): <c>"en-US"</c> and <c>"en_US.UTF-8"</c> select one locale but are two literal values. A
     /// literal value compares character for character; an external-locale-name is a COBOL word, and COBOL basic letters
-    /// outside a literal are case-insensitive (§8.1.3.2 GR3 a)), so any pair involving one compares without regard to
+    /// outside a literal are case-insensitive (§2023:8.1.3.2 GR3 a)), so any pair involving one compares without regard to
     /// case. The ONE copy of the rule: the compiler's <c>LocaleSymbol</c> and the run-time universal-dispatch relation
     /// (<see cref="ActivationRelations"/>, kb/Work PB480) both ask it.</summary>
     public static bool SameExternalIdentification(string a, bool aFromLiteral, string b, bool bFromLiteral) =>
@@ -147,7 +147,7 @@ public static class LocaleIdentification
         return s;
     }
 
-    /// <summary>Is the locale available in this operating environment (§14.9.39.4 GR24 — "If the locale specified by
+    /// <summary>Is the locale available in this operating environment (§2023:14.9.39.4 GR24 — "If the locale specified by
     /// locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist")? The ONE rule
     /// (<see cref="CollationEngine.IsKnownLocale"/>): the root; a locale with CLDR collation data of its own; a
     /// site <c>.tailor</c>; a culture .NET recognizes. A <c>-u-</c> extension is allowed.</summary>
@@ -155,23 +155,23 @@ public static class LocaleIdentification
 }
 
 /// <summary>
-/// The run unit's LOCALE state (DESIGN-locale-facility §4.3; ISO §8.2.1 "the current locale", §14.6.6): the two
+/// The run unit's LOCALE state (DESIGN-locale-facility §4.3; ISO §2023:8.2.1 "the current locale", §2023:14.6.6): the two
 /// implementor defaults, the locale currently in effect per category, and the saved-locale handles of SET format 12.
 /// Owned by <see cref="RunUnit"/> — one per run unit, established at activation, NEVER per activation frame:
-/// §14.6.6 r9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
+/// §2023:14.6.6 r9 — "Upon return of control from another COBOL runtime element, the locale in effect for each locale
 /// category at the time of exit from the returning runtime element becomes the current locale for that category" —
 /// so a callee's SET is not unwound (the callee restores, per the NOTE). Nothing else may hold current-locale state
 /// (one mechanism; <c>LocaleManager</c> and the <c>IS LOCALE</c> collating sequence read THIS).
 /// <para><b>⚖ DETERMINATION L2 (owner decision Q2, 2026-08-18):</b> the USER default locale is the environment variable
 /// <c>COBOL_USER_LOCALE</c>, else the process's <see cref="CultureInfo.CurrentCulture"/>, else the root; the SYSTEM
 /// default is <c>COBOL_SYSTEM_LOCALE</c>, else <see cref="CultureInfo.InstalledUICulture"/>, else the root. Both are
-/// read ONCE, when the state is created (L3 — a foreign <c>CurrentCulture</c> switch is never observed; §8.2.1:
-/// a default switched by a non-COBOL module "is not utilized by COBOL unless a SET statement is executed"). §8.2.1:
+/// read ONCE, when the state is created (L3 — a foreign <c>CurrentCulture</c> switch is never observed; §2023:8.2.1:
+/// a default switched by a non-COBOL module "is not utilized by COBOL unless a SET statement is executed"). §2023:8.2.1:
 /// "The capability of setting the system default locale from COBOL is not provided" — <see cref="SystemDefault"/>
-/// has no setter; the USER default is set by SET LOCALE USER-DEFAULT TO … (§14.9.39.4 GR22).</para>
-/// <para><b>The state model</b> (§14.6.6): r1 — at activation the user default becomes current for every category
+/// has no setter; the USER default is set by SET LOCALE USER-DEFAULT TO … (§2023:14.9.39.4 GR22).</para>
+/// <para><b>The state model</b> (§2023:14.6.6): r1 — at activation the user default becomes current for every category
 /// (a COPY: a later change of the user default does not move categories already current); r3 — a SET switches only
-/// the named categories; §14.9.39.4 GR25 — each stays until another SET names it. Values are per-category
+/// the named categories; §2023:14.9.39.4 GR25 — each stays until another SET names it. Values are per-category
 /// (<see cref="LocaleValue"/>) because a SAVED locale (GR26) snapshots a state whose categories may differ.</para>
 /// <para><b>⚖ DETERMINATION L4 — the saved-locale pointer is a managed handle:</b> SET format 12 allocates a
 /// <see cref="SavedLocalePointer"/> (an immutable snapshot, owned by THIS state, numbered monotonically) and stores it
@@ -194,14 +194,14 @@ public sealed class LocaleState
     {
         UserDefault = LocaleValue.Of(Determine(UserDefaultVariable, () => CultureInfo.CurrentCulture));
         SystemDefault = LocaleValue.Of(Determine(SystemDefaultVariable, () => CultureInfo.InstalledUICulture));
-        _current = UserDefault;   // §14.6.6 r1 — the user default becomes the current locale for all categories
+        _current = UserDefault;   // §2023:14.6.6 r1 — the user default becomes the current locale for all categories
     }
 
     /// <summary>The user default locale (L2), fixed at run-unit activation unless a SET LOCALE USER-DEFAULT TO …
-    /// changes it (§14.9.39.4 GR22).</summary>
+    /// changes it (§2023:14.9.39.4 GR22).</summary>
     public LocaleValue UserDefault { get; private set; }
 
-    /// <summary>The system default locale (L2), fixed at run-unit activation; not settable from COBOL (§8.2.1).</summary>
+    /// <summary>The system default locale (L2), fixed at run-unit activation; not settable from COBOL (§2023:8.2.1).</summary>
     public LocaleValue SystemDefault { get; }
 
     /// <summary>The locale currently in effect, per category.</summary>
@@ -210,7 +210,7 @@ public sealed class LocaleState
     /// <summary>The locale currently in effect for <paramref name="category"/> (LC_ALL → the LC_COLLATE tag).</summary>
     public string Current(LocaleCategory category) => _current[category];
 
-    // ── SET LOCALE format 11 (§14.9.39.4 GR22–GR25) ─────────────────────────────────────────────────────────────
+    // ── SET LOCALE format 11 (§2023:14.9.39.4 GR22–GR25) ─────────────────────────────────────────────────────────────
 
     /// <summary><c>SET LOCALE categories TO locale-name</c> (GR23a with locale-name-1): the named locale becomes
     /// current for the categories. GR24 — an unavailable locale sets EC-LOCALE-MISSING (fatal when checking is on;
@@ -221,7 +221,7 @@ public sealed class LocaleState
         string tag = LocaleIdentification.Normalize(external);
         if (!LocaleIdentification.IsAvailable(tag))
         {
-            ExceptionState.LocaleMissingError($"SET LOCALE: the locale '{external}' is not available in this operating environment (ISO §14.9.39.4 GR24)");
+            ExceptionState.LocaleMissingError($"SET LOCALE: the locale '{external}' is not available in this operating environment (ISO §2023:14.9.39.4 GR24)");
             return;
         }
         _current = _current.With(categories, LocaleValue.Of(tag));
@@ -249,7 +249,7 @@ public sealed class LocaleState
         string tag = LocaleIdentification.Normalize(external);
         if (!LocaleIdentification.IsAvailable(tag))
         {
-            ExceptionState.LocaleMissingError($"SET LOCALE USER-DEFAULT: the locale '{external}' is not available in this operating environment (ISO §14.9.39.4 GR24)");
+            ExceptionState.LocaleMissingError($"SET LOCALE USER-DEFAULT: the locale '{external}' is not available in this operating environment (ISO §2023:14.9.39.4 GR24)");
             return;
         }
         UserDefault = LocaleValue.Of(tag);
@@ -263,7 +263,7 @@ public sealed class LocaleState
         UserDefault = saved.Value;
     }
 
-    // ── SET format 12 (§14.9.39.4 GR26 / GR27) ────────────────────────────────────────────────────────────────────
+    // ── SET format 12 (§2023:14.9.39.4 GR26 / GR27) ────────────────────────────────────────────────────────────────────
 
     /// <summary><c>SET identifier TO LOCALE LC_ALL</c> (GR26 — "the current locale is saved and a reference to the
     /// saved locale is placed into the pointer data item") / <c>… TO LOCALE USER-DEFAULT</c> (GR27 — the user
@@ -286,7 +286,7 @@ public sealed class LocaleState
         string what = pointer is null || pointer.IsNull ? "NULL"
             : pointer is SavedLocalePointer ? "a saved locale of another run unit"
             : "a data address, not saved locale information";
-        ExceptionState.LocaleInvalidPtrError($"{statement}: the pointer does not reference saved locale information of this run unit ({what}) — ISO §14.9.39.4 GR21");
+        ExceptionState.LocaleInvalidPtrError($"{statement}: the pointer does not reference saved locale information of this run unit ({what}) — ISO §2023:14.9.39.4 GR21");
         return false;
     }
 
@@ -325,7 +325,7 @@ public sealed class LocaleState
 }
 
 /// <summary>
-/// A saved-locale HANDLE (ISO §14.9.39.4 GR26/GR27; DESIGN-locale-facility DETERMINATION L4): the value SET format
+/// A saved-locale HANDLE (ISO §2023:14.9.39.4 GR26/GR27; DESIGN-locale-facility DETERMINATION L4): the value SET format
 /// 12 places into a data-pointer — an immutable per-category snapshot owned by one run unit's
 /// <see cref="LocaleState"/>, numbered monotonically (handles are never reused, so a stale or foreign one is
 /// detectable rather than aliasing). A data-pointer holding one is neither NULL nor an address: dereferencing it as

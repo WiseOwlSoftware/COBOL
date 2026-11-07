@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// (1-based) / <paramref name="LengthBytes"/> the range of that occurrence's STORAGE BYTES the alias covers — the
 /// whole cell (the ordinary case) or a partial slice when a span boundary lands inside it.
 /// <para>⛔ A PART IS KEPT IN STORAGE BYTES, NEVER IN ITS LEAF'S CHARACTER POSITIONS (kb/Work PB2466, PB1902).
-/// §13.18.45.4 GR2 makes data-name-1 "an alphanumeric group item" over the record's storage, so the window is tiled
+/// §2023:13.18.45.4 GR2 makes data-name-1 "an alphanumeric group item" over the record's storage, so the window is tiled
 /// in bytes, and a REDEFINES view of a different layout can put a part boundary — or leave an interior byte no other
 /// leaf covers — on the odd byte of a national character (D-N1: two bytes per national position). That byte is no
 /// range of the national item's positions, but it IS a range of its storage, which is what the alias renames: the
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <see cref="NationalBytesPlace"/>), so every part the tiling can choose is addressable. Keeping the part in
 /// positions made a half-character part unrepresentable, and legal source drew COBOL1655 "do not tile".</para>
 /// <para><paramref name="Outer"/> is the 1-based occurrence of each OCCURS GROUP the leaf sits under, outermost first
-/// (kb/Work PB986): §13.18.45.3 SR3 bars an OCCURS only on the three NAMED operands, so a table may lie INSIDE the
+/// (kb/Work PB986): §2023:13.18.45.3 SR3 bars an OCCURS only on the three NAMED operands, so a table may lie INSIDE the
 /// range, and a leaf of such a table lives once per occurrence of its group — S4 of <c>ST OCCURS 2</c> is
 /// <c>S4 OF ST(1)</c> and <c>S4 OF ST(2)</c>, two parts, not one. Empty for a leaf under no table.</para></summary>
 public sealed record RenamesSpanPart(DataItem Leaf, int? Occurrence, int StartByte, int LengthBytes, IReadOnlyList<int> Outer)
@@ -52,7 +52,7 @@ public sealed record RenamesSpanPart(DataItem Leaf, int? Occurrence, int StartBy
 }
 
 /// <summary>
-/// A level-66 RENAMES descriptor (ISO/IEC 1989:2023 §13.18.45): a re-grouping alias over a contiguous run of sibling
+/// A level-66 RENAMES descriptor (ISO/IEC 1989:2023 §2023:13.18.45): a re-grouping alias over a contiguous run of sibling
 /// items, <c>RENAMES data-name-2 [THRU data-name-3]</c>. RENAMES adds no storage — it is a COMPOSED view over the
 /// existing fields (GR1 no-THRU = attribute inheritance; GR2 THRU = an alphanumeric group view over the spanned
 /// leaves). The names are resolved to items, and the span flattened to its leaves, by the post-build pass.
@@ -67,7 +67,7 @@ public sealed class RenamesInfo
 
     /// <summary>The IN/OF qualifiers written on data-name-2 — innermost first (kb/Work PB978). They are NOT
     /// redundant inside the owning record: two same-named items in one record are distinguished only by them
-    /// (§8.4.2.2.3 SR1).</summary>
+    /// (§2023:8.4.2.2.3 SR1).</summary>
     public IReadOnlyList<string> FromQualifiers { get; init; } = [];
 
     /// <summary>The IN/OF qualifiers written on data-name-3 (empty for the no-THRU form).</summary>
@@ -92,14 +92,14 @@ public sealed class RenamesInfo
     /// <summary>True for a single no-THRU alias (Tier A forward, GR1); false for a THRU span (a Tier-B composition, GR2).</summary>
     public bool IsAlias => ThruName is null;
 
-    /// <summary>⛔ THE DATA ITEMS A THROUGH ALIAS <i>INCLUDES</i>, in declaration order — §13.18.45.4 GR2 verbatim:
+    /// <summary>⛔ THE DATA ITEMS A THROUGH ALIAS <i>INCLUDES</i>, in declaration order — §2023:13.18.45.4 GR2 verbatim:
     /// <i>"When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that includes all
     /// elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary
     /// item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an
     /// elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item)."</i>
     /// <para>This is the alias's MEMBERSHIP, which is a different question from its STORAGE (<see cref="Span"/>):
     /// the span is the record's storage bytes tiled once each by whichever leaves cover them, while GR2 names the ELEMENTARY ITEMS — every one of them between the two endpoints in the order
-    /// the entries are written, a redefining entry's items included. The one reader today is §14.7.6's "a data
+    /// the entries are written, a redefining entry's items included. The one reader today is §2023:14.7.6's "a data
     /// item in D1" when D1 is an alias (kb/Work PB966); a rule asking which items an alias INCLUDES reads this,
     /// and a rule asking which characters it OCCUPIES reads <see cref="Span"/>.</para>
     /// <para>Empty for the no-THROUGH form (GR1 gives the alias data-name-2's own attributes — it is that item,
@@ -140,14 +140,14 @@ public sealed class RenamesInfo
 /// Three different constructs produce ONE storage fact — the redefines class that the layout, the tiering and the
 /// emitter all read — and the rules that screen them are NOT the same rules:
 /// <list type="bullet">
-///   <item><see cref="Clause"/> — a written REDEFINES clause (ISO §13.18.44). Its syntax rules (§13.18.44.3 SR5,
+///   <item><see cref="Clause"/> — a written REDEFINES clause (ISO §2023:13.18.44). Its syntax rules (§2023:13.18.44.3 SR5,
 ///     SR8, SR12, SR14, SR16, SR17) are rules about THE CLAUSE: its subject and its data-name-2 operand.</item>
 ///   <item><see cref="ImplicitFileRecord"/> — the second and later level-1 entries of one FD or SD, which
-///     "represent implicit redefinitions of the same area" (§13.18.33.4 GR3). No clause was written, so no
-///     REDEFINES-clause rule applies; §13.18.57.3 SR4 ("shall not be implicitly or explicitly redefined") does.</item>
+///     "represent implicit redefinitions of the same area" (§2023:13.18.33.4 GR3). No clause was written, so no
+///     REDEFINES-clause rule applies; §2023:13.18.57.3 SR4 ("shall not be implicitly or explicitly redefined") does.</item>
 ///   <item><see cref="SameRecordArea"/> — the first record of a later file in a record-area SAME clause, which "is
 ///     equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position"
-///     (§12.4.6.4.4 GR2). Screened exactly as <see cref="ImplicitFileRecord"/>.</item>
+///     (§2023:12.4.6.4.4 GR2). Screened exactly as <see cref="ImplicitFileRecord"/>.</item>
 /// </list>
 /// The binder used to write the storage fact alone, so the file section's implicit redefinitions reached every
 /// REDEFINES-clause screen and were refused under rules about source the program never wrote.
@@ -156,11 +156,11 @@ public enum RedefinitionKind
 {
     /// <summary>The item redefines nothing.</summary>
     None,
-    /// <summary>A written REDEFINES clause (§13.18.44).</summary>
+    /// <summary>A written REDEFINES clause (§2023:13.18.44).</summary>
     Clause,
-    /// <summary>A later level-1 record of one FD/SD (§13.18.33.4 GR3).</summary>
+    /// <summary>A later level-1 record of one FD/SD (§2023:13.18.33.4 GR3).</summary>
     ImplicitFileRecord,
-    /// <summary>The record of a later file of one record-area SAME clause (§12.4.6.4.4 GR2).</summary>
+    /// <summary>The record of a later file of one record-area SAME clause (§2023:12.4.6.4.4 GR2).</summary>
     SameRecordArea,
     /// <summary>A record of one communication description entry, and the entry's implicit description: "Record description entries following
     /// [a] CD entry implicitly redefine the record area" (ISO/IEC 1989:2002 A.1.2.2 SR5, SR9, SR14).</summary>
@@ -187,16 +187,16 @@ public enum RedefinesTier
     /// <summary>D — spec-forbidden / unmodelable: a loud diagnostic, which is conformant since these are already
     /// illegal. The rejection set, one entry per screen, each with the rule it enforces:
     /// <list type="bullet">
-    ///   <item>§13.18.44.3 SR12/SR14 — object / pointer / strongly-typed, per WRITTEN ENTRY (COBOL1697,
+    ///   <item>§2023:13.18.44.3 SR12/SR14 — object / pointer / strongly-typed, per WRITTEN ENTRY (COBOL1697,
     ///     kb/Work PB179).</item>
-    ///   <item>§13.18.44.3 SR17 — neither side a variable-length group per §8.5.1.12.1, nor a dynamic-length
+    ///   <item>§2023:13.18.44.3 SR17 — neither side a variable-length group per §2023:8.5.1.12.1, nor a dynamic-length
     ///     elementary item (COBOL1698, kb/Work PB177 arm C).</item>
-    ///   <item>§13.18.44.3 SR5 SENTENCE 1 — "The data description entry for data-name-2 shall not contain an
+    ///   <item>§2023:13.18.44.3 SR5 SENTENCE 1 — "The data description entry for data-name-2 shall not contain an
     ///     OCCURS clause", every format of it (COBOL1701).</item>
-    ///   <item>§13.18.44.3 SR5 SENTENCE 4 — "Neither the original definition nor the redefinition shall include
+    ///   <item>§2023:13.18.44.3 SR5 SENTENCE 4 — "Neither the original definition nor the redefinition shall include
     ///     an occurs-depending table" (COBOL0855).</item>
     ///   <item>The SUBJECT that IS a dynamic-capacity table — the one shape in this family that no syntax rule
-    ///     literally names, decided by §13.18.44.4 GR1's storage association against §8.5.1.9.1 (COBOL1525).</item>
+    ///     literally names, decided by §2023:13.18.44.4 GR1's storage association against §2023:8.5.1.9.1 (COBOL1525).</item>
     /// </list>
     /// <para>⛔ THIS LIST HAS BEEN WRONG TWICE, IN OPPOSITE DIRECTIONS, AND BOTH ARE WHY IT IS NOW SPELLED PER
     /// SENTENCE. First it read "OCCURS DEPENDING ON / variable-length SR5/17" while the dynamic-LENGTH half of
@@ -212,7 +212,7 @@ public enum RedefinesTier
 
 /// <summary>
 /// A storage-sharing equivalence class produced by the post-build classification pass: the items that overlay one
-/// storage area (ISO §13.18.44 — a REDEFINES original + every entry that redefines it, directly or transitively).
+/// storage area (ISO §2023:13.18.44 — a REDEFINES original + every entry that redefines it, directly or transitively).
 /// Exactly ONE member is the stored canonical (<see cref="Canonical"/>); every other member is a computed view over
 /// the single backing (DESIGN §4.1 — never two stored fields per area).
 /// </summary>
@@ -262,7 +262,7 @@ public sealed class RedefinesClass
         Tier == RedefinesTier.StringCanonical && !IsCellBacked && Canonical is { Parent: null, ActivationLocal: not null }
             ? new MethodRedefinesBackingLocal(this) : null;
 
-    /// <summary>For a BASED class (Phase-4b increment 2, ISO §13.18.5): the C# name of the implicit
+    /// <summary>For a BASED class (Phase-4b increment 2, ISO §2023:13.18.5): the C# name of the implicit
     /// data-address pointer field (<c>__addr_X</c>). The backing "field" is then a deref bridge property
     /// (<c>ref CobolPtr.Deref(__addr_X, width).Ref</c>) and every view's window offset is displaced by the
     /// pointer's runtime offset (<c>CobolPtr.OffsetOf</c>) — the ONE place-construction site adds it. Null
@@ -274,14 +274,14 @@ public sealed class RedefinesClass
     public string? RejectReason { get; private set; }
 
     /// <summary>THE one verdict-application site (P5.11d — single-source the tier verdict, DESIGN-data-model §2.3):
-    /// exactly two callers exist. <c>ClassifyRedefinesClassesPass</c> applies the §13.18.44 REDEFINES
+    /// exactly two callers exist. <c>ClassifyRedefinesClassesPass</c> applies the §2023:13.18.44 REDEFINES
     /// verdict once per class (its <c>ComputeTier</c> reason table carries the ISO citations — the 2-byte
-    /// national overlay per D-N1/D-N2 and the dynamic-table reject per §13.18.44 SR5; the float/COMP-5/BINARY-*/
-    /// INDEX "Tier-C island" row is GONE, since every numeric usage now has a pinned §13.18.60.4 byte form and a
+    /// national overlay per D-N1/D-N2 and the dynamic-table reject per §2023:13.18.44 SR5; the float/COMP-5/BINARY-*/
+    /// INDEX "Tier-C island" row is GONE, since every numeric usage now has a pinned §2023:13.18.60.4 byte form and a
     /// mixed-usage class is an ordinary Tier-B byte-window class — kb/Work PB164, the Step D arm-1 dissolution).
     /// <c>DataBinder.ForceStringCanonical</c> — the ONE cell-backing
     /// forcer — may RE-classify an already-classified class: EXTERNAL/BASED/ADDRESS-OF re-basing deliberately
-    /// overrides the stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5), or rejects when a
+    /// overrides the stored-member verdict with the cell-backed Tier-B form (§2023:13.18.22.4 GR5), or rejects when a
     /// leaf has no single-byte character image. No other writer exists; a new tier decision goes through one of
     /// those two, never a scattered assignment.</summary>
     internal void Classify(RedefinesTier tier, int width, string? rejectReason)

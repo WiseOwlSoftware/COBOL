@@ -148,7 +148,7 @@ public enum Capability
     SignInherited,         // group SIGN pushed to leaves (InheritSignClauses)
     RedefinesResolved,     // REDEFINES/RENAMES targets bound (ResolveRedefines)
     RedefinesClassified,   // shared-storage classes + tiers assigned (ClassifyRedefinesClasses)
-    StrongTypesChecked,    // §13.18.57 SR3/SR4
+    StrongTypesChecked,    // §2023:13.18.57 SR3/SR4
     OdoResolved, DynamicResolved, FilesResolved, NationalGated, ReportsResolved,
     ExternalGlobalBound, PointersBound,
     ProcedureBound,        // PROCEDURE DIVISION bound to BoundProgram(s) (produces WholeGroupReferenced facts)
@@ -248,7 +248,7 @@ shadowing. There is exactly one lookup entry point:
 public sealed class SymbolTable
 {
     // The ONLY name lookup. `scope` is the active method scope (or Program scope for non-OO code); OO
-    // sibling-invisibility (§11.7 GR5) is enforced HERE, not by callers choosing an overload.
+    // sibling-invisibility (§2023:11.7 GR5) is enforced HERE, not by callers choosing an overload.
     public bool TryResolve(QualifiedName name, Scope scope, out DataItem item);
     public bool TryResolveCondition(QualifiedName name, Scope scope, out Condition88 cond);
     public bool TryResolveIndex(QualifiedName name, Scope scope, out DataItem index);
@@ -301,13 +301,13 @@ The emitter stops reading `DataItem.StoreAsImage`/`IsStrongGroup` — those fact
 of receivers (`BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets)`), and they genuinely differ — a
 ref-mod slice, a group and an elementary receiver can appear in one statement — so the sketch's scalar `Kind`
 became `IReadOnlyList<MoveStore> Stores`, one `MoveStore(BoundOperand Sender, MoveKind Kind, MoveSenderOrigin Origin)` per target,
-computed once at construction by `MoveClassifier.Classify`. The **sender** half is there because ISO §14.9.25.4
+computed once at construction by `MoveClassifier.Classify`. The **sender** half is there because ISO §2023:14.9.25.4
 GR2/GR3 rewrite the sending operand *per receiver*: a zero-length literal-1 "is treated as if it were the
 figurative constant SPACE" (GR3: ZERO for a boolean literal) "and the receiving operand is other than a
 dynamic-length elementary item", so `MOVE "" TO D-DYN, N-NUM` empties the dynamic-length item and space-fills
 the numeric one from one statement (kb/Work PB425). `MoveClassifier.Sender` is the one home of that rule,
 `ZeroLengthItemRoute` the runtime half GR1's zero-length-*item* clause needs, `Origin` says WHICH rule
-put the sender there (a written figurative is §14.9.25.3 SR5's removed construct; a substituted one is
+put the sender there (a written figurative is §2023:14.9.25.3 SR5's removed construct; a substituted one is
 legal source, and a diagnostic about an unstorable fill must not blame the wrong rule), and every consumer — the
 emitter's per-store renderer, `MoveBinder.MarkFillImageStorage`'s `StoreAsImage` fact — reads the answer off
 `Stores` rather than re-deriving it. ⛔ `BoundMove.Source` remains the **written** sending operand and is what
@@ -317,23 +317,23 @@ standard permits at every edition.
 
 **AS BUILT, no kind names a PLACE SHAPE** (kb/Work PB3512): the sketch's `RefModSlice` is gone. The built enum
 is `Group · GroupToElementary · FigurativeToNumericImage · Convert` — the CONVERSION one (sender, receiver) pair
-takes — and a reference-modified receiver is classified like any elementary receiver, because ISO §8.4.3.3.4 GR6
+takes — and a reference-modified receiver is classified like any elementary receiver, because ISO §2023:8.4.3.3.4 GR6
 makes the slice "an elementary data item without the JUSTIFIED clause" (`MoveClassifier.ReceivingCategory` reads
 its category through `RefModPlace.Category`, never numeric). A `RefModSlice` kind answered before the sender was
-asked, so a signed numeric sender moved its operational sign into the slice, against §14.9.25.4 GR6 a). The slice
+asked, so a signed numeric sender moved its operational sign into the slice, against §2023:14.9.25.4 GR6 a). The slice
 is only the place the emitter's receiving half writes: `MoveEmitter.SliceStore` (Convert; the run-time-length
-splice and §8.3.3.6.4 GR2's whole-slice figurative fill) over the ONE `SendingCharacters`, and
+splice and §2023:8.3.3.6.4 GR2's whole-slice figurative fill) over the ONE `SendingCharacters`, and
 `ReceivingStore.SliceStorageArea` (GroupToElementary; GR4's unconverted storage bytes). Pinned by
 `RefModMoveClassificationDriftTests`.
 
-**GR1's zero-length-*item* clause is CONDITIONAL, and §8.5.4 says on what.** `ZeroLengthItemRoute` emits a
+**GR1's zero-length-*item* clause is CONDITIONAL, and §2023:8.5.4 says on what.** `ZeroLengthItemRoute` emits a
 runtime length test only for a sending shape that carries its own length field; a reference-modified or
 function-identifier sender is first frozen into `SendingValueTemp`'s carrier by `MoveBinder`, and
-`MoveClassifier.NeedsLengthFreeze` decides when. It asks `CanBeZeroLengthItem` — §8.5.4's own enumeration —
+`MoveClassifier.NeedsLengthFreeze` decides when. It asks `CanBeZeroLengthItem` — §2023:8.5.4's own enumeration —
 because the *shape* is not the whole antecedent: item 9 admits a reference-modified item only "when that has
-been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH" (outside such a region §7.3.23.3 GR1 raises
+been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH" (outside such a region §2023:7.3.23.3 GR1 raises
 EC-BOUND-REF-MOD instead of producing a zero-length item), and item 6 admits "an intrinsic function that returns
-a zero-length value", which a NUMERIC function never is — §15.4 puts its returned value in a temporary
+a zero-length value", which a NUMERIC function never is — §2023:15.4 puts its returned value in a temporary
 elementary data item with at least one digit position. Freezing on the shape alone was a wrong answer rather
 than a wasted temp: a numeric function sender was re-described into a fixed S9(21)V9(9) item, narrower than a
 standard-decimal or floating-point result, so `MOVE FUNCTION E` into a 31-digit item re-rounded (kb/Work PB425
@@ -343,11 +343,11 @@ never needs the freeze).
 **GR4's elementary-vs-group decision is ONE predicate asked of BOTH operands** — `MoveClassifier.IsGroupPlace`,
 read by `IsGroupSender` for the sending side and by `Kind` for the receiving one, because GR4 states one rule
 over both ("the sending operand is either a literal or an elementary item AND the receiving item is an
-elementary item"). It is not purely structural in either direction: §13.18.45.4 GR2 makes a level-66
+elementary item"). It is not purely structural in either direction: §2023:13.18.45.4 GR2 makes a level-66
 `RENAMES … THROUGH` alias an alphanumeric GROUP item although this compiler models it as one composed
 elementary alphanumeric view (`RenamesPlace`, which exists only for the THROUGH form — GR1's no-THROUGH alias
-forwards to the renamed item's own place), §13.18.29.4 GR1b/GR2b make a bit or national group act as an
-elementary item, and §8.4.3.3.4 GR6 makes a reference-modified result elementary. Re-spelling the test on the
+forwards to the renamed item's own place), §2023:13.18.29.4 GR1b/GR2b make a bit or national group act as an
+elementary item, and §2023:8.4.3.3.4 GR6 makes a reference-modified result elementary. Re-spelling the test on the
 receiving side is how the two sides came to disagree (kb/Work PB430).
 
 **GR4's "no conversion of data from one form of internal representation to another" is ONE codec asked in BOTH
@@ -443,10 +443,10 @@ FieldEmitter vs OdoModel copies), `CobolLiteral.Decode` (the tripled `DecodeCobo
 `DataItem.Root` (the 4× RootOf walk → one accessor), `FigurativeConstants` (the 4-site figurative-fill → one
 service). These are cross-cutting with the emitter-renderer sibling design; the binder owns the bind-side callers.
 
-### 3.6 The §8.8.1.1 operand funnel — every entry declares its rule
+### 3.6 The §2023:8.8.1.1 operand funnel — every entry declares its rule
 
-⛔ **An operand slot in this compiler used to acquire ISO §8.8.1.1 BY DEFAULT — by being handed to
-`ExpressionBinder.BindExpr` — rather than by declaring that §8.8.1.1 governs it.** Everything in the
+⛔ **An operand slot in this compiler used to acquire ISO §2023:8.8.1.1 BY DEFAULT — by being handed to
+`ExpressionBinder.BindExpr` — rather than by declaring that §2023:8.8.1.1 governs it.** Everything in the
 PB169–PB172 burn-down cluster followed from that default, and the four defects look different only because the
 decision was recorded in four different places: an enum member at ten sites, a call-site comment at two, a
 private category switch at three, and **nowhere at all** in `ReferenceResolver`'s token renderer.
@@ -456,10 +456,10 @@ Every operand slot answers **four independent axes**, and all now live in `Opera
 
 | Axis | Question | Clause |
 |---|---|---|
-| **A — NumericClassScreen** | Does §8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §8.8.1.1 |
-| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §13.18.38.3 r7 |
-| **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §13.18.60.3 SR10 |
-| **D — BooleanOperandAdmitted** | Is the slot's written shape ALSO a boolean expression, so that a class-boolean operand is as legal as a numeric one? | §8.8.2, §8.4.3.2.3 SR8 |
+| **A — NumericClassScreen** | Does §2023:8.8.1.1's class-numeric screen govern this position, or does the position have its own syntax rule? | §2023:8.8.1.1 |
+| **B — IndexNameScreen** | Is the index-**name** screen applied here, or is this one of r7's five contexts? | §2023:13.18.38.3 r7 |
+| **C — IndexDataItemAdmitted** | May a class-index **data item** be referenced here? | §2023:13.18.60.3 SR10 |
+| **D — BooleanOperandAdmitted** | Is the slot's written shape ALSO a boolean expression, so that a class-boolean operand is as legal as a numeric one? | §2023:8.8.2, §2023:8.4.3.2.3 SR8 |
 
 | `OperandContext` | A | B | C | D | Why |
 |---|---|---|---|---|---|
@@ -467,8 +467,8 @@ Every operand slot answers **four independent axes**, and all now live in `Opera
 | `ArithmeticIndexWindow` | screen | exempt | yes | no | BOTH lists name it (SET amounts and values; a SEARCH or relation operand that is a bare name never reaches the expression spine, PB2018) |
 | `ArithmeticIndexNameWindow` | screen | exempt | no | no | r7 lists it, SR10 does not (subscript segment · PERFORM VARYING FROM/BY) — PB215 |
 | `FunctionArgument` | exempt | screen | yes | no | a SOLE intrinsic argument: the function's own §15.x argument rule governs (COBOL1627) |
-| `GroupedFunctionArgument` | screen | screen | no | yes | a PARENTHESIZED sole intrinsic argument is an arithmetic expression (§8.8.1.1) and also "a boolean expression enclosed in parentheses" (§8.8.2), the two alternatives §8.4.3.2.3 SR8 lists beside the identifier and the literal — PB4635 |
-| `CallByValue` | exempt | exempt | yes | no | §14.9.4.3 SR22 governs, and screens the operand itself (COBOL1628) |
+| `GroupedFunctionArgument` | screen | screen | no | yes | a PARENTHESIZED sole intrinsic argument is an arithmetic expression (§2023:8.8.1.1) and also "a boolean expression enclosed in parentheses" (§2023:8.8.2), the two alternatives §2023:8.4.3.2.3 SR8 lists beside the identifier and the literal — PB4635 |
+| `CallByValue` | exempt | exempt | yes | no | §2023:14.9.4.3 SR22 governs, and screens the operand itself (COBOL1628) |
 
 ⛔ **AXIS C IS NOT A CONSEQUENCE OF AXIS A, and assuming it was is a measured mistake.** The two index lists
 are genuinely different rules about different things:
@@ -484,7 +484,7 @@ USING** phrase are on SR10's and not r7's. Deriving C from A ("class index is no
 enumerates CONTEXTS cannot be modelled as a property of the OPERAND
 (`feedback_model_the_rule_shape_not_one_case`). The two lists are therefore TWO ROWS (kb/Work PB215): the
 contexts on both lists (`ArithmeticIndexWindow`) and the contexts on r7's alone (`ArithmeticIndexNameWindow`).
-The Report Writer's VARYING (§13.18.64.2, plain `arithmetic-expression-1/-2`) is on NEITHER list and needs no
+The Report Writer's VARYING (§2023:13.18.64.2, plain `arithmetic-expression-1/-2`) is on NEITHER list and needs no
 member of its own — the row it would declare is `Arithmetic`'s, so it binds through `BindExpr`.
 
 **The funnel's entry points, classified.** A slot is in exactly one row; a new statement operand belongs in one
@@ -499,88 +499,88 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 
 | Entry | Rule that governs | Where | r7 lane |
 |---|---|---|---|
-| ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count (bound here, then narrowed to §8.8.2 rule 5's ONE integer operand: Table 4 shape by `ExpressionFormationPass`, integer-ness by `IntrinsicResultType.IsIntegerOperand` — kb/Work PB1413) · CALL BY CONTENT/REFERENCE arithmetic arg | §8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
-| SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY | §8.8.1.1 + r7 window + SR10 | `BindIndexWindowExpr` | exempt (r7 lists them) |
-| **COMPOUND** relation / EVALUATE operand (an arithmetic expression: `N < (K + 2)`, `IX + 1 = 4`) | §8.8.1.1 — the index-name or index data item is an operand of the EXPRESSION, while r7 and §8.8.4.2.13 name the relation's own operand; R29 had bound it in the SET window (PB2018) | `BindExpr` | arithmetic: warn+coerce |
-| PERFORM VARYING FROM/BY · D18 **subscript** segment | §8.8.1.1 + r7 window; SR10 does NOT list them, so an index **data item** takes axis A (PB215) | `BindIndexNameWindowOperandExpr` / `BindIndexNameWindowExpr` | exempt (r7 lists them) |
-| RW VARYING FROM/BY | §13.18.64.2 → §8.8.1.1; on neither index list (PB215) | `BindExpr` | arithmetic: warn+coerce |
-| D18 **ref-mod** segment | §8.4.3.3.3 SR4 → §8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
-| simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `SubscriptBinder.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
-| sign-condition operand | §8.8.4.7.3 SR1 → §8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
-| **SOLE** relation / EVALUATE comparand | §8.8.4.2.1 + §15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §14.9.13.4 GR4 a) 6. makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
-| CALL … USING BY VALUE | §14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOL1628 | exempt |
+| ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count (bound here, then narrowed to §2023:8.8.2 rule 5's ONE integer operand: Table 4 shape by `ExpressionFormationPass`, integer-ness by `IntrinsicResultType.IsIntegerOperand` — kb/Work PB1413) · CALL BY CONTENT/REFERENCE arithmetic arg | §2023:8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
+| SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY | §2023:8.8.1.1 + r7 window + SR10 | `BindIndexWindowExpr` | exempt (r7 lists them) |
+| **COMPOUND** relation / EVALUATE operand (an arithmetic expression: `N < (K + 2)`, `IX + 1 = 4`) | §2023:8.8.1.1 — the index-name or index data item is an operand of the EXPRESSION, while r7 and §2023:8.8.4.2.13 name the relation's own operand; R29 had bound it in the SET window (PB2018) | `BindExpr` | arithmetic: warn+coerce |
+| PERFORM VARYING FROM/BY · D18 **subscript** segment | §2023:8.8.1.1 + r7 window; SR10 does NOT list them, so an index **data item** takes axis A (PB215) | `BindIndexNameWindowOperandExpr` / `BindIndexNameWindowExpr` | exempt (r7 lists them) |
+| RW VARYING FROM/BY | §2023:13.18.64.2 → §2023:8.8.1.1; on neither index list (PB215) | `BindExpr` | arithmetic: warn+coerce |
+| D18 **ref-mod** segment | §2023:8.4.3.3.3 SR4 → §2023:8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
+| simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §2023:8.4.2.3.2 / §2023:8.4.3.3.3 SR4 → §2023:8.8.1.1 | axis A: `SubscriptBinder.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
+| sign-condition operand | §2023:8.8.4.7.3 SR1 → §2023:8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |
+| **SOLE** relation / EVALUATE comparand | §2023:8.8.4.2.1 + §2023:15.2 — **exempt**; the operand is a sending item of its own class | `ConditionBinder.ComparisonOperandOf` short-circuits (PB172) — **one body**: EVALUATE's `BindValueOperand` calls it, since §2023:14.9.13.4 GR4 a) 6. makes each subject/object pair a relation (PB224 aligned two copies by hand; PB1935 made them one). A COMPOUND comparand (an operator, a sign, or enclosing parentheses) is the computed operand of an arithmetic expression (`CompoundOperand`), never the item or literal it encloses (PB1935) | exempt (r7 lists a relation operand) |
+| CALL … USING BY VALUE | §2023:14.9.4.3 SR22 — **exempt** | `BindByValueExpr` + COBOL1628 | exempt |
 | intrinsic-function argument | the function's §15.x argument rule — **exempt** | `BindFunctionArgumentExpr` + COBOL1627 | arithmetic: warn+coerce |
-| PERFORM … TIMES count | §14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
-| OCCURS DEPENDING ON data-name-1 | §13.18.38.3 SR17 — **exempt** | `DataBinder.Odo` | n/a |
-| ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `RefModBinder.RefModExclusion` | n/a |
-| STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOL1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
-| arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §8.8.1.1 sending question — a resultant turns on an axis §8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
-| GO TO … DEPENDING ON identifier-1 | §14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOL2324 (PB210) | identifier slot: reject in BOTH lanes |
-| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`SubscriptBinder.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOL2325 (PB211) | identifier slot: reject in BOTH lanes |
-| SET Format-1 receiving identifier-1 | §14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOL2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
-| PERFORM VARYING / AFTER varied identifier | §14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOL2120 | identifier slot: reject in BOTH lanes |
-| WRITE … ADVANCING identifier-2 / integer-1 | §14.9.51.3 SR14 ("an integer data item") and SR15 ("Integer-1 shall be positive or zero"); keyed on the BOUND shape so a constant-name is integer-1 (§13.10.4 GR1) | `OperandPositions.WriteAdvancingIdentifier` → `OperandClassScreen`; integer-1 beside it in `SequentialIoBinder.ScreenAdvancingCount` — both COBOL2365 (PB1023) | reject in BOTH lanes |
+| PERFORM … TIMES count | §2023:14.9.28.3 SR2 — **exempt** | `ControlFlowBinder.CountOperand` | n/a |
+| OCCURS DEPENDING ON data-name-1 | §2023:13.18.38.3 SR17 — **exempt** | `DataBinder.Odo` | n/a |
+| ref-mod SUBJECT identifier-1 | §2023:8.4.3.3.3 SR1 — **exempt** | `RefModBinder.RefModExclusion` | n/a |
+| STOP RUN / GOBACK … STATUS | §2023:14.9.42.3 SR2/SR3/SR4 · §2023:14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §2023:13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §2023:8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOL1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
+| arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §2023:8.8.1.1 sending question — a resultant turns on an axis §2023:8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
+| GO TO … DEPENDING ON identifier-1 | §2023:14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOL2324 (PB210) | identifier slot: reject in BOTH lanes |
+| SEARCH … VARYING identifier-2 | §2023:14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`SubscriptBinder.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOL2325 (PB211) | identifier slot: reject in BOTH lanes |
+| SET Format-1 receiving identifier-1 | §2023:14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOL2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
+| PERFORM VARYING / AFTER varied identifier | §2023:14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOL2120 | identifier slot: reject in BOTH lanes |
+| WRITE … ADVANCING identifier-2 / integer-1 | §2023:14.9.51.3 SR14 ("an integer data item") and SR15 ("Integer-1 shall be positive or zero"); keyed on the BOUND shape so a constant-name is integer-1 (§2023:13.10.4 GR1) | `OperandPositions.WriteAdvancingIdentifier` → `OperandClassScreen`; integer-1 beside it in `SequentialIoBinder.ScreenAdvancingCount` — both COBOL2365 (PB1023) | reject in BOTH lanes |
 
 **⛔ A CLASS-CLOSED IDENTIFIER POSITION IS A ROW OF `OperandPositions`, NEVER A HAND CHECK AT ITS BINDER**
 (`Binding/Procedure/OperandClassScreen.cs`; kb/Work PB210 · PB211 · PB212). Where a statement's syntax rule reads
 "identifier-n shall reference a data item of class …", the position is declared once — statement, operand, rule,
 the rule's own words, the admitted `OperandClasses` set and the diagnostic — and the binder makes one call.
-`OperandClassScreen.ClassesOf` answers the classes an operand is in from the ONE §8.5.2.1 Table-2 classifier
-(`IntrinsicArgumentRules.ClassOfItem`) and the ONE §5.5 integer primitive (`PicInfo.IsIntegerDescription`); a
-reference-modified operand is none of them (§8.4.3.3.4 GR6 c)), and an undecidable (recovery) class fails OPEN.
+`OperandClassScreen.ClassesOf` answers the classes an operand is in from the ONE §2023:8.5.2.1 Table-2 classifier
+(`IntrinsicArgumentRules.ClassOfItem`) and the ONE §2023:5.5 integer primitive (`PicInfo.IsIntegerDescription`); a
+reference-modified operand is none of them (§2023:8.4.3.3.4 GR6 c)), and an undecidable (recovery) class fails OPEN.
 GO TO DEPENDING, SEARCH VARYING and the SET receiver were the SAME absence found three times — a bare
 `FieldOperand` / `Refs.Resolve` and nothing asked — and the sibling sweep found the PERFORM VARYING induction
 variable a fourth. `OperandClassScreenDriftTests` holds every row against every class shape END TO END with the
 shapes' classes written from the standard, independently of the classifier, and fails a row that no binder asks,
 that has no template, or that this table does not name. A FUNCTION-IDENTIFIER in a row's position is an
-identifier (§8.4.3.1.2 Format 1) that references a temporary elementary item (§8.4.3.2.4 GR1), so the screen
+identifier (§2023:8.4.3.1.2 Format 1) that references a temporary elementary item (§2023:8.4.3.2.4 GR1), so the screen
 classes it by its RESULT — the ONE integer classifier (`IntrinsicResultType.IsIntegerOperand`) and the ONE operand
 category reader — rather than refusing it as "not a data item": an integer function meets "an integer data item",
-a numeric one is refused under §8.4.3.2.3 SR11 (kb/Work PB1421; the sending rows GO TO DEPENDING and WRITE
+a numeric one is refused under §2023:8.4.3.2.3 SR11 (kb/Work PB1421; the sending rows GO TO DEPENDING and WRITE
 ADVANCING parse `functionCall | inlineMethodInvocation | dataReference`, and the drift test holds each against
 integer, numeric and alphanumeric functions). Positions whose rule also admits a LITERAL or a function
 (PERFORM … TIMES, the STOP/GOBACK status) keep their bound-shape screens above; an arithmetic-expression position
-is §8.8.1.1's.
+is §2023:8.8.1.1's.
 
 **⛔ The SOLE-vs-COMPOUND boundary is a RULE, not a statement property.** `IF FUNCTION LOWER-CASE(X) = Y` is
 legal and `IF FUNCTION LOWER-CASE(X) + 1 = Y` is illegal **in the same statement kind**, because the second
-operand is an arithmetic expression and the first is a §15.2 sending item. No per-statement context member can
+operand is an arithmetic expression and the first is a §2023:15.2 sending item. No per-statement context member can
 express that, which is why the comparand positions short-circuit their sole operands (data reference, numeric
 literal, non-numeric literal, **function call**) instead of splitting the enum.
 
 **⛔ "Is this operand of class numeric?" has exactly ONE answer**, `IntrinsicArgumentRules.CandidateClasses`
-(the §8.5.2.1 Table-2 classifier) via `IsArithmeticOperandClass`. It previously had four — a private category
-switch missing the index arm, a `ResultCategory` test that folded §15.2 item 6 index functions into numeric, the
+(the §2023:8.5.2.1 Table-2 classifier) via `IsArithmeticOperandClass`. It previously had four — a private category
+switch missing the index arm, a `ResultCategory` test that folded §2023:15.2 item 6 index functions into numeric, the
 receiving-side `ScreenResultant` (which DID have the index arm), and this classifier, which nothing in the funnel
 used. The extraction is what closes the index-data-item, pointer and object holes without a new rule, and what
 preserves the 2026-08-02 numeric-edited owner decision by construction rather than by a hand-written arm.
 
 **⛔ A word that stands for a literal is resolved in ONE place, `ExpressionBinder.LiteralAliasOf` (kb/Work PB1544).**
-A constant-name ("as if literal-1 … were written where constant-name-1 is written", §13.10.4 GR1) and a
-symbolic-character ("defines a figurative constant", §12.3.7.4 GR11 a)) both arrive as a bare data reference. The
+A constant-name ("as if literal-1 … were written where constant-name-1 is written", §2023:13.10.4 GR1) and a
+symbolic-character ("defines a figurative constant", §2023:12.3.7.4 GR11 a)) both arrive as a bare data reference. The
 resolution returns a `LiteralAlias` (the constant's definition or the symbolic character's value), `AliasOperand` binds
 it to the shape the written literal takes (a symbolic-character is the bare `BoundAllLiteral`, `BeginsWithAll = false`:
-fill when the context sizes it, one character when it does not, §8.3.3.6.4 GR2/GR3), and every procedure position asks
+fill when the context sizes it, one character when it does not, §2023:8.3.3.6.4 GR2/GR3), and every procedure position asks
 it: `FieldOperand`, the numeric-expression `RefExpr` (COBOL0844 for a non-numeric alias), the receiving refusal
 (COBOL1548), intrinsic and user-function arguments, INSPECT operands, the UNSTRING sender refusal, CALL Format 2's
-keyword-less, BY CONTENT and BY VALUE literal-2 (§14.9.4.3 SR23 asked of the alias) and INVOKE's literal-2 (§14.9.23.3
+keyword-less, BY CONTENT and BY VALUE literal-2 (§2023:14.9.4.3 SR23 asked of the alias) and INVOKE's literal-2 (§2023:14.9.23.3
 SR16). A numeric constant-name in a BY CONTENT / BY VALUE / intrinsic-argument position keeps the expression path a
 written numeric literal takes there. The chain had been written separately in six binders, and the positions missing a
 half refused conforming source; `LiteralAliasResolutionDriftTests` holds every procedure binder to the one resolution.
 
 The resolution has two spellings of its input and no third (kb/Work PB780): the bare data reference, for a position
-the grammar writes `literal | dataReference` (the word may be identifier-1 there, so the §8.4.6.1 own-item test is
+the grammar writes `literal | dataReference` (the word may be identifier-1 there, so the §2023:8.4.6.1 own-item test is
 asked first), and the bare `cobolWord`, for a position the grammar writes `literal | cobolWord` because no identifier
-stands there (an inline method invocation's literal-1, §8.4.3.4.2). Each position that names a PROGRAM — CALL literal-1
+stands there (an inline method invocation's literal-1, §2023:8.4.3.4.2). Each position that names a PROGRAM — CALL literal-1
 and its AS NESTED form, CANCEL, the program-address-identifier and the vendor `SET … TO ENTRY` — asks the alias FIRST and
-hands the written literal or the alias to the ONE program-name reader, `ProgramNameLiteral` (§14.9.4.3 SR2, §14.9.5.3
-SR2, §8.4.3.13.3 SR2: an alphanumeric or national literal, not zero-length, formed by `ExternalizedNames.FormInEdition`);
+hands the written literal or the alias to the ONE program-name reader, `ProgramNameLiteral` (§2023:14.9.4.3 SR2, §2023:14.9.5.3
+SR2, §2023:8.4.3.13.3 SR2: an alphanumeric or national literal, not zero-length, formed by `ExternalizedNames.FormInEdition`);
 INVOKE's literal-1 asks it before the identifier-2 arm. The DATA DIVISION positions read the constant table through
 `DataBinder`'s own readers: the CODE clause's literal-1 (`BindCodeClause`), the Format-2 VALUE subscripts
 (`TableValueSubscript`, grammar `valueTableSubscript : signedIntegerLiteral | cobolWord`) and the `integerOperand`
-positions (`IntegerOperandValue`). A constant entry's own AS operand is §13.10.2's literal-1 as well: an operand
+positions (`IntegerOperandValue`). A constant entry's own AS operand is §2023:13.10.2's literal-1 as well: an operand
 written as one constant-name copies that constant's class, category and text (`ConstantEntryBinder.ConstantLiteralOperand`,
-§13.10.4 GR1/GR2; a numeric one is a single numeric literal by §13.10.3 SR1, never the integer an expression makes),
+§2023:13.10.4 GR1/GR2; a numeric one is a single numeric literal by §2023:13.10.3 SR1, never the integer an expression makes),
 and the pre-bind reader (`PreBindConstants`) follows the same chain for an AS phrase read before the data bind.
 
 ### 3.7 Statement PRE-ops and the ONE sending-value materialization
@@ -589,37 +589,37 @@ Several general rules say a value is computed **once, before the statement's eff
 times. The bound tree expresses that with a statement-scoped **pre-op**: a binder appends a `BoundStatement` to
 the shared `ProcedureBindState.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
 into a `BoundSequence` placed ahead of the carrying statement (mark on entry, drain the suffix — the same
-protocol a hoisted user-function activation and a §15.4 function-bearing subscript temp already use). Registration
+protocol a hoisted user-function activation and a §2023:15.4 function-bearing subscript temp already use). Registration
 ORDER is evaluation order, so a nested materialization precedes its consumer without extra wiring.
 
 **`Binding/Procedure/SendingValueTemp.cs` is the ONE materializer**, and the rule it implements is written in two
 verbs' general rules:
 
-- **§14.9.25.4 GR1 (MOVE)** — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
+- **§2023:14.9.25.4 GR1 (MOVE)** — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
   the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is
   moved to the first of the receiving operands", stated again as an equivalence: `MOVE a (b) TO b, c (b)` ≡
   `MOVE a (b) TO temp` / `MOVE temp TO b` / `MOVE temp to c (b)`, "where 'temp' is an intermediate result item
   provided by the implementor".
-- **§14.9.13.4 GR3 (EVALUATE)** — "At the beginning of the execution of the EVALUATE statement, each selection
+- **§2023:14.9.13.4 GR3 (EVALUATE)** — "At the beginning of the execution of the EVALUATE statement, each selection
   subject is evaluated and assigned a value, a range of values, or a truth value."
 
 The materializer creates that intermediate result item through `CompilerTemps.Create` (the ONE
 synthesized-temp constructor) with the **operand's own description**, so the store into it is an identity move
-and the equivalence is exact: a data item clones its description (§8.4.3.3.4 GR6's "unique data item" when
-reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a function-identifier takes §15.4's
+and the equivalence is exact: a data item clones its description (§2023:8.4.3.3.4 GR6's "unique data item" when
+reference-modified, carried by a run-time-length item per §2023:8.5.1.10.4), and a function-identifier takes §2023:15.4's
 "temporary elementary data item" as the item `SendingValueTemp.IntermediatePic` describes FOR THE VALUE AND ITS USE
-(kb/Work PB3268): for an INTEGER function (§15.2 item 5) read as text in a character formal, the returned-value item's
+(kb/Work PB3268): for an INTEGER function (§2023:15.2 item 5) read as text in a character formal, the returned-value item's
 30-digit `IntegerFunctionValuePic`; for any numeric or integer function a `double` when the value is a binary64, and
 an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
 a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
-§14.6.8.3 rule 2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
+§2023:14.6.8.3 rule 2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
 holding 1.5E50 is a 51-digit integer no fixed item holds, review R1-1); any other set of numeric receivers with a floating-point one
 among them (a binary32 beside a binary64, a floating-point item beside a fixed-point one) takes the 36-digit decimal
 floating-point item below, an INTEGER function's value included (`FloatingPointNumericSet`, review round 3 R1-1/R1-2: a
 fixed-point window cut a FLOAT-LONG beside a `PIC S9(3)V99` to 12 integer digits, and `ValueOperandPic` stored 1.234E-21
 as 0 in a FLOAT-SHORT and a FLOAT-LONG); otherwise, for an INTEGER function, the whole 38-digit carrier at scale 0 (`IntegerIntermediatePic`: a 31-digit
 integer reaches every receiver whole). The `double` is chosen for a value the
-renderer returns as a binary64 (`FunctionValueLane.ReturnsBinary64`: the §15.4.1 float family and any numeric-argument
+renderer returns as a binary64 (`FunctionValueLane.ReturnsBinary64`: the §2023:15.4.1 float family and any numeric-argument
 function given a binary64 argument, under native arithmetic, unless a floating-point LITERAL argument takes a function
 with an SDIDI body onto the SDIDI; the argument carriers are read by a visitor over the same generated visitor
 interfaces `NumericRenderer` implements; the rules it shares with the renderer — the cross-aligned arms, the
@@ -636,14 +636,14 @@ values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 
 as the largest receiver), 21 integer + 17 fraction digits for a function value read as
 an operand (an EVALUATE subject, a frozen argument), and the returned-value item's S9(21)V9(9) only for a value read as
 text in a character formal. **An ARITHMETIC EXPRESSION read as an operand is held at the width of its own value**
-(`SendingValueTemp.ValueOperandPicOf`, kb/Work PB3974; §14.9.13.4 GR3 c) assigns the subject "a numeric value according to
+(`SendingValueTemp.ValueOperandPicOf`, kb/Work PB3974; §2023:14.9.13.4 GR3 c) assigns the subject "a numeric value according to
 the rules for evaluating an arithmetic expression" and GR4 a) 6. compares that value): `ExpressionExtent`, a visitor over the
 generated expression interface, states the integer digits and the scale of an expression of `+`, `-`, `*` and unary minus over
 fixed-point items and literals (a sum below 10^i and 10^j is below 10^(max(i, j)+1), a product below 10^(i+j) with the scales
 added; a mathematical bound, so it restates none of the renderer's carrier rules), and the intermediate is the fixed-point
 item of exactly those digits. The bound is an UPPER bound, never the value, so an extent past the 38-digit scaled carrier is
 still held (review R1-1): the expression is frozen because a later part of the statement may change an operand (GR3 "at the
-beginning of the execution", §8.4.3.2.4 GR2), and leaving it un-hoisted read the changed operand. Where the bound's integer and fraction digits
+beginning of the execution", §2023:8.4.3.2.4 GR2), and leaving it un-hoisted read the changed operand. Where the bound's integer and fraction digits
 together pass the carrier the item is a superset of the S9(21)V9(17) hold on both axes (review R1-1 and its round 1): the integer
 digits keep priority up to the bound (the order `ShapedPic` keeps) but never below the 17 fraction digits the old item held, and the
 fraction takes what the integer part leaves (`PIC 9V9(19)` times `PIC 9V9(19)`, bound 2 + 38, is S9(2)V9(36) and holds 12 whole); a
@@ -654,35 +654,35 @@ FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is f
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
 form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
 unflagged 30-digit description moved as zero-padded digits, `MOVE FUNCTION INTEGER(N) TO A B` storing `0000`).
-A literal or figurative constant is NOT materialized: §8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
+A literal or figurative constant is NOT materialized: §2023:8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
 description of its own. **The identity store is the copy the operand's CLASS has** (`SendingValueTemp.IdentityStore`):
 a MOVE for every item MOVE can store, and the SET that names the copy for the classes it cannot — an index data item
-(§14.9.39 GR2 b), kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§14.9.39 Formats 7, 8, 9)
+(§2023:14.9.39 GR2 b), kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§2023:14.9.39 Formats 7, 8, 9)
 and an object reference (Format 5). A MOVE into a pointer clone stored nothing, so a pointer EVALUATE subject read by two WHEN
 arms compared a null intermediate (kb/Work PB1060's sweep). An address-identifier is never materialized: it is a
-unique item CREATED at the reference (§8.4.3.11.4 GR1), with no storage an earlier store could change.
+unique item CREATED at the reference (§2023:8.4.3.11.4 GR1), with no storage an earlier store could change.
 
 **A group whose length is decided at run time freezes its EXTENT as well as its value.** A cloned DESCRIPTION has
 a compile-time length, so an intermediate cloned from an `OCCURS DEPENDING` group would hold the group's MAXIMUM
 extent rather than its current one, and that is observable: with a 3-of-5 occurs-depending group into a
-`PIC X(5) JUSTIFIED` receiver, §13.18.38.4 GR8 a)'s current extent right-aligns to `"  125"` while a
+`PIC X(5) JUSTIFIED` receiver, §2023:13.18.38.4 GR8 a)'s current extent right-aligns to `"  125"` while a
 maximum-extent intermediate gives `"125  "`. `SendingValueTemp.FreezeOdoExtent` therefore creates a SECOND temp
 holding data-name-1's value, stored as a pre-op ahead of the group store, with the clone's `OccursSpec.Depending`
 pointed at it (inside `CompilerTemps.Create`, because `DataItem.OccursSpec` is init-only). That is GR1's other
 sentence — "The length of the data item referenced by identifier-1 is evaluated only once, immediately before the
 data is moved to the first of the receiving operands" — and without it `MOVE ODO-G TO N, Z` re-read the length
 AFTER storing into `N` and sent one character to the second receiver. A DYNAMIC-LENGTH elementary sender is
-frozen by §8.5.1.10.4's own carrier.
+frozen by §2023:8.5.1.10.4's own carrier.
 
 **The ORDER of the two identifications has two halves** (kb/Work PB3261, PB370). GR1 evaluates identifier-1's
 reference modifier, subscript or function-identifier "immediately before data is moved to the first of the receiving
 operands" and identifies identifier-2 "immediately before the data is moved to the respective data item" — the
-sender first, as §14.6.4's left-to-right order has it, and §14.9.49.4 GR11 ("the first one that occurs in the order
+sender first, as §2023:14.6.4's left-to-right order has it, and §2023:14.9.49.4 GR11 ("the first one that occurs in the order
 of evaluation") makes the order observable. The STORE half is the emitter's: a ref-returning
 `CobolTable.At(T, Occ(I)) = <sender>` identifies its left operand before it evaluates its right, so each store renders
 through `PlaceIdentification.SenderFirst`, which evaluates the sending value into a local first whenever both sides
 identify at run time (`PlaceIdentification.IdentifiesAtRunTime`, which also counts a literal subscript into an
-occurs-depending or OCCURS DYNAMIC table: §13.18.38.4 GR7's bound test rides the table step, so `MOVE N (I) TO O (1)`
+occurs-depending or OCCURS DYNAMIC table: §2023:13.18.38.4 GR7's bound test rides the table step, so `MOVE N (I) TO O (1)`
 raised the receiver's EC-BOUND-ODO first). The PRE-OP half is the binder's: a receiver's function-bearing subscript or
 user-function activation is a pre-op that runs before the statement, which no store order can reach, so when the
 receiver registered one and the sender identifies at run time `MoveBinder.BindMoveOf` freezes the sender at N = 1 as
@@ -695,22 +695,22 @@ The bracket's steps and that question read the same `OoPendingPropertyOp` member
 `GetsBefore`). The freeze is placed on the pending list at the point the sender finished binding
 (`SendingValueTemp.Positioned`, the one placement `ArgumentOrder` uses for a function argument too - a scalar argument through
 `Materialize`, a table(ALL) argument as a compiler-temporary TABLE of its elements through `MaterializeTableAll`, whose
-`BoundHoldTableAll` pre-op copies them in §15.3's order; kb/Work PB4162), so it also
+`BoundHoldTableAll` pre-op copies them in §2023:15.3's order; kb/Work PB4162), so it also
 precedes a receiver's pre-ops at N > 1. A NUMERIC function-identifier's temporary is described for the MOVE's receivers by the ONE description of the
 intermediate, `SendingValueTemp.IntermediatePic` (above; kb/Work PB3268, which PB370's receiver-shaped sizing merged
 into): the fixed 30-digit, scale-9 description stored `MOVE FUNCTION PI TO S1 S2` into `PIC 9V9(12)` as
 3.141592653000 where the single-receiver MOVE stores 3.141592653589. PB370 contributed two shapes to it: a set of
 floating-point receivers holding a floating-point numeric-edited one, and an all-fixed-point set whose digits pass the
 38-digit carrier (a `PIC 9(31)` beside a `PIC V9(28)`), both held on the widest floating-point edited item
-`+9.9(35)E+9999` (§13.18.40.3 SR15, §13.18.40.4 GR13 b), a 36-digit decimal every receiver truncates (§14.6.8.4 2,
-§14.6.8.2 4); golden `2002/pb370_move_function_value_digits` pins every shape against its single-receiver twin.
+`+9.9(35)E+9999` (§2023:13.18.40.3 SR15, §2023:13.18.40.4 GR13 b), a 36-digit decimal every receiver truncates (§2023:14.6.8.4 2,
+§2023:14.6.8.2 4); golden `2002/pb370_move_function_value_digits` pins every shape against its single-receiver twin.
 
-**The intermediate's CAPACITY is counted in §8.4.3.3.4 GR5 positions, not in characters.** GR5 a) fixes the unit —
+**The intermediate's CAPACITY is counted in §2023:8.4.3.3.4 GR5 positions, not in characters.** GR5 a) fixes the unit —
 "If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise, positions used
 in evaluation are character positions" — and `DataItem.ImageWidth` answers a different question, the item's
-OCCUPANCY: a `PIC 1(8) USAGE BIT` item occupies ONE character (§8.5.1.6.3 packs eight boolean positions into a
+OCCUPANCY: a `PIC 1(8) USAGE BIT` item occupies ONE character (§2023:8.5.1.6.3 packs eight boolean positions into a
 byte) where GR5 counts EIGHT positions, and a DYNAMIC LENGTH item occupies none statically. `RefModPlace.PositionCount`
-is the ONE reader of that count; the bit and national arms go through `DataItem.OperandPic` so §13.18.29.4
+is the ONE reader of that count; the bit and national arms go through `DataItem.OperandPic` so §2023:13.18.29.4
 GR1 b)/GR2 b)'s as-if PICTURE answers for a bit group and a national group. Measured before it existed:
 `MOVE BE(1:4) TO B1 B2` kept only the leading bit.
 
@@ -720,9 +720,9 @@ GR4's first sentence — "Any move in which the sending operand is either a lite
 receiving item is an elementary item is an elementary move" — then makes the statement elementary. Whether the
 sender IS zero-length is a run-time state, so `MoveClassifier.ZeroLengthItemRoute` decides when a test is owed
 and `MoveEmitter` emits it with the statement's OWN store (`EmitStore`) in the else arm. The predicate for a
-GROUP sender is `DataItem.MinimumLengthIsZero` — §8.5.4's stem ("a data item … whose minimum length is zero and
+GROUP sender is `DataItem.MinimumLengthIsZero` — §2023:8.5.4's stem ("a data item … whose minimum length is zero and
 whose length at runtime is zero") as ONE recurrence over the non-redefining children at their MINIMUM occurrence
-count, never a copy of the clause's four group bullets. Which of those four is reachable is §14.9.25.3 SR9's
+count, never a copy of the clause's four group bullets. Which of those four is reachable is §2023:14.9.25.3 SR9's
 business: a variable-length group may move only to or from a compatible group, so items 5 and 7 are refused at
 compile time and item 1 — the occurs-depending group with integer-1 zero — is the shape that gets here.
 
@@ -743,7 +743,7 @@ is the drift test: each zero-length sender shape against every receiver category
 item and the matching zero-length literal into twin receivers, the two images required equal.
 
 **A group SENDER's value has one reader, and a group move's receiving AREA is in storage units** (kb/Work
-PB943/PB944). `PlaceRenderer.SendingGroupValue` is the §13.18.29.4 dispatch — a bit group sends its boolean
+PB943/PB944). `PlaceRenderer.SendingGroupValue` is the §2023:13.18.29.4 dispatch — a bit group sends its boolean
 positions, a national group its national positions, an alphanumeric group its storage image — and every
 consumer asks it (`OperandText.FieldAsString`, `NumericRenderer.FieldNumCore`, the zero-length test); the numeric
 decoder used to read every group through the image alone, so a national group into `PIC 9(3)` decoded UTF-16BE
@@ -753,7 +753,7 @@ from it — a USAGE NATIONAL receiver's two bytes per position (D-N1), a USAGE B
 numeric receiver's zoned / radix-2 / BCD / IEEE bytes in its OWN byte form — because GR4 forbids "conversion of data
 from one form of internal representation to another"; the sending characters are never re-encoded into it. The
 decode is `ReceivingStore.StorageArea`, the receiving inverse of `OperandText.AsStorageImage`, shared with the
-READ / RETURN store into an elementary record area (kb/Work PB1556). And the §13.18.38.4 GR8 current extent (`OdoModel.WrapGroup`) computes its
+READ / RETURN store into an elementary record area (kb/Work PB1556). And the §2023:13.18.38.4 GR8 current extent (`OdoModel.WrapGroup`) computes its
 per-occurrence stride on the same PHYSICAL basis as the group total it is subtracted from
 (`RecordLayout.PhysicalOccurrenceWidth`); a character-width stride against a byte-width total made a zero-count
 national table send half its maximum image.
@@ -764,15 +764,15 @@ selection pair reads it (a THRU object reads it twice — GR4 a) 5.). At ONE use
 evaluation and the intermediate is unobservable, so it is not created — MOVE and EVALUATE are hot verbs.
 
 **The emitter half is `EmitContext.SendOnce`** — the same rule where a C# local suffices because the receivers
-do not CONVERT from the value: the SET address formats (§14.9.39.4 GR12/GR14/GR16/GR18, "stored in each data item
+do not CONVERT from the value: the SET address formats (§2023:14.9.39.4 GR12/GR14/GR16/GR18, "stored in each data item
 referenced by identifier-N in the order specified"). The arithmetic family's `ArithmeticEmitter.Snapshot` is the
-third face of the rule, for §14.7.7 GR4's one initial evaluation. Three carriers, one rule, each named for the
+third face of the rule, for §2023:14.7.7 GR4's one initial evaluation. Three carriers, one rule, each named for the
 clause it serves; `SendingValueOnceDriftTests` measures all of them together with a re-seeded `FUNCTION RANDOM`
-(§15.75.3 r3 / §15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
+(§2023:15.75.3 r3 / §2023:15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
 
 ### 3.8 The SET statement's general-format selection — one table over the WHOLE receiving list
 
-ISO §14.9.39.2 prints seventeen general formats for one verb, and several of them share a token shape exactly.
+ISO §2023:14.9.39.2 prints seventeen general formats for one verb, and several of them share a token shape exactly.
 A reserved word settles most of them at the grammar (`SET LOCALE`, `SET CONTENT`, `SET … TO TRUE`, `SET SIZE OF`,
 `SET … TO ENTRY`, `SET … TO ADDRESS OF FUNCTION`); what is left is two written shapes
 carrying nine formats:
@@ -793,39 +793,39 @@ across three rules by the SENDER's form, and that split was what defeated SLL pr
 (kb/Work PB4231; DESIGN-frontend-grammar §3.14).
 
 **`Binding/Procedure/Verbs/SetFormatSelection.cs` is the ONE place that choice is made**, and the fact it reads
-is that EVERY receiving brace in §14.9.39.2 is written `{ … } …` — one or more operands of one kind. So the
+is that EVERY receiving brace in §2023:14.9.39.2 is written `{ … } …` — one or more operands of one kind. So the
 format is a property of the WHOLE receiving list: classify each operand once (`KindOf` — a pure R30 probe, never
 a committing resolve), then pick the single table row whose brace admits all of them. When no row does, pick the
 NEAREST row — the first, in specificity order, that admits any of them — and the selected format's own syntax
 rule refuses the operands it does not admit, by name and in its own words. Nothing at all matching is the
 RESIDUAL, `COBOL2112`: no printed general format admits this receiving list.
 
-The sender does not participate, with ONE exception the table carries as a column. §14.9.39.2 writes a format's
+The sender does not participate, with ONE exception the table carries as a column. §2023:14.9.39.2 writes a format's
 identity into its receiving brace; the sending brace is then constrained by that format's own rules (SR9 for
 Format 5, SR17/SR20/SR21 for the carriers), which is why each carrier binder reports its own rule for a sender
 that is not a reference at all. The exception is the case where the receiving brace says nothing: Format 1's
 `identifier-1` admits any identifier, so a receiving list can select Format 1 while the SENDER is of a category
-Format 1's own sending brace cannot hold — §8.8.1.1 admits only numeric operands in `arithmetic-expression-1`
+Format 1's own sending brace cannot hold — §2023:8.8.1.1 admits only numeric operands in `arithmetic-expression-1`
 and SR2 makes `identifier-2` "a data item of class index". A data item of class object, or of category
 data-pointer / program-pointer / function-pointer, is admissible in no Format-1 sending position and is named by
 exactly one other format's sending brace, so `SelectForTo` picks that format and its own receiving rule refuses
 the receiver by name. `SET N4 TO U` used to reach the ARITHMETIC screen and be reported as "'U' … is not a
-numeric operand" (§8.8.1.1) — true, and silent about §14.9.39.3 SR8, the rule the program broke. The column is
+numeric operand" (§2023:8.8.1.1) — true, and silent about §2023:14.9.39.3 SR8, the rule the program broke. The column is
 `Row.SendsOnly`, so a new carrier format is still one row and nothing else, and the drift test pins that no kind
 Format 1 CAN send ever appears in it — otherwise the tie-break would take a legal Format-1 statement away from
 its own format.
 
-**The sender is an IDENTIFIER, of any of §8.4.3.1.2's formats — `SetSender` / `SetSenders.Classify` (kb/Work PB1399 +
-PB1929).** Every sending brace of the To-formats names an identifier (identifier-2, -4, -6, -8, -13) and §8.4.3.1.3
+**The sender is an IDENTIFIER, of any of §2023:8.4.3.1.2's formats — `SetSender` / `SetSenders.Classify` (kb/Work PB1399 +
+PB1929).** Every sending brace of the To-formats names an identifier (identifier-2, -4, -6, -8, -13) and §2023:8.4.3.1.3
 SR1 makes that "any of the formats for an identifier". Three of them are not a data-name reference — a
-function-identifier, an inline method invocation, and the keyword-omitted function (§8.4.3.2.3 SR2, which parses as a
-subscripted data reference) — and each references a DATA ITEM (§8.4.3.2.1; §8.4.3.4.4 GR1), so the sender's class and
+function-identifier, an inline method invocation, and the keyword-omitted function (§2023:8.4.3.2.3 SR2, which parses as a
+subscripted data reference) — and each references a DATA ITEM (§2023:8.4.3.2.1; §2023:8.4.3.4.4 GR1), so the sender's class and
 category are the RETURNING item's. The classifier reads the parse shape once and binds a sole such identifier ONCE
 (its activation registers a statement pre-op, so a second bind would run a user function twice), returning one
 `SetSender`: a `Ref` (a data reference, still to be resolved by the format that takes it), a bound identifier (whose
 temporary data item — `TemporaryItem` — is what the carrier formats 5, 7, 8 and 9 read through
 `CarrierSenderPlace`/`OoBindSetObjectRef`, and whose CLASS — `IdentifierClass` — decides Format 1: class index is
-identifier-2, any other non-numeric class draws §8.8.1.1's screen through `ExpressionBinder.ScreenIdentifierOperand`),
+identifier-2, any other non-numeric class draws §2023:8.8.1.1's screen through `ExpressionBinder.ScreenIdentifierOperand`),
 or neither (a literal or an expression, which each format's own rule refuses). The formats whose binder takes the
 amount as an expression of its own (14, 16) are decided from the receiving list BEFORE the sender is classified, for the
 same single-bind reason. The earlier classifier — `OoExtractBareReference`, "exactly one bare data reference" — answered
@@ -833,10 +833,10 @@ null for all three shapes, so every format saw "no identifier" and refused `SET 
 `SET TX TO FUNCTION MAX(IA IB)` as an arithmetic expression: one sniff, one arm of the dispatch fixed (PB456), the other
 three shapes never reached.
 
-**The name operand of an address-identifier is one rule in one place (kb/Work PB1417 + PB1452).** §8.4.3.12.3 SR1 and
-§8.4.3.13.3 SR1 print the same sentence — "Identifier-1 shall be of category alphanumeric or national" — and
+**The name operand of an address-identifier is one rule in one place (kb/Work PB1417 + PB1452).** §2023:8.4.3.12.3 SR1 and
+§2023:8.4.3.13.3 SR1 print the same sentence — "Identifier-1 shall be of category alphanumeric or national" — and
 `SetBinder.ScreenAddressName` asks it of the data item, through `ItemCategory.IsAlphanumericOrNational(Place)` (the
-`Place` form reads a reference-modified view's §8.4.3.3.4 GR6 category). Both sites used to test the raw
+`Place` form reads a reference-modified view's §2023:8.4.3.3.4 GR6 category). Both sites used to test the raw
 `Item.Pic?.Category`: null for a GROUP (refused as "category (none)"), and equal to alphanumeric for a PIC A item
 (accepted). Identifier-1 is any identifier format too, so both grammar rules take `functionCall | inlineMethodInvocation
 | dataReference` (`functionAddressIdentifier` is its own rule, as `programAddressIdentifier` is);
@@ -845,13 +845,13 @@ is materialized by `SendingValueTemp`; one folded to a literal is the compile-ti
 name through `PtrEmitter.NameImage`, the operand's character image, because a group's `Read` is its record struct.
 
 **A strongly-typed group's class is its type-name outside a function argument (kb/Work PB3355, sibling of PB1901).**
-`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §15.3 item 2's reading of a
-function ARGUMENT; §8.5.2.1 makes the class and the category of the group its type-name everywhere else, so a rule outside
+`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §2023:15.3 item 2's reading of a
+function ARGUMENT; §2023:8.5.2.1 makes the class and the category of the group its type-name everywhere else, so a rule outside
 an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
-("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §14.9.4.3 SR1, CANCEL §14.9.5.3 SR1, the
-report CODE clause §13.18.12.3 SR2; §8.5.2.1: a class or category named in the rules "refers to the category unless class
+("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §2023:14.9.4.3 SR1, CANCEL §2023:14.9.5.3 SR1, the
+report CODE clause §2023:13.18.12.3 SR2; §2023:8.5.2.1: a class or category named in the rules "refers to the category unless class
 is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place)` / `IsAlphanumeric(DataItem)` and prints
-`ItemCategory.Face`; a PAIR rule worded in CLASS (EVALUATE's range-expression §14.9.13.3 SR4, "the same class") asks
+`ItemCategory.Face`; a PAIR rule worded in CLASS (EVALUATE's range-expression §2023:14.9.13.3 SR4, "the same class") asks
 `IntrinsicArgumentRules.SameClass`, which takes a strongly-typed group to be of the class of another operand only when that
 operand is a strongly-typed group of the same type. The three screens used to ask the lattice (CALL and CANCEL accepted the
 group and read its character image as a program-name at run time; the range was refused only by the relation rule it lowers
@@ -874,11 +874,11 @@ reverse select the same format, and no sender kind names two formats or names on
 **A predefined object reference is classified before the general lookup.** `EXCEPTION-OBJECT` is spelled as an
 ordinary word rather than a reserved token, so it arrives as a written data reference that no data description
 entry declares — and the general resolver therefore answered "'EXCEPTION-OBJECT' is not defined", false about a
-name the standard declares (§8.4.3.6.3 SR2: "implicitly described as class object and category object
+name the standard declares (§2023:8.4.3.6.3 SR2: "implicitly described as class object and category object
 reference"). `KindOf` asks `OoBinder.OoIsExceptionObject` first, which is the ONE place that spelling is
-compared, so the receiving list selects Format 5 and §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified
+compared, so the receiving list selects Format 5 and §2023:8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified
 as a receiving operand" — is the rule the statement draws. Its three siblings need no arm: NULL, SELF and SUPER
-are grammar tokens (`objectReference`), so §8.4.3.7.3 SR1 and §8.4.3.8.3 SR2 are enforced by the syntax in a
+are grammar tokens (`objectReference`), so §2023:8.4.3.7.3 SR1 and §2023:8.4.3.8.3 SR2 are enforced by the syntax in a
 receiving position.
 
 **Format 1's row is deliberately the wide one and deliberately last.** Its brace is `{ index-name-1 |
@@ -889,23 +889,23 @@ selected (kb/Work PB212), and SR2–SR4 are ONE receiver-class × sender-alterna
 (`ScreenIndexAssignmentReceiver`): the sender is classified once as arithmetic-expression-1, index-name-2 or an
 index-data-item identifier-2 — a bare numeric identifier IS arithmetic-expression-1 (the rendered figure prints
 three alternatives, so SR2 governs the identifier-2 alternative and refuses only a bare identifier that is neither
-of class index nor numeric) — and §14.9.39.4 GR2's two defined pairings are the only ones admitted. Format 2 has no such catch-all: its brace is `{ index-name-3 }
-…` with no identifier alternative and no syntax rule, and §14.9.39.4 GR4 is written "For each occurrence of
+of class index nor numeric) — and §2023:14.9.39.4 GR2's two defined pairings are the only ones admitted. Format 2 has no such catch-all: its brace is `{ index-name-3 }
+…` with no identifier alternative and no syntax rule, and §2023:14.9.39.4 GR4 is written "For each occurrence of
 index-name-3", so the UP/DOWN direction admits an index-name, a data-pointer (SR23) and a capacity register
 (SR29) and nothing else.
 
-**The literal amount is the same shape one level down.** §14.9.39.2 writes each amount-taking format as a choice
+**The literal amount is the same shape one level down.** §2023:14.9.39.2 writes each amount-taking format as a choice
 between a literal and an arithmetic expression, with a SYNTAX rule on the literal (SR30 for Format 14's
 integer-1, SR34 for Format 16's integer-2) beside a GENERAL rule on the expression (GR29/GR30, GR37/GR38).
 `SetLiteralAmount` is the one screen: it answers "is this operand a single integer literal" through
-`SoleOperand.NumericLiteral` — THE §8.3.3.3.2 rule-2 contiguity reading, shared with DEFINE, CONSTANT and
+`SoleOperand.NumericLiteral` — THE §2023:8.3.3.3.2 rule-2 contiguity reading, shared with DEFINE, CONSTANT and
 EVALUATE — and compares it against a `SetAmountBound` the call site declares, so each format names its own
 operand and its own rule (`COBOL2113`) and the next amount-taking format is a bound, not a fourth `if`.
 
 ### 3.9 The typed position carrier — subscripts and reference-modification positions (D10's second half, kb/Work PB2151)
 
-**The rule: a position is a typed node from the parse to the code generator.** A subscript (ISO §8.4.2.3.2
-`arithmetic-expression-1`), a reference-modifier leftmost position or length (§8.4.3.3.3 SR4), and every offset and
+**The rule: a position is a typed node from the parse to the code generator.** A subscript (ISO §2023:8.4.2.3.2
+`arithmetic-expression-1`), a reference-modifier leftmost position or length (§2023:8.4.3.3.3 SR4), and every offset and
 ordinal the place model computes from them is a `Position` (`Binding/Model/Position.cs`). The binder builds STRUCTURE;
 `CodeGen/Roslyn/PositionRenderer.Render` is the one place a position becomes C# (the §3.3 rule "Place stays the lvalue
 abstraction but stops being a string", applied to the positions inside a place). No position travels between the binder
@@ -915,7 +915,7 @@ and codegen as text, and `PositionCarrierDriftTests` keeps it so.
 positions it could not render through a second, isolated grammar entry, and spliced the strings into seven string
 carriers of the place model that codegen re-read as text: byte offsets were computed as string arithmetic
 (`0 + (Occ(I) + 1 - 1) * 3 + 1`), the evaluate-once identification decided "is this a constant" by scanning characters,
-and the bit-alignment proof of §14.9.4.3 SR6 re-parsed the text with a hand-written evaluator.
+and the bit-alignment proof of §2023:14.9.4.3 SR6 re-parsed the text with a hand-written evaluator.
 
 #### 3.9.1 The node shapes (`Binding/Model/Position.cs`)
 
@@ -928,7 +928,7 @@ public sealed record PositionItemRead(AccessPath Path, DataItem Item, PositionRe
 public sealed record PositionLocal(MethodLocal Local, bool AsLong = false) : Position;   // a statement local: a hoisted
         // identification, a report VARYING counter, an INITIALIZE loop variable, a CORRESPONDING view anchor — by its
         // identity (Binding/Model/MethodLocal.cs; the Roslyn backend spells it in LocalNames.Of, kb/Work PB4321)
-public sealed record LocalVector(MethodLocal Local);                // a table(ALL) enumeration's index vector (ISO §15.3)
+public sealed record LocalVector(MethodLocal Local);                // a table(ALL) enumeration's index vector (ISO §2023:15.3)
 public sealed record PositionLocalElement(LocalVector Vector, int Index) : Position;   // one ALL level's occurrence
 public sealed record PositionBinary(Position Left, PositionOperator Op, Position Right) : Position;   // + - *
 public sealed record PositionNegate(Position Operand) : Position;
@@ -941,7 +941,7 @@ public readonly record struct OffsetTerm(Position Index, long Stride);   // + (I
 
 `PositionOffset` is the ONE structured form of every address the place model computes from subscripts: an origin plus
 Σ (index − 1) × stride, outermost level first. A Tier-B view's byte offset (`ClassOffset + Σ (index − 1) × level
-width`, ISO §13.18.44), its bit twin (`8 × (displacement) + ClassBitOffset + Σ (index − 1) × stride bits`), a cell
+width`, ISO §2023:13.18.44), its bit twin (`8 × (displacement) + ClassBitOffset + Σ (index − 1) × stride bits`), a cell
 component ordinal (`ClassDynOrdinal + Σ (index − 1) × components per occurrence`) and the ADDRESS OF displacement are all
 this node. The ORIGIN is any position: the static in-class offset or ordinal (a `PositionConstant`), that constant
 displaced by a BASED pointer (`PositionPointerOffset + c`), or an enclosing window's own offset — so a member window a
@@ -963,16 +963,16 @@ origins — `k + (o) − e`, `L − e + c` — are not of that shape, and a gene
 | `RefModSpec` / `RefModPlace` | `Start`, `Length` | `Position` |
 | bound nodes | `BoundAddressOf.OccursDisplacement`; `CorrespondingHoist.ViewOffset`; `InitializeOccurrenceSelect.Occurrences` | `OffsetTerm` list; `Position`; `Position` list |
 
-**What a position MAY be is not decided by the node set.** ISO §8.4.2.3.2 makes a subscript `ALL`,
-`arithmetic-expression-1` or `index-name-1 [{+|-} integer-1]`, and §8.4.3.3.3 SR4 makes both reference-modifier
+**What a position MAY be is not decided by the node set.** ISO §2023:8.4.2.3.2 makes a subscript `ALL`,
+`arithmetic-expression-1` or `index-name-1 [{+|-} integer-1]`, and §2023:8.4.3.3.3 SR4 makes both reference-modifier
 positions arithmetic expressions. The node set is the set of shapes that RENDER DIRECTLY as an ordinal; every other
 arithmetic expression (a function-identifier, `/`, `**`, a decimal literal, a scaled operand inside a compound, a
-floating-point or group operand, the figurative ZERO) is bound by the ONE `ExpressionBinder.BindExpr` into the §15.4
+floating-point or group operand, the figurative ZERO) is bound by the ONE `ExpressionBinder.BindExpr` into the §2023:15.4
 position temporary (`BoundPositionValue`, kb/Work PB1890) and is then a `PositionItemRead` of that temporary. The
-integrality rule of §8.4.2.3.4 GR1 b) is therefore asked once, of the result.
+integrality rule of §2023:8.4.2.3.4 GR1 b) is therefore asked once, of the result.
 
 Two structural questions are answered by the node, never by text: `Position.ConstantValue` (the compile-time value of
-a position built only from constants, an offset included — what the §14.9.4.3 SR6 / SR8 bit-alignment proof asks of
+a position built only from constants, an offset included — what the §2023:14.9.4.3 SR6 / SR8 bit-alignment proof asks of
 `BitWindow.ClassRelative`) and `Position.IsSelfEvaluating` (a non-negative constant, or an offset with no term over
 one — what the evaluate-once identification asks before it hoists).
 
@@ -984,23 +984,23 @@ one — what the evaluate-once identification asks before it hoists).
 
 - an integer literal → `PositionConstant`; a written parenthesis → `PositionGroup`; `+ - *` → `PositionBinary`;
   a unary sign → `PositionNegate`;
-- a bare (possibly qualified) name → the existing resolution: an index-name → `PositionIndexCell` (§8.4.2.3.3 SR4's
-  collector, §13.18.38.3 r7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
-  → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §8.8.1.1 class screen
+- a bare (possibly qualified) name → the existing resolution: an index-name → `PositionIndexCell` (§2023:8.4.2.3.3 SR4's
+  collector, §2023:13.18.38.3 r7's ref-mod screen); an integer constant-name → `PositionConstant`; a report VARYING counter
+  → `PositionLocal(AsLong)`; a data item with a position overload → `PositionItemRead`, with the §2023:8.8.1.1 class screen
   queued to the commit point exactly as PB220 required;
 - anything else, at any depth, routes the WHOLE position to the D18 temporary: the `MaterializeSegment` hook
   (`StatementBinder.BindPositionTemporary`) takes the position's own `arithmeticExpression` node and binds it through
   the expression binder. A `functionArgument` that is not an `arithmeticExpression` (a nonnumeric literal, a boolean
-  expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §8.4.2.3.3 SR6's two contexts
+  expression, `OMITTED`, an address identifier, a phrase word) and the word ALL outside §2023:8.4.2.3.3 SR6's two contexts
   never reach the hook: the resolver refuses them by name — COBOL2363 (kb/Work PB1030).
 - ⛔ **an expression whose worst case passes the host's `long` routes the WHOLE position to the D18 temporary too**
-  (kb/Work PB2616). `PositionRenderer` renders `+ - *` as C# `long` arithmetic, but §8.4.2.3.4 1) b) takes the
+  (kb/Work PB2616). `PositionRenderer` renders `+ - *` as C# `long` arithmetic, but §2023:8.4.2.3.4 1) b) takes the
   subscript from "the evaluation of arithmetic-expression-1", so a product past 18 digits must not wrap into another
   occurrence. `Position.ExceedsLongArithmetic` decides it at COMPILE TIME from the operands' digit bounds (a literal is
   its own magnitude, an item read is `10^digits − 1` widened by trailing P positions, `+ -` add the bounds, `*`
   multiplies them; index cells and statement locals are bounded by the host's `int`), after the walk has built its
   node and before its screens flush. Narrow operands (`T(I + 1)`, `T(I * 2)` over `PIC 9(18)`) keep the `long` fast
-  path; `A * B - C * D` over `PIC 9(21)` takes the expression binder's exact lane and then meets the §8.4.2.3.4 GR2
+  path; `A * B - C * D` over `PIC 9(21)` takes the expression binder's exact lane and then meets the §2023:8.4.2.3.4 GR2
   bound check once, on the result.
 
 The PB136 declaration-informed cut (Annex D.3.5.3 `DOG (XCOUNTER (- YCOUNTER))`: a name that cannot be subscripted
@@ -1032,12 +1032,12 @@ root guard renders in `PlaceRenderer.GuardedRoot`, beside the one path renderer 
 over every position of the place model's own walk (`FreezePath`, `FreezeView`, `FreezeCoding`, `FreezeRefMod`): the
 table indices, the cell ordinals, the view offset and ordinal, the ref-mod bounds. A `BitWindow`'s offset is not
 hoisted, because no verb that identifies its operands there can receive a USAGE BIT item with a run-time subscript: a
-BY REFERENCE bit argument's subscripts are numeric literals or all-literal expressions (§14.9.4.3 SR6, §14.9.23.3
-SR12), and INSPECT, STRING and UNSTRING take only usage display or national operands (§14.9.22.3 SR1, §14.9.43.3 SR1,
-§14.9.48.3 SR4).
+BY REFERENCE bit argument's subscripts are numeric literals or all-literal expressions (§2023:14.9.4.3 SR6, §2023:14.9.23.3
+SR12), and INSPECT, STRING and UNSTRING take only usage display or national operands (§2023:14.9.22.3 SR1, §2023:14.9.43.3 SR1,
+§2023:14.9.48.3 SR4).
 
 Freeze hoists a position's VALUE; the range test that raises EC-BOUND-SUBSCRIPT or EC-BOUND-REF-MOD runs where the
-operand is read or stored, so the ORDER of reads and stores is the order of evaluation §14.9.49.4 GR11 selects a
+operand is read or stored, so the ORDER of reads and stores is the order of evaluation §2023:14.9.49.4 GR11 selects a
 declarative by (kb/Work PB3261). Two `PlaceIdentification` members carry that order.
 `IdentifiesAtRunTime(Place | BoundOperand)` asks whether identifying an operand evaluates anything at run time — an
 address fragment Freeze would hoist (asked of Freeze itself), an occurs-depending length, an omitted formal's guard,
@@ -1045,11 +1045,11 @@ or, for an operand, any value that is not a literal or figurative constant. `Sen
 store)` renders a store whose verb identifies the receiver after evaluating the sender: when both sides answer true it
 evaluates the value into a block-scoped `__sending` local before the store, because C# evaluates the left operand of
 `<receiver> = <value>` (and a splice's start and length arguments) first. Its callers are every MoveEmitter store arm
-(§14.9.25.4 GR1; INITIALIZE keeps the receiver first, `ImplicitMovePhrase.ReceiverIdentifiedFirst`, §14.6.4 7)) and
-the pointer-family SET stores (§14.9.39.4 GR12, GR14, GR16). The arithmetic statements materialize their initial
-evaluation (`ArithmeticEmitter.MaterializesInitialEvaluation`, §14.7.7 rule 4) for a receiver that identifies at run
+(§2023:14.9.25.4 GR1; INITIALIZE keeps the receiver first, `ImplicitMovePhrase.ReceiverIdentifiedFirst`, §2023:14.6.4 7)) and
+the pointer-family SET stores (§2023:14.9.39.4 GR12, GR14, GR16). The arithmetic statements materialize their initial
+evaluation (`ArithmeticEmitter.MaterializesInitialEvaluation`, §2023:14.7.7 rule 4) for a receiver that identifies at run
 time, as they always did for several receivers, and STRING reads each sending operand and delimiter that identifies at
-run time, in statement order, before identifier-3 and the POINTER item (§14.6.4 7)).
+run time, in statement order, before identifier-3 and the POINTER item (§2023:14.6.4 7)).
 
 #### 3.9.4 How it landed — one carrier per commit, the oracle after each
 
@@ -1133,7 +1133,7 @@ cross-check against the old across the corpus, delete the old). Never delete a m
 ## 6. Risks
 
 - **R1 — OO method-scope shadowing regression (HIGH).** Collapsing the lookup quadruple into one scoped resolver
-  is the single most behavior-sensitive change; §11.7 GR5 sibling-invisibility is subtle. Mitigation: land last,
+  is the single most behavior-sensitive change; §2023:11.7 GR5 sibling-invisibility is subtle. Mitigation: land last,
   behind the OO goldens + method-scope unit tests, with a temporary shim-and-cross-check.
 - **R2 — StorageForm equivalence gaps (HIGH).** `StoreAsImage` has accreted special cases (SORT SD records, FILE
   whole-group, compiler temps). A single `StorageFormPass` must reproduce ALL of them. Mitigation: the

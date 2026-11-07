@@ -12,8 +12,8 @@ using Core = CobolParserCore;
 /// procedures). A consumer that asked the node for <c>GetText()</c> read the children GLUED —
 /// <c>P1 OF S1</c> as <c>P1OFS1</c> — so a qualified header declared a procedure no source element wrote and a
 /// <c>PERFORM P1OFS1</c> ran it. The head word and the qualifier are read here, from the children, and nowhere
-/// else; <see cref="ProcedureTableBuilder.HeaderName"/> refuses a qualified header (ISO §14.2.1: the formats write
-/// <c>section-name-1 SECTION.</c> and <c>paragraph-name-1.</c>, §14.4.1: only a procedure-name REFERENCE
+/// else; <see cref="ProcedureTableBuilder.HeaderName"/> refuses a qualified header (ISO §2023:14.2.1: the formats write
+/// <c>section-name-1 SECTION.</c> and <c>paragraph-name-1.</c>, §2023:14.4.1: only a procedure-name REFERENCE
 /// "consists of a paragraph-name (that may be qualified)").</summary>
 internal static class ProcedureNameShape
 {

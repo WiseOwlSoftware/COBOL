@@ -9,15 +9,15 @@
       *> the same file-control and file-description properties as any
       *> other file: its CODE-SET and its SHARING mode (and RESERVE).
       *>
-      *> §13.4.5.2 Format 3 (report) prints CODE-SET for a report file
-      *>   cite.py: OK  §13.4.5.2  (General formats)
+      *> §2023:13.4.5.2 Format 3 (report) prints CODE-SET for a report file
+      *>   cite.py: OK  §2023:13.4.5.2  (General formats)
       *> "The CODE-SET clause identifies alphabets to be used for
       *> converting data ... from the native character set to the
       *> coded character set on the storage medium during output
       *> operations."
-      *>   cite.py: OK  §13.18.13.4 1)  (General rules)
-      *> SHARING clause, §12.4.5.15 (a Format 3 file control entry)
-      *>   cite.py: OK  §12.4.5.15  (SHARING clause)
+      *>   cite.py: OK  §2023:13.18.13.4 1)  (General rules)
+      *> SHARING clause, §2023:12.4.5.15 (a Format 3 file control entry)
+      *>   cite.py: OK  §2023:12.4.5.15  (SHARING clause)
       *>
       *> DERIVATION.
       *>   SHARE: RPT is open in the output mode under SHARING WITH ALL

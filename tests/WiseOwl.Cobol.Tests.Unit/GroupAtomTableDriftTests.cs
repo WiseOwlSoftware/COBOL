@@ -9,7 +9,7 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A §8.5.1.12 ATOM ARRAY IS WRITTEN INTO EMITTED C# IN ONE PLACE, AND ONCE PER DISTINCT SHAPE (kb/Work PB2690). Every
+/// ⛔ A §2023:8.5.1.12 ATOM ARRAY IS WRITTEN INTO EMITTED C# IN ONE PLACE, AND ONCE PER DISTINCT SHAPE (kb/Work PB2690). Every
 /// shape a variable-length MOVE, comparison, CALL or INVOKE hands the runtime is a <see cref="GroupAtom"/> array the
 /// compiler knows in full, so the module states each distinct array as a <c>static readonly</c> field of
 /// <c>__GroupAtoms</c> (<c>GroupAtomTable</c>) and every use names the field. An inline literal allocated the array and

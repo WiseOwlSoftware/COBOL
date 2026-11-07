@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §15.38.4 r2 — the ACCURACY of FORMATTED-CURRENT-DATE's time portion (Annex A.1 item 87,
+/// ISO §2023:15.38.4 r2 — the ACCURACY of FORMATTED-CURRENT-DATE's time portion (Annex A.1 item 87,
 /// docs/CONFORMANCE.md row 87), measured through the injectable <see cref="RunUnit.Clock"/> seam.
 /// <para>⛔ WHY THIS EXISTS BESIDE A GOLDEN. The conformance golden
 /// <c>2023/l1_formatted_current_date_accuracy</c> measures the ACCURACY CEILING — that a fraction field
@@ -45,14 +45,14 @@ public sealed class CobolDateAccuracyTests
         // offset no test machine runs at, so the offset demonstrably travelled through the seam.
         var at = new DateTimeOffset(2026, 6, 10, 5, 14, 27, TimeSpan.FromMinutes(150)).AddTicks(8_124_791);
 
-        // §15.3.3.2's floor for the implementor maximum is nine digits; row 87 renders the clock tick's
+        // §2023:15.3.3.2's floor for the implementor maximum is nine digits; row 87 renders the clock tick's
         // SEVEN significant digits and zeros beyond. At width 7 nothing is lost …
         Assert.Equal("2026-06-10T05:14:27.8124791+02:30",
             UnderClock(at, () => CobolDate.FormattedCurrentDate("YYYY-MM-DDThh:mm:ss.sssssss+hh:mm")));
         // … at width 9 the two digits past the tick are ZEROS, not noise …
         Assert.Equal("2026-06-10T05:14:27.812479100+02:30",
             UnderClock(at, () => CobolDate.FormattedCurrentDate("YYYY-MM-DDThh:mm:ss.sssssssss+hh:mm")));
-        // … and at WiseOwl COBOL's documented §15.3.3.2 maximum of 18 the field is still the tick followed
+        // … and at WiseOwl COBOL's documented §2023:15.3.3.2 maximum of 18 the field is still the tick followed
         // by zeros — the exact shape the conformance golden observes without being able to name the
         // instant that produced it.
         Assert.Equal("2026-06-10T05:14:27.812479100000000000+02:30",

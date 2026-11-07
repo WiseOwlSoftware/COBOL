@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §12.4.5.6 SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause
+      *> ISO §2023:12.4.5.6 SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause
       *> (COBOL-2023; Introduction p.27 / Annex E.3.3 item 42). literal-1 is the
       *> key suppression value: when a record's alternate key equals it, that
-      *> record's ALTERNATE access path is withheld (§12.4.5.6.4 GR6) and the
+      *> record's ALTERNATE access path is withheld (§2023:12.4.5.6.4 GR6) and the
       *> record "is not considered to exist" for READ/START on that key (GR6 NOTE)
       *> — but the record itself, and its PRIME-key path, are unaffected.
       *> Record 02 has alternate key "XX" = the suppression value. Reading on the

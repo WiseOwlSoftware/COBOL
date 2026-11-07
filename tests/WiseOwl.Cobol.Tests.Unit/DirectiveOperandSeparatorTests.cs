@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators that may be
+/// ISO §2023:8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators that may be
 /// used anywhere the separator space is used" — read ONCE for every directive operand, by the directive-line parse
 /// (<see cref="CompilerDirectiveLine"/>), and not by each stage's tokenizer (kb/Work PB1373). Every stage that splits its
 /// operand on the space used to reject the legal spelling.
@@ -23,7 +23,7 @@ public sealed class DirectiveOperandSeparatorTests
     [InlineData("\"A, B\", \"C\"", "\"A, B\"  \"C\"")]   // inside a character-string: untouched
     [InlineData("\"A\"\", B\", C", "\"A\"\", B\"  C")]   // a doubled quotation symbol stays inside the literal
     [InlineData("'A; B'; C", "'A; B'  C")]
-    [InlineData("A,", "A,")]                    // ends the operand: §7.3.3 3), 4) — nothing but spaces may follow a directive
+    [InlineData("A,", "A,")]                    // ends the operand: §2023:7.3.3 3), 4) — nothing but spaces may follow a directive
     [InlineData("", "")]
     public void SeparatorsAsSpaces_ReadsTheSeparatorsOutsideLiterals(string operand, string expected) =>
         Assert.Equal(expected, CompilerDirectiveLine.SeparatorsAsSpaces(operand));
@@ -37,7 +37,7 @@ public sealed class DirectiveOperandSeparatorTests
         Assert.Equal("RESERVE \"A\",", trailing.Operand);
     }
 
-    [Fact] // §7.3.25.2 — the TURN stage's operand, a sibling of COBOL-WORDS, takes the separator comma and semicolon too.
+    [Fact] // §2023:7.3.25.2 — the TURN stage's operand, a sibling of COBOL-WORDS, takes the separator comma and semicolon too.
     public void Turn_TakesSeparatorCommaAndSemicolon()
     {
         var bag = new DiagnosticBag();
@@ -46,7 +46,7 @@ public sealed class DirectiveOperandSeparatorTests
         Assert.Equal(["EC-SIZE", "EC-BOUND"], events.Single().Names.Select(n => n.Ec));
     }
 
-    [Fact] // §7.3.14.2 / §7.3.15.2 — and the FLAG stage's.
+    [Fact] // §2023:7.3.14.2 / §2023:7.3.15.2 — and the FLAG stage's.
     public void Flag_TakesSeparatorCommaAndSemicolon()
     {
         var bag = new DiagnosticBag();
@@ -56,7 +56,7 @@ public sealed class DirectiveOperandSeparatorTests
     }
 
     [Fact] // the closed-word rows too: the central COBOL1911 check reads the same operand, and the separator may stand
-    // right after the directive word itself, where a space would (§8.3.5 2)).
+    // right after the directive word itself, where a space would (§2023:8.3.5 2)).
     public void ClosedWordRow_TakesASeparatorAfterTheDirectiveWord()
     {
         var bag = new DiagnosticBag();

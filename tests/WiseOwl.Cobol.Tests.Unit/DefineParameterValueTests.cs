@@ -9,13 +9,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// kb/Work PB1626 — <see cref="DefineParameterValue"/>, the ONE rule for what an operating-environment value is as the
 /// value of a <c>&gt;&gt;DEFINE … PARAMETER</c> compilation variable (DOC-A.1-49), and <see cref="NumericLiteral.IsFixedPointLiteralForm"/>,
-/// the ONE spelling test of a fixed-point numeric literal (ISO §8.3.3.3.2) it asks. The expected forms are GnuCOBOL 3.2's
-/// (<c>cobc/ppparse.y</c>), where §7.3.11.4 GR4 leaves the form to the implementor, narrowed by §8.3.3.3.2 where that clause is
+/// the ONE spelling test of a fixed-point numeric literal (ISO §2023:8.3.3.3.2) it asks. The expected forms are GnuCOBOL 3.2's
+/// (<c>cobc/ppparse.y</c>), where §2023:7.3.11.4 GR4 leaves the form to the implementor, narrowed by §2023:8.3.3.3.2 where that clause is
 /// the standard's own (a decimal point is never the rightmost character).
 /// </summary>
 public sealed class DefineParameterValueTests
 {
-    [Theory] // §8.3.3.3.2 1)-3): at least one digit; one sign, leftmost; one decimal point, never rightmost
+    [Theory] // §2023:8.3.3.3.2 1)-3): at least one digit; one sign, leftmost; one decimal point, never rightmost
     [InlineData("7", true)]
     [InlineData("0", true)]
     [InlineData("-2.5", true)]
@@ -58,7 +58,7 @@ public sealed class DefineParameterValueTests
     [InlineData("\"abc\"", nameof(ParameterValueForm.QuotedLiteral))]
     [InlineData("'abc'", nameof(ParameterValueForm.QuotedLiteral))]
     [InlineData("\"\"", nameof(ParameterValueForm.QuotedLiteral))]
-    [InlineData("\"a\"\"b\"", nameof(ParameterValueForm.QuotedLiteral))]   // §8.3.3.2.3 3): a doubled quotation symbol is content
+    [InlineData("\"a\"\"b\"", nameof(ParameterValueForm.QuotedLiteral))]   // §2023:8.3.3.2.3 3): a doubled quotation symbol is content
     [InlineData("\"it's\"", nameof(ParameterValueForm.QuotedLiteral))]     // the other quotation symbol is content too
     [InlineData("\"", nameof(ParameterValueForm.NoValue))]
     [InlineData("\"abc", nameof(ParameterValueForm.NoValue))]

@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ THE REGION LOCKS THAT ARE A PROPERTY OF THE CONNECTOR'S OWN OPEN HANDLE (kb/Work PB2660): the locks are taken
-/// through the handle that IS the connector's §9.1.15 file lock (<c>KeyedConnector</c>'s store; the handle beneath a
+/// through the handle that IS the connector's §2023:9.1.15 file lock (<c>KeyedConnector</c>'s store; the handle beneath a
 /// <c>SequentialConnector</c>'s reader or writer, kb/Work PB2692), never through a second handle on the path: a second
 /// handle would have to be admitted by the connector's own share mode, and every other open of a host path is
 /// <c>HostFile</c>'s (kb/Work PB713, PB771). Both expressions are owned by the HANDLE (the open file description on

@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A REFERENCE MODIFICATION THE PROGRAM WROTE AND A WINDOW THE COMPILER CHOSE ARE TWO EMITS, AND THE FIRST LIST
 /// IS CLOSED (kb/Work PB1707 part 2, owner decision R60).
-/// <para><c>RuntimeApi.StrRefMod</c> / <c>StrSpliceInto</c> render ISO §8.4.3.3's reference modification:
+/// <para><c>RuntimeApi.StrRefMod</c> / <c>StrSpliceInto</c> render ISO §2023:8.4.3.3's reference modification:
 /// <c>CobolString.RefMod</c> / <c>SpliceInto</c>, whose range violation is EC-BOUND-REF-MOD and, with checking off,
 /// the end of the run unit. Every OTHER character-image slice the emitter renders — a REDEFINES view, an
 /// occurs-depending group's current extent, an INVOKE/CALL boundary prefix, a READ … INTO current record — is a
@@ -30,7 +30,7 @@ public sealed class RuntimeApiWindowDriftTests
     {
         // RefModPlace: the read (StrRefMod), the write (StrSpliceInto) and the figurative-constant write (StrSpliceInto, repeat).
         ["PlaceRenderer.cs"] = 3,
-        // A ref-modified FUNCTION RESULT (§8.4.3.3.3 SR2), read-only.
+        // A ref-modified FUNCTION RESULT (§2023:8.4.3.3.3 SR2), read-only.
         ["IntrinsicRenderer.cs"] = 1,
     };
 

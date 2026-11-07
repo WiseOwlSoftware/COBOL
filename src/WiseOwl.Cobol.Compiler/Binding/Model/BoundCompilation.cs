@@ -20,16 +20,16 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// reads of it is written into this record or the nodes it carries.</param>
 /// <param name="InterfaceData">What each interface's data binding hands a backend (its prototype LINKAGE formals;
 /// <see cref="DataBindResult"/>, kb/Work PB2361) for interface emission.</param>
-/// <param name="OoAdapters">The §9.3.8.2.3 5a/5c2 covariant-return adapter pairs (returned by
+/// <param name="OoAdapters">The §2023:9.3.8.2.3 5a/5c2 covariant-return adapter pairs (returned by
 /// <c>OoConformance.ValidateImplements</c>; the interface emitter renders one explicit implementation per pair).</param>
 /// <param name="Imported">The classes and interfaces the group imported from the external repository (DESIGN-external-repository
-/// §10.1): the assemblies the backend references and the types it names in another assembly.</param>
-/// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
+/// §2023:10.1): the assemblies the backend references and the types it names in another assembly.</param>
+/// <param name="Turn">The group's compile-time TurnState (ISO §2023:7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
 /// <param name="Edition">The ISO edition (<c>EditionContext.DialectLevel</c>: 85, 2002, 2014 or 2023) the group was bound under;
 /// the module's repository record names it (DESIGN-external-repository §5.4 item 2).</param>
 /// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + the run-unit-start
-/// FileInit; the §14.6.11 termination CloseAll is runtime-side in ProgramTable.RunMain, run-unit-scoped).</param>
+/// FileInit; the §2023:14.6.11 termination CloseAll is runtime-side in ProgramTable.RunMain, run-unit-scoped).</param>
 /// <param name="SignEncoding">The compilation's over-punch convention (<c>EditionContext.SignEncoding</c>, kb/Work PB803):
 /// one per compilation, so a group with no program class (prototypes alone) states it too.</param>
 /// <param name="Expansions">What the group publishes for its parameterized definitions and where each expansion lives
@@ -41,7 +41,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// DESIGN-external-repository §9.1) and bound without an error (a refused group is never emitted): the module states <c>HasSignatures</c>, every skeleton carries its <c>[CobolSkeleton]</c>, and
 /// every published unit carries its record (<see cref="BoundUnit.Record"/>, <see cref="OoClassUnit.Record"/>,
 /// <paramref name="InterfaceRecords"/>), written at bind time (kb/Work PB4319).</param>
-/// <param name="InterfaceRecords">The record of each interface this module emits (ISO §8.13), under
+/// <param name="InterfaceRecords">The record of each interface this module emits (ISO §2023:8.13), under
 /// <paramref name="PublishesSignatures"/>; empty otherwise.</param>
 internal sealed record BoundCompilation(
     IReadOnlyList<BoundUnit> Units,

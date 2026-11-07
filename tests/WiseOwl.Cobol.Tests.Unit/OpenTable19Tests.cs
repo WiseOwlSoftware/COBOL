@@ -6,13 +6,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §14.9.27.4 <b>Table 19</b> as a checked STRUCTURE (kb/Work PB321) — the OPEN sibling of
+/// ISO §2023:14.9.27.4 <b>Table 19</b> as a checked STRUCTURE (kb/Work PB321) — the OPEN sibling of
 /// <see cref="CloseTable14Tests"/>. Three things have to hold and none of them used to be expressible:
 /// every one of the 35 printed cells is transcribed, the arbitration is TOTAL over all 144
 /// (sharing, mode)² connector pairs, and the two prose readings of the same rule agree with the table.
 ///
 /// <para>⛔ WHAT THE OLD SHAPE LET THROUGH. <c>FileRegistry.Conflicts</c> was a four-test predicate chain whose
-/// final <c>return false;</c> carried the comment <c>// (e) ALL OTHER</c> — the letter of a §9.1.13.9 sub-case
+/// final <c>return false;</c> carried the comment <c>// (e) ALL OTHER</c> — the letter of a §2023:9.1.13.9 sub-case
 /// that had NO implementation — and the theory guarding it had SIX rows against 35 cells, with no row whose
 /// incoming mode was OUTPUT. Five combinations were wrong and every one of them let an incoming OPEN OUTPUT
 /// truncate a file another connector held open. <see cref="Conflicts_MatchesTheTableForEveryConnectorPair"/>
@@ -88,7 +88,7 @@ public sealed class OpenTable19Tests
     /// <summary>Every (sharing, mode) pair lands in a row and in a column, and the groupings are the printed
     /// ones. ⛔ The OUTPUT placement is the load-bearing half: on the REQUEST side OUTPUT is its own row under
     /// READ ONLY and ALL OTHER, while on the EXISTING side it groups with <c>extend I-O</c>. Getting that
-    /// backwards is exactly the reading §9.1.13.9's sub-cases (c) and (d) invite.</summary>
+    /// backwards is exactly the reading §2023:9.1.13.9's sub-cases (c) and (d) invite.</summary>
     [Fact]
     public void RowAndColumn_GroupTheModesTheTablePrints()
     {
@@ -130,9 +130,9 @@ public sealed class OpenTable19Tests
             }
     }
 
-    /// <summary>⛔ THE OTHER READING OF THE SAME RULE, pinned against the table. §9.1.15's three sharing-mode
-    /// paragraphs plus §9.1.13.9 1) e) are the PROSE form of Table 19, and they reproduce all 144 cells exactly.
-    /// The five §9.1.13.9 sub-cases read literally do NOT: (c) and (d) say <i>"I-O or extend"</i> where the
+    /// <summary>⛔ THE OTHER READING OF THE SAME RULE, pinned against the table. §2023:9.1.15's three sharing-mode
+    /// paragraphs plus §2023:9.1.13.9 1) e) are the PROSE form of Table 19, and they reproduce all 144 cells exactly.
+    /// The five §2023:9.1.13.9 sub-cases read literally do NOT: (c) and (d) say <i>"I-O or extend"</i> where the
     /// table's existing-side column groups are <c>extend I-O output</c>, so they under-enumerate the table by
     /// four combinations. This test is what keeps the code on the reading that agrees with the printed table,
     /// and it FAILS if the transcription above is ever edited to the sub-cases' shape.</summary>
@@ -145,13 +145,13 @@ public sealed class OpenTable19Tests
             {
                 bool table = Table19.Cell(incS, incM, exS, exM) == U;
 
-                // §9.1.15 1) "Associating this file connector with the physical file will be unsuccessful if the
+                // §2023:9.1.15 1) "Associating this file connector with the physical file will be unsuccessful if the
                 //             physical file is currently open through other file connectors." / "… subsequent
                 //             requests to open the physical file through other file connectors … unsuccessful."
-                // §9.1.15 2) "… unsuccessful if the physical file is associated with another file connector
+                // §2023:9.1.15 2) "… unsuccessful if the physical file is associated with another file connector
                 //             whose open mode is other than input." / "… subsequent requests … in a mode other
                 //             than input … will be unsuccessful."
-                // §9.1.13.9 1) e) "An attempt is made to open a physical file in the output mode and the
+                // §2023:9.1.13.9 1) e) "An attempt is made to open a physical file in the output mode and the
                 //             physical file is currently open by another file connector."
                 bool prose = exS == FileSharing.NoOther
                           || incS == FileSharing.NoOther
@@ -159,9 +159,9 @@ public sealed class OpenTable19Tests
                           || (incS == FileSharing.ReadOnly && exM != FileOpenMode.Input)
                           || incM == FileOpenMode.Output;
                 Assert.True(table == prose,
-                    $"§9.1.15 disagrees with Table 19 at existing=({exS},{exM}) incoming=({incS},{incM})");
+                    $"§2023:9.1.15 disagrees with Table 19 at existing=({exS},{exM}) incoming=({incS},{incM})");
 
-                // The five §9.1.13.9 sub-cases read LITERALLY — (c)/(d) restricted to "I-O or extend".
+                // The five §2023:9.1.13.9 sub-cases read LITERALLY — (c)/(d) restricted to "I-O or extend".
                 bool subcases = exS == FileSharing.NoOther
                              || incS == FileSharing.NoOther
                              || (incM is FileOpenMode.IO or FileOpenMode.Extend && exS == FileSharing.ReadOnly)
@@ -175,7 +175,7 @@ public sealed class OpenTable19Tests
     }
 
     /// <summary>⛔ THE IMPLEMENTOR DEFAULT (Annex A.1 items 77 and 131, kb/Work PB322). A connector that writes
-    /// neither a SHARING clause nor an OPEN SHARING phrase is given one of §9.1.15's own modes by its open mode:
+    /// neither a SHARING clause nor an OPEN SHARING phrase is given one of §2023:9.1.15's own modes by its open mode:
     /// INPUT establishes SHARING WITH READ ONLY and OUTPUT, I-O and EXTEND establish SHARING WITH NO OTHER
     /// (<see cref="FileRegistry.ImplementorDefaultSharing"/>). Two facts follow and both are asserted, because
     /// they are what <c>docs/CONFORMANCE.md</c> DOC-A.1-131 promises a user:
@@ -206,7 +206,7 @@ public sealed class OpenTable19Tests
             }
     }
 
-    /// <summary>The 12 states a file connector can be open in — the three §9.1.15 sharing modes crossed with the
+    /// <summary>The 12 states a file connector can be open in — the three §2023:9.1.15 sharing modes crossed with the
     /// four open modes. Table 19 collapses them into 7 rows and 5 columns; the arbitration must be right for all
     /// 12, which is why the drift tests enumerate these and not the printed groups.</summary>
     private static IEnumerable<(FileSharing Sharing, FileOpenMode Mode)> EveryConnectorState()

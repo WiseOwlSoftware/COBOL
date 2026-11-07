@@ -26,11 +26,11 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </summary>
 internal static class PlaceRenderer
 {
-    /// <summary>⛔ THE ONE CODEGEN-TIME INTEGER COUNT READ — data-name-1 of an OCCURS DEPENDING table (§13.18.38.4
+    /// <summary>⛔ THE ONE CODEGEN-TIME INTEGER COUNT READ — data-name-1 of an OCCURS DEPENDING table (§2023:13.18.38.4
     /// GR7's "current number of occurrences"), a RECORD VARYING DEPENDING length, a report DEPENDING count — as the
     /// <c>long</c> the runtime positions by. A numeric item reads through its OWN profile
     /// (<c>CobolTable.Occ(x, _P_n)</c>): the count is a numeric SENDING item referenced during item identification,
-    /// so §14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE check applies to a count stored as its character image exactly
+    /// so §2023:14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE check applies to a count stored as its character image exactly
     /// as it does to a subscript (kb/Work PB1117 — the profile-less read decoded that image through a tolerant
     /// digit scan, so the condition was unreachable and a signed image's sign was dropped). Every emitter that
     /// needs a count calls THIS, never <c>RuntimeApi.TableOcc(Read(p), …)</c> by hand.</summary>
@@ -40,9 +40,9 @@ internal static class PlaceRenderer
     /// <summary>A C# expression that reads <paramref name="p"/>'s current value.</summary>
     public static string Read(Place p) => p switch
     {
-        // A reference-modified slice inner(start:length) (ISO §8.4.3.3): a substring of the inner field's image.
+        // A reference-modified slice inner(start:length) (ISO §2023:8.4.3.3): a substring of the inner field's image.
         RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
-        // A NUMERIC item viewed as its character image (ISO §8.4.3.3.4 GR6 ref-mod; §13.18.45 a RENAMES span leaf):
+        // A NUMERIC item viewed as its character image (ISO §2023:8.4.3.3.4 GR6 ref-mod; §2023:13.18.45 a RENAMES span leaf):
         // the BYTES it occupies — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED
         // (V59), which is what a span over it renames.
         // ⛔ A NATIVE FLOAT carrier takes the IEEE lane (kb/Work PB187): FormatImage has no float overload (the
@@ -52,60 +52,60 @@ internal static class PlaceRenderer
         NumericImagePlace n => n.Inner.Item is { Pic.IsFloat: true, StoreAsImage: false }
             ? NumericRenderer.ImageOfCarrier(Read(n.Inner), n.Inner.Item)
             : RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
-        // A NATIONAL cell viewed as its STORAGE BYTES (a RENAMES THROUGH alias's leaf, §13.18.45.4 GR2; kb/Work PB1665,
+        // A NATIONAL cell viewed as its STORAGE BYTES (a RENAMES THROUGH alias's leaf, §2023:13.18.45.4 GR2; kb/Work PB1665,
         // PB2466): its characters serialized as UTF-16BE pairs (D-N1), the same CobolBits.NatBytes every other storage
         // image uses.
         NationalBytesPlace b => RuntimeApi.NatBytes(Read(b.Inner)),
-        // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
-        // kb/Work PB70), READ: §8.4.3.3.4 GR5 makes the unique data item "a subset of the data item referenced by
+        // A GROUP viewed as its character image for reference modification (ISO §2023:8.4.3.3.3 SR1 / §2023:8.4.3.3.4 GR6 —
+        // kb/Work PB70), READ: §2023:8.4.3.3.4 GR5 makes the unique data item "a subset of the data item referenced by
         // identifier-1", so a ref-mod READ references the group as a SENDING operand and an occurs-depending group
-        // sends only its CURRENT-count part under BOTH §13.18.38.4 GR8 arms — GR8a (data-name-1 outside) and GR8b
+        // sends only its CURRENT-count part under BOTH §2023:13.18.38.4 GR8 arms — GR8a (data-name-1 outside) and GR8b
         // ("included in the same group and the group data item is referenced as a sending operand"). A position
         // past the count is therefore EC-BOUND-REF-MOD, never a read of the unused table area (kb/Work PB202: this
         // arm used to gate the slice on data-name-1 lying OUTSIDE and read the MAXIMUM image for a depending-inside
         // group). The receiving direction is GroupImageAs(…, Receiving) — the splice base in the Write arm below.
         GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Sending, "reference modification of group"),
-        // A BIT GROUP reference-modified in BIT POSITIONS (ISO §8.4.3.3.4 GR5a; §8.4.3.3.3 SR1's last sentence;
-        // §13.18.29.4 GR1b's as-if PICTURE 1(m)) — kb/Work PB173. AsBits() is the generated unpacked boolean
+        // A BIT GROUP reference-modified in BIT POSITIONS (ISO §2023:8.4.3.3.4 GR5a; §2023:8.4.3.3.3 SR1's last sentence;
+        // §2023:13.18.29.4 GR1b's as-if PICTURE 1(m)) — kb/Work PB173. AsBits() is the generated unpacked boolean
         // string (GroupImageCodec.EmitBitMethods, already emitted for every bit group); the RefModPlace above
         // then slices IT, so GR5a's units are structural rather than a per-site adjustment. ⛔ THROUGH THE ONE
-        // BIT READER, which carries §13.18.38.4 GR8a's current-extent arm exactly as the GroupImagePlace arm
+        // BIT READER, which carries §2023:13.18.38.4 GR8a's current-extent arm exactly as the GroupImagePlace arm
         // above does — the capability guard the image twin also carries is UNREACHABLE here and deliberately
-        // absent: §13.18.29.3 SR1 bars a variable-length group from GROUP-USAGE and SR2 forces every subordinate
+        // absent: §2023:13.18.29.3 SR1 bars a variable-length group from GROUP-USAGE and SR2 forces every subordinate
         // elementary item to be usage bit / category boolean, so a bit group is always image-capable.
         BitImagePlace b => SendingBits(b.Inner),
-        // A NATIONAL GROUP reference-modified in NATIONAL POSITIONS (§8.4.3.3.4 GR5a's "otherwise … character
-        // positions" — the item's OWN characters; §13.18.29.4 GR2b's as-if PICTURE N(m)) — kb/Work PB327. The
+        // A NATIONAL GROUP reference-modified in NATIONAL POSITIONS (§2023:8.4.3.3.4 GR5a's "otherwise … character
+        // positions" — the item's OWN characters; §2023:13.18.29.4 GR2b's as-if PICTURE N(m)) — kb/Work PB327. The
         // national twin of the bit arm above, through THE ONE national reader.
         NatImagePlace n => SendingNat(n.Inner),
-        // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' STORAGE images — each leaf is its
+        // A level-66 RENAMES alias (ISO §2023:13.18.45): concatenate the spanned leaves' STORAGE images — each leaf is its
         // cell's bytes or a byte slice of them (PlaceBuilder.SpanLeafPlace), the alias being "an alphanumeric
-        // group item" over the record's storage (§13.18.45.4 GR2).
+        // group item" over the record's storage (§2023:13.18.45.4 GR2).
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
             : "(" + string.Join(" + ", n.Leaves.Select(Read)) + ")",
         // An ODO group operand read plainly (not as a GR8 slice) is the struct lvalue — the inner member place.
         OdoGroupPlace o => Read(o.Inner),
         // ⛔ A DYNAMIC-LENGTH LINKAGE item is read through a description that does not own its storage (kb/Work
-        // PB1118): §14.2.3 GR8 makes a formal occupy "the same storage area as the argument", which the caller wrote
-        // through ITS DYNAMIC LENGTH clause, so §14.6.13.2 rule 5's agreement with THIS one is asked at every sending
+        // PB1118): §2023:14.2.3 GR8 makes a formal occupy "the same storage area as the argument", which the caller wrote
+        // through ITS DYNAMIC LENGTH clause, so §2023:14.6.13.2 rule 5's agreement with THIS one is asked at every sending
         // read. Every other dynamic-length item was stored only through its own description, whose store truncates
         // to the maximum, so it always agrees and renders the plain field (no scaffolding).
         MemberPlace m when ReadsForeignDynamicLength(m.Item) =>
             RuntimeApi.DynAgree(RenderPath(m.Path, AccessDir.Sending), m.Item.DynMaxSize),
         // A direct member/fixed-table access — the structural path rendered as a C# lvalue.
         MemberPlace m => RenderPath(m.Path, AccessDir.Sending),
-        // A subscripted OCCURS DYNAMIC element read — the trailing DynTableSegment renders RefSending (§8.5.1.9.2).
+        // A subscripted OCCURS DYNAMIC element read — the trailing DynTableSegment renders RefSending (§2023:8.5.1.9.2).
         DynTablePlace d => RenderPath(d.Path, AccessDir.Sending),
-        // A Tier-B REDEFINES view (§13.18.44): the (offset, width) character window over the class's ONE backing —
-        // or, for a USAGE BIT member, its BIT window over the same backing (kb/Work PB203): §13.18.44.4 GR1 states
-        // the storage association in BITS and §13.18.29.4 GR1c sends a bit group's members through §8.5.1.6.3, so
+        // A Tier-B REDEFINES view (§2023:13.18.44): the (offset, width) character window over the class's ONE backing —
+        // or, for a USAGE BIT member, its BIT window over the same backing (kb/Work PB203): §2023:13.18.44.4 GR1 states
+        // the storage association in BITS and §2023:13.18.29.4 GR1c sends a bit group's members through §2023:8.5.1.6.3, so
         // the member's positions are bit positions and its VALUE is the boolean carrier they hold — never the
         // characters of the byte that happens to contain them.
         RedefViewPlace { Coding: BitWindow b } v => RuntimeApi.BitsReadWindow(
             RenderPath(v.Backing, AccessDir.Sending), $"(int)({PositionRenderer.Render(b.Offset)})", b.Bits.ToString()),
         // A NATIONAL member of the class (kb/Work PB231 — RESIDUE-11): its window is still the byte window
-        // above, but a national character position occupies TWO of those bytes (ISO §13.18.60.4 GR8 leaves the
+        // above, but a national character position occupies TWO of those bytes (ISO §2023:13.18.60.4 GR8 leaves the
         // size to the implementor; D-N1 pins two), so the read TRANSCODES the UTF-16BE pair back to the
         // member's value carrier — exactly as the bit arm reads a boolean carrier rather than the characters of
         // the byte that holds it. The offset is 0-based here (the runtime window helpers count from zero,
@@ -114,7 +114,7 @@ internal static class PlaceRenderer
             RenderPath(v.Backing, AccessDir.Sending), $"(int)({PositionRenderer.Render(v.Offset)})", n.Positions.ToString()),
         // A POINTER-CLASS member of the class (kb/Work PB231 — the pointer third): its value is a MANAGED
         // REFERENCE, not bytes, so it rides the same storage area's SLOT at the same byte offset its reserved
-        // bytes occupy. The null state is the item's own DefaultInitializer, which is how §14.9.3.4 GR9's
+        // bytes occupy. The null state is the item's own DefaultInitializer, which is how §2023:14.9.3.4 GR9's
         // "data items of class object or class pointer in the allocated storage are initialized to null"
         // becomes a property of an unwritten slot rather than of a seeding loop. Reading the CELL (not the
         // backing string) is what makes the two halves provably one area — and it goes through the SAME cell
@@ -123,39 +123,39 @@ internal static class PlaceRenderer
             RenderPath(s.Cell, AccessDir.Sending), $"(int)({PositionRenderer.Render(v.Offset)})",
             v.ViewItem.ElementType, v.ViewItem.Pic!.DefaultInitializer),
         // A DYNAMIC-LENGTH member of a cell-backed class (kb/Work PB1026): its content rides the cell's dynamic
-        // slot (§8.5.1.10.3 — "located elsewhere"), so every description sharing the cell reads the same content —
-        // and any of them may have written it, so the read asks §14.6.13.2 rule 5's agreement with THIS member's
+        // slot (§2023:8.5.1.10.3 — "located elsewhere"), so every description sharing the cell reads the same content —
+        // and any of them may have written it, so the read asks §2023:14.6.13.2 rule 5's agreement with THIS member's
         // DYNAMIC LENGTH clause (kb/Work PB1118: an EXTERNAL record described LIMIT 20 in one program and LIMIT 5 in
         // another).
         RedefViewPlace { Coding: DynSlotWindow d } v => RuntimeApi.DynAgree(
             RuntimeApi.CellDynRead(RenderPath(d.Cell, AccessDir.Sending), PositionRenderer.Render(d.Ordinal),
                 national: v.ViewItem.ImageUnit > 1), v.ViewItem.DynMaxSize),
         // A VARIABLE-LENGTH GROUP of a cell-backed class (kb/Work PB1026): read as its contiguous image at its
-        // current extent — §8.5.1.11.2, the same composition a declared group's CurrentImage() performs.
+        // current extent — §2023:8.5.1.11.2, the same composition a declared group's CurrentImage() performs.
         // (A plain read is the group's MAXIMUM image: the OCCURS DEPENDING count is an operand decision, made by
-        // VarGroupCurrentImage through OdoGroupPlace — §13.18.38.4 GR8.)
+        // VarGroupCurrentImage through OdoGroupPlace — §2023:13.18.38.4 GR8.)
         RedefViewPlace { Coding: VarGroupWindow g } v => CellVarContiguous(v, g, g.Odo.Max.ToString()),
         RedefViewPlace v => ByteWindowRead(v),
-        // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
+        // The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
-        // A REPORT SECTION sum counter (§13.18.54.4 GR1/GR4/GR12): RWCS engine state, read at the counter's own
+        // A REPORT SECTION sum counter (§2023:13.18.54.4 GR1/GR4/GR12): RWCS engine state, read at the counter's own
         // scale and landed in the counter's own CLR carrier (kb/Work PB1666). The identity is the ENTRY's
         // ordinal, never GR5's data-name (kb/Work PB882).
         ReportSumCounterPlace s => RuntimeApi.ReportSumImage(s.ReportIndex, s.Depth, SumAddress(s), s.RegisterItem.ProfileName),
-        // A report's PAGE-COUNTER (ISO §8.4.3.15.4 GR1 — a temporary unsigned integer maintained per report):
+        // A report's PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1 — a temporary unsigned integer maintained per report):
         // RWCS engine state, scale 0. Reachable on the SENDING side only through a receiving place that is then
         // read back (a rounded/size-error resultant); the plain sending reference is BoundReportCounterRef, and
         // BOTH render through the one RuntimeApi spelling (kb/Work PB429).
         ReportPageCounterPlace pc => RuntimeApi.ReportCounterRead(pc.ReportIndex, pc.Depth, isPage: true),
         // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
         DebugRegisterPlace d => DebugRead(d.Member),
-        // The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.4 GR1 — "references the current exception
+        // The predefined object reference EXCEPTION-OBJECT (ISO §2023:8.4.3.6.4 GR1 — "references the current exception
         // object. If an exception object is not associated with the current exception, EXCEPTION-OBJECT is set to
         // null"; GR2 — "There is one instance of EXCEPTION-OBJECT in a run unit"), which IS the run unit's one
         // ExceptionState. The SAME expression SET … TO EXCEPTION-OBJECT already renders (OoEmitter), now reachable
         // from every sending position because the resolver knows the name (kb/Work PB922).
         ExceptionObjectPlace => RuntimeApi.ExceptionObjectRead,
-        // A table(ALL) intrinsic argument (ISO §15.3; kb/Work PB62) is an ENUMERATION, never a single value — the
+        // A table(ALL) intrinsic argument (ISO §2023:15.3; kb/Work PB62) is an ENUMERATION, never a single value — the
         // intrinsic argument-list renderers expand it (IntrinsicRenderer.ArgArray); reaching a read here is a
         // renderer that forgot to, and it must fail at compile time rather than emit an unbound index variable.
         TableAllPlace a => throw new System.InvalidOperationException(
@@ -194,10 +194,10 @@ internal static class PlaceRenderer
     public static string Write(Place p, string rhs) => p switch
     {
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
-        // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
+        // boolean-zero (§2023:14.6.8.6; §2023:8.4.3.3 GR5a); every other category keeps the space fill.
         // ⛔ THE PAD READS OperandPic, NOT RAW Pic (kb/Work PB173 — one of the TWO arms of this defect; the other
         // is MoveEmitter.SliceStore's figurative fill, nine files away, which made the identical raw-`Pic` read).
-        // `Pic` is NULL for any GROUP, so a BIT-GROUP slice padded with SPACE where §14.6.8.6 requires the value
+        // `Pic` is NULL for any GROUP, so a BIT-GROUP slice padded with SPACE where §2023:14.6.8.6 requires the value
         // be "transferred … into the corresponding boolean positions of the receiving data item, with zero fill
         // or truncation to the right". `OperandPic` is the ONE category reader — it answers the bit group's as-if
         // PICTURE 1(m) (Boolean), which is what RefModPlace.Category on the very next line of Place.cs already
@@ -223,7 +223,7 @@ internal static class PlaceRenderer
         // positions to the subordinates (kb/Work PB173 — the receiving twin of the BitImagePlace read arm; the
         // same distribution the `MemberPlace { Item.IsAsIfElementary: true }` bit arm below performs for a whole
         // bit-group receiver, now reached through the ref-mod slice as well). ⛔ THROUGH THE ONE BIT WRITER,
-        // which carries §13.18.38.4 GR8's DependingInside direction split exactly as WriteGroupImage does.
+        // which carries §2023:13.18.38.4 GR8's DependingInside direction split exactly as WriteGroupImage does.
         BitImagePlace b => WriteBits(b.Inner, rhs),
         // The spliced NATIONAL string goes back through the generated FromNat (kb/Work PB327 — the receiving twin
         // of the NatImagePlace read arm, and the national twin of the bit arm above).
@@ -237,13 +237,13 @@ internal static class PlaceRenderer
         // byte-image one (kb/Work PB327).
         OdoGroupPlace { Item: { IsAsIfElementary: true, GroupUsage: GroupUsage.National } } o => WriteNat(o, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
-        // A bit / national GROUP receiving as an ELEMENTARY item (§13.18.29.4 GR1b/GR2b; D20/PB79): the value is
+        // A bit / national GROUP receiving as an ELEMENTARY item (§2023:13.18.29.4 GR1b/GR2b; D20/PB79): the value is
         // its as-if picture's string — the bit string for a bit group (the ONE bit writer's FromBits distributes
         // the boolean positions to the subordinates), the national character image for a national group (the ONE
         // group-image store). ⛔ BOTH structural shapes (kb/Work PB1411's sweep): an element of a dynamic-capacity
         // table that is a bit / national group is a DynTablePlace, and it used to fall to the plain dynamic-table
         // assignment below — `RefReceiving(i) = "<bits>"`, CS0029 on legal source. The writers reach it through
-        // GroupTarget's RefReceiving, so the element is created (§8.5.1.9.3) and then distributed.
+        // GroupTarget's RefReceiving, so the element is created (§2023:8.5.1.9.3) and then distributed.
         Place { Item.IsAsIfElementary: true } m when m is MemberPlace or DynTablePlace => m.Item.GroupUsage is GroupUsage.Bit
             ? WriteBits(m, rhs)
             // ⛔ THE NATIONAL WRITER, not the byte-image one (kb/Work PB327): a national group's as-if PICTURE
@@ -251,19 +251,19 @@ internal static class PlaceRenderer
             : WriteNat(m, rhs),
         // A member/fixed-table store — the structural path as an assignment target.
         MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
-        // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§8.5.1.9.3).
+        // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§2023:8.5.1.9.3).
         DynTablePlace d => $"{RenderPath(d.Path, AccessDir.Receiving)} = {rhs};",
         RedefViewPlace v => Received(v, WriteView(v, rhs)),
         // Unreachable: SET Format 14 routes to BoundSetCapacity, and any other store into the CAPACITY register is
-        // rejected COBOL1523 at bind time (§13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
+        // rejected COBOL1523 at bind time (§2023:13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
         CapacityRegisterPlace => throw new System.InvalidOperationException(
-            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38.3 SR30-32); a direct store must be "
+            "the CAPACITY register is set only by SET Format 14 (ISO §2023:13.18.38.3 SR30-32); a direct store must be "
             + "rejected COBOL1523 at bind time and never reach PlaceRenderer.Write"),
-        // A REPORT SECTION sum counter as a RECEIVER — ISO §13.18.54.4 GR12: "It is permissible for procedure
+        // A REPORT SECTION sum counter as a RECEIVER — ISO §2023:13.18.54.4 GR12: "It is permissible for procedure
         // division statements to alter the content of sum counters." The store goes to the RWCS engine, at the
         // counter's own scale (GR1); there is no storage to write (kb/Work PB840).
         ReportSumCounterPlace s => RuntimeApi.ReportSumStoreImage(s.ReportIndex, s.Depth, SumAddress(s), rhs, s.RegisterItem.ProfileName),
-        // A report's PAGE-COUNTER as a RECEIVER — ISO §8.4.3.15.3 SR1 admits it wherever an integer data item
+        // A report's PAGE-COUNTER as a RECEIVER — ISO §2023:8.4.3.15.3 SR1 admits it wherever an integer data item
         // may appear, and SR3 bars only LINE-COUNTER from the receiving side. The store goes to the RWCS engine;
         // there is no storage to write (kb/Work PB429).
         ReportPageCounterPlace pc => RuntimeApi.ReportPageCounterWrite(pc.ReportIndex, pc.Depth, rhs),
@@ -271,20 +271,20 @@ internal static class PlaceRenderer
         // the standard states how the facility updates the register (general rule 11) and no rule against a program's store, so it lands
         // in the program-instance __dbgItem, as GnuCOBOL 3.2 does (kb/Work PB4858 review round 2, R2-3).
         DebugRegisterPlace d => DebugWrite(d.Member, rhs),
-        // Unreachable by RULE: ISO §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving
+        // Unreachable by RULE: ISO §2023:8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving
         // operand" — is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving) and at SET's
         // own receiver list (OoBinder). The backstop for a receiver path that forgot the gate (kb/Work PB922).
         ExceptionObjectPlace => throw new System.InvalidOperationException(
-            "EXCEPTION-OBJECT shall not be specified as a receiving operand (ISO §8.4.3.6.3 SR1); a store must be "
+            "EXCEPTION-OBJECT shall not be specified as a receiving operand (ISO §2023:8.4.3.6.3 SR1); a store must be "
             + "rejected at bind time and never reach PlaceRenderer.Write"),
         _ => throw Unhandled(p),
     };
 
     /// <summary>⛔ A STORE THROUGH A VIEW OF A POINTER-LOCATED CLASS IS RECORDED ON ITS CELL AS A RECEIVING REFERENCE
-    /// (kb/Work PB2690): <paramref name="store"/>, then <c>StorageCell.Received</c> over the view's window. ISO §8.5.1.9.3
+    /// (kb/Work PB2690): <paramref name="store"/>, then <c>StorageCell.Received</c> over the view's window. ISO §2023:8.5.1.9.3
     /// acts on a data item "referenced as a receiving item", and a BY REFERENCE formal (or a BASED item laid over one)
     /// whose fixed table faces the argument's dynamic-capacity table may occupy a fresh area that is stored back at return
-    /// (§14.2.3 GR8 realized by a copy), where the image alone cannot show a store of exactly what the formal was shown.
+    /// (§2023:14.2.3 GR8 realized by a copy), where the image alone cannot show a store of exactly what the formal was shown.
     /// So every store through such a view states its window, and the cell records it while a boundary watches it
     /// (<c>ManagedPointer.Watch</c>) — a null test otherwise. Only a class located by a data-address pointer (a LINKAGE
     /// item, a BASED item: <c>RedefinesClass.BasedPointerField</c>) can lie over a boundary's fresh area, and only its own
@@ -294,7 +294,7 @@ internal static class PlaceRenderer
     /// level's component ordinal and occurrence number, <see cref="ReceivedScope"/>): the element cell itself may be one
     /// the store just created, which no boundary watched (kb/Work PB2690 branch review round 1 of wave 1078 A, finding
     /// R1-1). And only a description holding a table of a fixed (or DEPENDING) occurrence count can face a
-    /// dynamic-capacity table (§8.5.1.12.1: such a table corresponds to a table), so a store through a description with
+    /// dynamic-capacity table (§2023:8.5.1.12.1: such a table corresponds to a table), so a store through a description with
     /// none records nothing and costs nothing.
     /// ⛔ The store and its record are ONE block statement: <see cref="Write"/> returns ONE C# statement, and its callers
     /// embed it where only one statement stands (a table SORT's place-back loop, <c>for (…) &lt;store&gt;</c>), so two
@@ -339,14 +339,14 @@ internal static class PlaceRenderer
     private static string WriteView(RedefViewPlace v, string rhs) => v.Coding switch
     {
         // Splice the member's BOOLEAN positions back into the class's ONE backing, leaving every other bit of it
-        // untouched (kb/Work PB203). ⛔ Bit-granular splicing is REQUIRED, not an optimization: §8.5.1.6.3 puts two
+        // untouched (kb/Work PB203). ⛔ Bit-granular splicing is REQUIRED, not an optimization: §2023:8.5.1.6.3 puts two
         // same-level bit members at successive bit positions of the SAME byte, so a byte-granular store through
         // either would silently clobber the other. The value is first stored to exactly the member's boolean
-        // position count with §14.6.8.6's boolean-ZERO fill.
+        // position count with §2023:14.6.8.6's boolean-ZERO fill.
         BitWindow b => $"{RenderPath(v.Backing, AccessDir.Receiving)} = " +
             $"{RuntimeApi.BitsWriteWindow(RenderPath(v.Backing, AccessDir.Receiving),$"(int)({PositionRenderer.Render(b.Offset)})", RuntimeApi.StrStoreBoolean(rhs, b.Bits.ToString(), justifiedRight: false))};",
         // Splice the member's NATIONAL positions back into the class's ONE backing as UTF-16BE byte pairs,
-        // leaving every other byte untouched (kb/Work PB231; §13.18.44.4 GR1 — one storage area, so a write
+        // leaving every other byte untouched (kb/Work PB231; §2023:13.18.44.4 GR1 — one storage area, so a write
         // through one view must not disturb another's bytes). The receiving twin of the national read arm; the
         // fit to exactly the member's position count happens in POSITIONS inside the runtime helper, because
         // padding the BYTES would manufacture U+2020 characters instead of national spaces.
@@ -355,20 +355,20 @@ internal static class PlaceRenderer
         // Store a POINTER-CLASS member into the area's MANAGED SLOT (kb/Work PB231) — the receiving twin of the
         // slot read. The member's own 8 positions get the pointer IMAGE of the stored value (kb/Work PB1071, the
         // DOC-A.1-216 image, written by the runtime's one store beside the slot) and no other member's positions are
-        // touched (§13.18.44.4 GR1 — one storage area, and every other member's positions are its own).
+        // touched (§2023:13.18.44.4 GR1 — one storage area, and every other member's positions are its own).
         SlotWindow s =>
             $"{RuntimeApi.PtrSlotWrite(RenderPath(s.Cell, AccessDir.Receiving), $"(int)({PositionRenderer.Render(v.Offset)})", v.ViewItem.ElementType, rhs)};",
         // Store a DYNAMIC-LENGTH member's new content into the cell's dynamic slot (kb/Work PB1026) — the receiving
-        // twin of the slot read. rhs already carries §8.5.1.10.4's receiving rule (CobolDynString.Store).
+        // twin of the slot read. rhs already carries §2023:8.5.1.10.4's receiving rule (CobolDynString.Store).
         // The cell is reached RECEIVING: inside a dynamic-capacity table's element cell (kb/Work PB1042) the store
-        // is a receiving reference to that occurrence, which grows the table to it (§8.5.1.9.3).
+        // is a receiving reference to that occurrence, which grows the table to it (§2023:8.5.1.9.3).
         DynSlotWindow d => $"{RuntimeApi.CellDynWrite(RenderPath(d.Cell, AccessDir.Receiving), PositionRenderer.Render(d.Ordinal), rhs,
             national: v.ViewItem.ImageUnit > 1)};",
         // A VARIABLE-LENGTH GROUP of a cell-backed class receiving a character value (kb/Work PB1026): the value is
-        // a contiguous image (§8.5.1.11.2), decomposed by the ONE take step determination D-FRA states.
+        // a contiguous image (§2023:8.5.1.11.2), decomposed by the ONE take step determination D-FRA states.
         VarGroupWindow g => $"{RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Receiving),
             $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynMax, g.DynUnitCodes, g.DynTable, g.Odo, rhs)};",
-        // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
+        // Splice the new image back into the class's ONE backing, preserving its full width (§2023:13.18.44).
         _ => ByteWindowWrite(v, rhs),
     };
 
@@ -379,7 +379,7 @@ internal static class PlaceRenderer
 
     /// <summary>The counter a sum counter place addresses, for the read and the write alike (kb/Work PB1271): its id,
     /// or — for an occurrence of a REPEATING entry's counter — the family's first id, the extent of each OCCURS level
-    /// of its register (§8.4.2.3.3 SR3's order, outermost first) and the written subscripts.</summary>
+    /// of its register (§2023:8.4.2.3.3 SR3's order, outermost first) and the written subscripts.</summary>
     private static string SumAddress(ReportSumCounterPlace s) => s.Subscripts is { Count: > 0 } subscripts
         ? RuntimeApi.ReportSumAddress(s.CounterId, [.. s.RegisterItem.SubscriptLevels().Select(l => l.Occurs!.Value)],
             [.. subscripts.Select(PositionRenderer.Render)])
@@ -399,11 +399,11 @@ internal static class PlaceRenderer
                 // root it is: a member, or a method local spelled from its identity (kb/Work PB4321, PB4380).
                 RootSegment r => r.Guard is { } g ? GuardedRoot(g, RootStorage(r)) : RootStorage(r),
                 MemberSegment m => path + "." + m.MemberClrName,
-                // A carrier-resident formal's storage is the carrier's value (ISO §14.2.3 GR8; kb/Work PB4320).
+                // A carrier-resident formal's storage is the carrier's value (ISO §2023:14.2.3 GR8; kb/Work PB4320).
                 CarrierValueSegment => path + "." + nameof(ManagedPointer<int>.Value),
                 // A cell-backed area's members live in its cell's character-string backing (kb/Work PB1042, PB4320).
                 CellBackingSegment => path + "." + nameof(StorageCell.Ref),
-                // An OCCURS DEPENDING level carries §13.18.38.4 GR7's reference-time bound check when the
+                // An OCCURS DEPENDING level carries §2023:13.18.38.4 GR7's reference-time bound check when the
                 // compilation group can enable EC-BOUND-ODO (kb/Work PB1268).
                 FixedTableSegment { Odo: { } o } f => RuntimeApi.TableAtOdo(path, PositionRenderer.Render(f.OneBasedIndex),
                     CountRead(o.Depending), o.MinOccurs, o.MaxOccurs),
@@ -434,7 +434,7 @@ internal static class PlaceRenderer
     }
 
     /// <summary>⛔ THE ONE SPELLING OF A ROOT MEMBER'S STORAGE, unguarded: the member's name (a containing program's member
-    /// is the contained class's own by its bridge, ISO §13.18.27.4 GR2; kb/Work PB4320). The path renderer's root and the
+    /// is the contained class's own by its bridge, ISO §2023:13.18.27.4 GR2; kb/Work PB4320). The path renderer's root and the
     /// statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both read it, so the two cannot reach
     /// different storage.</summary>
     internal static string RootStorage(RootFieldSegment root) => root.MemberClrName;
@@ -462,7 +462,7 @@ internal static class PlaceRenderer
     private static string RvOffset(RedefViewPlace v) => $"(int)({PositionRenderer.Render(v.Offset)} + 1)";
 
     /// <summary>The BYTE window of a Tier-B view — its storage as one character per byte of the class's one backing,
-    /// whatever the coding of its VALUE (§13.18.44.4 GR1: the same storage area, seen as bytes). The identity-coded
+    /// whatever the coding of its VALUE (§2023:13.18.44.4 GR1: the same storage area, seen as bytes). The identity-coded
     /// member's value IS this string; a national GROUP's value is not (its m positions ride 2m of these bytes,
     /// <see cref="NationalWindow"/>), but its STORAGE image — what a file record, a CALL boundary copy or a group
     /// MOVE deposits positionally — still is (kb/Work PB1653).</summary>
@@ -470,11 +470,11 @@ internal static class PlaceRenderer
         RuntimeApi.StrWindow(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString());
 
     /// <summary>The receiving twin of <see cref="ByteWindowRead"/>: splice <paramref name="image"/> into the class's
-    /// ONE backing at the view's window, preserving its full width (§13.18.44).
+    /// ONE backing at the view's window, preserving its full width (§2023:13.18.44).
     /// <para>⛔ THE BACKING RENDERS RECEIVING ON BOTH SIDES of every window store — this one and the bit and national
     /// arms of <see cref="Write"/> (kb/Work PB1933). A backing inside an OCCURS DYNAMIC element is reached through
     /// the element's accessor, and only <c>RefReceiving</c> creates an occurrence past the current capacity
-    /// (§8.5.1.9.3); a <c>RefSending</c> target would splice into the benign scratch a read of a missing occurrence
+    /// (§2023:8.5.1.9.3); a <c>RefSending</c> target would splice into the benign scratch a read of a missing occurrence
     /// returns, and the store would vanish. Every other path renders identically in both directions.</para></summary>
     private static string ByteWindowWrite(RedefViewPlace v, string image) =>
         $"{RenderPath(v.Backing, AccessDir.Receiving)} = " +
@@ -499,7 +499,7 @@ internal static class PlaceRenderer
     private static string RmStart(RefModPlace r) => RuntimeApi.RefModStart(r.Start);
     private static string RmLen(RefModPlace r) => RuntimeApi.RefModLength(r.Length);
 
-    /// <summary>Store into a multi-leaf RENAMES alias (ISO §13.18.45): store the value at the span width, then
+    /// <summary>Store into a multi-leaf RENAMES alias (ISO §2023:13.18.45): store the value at the span width, then
     /// distribute the slices back into the leaves left to right (a write through the alias shows through every
     /// renamed item and vice versa — no second storage).</summary>
     private static string WriteRenames(RenamesPlace n, string rhs)
@@ -522,19 +522,19 @@ internal static class PlaceRenderer
 
     /// <summary>A figurative-constant store into a reference-modified slice: <paramref name="seed"/> — a C# string
     /// expression holding one fill character, or the literal of <c>ALL literal-1</c> — is repeated character by
-    /// character over EVERY position of the slice (ISO §8.3.3.6.4 GR2, sized against the §8.4.3.3.4 GR5 data item the
+    /// character over EVERY position of the slice (ISO §2023:8.3.3.6.4 GR2, sized against the §2023:8.4.3.3.4 GR5 data item the
     /// reference modification denotes; kb/Work PB1655 — an ALL literal used to be spliced ONCE and space-padded).
     /// The slice's length is a run-time value, so the repetition is the runtime's (<c>SpliceInto(repeat: true)</c>).
     /// Threads <c>AllowZeroLength</c> exactly like the <see cref="Write"/> RefModPlace arm (review V31: omitting it
     /// made a figurative MOVE into a zero-length slice spuriously raise fatal EC-BOUND-REF-MOD under
-    /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> — §8.4.3.3.4 GR5c allows the zero-length result, and §14.9.25.4 GR1
+    /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> — §2023:8.4.3.3.4 GR5c allows the zero-length result, and §2023:14.9.25.4 GR1
     /// makes the zero-length MOVE receiver a no-op, never a raise).</summary>
     public static string WriteFill(RefModPlace p, string seed) =>
         Write(p.Inner, RuntimeApi.StrSpliceInto(SpliceBase(p.Inner), RmStart(p), RmLen(p), seed,
             allowZeroLength: p.AllowZeroLength, repeat: true));
 
     /// <summary>The BASE a reference-modified RECEIVER splices into — the inner place read in the RECEIVING
-    /// direction (kb/Work PB202). A ref-mod receiver's group is a §13.18.38.4 GR8 RECEIVING operand, so a
+    /// direction (kb/Work PB202). A ref-mod receiver's group is a §2023:13.18.38.4 GR8 RECEIVING operand, so a
     /// depending-INSIDE occurs-depending group presents its MAXIMUM length (GR8b's second sentence — "If the
     /// group is a receiving operand, the maximum length of the group will be used"), while a depending-OUTSIDE
     /// one presents its current extent (GR8a) and its store is the ReceiveInto splice. Reading the base with the
@@ -550,26 +550,26 @@ internal static class PlaceRenderer
     };
 
     /// <summary>
-    /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §14.9.25.4 GR4 — a group receiver is
+    /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §2023:14.9.25.4 GR4 — a group receiver is
     /// "filled without consideration for the individual elementary or group items", no conversion): the generated
     /// <c>FromImage</c> distributes the image into the leaves; an occurs-depending group with data-name-1 OUTSIDE
-    /// takes only its CURRENT-count part (§13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
+    /// takes only its CURRENT-count part (§2023:13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
     /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
     /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
-    /// (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3 — never RefSending, which drops an
+    /// (RefReceiving grows-and-seeds past the current capacity, §2023:8.5.1.9.3 — never RefSending, which drops an
     /// out-of-capacity write into scratch). A variable-length group or a group with a pointer/object-class leaf has no image
     /// (<see cref="DataItem.IsImageCapable"/>; kb/Work PB164 + R40) and stays the loud Tier-C island (DESIGN §4.2) —
     /// <paramref name="context"/> names the verb in that message.
     /// <para>V59 residue (DA5), written ONCE: this is a POSITIONAL character transfer INTO the group's storage — the
     /// same job a group MOVE does — so a COMP / PACKED group is admitted (its leaves decode their image slices) and
     /// "BYTES ARE NOT TEXT" does not apply (that rule governs RENDERING a COMP leaf's value as text, not writing
-    /// characters positionally over its bytes). §14.9.43.4 GR3a makes STRING's transfer the alphanumeric MOVE
-    /// rules, §14.9.22.3 SR1 names "an alphanumeric or national group item" a valid INSPECT identifier-1, ACCEPT
+    /// characters positionally over its bytes). §2023:14.9.43.4 GR3a makes STRING's transfer the alphanumeric MOVE
+    /// rules, §2023:14.9.22.3 SR1 names "an alphanumeric or national group item" a valid INSPECT identifier-1, ACCEPT
     /// and UNSTRING store by the same MOVE rules — so every verb that deposits an image into a group calls THIS
     /// (kb/Work PB70 removed five copies of the rule, each carrying this paragraph).</para>
     /// </summary>
     /// <summary>The FULL-image store into a group place — a STORAGE-BOUNDARY write (a file record area receiving a
-    /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §13.18.38 GR8 sending/receiving
+    /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §2023:13.18.38 GR8 sending/receiving
     /// slice: an occurs-depending wrapper is unwrapped and its inner takes the whole image (kb/Work PB80 — an FD
     /// record holding an ODO table is now an <see cref="OdoGroupPlace"/> over a class-tier window, and a
     /// <c>Read(record).FromImage(…)</c> spelled at the call site was CS1061 on the string).</summary>
@@ -579,12 +579,12 @@ internal static class PlaceRenderer
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
     /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the
-    /// activating element claimed onto a cell because it passes it BY REFERENCE (ISO §14.2.3 GR8: "the activated runtime
+    /// activating element claimed onto a cell because it passes it BY REFERENCE (ISO §2023:14.2.3 GR8: "the activated runtime
     /// element operates as if the formal parameter occupies the same storage area as the argument"), is a Tier-B class
     /// whose members are windows over the cell's image and its managed slots. Its vector is composed member by member
     /// through <see cref="PlaceCursor"/> — the ONE walk from a resolved group place down to its subordinates, so a
     /// subscripted group keeps its subscripts — in the order and the carrier forms <c>RecordStructEmitter.EmitLeafMethods</c>
-    /// boxes a record struct's physical fields, because §14.8.2.2 makes the two sides of the crossing "of the same type"
+    /// boxes a record struct's physical fields, because §2023:14.8.2.2 makes the two sides of the crossing "of the same type"
     /// and the vector is the neutral carrier between their storage forms.</para></summary>
     public static string GroupLeaves(Place group) =>
         PlaceCursor.Over(group) is ViewCursor view ? CellLeaves(view, 0) : $"{Read(group)}.AsLeaves()";
@@ -600,7 +600,7 @@ internal static class PlaceRenderer
 
     /// <summary>The members of a leaf-carried group in the order its record struct declares them — every subordinate
     /// group and elementary item (a condition-name or a RENAMES entry occupies no storage), exactly the
-    /// <c>PhysicalModel</c> field walk: no REDEFINES can collapse two of them into one field, because ISO §13.18.44.3 SR14
+    /// <c>PhysicalModel</c> field walk: no REDEFINES can collapse two of them into one field, because ISO §2023:13.18.44.3 SR14
     /// bars data-name-2 from being "an item subordinate to a strongly-typed group item" and only a strongly-typed group is
     /// leaf-carried (<c>ActivationCrossing.LeafCarried</c>).</summary>
     private static IEnumerable<DataItem> LeafFieldsOf(DataItem group) => group.Children.Where(c => c.IsGroup || c.IsElementary);
@@ -634,7 +634,7 @@ internal static class PlaceRenderer
             }
             else parts.Add(c.IsGroup ? CellLeaves(at, depth + 1) : $"(object?)({LeafCarrierRead(at.ToPlace())})");
         }
-        // The implicit filler after the members (§8.5.1.6.3, kb/Work PB3598): one string of boolean positions per entry, the
+        // The implicit filler after the members (§2023:8.5.1.6.3, kb/Work PB3598): one string of boolean positions per entry, the
         // record struct's `__bf` field in `RecordStructEmitter.EmitLeafMethods` — a table's pad as every gap back to back.
         foreach (var filler in BitLayout.WindowFillersOf(cur.Item))
         {
@@ -658,7 +658,7 @@ internal static class PlaceRenderer
             string slot = $"{v}[{i++}]";
             if (c.IsDynamicTable)
             {
-                // §14.6.9.2: the receiving table is recreated with the sender's occurrences (kb/Work PB3139), each element
+                // §2023:14.6.9.2: the receiving table is recreated with the sender's occurrences (kb/Work PB3139), each element
                 // cell the recreation seeds taking one occurrence's vector through the same walk.
                 string e = $"__le{depth}", part = $"__lp{depth}";
                 var element = ViewCursor.AtElementCell(c, new CSharpLocal(e));
@@ -723,12 +723,12 @@ internal static class PlaceRenderer
         // A NATIONAL GROUP view's STORAGE image is its 2m-byte window; its Write is the m-position VALUE store
         // (kb/Work PB1653 — WriteGroupValue is the value channel).
         RedefViewPlace { Coding: NationalWindow, ViewItem.IsGroup: true } v => Received(v, ByteWindowWrite(v, image)),
-        // A BIT GROUP view's STORAGE image is its m bits PACKED into ceil(m/8) characters (§13.18.60.4 GR5 /
-        // §8.5.1.6.3 — the CobolBits.Pack law a record-struct bit group's FromImage reads); its Write is the
+        // A BIT GROUP view's STORAGE image is its m bits PACKED into ceil(m/8) characters (§2023:13.18.60.4 GR5 /
+        // §2023:8.5.1.6.3 — the CobolBits.Pack law a record-struct bit group's FromImage reads); its Write is the
         // boolean-POSITION store, so the image is unpacked to its m positions first (kb/Work PB1904).
         RedefViewPlace { Coding: BitWindow b, ViewItem.IsGroup: true } v => Write(v, RuntimeApi.BitsUnpack(image, b.Bits.ToString())),
         RedefViewPlace => Write(group, image),
-        // A level-66 THROUGH alias is an alphanumeric GROUP item (ISO §13.18.45.4 GR2), so a §14.9.25.4 GR4
+        // A level-66 THROUGH alias is an alphanumeric GROUP item (ISO §2023:13.18.45.4 GR2), so a §2023:14.9.25.4 GR4
         // group-image store can land on one; distributing it into the spanned leaves IS the WriteRenames store
         // the Write switch already owns, never a second FromImage (kb/Work PB430).
         RenamesPlace => Write(group, image),
@@ -741,7 +741,7 @@ internal static class PlaceRenderer
     /// <summary>⛔ THE ONE RECEIVER OF A GROUP-LEVEL STORE (kb/Work PB1411) — the struct a generated
     /// <c>FromImage</c> / <c>FromVarImage</c> / <c>FromContiguousImage</c> / <c>FromBits</c> / <c>FromNat</c> is
     /// called on. A group that is (or lies beneath) an element of a dynamic-capacity table is reached through the
-    /// RECEIVING accessor: §8.5.1.9.3 — "When a data item in a dynamic-capacity table is referenced as a receiving
+    /// RECEIVING accessor: §2023:8.5.1.9.3 — "When a data item in a dynamic-capacity table is referenced as a receiving
     /// item and the value of the subscript exceeds the current capacity of the table, a new element is
     /// automatically created and the capacity of the table is increased to the value given by the subscript" — so
     /// <c>RefReceiving</c> grows-and-seeds, where <see cref="Read"/>'s <c>RefSending</c> hands back benign scratch
@@ -772,13 +772,13 @@ internal static class PlaceRenderer
     public static string GroupImage(Place group, string context = "whole-group image of", bool transfer = false) => group switch
     {
         RedefViewPlace { Coding: NationalWindow, ViewItem.IsGroup: true } v => ByteWindowRead(v),   // the storage image — see ByteWindowRead (kb/Work PB1653)
-        // A BIT GROUP view's Read is its boolean-POSITION string (the VALUE channel, §13.18.29.4 GR1b); its storage
+        // A BIT GROUP view's Read is its boolean-POSITION string (the VALUE channel, §2023:13.18.29.4 GR1b); its storage
         // image is those m positions PACKED into ceil(m/8) characters, exactly a record-struct bit group's AsImage
-        // (§13.18.60.4 GR5 / §8.5.1.6.3, CobolBits.Pack — kb/Work PB1904).
+        // (§2023:13.18.60.4 GR5 / §2023:8.5.1.6.3, CobolBits.Pack — kb/Work PB1904).
         RedefViewPlace { Coding: BitWindow b, ViewItem.IsGroup: true } v => RuntimeApi.BitsPack(Read(v), b.Bits.ToString()),
         RedefViewPlace => Read(group),
         // The READ twin of WriteGroupImage's RenamesPlace arm (kb/Work PB907): a level-66 THROUGH alias is an
-        // alphanumeric GROUP item (ISO §13.18.45.4 GR2) whose image IS the composed span string Read renders —
+        // alphanumeric GROUP item (ISO §2023:13.18.45.4 GR2) whose image IS the composed span string Read renders —
         // it has no record struct, so `.AsImage()` on it would not compile.
         RenamesPlace => Read(group),
         // ⛔ UNWRAP BEFORE THE GUARD (the PB176 skeptic round): an OdoGroupPlace may wrap a Tier-B
@@ -792,22 +792,22 @@ internal static class PlaceRenderer
         _ => $"{Read(group)}.AsImage()",
     };
 
-    /// <summary>⛔ THE ONE READER OF A VARIABLE-LENGTH GROUP'S ACTIVATION-BOUNDARY CARRIER (ISO §8.5.1.12;
+    /// <summary>⛔ THE ONE READER OF A VARIABLE-LENGTH GROUP'S ACTIVATION-BOUNDARY CARRIER (ISO §2023:8.5.1.12;
     /// kb/Work PB204) — the <see cref="GroupImage"/> twin for a group that has no fixed record window. Same arm
     /// order and the same capability law: unwrap first, then the guard, so the guard fires exactly when the
     /// struct has no <c>AsVarImage</c> (<see cref="DataItem.CurrentExtentImageCapable"/> is what
     /// <c>RecordStructEmitter</c> emits it for), and the Tier-C loud is the ONE reason source.
     /// <para>This is the carrier of a variable-length group OPERAND of a statement (MOVE sender, comparison): an
-    /// OCCURS DEPENDING table it holds contributes its CURRENT count (§13.18.38.4 GR8). An ACTIVATION BOUNDARY
+    /// OCCURS DEPENDING table it holds contributes its CURRENT count (§2023:13.18.38.4 GR8). An ACTIVATION BOUNDARY
     /// uses <see cref="VarGroupBoundaryImage"/>. See <see cref="OdoCountArgument"/>.</para></summary>
     public static string VarGroupImage(Place group, string context = "variable-length group image of") =>
         VarGroupImageAt(group, context, maximum: false);
 
     /// <summary>The carrier of a variable-length group at an ACTIVATION BOUNDARY (CALL / INVOKE argument, LINKAGE
-    /// formal copy-out, RETURNING item): an OCCURS DEPENDING table it holds crosses at its MAXIMUM — §14.8.2.2,
+    /// formal copy-out, RETURNING item): an OCCURS DEPENDING table it holds crosses at its MAXIMUM — §2023:14.8.2.2,
     /// "the maximum length is used" — as the fixed-length group does through <c>AsImage</c>.
     /// <para>⛔ <paramref name="byReference"/> asks for the carrier a BY REFERENCE crossing reads and stores back over — the
-    /// argument's STORAGE, which a formal "occupies" (§14.2.3 GR8) — so it states the element each of its dynamic-capacity
+    /// argument's STORAGE, which a formal "occupies" (§2023:14.2.3 GR8) — so it states the element each of its dynamic-capacity
     /// tables creates (<c>CobolVarGroup.Created</c>, kb/Work PB2690): a formal's fixed table past the capacity sees and
     /// creates those occurrences. Every other crossing (a BY CONTENT copy, a copy-out, a RETURNING item) takes a value.</para></summary>
     public static string VarGroupBoundaryImage(Place group, string context = "activation-boundary image of", bool byReference = false) =>
@@ -825,7 +825,7 @@ internal static class PlaceRenderer
                     $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynTable, g.Odo, CellOdoCount(odo), g.DynElem, byReference),   // kb/Work PB1026, PB1042, PB2496, PB2690
             _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable =>
                 EmitText.LoudValue(RuntimeApi.VarGroupType, TierCIsland.Reason(inner.Item, context)),
-            // A STATEMENT's read asks a LINKAGE dynamic-length member to agree with its clause (§14.6.13.2 rule 5,
+            // A STATEMENT's read asks a LINKAGE dynamic-length member to agree with its clause (§2023:14.6.13.2 rule 5,
             // kb/Work PB1937); the boundary's own copy-out references nothing, so it passes no flag.
             _ => $"{Read(inner)}.AsVarImage({string.Join(", ", new[] { odo, maximum ? "" : "true", byReference ? "__byReference: true" : "" }.Where(a => a.Length > 0))})",
         };
@@ -836,7 +836,7 @@ internal static class PlaceRenderer
     /// the occurrence count as <c>__odo</c>, because the composing method is a struct instance method while
     /// data-name-1 lives on the OPERAND's access path (<see cref="OdoGroupPlace.Depending"/>). The CURRENT count is
     /// the clamped value (<c>TableOdoExtent</c> over a unit element — EC-BOUND-ODO outside integer-1..integer-2,
-    /// §13.18.38.4 GR7); the MAXIMUM is what an activation boundary carries.</summary>
+    /// §2023:13.18.38.4 GR7); the MAXIMUM is what an activation boundary carries.</summary>
     private static string OdoCountArgument(OdoGroupPlace o, bool maximum) =>
         maximum ? o.MaxOccurs.ToString() : RuntimeApi.TableOdoExtent(CountRead(o.Depending), o.MinOccurs, o.MaxOccurs, 0, 1);
 
@@ -865,19 +865,19 @@ internal static class PlaceRenderer
     /// group without the table (the helpers ignore it then — <c>OdoTail.Present</c> is false).</summary>
     private static string CellOdoCount(string? odo) => odo is null or "" ? "0" : odo;
 
-    /// <summary>The WRITE half of <see cref="VarGroupImage"/> — the §14.2.3 GR8 copy-back at an activation
+    /// <summary>The WRITE half of <see cref="VarGroupImage"/> — the §2023:14.2.3 GR8 copy-back at an activation
     /// boundary, distributing the carrier's fixed run and its variable-length components back into the group's
     /// own members.</summary>
-    /// <param name="formalStorage">True for the COPY-IN of a LINKAGE formal (§14.2.3 GR8: the formal "occupies the
+    /// <param name="formalStorage">True for the COPY-IN of a LINKAGE formal (§2023:14.2.3 GR8: the formal "occupies the
     /// same storage area as the argument"): a dynamic-length member keeps the argument's WHOLE content even when
     /// its own LIMIT is smaller, and a read through the formal's description then agrees with that LIMIT
-    /// (§14.6.13.2 rule 5; kb/Work PB1937). Every other store — the copy-back into the caller's own item, a MOVE
-    /// receiver — is a store through the receiving description and truncates (§8.5.1.10.4).</param>
-    /// <param name="receivingOperand">True for a STATEMENT's receiving operand (the MOVE, §14.9.25.4 GR9): an OCCURS
+    /// (§2023:14.6.13.2 rule 5; kb/Work PB1937). Every other store — the copy-back into the caller's own item, a MOVE
+    /// receiver — is a store through the receiving description and truncates (§2023:8.5.1.10.4).</param>
+    /// <param name="receivingOperand">True for a STATEMENT's receiving operand (the MOVE, §2023:14.9.25.4 GR9): an OCCURS
     /// DEPENDING table it holds is then used only to its CURRENT count when the DEPENDING item lies outside the group
-    /// (§13.18.38.4 GR8 a - <see cref="UsesCurrentExtent"/>, the law <see cref="WriteGroupImage"/> already applies to a
+    /// (§2023:13.18.38.4 GR8 a - <see cref="UsesCurrentExtent"/>, the law <see cref="WriteGroupImage"/> already applies to a
     /// fixed-length receiver), and its remaining occurrences keep their content (kb/Work PB244). Every other writer -
-    /// the activation boundary's copy-in and copy-out ("the maximum length is used", §14.8.2.2), a record read back -
+    /// the activation boundary's copy-in and copy-out ("the maximum length is used", §2023:14.8.2.2), a record read back -
     /// stores the whole table.</param>
     public static string WriteVarGroupImage(Place group, string value, string context, bool formalStorage = false,
                                             bool receivingOperand = false) =>
@@ -899,7 +899,7 @@ internal static class PlaceRenderer
         _ => $"{GroupTarget(group)}.FromVarImage({value}{(odoCount is null ? (formalStorage ? ", true" : "") : $", {(formalStorage ? "true" : "false")}, {odoCount}")});",
     };
 
-    /// <summary>⛔ A VARIABLE-LENGTH GROUP'S CONTIGUOUS IMAGE at its current extent — ISO §8.5.1.11.2: "a
+    /// <summary>⛔ A VARIABLE-LENGTH GROUP'S CONTIGUOUS IMAGE at its current extent — ISO §2023:8.5.1.11.2: "a
     /// variable-length data item behaves in all respects as though it were in fact contiguous with its neighbors
     /// whenever a procedural operation is applied to a group containing it". The generated <c>CurrentImage()</c>
     /// (the A.1 item 57 composer DISPLAY already uses), behind the same capability guard and unwrap as
@@ -944,18 +944,18 @@ internal static class PlaceRenderer
             ? VarGroupCurrentImage(p, context, transfer: true)
             : null;
 
-    /// <summary>⛔ THE ONE §8.5.1.12 CARRIER OF A GROUP OPERAND THAT MEETS A VARIABLE-LENGTH GROUP, IN ITS OWN SHAPE —
-    /// for every statement that takes a compatible pair component by component: the §14.9.25.4 GR9 MOVE's sending
-    /// operand and both operands of the §8.8.4.2.17 comparison (kb/Work PB1467 moved it here from the MOVE emitter so
+    /// <summary>⛔ THE ONE §2023:8.5.1.12 CARRIER OF A GROUP OPERAND THAT MEETS A VARIABLE-LENGTH GROUP, IN ITS OWN SHAPE —
+    /// for every statement that takes a compatible pair component by component: the §2023:14.9.25.4 GR9 MOVE's sending
+    /// operand and both operands of the §2023:8.8.4.2.17 comparison (kb/Work PB1467 moved it here from the MOVE emitter so
     /// the two cannot decompose a group differently). A variable-length group is its own composer; a FIXED-length group
-    /// is its record image with no components. <c>Shape</c> is the operand's own §8.5.1.12 atoms
-    /// (<c>VariableLengthCompatibility.GroupAtoms</c>, a USAGE BIT member laid by §8.5.1.6.3's runs — kb/Work PB2691): the pair's
+    /// is its record image with no components. <c>Shape</c> is the operand's own §2023:8.5.1.12 atoms
+    /// (<c>VariableLengthCompatibility.GroupAtoms</c>, a USAGE BIT member laid by §2023:8.5.1.6.3's runs — kb/Work PB2691): the pair's
     /// correspondence is decided over the TWO shapes (<c>CobolVarGroup.Reshape</c> for a MOVE, <c>CobolVarGroup.Compare</c>
     /// for a relation), the same walk that decided the pair compatible, so a fixed table opposite a dynamic-capacity
-    /// table (§8.5.1.12.3 sentence 3) and a table of variable-length elements (§14.6.9.2, kb/Work PB2496) are paired
+    /// table (§2023:8.5.1.12.3 sentence 3) and a table of variable-length elements (§2023:14.6.9.2, kb/Work PB2496) are paired
     /// where the walk pairs them. Null when this implementation cannot compose the operand (the caller emits its named
     /// loud): a variable-length group whose current extent does not compose, a fixed-length group with no character
-    /// image, or a group with no atoms (a dynamic-capacity table packed into a §8.5.1.6.3 bit run, which §8.5.1.12.1
+    /// image, or a group with no atoms (a dynamic-capacity table packed into a §2023:8.5.1.6.3 bit run, which §2023:8.5.1.12.1
     /// makes compatible with no group, so the binder has already refused the statement).
     /// <paramref name="variableContext"/> / <paramref name="fixedContext"/> name the operand in a run-time reason, as
     /// <see cref="GroupImage"/>'s <c>context</c> does.</summary>
@@ -967,7 +967,7 @@ internal static class PlaceRenderer
         return g.ImageCapable ? (RuntimeApi.VarGroupOfImage(SendingGroupImage(g, fixedContext)), shape) : null;
     }
 
-    /// <summary>A §8.5.1.12 carrier of shape <paramref name="from"/> seen in shape <paramref name="to"/>: the carrier
+    /// <summary>A §2023:8.5.1.12 carrier of shape <paramref name="from"/> seen in shape <paramref name="to"/>: the carrier
     /// itself when the shapes are the same, else <c>CobolVarGroup.Reshape</c> (kb/Work PB480, PB2496, PB2691).</summary>
     public static string VarGroupInShape(string carrier, GroupAtom[] from, GroupAtom[] to, GroupAtomTable atoms) =>
         GroupCompatibility.SameShape(from, to) ? carrier : RuntimeApi.VarGroupReshape(carrier, atoms.Ref(from), atoms.Ref(to));
@@ -1000,8 +1000,8 @@ internal static class PlaceRenderer
     /// record's length cannot say how many occurrences it holds, so the decomposition needs a count. The record states
     /// it when its extent table travelled with it (the number of components the table describes) and for the fixed form
     /// (the maximum: every occurrence sits at its fixed-form position). Otherwise data-name-1 is the count source: the
-    /// record is first decomposed at the table's MAXIMUM — the receiving record area's maximum length, §13.18.38.4 GR8
-    /// b) — which places a data-name-1 the record holds itself when no variable-length member precedes it (§13.18.38.3
+    /// record is first decomposed at the table's MAXIMUM — the receiving record area's maximum length, §2023:13.18.38.4 GR8
+    /// b) — which places a data-name-1 the record holds itself when no variable-length member precedes it (§2023:13.18.38.3
     /// SR20 puts it before the table), and then decomposed again at data-name-1's value, clamped to the table's bounds;
     /// a data-name-1 outside the record keeps its value from the start of the statement (GR8 a). When data-name-1 does
     /// not read back the count it was decomposed at (a variable-length member before it was cut short by the maximum's
@@ -1044,7 +1044,7 @@ internal static class PlaceRenderer
     }
 
     /// <summary>⛔ THE ONE READER OF A GROUP OPERAND'S IMAGE IN A <b>SENDING</b> CONTEXT — <see cref="GroupImage"/>,
-    /// except that an occurs-depending group sends only its ISO §13.18.38.4 GR8 CURRENT-count part. Both GR8 arms
+    /// except that an occurs-depending group sends only its ISO §2023:13.18.38.4 GR8 CURRENT-count part. Both GR8 arms
     /// agree on the sending direction: GR8a (data-name-1 outside the group) and GR8b (data-name-1 inside, "and the
     /// group data item is referenced as a sending operand") each say "only that part of the table area that is
     /// specified by the value of the data item referenced by data-name-1 at the start of the operation will be
@@ -1058,7 +1058,7 @@ internal static class PlaceRenderer
     public static string SendingGroupImage(Place group, string context = "whole-group image of", bool transfer = false) =>
         GroupImageAs(group, AccessDir.Sending, context, transfer);
 
-    /// <summary>⛔ THE §13.18.38.4 GR8 DIRECTION LAW, written once (kb/Work PB202): an occurs-depending group
+    /// <summary>⛔ THE §2023:13.18.38.4 GR8 DIRECTION LAW, written once (kb/Work PB202): an occurs-depending group
     /// operand uses only its CURRENT-count part when it is SENDING (GR8a and GR8b agree) or when data-name-1 lies
     /// OUTSIDE it (GR8a, either direction); only a depending-INSIDE group as a RECEIVING operand takes the maximum
     /// length (GR8b's second sentence). Every channel reader below — image, bit, national — asks THIS, so the two
@@ -1071,16 +1071,16 @@ internal static class PlaceRenderer
     private static string GroupImageAs(Place group, AccessDir dir, string context, bool transfer = false) =>
         group is OdoGroupPlace o && UsesCurrentExtent(o, dir) ? SendingImage(o, context, transfer) : GroupImage(group, context, transfer);
 
-    /// <summary>⛔ <b>THE ONE READER OF A GROUP OPERAND'S SENDING VALUE</b> — the dispatch over ISO §13.18.29.4's
+    /// <summary>⛔ <b>THE ONE READER OF A GROUP OPERAND'S SENDING VALUE</b> — the dispatch over ISO §2023:13.18.29.4's
     /// three kinds of group, written once. A BIT group is "treated as though it were an elementary data item of
     /// usage bit … described with PICTURE 1(m)" (GR1b), so its value is its boolean positions
     /// (<see cref="SendingBits"/>); a NATIONAL group is the same with PICTURE N(m) (GR2b), so its value is its
     /// national positions (<see cref="SendingNat"/>); an ALPHANUMERIC group (GR3) sends its storage image
-    /// (<see cref="SendingGroupImage"/>). Each arm carries §13.18.38.4 GR8's current-extent slice itself.
+    /// (<see cref="SendingGroupImage"/>). Each arm carries §2023:13.18.38.4 GR8's current-extent slice itself.
     /// <para>Three readers used to spell this dispatch, and one of them did not (kb/Work PB944's sibling sweep):
     /// <c>OperandText.FieldAsString</c> had the bit and national arms, while <c>NumericRenderer.FieldNumCore</c>
     /// decoded EVERY group through the alphanumeric image — so <c>MOVE NG TO PIC 9(3)</c> over a GROUP-USAGE
-    /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §14.9.25.4 GR6 d) 3
+    /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §2023:14.9.25.4 GR6 d) 3
     /// treats a national sender "as if it were an unsigned integer" of its character positions — and the
     /// GR1 zero-length-item test in <c>MoveEmitter</c> read a national group's STRUCT <c>.Length</c> (CS1061).</para></summary>
     /// <param name="transfer">True for a ONE-WAY consumer of the alphanumeric arm (the digit decode of a group in a numeric
@@ -1090,15 +1090,15 @@ internal static class PlaceRenderer
         : group.Item.GroupUsage is GroupUsage.Bit ? SendingBits(group)
         : SendingNat(group);
 
-    /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
+    /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §2023:13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
     public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of", bool transfer = false) =>
         $"{GroupImage(p.Inner, context, transfer)}.Substring(0, {CharLengthExpr(p)})";
 
-    /// <summary>⛔ THE ONE READER OF A BIT GROUP'S OPERAND VALUE (ISO §13.18.29.4 GR1b — "a bit group is treated as
+    /// <summary>⛔ THE ONE READER OF A BIT GROUP'S OPERAND VALUE (ISO §2023:13.18.29.4 GR1b — "a bit group is treated as
     /// though it were an elementary data item of usage bit and class and category boolean described with PICTURE
     /// 1(m), where m is the bit length of the group"): the generated <c>AsBits()</c> boolean-position string, with
-    /// §13.18.38.4 GR8a's CURRENT-extent truncation when an occurs-depending table lies beneath it. The bit twin of
+    /// §2023:13.18.38.4 GR8a's CURRENT-extent truncation when an occurs-depending table lies beneath it. The bit twin of
     /// <see cref="SendingGroupImage"/>, and the reason the two must exist side by side is that they speak DIFFERENT
     /// ALPHABETS — <c>AsImage()</c> is ceil(m/8) PACKED characters, <c>AsBits()</c> is m boolean positions — so a
     /// consumer that reaches for the image reader on a bit group compares packed bytes against boolean literals
@@ -1107,7 +1107,7 @@ internal static class PlaceRenderer
     /// <para>A Tier-B <c>RedefViewPlace</c> over a bit group has no struct to ask <c>AsBits()</c> of: its
     /// <see cref="BitWindow"/> read already IS the boolean-position string, so <see cref="BitValue"/> serves the
     /// view with its own read (kb/Work PB1653 — a national group's window is the same shape, and both reach every
-    /// verb through <see cref="SendingGroupValue"/> now). §13.18.44.3 SR5 bars an occurs-depending table on either
+    /// verb through <see cref="SendingGroupValue"/> now). §2023:13.18.44.3 SR5 bars an occurs-depending table on either
     /// side of a REDEFINES, so an <c>OdoGroupPlace</c> over a view cannot carry one beyond a BASED record's.</para></summary>
     public static string SendingBits(Place group) => BitsAs(group, AccessDir.Sending);
 
@@ -1143,23 +1143,23 @@ internal static class PlaceRenderer
     private static string BitTargetValue(Place group) => group is RedefViewPlace ? Read(group) : $"{GroupTarget(group)}.AsBits()";
 
     /// <summary>⛔ <b>THE ONE WRITER OF A GROUP OPERAND'S VALUE</b> — the receiving twin of
-    /// <see cref="SendingGroupValue"/>, over the same three kinds of group (ISO §13.18.29.4): a BIT group takes its
+    /// <see cref="SendingGroupValue"/>, over the same three kinds of group (ISO §2023:13.18.29.4): a BIT group takes its
     /// boolean-position string (<see cref="WriteBits"/>, GR1b), a NATIONAL group its national-position string
     /// (<see cref="WriteNat"/>, GR2b), an ALPHANUMERIC group its character image (<see cref="WriteGroupImage"/>, GR3).
     /// A verb that READS a group operand's value through <see cref="SendingGroupValue"/>, rewrites it and stores it
     /// back (INSPECT REPLACING/CONVERTING, STRING's receiver) must store through THIS, in the SAME alphabet it read:
     /// kb/Work PB1128 — both verbs stored a national group's national-position string through the BYTE-image writer,
     /// so `INSPECT NG CONVERTING N"A" TO N"Z"` over five N"A" positions wrote ten UTF-16 characters into ten bytes
-    /// and the group read back as mojibake. <paramref name="dir"/> is the §13.18.38.4 GR8 extent law of the store:
+    /// and the group read back as mojibake. <paramref name="dir"/> is the §2023:13.18.38.4 GR8 extent law of the store:
     /// <see cref="AccessDir.Receiving"/> keeps GR8b's maximum length for a depending-INSIDE table;
     /// <see cref="AccessDir.Sending"/> splices over the CURRENT extent whatever the depending position — the store
-    /// of a statement whose rules size the operand "as a sending data item" (INSPECT §14.9.22.4 GR1), so the value
+    /// of a statement whose rules size the operand "as a sending data item" (INSPECT §2023:14.9.22.4 GR1), so the value
     /// it writes back is exactly as long as the value it read.
     /// <para>A Tier-B REDEFINES view (<see cref="RedefViewPlace"/>) is written through its window's own
     /// <see cref="Write"/>, whatever its group kind, because that is the pair of what the operand readers read
     /// (<c>OperandText</c>'s view arm precedes the group dispatch, and this struct-less window has no
     /// <c>FromNat</c> / <c>FromBits</c>): the window's coding IS the value alphabet — characters for an alphanumeric
-    /// group, boolean positions for a bit group, national positions for a national group (§13.18.29.4 GR1b/GR2b;
+    /// group, boolean positions for a bit group, national positions for a national group (§2023:13.18.29.4 GR1b/GR2b;
     /// kb/Work PB1653 — a national group's view was written as its BYTE window, so ten characters stood for five
     /// positions). The STORAGE image of a view is the other channel, <see cref="WriteGroupImage"/>.</para></summary>
     public static string WriteGroupValue(Place group, string value, string context, AccessDir dir = AccessDir.Receiving) =>
@@ -1169,9 +1169,9 @@ internal static class PlaceRenderer
         : group.Item.GroupUsage is GroupUsage.Bit ? BitsWrite(group, value, dir)
         : NatWrite(group, value, dir);
 
-    /// <summary>⛔ THE ONE READER OF A NATIONAL GROUP'S OPERAND VALUE (ISO §13.18.29.4 GR2b — "a national group is
+    /// <summary>⛔ THE ONE READER OF A NATIONAL GROUP'S OPERAND VALUE (ISO §2023:13.18.29.4 GR2b — "a national group is
     /// treated as though it were an elementary data item of usage national … described with PICTURE N(m), where m
-    /// is the length of the group"): the generated <c>AsNat()</c> national-position string, with §13.18.38.4 GR8a's
+    /// is the length of the group"): the generated <c>AsNat()</c> national-position string, with §2023:13.18.38.4 GR8a's
     /// CURRENT-extent truncation when an occurs-depending table lies beneath it. The national twin of
     /// <see cref="SendingBits"/>, and it exists for the same reason: <c>AsImage()</c> speaks BYTES (two per
     /// national position since kb/Work PB327 admitted a national leaf to the byte-addressed record codec) while
@@ -1179,7 +1179,7 @@ internal static class PlaceRenderer
     /// compare UTF-16BE bytes against national literals.
     /// <para>The ODO extent arrives in BYTES (<see cref="CharLengthExpr"/> slices the AsImage channel), so the
     /// national-position count is that extent over <c>CobolBits.BytesPerNational</c> — the ONE pinned size
-    /// (§13.18.60.4 GR8 leaves it to the implementor; D-N1 pins two), never a literal 2 written here.</para></summary>
+    /// (§2023:13.18.60.4 GR8 leaves it to the implementor; D-N1 pins two), never a literal 2 written here.</para></summary>
     public static string SendingNat(Place group) => NatAs(group, AccessDir.Sending);
 
     /// <summary>A national group's national-position string as seen in direction <paramref name="dir"/> (the GR8
@@ -1223,8 +1223,8 @@ internal static class PlaceRenderer
     /// quantity a read of <c>G (n:m)</c> measures its leftmost position against, because the read slices the SENDING
     /// string (<see cref="SendingGroupValue"/>), whose length is exactly this: bit positions for a bit group
     /// (<see cref="LengthExpr"/>), national positions for a national group (<see cref="NatLengthExpr"/>), character
-    /// positions of the storage image otherwise (<see cref="CharLengthExpr"/>). §8.4.3.3.4 5) tests a position against
-    /// "the area of identifier-1", and §13.18.38.4 GR8 makes that area the group's current extent (kb/Work PB1969).
+    /// positions of the storage image otherwise (<see cref="CharLengthExpr"/>). §2023:8.4.3.3.4 5) tests a position against
+    /// "the area of identifier-1", and §2023:13.18.38.4 GR8 makes that area the group's current extent (kb/Work PB1969).
     /// The three arms are the three channels <see cref="SendingGroupValue"/> chooses between, so an operand that needs
     /// the SIZE and not the string — ADDRESS OF — cannot disagree with the read.</summary>
     public static string CurrentPositionsExpr(OdoGroupPlace p) =>
@@ -1232,15 +1232,15 @@ internal static class PlaceRenderer
         : p.Item.GroupUsage is GroupUsage.Bit ? LengthExpr(p)
         : NatLengthExpr(p);
 
-    /// <summary>⛔ THE C# <c>int</c> EXPRESSION OF A SLICE'S EVALUATED LENGTH — §8.4.3.3.4 GR5 c): the specified length,
+    /// <summary>⛔ THE C# <c>int</c> EXPRESSION OF A SLICE'S EVALUATED LENGTH — §2023:8.4.3.3.4 GR5 c): the specified length,
     /// through the ONE saturating narrowing of a reference modifier's length (kb/Work PB1033), or for the omitted form
     /// "up to and including the rightmost position of the data item referenced by identifier-1" from the leftmost one,
     /// computed in <c>long</c> so a saturated start cannot overflow it and floored at zero (the slice's own read or write
     /// raises EC-BOUND-REF-MOD for a leftmost position out of range, naming its exact value). identifier-1's positions are
     /// its static count (<see cref="RefModPlace.StaticInnerPositions"/>: a SIGN SEPARATE position and a bit group's
     /// as-if positions included) or, for an item whose length is a run-time value, its current one: a
-    /// DYNAMIC LENGTH item's (§8.5.1.10.4 "is treated as a fixed-length data item whose length is the dynamic-length
-    /// elementary item's current length") and an ANY LENGTH item's, its argument's (§13.18.2.4 GR1 b)), both the length
+    /// DYNAMIC LENGTH item's (§2023:8.5.1.10.4 "is treated as a fixed-length data item whose length is the dynamic-length
+    /// elementary item's current length") and an ANY LENGTH item's, its argument's (§2023:13.18.2.4 GR1 b)), both the length
     /// of the read (the ANY LENGTH width idiom, <c>ReceivingStore.AnyLengthWidth</c>). The ACCEPT transfer and a CALL /
     /// INVOKE argument's area extent both take it, so the two cannot measure one slice two ways (kb/Work PB3128: ACCEPT
     /// re-spelled identifier-1's positions as its PICTURE length, one position for both run-time-length shapes and one
@@ -1257,7 +1257,7 @@ internal static class PlaceRenderer
 
     /// <summary>A receiving store over an occurs-depending GROUP operand's CURRENT extent (GR8a — depending-outside):
     /// splice the stored prefix over the live image, leaving positions past the count unmodified. A zero current
-    /// extent (OCCURS 0 TO n DEPENDING at count 0, §13.18.38 GR8a) is a no-op store, NOT a reference-modification
+    /// extent (OCCURS 0 TO n DEPENDING at count 0, §2023:13.18.38 GR8a) is a no-op store, NOT a reference-modification
     /// violation — this is an image WINDOW the compiler chose (<see cref="RuntimeApi.StrWindowInto"/>), not a user
     /// ref-mod, so it never raises EC-BOUND-REF-MOD (review V48; kb/Work PB1707).</summary>
     public static string ReceiveInto(OdoGroupPlace p, string imageExpr) =>
@@ -1266,7 +1266,7 @@ internal static class PlaceRenderer
 
     /// <summary>The C# <c>int</c> expression for an occurs-depending group operand's current POSITION extent (GR8):
     /// the fixed prefix plus data-name-1's clamped value × the element width, read at the operation site. The unit
-    /// is the group's own — BIT positions for a subtree holding USAGE BIT leaves (§8.5.1.6.3; kb/Work PB173),
+    /// is the group's own — BIT positions for a subtree holding USAGE BIT leaves (§2023:8.5.1.6.3; kb/Work PB173),
     /// character positions otherwise — so this is the extent the <c>AsBits</c>/<c>FromBits</c> channel slices at.</summary>
     public static string LengthExpr(OdoGroupPlace p) =>
         RuntimeApi.TableOdoExtentTrimmed(CountRead(p.Depending), p.MinOccurs, p.MaxOccurs, p.FixedUnits, p.ElemUnits, p.TrailingUnits);
@@ -1278,27 +1278,27 @@ internal static class PlaceRenderer
             p.FixedUnits, p.ElemUnits, p.TrailingUnits, p.PositionsPerCharacter);
 
     /// <summary>True for an elementary DYNAMIC-LENGTH item described in the LINKAGE SECTION — whose storage the
-    /// activating element owns and wrote through its own DYNAMIC LENGTH clause (ISO §14.2.3 GR8), so a sending read
-    /// asks §14.6.13.2 rule 5's agreement (kb/Work PB1118). A dynamic-length item cannot be BASED (§13.18.5.3 SR2)
-    /// or redefined (§13.18.44.3 SR17), so a LINKAGE one is a formal parameter's storage; the cell-backed twin is
+    /// activating element owns and wrote through its own DYNAMIC LENGTH clause (ISO §2023:14.2.3 GR8), so a sending read
+    /// asks §2023:14.6.13.2 rule 5's agreement (kb/Work PB1118). A dynamic-length item cannot be BASED (§2023:13.18.5.3 SR2)
+    /// or redefined (§2023:13.18.44.3 SR17), so a LINKAGE one is a formal parameter's storage; the cell-backed twin is
     /// the <c>DynSlotWindow</c> read arm.</summary>
     private static bool ReadsForeignDynamicLength(DataItem item) =>
         item is { IsDynamicLength: true, IsGroup: false, Section: EntrySection.Linkage };
 
     /// <summary>⛔ THE ONE RENDERER OF A TABLE'S OCCURRENCE COUNT (the <see cref="AllCount"/> model): the fixed
-    /// OCCURS count (ISO §13.18.38.4 GR4); an occurs-depending table's data-name-1 value CLAMPED to
+    /// OCCURS count (ISO §2023:13.18.38.4 GR4); an occurs-depending table's data-name-1 value CLAMPED to
     /// [integer-1, integer-2] with EC-BOUND-ODO outside (GR7 — <c>CobolTable.OdoExtent</c> over a unit element,
-    /// the same clamp the sending image applies); a dynamic-capacity table's current capacity (§8.5.1.9.1).
+    /// the same clamp the sending image applies); a dynamic-capacity table's current capacity (§2023:8.5.1.9.1).
     /// <para>Promoted here from <c>IntrinsicRenderer</c> when INITIALIZE's per-occurrence loop became the second
     /// consumer (kb/Work PB393): a <c>table(ALL)</c> argument's range and an INITIALIZE loop bound are the SAME
     /// question about the SAME model, and the second spelling is what this repo's one-rule-one-place rule
-    /// forbids. The §14.6.9.2 element moves of a variable-length group MOVE are the third (kb/Work PB1144).</para></summary>
+    /// forbids. The §2023:14.6.9.2 element moves of a variable-length group MOVE are the third (kb/Work PB1144).</para></summary>
     public static string OccurrenceCount(AllCount c) => c switch
     {
         AllCount.Fixed f => f.Occurs.ToString(),
         AllCount.Odo o => RuntimeApi.TableOdoExtent(CountRead(o.Depending), o.MinOccurs, o.MaxOccurs, 0, 1),
         AllCount.Capacity cap => Read(cap.Register),
-        // A report writer OCCURS … DEPENDING level (§13.18.38.4 GR13 — data-name-1 inside [integer-1, integer-2 − 1],
+        // A report writer OCCURS … DEPENDING level (§2023:13.18.38.4 GR13 — data-name-1 inside [integer-1, integer-2 − 1],
         // else integer-2; never clamped, never EC-BOUND-ODO).
         AllCount.ReportDepending d => RuntimeApi.ReportDependingCount(
             RuntimeApi.HostInt32(CountRead(d.Depending)), d.MinOccurs, d.MaxOccurs),

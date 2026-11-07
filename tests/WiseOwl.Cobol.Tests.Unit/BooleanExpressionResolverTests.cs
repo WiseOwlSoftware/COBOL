@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The <see cref="BooleanExpressionResolver"/> grouping (ISO/IEC 1989:2023 §8.8.2 rule 7). The resolver is
+/// The <see cref="BooleanExpressionResolver"/> grouping (ISO/IEC 1989:2023 §2023:8.8.2 rule 7). The resolver is
 /// generic over the combine operations; here it is instantiated with <c>T = string</c> to render a fully
 /// parenthesized form that makes the grouping directly assertable — independent of the compile-time bit-string
 /// fold and the runtime bound-tree build that are its real consumers. The focus is the context-inherited shift

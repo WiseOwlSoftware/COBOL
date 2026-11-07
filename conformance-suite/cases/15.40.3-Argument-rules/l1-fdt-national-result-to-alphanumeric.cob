@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.40.3 r1 admits "a national or alphanumeric literal" for
-      *> argument-1, and §15.40.1's type table makes the FUNCTION's type
+      *> ISO §2023:15.40.3 r1 admits "a national or alphanumeric literal" for
+      *> argument-1, and §2023:15.40.1's type table makes the FUNCTION's type
       *> follow it: "National | National". So a NATIONAL format literal makes
-      *> FORMATTED-DATETIME a national function, and §14.9.25.3 rule 10's
+      *> FORMATTED-DATETIME a national function, and §2023:14.9.25.3 rule 10's
       *> Table 16 gives the National sending row a "No" under an
       *> alphanumeric receiver.
       *>
@@ -16,8 +16,8 @@
       *> golden's `MOVE ... (N"...") TO a PIC N item` would compile even if
       *> the result were mis-typed alphanumeric - the accept side cannot tell
       *> the two apart, and only this rejection can. Its FORMATTED-DATE twin
-      *> is pb15-formatted-date-national-result-to-an; §15.40.1 is a separate
-      *> table from §15.39.1 and had no witness of its own.
+      *> is pb15-formatted-date-national-result-to-an; §2023:15.40.1 is a separate
+      *> table from §2023:15.39.1 and had no witness of its own.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FDTNEG6.
        DATA DIVISION.

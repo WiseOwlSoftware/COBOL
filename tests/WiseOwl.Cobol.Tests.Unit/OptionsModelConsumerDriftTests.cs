@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ EVERY FIELD OF THE OPTIONS MODEL HAS A CONSUMER (kb/Work PB152, PB298).
-/// <see cref="OptionsModel"/> is the bound OPTIONS paragraph (ISO §11.9), and a field of it is a clause the
+/// <see cref="OptionsModel"/> is the bound OPTIONS paragraph (ISO §2023:11.9), and a field of it is a clause the
 /// program WROTE. A field that <c>OptionsBinder</c> sets and nothing reads is a clause accepted without diagnostic
 /// that changes nothing, which PB152 measured as a silent wrong answer (the INITIALIZE clause's SECTIONS were
 /// bound and ignored). PB298 found the same shape three more times: two FLOAT-DECIMAL fields (deleted when the

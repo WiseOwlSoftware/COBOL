@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.3.3.2 — "The implementor defines the maximum number of digit positions that may
+      *> ISO §2023:15.3.3.2 — "The implementor defines the maximum number of digit positions that may
       *> be specified in the decimal fraction portion of the seconds subfield of a time format;
       *> that maximum shall be greater than or equal to nine." WiseOwl COBOL's documented maximum is
       *> 18 (Annex A.1 item 202; docs/CONFORMANCE.md DOC-A.1-202), which satisfies the floor. A
       *> fraction of 19 digit positions therefore exceeds the maximum, so the operand is NOT a
-      *> time format at all — and §15.41.3 r2 requires that "The content of argument-1 shall be a
+      *> time format at all — and §2023:15.41.3 r2 requires that "The content of argument-1 shall be a
       *> time format". The violation is a syntax rule on a literal argument, so it is diagnosed
       *> at COMPILE time (COBOL1631) rather than fabricating a value at run time.
       *> This is the upper half of the pair whose lower half is

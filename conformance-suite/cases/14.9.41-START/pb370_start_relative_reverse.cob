@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR9 (RELATIVE FILES) - the START comparison is
+      *> ISO §2023:14.9.41.4 GR9 (RELATIVE FILES) - the START comparison is
       *> NUMERIC ("Numeric comparison rules apply") and its DIRECTION
       *> follows the relational operator:
       *>   a) "If the relational operator is EQUAL, GREATER, NOT LESS,
@@ -22,11 +22,11 @@
       *>      file, the invalid key condition exists and the execution
       *>      of the START statement is unsuccessful."
       *> The reverse-search operators are a COBOL-2002 introduction
-      *> (start-reverse-operators-2002; §A.3 item 39 binds them to READ
+      *> (start-reverse-operators-2002; §2023:A.3 item 39 binds them to READ
       *> PREVIOUS), so this golden runs at 2002; the negative
       *> pb370-start-reverse-operator-85 pins the gate below it.
       *> FR holds records at relative record numbers 2, 4 and 6 only.
-      *> Each START is followed by READ NEXT, which (§14.9.30.4 GR21 b)
+      *> Each START is followed by READ NEXT, which (§2023:14.9.30.4 GR21 b)
       *> and GR25) makes the selected record available and moves its
       *> number into RK, so the file position indicator prints outright.
       *>   LT5  KEY < 5: searching in REVERSE, the first record whose
@@ -38,7 +38,7 @@
       *>   GT4  KEY > 4: forward (a), the first number above 4 is 6.
       *>   NL5  KEY NOT LESS 5: forward, 6.
       *>   EQ3  KEY = 3: no record 3, so c): INVALID KEY and '23' (the
-      *>        one §9.1.13.5 invalid-key value a START can produce).
+      *>        one §2023:9.1.13.5 invalid-key value a START can produce).
       *>   LT2  KEY < 2: no record numbered below 2 - c) again.
       *>   NUM  RK is COMP: KEY > RK with RK = 4 compares the NUMBER 4,
       *>        never a character image - 6 again.

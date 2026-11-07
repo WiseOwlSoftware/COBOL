@@ -8,12 +8,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO/IEC 1989:2023 §8.8.2 boolean-expression FORMATION and PRECEDENCE, driven through the compile-time lane
-/// (§7.3.7.2 SR1 "formed in accordance with 8.8.2"; §7.3.7.3 GR1 "the order of precedence … shown in 8.8.2") —
+/// ISO/IEC 1989:2023 §2023:8.8.2 boolean-expression FORMATION and PRECEDENCE, driven through the compile-time lane
+/// (§2023:7.3.7.2 SR1 "formed in accordance with 8.8.2"; §2023:7.3.7.3 GR1 "the order of precedence … shown in 8.8.2") —
 /// the directive fragment parse, the shared <see cref="BooleanExpressionResolver"/> and the shared
 /// <see cref="ArithmeticFormationRules"/> the runtime lane also uses (kb/Work PB1370, PB1413). The runtime twins
 /// are pinned by <c>conformance-suite/cases/7.3.7-Compile-time-boolean-expressions/boolean_expression_formation</c> and the PB1413 negatives. Every
-/// expected value is derived from §8.8.2 in the test's own comment.
+/// expected value is derived from §2023:8.8.2 in the test's own comment.
 /// </summary>
 public sealed class BooleanExpressionFormationTests
 {
@@ -32,7 +32,7 @@ public sealed class BooleanExpressionFormationTests
             edition: EditionInfo.Latest,
             resolveName: w => names is not null && names.TryGetValue(w, out var v) ? v : null,
             diag: diag,
-            vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
+            vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §2023:7.3.6.2 SR1b"),
             decimalPointIsComma: false);
         return (eval.EvaluateOperand(frag!.compileTimeOperand(), "test"), diag);
     }
@@ -43,7 +43,7 @@ public sealed class BooleanExpressionFormationTests
         Assert.NotNull(frag);
         var diag = new CollectingDiag();
         var eval = new CompileTimeExpressionEvaluator(EditionInfo.Latest, _ => null, diag,
-            new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"), false);
+            new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §2023:7.3.6.2 SR1b"), false);
         bool? result = eval.EvaluateCce(frag!.constantConditionalExpression(), "test");
         Assert.Empty(diag.Reports);
         return result;
@@ -51,7 +51,7 @@ public sealed class BooleanExpressionFormationTests
 
     private static string? Bits(CtValue? v) => v is { Category: CtCategory.Boolean, Bits: { } b } ? b.Bits : null;
 
-    // ── "a boolean expression enclosed in parentheses" (§8.8.2) — no operator to find ──────────────────────────
+    // ── "a boolean expression enclosed in parentheses" (§2023:8.8.2) — no operator to find ──────────────────────────
 
     [Theory]
     [InlineData("(B\"101\")", "101")]
@@ -118,7 +118,7 @@ public sealed class BooleanExpressionFormationTests
     }
 
     [Theory]
-    [InlineData("B\"1100\" B-SHIFT-L 1.0")]   // integral VALUE, but not an integer literal (§8.3.3.3.2)
+    [InlineData("B\"1100\" B-SHIFT-L 1.0")]   // integral VALUE, but not an integer literal (§2023:8.3.3.3.2)
     [InlineData("B\"1100\" B-SHIFT-L 1.5")]
     public void ShiftCount_LiteralWithADecimalPoint_IsNotAnIntegerOperand(string src)
     {
@@ -127,7 +127,7 @@ public sealed class BooleanExpressionFormationTests
         Assert.Contains(diag.Reports, r => r.Code == CtDiagCode.DirectiveRule && r.Message.Contains("integer literal"));
     }
 
-    [Fact] // §7.3.11.4 GR1 — a numeric compilation variable stands where its literal may: K = 2 → 1100 RC 2 = 0011.
+    [Fact] // §2023:7.3.11.4 GR1 — a numeric compilation variable stands where its literal may: K = 2 → 1100 RC 2 = 0011.
            // A variable holding 1.5 is refused, not truncated to 1.
     public void ShiftCount_CompilationVariable()
     {
@@ -145,7 +145,7 @@ public sealed class BooleanExpressionFormationTests
         Assert.Contains(badDiag.Reports, r => r.Message.Contains("integer literal"));
     }
 
-    [Fact] // a sign written against the digits is part of the integer literal (§8.3.3.3.2): 1100 B-SHIFT-LC +1 = 1001.
+    [Fact] // a sign written against the digits is part of the integer literal (§2023:8.3.3.3.2): 1100 B-SHIFT-LC +1 = 1001.
     public void ShiftCount_SignedIntegerLiteral()
     {
         var (v, diag) = EvalOperand("B\"1100\" B-SHIFT-LC +1");

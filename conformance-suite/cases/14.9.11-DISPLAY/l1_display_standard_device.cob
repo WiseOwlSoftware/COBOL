@@ -5,16 +5,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.4 GR8 DISPLAY statement — the implementor's STANDARD DISPLAY DEVICE (Annex A.1 item 59,
+      *> ISO §2023:14.9.11.4 GR8 DISPLAY statement — the implementor's STANDARD DISPLAY DEVICE (Annex A.1 item 59,
       *> docs/CONFORMANCE.md#DOC-A.1-59).
       *>   python scripts/spec/cite.py --check 14.9.11.4 "If the UPON phrase is not specified, the implementor's
-      *>   standard display device is used."  ->  OK  §14.9.11.4 8)
+      *>   standard display device is used."  ->  OK  §2023:14.9.11.4 8)
       *> and the device NAMES the UPON phrase may reach are the implementor's too:
       *>   python scripts/spec/cite.py --check 12.3.7.3 "The implementor shall specify the names that are
-      *>   available for switch-name-1, feature-name-1, and device-name-1."  ->  OK  §12.3.7.3 8)
+      *>   available for switch-name-1, feature-name-1, and device-name-1."  ->  OK  §2023:12.3.7.3 8)
       *>   python scripts/spec/cite.py --check 14.9.11.3 "shall be associated with an implementor-defined
       *>   device-name that is identified in the operating environment as a hardware or software device capable
-      *>   of receiving data from the program"  ->  OK  §14.9.11.3 2)
+      *>   of receiving data from the program"  ->  OK  §2023:14.9.11.3 2)
       *>
       *> THE DETERMINATION UNDER TEST (row 59): with UPON omitted the standard display device is the process
       *> STANDARD OUTPUT stream; the output-capable device-names are CONSOLE and SYSOUT (both -> standard output)

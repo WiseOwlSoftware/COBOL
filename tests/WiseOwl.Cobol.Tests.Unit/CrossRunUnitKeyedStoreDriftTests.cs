@@ -9,11 +9,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ TWO RUN UNITS SHARING A RELATIVE OR INDEXED FILE UNDER <c>SHARING WITH ALL OTHER</c> SEE EACH OTHER'S RECORD
-/// LOCKS AND KEEP EACH OTHER'S RECORDS (kb/Work PB2660). ISO §9.1.16: <i>"While locked by a given file connector, a
+/// LOCKS AND KEEP EACH OTHER'S RECORDS (kb/Work PB2660). ISO §2023:9.1.16: <i>"While locked by a given file connector, a
 /// record is not accessible to another file connector in the same or a different run unit, except by the execution
-/// of a READ statement with the IGNORING LOCK phrase"</i>; §9.1.13.8 1): <i>"I-O status = 51. The input-output
+/// of a READ statement with the IGNORING LOCK phrase"</i>; §2023:9.1.13.8 1): <i>"I-O status = 51. The input-output
 /// statement is unsuccessful due to an attempt to access a record that is currently locked by another file
-/// connector"</i>; §9.1.15 3): <i>"The sharing with all other mode allows concurrent access to a physical file
+/// connector"</i>; §2023:9.1.15 3): <i>"The sharing with all other mode allows concurrent access to a physical file
 /// through other file connectors specifying input, I-O, or extend mode … Record locks are in effect."</i>
 /// <para>Before PB2660 a keyed connector read the whole file at OPEN and rewrote it at CLOSE, and its record locks
 /// lived in its own run unit's table, so a second run unit's READ WITH LOCK of a record the first held answered
@@ -62,10 +62,10 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
 
             Assert.Equal("00", Read(a, "A", org, 1, out _, phrase: FileRecordLock.WithLock));
 
-            // §9.1.16 / §9.1.13.8 1) — the record A holds is not accessible to B, in another run unit.
+            // §2023:9.1.16 / §2023:9.1.13.8 1) — the record A holds is not accessible to B, in another run unit.
             Assert.Equal("51", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
             Assert.Equal("51", Rewrite(b, "B", org, 1, "ZZZZ"));
-            // §14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
+            // §2023:14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
             Assert.Equal("00", Read(b, "B", org, 1, out string ignored, phrase: FileRecordLock.None, ignoringLock: true));
             Assert.Equal(Rec(1, "AAAA"), ignored);
             // A record nobody holds is B's to change, and A sees the change at its next statement.
@@ -86,8 +86,8 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>A READ WITH LOCK through an <c>OPEN INPUT</c> connector — a read-only handle — sets its lock (§14.9.30.4
-    /// GR11 c), §12.4.5.9.4: record locks are in effect under SHARING WITH ALL OTHER, §9.1.15 3)) and publishes it to
+    /// <summary>A READ WITH LOCK through an <c>OPEN INPUT</c> connector — a read-only handle — sets its lock (§2023:14.9.30.4
+    /// GR11 c), §2023:12.4.5.9.4: record locks are in effect under SHARING WITH ALL OTHER, §2023:9.1.15 3)) and publishes it to
     /// the other run units. The read-only handle holds the record's byte SHARED and then asks whether anybody else holds
     /// it; the question must not count the asker's own hold, which on Windows (per-handle LockFileEx) an exclusive test
     /// lock through the same handle does, so the lock was refused with '51' by nobody (lander review, train 1042).</summary>
@@ -124,7 +124,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>§14.7.9.3 — a RETRY against a holder in ANOTHER run unit waits for it to give the lock back, and the
+    /// <summary>§2023:14.7.9.3 — a RETRY against a holder in ANOTHER run unit waits for it to give the lock back, and the
     /// wait happens OUTSIDE the store's statement mutex: the holder can only give the lock back by executing a
     /// statement of its own, which the mutex would otherwise keep from ever running. RETRY FOREVER against such a
     /// holder is not the deadlock docs/CONFORMANCE.md DOC-A.1-109 detects: the holder can release, so the wait goes
@@ -173,7 +173,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>kb/Work PB754 — Table 19 refuses an OUTPUT open beside any other connector (§9.1.13.9 1) e)), and
+    /// <summary>kb/Work PB754 — Table 19 refuses an OUTPUT open beside any other connector (§2023:9.1.13.9 1) e)), and
     /// the refusal precedes the OPEN body: the existing connector keeps every record. The OPTIONAL-absent shape is
     /// the one place a connector is attached with a status other than '00', and it is registered all the same.</summary>
     [Theory]
@@ -213,7 +213,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>kb/Work PB2693 — a duplicate-key walk keeps its place across another run unit's change. §14.9.30.4 GR26:
+    /// <summary>kb/Work PB2693 — a duplicate-key walk keeps its place across another run unit's change. §2023:14.9.30.4 GR26:
     /// duplicates of an alternate key are made available "in the same order ... in which they are released by execution
     /// of WRITE statements, or by execution of REWRITE statements that create such duplicate values", and GR21 f) 1.
     /// resumes "immediately after the record that was made available by that prior READ statement". That order is
@@ -246,7 +246,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             Indexed(seed, "S", null);
             seed.OpenStatic("S", FileOpenMode.Output);
             foreach (var image in new[] { "0001Aaaa", "0002Dbbb", "0003Dccc", "0004Dddd", "0005Beee" })
-                Assert.Contains(W(seed, "S", image), new[] { "00", "02" });   // §9.1.13.2 1) — 02: a duplicate key
+                Assert.Contains(W(seed, "S", image), new[] { "00", "02" });   // §2023:9.1.13.2 1) — 02: a duplicate key
             seed.Close("S");
 
             var a = new FileRegistry();
@@ -265,7 +265,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             {
                 // An earlier-released record leaves the file.
                 "delete" => b.DeleteShared("B", "0001Aaaa", FileRetryKind.None, 0),
-                // A record's alternate key changes from B to D: it joins the set last (§14.9.35.4 GR24 b)).
+                // A record's alternate key changes from B to D: it joins the set last (§2023:14.9.35.4 GR24 b)).
                 "rewrite" => b.RewriteShared("B", "0005Deee", -1, FileRecordLock.None, FileRetryKind.None, 0),
                 // A new record joins the set D, last (GR26).
                 _ => W(b, "B", "0006Dfff"),
@@ -290,7 +290,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     }
 
     /// <summary>kb/Work PB2693 — each key's duplicate order survives the CLOSE, even when no single order of the records
-    /// could carry them all. §14.9.35.4 GR24 b) moves a REWRITTEN record last among the duplicates of each key the
+    /// could carry them all. §2023:14.9.35.4 GR24 b) moves a REWRITTEN record last among the duplicates of each key the
     /// REWRITE changed and a) leaves its place under every other key, so two records can stand r2, r1 under one key and
     /// r1, r2 under another. A store that kept the order in the sequence of its frames had to lose one of them at the
     /// CLOSE; the ordinals now travel with the records.</summary>
@@ -330,7 +330,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
         }
         finally { TryDelete(host); }
 
-        // §14.9.30.4 GR32 then GR21 f) 1.: the first released duplicate, then each one after it.
+        // §2023:14.9.30.4 GR32 then GR21 f) 1.: the first released duplicate, then each one after it.
         static List<string> Duplicates(FileRegistry reg, int keyIndex, string keyImage)
         {
             Assert.Equal("00", reg.ReadKeyedShared("F", keyIndex, keyImage, FileRecordLock.None, false,

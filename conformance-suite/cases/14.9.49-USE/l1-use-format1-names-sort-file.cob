@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR2 — "File-name-1 or file-name-2 shall not be a sort or a merge file."
-      *> This is the FILE-NAME-1 arm: a Format 1 USE (§14.9.49.2 Format 1, whose operand brace
-      *> holds "{ file-name-1 } …") names SRTF, which §13.4.6 describes with a sort-merge file
+      *> ISO §2023:14.9.49.3 SR2 — "File-name-1 or file-name-2 shall not be a sort or a merge file."
+      *> This is the FILE-NAME-1 arm: a Format 1 USE (§2023:14.9.49.2 Format 1, whose operand brace
+      *> holds "{ file-name-1 } …") names SRTF, which §2023:13.4.6 describes with a sort-merge file
       *> description entry (SD). SR2 is an ALL FORMATS rule, so every edition that has Format 1
       *> — 1985 onwards — shall reject it.
        IDENTIFICATION DIVISION.

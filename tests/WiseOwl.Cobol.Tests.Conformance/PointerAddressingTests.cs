@@ -62,10 +62,10 @@ public sealed class PointerAddressingTests
         string decls = "01 X PIC X(5).\n        01 P USAGE POINTER.";
         var (_, e1, _) = EditionHarness.CompileFull(
             Prog("PTAT4", decls, "    SET P TO ADDRESS OF X."), 85);
-        EditionHarness.AssertHasDiagnostic(e1, "SET ADDRESS OF (ISO §14.9.39 Format 7)");
+        EditionHarness.AssertHasDiagnostic(e1, "SET ADDRESS OF (ISO §2023:14.9.39 Format 7)");
         var (_, e2, _) = EditionHarness.CompileFull(
             Prog("PTAT5", decls, "    SET P UP BY 2."), 85);
-        EditionHarness.AssertHasDiagnostic(e2, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)");
+        EditionHarness.AssertHasDiagnostic(e2, "SET pointer UP/DOWN BY (ISO §2023:14.9.39 Format 10)");
     }
 
     /// <summary>ALLOCATE statement-shape compile locks: a fractional request (GR1 rounds UP via the
@@ -87,7 +87,7 @@ public sealed class PointerAddressingTests
     }
 
     /// <summary>FREE under enabled EC-STORAGE-NOT-ALLOC checking (>>TURN): the EcWrap BoundFree arm selects
-    /// the family and the emitter renders the §14.6.13.1.3 #5 sequence (status set + the F3 selection) —
+    /// the family and the emitter renders the §2023:14.6.13.1.3 #5 sequence (status set + the F3 selection) —
     /// the checked leg must produce compilable code both with and without an F3 declarative.</summary>
     [Fact]
     public void Free_UnderTurnedChecking_Compiles()

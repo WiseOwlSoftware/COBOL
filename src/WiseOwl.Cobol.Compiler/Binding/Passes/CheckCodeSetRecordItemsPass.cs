@@ -10,13 +10,13 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record item is "described with the SIGN IS SEPARATE clause" and "described as usage display", and BOTH facts can arrive by GROUP INHERITANCE — §13.18.52.4 GR1 for the sign, §13.18.60.4 GR1 for the usage — so the screen must run no earlier than the last pass that can supply one. Run from BindFileSection, where it used to live, it read the entry-bind default trailing over-punch and REFUSED a legal record whose group carried SIGN IS SEPARATE. Nothing later is needed: it reads declared shape only, and ExpandTypes (the first pass) has already composed the leaves of a record described with TYPE or SAME AS.
+/// The §2023:13.18.13.3 SR3 a)/b) CODE-SET record screen — §2023:13.18.52.3 SR3's twin (kb/Work PB536). Placed HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record item is "described with the SIGN IS SEPARATE clause" and "described as usage display", and BOTH facts can arrive by GROUP INHERITANCE — §2023:13.18.52.4 GR1 for the sign, §2023:13.18.60.4 GR1 for the usage — so the screen must run no earlier than the last pass that can supply one. Run from BindFileSection, where it used to live, it read the entry-bind default trailing over-punch and REFUSED a legal record whose group carried SIGN IS SEPARATE. Nothing later is needed: it reads declared shape only, and ExpandTypes (the first pass) has already composed the leaves of a record described with TYPE or SAME AS.
 /// </para>
 /// <para>
-/// The CODE-SET clause's record-description screen — <b>ISO §13.18.13.3 SR3 a) and b)</b>: <i>"if alphabet-name-1
+/// The CODE-SET clause's record-description screen — <b>ISO §2023:13.18.13.3 SR3 a) and b)</b>: <i>"if alphabet-name-1
 /// is specified, all elementary data items of all record description entries associated with the file shall be
 /// described as usage display, and any signed numeric data items shall be described with the SIGN IS SEPARATE
-/// clause"</i> (b) says the same of alphabet-name-2 over usage national). <b>§13.18.52.3 SR3</b> is the same rule
+/// clause"</i> (b) says the same of alphabet-name-2 over usage national). <b>§2023:13.18.52.3 SR3</b> is the same rule
 /// written from the SIGN clause's side — <i>"If the CODE-SET clause is specified in a file description entry, any
 /// signed numeric data description entries associated with that file description entry shall be described with
 /// the SIGN IS SEPARATE clause"</i> — so ONE screen answers both, and it is this one.
@@ -25,14 +25,14 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// record item IS DESCRIBED WITH, and two of the three facts it reads are settled by LATER passes than the
 /// file-section entry walk that used to run it:</para>
 /// <list type="bullet">
-/// <item>the SIGN, because <b>§13.18.52.4 GR1</b> — <i>"The SIGN clause specifies the position and the mode of
+/// <item>the SIGN, because <b>§2023:13.18.52.4 GR1</b> — <i>"The SIGN clause specifies the position and the mode of
 /// representation of the operational sign for the numeric item to which it applies, or for each numeric item
 /// subordinate to the group to which it applies"</i> — makes a GROUP-level clause describe every subordinate
 /// signed numeric item, and that propagation is <see cref="InheritSignClausesPass.Run"/>;</item>
-/// <item>the USAGE, because <b>§13.18.60.4 GR1</b> gives a group's usage to its elementary items, and that
+/// <item>the USAGE, because <b>§2023:13.18.60.4 GR1</b> gives a group's usage to its elementary items, and that
 /// propagation is <c>UsageInheritancePass</c>;</item>
 /// <item>and the record's LEAVES themselves, because a record described with TYPE or SAME AS has none until
-/// <c>ExpandTypes</c> has composed them (§13.18.57.4 GR1 / §13.18.49.4 GR1).</item>
+/// <c>ExpandTypes</c> has composed them (§2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1).</item>
 /// </list>
 /// <para>Run from inside <c>BindFileSection</c>, the screen read the entry-bind default <c>SignKind</c> — trailing
 /// over-punch — for every leaf, and so REFUSED the legal <c>01 R. 05 G SIGN IS LEADING SEPARATE. 10 N PIC S9(4).</c>
@@ -64,7 +64,7 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.None;
 
-    /// <summary>§13.18.13.3 SR3 a)/b) over every FD that carried a CODE-SET clause — one verdict per offending
+    /// <summary>§2023:13.18.13.3 SR3 a)/b) over every FD that carried a CODE-SET clause — one verdict per offending
     /// elementary record item, reported AT THAT ITEM (the FD line named the file but never the item the
     /// programmer has to change).</summary>
     public void Run(DataBinder binder)
@@ -73,9 +73,9 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
         {
             if (file.CodeSetRecordClass is not { } wantNational) continue;
             // SR3's antecedent — "If there are record description entries associated with the file" — is about the
-            // entries the program WROTE: the implied record an FD without any receives (§14.9.30.4 GR6) is not one,
+            // entries the program WROTE: the implied record an FD without any receives (§2023:14.9.30.4 GR6) is not one,
             // so a file with none has nothing to screen and CODE-SET naming either alphabet (or both, which
-            // §13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
+            // §2023:13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
             foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
         }
     }
@@ -93,14 +93,14 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
                 + $"'{it.CobolName ?? "FILLER"}' is not usage {(wantNational ? "NATIONAL" : "DISPLAY")} — all "
                 + "elementary data items of all record description entries shall be described as usage "
-                + $"{(wantNational ? "national" : "display")} (ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
-        // §13.18.13.3 SR3 a/b sentence 2 = §13.18.52.3 SR3. "Described with the SIGN IS SEPARATE clause" includes
-        // a clause INHERITED from a containing group — §13.18.52.4 GR1 applies the group's clause "for each
+                + $"{(wantNational ? "national" : "display")} (ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
+        // §2023:13.18.13.3 SR3 a/b sentence 2 = §2023:13.18.52.3 SR3. "Described with the SIGN IS SEPARATE clause" includes
+        // a clause INHERITED from a containing group — §2023:13.18.52.4 GR1 applies the group's clause "for each
         // numeric item subordinate to the group to which it applies" — which is why this pass runs after
         // InheritSignClauses rather than at the FD (kb/Work PB536).
         else if (pic is { Signed: true } sp && !sp.SignKind.Contains("Separate"))
             binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
                 + $"item '{it.CobolName ?? "FILLER"}' shall be described with the SIGN IS SEPARATE clause "
-                + $"(ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §13.18.52.3 SR3)");
+                + $"(ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3)");
     }
 }

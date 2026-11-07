@@ -7,9 +7,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY WHOLE-GROUP PARSE GOES THROUGH THE ONE §8.9 GATE LOOP (kb/Work PB655; ISO §8.3.2.1 1)).
+/// ⛔ EVERY WHOLE-GROUP PARSE GOES THROUGH THE ONE §2023:8.9 GATE LOOP (kb/Work PB655; ISO §2023:8.3.2.1 1)).
 /// A reservation-gated word is not a <c>cobolWord</c> alternative, so a front end that calls
-/// <c>compilationUnit()</c> WITHOUT <c>ReservationGateRewriter.ParseToFixpoint</c> can never read a word §8.9
+/// <c>compilationUnit()</c> WITHOUT <c>ReservationGateRewriter.ParseToFixpoint</c> can never read a word §2023:8.9
 /// leaves free at its edition as a name: a program naming a table <c>COL</c> at COBOL-85 dies with "no viable
 /// alternative". This test makes the next front end automatic: a source file that starts a whole-group parse must
 /// also call the shared loop.
@@ -38,8 +38,8 @@ public sealed class ReservationGateParseEntryDriftTests
             .Select(f => Path.GetRelativePath(TestRepo.Root, f))
             .ToList();
         Assert.True(offenders.Count == 0,
-            $"{offenders.Count} source file(s) parse a whole compilation group without the §8.9 gate loop "
+            $"{offenders.Count} source file(s) parse a whole compilation group without the §2023:8.9 gate loop "
             + $"({GateLoop}…): {string.Join(", ", offenders)}. Route the parse through the shared loop "
-            + "(kb/Work PB655) so a word §8.9 leaves free at the edition reads as a user-defined word.");
+            + "(kb/Work PB655) so a word §2023:8.9 leaves free at the edition reads as a user-defined word.");
     }
 }

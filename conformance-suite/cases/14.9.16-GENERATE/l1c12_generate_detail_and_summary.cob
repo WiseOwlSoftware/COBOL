@@ -5,22 +5,22 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.16.2 / §14.9.16.4 GR2 — GENERATE data-name-1 and
+      *> ISO §2023:14.9.16.2 / §2023:14.9.16.4 GR2 — GENERATE data-name-1 and
       *>   GENERATE report-name-1 (summary reporting)
       *>
-      *> FORMAT (§14.9.16.2): GENERATE { data-name-1 | report-name-1 } —
+      *> FORMAT (§2023:14.9.16.2): GENERATE { data-name-1 | report-name-1 } —
       *>   both alternatives are written below:
       *> GENERATE DE1 (a detail report group, SR1) and GENERATE R-1 (a
       *>   report-name whose RD has a CONTROL
       *> clause, SR2).
       *>   cite.py --check 14.9.16.2 "GENERATE"
-      *>     -> OK  §14.9.16.2   (General format)
+      *>     -> OK  §2023:14.9.16.2   (General format)
       *>   cite.py --check 14.9.16.3 "Data-name-1 shall name a detail
       *>     report group."
-      *>     -> OK  §14.9.16.3 1)  (Syntax rules)
+      *>     -> OK  §2023:14.9.16.3 1)  (Syntax rules)
       *>   cite.py --check 14.9.16.3 "Report-name-1 may be used only if
       *>     the referenced report description
-      *>     entry contains a CONTROL clause."  -> OK  §14.9.16.3 2)
+      *>     entry contains a CONTROL clause."  -> OK  §2023:14.9.16.3 2)
       *>       (Syntax rules)
       *> GR2: "Execution of a GENERATE report-name-1 statement results
       *>   in the same processing as for a
@@ -30,7 +30,7 @@
       *>     report-name-1 statement results in the same
       *>     processing as for a GENERATE data-name statement for the
       *>       same report, except that no detail is
-      *>     printed."  -> OK  §14.9.16.4 2)  (General rules)
+      *>     printed."  -> OK  §2023:14.9.16.4 2)  (General rules)
       *> GR4 c)/d) (first GENERATE after INITIATE): "each control
       *>   heading is printed, wherever defined, in
       *> order from major to minor" ... "The specified detail is
@@ -39,17 +39,17 @@
       *>   "4) a)")
       *>   cite.py --check 14.9.16.4 "each control heading is printed,
       *>     wherever defined, in order from major
-      *>     to minor"  -> OK  §14.9.16.4 4) a)  (General rules)
+      *>     to minor"  -> OK  §2023:14.9.16.4 4) a)  (General rules)
       *>   cite.py --check 14.9.16.4 "The specified detail is printed,
       *>     unless summary reporting is
-      *>     specified."  -> OK  §14.9.16.4 4) a)  (General rules)
+      *>     specified."  -> OK  §2023:14.9.16.4 4) a)  (General rules)
       *> GR5 a)/b) (subsequent GENERATEs): "each control footing and
       *>   control heading is printed, if defined,
       *> up to the level of the control break" and the detail unless
       *>   summary reporting.
       *>   cite.py --check 14.9.16.4 "each control footing and control
       *>     heading is printed, if defined, up to
-      *>     the level of the control break"  -> OK  §14.9.16.4 5) a)
+      *>     the level of the control break"  -> OK  §2023:14.9.16.4 5) a)
       *>       (General rules)
       *>
       *> The report is not divided into pages (no PAGE clause), so no
@@ -74,10 +74,10 @@
       *>   K1=2, GENERATE R-1  : no break, summary -> nothing at all (a
       *>     wrong implementation that printed the
       *>                         detail would add a second DE2 here).
-      *>   TERMINATE           : final control footing CF1 (§14.9.46.4).
+      *>   TERMINATE           : final control footing CF1 (§2023:14.9.46.4).
       *>     => CF
       *> The CF line carries only a literal so it does not depend on the
-      *>   §13.18.16 prior-value rule.
+      *>   §2023:13.18.16 prior-value rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C12A.
        ENVIRONMENT DIVISION.

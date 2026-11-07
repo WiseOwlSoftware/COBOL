@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SDIDI square root (kb/Work PB116; ISO §15.84.4 r2 — "computed to 34 digits, and the result rounded to 34
+/// The SDIDI square root (kb/Work PB116; ISO §2023:15.84.4 r2 — "computed to 34 digits, and the result rounded to 34
 /// digits according to the rules for standard-decimal arithmetic", the ONE §15 function whose standard-mode value
 /// the standard fixes exactly; r1 — the exact argument enters unrounded). Expected values are the 34-digit
 /// correctly-rounded roots, hand-derived from the reference expansions — never from the implementation.
@@ -51,7 +51,7 @@ public sealed class CobolDecSqrtTests
     [Fact]
     public void StdDevDec_RidesTheDecimalSqrt()
     {
-        // §15.86.4 r1's EAE = SQRT(VARIANCE(list)); variance(1,2,3,4) = 1.25 exactly, and √1.25 =
+        // §2023:15.86.4 r1's EAE = SQRT(VARIANCE(list)); variance(1,2,3,4) = 1.25 exactly, and √1.25 =
         // 1.11803398874989484820458683436563811772…; the 34-digit prefix is
         // 1.118033988749894848204586834365638, 35th digit 1 ⇒ every mode keeps …5638. The former Math.Sqrt
         // detour carried ~16 correct digits.

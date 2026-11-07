@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DECIMAL-POINT MODE OF A PICTURE IS THE DESCRIBING UNIT'S, READ OFF THE ITEM (kb/Work PB2554).
-/// ISO §12.3.7.4 GR14 b) makes the comma the decimal separator "in character-strings, and inserted in numeric-edited
-/// items" under DECIMAL-POINT IS COMMA — a property of the source element that DESCRIBES the item; §12.3.4 GR1 hands
+/// ISO §2023:12.3.7.4 GR14 b) makes the comma the decimal separator "in character-strings, and inserted in numeric-edited
+/// items" under DECIMAL-POINT IS COMMA — a property of the source element that DESCRIBES the item; §2023:12.3.4 GR1 hands
 /// it to a contained program only. A separately compiled class keeps it for its formals no matter which unit INVOKEs
 /// them, so every editing, de-editing, receiver-scale and edited-image consumer reads
 /// <c>PicInfo.DecimalPointIsComma</c> (carried by the picture's <c>Clause</c>) and none reads the EMITTING or BINDING
@@ -36,7 +36,7 @@ public sealed class DecimalPointModeDriftTests
             "DateTimeFormatGrammar.Describe/Classify: a date-time format literal the referencing unit wrote; and the "
             + "folded numeric function result, whose character image is the literal form in the unit's separator (kb/Work PB2507)"),
         ("Binding/Procedure/SendingValueTemp.cs", 1,
-            "the §15.4 returned-value temporary carries the separator its literal-form text is written with "
+            "the §2023:15.4 returned-value temporary carries the separator its literal-form text is written with "
             + "(DataItem.FunctionValueSeparator, kb/Work PB2507)"),
         ("Binding/Procedure/ExpressionBinder.cs", 2,
             "the two numeric-literal producers: the literal keeps the separator its writer used (PB1643, "
@@ -64,7 +64,7 @@ public sealed class DecimalPointModeDriftTests
         Assert.True(unexpected.Count == 0,
             "A CodeGen / procedure-binder file reads the EMITTING unit's DECIMAL-POINT IS COMMA mode (" + string.Join("; ", unexpected)
             + "). An item's PICTURE is edited, de-edited and scaled under the mode of the unit that DESCRIBES it "
-            + "(§12.3.7.4 GR14 b): read PicInfo.DecimalPointIsComma. If the read is not about a picture, add it to the allowlist with its reason (kb/Work PB2554).");
+            + "(§2023:12.3.7.4 GR14 b): read PicInfo.DecimalPointIsComma. If the read is not about a picture, add it to the allowlist with its reason (kb/Work PB2554).");
     }
 
     [Fact]

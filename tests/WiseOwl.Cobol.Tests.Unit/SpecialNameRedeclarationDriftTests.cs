@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A SECOND DECLARATION OF AN UNQUALIFIABLE SPECIAL-NAME IS REFUSED AT THE ONE DECLARATION FUNNEL (kb/Work PB3216).
-/// ISO §8.4.2.1 — "In order to use a resource, a statement shall contain a reference that uniquely identifies that
+/// ISO §2023:8.4.2.1 — "In order to use a resource, a statement shall contain a reference that uniquely identifies that
 /// resource" (cite.py --check 8.4.2.1) — and an alphabet-name, class-name, locale-name, ordering-name,
 /// dynamic-length-structure-name, mnemonic-name or switch condition-name has no qualifier. The ALPHABET, CLASS and
 /// switch condition-name registries dropped the second declaration silently (<c>TryAdd</c>, first wins) while LOCALE and
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class SpecialNameRedeclarationDriftTests
 {
     /// <summary>The SPECIAL-NAMES kinds that are NOT in the set, and why: a SYMBOLIC CHARACTERS name keeps its own
-    /// §12.3.7.3 SR16 a rule, and a switch's condition-name shares its type with the qualifiable level-88 entries, so its
+    /// §2023:12.3.7.3 SR16 a rule, and a switch's condition-name shares its type with the qualifiable level-88 entries, so its
     /// declaration asks <c>CheckUnqualifiableDeclaration</c> explicitly.</summary>
     private static readonly string[] OutsideTheSet = ["SymbolicCharacter", "ConditionName"];
 

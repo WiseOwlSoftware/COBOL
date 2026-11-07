@@ -13,18 +13,18 @@
       *>
       *> THE RULES, in the order this program exercises them.
       *>
-      *> §14.9.21.4 GR1 b) — "LINE-COUNTER is set to zero." INITIATE leaves the counter at 0.
+      *> §2023:14.9.21.4 GR1 b) — "LINE-COUNTER is set to zero." INITIATE leaves the counter at 0.
       *>
-      *> §13.18.39.4 GR2 a) — "If integer-1 is not specified, the report consists of a single page of
-      *> indefinite length": `RD R-FL.` with no PAGE clause is an UNPAGED report, so §13.18.35.4 GR5 c) —
+      *> §2023:13.18.39.4 GR2 a) — "If integer-1 is not specified, the report consists of a single page of
+      *> indefinite length": `RD R-FL.` with no PAGE clause is an UNPAGED report, so §2023:13.18.35.4 GR5 c) —
       *> "If the first LINE NUMBER clause of the report group is relative and the report is not divided
       *> into pages, the report group's first line number is obtained by adding integer-2 to the current
       *> value of the report's LINE-COUNTER" — governs every one of its body groups. (GR5 b) 3's FIRST
-      *> DETAIL arm cannot apply: an unpaged report has no page regions. §13.18.35.3 SR5 is why every LINE
+      *> DETAIL arm cannot apply: an unpaged report has no page regions. §2023:13.18.35.3 SR5 is why every LINE
       *> clause here is relative: "If the report is not divided into pages, all its LINE clauses shall be
       *> relative.")
       *>
-      *> §13.18.35.4 GR6 — "the report's LINE-COUNTER is set equal to that line number and the line is now
+      *> §2023:13.18.35.4 GR6 — "the report's LINE-COUNTER is set equal to that line number and the line is now
       *> printed on the page at that vertical location" — is the sentence that makes the line NUMBER a
       *> physical PAGE POSITION, and GR7's "Any unoccupied lines on the page result in a blank line" fixes
       *> how many blank lines separate two printed ones.
@@ -33,19 +33,19 @@
       *>   GENERATE DET-A  — first LINE clause relative, unpaged ⇒ GR5 c): 0 + 1 = 1. FIRST prints on the
       *>                     FIRST line of the file, with nothing above it. LINE-COUNTER = 1 (GR6).
       *>   GENERATE DET-B  — GR5 c): 1 + 2 = 3 ⇒ SECOND on line 3, line 2 unoccupied ⇒ blank (GR7).
-      *>                     Its second LINE clause is subsequent, so §13.18.35.4 GR7 b) applies:
+      *>                     Its second LINE clause is subsequent, so §2023:13.18.35.4 GR7 b) applies:
       *>                     3 + 1 = 4 ⇒ MORE on line 4. LINE-COUNTER = 4.
       *>   GENERATE DET-C  — GR5 c): 4 + 3 = 7 ⇒ THIRD on line 7, lines 5 and 6 blank (GR7).
-      *>   §13.18.35.4 GR8 — "The final line number for the report group is given by the value contained in
+      *>   §2023:13.18.35.4 GR8 — "The final line number for the report group is given by the value contained in
       *>                     the report's LINE-COUNTER when the last line of the report group has been
-      *>                     printed" ⇒ LINE-COUNTER = 7, read through §8.4.3.15.3 SR1 (the procedure
+      *>                     printed" ⇒ LINE-COUNTER = 7, read through §2023:8.4.3.15.3 SR1 (the procedure
       *>                     division may reference it wherever an integer data item may appear).
       *> TERMINATE prints nothing: the report has no CONTROL, no page footing and no report footing.
       *>
       *> THE READ-BACK NUMBERS EVERY PHYSICAL LINE, blanks included — that is the whole point, and it is
       *> why this golden cannot use the blank-skipping reader the other report goldens share. A second
       *> SELECT over the same file with a one-character record reassembles the bytes at any edition.
-      *> (ORGANIZATION LINE SEQUENTIAL — §12.4.5.10.3 GR2, "The LINE SEQUENTIAL phrase specifies that the
+      *> (ORGANIZATION LINE SEQUENTIAL — §2023:12.4.5.10.3 GR2, "The LINE SEQUENTIAL phrase specifies that the
       *> file organization is line sequential" — would pin the content just as well, but the compiler gates
       *> it at 2023, construct `file-organization-line-sequential-2023`, and Report Writer is a COBOL-85
       *> facility, so this golden runs at the placement rule's own introducing edition.)

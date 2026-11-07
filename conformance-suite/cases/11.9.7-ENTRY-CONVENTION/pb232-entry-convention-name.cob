@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §11.9.7.4 GR3: "When entry-convention-name-1 is specified, the meaning of the entry
+      *> ISO/IEC 1989:2023 §2023:11.9.7.4 GR3: "When entry-convention-name-1 is specified, the meaning of the entry
       *> convention is implementor-defined." WiseOwl COBOL defines no entry-convention-name (docs/CONFORMANCE.md
       *> §7, Annex A.1 item 64); the one convention provided is COBOL. A named convention is refused by name
       *> (COBOL2385) instead of being silently activated with the COBOL convention (kb/Work PB232) - which

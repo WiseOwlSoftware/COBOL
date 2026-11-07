@@ -42,10 +42,10 @@ Vocabulary of the WiseOwl COBOL project. Each term links to where it is develope
   `StatusAt(year)` gives the verdict.
 - **`EditionInfo`** — the immutable dialect-year carrier (`MaxDigits` 18 pre-2002 / 31 after).
 - **`EditionSeverityPolicy`** — the single strict/permissive decision seam.
-- **§8.9 reserved-word funnel** — the per-edition user-word check via the `cobolWord` rule. See
+- **§2023:8.9 reserved-word funnel** — the per-edition user-word check via the `cobolWord` rule. See
   [[kb/Semantics/Validation Rules]].
 - **VCR** — `VERSION_CHANGE_REFERENCE.md`, the ~130-row edition-change checklist.
-- **§4.2.16 conformance record** — the implementor documentation (`CONFORMANCE.md`) required for conformance.
+- **§2023:4.2.16 conformance record** — the implementor documentation (`CONFORMANCE.md`) required for conformance.
 - **COBOL0900–0903** — the edition-gating diagnostic band (intro / reserved / removed / obsolete).
 
 ## Data & numerics

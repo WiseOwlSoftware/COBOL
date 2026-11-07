@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.8.2 r5 — numeric-edited receiver: alignment, zero
+      *> ISO §2023:14.6.8.2 r5 — numeric-edited receiver: alignment, zero
       *> fill AND truncation at both ends, then editing
       *> THE RULE: "If the receiving operand is a fixed-point
       *> numeric-edited item, further alignment, zero fill or
@@ -15,29 +15,29 @@
       *>   cite.py --check 14.6.8.2 "If the receiving operand is a
       *>     fixed-point numeric-edited item, further alignment, zero
       *>     fill or truncation, and transfer of digits take place"
-      *>     -> OK §14.6.8.2 5)
+      *>     -> OK §2023:14.6.8.2 5)
       *>   cite.py --check 13.18.40.5 "Simple insertion editing results
       *>     in the insertion character occupying the same character
       *>     position in the edited item as the associated symbol"
-      *>     -> OK §13.18.40.5 3)
+      *>     -> OK §2023:13.18.40.5 3)
       *>   cite.py --check 13.18.40.5 "Special insertion editing results
       *>     in the period character occupying the same character
       *>     position in the edited item as the symbol"
-      *>     -> OK §13.18.40.5 4)
+      *>     -> OK §2023:13.18.40.5 4)
       *>   cite.py --check 13.18.40.5 "The second floating symbol
       *>     represents the leftmost limit of the numeric data that may
-      *>     be stored in the item" -> OK §13.18.40.5 6)
+      *>     be stored in the item" -> OK §2023:13.18.40.5 6)
       *>   cite.py --check 13.18.40.5 "If truncation occurs, the value
       *>     of the data that is used for editing is the value after
-      *>     truncation as specified in 14.6.8" -> OK §13.18.40.5 6)
+      *>     truncation as specified in 14.6.8" -> OK §2023:13.18.40.5 6)
       *>   cite.py --check 13.18.40.5 "a single occurrence of the
       *>     replacement character(s) is (are) placed into the character
       *>     position(s) immediately preceding whichever of the
-      *>     following is encountered first" -> OK §13.18.40.5 6)
+      *>     following is encountered first" -> OK §2023:13.18.40.5 6)
       *>   cite.py --check 13.18.40.5 "the corresponding replacement
       *>     character is placed into any character position immediately
       *>     preceding whichever of the following is encountered first"
-      *>     -> OK §13.18.40.5 7)
+      *>     -> OK §2023:13.18.40.5 7)
       *> Alignment is on the mask's '.'; digits beyond the mask's digit
       *> positions are cut at EITHER end, missing ones are zero filled.
       *> DERIVATION of every .out line:

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.4 GR10 — after REWRITE ... FROM identifier-1 the
+      *> ISO §2023:14.9.35.4 GR10 — after REWRITE ... FROM identifier-1 the
       *> content of identifier-1 (not in the rewrite file's records) is
       *> still available.
       *> "After the execution of the REWRITE statement is complete, the
@@ -16,10 +16,10 @@
       *> referenced by record-name-1 is not available except as
       *> specified for the SAME RECORD AREA clause as indicated in
       *> General rule 6."
-      *> cite.py: OK  §14.9.35.4 10)  (General rules)
-      *> cite.py: OK  §14.9.35.4 7)  (General rules) - FROM = MOVE
+      *> cite.py: OK  §2023:14.9.35.4 10)  (General rules)
+      *> cite.py: OK  §2023:14.9.35.4 7)  (General rules) - FROM = MOVE
       *>   identifier-1 TO record-name-1, then REWRITE without FROM
-      *> cite.py: OK  §14.9.25.4 6)  (General rules) - a) alphanumeric
+      *> cite.py: OK  §2023:14.9.25.4 6)  (General rules) - a) alphanumeric
       *>   receiver: truncation/space filling per 14.6.8
       *> identifier-1 items are in WORKING-STORAGE. Senders are chosen
       *> so the implicit MOVE changes the image (longer, numeric), so an

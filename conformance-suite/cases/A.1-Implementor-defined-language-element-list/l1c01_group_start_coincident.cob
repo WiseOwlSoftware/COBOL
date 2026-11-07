@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.1.6.1 — an alphanumeric group starts at its first
+      *> ISO §2023:8.5.1.6.1 — an alphanumeric group starts at its first
       *> item, with no slack bytes (A.1 item 6)
       *> THE RULE (implementor-defined, A.1 item 6; documented choice:
       *> docs/CONFORMANCE.md row DOC-A.1-6, "Always coincident", no
       *> slack bytes before or between items):
       *>   cite.py --check 8.5.1.6.1 "The alignment of the start of an
       *>     alphanumeric group item relative to the first item within
-      *>     that group is defined by the implementor" -> OK §8.5.1.6.1
+      *>     that group is defined by the implementor" -> OK §2023:8.5.1.6.1
       *>   cite.py --check 8.5.1.6.1 "Alignment of alphanumeric groups
       *>     and of data items of usage display is at a natural
       *>     alphanumeric character boundary and is coincident with a
-      *>     byte boundary" -> OK §8.5.1.6.1
+      *>     byte boundary" -> OK §2023:8.5.1.6.1
       *> The documented layout: 05 G1 PIC 9(4) COMP then 05 G2 PIC X "is
       *> a 3-byte group whose first two bytes are G1". T REDEFINES G, so
       *> T(n:1) is byte n of G.

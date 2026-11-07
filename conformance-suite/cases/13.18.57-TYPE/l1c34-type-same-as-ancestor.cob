@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.57.3 SR1 — a SAME AS in type-name-1 naming a group
+      *> ISO §2023:13.18.57.3 SR1 — a SAME AS in type-name-1 naming a group
       *>   above
       *> the TYPE subject.
       *> "The description of any data item subordinate to type-name-1
@@ -16,14 +16,14 @@
       *>   clause that
       *>   references the subject of this entry or any group item to
       *>     which this
-      *>   entry is subordinate" -> OK §13.18.57.3 1) (Syntax rules)
+      *>   entry is subordinate" -> OK §2023:13.18.57.3 1) (Syntax rules)
       *> The subject of "10 R-X TYPE T" is subordinate to R-G and to
       *>   REC. T-B,
       *> subordinate to type-name-1 (T), says SAME AS REC -- a group
       *>   item to
       *> which the entry is subordinate (two levels up), the second
       *>   branch of
-      *> SR1. Otherwise legal: REC is a level-1 group (§13.18.49.3
+      *> SR1. Otherwise legal: REC is a level-1 group (§2023:13.18.49.3
       *>   SR7) and T-B
       *> is not written inside REC, so only the TYPE-side rule applies.
       *> Expected: rejected with the SAME AS cycle diagnostic

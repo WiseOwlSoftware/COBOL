@@ -10,7 +10,7 @@
       *> program draws the ONE introduction gate every AS site shares — VersionConformancePass
       *> ParseArm.VisitExternalizedNamePhrase → constructs.json externalized-name-as-2002 → COBOL0900 —
       *> and NOT the bare `COBOL0901: 'AS' is a reserved word` the phrase drew before it had a grammar.
-      *> BOTH ARMS ARE WRITTEN HERE ON PURPOSE (§13.4.5.2 Formats 1/2/3 and §13.16.2 Format 1 print the same
+      *> BOTH ARMS ARE WRITTEN HERE ON PURPOSE (§2023:13.4.5.2 Formats 1/2/3 and §2023:13.16.2 Format 1 print the same
       *> `[ IS EXTERNAL [ AS literal-1 ] ]` slot): the FD arm and the data-description arm are one clause,
       *> and a gate that reached only one of them would be the repo's two-arm defect shape again.
        IDENTIFICATION DIVISION.

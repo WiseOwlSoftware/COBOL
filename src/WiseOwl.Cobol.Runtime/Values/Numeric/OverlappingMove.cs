@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>⛔ <b>ISO §14.6.10 1) — AN OVERLAPPING MOVE'S RECEIVER IS WRITTEN WHILE ITS SENDER IS STILL BEING READ —
+/// <summary>⛔ <b>ISO §2023:14.6.10 1) — AN OVERLAPPING MOVE'S RECEIVER IS WRITTEN WHILE ITS SENDER IS STILL BEING READ —
 /// WHAT WISEOWL COBOL DOES, WRITTEN ONCE</b> (kb/Work PB1910, PB1907; docs/CONFORMANCE.md §3 D-OVL2).
 /// <para>"When the data items are not described by the same data description entry, the result of the statement is
-/// undefined" (§14.6.10 1); Annex A.2 item 36), so the result is the implementor's, and CLAUDE.md rule 1 settles it:
+/// undefined" (§2023:14.6.10 1); Annex A.2 item 36), so the result is the implementor's, and CLAUDE.md rule 1 settles it:
 /// follow GnuCOBOL. GnuCOBOL's <c>libcob</c> converts a numeric DISPLAY or alphanumeric sender into a numeric DISPLAY or
 /// PACKED-DECIMAL receiver IN PLACE: it clears the receiver, then writes it one digit (DISPLAY) or one digit pair
 /// (PACKED-DECIMAL), left to right, taking each from the sender's bytes AS THE STORAGE THEN HOLDS THEM — so a position

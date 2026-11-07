@@ -5,61 +5,61 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.6.4 GR1 + GR2 — EXCEPTION-OBJECT is the CURRENT
+      *> ISO §2023:8.4.3.6.4 GR1 + GR2 — EXCEPTION-OBJECT is the CURRENT
       *>   exception object (null when none), ONE instance per run unit
       *> GR1: "EXCEPTION-OBJECT references the current exception object.
       *>   If an exception object is not associated with the current
       *>   exception, EXCEPTION-OBJECT is set to null."
       *>   cite.py --check 8.4.3.6.4 "EXCEPTION-OBJECT references the
-      *>     current exception object. ..." -> OK  §8.4.3.6.4 1)
+      *>     current exception object. ..." -> OK  §2023:8.4.3.6.4 1)
       *> GR2: "There is one instance of EXCEPTION-OBJECT in a run unit."
       *>   cite.py --check 8.4.3.6.4 "There is one instance of
-      *>     EXCEPTION-OBJECT in a run unit." -> OK  §8.4.3.6.4 2)
+      *>     EXCEPTION-OBJECT in a run unit." -> OK  §2023:8.4.3.6.4 2)
       *> What sets it (each -> OK under cite.py --check):
-      *>   §14.9.29.4 2) "If identifier-1 is specified, EXCEPTION-OBJECT
+      *>   §2023:14.9.29.4 2) "If identifier-1 is specified, EXCEPTION-OBJECT
       *>     is set to reference the object referenced by identifier-1."
-      *>   §14.6.13.1.5 1) "The predefined object reference
+      *>   §2023:14.6.13.1.5 1) "The predefined object reference
       *>     EXCEPTION-OBJECT is set to the content of the object
       *>     reference specified in the RAISE statement ..." and (same
       *>     clause) "If execution of the declarative completes normally,
       *>     execution continues with the statement following the RAISE
       *>     statement."
-      *>   §14.9.49.4 14) a) the USE AFTER EXCEPTION OBJECT L1G2XE
+      *>   §2023:14.9.49.4 14) a) the USE AFTER EXCEPTION OBJECT L1G2XE
       *>     declarative is executed for an instance of L1G2XE; 15)
       *>     "Upon entry to the associated declarative, the predefined
       *>     object reference EXCEPTION-OBJECT references the exception
       *>     object."
-      *>   §14.9.29.4 1) "If exception-name-1 is specified, the
+      *>   §2023:14.9.29.4 1) "If exception-name-1 is specified, the
       *>     associated exception condition is raised, and
       *>     EXCEPTION-OBJECT is set to null." EC-USER-L1G2 is a
-      *>     level-3 user name (§14.6.13.1.1 "The level-3
+      *>     level-3 user name (§2023:14.6.13.1.1 "The level-3
       *>     exception-names for user-defined exceptions shall start
-      *>     with the characters 'EC-USER-'"), nonfatal (§14.6.13.1.6
+      *>     with the characters 'EC-USER-'"), nonfatal (§2023:14.6.13.1.6
       *>     Table 13: EC-USER-suffix NF); with no applicable handler
       *>     "the RAISE statement acts as a CONTINUE statement"
-      *>     (§14.9.29.4 1) NOTE).
-      *>   §14.9.39.4 28) SET LAST EXCEPTION TO OFF: "The predefined
+      *>     (§2023:14.9.29.4 1) NOTE).
+      *>   §2023:14.9.39.4 28) SET LAST EXCEPTION TO OFF: "The predefined
       *>     object reference EXCEPTION-OBJECT is set to null, and the
       *>     last exception status is set to indicate no exception."
-      *>   §14.6.13.1.1 "a last exception status exists for the entire
+      *>   §2023:14.6.13.1.1 "a last exception status exists for the entire
       *>     run unit" - nothing else in this program changes it.
-      *>   §8.8.4.2.15 "The relation 'identifier-3 = identifier-4' has a
+      *>   §2023:8.8.4.2.15 "The relation 'identifier-3 = identifier-4' has a
       *>     true value if the object referenced by identifier-3 is the
       *>     same object that is referenced by identifier-4" - so every
       *>     "=" below tests IDENTITY, not merely non-null.
       *> Legal source: L1G2XE INHERITS FROM BASE (REPOSITORY CLASS BASE,
-      *>   §11.3.3 SR2), so "NEW" is in its factory interface (§16.1,
-      *>   §14.9.23.3 SR3). E goes to the subprogram BY CONTENT because
-      *>   §14.9.4.3 SR10 (a Format 1 rule) forbids BY REFERENCE for a
+      *>   §2023:11.3.3 SR2), so "NEW" is in its factory interface (§2023:16.1,
+      *>   §2023:14.9.23.3 SR3). E goes to the subprogram BY CONTENT because
+      *>   §2023:14.9.4.3 SR10 (a Format 1 rule) forbids BY REFERENCE for a
       *>   class-object argument. The formal LS-E is BY REFERENCE by
-      *>   default: §14.2.3 4) "If neither the BY REFERENCE nor the BY
+      *>   default: §2023:14.2.3 4) "If neither the BY REFERENCE nor the BY
       *>   VALUE phrase is specified prior to the first parameter, the
       *>   BY REFERENCE phrase is assumed." -> OK. The BY CONTENT
-      *>   object-reference argument conforms by §14.8.2.3.3: "the
+      *>   object-reference argument conforms by §2023:14.8.2.3.3: "the
       *>   conformance rules shall be the same as if a SET statement
       *>   were performed ... with the argument as the sending operand
       *>   and the corresponding formal parameter as the receiving
-      *>   operand." -> OK  §14.8.2.3.3 2).
+      *>   operand." -> OK  §2023:14.8.2.3.3 2).
       *> DERIVATION of every .out line (E and F are two DISTINCT
       *>   L1G2XE instances):
       *>   START-NULL   nothing raised yet: no exception object is

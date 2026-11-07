@@ -5,20 +5,20 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §6.3.1 margin R — the rightmost character position of the
+      *> ISO §2023:6.3.1 margin R — the rightmost character position of the
       *> program-text area (Annex A.1 item 158; docs/CONFORMANCE.md
       *> DOC-A.1-158). ⛔ THIS FILE IS FIXED-FORM ON PURPOSE: columns 1-6
       *> carry a sequence number and columns 73+ carry text that is NOT
       *> program text and shall be ignored.
       *
-      *> THE RULE. §6.3.1: "Margin R is immediately to the right of
+      *> THE RULE. §2023:6.3.1: "Margin R is immediately to the right of
       *> the rightmost character position of the program-text area. The
       *> rightmost character position of the program-text area is a
       *> fixed position defined by the implementor." and "The
       *> program-text area begins in character position 8 and
       *> terminates with the character position immediately to the left
-      *> of margin R." §6.3.4 lists what the program-text area may
-      *> contain; nothing in §6.3 gives any meaning to characters
+      *> of margin R." §2023:6.3.4 lists what the program-text area may
+      *> contain; nothing in §2023:6.3 gives any meaning to characters
       *> outside it, and nothing makes them an error.
       *> WiseOwl COBOL's determination: the rightmost character position is
       *> COLUMN 72, so the program-text area is columns 8-72 and columns

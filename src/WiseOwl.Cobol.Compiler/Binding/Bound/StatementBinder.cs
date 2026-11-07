@@ -67,7 +67,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private UdfBinder? _udfBinder;
     internal UdfBinder Udf => _udfBinder ??= new UdfBinder(Ctx, this);
     private ParameterConformance? _parameterConformance;
-    /// <summary>The ONE argument half of ISO §14.8.2 — shared by the Format-2 CALL and the function-identifier
+    /// <summary>The ONE argument half of ISO §2023:14.8.2 — shared by the Format-2 CALL and the function-identifier
     /// (kb/Work PB1418) — and the activation operand screens CALL and INVOKE state in the same words (the storage
     /// section rule and the bit-alignment proof, kb/Work PB1137).</summary>
     internal ParameterConformance Params => _parameterConformance ??= new ParameterConformance(Ctx, this);
@@ -82,12 +82,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private SetAlterBinder? _setAlterBinder;
     internal SetAlterBinder Alter => _setAlterBinder ??= new SetAlterBinder(Ctx);
     private SendingValueTemp? _sendingValue;
-    /// <summary>The ONE §14.9.25.4 GR1 / §14.9.13.4 GR3 sending-value materializer (kb/Work PB394) — shared by
+    /// <summary>The ONE §2023:14.9.25.4 GR1 / §2023:14.9.13.4 GR3 sending-value materializer (kb/Work PB394) — shared by
     /// every verb that uses one sender in more than one place.</summary>
     internal SendingValueTemp SendingValue => _sendingValue ??= new SendingValueTemp(Ctx);
 
     private ArgumentOrder? _argumentOrder;
-    /// <summary>The ONE §8.4.3.2.4 GR2 left-to-right argument order (kb/Work PB1423) — shared by the intrinsic
+    /// <summary>The ONE §2023:8.4.3.2.4 GR2 left-to-right argument order (kb/Work PB1423) — shared by the intrinsic
     /// call and the user-defined activation.</summary>
     internal ArgumentOrder ArgOrder => _argumentOrder ??= new ArgumentOrder(Ctx, SendingValue, Oo.OoDrainPropertyGets);
 
@@ -117,17 +117,17 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// there fails loud (COBOL1505).</summary>
     public IReadOnlyDictionary<string, UserFunctionSignature>? UserFunctions { get; set; }
 
-    /// <summary>The programs an AS NESTED call in THIS unit may name (§14.9.4.3 SR15: directly contained in
+    /// <summary>The programs an AS NESTED call in THIS unit may name (§2023:14.9.4.3 SR15: directly contained in
     /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
     /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
     /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
     public IReadOnlyDictionary<string, CalleeSignature>? NestedCallables { get; set; }
 
-    /// <summary>The program prototypes THIS unit may name (kb/Work PB237): every §12.3.8.2 program-specifier
-    /// visible here, resolved through §12.3.8.4 GR10 against the compilation group, plus the §8.4.6.8 spelling
+    /// <summary>The program prototypes THIS unit may name (kb/Work PB237): every §2023:12.3.8.2 program-specifier
+    /// visible here, resolved through §2023:12.3.8.4 GR10 against the compilation group, plus the §2023:8.4.6.8 spelling
     /// that needs no specifier at all — "the program-name of a containing program definition". Keyed by
-    /// program-prototype-name (§8.3.2 case-insensitive). It is the §14.9.4.3 SR16 / §14.9.5.3 SR3 lookup, and its
-    /// hit's <c>Signature</c> is what §14.9.4.4 GR7 means by "program-prototype-name-1 is used to determine the
+    /// program-prototype-name (§2023:8.3.2 case-insensitive). It is the §2023:14.9.4.3 SR16 / §2023:14.9.5.3 SR3 lookup, and its
+    /// hit's <c>Signature</c> is what §2023:14.9.4.4 GR7 means by "program-prototype-name-1 is used to determine the
     /// characteristics of the called program". Built per unit in BinderDriver.BindUnitProcedure, the
     /// NestedCallables precedent (and, for a class's methods, in <c>OoDriver.BindClassBody</c>); null in unit-test
     /// direct construction.</summary>
@@ -144,7 +144,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), PrototypeSignatures.Identity(RestrictedPrototype.Of(p)))
             : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.NamedRestriction(prototypeName));
 
-    /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table
+    /// <summary>A program-prototype-name's bound signature, through the §2023:8.4.6.8 scope table
     /// (<see cref="ProgramPrototypes"/>) its declaration was already screened against — THE ONE reader every
     /// signature comparison asks (the SET program-pointer pairs, the address-identifier argument, a restricted
     /// program-pointer's CALL, kb/Work PB609). Null for a null name and for a name the table does not hold, which was
@@ -162,18 +162,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal static bool SignaturesDiffer(CalleeSignature? a, CalleeSignature? b) =>
         a is not null && b is not null && !PrototypeSignatures.Same(a, b);
 
-    /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §11.10.4 GR4 (kb/Work PB137:
-    /// §14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>
+    /// <summary>The unit's RECURSIVE attribute — explicit, or inherited per §2023:11.10.4 GR4 (kb/Work PB137:
+    /// §2023:14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>
     public bool UnitRecursive { get; set; }
 
     /// <summary>The containing FUNCTION-ID unit's own function name, when this binder binds a function
-    /// definition's body — §8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
+    /// definition's body — §2023:8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
     /// of the containing function definition OR a function-prototype-name declared in the REPOSITORY
     /// paragraph", so self-recursion needs NO repository entry (a present self-entry is ignored per
-    /// §12.3.8 GR11 — same resolution either way). Null in program units.</summary>
+    /// §2023:12.3.8 GR11 — same resolution either way). Null in program units.</summary>
     public string? UdfSelfName { get; set; }
 
-    /// <summary>The kind of source element this binder's PROCEDURE DIVISION belongs to (ISO §14.2.2 SR10) — the
+    /// <summary>The kind of source element this binder's PROCEDURE DIVISION belongs to (ISO §2023:14.2.2 SR10) — the
     /// input every EXIT / GOBACK placement rule needs (kb/Work PB403). Set by <c>BinderDriver</c> from the same
     /// unit facts as <see cref="UdfSelfName"/>; stored on the <see cref="BinderContext"/> so the ONE placement
     /// probe (<c>ctx.Enclosing</c>) owns it rather than a second per-verb copy. A method body binds on a CLASS
@@ -181,7 +181,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal SourceElementKind UnitKind { get => Ctx.UnitKind; set => Ctx.UnitKind = value; }
 
     /// <summary>True when the unit being bound is a nested (contained) program — set from <c>BoundUnit.Parent</c>
-    /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
+    /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§2023:15.65.3 argument rule 1 — NESTED shall be
     /// specified only within a contained program).</summary>
     public bool InNestedProgram { get; init; }
     internal CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
@@ -193,22 +193,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>The CLASS whose method bodies this binder is binding (per-binder-instance configuration, set
     /// ONCE at construction by <c>Oo/OoDriver</c> — init-only since P9 Step 6; null in a program unit) — the
-    /// SELF/SUPER resolution root (§8.4.3.8: SELF resolves on the current
+    /// SELF/SUPER resolution root (§2023:8.4.3.8: SELF resolves on the current
     /// class's chain, SUPER starts at its BASE; slice 3b).</summary>
     public OoClassSymbol? OoCurrentClass { get; init; }
 
-    /// <summary>True when this binder binds the FACTORY roster (§11.4; per-binder-instance configuration,
+    /// <summary>True when this binder binds the FACTORY roster (§2023:11.4; per-binder-instance configuration,
     /// init-only since P9 Step 6): SELF/SUPER resolve over the FACTORY interface
-    /// (§14.9.23.3 SR4f/h) and SELF|SUPER "NEW" binds the ACTIVE-CLASS creation form (§16.2.1).</summary>
+    /// (§2023:14.9.23.3 SR4f/h) and SELF|SUPER "NEW" binds the ACTIVE-CLASS creation form (§2023:16.2.1).</summary>
     public bool OoInFactory { get; init; }
 
 
     /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK → method
-    /// return; RAISE SELF / INVOKE SELF|SUPER placement, §8.4.3.8; the CALL … AS NESTED context, §14.9.4.3 SR13).
+    /// return; RAISE SELF / INVOKE SELF|SUPER placement, §2023:8.4.3.8; the CALL … AS NESTED context, §2023:14.9.4.3 SR13).
     /// <para>⛔ A NAMED READING OF THE ONE BIND-POSITION PROBE, not a second derivation (kb/Work PB403): it is
     /// exactly <c>ctx.Enclosing.SourceElement is MethodDefinition</c>. Keeping it as its own
-    /// <c>CurrentMethodScope is not null</c> test is how the §14.9.14.3 SR7 arm came to answer "is this a program
-    /// procedure division?" with a method/not-method bit and admit the other three §14.2.2 SR10 elements.</para></summary>
+    /// <c>CurrentMethodScope is not null</c> test is how the §2023:14.9.14.3 SR7 arm came to answer "is this a program
+    /// procedure division?" with a method/not-method bit and admit the other three §2023:14.2.2 SR10 elements.</para></summary>
     internal bool InMethod => Ctx.SourceElement is SourceElementKind.MethodDefinition;
 
     /// <summary>Install the D18 segment-materialization hook on this binder's <see cref="ReferenceResolver"/>
@@ -223,12 +223,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private void AttachSegmentMaterializer()
     {
         refs.Subscripts.MaterializeSegment ??= BindPositionTemporary;
-        refs.FreezeOdoExtent ??= FreezeOdoExtentBeforeRefMod;   // §14.6.4 steps 6 → 7 (kb/Work PB1123)
+        refs.FreezeOdoExtent ??= FreezeOdoExtentBeforeRefMod;   // §2023:14.6.4 steps 6 → 7 (kb/Work PB1123)
         // The second edge, of the same shape: the literal reference-modification range screen asks whether
         // EC-BOUND-REF-MOD checking is enabled at the reference's line (kb/Work PB1707 part 1). Read through
         // Ctx.EcState.Turn AT CALL TIME, so an exception-checking PERFORM's GR14 overlay is the state it sees.
         refs.RefMods.RefModCheckingAt ??= line => Ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line);
-        // The object of an object property that a word cannot spell — SELF, SUPER, a view, a function (§8.4.3.1.2
+        // The object of an object property that a word cannot spell — SELF, SUPER, a view, a function (§2023:8.4.3.1.2
         // Format 7; kb/Work PB1425) — and the view of a qualified data item written as one chain: both are bound by the
         // OO binder, which owns the method context and the view's temporaries, through the same one-way edge.
         refs.ObjectProperties.BindPropertyObject ??= Oo.OoBindPropertyObject;
@@ -247,12 +247,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
         AttachSegmentMaterializer();
-        // Report-section PRESENT WHEN conditions + VARYING expressions (§13.18.41/§13.18.64) bind through the
+        // Report-section PRESENT WHEN conditions + VARYING expressions (§2023:13.18.41/§2023:13.18.64) bind through the
         // procedure-phase binders (they resolve ordinary data references) — before statement binding, and even
         // for a PD-less unit (the report emission does not require a PROCEDURE DIVISION).
         BindDeclaredReportClauses();
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
-        var raising = Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
+        var raising = Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§2023:14.2.1) — consumed by the GOBACK/EXIT SR2 check
         var table = Ctx.Table;
         table.CollectParagraphs(pd);
 
@@ -260,7 +260,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         for (int i = 0; i < table.Paragraphs.Count; i++)
         {
             // Section + cursor as ONE scoped bind position (10s; no method overlay in a program unit) —
-            // §8.4.2.2 in-section resolution + the RESUME SR1/SR2 / §15.30 location anchoring.
+            // §2023:8.4.2.2 in-section resolution + the RESUME SR1/SR2 / §2023:15.30 location anchoring.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], null, i);
             _inDebuggingSection = table.IsDebuggingSection(table.ParaSections[i]);   // general rule 1: a debugging section's own statements run no section
             var sentences = new List<IReadOnlyList<BoundStatement>>();
@@ -273,11 +273,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
         // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole main pc
-        // space (ISO §14.9.28.4 GR17; §9.1-C). handlerBase == the frozen main count, so
+        // space (ISO §2023:14.9.28.4 GR17; §9.1-C). handlerBase == the frozen main count, so
         // bound[handlerBase + k] is the k-th handler — matching the pc AddF3Handler stored on each BoundExceptionMatch.
         int handlerBase = bound.Count;
         bound.AddRange(table.F3Handlers);
-        // §14.9.28.3 SR8's out-of-line "under" (kb/Work PB434) — asked once the whole pc space, handler paragraphs
+        // §2023:14.9.28.3 SR8's out-of-line "under" (kb/Work PB434) — asked once the whole pc space, handler paragraphs
         // included, is bound, because a range anywhere in it may reach any UNTIL EXIT statement.
         Ctx.UntilExit.Report(bound, Ctx.Edition);
         return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
@@ -290,7 +290,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             Raising: raising);
     }
 
-    // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§11.7)" to the four
+    // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§2023:11.7)" to the four
     //    unknown-procedure BoundUnsupported guards — a hint on a RUN-TIME abort that told the user WiseOwl COBOL had
     //    not implemented a feature. The hint survives where it belongs: on the compile-time diagnostic, composed
     //    once by StatementValidation.RejectProcedureName from the ONE resolution's own method-scope fact, so no
@@ -299,8 +299,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>
     /// Bind a CLASS body: every method's paragraphs flatten into the class's ONE pc space (source order), each
     /// method holding its contiguous exit-bounded range — the emit-into-a-type spine's binding half. A method's
-    /// DECLARATIVES (kb/Work PB1010 — §14.2.2 SR10 admits Format 1 in a method definition) are collected first,
-    /// at the head of its range exactly as a program's are (§14.2.3 GR1 — execution begins with the first
+    /// DECLARATIVES (kb/Work PB1010 — §2023:14.2.2 SR10 admits Format 1 in a method definition) are collected first,
+    /// at the head of its range exactly as a program's are (§2023:14.2.3 GR1 — execution begins with the first
     /// nondeclarative procedure), so the method's slice is [DeclStartPc..EndPc] and its entry is EntryPc.
     /// </summary>
     public BoundProgram BindMethodRoster(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> roster)
@@ -322,7 +322,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (m.PropertySubject is not null)
             {
                 // A PROPERTY-clause-SYNTHESIZED accessor: no COBOL body exists — the emitter renders the
-                // direct field read/write (D-P1; observably identical to the §13.18.42 GR1/GR2 implicit
+                // direct field read/write (D-P1; observably identical to the §2023:13.18.42 GR1/GR2 implicit
                 // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 m.Binding!.DeclStartPc = m.Binding!.EntryPc;
@@ -332,11 +332,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by OoDataBinder.BindMethodData before any body binds; here we link its name scope so the
-            // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
+            // per-pc switch below activates §2023:11.7 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope, MethodName = m.Name, Formals = m.Binding!.Formals };
             scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
-            // …and its procedure-names are words of the METHOD's source element, declared in its own §8.3.2.2 census
+            // …and its procedure-names are words of the METHOD's source element, declared in its own §2023:8.3.2.2 census
             // (kb/Work PB2921) — released at the end of this iteration.
             using var declaring = Ctx.Data.Oo.EnterMethodDeclarations(m);
             m.Binding!.DeclStartPc = table.Paragraphs.Count;
@@ -344,12 +344,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             IReadOnlyList<BoundDeclarative> declaratives = [];
             if (Ctx.Data.Oo.BodyOf(m) is { } pd)   // the body OoDataBinder.BindMethodData was handed (kb/Work PB2401)
             {
-                // The method's declaratives portion (§14.2.1 Format 1; §14.2.2 SR10): the declarative sections take
+                // The method's declaratives portion (§2023:14.2.1 Format 1; §2023:14.2.2 SR10): the declarative sections take
                 // the pcs BELOW the method's entry, reached only through its USE selection or an explicit PERFORM
-                // (§14.9.49.3 SR4) — the program layout, one method at a time (kb/Work PB1010).
+                // (§2023:14.9.49.3 SR4) — the program layout, one method at a time (kb/Work PB1010).
                 declaratives = table.CollectMethodDeclaratives(pd, used);
                 m.Binding!.EntryPc = table.Paragraphs.Count;
-                // The program's walk, at the method's ENTRY pc set just above: unnamed lead sentences (§14.4.3), then
+                // The program's walk, at the method's ENTRY pc set just above: unnamed lead sentences (§2023:14.4.3), then
                 // paragraphs and sections, each a method-local name and a section a method-local pc range (with
                 // per-method scopes the range cannot truncate or leak — trap #5).
                 table.CollectNondeclaratives(pd, used);
@@ -363,17 +363,17 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         OoMethodSymbol? raisingLoadedFor = null;
         for (int i = 0; i < table.Paragraphs.Count; i++)
         {
-            // The ordered quadruple (section → method scope → §11.7 GR5 data shadowing → cursor) is ONE
+            // The ordered quadruple (section → method scope → §2023:11.7 GR5 data shadowing → cursor) is ONE
             // scoped operation (10s) — set coherently, restored coherently on dispose.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], table.ParaMethods[i], i);
-            // §11.9.4 GR1 (kb/Work PB135): a method's own OPTIONS model governs ITS body only — swapped in
+            // §2023:11.9.4 GR1 (kb/Work PB135): a method's own OPTIONS model governs ITS body only — swapped in
             // for this pc's sentences (the binder reads ctx.Options per statement; statements bind HERE, in
             // the per-pc pass, not in the roster registration loop above) and restored after.
             Scoped<OptionsModel>.RestoreScope? methodOptions = null;
             if (table.ParaMethods[i] is { } mScope && scopeToMethod.TryGetValue(mScope, out var mSym))
             {
                 if (mSym.MethodOptions is { } mOpt) methodOptions = data.Procedure.Options.Push(mOpt);
-                // A method IS a source element (§14.9.18.3 SR2/SR4, §14.9.14.3 SR3/SR5 — "the procedure division
+                // A method IS a source element (§2023:14.9.18.3 SR2/SR4, §2023:14.9.14.3 SR3/SR5 — "the procedure division
                 // header of the source element containing this … statement"): ITS OWN header RAISING phrase is
                 // the per-element state while ITS statements bind. ⛔ It is loaded HERE, in the per-pc pass where
                 // statements bind — it used to be loaded in the roster-registration loop above, which binds no
@@ -396,11 +396,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             finally { methodOptions?.Dispose(); }
         }
         // Append the exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) above the whole class pc
-        // space (ISO §14.9.28.4 GR17; design SSOT §9.10 — the SAME allocation the program path uses in Bind). A class
+        // space (ISO §2023:14.9.28.4 GR17; design SSOT §9.10 — the SAME allocation the program path uses in Bind). A class
         // with no method-F3 appends nothing and stays byte-identical.
         int handlerBase = bound.Count;
         bound.AddRange(table.F3Handlers);
-        Ctx.UntilExit.Report(bound, Ctx.Edition);   // §14.9.28.3 SR8 out-of-line "under" — as in Bind (kb/Work PB434)
+        Ctx.UntilExit.Report(bound, Ctx.Edition);   // §2023:14.9.28.3 SR8 out-of-line "under" — as in Bind (kb/Work PB434)
         StampMethodHandlerSlices(handlerBase, table.F3HandlerMethods, scopeToMethod, roster);
         return new BoundProgram(bound, 0, null, Ctx.EcState.BuildFeatures(), methods,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
@@ -435,7 +435,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Bind one statement, then apply the compile-time TurnState fold (StatementBinder.Exceptions.cs):
     /// a statement under enabled EC checking wraps in <see cref="BoundEcChecked"/>; checking-off binds the bare
-    /// node — the zero-scaffolding gate (ISO §7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
+    /// node — the zero-scaffolding gate (ISO §2023:7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
     private BoundStatement BindStatement(Core.StatementContext s)
     {
         // The diagnostic cursor (kb/Work PB82): every diagnostic reported while THIS statement binds — its own
@@ -446,10 +446,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // drain-own-suffix — a reference resolved while THIS statement bound (including in its condition)
         // belongs to THIS statement's wrap; one resolved inside a nested statement was already drained by
         // that statement's own BindStatement. The UDF wrap is the INNER sequence (function activations are
-        // always pre-ops, §8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
+        // always pre-ops, §2023:8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
         // wrap — still runs before the activation that consumes its temp.
         var marks = Udf.Mark;
-        // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §7.3.25 profile an
+        // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §2023:7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
         int savedLine = StatementLine;
@@ -459,7 +459,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int unbuiltMark = data.Edition.UnbuiltMark;
         int deferredMark = data.Edition.ExpansionDeferredMark;
         int controlStoreMark = _controlStoreReports;
-        // ISO §13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement, because this is the one
+        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement, because this is the one
         // funnel every statement passes through: a new operand position in any of the eight is screened without a
         // verb binder remembering to ask.
         if (InputOutputStatement(s) is { } io)
@@ -471,12 +471,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // conformance pass — which has no parse tree — positions its bound-arm diagnostics from it. A node the verb
         // binder returned from a nested statement keeps that statement's own.
         if (!core.At.IsSet) core.At = data.Edition.Cursor;
-        // ISO §14.9.14.3 SR1, §14.9.17.3 SR2, §14.9.42.3 SR1 (kb/Work PB397) — the three rules stated over a
+        // ISO §2023:14.9.14.3 SR1, §2023:14.9.17.3 SR2, §2023:14.9.42.3 SR1 (kb/Work PB397) — the three rules stated over a
         // statement SEQUENCE (a bare EXIT alone in its paragraph; a Format 1 GO TO and a STOP RUN last in their
         // consecutive sequence of imperative statements, kb/Work PB2610), asked HERE because this is the one funnel every statement passes through and the position is a
         // function of the parse tree alone. The verb has bound as usual, so its own operand errors still report.
         if (PlacementRules.RefusedOutOfSequence(Ctx, s)) core = BoundRejected.Reported(data.Edition);
-        // ISO §14.9.49.3 SR11 (kb/Work PB363) — asked HERE, of every statement bound in a USE BEFORE REPORTING
+        // ISO §2023:14.9.49.3 SR11 (kb/Work PB363) — asked HERE, of every statement bound in a USE BEFORE REPORTING
         // procedure, because this is the one funnel every statement passes through. A nested statement binds (and
         // is asked) first, at its own position; the enclosing statement is asked only when none of its nested
         // statements already reported, so one store is one diagnostic.
@@ -531,7 +531,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 + "(DESIGN §1.4)");
         // ⛔ THROUGH Rewrap, NOT AROUND: a multi-operand CLOSE/FREE/INITIALIZE/INITIATE/OPEN/TERMINATE/VALIDATE
         // binds to a BoundImplicitSeries — N separate statements per the seven identically-worded general rules
-        // (ISO §14.9.20.4 GR3 and siblings) — and EcWrap distributes the checked wrapper over its members to give
+        // (ISO §2023:14.9.20.4 GR3 and siblings) — and EcWrap distributes the checked wrapper over its members to give
         // each one the statement site a RESUME … NEXT STATEMENT resumes AFTER. A desugar wrap that enclosed the
         // series in a BoundSequence would hide it from EcWrap and silently restore the PB419 defect for every
         // such statement carrying a function-identifier or an object-property reference; Rewrap therefore lands
@@ -539,7 +539,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // outermost. A non-series statement goes through untouched.
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
-        // ISO §14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
+        // ISO §2023:14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.
         if (data.Procedure.OperandEvaluations.Current > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
@@ -559,18 +559,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Whether the paragraph now binding is in a debugging section (X3.23-1985 USE FOR DEBUGGING general rule 1).</summary>
     private bool _inDebuggingSection;
 
-    /// <summary>The source line of the statement now binding — the §7.3.25 line an operand activation's checking
+    /// <summary>The source line of the statement now binding — the §2023:7.3.25 line an operand activation's checking
     /// profile is taken at (<c>UdfBinder.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
     /// statement by <see cref="BindStatement"/>.</summary>
     internal int StatementLine { get; private set; }
 
-    /// <summary>How many §14.9.49.3 SR11 violations <see cref="BindStatement"/> has reported — compared across a
+    /// <summary>How many §2023:14.9.49.3 SR11 violations <see cref="BindStatement"/> has reported — compared across a
     /// statement's bind so an enclosing statement does not report again the store its nested statement reported.</summary>
     private int _controlStoreReports;
 
-    /// <summary>The statement's INPUT-OUTPUT STATEMENT node, or null — the eight statements ISO §9.1.13.1 names as
+    /// <summary>The statement's INPUT-OUTPUT STATEMENT node, or null — the eight statements ISO §2023:9.1.13.1 names as
     /// those whose execution sets the I-O status (CLOSE, DELETE in both formats, OPEN, READ, REWRITE, START, UNLOCK
-    /// and WRITE), which is the set §13.4.6.3 SR4 speaks about (kb/Work PB1291).</summary>
+    /// and WRITE), which is the set §2023:13.4.6.3 SR4 speaks about (kb/Work PB1291).</summary>
     private static Antlr4.Runtime.ParserRuleContext? InputOutputStatement(Core.StatementContext s) =>
         s.GetChild(0) is Core.OpenStatementContext or Core.CloseStatementContext or Core.ReadStatementContext
             or Core.WriteStatementContext or Core.RewriteStatementContext or Core.StartStatementContext
@@ -578,7 +578,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             ? (Antlr4.Runtime.ParserRuleContext)s.GetChild(0)
             : null;
 
-    /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §8.9) a
+    /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §2023:8.9) a
     /// message-tag entry draws COBOL0900, and DESIGN-message-control.md §7.1 says each refusal also runs at 2014, "where COBOL0900 is the expected
     /// diagnosis and no second one may appear". So a statement whose OWN operands (a nested statement is
     /// asked on its own) name a message-tag item whose entry this compilation walks (<see cref="IsGatedMessageTag"/>) binds to a no-op, and the
@@ -664,12 +664,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.communicationReceiveStatement() is { } crv => Communication.BindReceive(crv),
         _ when s.communicationSendStatement() is { } csn => Communication.BindSend(csn),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
-        // ── Wave H — recognize-and-name the unsupported facilities. ISO §4.2.6 ¶3 makes the compile-time
+        // ── Wave H — recognize-and-name the unsupported facilities. ISO §2023:4.2.6 ¶3 makes the compile-time
         //    warning mechanism MANDATORY for the Annex A.3 halves (MCS, A.3 item 4; COMMIT/ROLLBACK, A.3 items
-        //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §4.2.7 requires us only to DOCUMENT,
+        //    6-7); the A.4.14 VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT,
         //    and naming it is the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
         //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
-        //    and never an EC (licensed off by §14.6.13.1.1). The statement's IDENTIFIERS are still read first
+        //    and never an EC (licensed off by §2023:14.6.13.1.1). The statement's IDENTIFIERS are still read first
         //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568; SEND and RECEIVE by MessagingBinder, PB4743); BindDeclinedStatement says why below the statement's
         //    introduction (VALIDATE 2002, RECEIVE / SEND 2023) it does neither. ──
         _ when s.messagingReceiveStatement() is { } rcv => BindDeclinedStatement(Constructs.AsyncMessaging2023,
@@ -687,8 +687,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.nextSentenceStatement() is not null => IsNextSentenceArm(s.Parent as Core.StatementBlockContext)
             ? new BoundNextSentence(Ctx.SourceLine(s))
             : BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "NEXT SENTENCE: it is a "
-                + "phrase of exactly three general formats — IF Format 2 (§14.9.19.2), as the whole of the THEN or "
-                + "ELSE phrase, and both SEARCH formats (§14.9.37.2), as the whole of a WHEN phrase's body — and "
+                + "phrase of exactly three general formats — IF Format 2 (§2023:14.9.19.2), as the whole of the THEN or "
+                + "ELSE phrase, and both SEARCH formats (§2023:14.9.37.2), as the whole of a WHEN phrase's body — and "
                 + "this position is none of them: not an AT END or other conditional phrase, not an inline PERFORM "
                 + "or EVALUATE body, not a sentence of its own, and never beside another statement in the same "
                 + "phrase. Use CONTINUE, or restructure with a scope terminator"),
@@ -696,28 +696,28 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).
         _ when s.stopStatement() is { } stop => ControlFlow.BindStop(stop),
-        _ when s.gobackStatement() is { } gb => Call.BindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
-        _ when s.invokeStatement() is { } inv => Oo.OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
+        _ when s.gobackStatement() is { } gb => Call.BindGoback(gb),   // §2023:14.9.18 — called-program return; 2002+ gated
+        _ when s.invokeStatement() is { } inv => Oo.OoBindInvoke(inv),   // §2023:14.9.23 — OO method invocation (2002+ grammar-gated)
         _ when s.callStatement() is { } call => Call.BindCall(call),
         _ when s.cancelStatement() is { } cancel => Call.BindCancel(cancel),
         // ENTRY: ISO/IEC 1989 defines no ENTRY statement — a vendor extension, which this implementation admits under
         // no dialect (kb/Work PB909; the COBOL1941/1970 posture). It used to be a DEFERRAL (a COBOL1756
         // warning and a run-time abort), which is a promise to build something the standard does not contain.
         _ when s.entryStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and "
-            + "this implementation admits none (ISO §4.2.2). Make the entry point a separate program, or a "
+            + "this implementation admits none (ISO §2023:4.2.2). Make the entry point a separate program, or a "
             + "nested program, and CALL it"),
         // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
         // conforming '85 posture; accepted-inert as a no-op.
         _ when s.enterStatement() is not null => new BoundNop(),
-        // USE (ISO §14.9.49.3 SR1 — kb/Work PB361). The ONE legal position, the first sentence of a declarative
+        // USE (ISO §2023:14.9.49.3 SR1 — kb/Work PB361). The ONE legal position, the first sentence of a declarative
         // section, is consumed by ProcedureTableBuilder.DeclCollectSection and never reaches this binder, so a USE
         // statement bound HERE is misplaced by construction: in a nondeclarative paragraph, in a declarative
         // paragraph, or after the section's first sentence. It used to fall to the bottom arm and be announced as
         // a feature WiseOwl COBOL had not implemented.
         _ when s.useStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.UseStatementPlacement,
             "USE: a USE statement shall immediately follow a section header in the declaratives portion of the "
-            + "procedure division and shall appear in a sentence by itself (ISO §14.9.49.3 SR1); this one is "
+            + "procedure division and shall appear in a sentence by itself (ISO §2023:14.9.49.3 SR1); this one is "
             + (Ctx.Enclosing.InDeclarative
                 ? "inside a declarative section, after its first sentence"
                 : "in the nondeclarative portion of the procedure division")),
@@ -725,26 +725,26 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.mergeStatement() is { } mrg => Sort.BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => Sort.BindRelease(rls),
         _ when s.returnStatement() is { } ret => Sort.BindReturn(ret),
-        _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §14.9.21)
-        _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §14.9.16)
-        _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
-        _ when s.suppressStatement() is { } rws => Rw.BindSuppress(rws),     // Report Writer (ISO §14.9.45)
-        _ when s.raiseStatement() is { } ra => Ec.BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
-        _ when s.resumeStatement() is { } rs => Ec.BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
-        _ when s.allocateStatement() is { } al => Ptr.BindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
-        _ when s.freeStatement() is { } fr => Ptr.BindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
+        _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §2023:14.9.21)
+        _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §2023:14.9.16)
+        _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §2023:14.9.46)
+        _ when s.suppressStatement() is { } rws => Rw.BindSuppress(rws),     // Report Writer (ISO §2023:14.9.45)
+        _ when s.raiseStatement() is { } ra => Ec.BindRaise(ra),               // EC model (ISO §2023:14.9.29; 2002+ gated)
+        _ when s.resumeStatement() is { } rs => Ec.BindResume(rs),             // EC model (ISO §2023:14.9.33; 2002+ gated)
+        _ when s.allocateStatement() is { } al => Ptr.BindAllocate(al),      // dynamic storage (ISO §2023:14.9.3; Phase-4b inc 2)
+        _ when s.freeStatement() is { } fr => Ptr.BindFree(fr),              // dynamic storage (ISO §2023:14.9.15; Phase-4b inc 2)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
-    // ── File I/O (ISO §14.9; DESIGN §8) ───────────────────────────────────────────────────────────────
+    // ── File I/O (ISO §2023:14.9; DESIGN §8) ───────────────────────────────────────────────────────────────
 
-    /// <summary>Bind a RETRY phrase (ISO §14.7.9) — the FORM and, for the two that carry one, its arithmetic
-    /// expression. NOTHING about the outcome is decided here: §14.7.9 has no Syntax rules clause at all, so a
-    /// non-integer or out-of-range amount is legal source that §14.7.9.3 GR1/GR2/GR4 a) define at RUN time, and
+    /// <summary>Bind a RETRY phrase (ISO §2023:14.7.9) — the FORM and, for the two that carry one, its arithmetic
+    /// expression. NOTHING about the outcome is decided here: §2023:14.7.9 has no Syntax rules clause at all, so a
+    /// non-integer or out-of-range amount is legal source that §2023:14.7.9.3 GR1/GR2/GR4 a) define at RUN time, and
     /// the one place that executes them is <c>FileRegistry.RetryLoop</c> (docs/FILES_DESIGN.md "D8").
     /// The three forms stay three: GR1's count is a bounded loop, GR2's timeout period is clamped to this
     /// implementation's maximum meaningful value of zero, and GR3's unbounded wait is the only one whose
-    /// failure is reported as the §9.1.13.8 item 2 deadlock — collapsing any two of them upstream is the defect
+    /// failure is reported as the §2023:9.1.13.8 item 2 deadlock — collapsing any two of them upstream is the defect
     /// kb/Work PB346 names.</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
@@ -756,9 +756,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>⛔ THE ONE READING OF THE PRINTED <c>{ statement | NEXT SENTENCE }</c> BRACES (kb/Work PB446). True
     /// when <paramref name="block"/> is exactly the NEXT SENTENCE alternative of one of the three general formats
-    /// that print it — IF Format 2's THEN or ELSE phrase (ISO §14.9.19.2) and a WHEN phrase of either SEARCH
-    /// format (§14.9.37.2) — and so the WHOLE of that phrase: a brace offers alternatives, one of which is
-    /// written (§5.2.6.3), never both. Read from the parse tree's own shape, so the funnel that binds the
+    /// that print it — IF Format 2's THEN or ELSE phrase (ISO §2023:14.9.19.2) and a WHEN phrase of either SEARCH
+    /// format (§2023:14.9.37.2) — and so the WHOLE of that phrase: a brace offers alternatives, one of which is
+    /// written (§2023:5.2.6.3), never both. Read from the parse tree's own shape, so the funnel that binds the
     /// statement and the SEARCH SR4 screen (<c>StatementValidation.CheckSearchEndSearchNextSentence</c>) ask the
     /// same question. Anywhere else the grammar lets NEXT SENTENCE through — an AT END phrase (whose operand is
     /// an imperative-statement), an inline PERFORM or EVALUATE body, a sentence of its own, beside another
@@ -768,7 +768,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         block is { Parent: Core.IfStatementContext or Core.SearchWhenClauseContext or Core.SearchAllWhenClauseContext }
         && block.statement() is [{ } only] && only.nextSentenceStatement() is not null;
 
-    // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
+    // ── ON SIZE ERROR phrase (ISO §2023:14.7.5) ───────────────────────────────────────────────────────────────────
 
     /// <summary>The statement's [NOT] ON SIZE ERROR pair through the ONE <see cref="PhraseBlocks.Bind"/>, or null when
     /// neither phrase is written.</summary>
@@ -788,9 +788,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
 
-    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§4.2.6 ¶3 for an Annex A.3 element,
-    /// §4.2.7 for an Annex A.4 one — the descriptor's own <c>Annex</c> datum says which, and its
-    /// <c>PostureClause</c> derives the §; plus §4.2.13 where the facility is also obsolete): name it once
+    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§2023:4.2.6 ¶3 for an Annex A.3 element,
+    /// §2023:4.2.7 for an Annex A.4 one — the descriptor's own <c>Annex</c> datum says which, and its
+    /// <c>PostureClause</c> derives the §; plus §2023:4.2.13 where the facility is also obsolete): name it once
     /// per site and bind to <see cref="BoundNop"/>, so the program still compiles and runs with the facility
     /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
     /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies
@@ -803,8 +803,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundNop();
     }
 
-    /// <summary>A statement of a DECLINED facility — the MCS RECEIVE and SEND (ISO §14.9.31, §14.9.38; COBOL1578) and
-    /// VALIDATE (§14.9.50; COBOL1580). Each parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
+    /// <summary>A statement of a DECLINED facility — the MCS RECEIVE and SEND (ISO §2023:14.9.31, §2023:14.9.38; COBOL1578) and
+    /// VALIDATE (§2023:14.9.50; COBOL1580). Each parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
     /// the edition that introduced it (<paramref name="construct"/>) the facility is not this edition's to decline: the
     /// edition pass's COBOL0900 is the whole answer there, and a facility warning beside it would name a later edition's
     /// facility to a program of an earlier one. Where the statement exists the facility is declined
@@ -823,22 +823,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return BindUnsupportedFacility(declined);
     }
 
-    /// <summary>COMMIT / ROLLBACK (ISO §14.9.7, §14.9.36; kb/Work PB3338): §14.9.7.3/§14.9.36.3 SR1 rejects the
-    /// statement in a RECURSIVE source element at bind (a function and a method are ALWAYS recursive, §8.6.6), and the
+    /// <summary>COMMIT / ROLLBACK (ISO §2023:14.9.7, §2023:14.9.36; kb/Work PB3338): §2023:14.9.7.3/§2023:14.9.36.3 SR1 rejects the
+    /// statement in a RECURSIVE source element at bind (a function and a method are ALWAYS recursive, §2023:8.6.6), and the
     /// IDENTITY node lets the VersionConformancePass enforce SR2's SORT/MERGE procedure ban. The statement is the run
-    /// unit's whatever element executes it (§14.9.7.1: "all files subject to active APPLY COMMIT clauses in the run
+    /// unit's whatever element executes it (§2023:14.9.7.1: "all files subject to active APPLY COMMIT clauses in the run
     /// unit"): the emitter calls the run unit's commit control, which raises EC-FLOW-COMMIT / EC-FLOW-ROLLBACK for GR2's
-    /// dynamic reach (§9.1.18.7). The node carries this element's files under commit control, the ones whose refusal the
+    /// dynamic reach (§2023:9.1.18.7). The node carries this element's files under commit control, the ones whose refusal the
     /// statement tells through its own exception processing (<see cref="BoundCommitRollback.Files"/>).</summary>
     private BoundStatement BindCommitRollback(bool isCommit)
     {
         string verb = isCommit ? "COMMIT" : "ROLLBACK";
-        string cite = isCommit ? "§14.9.7.3 SR1" : "§14.9.36.3 SR1";
+        string cite = isCommit ? "§2023:14.9.7.3 SR1" : "§2023:14.9.36.3 SR1";
         if (UnitRecursive || InMethod || UdfSelfName is not null)
         {
             return BoundRejected.Report(Ctx.Edition, DiagnosticCatalog.CommitRollbackContext,
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
-                + "method is always recursive, §8.6.6)");
+                + "method is always recursive, §2023:8.6.6)");
         }
         // The files of a CONTAINER's clause this element names: its GLOBAL file-names, visible here (VisibleFiles) and never
         // in Files. A refusal of one is told by its describing element, and a TURN directive here that names it still

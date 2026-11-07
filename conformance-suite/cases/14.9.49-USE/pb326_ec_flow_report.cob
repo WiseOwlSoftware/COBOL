@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.4 GR10: "If a GENERATE, INITIATE, or TERMINATE statement is executed within the range of
+      *> ISO §2023:14.9.49.4 GR10: "If a GENERATE, INITIATE, or TERMINATE statement is executed within the range of
       *> a declarative procedure whose USE statement contains the BEFORE REPORTING phrase, the EC-FLOW-REPORT
       *> exception condition is set to exist, the result of the execution of the GENERATE, INITIATE, or
       *> TERMINATE statement is unsuccessful, and the state of the report is unchanged."
       *>
       *> The CHECKED half (its unconditional twin, at the edition with no >>TURN at all, is
       *> 85/pb326_flow_report_unconditional).  Table 13 makes EC-FLOW-REPORT Fatal, so under
-      *> >>TURN … CHECKING ON the format-3 declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) returns to
+      *> >>TURN … CHECKING ON the format-3 declarative runs and RESUME AT NEXT STATEMENT (§2023:14.9.33) returns to
       *> the statement after the nested GENERATE — i.e. back into the BEFORE REPORTING procedure, which then
       *> completes normally and the outer presentation proceeds.
       *>
-      *> The program is legal: §14.9.49.3 SR10 forbids GENERATE/INITIATE/TERMINATE only "in a paragraph within a
+      *> The program is legal: §2023:14.9.49.3 SR10 forbids GENERATE/INITIATE/TERMINATE only "in a paragraph within a
       *> USE BEFORE REPORTING procedure", and GEN-P is a paragraph of a DIFFERENT declarative section, which SR4
       *> expressly lets BR-P reach with a PERFORM.
       *>
-      *> DERIVATION OF THE EXPECTED OUTPUT.  The single GENERATE presents DET-1; §14.9.49.4 GR8/GR9d run BR-P
+      *> DERIVATION OF THE EXPECTED OUTPUT.  The single GENERATE presents DET-1; §2023:14.9.49.4 GR8/GR9d run BR-P
       *> just before the group's LINE clauses are processed.  BR-P sets WS-N to 1 and PERFORMs GEN-P, whose
       *> GENERATE is inside the range: EC-FLOW-REPORT is raised (the declarative prints HANDLED=), the GENERATE
       *> is unsuccessful and the report's state is unchanged.  The outer presentation then composes DET-1 with

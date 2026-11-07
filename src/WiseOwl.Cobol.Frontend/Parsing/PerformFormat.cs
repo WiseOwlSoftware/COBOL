@@ -6,9 +6,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
 /// ⛔ THE FORMAT-3 PERFORM DECISION, WRITTEN ONCE. An inline PERFORM is Format 3 (exception-checking) iff it carries
-/// any WHEN phrase (ordinary / OTHER / COMMON), a FINALLY phrase, or a [WITH] LOCATION head (ISO §14.9.28.2
+/// any WHEN phrase (ordinary / OTHER / COMMON), a FINALLY phrase, or a [WITH] LOCATION head (ISO §2023:14.9.28.2
 /// Format 3). Every reader asks THIS predicate — the binder's format dispatch, the COBOL0900 introduction gate
-/// (<c>VersionConformancePass.VisitPerformStatement</c>) and the front end's §14.9.28.4 GR14 implicit PUSH ALL /
+/// (<c>VersionConformancePass.VisitPerformStatement</c>) and the front end's §2023:14.9.28.4 GR14 implicit PUSH ALL /
 /// POP ALL placement (<see cref="Preprocessor.ExceptionPerformDirectiveScope"/>) — so the three cannot drift. It
 /// lives in the front end because the last of them runs before binding: the implicit POP ALL must reach the
 /// conditional-compilation driver's state, which only the front end holds (kb/Work PB1066).
@@ -21,7 +21,7 @@ public static class PerformFormat
         || p.performWhenCommon() is not null || p.performFinally() is not null
         || p.performInlineHead()?.performLocationPhrase() is not null;
 
-    // ── §14.9.28.3 SR8 — the two facts the rule asks of a PERFORM statement, written once (kb/Work PB434) ──────
+    // ── §2023:14.9.28.3 SR8 — the two facts the rule asks of a PERFORM statement, written once (kb/Work PB434) ──────
     // "The UNTIL EXIT phrase shall not be specified in a PERFORM statement with or under a PERFORM statement with
     // the VARYING phrase or either the TEST BEFORE or TEST AFTER phrase." The binder asks both of the statement it
     // binds (the "with" arm) and the second of every PERFORM whose range it is inside (the "under" arm).
@@ -54,7 +54,7 @@ public static class PerformFormat
         });
 
     /// <summary>Is <paramref name="p"/> "a PERFORM statement with the VARYING phrase or either the TEST BEFORE or
-    /// TEST AFTER phrase"? ⚠ The TEST phrase must be WRITTEN: §14.9.28.3 SR1 ("If neither the TEST BEFORE nor the
+    /// TEST AFTER phrase"? ⚠ The TEST phrase must be WRITTEN: §2023:14.9.28.3 SR1 ("If neither the TEST BEFORE nor the
     /// TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed") cannot make an assumed phrase count here,
     /// because SR1 governs the until-phrase that UNTIL EXIT itself is, so SR8 would then forbid every UNTIL EXIT.</summary>
     public static bool SpecifiesVaryingOrTest(CobolParserCore.PerformStatementContext p) =>

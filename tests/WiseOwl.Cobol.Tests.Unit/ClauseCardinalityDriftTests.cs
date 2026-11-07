@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ EVERY CLOSED CLAUSE LIST DECIDES "EACH ELEMENT AT MOST ONCE" EXPLICITLY (kb/Work PB917; ISO §5.2.6.2, §5.2.7).
+/// ⛔ EVERY CLOSED CLAUSE LIST DECIDES "EACH ELEMENT AT MOST ONCE" EXPLICITLY (kb/Work PB917; ISO §2023:5.2.6.2, §2023:5.2.7).
 /// A closed general format that prints each clause in its own bracket with no ellipsis allows each clause once; the
 /// grammar writes the list as <c>clause*</c> (the order licence) and <c>ClosedFormatPass</c> counts the elements from
 /// <see cref="ClauseCardinalities.ByClauseContext"/>. Two obligations keep that table total, both read from the
@@ -81,7 +81,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>⛔ A FIXED SEQUENCE RANKS EXACTLY THE LIST'S ONCE-ONLY ALTERNATIVES (kb/Work PB1508; ISO §5.2.1). A row
+    /// <summary>⛔ A FIXED SEQUENCE RANKS EXACTLY THE LIST'S ONCE-ONLY ALTERNATIVES (kb/Work PB1508; ISO §2023:5.2.1). A row
     /// whose figure binds the order (<see cref="ClauseList.Sequence"/>) is read by <c>ClosedFormatPass</c> as a rank per
     /// element; an alternative the sequence does not name would be written anywhere unchecked, and one it names that
     /// the grammar no longer offers is a dead rank. Both are read from the GENERATED parser, so a clause added to the
@@ -108,7 +108,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>The OPTIONS paragraph's clause list (§11.9.2) has no error production, so the closed-format obligation
+    /// <summary>The OPTIONS paragraph's clause list (§2023:11.9.2) has no error production, so the closed-format obligation
     /// cannot see it: pin that it is a row, that nothing in it repeats, and that its sequence is the figure's.</summary>
     [Fact]
     public void TheOptionsClauseRow_RanksTheSevenClausesInTheFiguresSequence()
@@ -127,7 +127,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
 
     /// <summary>⛔ THE IDENTIFICATION DIVISION IS SCREENED AGAINST ITS EDITION'S FIGURE (kb/Work PB2532). Below 2002 the
     /// COBOL-85 figure ranks the five comment-entry paragraphs in their printed sequence and leaves the OPTIONS
-    /// paragraph (a 2002 introduction) uncounted; from 2002 the ISO §11.2.1 figure ranks OPTIONS alone. Pinned through
+    /// paragraph (a 2002 introduction) uncounted; from 2002 the ISO §2023:11.2.1 figure ranks OPTIONS alone. Pinned through
     /// <see cref="ClauseList.At"/>, the one method <c>ClosedFormatPass</c> asks, so the edition edge cannot drift.</summary>
     [Fact]
     public void TheIdentificationDivisionRow_ScreensTheCobol85FigureBelow2002()
@@ -152,7 +152,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ THE OBJECT-COMPUTER PARAGRAPH IS COUNTED BY THE TABLE, NOT BY THE BINDER (kb/Work PB3133). From 2002 its
-    /// two clauses sit in choice indicators (ISO §12.3.6.2; §5.2.6.4: each at most once, any order) — a free
+    /// two clauses sit in choice indicators (ISO §2023:12.3.6.2; §2023:5.2.6.4: each at most once, any order) — a free
     /// sequence; below 2002 the COBOL-85 figure ranks MEMORY SIZE, PROGRAM COLLATING SEQUENCE and SEGMENT-LIMIT in that
     /// sequence, each once. Pinned through <see cref="ClauseList.At"/>, the method <c>ClosedFormatPass</c> asks.</summary>
     [Fact]
@@ -180,7 +180,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>⛔ A CHOICE-INDICATOR FIGURE IS ORDER-FREE (ISO §5.2.6.4: "The alternatives may be specified in any order").
+    /// <summary>⛔ A CHOICE-INDICATOR FIGURE IS ORDER-FREE (ISO §2023:5.2.6.4: "The alternatives may be specified in any order").
     /// A figure flagged <see cref="ClauseList.ChoiceIndicators"/> is reported through the one choice-indicator reader
     /// (COBOL2104), whose message grants that licence, so it can never also carry a fixed
     /// <see cref="ClauseList.Sequence"/> (kb/Work PB3133, review R1-1).</summary>
@@ -197,7 +197,7 @@ public sealed class ClauseCardinalityDriftTests : WiseOwlCobolTestBase
 
     /// <summary>The report group description entry is the one row that is NOT a closed format with an error
     /// production, so the first obligation cannot see it: pin that its list is the table's key and its alternatives
-    /// are the ones §13.15.2 prints.</summary>
+    /// are the ones §2023:13.15.2 prints.</summary>
     [Fact]
     public void TheReportGroupClauseRow_ExistsAndHasNoRepeatableAlternative()
     {

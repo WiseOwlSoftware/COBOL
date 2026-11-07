@@ -6,26 +6,26 @@
       *> source-format: fixed
       *>---
       *> kb/Work PB3512 (branch review R1-1, R1-2). A GROUP sender into a
-      *> national or bit receiver is ISO §14.9.25.4 GR4's group move:
+      *> national or bit receiver is ISO §2023:14.9.25.4 GR4's group move:
       *>   cite.py --check 14.9.25.4 "there is no conversion of data
       *>   from one form of internal representation to another"
-      *>   -> OK  §14.9.25.4 4)  (General rules)
+      *>   -> OK  §2023:14.9.25.4 4)  (General rules)
       *>   cite.py --check 14.9.25.4 "Bit group items and national group
       *>   items are treated as elementary items in the MOVE statement"
-      *>   -> OK  §14.9.25.4 4)  (General rules)
+      *>   -> OK  §2023:14.9.25.4 4)  (General rules)
       *> so the receiver's STORAGE takes the sending group's bytes and
       *> its national / boolean value is read from them (design D-N8).
       *> A reference-modified receiver is an elementary item too:
       *>   cite.py --check 8.4.3.3.4 "The unique data item is considered
       *>   to be an elementary data item without the JUSTIFIED clause"
-      *>   -> OK  §8.4.3.3.4 6)  (General rules)
+      *>   -> OK  §2023:8.4.3.3.4 6)  (General rules)
       *> and a national / bit GROUP is that elementary item's usage:
       *>   cite.py --check 13.18.29.4 "a national group is treated as
       *>   though it were an elementary data item of usage national"
-      *>   -> OK  §13.18.29.4 2) b)  (General rules)
+      *>   -> OK  §2023:13.18.29.4 2) b)  (General rules)
       *>   cite.py --check 13.18.29.4 "treated as though it were an
       *>   elementary data item of usage bit"
-      *>   -> OK  §13.18.29.4 1) b)  (General rules)
+      *>   -> OK  §2023:13.18.29.4 1) b)  (General rules)
       *> Usage national, usage bit and GROUP-USAGE are new in ISO 2002,
       *> so the test starts there. The sending bytes are the native
       *> alphanumeric codes ("A" = X"41"), a national position is two

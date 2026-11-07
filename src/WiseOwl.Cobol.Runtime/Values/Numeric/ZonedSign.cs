@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// answer to Annex A.1 items <b>177</b> (representation when the picture contains 'S' and no SIGN clause applies)
 /// and <b>178</b> (what constitutes a valid sign when SEPARATE CHARACTER is absent). kb/Work PB803, owner decision
 /// 2026-09-09: <i>"Keep both behind an option with the default being IBM and Micro Focus compatibility."</i>
-/// <para>ISO/IEC 1989:2023 §13.18.52.4 GR4 — "Neither the representation nor the position of that operational sign
+/// <para>ISO/IEC 1989:2023 §2023:13.18.52.4 GR4 — "Neither the representation nor the position of that operational sign
 /// is specified by the symbol 'S'. The implementor shall specify the position and representation of the operational
 /// sign." — and GR5 b) — "The implementor defines what constitutes valid signs for data items." SEPARATE CHARACTER
 /// carries NO latitude (GR6 b) pins '+' and '-'), so no member of this enum reaches a SEPARATE item.</para>
@@ -73,7 +73,7 @@ public static class ZonedSign
     public static SignPunchTable Table(SignEncoding encoding) => Tables[(int)encoding];
 
     /// <summary>The character that digit <paramref name="digit"/> (0–9) becomes when it carries the operational
-    /// sign — §13.18.52.4 GR4 / GR5 a): the sign fuses ONTO an existing digit position and adds no character
+    /// sign — §2023:13.18.52.4 GR4 / GR5 a): the sign fuses ONTO an existing digit position and adds no character
     /// position. Callers guarantee the range; a non-digit never reaches here.</summary>
     public static char Punch(SignEncoding encoding, int digit, bool negative)
     {
@@ -100,8 +100,8 @@ public static class ZonedSign
         return false;
     }
 
-    /// <summary>§13.18.52.4 GR5 b) — "The implementor defines what constitutes valid signs for data items", the set
-    /// §8.8.4.4.4 GR3 n)1.a's closing sentence delegates here ("Valid operational signs are defined in 13.18.52,
+    /// <summary>§2023:13.18.52.4 GR5 b) — "The implementor defines what constitutes valid signs for data items", the set
+    /// §2023:8.8.4.4.4 GR3 n)1.a's closing sentence delegates here ("Valid operational signs are defined in 13.18.52,
     /// SIGN clause"): true when <paramref name="c"/> may stand at the SIGN POSITION of an unseparated signed DISPLAY
     /// item under <paramref name="encoding"/> — a plain digit (an item whose sign was never punched, e.g. one filled
     /// by a group MOVE), or any character of either table. Every OTHER character position must be a plain digit,

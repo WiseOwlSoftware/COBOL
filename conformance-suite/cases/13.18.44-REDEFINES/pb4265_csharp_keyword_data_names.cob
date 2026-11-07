@@ -8,20 +8,20 @@
       *> words some host language reserves (int, double, void, ushort,
       *> sbyte, uint) are ordinary user-defined words: none is a COBOL
       *> reserved word, and case does not distinguish them.
-      *> ISO §8.1.3.2 3) a): "COBOL basic letters appearing elsewhere
+      *> ISO §2023:8.1.3.2 3) a): "COBOL basic letters appearing elsewhere
       *> within the compilation group are treated in a case-insensitive
       *> manner."
-      *>   cite.py --check 8.1.3.2 -> OK §8.1.3.2 3) a) (General rules)
-      *> ISO §13.18.44.4 GR2: "When the same storage area is defined by
+      *>   cite.py --check 8.1.3.2 -> OK §2023:8.1.3.2 3) a) (General rules)
+      *> ISO §2023:13.18.44.4 GR2: "When the same storage area is defined by
       *> more than one data description entry, the data-name associated
       *> with any of those data description entries may be used to
       *> reference that storage area."
-      *>   cite.py --check 13.18.44.4 -> OK §13.18.44.4 2)
-      *> ISO §13.18.27.4 GR2: "A statement in a program contained
+      *>   cite.py --check 13.18.44.4 -> OK §2023:13.18.44.4 2)
+      *> ISO §2023:13.18.27.4 GR2: "A statement in a program contained
       *> directly or indirectly within a program that describes a
       *> global name may reference that name without describing it
       *> again."
-      *>   cite.py --check 13.18.27.4 -> OK §13.18.27.4 2)
+      *>   cite.py --check 13.18.27.4 -> OK §2023:13.18.27.4 2)
       *> Each REDEFINES changes the category, so both descriptions read
       *> one storage area: double (PIC 9(4)) reads int's "1234" as
       *> 1234 and ushort reads void's "56" as 56 (VIEWS-OK); ADD 1 to

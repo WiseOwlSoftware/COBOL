@@ -13,10 +13,10 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §14.9.27.2's REPEATED GROUP kept structural (kb/Work PB316). The OPEN statement's general format has an
+/// ISO §2023:14.9.27.2's REPEATED GROUP kept structural (kb/Work PB316). The OPEN statement's general format has an
 /// outer brace pair — verified against the printed page — around the whole group
 /// <c>{open-mode} [sharing-phrase] [retry-phrase] {file-name-1 [WITH NO REWIND]} …</c>, carrying its own
-/// trailing ellipsis; §14.9.27.4 GR20 then makes the statement equal to "a separate OPEN statement … for each
+/// trailing ellipsis; §2023:14.9.27.4 GR20 then makes the statement equal to "a separate OPEN statement … for each
 /// file-name … each hav[ing] the same open mode specification, the sharing-phrase, retry-phrase, and REWIND
 /// phrase as specified in the OPEN statement". The open mode in that list is unarguably per group, so the
 /// phrases beside it are too.
@@ -42,7 +42,7 @@ public sealed class OpenGroupScopeDriftTests
 {
     /// <summary>THE PREDICATE. The public instance properties of a statement node other than its repeated-group
     /// list — every one of them is a value scoped to the whole statement, which for OPEN is exactly what
-    /// §14.9.27.2 forbids.</summary>
+    /// §2023:14.9.27.2 forbids.</summary>
     private static string[] StatementScopedMembers(Type statement, string groupListProperty) =>
         [.. statement.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             // The BoundStatement base's own members (OperandEvaluation, kb/Work PB1432) belong to every node, not
@@ -53,7 +53,7 @@ public sealed class OpenGroupScopeDriftTests
             .Order()];
 
     /// <summary>The statement node holds the repeated group and nothing else — no phrase may be hoisted out of
-    /// a group onto the statement (§14.9.27.2; §14.9.27.4 GR20).</summary>
+    /// a group onto the statement (§2023:14.9.27.2; §2023:14.9.27.4 GR20).</summary>
     [Fact]
     public void BoundOpen_CarriesTheGroupListAndNothingElse()
     {
@@ -72,8 +72,8 @@ public sealed class OpenGroupScopeDriftTests
     }
 
     /// <summary>Every phrase the general format nests inside the repeated group has a home ON THE ENTRY, one
-    /// property each: the open mode (§14.9.27.2's inner braces), the sharing-phrase (§14.9.27.4 GR22/GR23) and
-    /// the retry-phrase (§14.7.9). Each is asserted by TYPE, not by name, so renaming a property cannot quietly
+    /// property each: the open mode (§2023:14.9.27.2's inner braces), the sharing-phrase (§2023:14.9.27.4 GR22/GR23) and
+    /// the retry-phrase (§2023:14.7.9). Each is asserted by TYPE, not by name, so renaming a property cannot quietly
     /// remove a phrase's carrier.</summary>
     [Theory]
     [InlineData(typeof(BoundOpenMode))]
@@ -87,13 +87,13 @@ public sealed class OpenGroupScopeDriftTests
             .ToArray();
         Assert.True(carriers.Length == 1,
             $"BoundOpenFile carries {carriers.Length} properties of type {phrase.Name} "
-            + $"({string.Join(", ", carriers)}); §14.9.27.2 gives each group exactly one.");
+            + $"({string.Join(", ", carriers)}); §2023:14.9.27.2 gives each group exactly one.");
     }
 
     // ── the bound shape, observed: each file-name's entry carries ITS OWN group's phrases ────────────────
 
     /// <summary>The four file connectors every fixture below opens. None carries a SHARING or LOCK MODE clause, so
-    /// the only sharing an entry can show is the one its OPEN group wrote (§14.9.27.4 GR23).</summary>
+    /// the only sharing an entry can show is the one its OPEN group wrote (§2023:14.9.27.4 GR23).</summary>
     private const string Fixture = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB675OGS.
@@ -167,7 +167,7 @@ public sealed class OpenGroupScopeDriftTests
     /// entry, whose posture equals the one an unregistered connector already arbitrates under — so
     /// <c>conformance:cases/14.9.27-OPEN/pb316_open_group_scope</c> parts (1) and (2) are green whether or not the
     /// phrase leaks. The defect PB316 fixed lives in the BOUND TREE, so it is asserted there: each entry of the
-    /// statement carries the retry-phrase and sharing-phrase of the group that wrote it (§14.9.27.4 GR20: "These
+    /// statement carries the retry-phrase and sharing-phrase of the group that wrote it (§2023:14.9.27.4 GR20: "These
     /// separate OPEN statements would each have the same open mode specification, the sharing-phrase,
     /// retry-phrase, and REWIND phrase as specified in the OPEN statement"). A leak runs forward (a group inherits
     /// an earlier group's phrase) under one hoisting and backward (a statement-scope phrase reaches an earlier

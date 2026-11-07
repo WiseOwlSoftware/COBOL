@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB544 — §13.18.60.3 syntax rule 21: "If MESSAGE-TAG is specified, no other usage clauses
+      *> kb/Work PB544 — §2023:13.18.60.3 syntax rule 21: "If MESSAGE-TAG is specified, no other usage clauses
       *> shall be specified in the data description entry."
       *> ⛔ THE RULE HAD NO SUBJECT. USAGE MESSAGE-TAG is an Annex A.3 item-4 processor-dependent element this
       *> compiler once declined BY NAME (COBOL1943, retired by kb/Work PB4740) — but a usage still has syntax rules, and

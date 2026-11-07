@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// G6 (core): whole-group MOVE / DISPLAY / compare for a DISPLAY-homogeneous (all-character) group via the generated
 /// <c>AsImage()</c>/<c>FromImage()</c> facility (DESIGN §14.4). A group is treated as alphanumeric (ISO
-/// §14.9.24): its character image is the concatenation of its leaves. Mixed-usage groups (numeric/COMP leaves) are
+/// §2023:14.9.24): its character image is the concatenation of its leaves. Mixed-usage groups (numeric/COMP leaves) are
 /// the Tier-C byte island, still loud. Pinned to the committed golden (spec-pinned where the legacy DISPLAY
 /// trailing-trim quirk shows).
 /// </summary>
@@ -86,6 +86,6 @@ public sealed class WholeGroupDifferentialTests
     [Fact]
     public void MoveSpacesToGroup_FillsToWidth()
         // MOVE SPACES TO a 6-char group → all spaces; the bracket exposes the fill, so spec-pinned (the legacy
-        // trims trailing spaces in DISPLAY — non-conforming per ISO §14.9.11.4 GR6).
+        // trims trailing spaces in DISPLAY — non-conforming per ISO §2023:14.9.11.4 GR6).
         => AssertSpec(Program(Rec, "    MOVE SPACES TO WS-REC.\n    DISPLAY \"[\" WS-REC \"]\"."), "[      ]");
 }

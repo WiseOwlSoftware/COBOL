@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The callee half of the second alphabet a BY CONTENT argument states when the activating element cannot see the formal
-/// (kb/Work PB3587; <see cref="MoveSending.StorageImage"/>). ISO §14.9.25.4 GR4 makes the record of a plain-group formal
+/// (kb/Work PB3587; <see cref="MoveSending.StorageImage"/>). ISO §2023:14.9.25.4 GR4 makes the record of a plain-group formal
 /// the result of a move with "no conversion of data from one form of internal representation to another", so a USAGE BIT
 /// or USAGE NATIONAL sender arrives as its representation; an elementary formal reads the characters. These pin what the
 /// end-to-end witness (conformance:cases/14.2-Procedure-division-structure/pb3587_content_group_formal_usage_values)
 /// cannot reach one adapter at a time: the group adapter takes the image, the elementary adapter does not, BY REFERENCE
-/// never does (no MOVE, §14.2.3 GR8), and the caller's argument array is never written.
+/// never does (no MOVE, §2023:14.2.3 GR8), and the caller's argument array is never written.
 /// </summary>
 public sealed class MoveSendingStorageImageTests
 {
@@ -41,7 +41,7 @@ public sealed class MoveSendingStorageImageTests
     [Fact]
     public void PlainGroupFormal_ByReference_NeverTakesTheImage()
     {
-        // BY REFERENCE has no MOVE (§14.2.3 GR8): the formal occupies the argument's own storage, whatever a Sending says.
+        // BY REFERENCE has no MOVE (§2023:14.2.3 GR8): the formal occupies the argument's own storage, whatever a Sending says.
         var cell = CobolArgAdapt.Text(Argument(CobolPassMode.Reference, Image), 0, 8, global::System.Array.Empty<GroupAtom>(), () => " ");
         Assert.Equal(Characters, cell.Value);
     }

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR9 — "At least six AFTER phrases shall be
+      *> ISO §2023:14.9.28.3 SR9 — "At least six AFTER phrases shall be
       *> permitted in varying-phrase."
       *>
       *> A MINIMUM-CAPACITY rule: the only way to discharge it is to
@@ -13,7 +13,7 @@
       *> not what the rule buys — a sixth AFTER that parsed and then
       *> nested or reset wrongly would satisfy a parse-only witness and
       *> still be broken, so this program asserts the SEQUENCE that
-      *> §14.9.28.4 GR13 e) prescribes for seven levels.
+      *> §2023:14.9.28.4 GR13 e) prescribes for seven levels.
       *>
       *> Seven induction variables, each FROM 1 BY 1 UNTIL x > 2, so
       *> each admits exactly the values 1 and 2:

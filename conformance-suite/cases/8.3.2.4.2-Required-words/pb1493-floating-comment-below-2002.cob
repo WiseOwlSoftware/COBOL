@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> The floating comment indicator *> (ISO §6.2.3.1) is a COBOL-
+      *> The floating comment indicator *> (ISO §2023:6.2.3.1) is a COBOL-
       *>   2002 introduction: COBOL-85 fixed-form source has only the
       *>   fixed comment indicators * and / (these header lines). At
       *>   --std 85 the inline *> is refused with the introduction band

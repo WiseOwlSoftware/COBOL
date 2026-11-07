@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1411 — EVERY GROUP-LEVEL STORE IS CALLED ON <c>PlaceRenderer.GroupTarget</c>, the one receiver that
-/// reaches an element of a dynamic-capacity table through <c>RefReceiving</c>. ISO §8.5.1.9.3: a receiving
+/// reaches an element of a dynamic-capacity table through <c>RefReceiving</c>. ISO §2023:8.5.1.9.3: a receiving
 /// reference past the current capacity creates the element and raises the capacity; the sending accessor
 /// <c>RefSending</c> hands back benign scratch instead, so a store through it is silently discarded. Only
 /// <c>WriteGroupImage</c> used to carry the dynamic-table arm; the variable-length group writer
@@ -51,6 +51,6 @@ public sealed class GroupStoreTargetDriftTests
         Assert.True(offenders.Count == 0,
             "A group-level store is called on a receiver other than PlaceRenderer.GroupTarget — an element of a "
             + "dynamic-capacity table would be reached through RefSending and the store discarded "
-            + "(ISO §8.5.1.9.3; kb/Work PB1411):\n" + string.Join("\n", offenders));
+            + "(ISO §2023:8.5.1.9.3; kb/Work PB1411):\n" + string.Join("\n", offenders));
     }
 }

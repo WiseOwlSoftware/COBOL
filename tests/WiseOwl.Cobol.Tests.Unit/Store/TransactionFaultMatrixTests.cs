@@ -21,11 +21,11 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// reaches the medium) and a <see cref="RefusingPageMedium"/> whose seam counts every read, write and sync (refusing the
 /// one a case names, or delivering ANOTHER run unit's death at that instant). A case first measures the path on a run
 /// that is not faulted, then faults it at every point of that measurement.</para>
-/// <para>Expected values are the standard's and the design's: §9.1.18.5 (<i>"When a run unit terminates abnormally, all
+/// <para>Expected values are the standard's and the design's: §2023:9.1.18.5 (<i>"When a run unit terminates abnormally, all
 /// file changes made since the previous commit or, if none, the beginning of the run unit are rolled back for all files
-/// for which there are active APPLY COMMIT clauses."</i>); §14.9.7.4 GR3 and §14.9.36.4 GR3 (a COMMIT applies, a
-/// ROLLBACK restores to the last COMMIT); §9.1.13.6 item 1 (<i>"A permanent error exists and no further information is
-/// available concerning the input-output operation"</i>: '30' for every refusal); §9.1.16's locked-record circumstance
+/// for which there are active APPLY COMMIT clauses."</i>); §2023:14.9.7.4 GR3 and §2023:14.9.36.4 GR3 (a COMMIT applies, a
+/// ROLLBACK restores to the last COMMIT); §2023:9.1.13.6 item 1 (<i>"A permanent error exists and no further information is
+/// available concerning the input-output operation"</i>: '30' for every refusal); §2023:9.1.16's locked-record circumstance
 /// ('51', DOC-A.1-152); and 2.2.1.10's three regions of a COMMIT — decided by its slot write, answered by the sync after it.</para>
 /// </summary>
 [Trait("Host", "ReFS")]
@@ -76,7 +76,7 @@ public sealed class TransactionFaultMatrixTests
             Closed = true;
         }
 
-        /// <summary>The run unit ENDS NORMALLY (§9.1.18.5's first sentence: its transactions are committed).</summary>
+        /// <summary>The run unit ENDS NORMALLY (§2023:9.1.18.5's first sentence: its transactions are committed).</summary>
         public void End()
         {
             if (Closed) return;
@@ -284,7 +284,7 @@ public sealed class TransactionFaultMatrixTests
     // ── 2.2.1.16's refused table: COMMIT refused at every operation, and the reversal ───────────────────────────
 
     /// <summary>2.2.1.16's refused rows for COMMIT, at every read, write and sync it makes (round 5, finding R5-1), the
-    /// owner alive and told '30' on the file (COMMIT has no I-O status of its own, §9.1.13.1). Refused before or at the slot
+    /// owner alive and told '30' on the file (COMMIT has no I-O status of its own, §2023:9.1.13.1). Refused before or at the slot
     /// write, or at sync 1 (region 1): the transaction is intact — B's statements meet its holdings ('51') — and item 8's
     /// unconditional ROLLBACK restores it. Sync 2 refused (region 3): the COMMIT REVERSES before it gives the mutex back, so
     /// B's next statement meets the state of the previous COMMIT ('22' for K5) and the ROLLBACK finds no transaction. Refused
@@ -331,7 +331,7 @@ public sealed class TransactionFaultMatrixTests
                 Assert.Equal(k == sync2 ? "22" : "51", b.Write(5, "B005"));
                 expected = Seed();
             }
-            Assert.Null(a.Reg.Rollback());   // §14.6.13.1.3 item 8's unconditional ROLLBACK
+            Assert.Null(a.Reg.Rollback());   // §2023:14.6.13.1.3 item 8's unconditional ROLLBACK
             Assert.Equal(0ul, a.Transaction());
             Assert.Equal(expected, b.Contents());
             AssertNoTransactionLeft(b.Reg);
@@ -638,7 +638,7 @@ public sealed class TransactionFaultMatrixTests
     /// entry, itself KILLED at every write of that statement: the next writer's entry redoes the rollback (idempotent). And
     /// 2.2.1.16's refused row "The dead-owner rollback run at A's entry, at any page", at every operation of B's
     /// statement that rolls dead A back: B's statement answers '30' and B's connector replays it until its CLOSE
-    /// (§9.1.13.1's permanent error, DOC-A.1-105); the next writer's entry redoes the rollback (idempotent), so the file is
+    /// (§2023:9.1.13.1's permanent error, DOC-A.1-105); the next writer's entry redoes the rollback (idempotent), so the file is
     /// A's last COMMIT's and nothing of A is left.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -840,7 +840,7 @@ public sealed class TransactionFaultMatrixTests
     // ── 2.2.1.12's adoption matrix, the transaction column ──────────────────────────────────────────────────────
 
     /// <summary>2.2.1.12 R6 "every matrix row × a transaction open at the crash": A under commit control completed a WRITE
-    /// and dies at every write of its next statement (a REWRITE). An INPUT OPEN in the interval reads the file as §9.1.18.5
+    /// and dies at every write of its next statement (a REWRITE). An INPUT OPEN in the interval reads the file as §2023:9.1.18.5
     /// leaves it (<i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the
     /// beginning of the run unit are rolled back"</i>; kb/Work PB4097): the reader's own OPEN rolled every before-image of A back,
     /// A's completed WRITE included, through a handle opened for the purpose; the first writable OPEN of a writer finds nothing

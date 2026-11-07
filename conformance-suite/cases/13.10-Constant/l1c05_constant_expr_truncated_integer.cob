@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.10.4 GR4 — a constant AS arithmetic-expression is
+      *> ISO §2023:13.10.4 GR4 — a constant AS arithmetic-expression is
       *>   truncated to an integer
       *> Rule: "If arithmetic-expression-1 is specified, it is evaluated
       *>   in accordance with 7.3.6, Compile-time arithmetic
@@ -14,18 +14,18 @@
       *>   Constant-name-1 is an integer."
       *> cite.py --check 13.10.4 "If arithmetic-expression-1 is
       *>   specified, it is evaluated in accordance with 7.3.6" -> OK
-      *>   §13.10.4 4)  (General rules)
+      *>   §2023:13.10.4 4)  (General rules)
       *> cite.py --check 7.3.6.3 "The final result of the arithmetic
       *>   expression shall be truncated to the integer part of the
-      *>   value" -> OK  §7.3.6.3 3)  (General rules)
+      *>   value" -> OK  §2023:7.3.6.3 3)  (General rules)
       *> cite.py --check 13.10.3 "If the operand of the constant entry
       *>   consists of a single numeric literal, that operand is treated
       *>   as a literal, not as an arithmetic-expression" -> OK
-      *>   §13.10.3 1)  (Syntax rules)
+      *>   §2023:13.10.3 1)  (Syntax rules)
       *> cite.py --check 13.10.3 "If constant-name-1 is an integer, it
       *>   may also be used to specify repetition in a picture
-      *>   character-string" -> OK  §13.10.3 2)  (Syntax rules)
-      *> §15.49.4: INTEGER-PART = SIGN(a) * INTEGER(ABS(a)), i.e.
+      *>   character-string" -> OK  §2023:13.10.3 2)  (Syntax rules)
+      *> §2023:15.49.4: INTEGER-PART = SIGN(a) * INTEGER(ABS(a)), i.e.
       *>   truncation TOWARD ZERO.
       *> Derivation (W-E is PIC -9.9, so a surviving fraction shows):
       *>   K-HALF = 7 / 2 = 3.5 -> 3                     -> "HALF= 3.0"

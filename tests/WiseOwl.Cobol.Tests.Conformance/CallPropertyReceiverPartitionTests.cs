@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// A CALL whose receiver is an object PROPERTY (RETURNING or BY REFERENCE, kb/Work PB2078) runs the property's SET at the
-/// return, and that SET is NOT part of the activation. ISO §14.9.4.4 3) h): "If the program was not successfully called
+/// return, and that SET is NOT part of the activation. ISO §2023:14.9.4.4 3) h): "If the program was not successfully called
 /// and an exception condition was set to exist" selects the ON EXCEPTION phrase; 3) i): "If the program was successfully
 /// called, after control is returned from the called program the ON EXCEPTION phrase, if specified, is ignored." The
 /// emitted SET used to run inside the activation's try, so a condition the SET method raised (here its own CALL of a
@@ -88,20 +88,20 @@ public sealed class CallPropertyReceiverPartitionTests
         {Class}
         """;
 
-    /// <summary>§14.9.4.4 3) i): PB2078CS IS successfully called, so the condition the SET method's own CALL raises is
-    /// not the outer CALL's to divert; with no handler it terminates the run unit (§14.9.4.4 3) h) 3, at the inner CALL),
+    /// <summary>§2023:14.9.4.4 3) i): PB2078CS IS successfully called, so the condition the SET method's own CALL raises is
+    /// not the outer CALL's to divert; with no handler it terminates the run unit (§2023:14.9.4.4 3) h) 3, at the inner CALL),
     /// exactly as the same failed CALL does inside the called program itself.</summary>
     [Fact]
     public void ConditionRaisedByThePropertySet_IsNotTheCallsOnException()
     {
         var (exit, stdout, stderr) = new WiseOwlCobolCompiler(2014).CompileAndRunExit(Program("PB2078CA", "PB2078CS"));
         Assert.Equal("IN SET 0009", stdout);                        // neither phrase, nor AFTER CALL, runs
-        Assert.Equal(1, exit);                                      // §14.6.12, the abnormal-termination exit
+        Assert.Equal(1, exit);                                      // §2023:14.6.12, the abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);
         Assert.Contains("EC-PROGRAM-NOT-FOUND", stderr);
     }
 
-    /// <summary>§14.9.4.4 3) h) 1: a FAILED activation takes ON EXCEPTION and stores nothing, so the property's SET never
+    /// <summary>§2023:14.9.4.4 3) h) 1: a FAILED activation takes ON EXCEPTION and stores nothing, so the property's SET never
     /// runs and the GET in the phrase reads the property's initial value.</summary>
     [Fact]
     public void FailedActivation_TakesOnException_AndRunsNoSet()

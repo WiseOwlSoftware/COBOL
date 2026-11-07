@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.5.2.8 GR1 — an item IMPLICITLY usage index (inherited
+      *> ISO §2023:8.5.2.8 GR1 — an item IMPLICITLY usage index (inherited
       *>   from its group) is an index data item, like an explicit one.
       *> cite.py --check 8.5.2.8 "An elementary data item explicitly or
-      *>   implicitly described as usage index" -> OK §8.5.2.8 1)
+      *>   implicitly described as usage index" -> OK §2023:8.5.2.8 1)
       *> cite.py --check 13.18.60.4 "If the USAGE clause is specified or
       *>   implied at a group level, it applies only to each elementary
-      *>   item in the group" -> OK §13.18.60.4 1)
+      *>   item in the group" -> OK §2023:13.18.60.4 1)
       *> cite.py --check 13.18.60.4 "The USAGE INDEX clause specifies
-      *>   that a data item is an index data item" -> OK §13.18.60.4 10)
+      *>   that a data item is an index data item" -> OK §2023:13.18.60.4 10)
       *>   (same GR: its value "shall correspond to an occurrence
       *>   number of a table element"; the representation is the
       *>   implementor's, so only round trips and equality are shown.)

@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// This test re-reads every one of those ten lists from <c>specs/ISO_COBOL_2023.md</c> and requires the tables to equal
 /// them, so a transcription repair in the spec reaches the compiler or fails here; the three pair lists equal the
 /// standard's LESS the pairs that cross between a basic and an extended letter, which the generator moves to
-/// <c>CobolNames.NotApplied</c> (§8.1.3.2 4) b), kb/Work PB4420), and no extended letter folds to a basic one at any
+/// <c>CobolNames.NotApplied</c> (§2023:8.1.3.2 4) b), kb/Work PB4420), and no extended letter folds to a basic one at any
 /// edition. It also holds the two facts the
 /// fold's implementation relies on: every Annex C mapping keeps a character's UTF-16 width (so a word and its fold
 /// line up unit for unit), and every mapping Annex E.3.3 item 6 added at 2023 pairs a character the 2002/2014 Annex B
@@ -97,7 +97,7 @@ public sealed class AnnexBCDriftTests
     }
 
     /// <summary>Whether an (uppercase, lowercase) pair maps between the BASIC letters (A-Z, a-z) and the EXTENDED ones,
-    /// derived here from the pair alone — the same reading as the generator's (§8.1.3.2 4) b): the corresponding lowercase
+    /// derived here from the pair alone — the same reading as the generator's (§2023:8.1.3.2 4) b): the corresponding lowercase
     /// extended letter), written independently so the two cannot drift together.</summary>
     private static bool Crosses((int Upper, int Lower) pair) => IsBasicLetter(pair.Upper) != IsBasicLetter(pair.Lower);
 
@@ -125,7 +125,7 @@ public sealed class AnnexBCDriftTests
         Assert.Equal(crossing, CobolNames.NotApplied.Select(p => (p.First, p.Second)).ToList());
     }
 
-    /// <summary>⛔ THE DETERMINATION (kb/Work PB4420, owner decision 2026-11-01, GnuCOBOL's reading of §8.1.3.2 4) b)): the
+    /// <summary>⛔ THE DETERMINATION (kb/Work PB4420, owner decision 2026-11-01, GnuCOBOL's reading of §2023:8.1.3.2 4) b)): the
     /// fold applies no pair between a basic letter and an extended one. Today that leaves out exactly the dotted capital I
     /// (0130,0069), the Kelvin sign (212A,006B) and the dotless i of the 2002/2014 table (0131,0069); a table that gains a
     /// pair of the kind changes this list, and the change is seen here.</summary>
@@ -168,11 +168,11 @@ public sealed class AnnexBCDriftTests
             .Keys.Cast<string>();
         var populations = new (string Name, IEnumerable<string> Words)[]
         {
-            ("reserved words (§8.9)", ReservedWords.Entries.Select(e => e.Word)),
-            ("context-sensitive words (§8.10)", ContextSensitiveWords.Entries.Select(e => e.Word)),
-            ("intrinsic function names (§8.11)", intrinsics),
+            ("reserved words (§2023:8.9)", ReservedWords.Entries.Select(e => e.Word)),
+            ("context-sensitive words (§2023:8.10)", ContextSensitiveWords.Entries.Select(e => e.Word)),
+            ("intrinsic function names (§2023:8.11)", intrinsics),
             ("implementor names", ImplementorNames.All.Keys),
-            ("compiler-directive words (§8.12)", CompilerDirectiveCatalog.Words),
+            ("compiler-directive words (§2023:8.12)", CompilerDirectiveCatalog.Words),
         };
         foreach (var (name, words) in populations)
         {

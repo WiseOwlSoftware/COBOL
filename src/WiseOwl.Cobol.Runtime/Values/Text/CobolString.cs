@@ -8,18 +8,18 @@ namespace WiseOwl.Cobol.Runtime;
 /// COBOL character-position value semantics over .NET <see cref="string"/> — the ONE fixed-width store/compare
 /// substrate for the string-stored categories: alphanumeric (PIC X / A), national (PIC N — one .NET UTF-16
 /// <see cref="char"/> per national position, the documented D-N1 implementor choice), and boolean (PIC 1 — one
-/// '0'/'1' character per boolean position, the §13.18.40.4 GR14 alphanumeric-representation license, D-B1).
+/// '0'/'1' character per boolean position, the §2023:13.18.40.4 GR14 alphanumeric-representation license, D-B1).
 /// The category difference is carried entirely by <paramref name="pad"/>: alphanumeric/national fill with
-/// space (§14.6.8.4/§14.6.8.5 — the national space is U+0020 under the Latin-1 identity), boolean with
-/// boolean zero '0' (§14.6.8.6).
+/// space (§2023:14.6.8.4/§2023:14.6.8.5 — the national space is U+0020 under the Latin-1 identity), boolean with
+/// boolean zero '0' (§2023:14.6.8.6).
 /// </summary>
 public static class CobolString
 {
     /// <summary>
     /// Store <paramref name="value"/> into a character receiver of <paramref name="width"/> positions,
-    /// applying COBOL MOVE rules (ISO/IEC 1989:2023 §14.9.25 / §14.6.8): left-justified by default — pad on the
+    /// applying COBOL MOVE rules (ISO/IEC 1989:2023 §2023:14.9.25 / §2023:14.6.8): left-justified by default — pad on the
     /// right with <paramref name="pad"/>, truncate on the right when too long; right-justified
-    /// (<c>JUSTIFIED RIGHT</c>, §13.18.32 GR1/GR2) — pad/truncate on the left.
+    /// (<c>JUSTIFIED RIGHT</c>, §2023:13.18.32 GR1/GR2) — pad/truncate on the left.
     /// </summary>
     public static string Store(string? value, int width, bool justifiedRight = false, char pad = ' ')
     {
@@ -33,12 +33,12 @@ public static class CobolString
     }
 
     /// <summary>The character image <paramref name="s"/> repeated <paramref name="n"/> times — used to seed a
-    /// Tier-B REDEFINES backing over a fixed-OCCURS entry, where every occurrence takes the VALUE (ISO §13.18.63
+    /// Tier-B REDEFINES backing over a fixed-OCCURS entry, where every occurrence takes the VALUE (ISO §2023:13.18.63
     /// GR9). n ≤ 1 returns the image unchanged.</summary>
     public static string Repeat(string s, int n) => n <= 1 ? s : string.Concat(Enumerable.Repeat(s, n));
 
     /// <summary>
-    /// ⛔ THE ONE §8.3.3.6.4 GR2 SIZING of a figurative constant against an associated operand (kb/Work PB297).
+    /// ⛔ THE ONE §2023:8.3.3.6.4 GR2 SIZING of a figurative constant against an associated operand (kb/Work PB297).
     /// The rule, verbatim: "the string of characters is repeated character by character until the size of the
     /// resultant string is greater than or equal to the number of character positions in the associated data
     /// item, literal, or intermediate result. This resultant string is then truncated from the right until the
@@ -62,11 +62,11 @@ public static class CobolString
     }
 
     /// <summary>The OMITTED reference-modification length sentinel — the <c>identifier(leftmost:)</c> "to the end"
-    /// form (ISO §8.4.3.3.4: "If length is not specified … to the end"). A distinct sentinel (NOT −1) so that a
+    /// form (ISO §2023:8.4.3.3.4: "If length is not specified … to the end"). A distinct sentinel (NOT −1) so that a
     /// SPECIFIED length that evaluates negative at runtime is DISTINGUISHABLE from the omitted form and can raise
-    /// EC-BOUND-REF-MOD (review C14 — a −1 sentinel collided with a specified −1, making the §8.4.3.3.4 item 5c
+    /// EC-BOUND-REF-MOD (review C14 — a −1 sentinel collided with a specified −1, making the §2023:8.4.3.3.4 item 5c
     /// positive-nonzero violation structurally undetectable). Emitted by <c>PlaceRenderer.RmLen</c> for the
-    /// length-omitted ref-mod and by the INVOKE §14.8.2.2 rule-1 prefix splice.</summary>
+    /// length-omitted ref-mod and by the INVOKE §2023:14.8.2.2 rule-1 prefix splice.</summary>
     public const int OmittedRefModLength = int.MinValue;
 
     /// <summary>A SPECIFIED reference-modifier length, floored one above <see cref="OmittedRefModLength"/> so a
@@ -75,7 +75,7 @@ public static class CobolString
     /// (<see cref="Occurrence.AtLeast"/>), so the violation still names the length the program holds (kb/Work PB2938).</summary>
     public static Occurrence SpecifiedRefModLength(Occurrence length) => length.AtLeast(OmittedRefModLength + 1L);
 
-    /// <summary>⛔ THE ONE §8.4.3.3.4 item 5c range test, shared by the read (<see cref="RefMod"/>) and the write
+    /// <summary>⛔ THE ONE §2023:8.4.3.3.4 item 5c range test, shared by the read (<see cref="RefMod"/>) and the write
     /// (<see cref="SpliceInto"/>) — they were two copies. "leftmost … shall be 1..size; a SPECIFIED length shall
     /// be a positive nonzero integer, with leftmost+length-1 &lt;= size." The last conjunct is written as
     /// <c>length &gt; size - leftmost + 1</c>: the natural <c>leftmost + length - 1 &gt; size</c> OVERFLOWS for a
@@ -98,17 +98,17 @@ public static class CobolString
     private static void RefModViolation(Occurrence leftmost, Occurrence length, bool omitted, int size, string what) =>
         ExceptionState.RefModViolation(
             $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
-            + $"{size}-position {what} (ISO §8.4.3.3.4 item 5c)");
+            + $"{size}-position {what} (ISO §2023:8.4.3.3.4 item 5c)");
 
     /// <summary>A NUMERIC data item as a reference-modifier leftmost-position or length, decoded through the
-    /// item's own profile (ISO §8.4.3.3.4 rule 5)c); fix-queue PB41): "If the evaluation of leftmost-position or
+    /// item's own profile (ISO §2023:8.4.3.3.4 rule 5)c); fix-queue PB41): "If the evaluation of leftmost-position or
     /// length results in a non-integer value, a zero value, or a value that references a position outside the
-    /// area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist." §8.4.3.3.3 SR4 makes both
+    /// area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist." §2023:8.4.3.3.3 SR4 makes both
     /// positions arithmetic expressions, so a scaled numeric item is legal there and its VALUE — not its unscaled
     /// storage — is the ordinal position; the scale is the profile's <see cref="NumProfile.FractionDigits"/>.
     /// <para>The exact twin of <c>CobolTable.Occ(…, in NumProfile)</c> for the subscript position, differing ONLY
     /// in which Table 13 condition it names; the shared de-scale/integrality arithmetic is
-    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>, and the character-image arm is the SAME §14.6.13.2 rule 2
+    /// <c>CobolNum.HasFraction</c>/<c>PositionOf</c>, and the character-image arm is the SAME §2023:14.6.13.2 rule 2
     /// checked read (<see cref="CobolNum.ParseImageSending"/>): a position is item identification, which rule 1
     /// names as checked even inside a class condition (kb/Work PB1117 — the tolerant digit scan it replaced made
     /// EC-DATA-INCOMPATIBLE unreachable here and dropped a signed image's sign). Returns <c>long</c> because the
@@ -135,7 +135,7 @@ public static class CobolString
 
     /// <inheritdoc cref="RefModPosition(long, in NumProfile)"/>
     /// <remarks>Read as the UNSIGNED-WIDE value it is — never narrowed through <see cref="Int128"/> first, which a value
-    /// at or above 2^127 does not fit — so §8.4.3.3.4 rule 5)c)'s integrality and the position both see the value itself
+    /// at or above 2^127 does not fit — so §2023:8.4.3.3.4 rule 5)c)'s integrality and the position both see the value itself
     /// (the twin of <c>CobolTable.Occ(UInt128, in NumProfile)</c>: a scale that divides it back inside <c>long</c>'s range
     /// makes it a valid position, and a fraction is a violation whatever the magnitude).</remarks>
     public static Occurrence RefModPosition(UInt128 unscaled, in NumProfile item)
@@ -154,11 +154,11 @@ public static class CobolString
 
     private static void NotAnInteger(string shown) =>
         ExceptionState.RefModViolation(
-            $"reference-modification position {shown} is not an integer (ISO §8.4.3.3.4 item 5c)");
+            $"reference-modification position {shown} is not an integer (ISO §2023:8.4.3.3.4 item 5c)");
 
     /// <summary>A reference-modifier leftmost-position or length that is an arithmetic EXPRESSION (or a
     /// floating-point item), as the position it denotes — the statement pre-operation's intake, the exact twin of
-    /// <c>CobolTable.OccValue</c> differing only in the Table 13 condition it names (kb/Work PB1890). §8.4.3.3.4
+    /// <c>CobolTable.OccValue</c> differing only in the Table 13 condition it names (kb/Work PB1890). §2023:8.4.3.3.4
     /// rule 5)c): a leftmost-position or length whose evaluation "results in a non-integer value" sets
     /// EC-BOUND-REF-MOD, so the test reads the EXACT intermediate on its own carrier.
     /// <para>The result is the EXACT integer the 38-digit position temporary then holds
@@ -188,10 +188,10 @@ public static class CobolString
     }
 
     /// <summary>
-    /// Reference modification read (ISO §8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
+    /// Reference modification read (ISO §2023:8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
     /// <paramref name="leftmost"/> for <paramref name="length"/> characters (<see cref="OmittedRefModLength"/> = the
     /// omitted "to the end" form). ⛔ A VIOLATION NEVER RETURNS A SLICE: an out-of-range leftmost/length or a
-    /// zero-length result raises the fatal EC-BOUND-REF-MOD when checking is enabled (§14.6.13.1.1; §8.4.3.3.4,
+    /// zero-length result raises the fatal EC-BOUND-REF-MOD when checking is enabled (§2023:14.6.13.1.1; §2023:8.4.3.3.4,
     /// spec :7089) and TERMINATES the run unit when it is not — the owner's loud-abort rule for an outcome the
     /// standard names no answer for (kb/Work PB1707 part 2, R60), one rule for the read and the write
     /// (<see cref="SpliceInto"/>) through <see cref="RefModOutOfRange"/>. So past the range test the slice always
@@ -202,9 +202,9 @@ public static class CobolString
         s ??= "";
         int size = s.Length;
         bool omitted = length.Value == OmittedRefModLength;
-        // §8.4.3.3.4 (spec :7089), item 5c: leftmost shall be 1..size; a SPECIFIED length shall be a positive nonzero
+        // §2023:8.4.3.3.4 (spec :7089), item 5c: leftmost shall be 1..size; a SPECIFIED length shall be a positive nonzero
         // integer (a negative specified length is a violation regardless of the directive — REF-MOD-ZERO-LENGTH,
-        // §7.3.23, <paramref name="allowZeroLength"/>, relaxes ONLY the zero case, C14), with leftmost+length-1 <= size.
+        // §2023:7.3.23, <paramref name="allowZeroLength"/>, relaxes ONLY the zero case, C14), with leftmost+length-1 <= size.
         // For the OMITTED (to-the-end) form only the leftmost is range-checked.
         if (RefModOutOfRange(leftmost, length, size, omitted, allowZeroLength))
             RefModViolation(leftmost, length, omitted, size, "item");
@@ -215,7 +215,7 @@ public static class CobolString
 
     /// <summary>The ZERO-BASED offset of a reference modifier's leftmost position, for an operand that needs the POSITION
     /// and not the slice — <c>ADDRESS OF identifier-1(leftmost:length)</c>, whose address is that of the unique data item's
-    /// first position (ISO §8.4.3.11.4 GR1 over §8.4.3.3.4 GR5; kb/Work PB1407). ⛔ The range test is THE ONE
+    /// first position (ISO §2023:8.4.3.11.4 GR1 over §2023:8.4.3.3.4 GR5; kb/Work PB1407). ⛔ The range test is THE ONE
     /// <see cref="RefModOutOfRange"/> the read and the write spend, with the same outcome — the fatal EC-BOUND-REF-MOD
     /// when checking is enabled, the run unit's termination when it is not — so an address cannot be taken from a
     /// reference modifier that a read of the same reference would refuse. <paramref name="size"/> is identifier-1's
@@ -229,17 +229,17 @@ public static class CobolString
     }
 
     /// <summary>
-    /// Reference modification write (ISO §8.4.3.3 / §14.9.24): return <paramref name="dst"/> with the
+    /// Reference modification write (ISO §2023:8.4.3.3 / §2023:14.9.24): return <paramref name="dst"/> with the
     /// <paramref name="length"/> characters at 1-based <paramref name="leftmost"/> replaced by
     /// <paramref name="slice"/> (left-justified, <paramref name="pad"/>-filled, truncated to the slice length).
     /// <paramref name="dst"/>'s overall length is preserved; only the targeted positions change (editing is not
-    /// re-applied). A boolean receiver splices with boolean-zero fill (§14.6.8.6; §8.4.3.3 GR5a — a bit position
+    /// re-applied). A boolean receiver splices with boolean-zero fill (§2023:14.6.8.6; §2023:8.4.3.3 GR5a — a bit position
     /// IS a char index under D-B1). An out-of-range/zero-length ref-mod raises the fatal EC-BOUND-REF-MOD
-    /// (§8.4.3.3.4) when checking is enabled and TERMINATES the run unit when it is not — the same
+    /// (§2023:8.4.3.3.4) when checking is enabled and TERMINATES the run unit when it is not — the same
     /// <see cref="RefModOutOfRange"/> and the same outcome as the read (<see cref="RefMod"/>; kb/Work R60).
     /// <para><paramref name="repeat"/> makes <paramref name="slice"/> a FIGURATIVE SEED — one fill character, or
     /// the literal of <c>ALL literal-1</c> — repeated character by character over every position of the slice, the
-    /// §8.3.3.6.4 GR2 sizing against the reference-modified item (§8.4.3.3.4 GR5 makes it a data item whose length
+    /// §2023:8.3.3.6.4 GR2 sizing against the reference-modified item (§2023:8.4.3.3.4 GR5 makes it a data item whose length
     /// is known only here, at run time — kb/Work PB1655). It is <see cref="FigToWidth"/>'s rule applied in place,
     /// so a figurative stored into a slice and one sized against a fixed receiver cannot answer differently.</para>
     /// </summary>
@@ -249,8 +249,8 @@ public static class CobolString
         dst ??= ""; slice ??= "";
         int size = dst.Length;
         bool omitted = length.Value == OmittedRefModLength;
-        // §8.4.3.3.4 item 5c — a SPECIFIED length shall be positive nonzero; a zero-length receiving ref-mod is
-        // allowed only under REF-MOD-ZERO-LENGTH (§7.3.23), a negative specified length never is (C14); an
+        // §2023:8.4.3.3.4 item 5c — a SPECIFIED length shall be positive nonzero; a zero-length receiving ref-mod is
+        // allowed only under REF-MOD-ZERO-LENGTH (§2023:7.3.23), a negative specified length never is (C14); an
         // out-of-range leftmost/length still raises regardless of the directive. The OMITTED form range-checks only
         // the leftmost.
         if (RefModOutOfRange(leftmost, length, size, omitted, allowZeroLength))
@@ -267,7 +267,7 @@ public static class CobolString
     }
 
     /// <summary>⛔ A WINDOW THE COMPILER CHOSE, NOT A REFERENCE MODIFICATION THE PROGRAM WROTE (kb/Work PB1707,
-    /// R60). <see cref="RefMod"/> and <see cref="SpliceInto"/> are ISO §8.4.3.3's reference modification: a range
+    /// R60). <see cref="RefMod"/> and <see cref="SpliceInto"/> are ISO §2023:8.4.3.3's reference modification: a range
     /// violation there is EC-BOUND-REF-MOD and, with checking off, the end of the run unit. The runtime also slices
     /// character images at positions the COMPILER computes — a REDEFINES view over its class backing, an
     /// occurs-depending group's current extent, the prefix an INVOKE/CALL boundary splices back, the current record
@@ -305,10 +305,10 @@ public static class CobolString
     }
 
     /// <summary>
-    /// Compare two character values under COBOL rules (ISO §8.8.4.2): the shorter operand is treated as if
-    /// extended on the right with <paramref name="pad"/> — space for alphanumeric (§8.8.4.2.7) and national
-    /// (§8.8.4.2.9/.10, ordinal = the D-N3 default national collating sequence), boolean zero '0' for boolean
-    /// operands (§8.8.4.2.8 — value comparison, usage-independent under D-B1). Returns &lt;0, 0, or &gt;0 (ordinal).
+    /// Compare two character values under COBOL rules (ISO §2023:8.8.4.2): the shorter operand is treated as if
+    /// extended on the right with <paramref name="pad"/> — space for alphanumeric (§2023:8.8.4.2.7) and national
+    /// (§2023:8.8.4.2.9/.10, ordinal = the D-N3 default national collating sequence), boolean zero '0' for boolean
+    /// operands (§2023:8.8.4.2.8 — value comparison, usage-independent under D-B1). Returns &lt;0, 0, or &gt;0 (ordinal).
     /// </summary>
     public static int Compare(string? left, string? right, char pad = ' ')
     {
@@ -327,27 +327,27 @@ public static class CobolString
     /// Compare two character values under a NON-native collating sequence — the ONE <see cref="CobolCollation"/>
     /// carrier (kb/Work PB101): an <c>ALPHABET</c> literal-phrase table (alphanumeric or national) or a LOCALE-based
     /// sequence, each applying its own operand rule (the table arms space-extend, the locale arm truncates trailing
-    /// spaces — §8.8.4.2.7/.9/.11). The compiler emits <c>__COLLATE</c> / <c>__COLLATE_NAT</c> here; the native
+    /// spaces — §2023:8.8.4.2.7/.9/.11). The compiler emits <c>__COLLATE</c> / <c>__COLLATE_NAT</c> here; the native
     /// sequence is the two-argument overload above. Returns &lt;0, 0, or &gt;0.
     /// </summary>
     public static int Compare(string? left, string? right, CobolCollation collation) => collation.Compare(left, right);
 
     /// <summary>
     /// A relation condition in which EXACTLY ONE operand is a figurative constant or <c>ALL literal-1</c>
-    /// (kb/Work PB297). ISO §8.3.3.6.4 GR2 with its NOTE 1 — "A figurative constant is associated with a data
+    /// (kb/Work PB297). ISO §2023:8.3.3.6.4 GR2 with its NOTE 1 — "A figurative constant is associated with a data
     /// item or literal when, for example, the figurative constant is moved to it, COMPARED WITH IT, or paired
     /// with it in a binary operation" — sizes the figurative to "the number of character positions in the
-    /// ASSOCIATED data item", and §8.8.4.2.7 then compares the two.
+    /// ASSOCIATED data item", and §2023:8.8.4.2.7 then compares the two.
     /// <para>⛔ THE ASSOCIATED OPERAND'S CHARACTER-POSITION COUNT IS ITS OWN RUNTIME LENGTH, WHICH IS WHY THIS
-    /// SIZING IS A RUNTIME ONE. §8.4.3.3.4 GR5 makes a reference-modified operand "a unique data item" whose
+    /// SIZING IS A RUNTIME ONE. §2023:8.4.3.3.4 GR5 makes a reference-modified operand "a unique data item" whose
     /// positions are the ref-mod's, not the base item's — and with a computed leftmost-position/length that
     /// count does not exist at compile time at all. The compiler previously tabulated the width per operand
     /// KIND, which silently answered every <c>X(1:1) = LOW-VALUE</c> over a wider X with FALSE (the pad in
-    /// §8.8.4.2.7 rule 2 is a SPACE, so only SPACE-valued tests came out right).</para>
+    /// §2023:8.8.4.2.7 rule 2 is a SPACE, so only SPACE-valued tests came out right).</para>
     /// <para><paramref name="figIsLeft"/> says which side carries the figurative SEED (one fill character, or
     /// literal-1); the other side is the associated operand, rendered once by the caller. Both figurative and
     /// both non-figurative relations use plain <see cref="Compare(string?,string?,char)"/> instead — with two
-    /// figuratives there is no associated data item and §8.3.3.6.4 GR3 b/c gives each its OWN length.</para>
+    /// figuratives there is no associated data item and §2023:8.3.3.6.4 GR3 b/c gives each its OWN length.</para>
     /// </summary>
     public static int CompareFig(string? left, string? right, bool figIsLeft, char pad = ' ') =>
         figIsLeft ? Compare(FigToWidth(left ?? "", (right ?? "").Length), right, pad)
@@ -361,14 +361,14 @@ public static class CobolString
         figIsLeft ? collation.Compare(FigToWidth(left ?? "", (right ?? "").Length), right)
                   : collation.Compare(left, FigToWidth(right ?? "", (left ?? "").Length));
 
-    /// <summary>The ONE detail text for the §14.7.8 rule 2 raise — both THROUGH carriers (native here,
+    /// <summary>The ONE detail text for the §2023:14.7.8 rule 2 raise — both THROUGH carriers (native here,
     /// non-native on <see cref="CobolCollation"/>) describe the same condition, so they do not describe it
     /// twice.</summary>
     internal const string InvertedRange =
-        "the THROUGH range's starting value collates after its ending value — the range is empty (ISO §14.7.8 rule 2)";
+        "the THROUGH range's starting value collates after its ending value — the range is empty (ISO §2023:14.7.8 rule 2)";
 
     /// <summary>Membership of <paramref name="read"/> in the alphanumeric/national THROUGH range
-    /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §14.7.8; a level-88
+    /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §2023:14.7.8; a level-88
     /// VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/> collates AFTER <paramref name="hi"/> (rule 2)
     /// the nonfatal EC-RANGE-INVALID is set and the range is treated as EMPTY (returns false); otherwise the inclusive
     /// bound test. The "empty range" behaviour was already emergent from the inclusive test — this adds only the EC.</summary>
@@ -385,10 +385,10 @@ public static class CobolString
     /// <summary>The THROUGH membership of a range ONE OR BOTH OF WHOSE ENDS IS A FIGURATIVE SEED — the GR2-aware
     /// twin of <see cref="ThruMember(string?,string?,string?,char)"/>, standing to it exactly as
     /// <see cref="CompareFig(string?,string?,bool,char)"/> stands to <see cref="Compare(string?,string?,char)"/>.
-    /// <para>ISO §8.3.3.6.4 GR2 sizes a figurative to "the associated data item", and in a range test that item is
+    /// <para>ISO §2023:8.3.3.6.4 GR2 sizes a figurative to "the associated data item", and in a range test that item is
     /// the one being tested for membership — <paramref name="read"/> — for BOTH ends, because both ends are
-    /// compared against it (§14.9.13.4 GR4 a) 5.: "selection-subject &gt;= left-part AND selection-subject &lt;=
-    /// right-part"). The sizing runs BEFORE the §14.7.8 rule 2 inversion test, so <c>LOW-VALUE THRU HIGH-VALUE</c>
+    /// compared against it (§2023:14.9.13.4 GR4 a) 5.: "selection-subject &gt;= left-part AND selection-subject &lt;=
+    /// right-part"). The sizing runs BEFORE the §2023:14.7.8 rule 2 inversion test, so <c>LOW-VALUE THRU HIGH-VALUE</c>
     /// is weighed at the tested item's own width rather than one character against one character.</para>
     /// <para>⛔ IT LIVES HERE, NOT IN THE EMITTER (kb/Work PB401). The generated form would otherwise have to
     /// spell <c>FigToWidth(seed, (read).Length)</c> and evaluate <paramref name="read"/> a second time, and GR2's
@@ -411,12 +411,12 @@ public static class CobolString
     /// <inheritdoc cref="ThruMemberFig(string?,string?,string?,bool,bool,char)"/>
     /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
     /// sequence): GR2 materializes the figurative FIRST, exactly as <see cref="CompareFig(string?,string?,bool,CobolCollation)"/>
-    /// does, and §14.7.8 rule 2's sequence then orders the sized operands.</remarks>
+    /// does, and §2023:14.7.8 rule 2's sequence then orders the sized operands.</remarks>
     public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig,
         CobolCollation collation) =>
         collation.ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read));
 
-    /// <summary>ISO §8.3.3.6.4 GR2's materialization, applied only where the operand IS a figurative seed — the
+    /// <summary>ISO §2023:8.3.3.6.4 GR2's materialization, applied only where the operand IS a figurative seed — the
     /// ONE place the range carrier's two overloads ask it.</summary>
     private static string? SizedFig(string? seed, bool isFig, string? associated) =>
         isFig ? FigToWidth(seed ?? "", (associated ?? "").Length) : seed;

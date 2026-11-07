@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.4.5.4 GR2 a)-d) — two programs' agreeing EXTERNAL FDs (BLOCK, CODE-SET, LINAGE, record size) share one connector
-      *> RULE (§13.4.5.4 2), cite.py OK a) b) c) 1. c) 2. d)): "If the
+      *> ISO §2023:13.4.5.4 GR2 a)-d) — two programs' agreeing EXTERNAL FDs (BLOCK, CODE-SET, LINAGE, record size) share one connector
+      *> RULE (§2023:13.4.5.4 2), cite.py OK a) b) c) 1. c) 2. d)): "If the
       *> EXTERNAL clause is specified, all file description entries in the
       *> run unit that reference the same file connector as file-name shall
       *> obey the following rules: a) ... BLOCK CONTAINS ... same minimum
@@ -16,7 +16,7 @@
       *> smallest and largest record size." The rule binds the PROGRAMS;
       *> the observable obligation on the implementation is that a run
       *> unit that OBEYS it works: both FDs name ONE external file
-      *> connector (§13.18.22.4 4) a), 5): the externalized name is the FD
+      *> connector (§2023:13.18.22.4 4) a), 5): the externalized name is the FD
       *> name; cite.py OK). Main L1FDXMN and the separately described
       *> L1FDXSB both carry:
       *>   XF  BLOCK 2 RECORDS / RECORD 6 / LINAGE 20 (a literal, c) 1.) /
@@ -27,10 +27,10 @@
       *> b) is "the same CHARACTER SET", not the same alphabet-name: the
       *> main names STANDARD-1 L1FDX-STD, the sub names it L1FDX-ASC.
       *> DERIVATION:
-      *>  LINAGE-COUNTER is EXTERNAL (§13.4.5.4 3), cite.py OK), set to 1
-      *>  by OPEN OUTPUT and +1 per WRITE without ADVANCING (§13.18.34.4 7)
+      *>  LINAGE-COUNTER is EXTERNAL (§2023:13.4.5.4 3), cite.py OK), set to 1
+      *>  by OPEN OUTPUT and +1 per WRITE without ADVANCING (§2023:13.18.34.4 7)
       *>  d) and c) 3., cite.py OK). Two files have LINAGE, so every
-      *>  reference is qualified (§13.18.34.4 7) b), cite.py OK).
+      *>  reference is qualified (§2023:13.18.34.4 7) b), cite.py OK).
       *>  XF: main OPEN -> 1; main WRITE -> 2; sub WRITE -> 3:
       *>                                                    SUB LC=0003
       *>  ZF: main OPEN -> 1; main WRITE -> 2; sub WRITE -> 3:

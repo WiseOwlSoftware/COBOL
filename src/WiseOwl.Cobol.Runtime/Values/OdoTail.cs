@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// The OCCURS DEPENDING table a variable-length group holds as its TRAILING storage (kb/Work PB244, PB2497): ISO
-/// §13.18.38.3 SR22 lets the table's subject be followed within its record only by entries subordinate to it, so the
+/// §2023:13.18.38.3 SR22 lets the table's subject be followed within its record only by entries subordinate to it, so the
 /// table is the last thing of every group that contains it. ONE geometry serves both readers of it:
 /// <list type="bullet">
 /// <item>a CELL-BACKED group's window, which reserves the table at its MAXIMUM (<see cref="Max"/> elements of
@@ -31,13 +31,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// <param name="Lead">For a table counted in bits: how many bits of the fixed material before the table share the
 /// character that holds the table's first bit. Zero for a table counted in characters.</param>
 /// <param name="PositionsPerCharacter">The table's unit: 1 when <paramref name="Elem"/> counts characters, 8 when it
-/// counts BITS — a table of fixed-image elements under which a USAGE BIT item lies (kb/Work PB3030): ISO §8.5.1.6.3
+/// counts BITS — a table of fixed-image elements under which a USAGE BIT item lies (kb/Work PB3030): ISO §2023:8.5.1.6.3
 /// places a bit item "at the next bit position in storage", so an occurrence may share a byte and the table's
-/// characters are the CEILING of its bits (§15.50.4 rule 9). The compiler's <c>OdoModel.FixedImageTail</c> is the one
+/// characters are the CEILING of its bits (§2023:15.50.4 rule 9). The compiler's <c>OdoModel.FixedImageTail</c> is the one
 /// producer of a tail of this shape, from the one geometry <c>OdoModel.GeometryOf</c>.</param>
 /// <param name="Trailing">The filler, in the table's unit, that pads the LAST occurrence out to the stride
 /// <paramref name="Elem"/> — zero but for a table counted in bits whose occurrences stride whole bytes (an ALIGNED subject
-/// or member, ISO §13.18.1.4 GR2 "applies to each occurrence of that item"; kb/Work PB3156, PB3167). §8.5.1.6.3 generates
+/// or member, ISO §2023:13.18.1.4 GR2 "applies to each occurrence of that item"; kb/Work PB3156, PB3167). §2023:8.5.1.6.3 generates
 /// filler only "as needed to advance alignment to a required natural boundary for the next item", and the last
 /// occurrence has no next one, so the table ends <paramref name="Trailing"/> units short of its stride count. A table
 /// that begins inside a character (<paramref name="Lead"/> above zero) then ends a character earlier than the stride count
@@ -62,7 +62,7 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
     private int PerCharacter => PositionsPerCharacter > 1 ? PositionsPerCharacter : 1;
 
     /// <summary>How many trailing characters of the group's MAXIMUM image lie beyond <paramref name="count"/>
-    /// occurrences — the current extent of the group is its maximum image less this suffix (ISO §13.18.38.4 GR8:
+    /// occurrences — the current extent of the group is its maximum image less this suffix (ISO §2023:13.18.38.4 GR8:
     /// only the part the DEPENDING item names is used). A count outside 0..<see cref="Max"/> is clamped, as the
     /// declared group's <c>__odo</c> argument already is (<c>TableOdoExtent</c>, EC-BOUND-ODO).</summary>
     public int CutAt(int count) => Present ? Width - CharactersAt(Math.Clamp(count, 0, Max)) : 0;
@@ -76,23 +76,23 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
     /// <summary>The most <see cref="RecordUnit"/>s the table occupies in a record.</summary>
     public int RecordMaxUnits => PerCharacter == 1 ? Max : Width;
 
-    /// <summary>A receiving store's run when only <paramref name="count"/> occurrences are used (ISO §13.18.38.4 GR8 a:
+    /// <summary>A receiving store's run when only <paramref name="count"/> occurrences are used (ISO §2023:13.18.38.4 GR8 a:
     /// "only that part of the table area that is specified by the value of the data item referenced by data-name-1 at
     /// the start of the operation will be used"): <paramref name="received"/> up to the end of the first
     /// <paramref name="count"/> occurrences, <paramref name="current"/> from there on, so the remaining occurrences
     /// keep their content. Both strings are the same run, whose trailing <see cref="Width"/> characters hold the table
-    /// (§13.18.38.3 SR22). A table counted in bits is spliced at the bit (<see cref="CobolBits.WriteWindow"/>): its
+    /// (§2023:13.18.38.3 SR22). A table counted in bits is spliced at the bit (<see cref="CobolBits.WriteWindow"/>): its
     /// first unused occurrence may start inside a character.
     /// <para>⛔ WHAT A BIT TABLE'S SPLICE KEEPS IS THE UNUSED OCCURRENCES AND NOTHING ELSE (kb/Work PB3598).
-    /// No table of these groups is a CORRESPONDING table (§8.5.1.12.2: two tables correspond only when one of them is a
-    /// dynamic-capacity table), so §14.9.25.4 GR9 a) moves every character position, "the content of each character position
+    /// No table of these groups is a CORRESPONDING table (§2023:8.5.1.12.2: two tables correspond only when one of them is a
+    /// dynamic-capacity table), so §2023:14.9.25.4 GR9 a) moves every character position, "the content of each character position
     /// that is not occupied by a corresponding table", exactly as GR4 does. What the move leaves to the implementor is the
-    /// content of the occurrences past the count: §13.18.38.4 7) calls it "undefined" and 8) a) leaves those occurrences out
+    /// content of the occurrences past the count: §2023:13.18.38.4 7) calls it "undefined" and 8) a) leaves those occurrences out
     /// of the operation. The implementor's choice (the splice's choice since kb/Work PB3030, exercised by
     /// <c>pb3030_bit_odo_run_continuation</c>; the fixed-length lane makes the other one, GR4's whole characters) is that they stay the receiver's, from the first unused occurrence to the
     /// end of the table at its maximum extent
     /// (<see cref="CobolTable.TrimmedExtent"/>) or of the receiver's current characters, whichever ends first. The
-    /// implicit filler that completes the characters AFTER the maximum extent (§8.5.1.6.3 rule 4: "as needed to increase the
+    /// implicit filler that completes the characters AFTER the maximum extent (§2023:8.5.1.6.3 rule 4: "as needed to increase the
     /// number of bits to fill an integral number of characters") occupies no table, so when it lies inside the characters the
     /// receiver uses it is the SENDER's, exactly as a count at the maximum moves it: a splice that kept the receiver's bits
     /// all the way to the end dropped it at every smaller count. The characters past the current extent are the

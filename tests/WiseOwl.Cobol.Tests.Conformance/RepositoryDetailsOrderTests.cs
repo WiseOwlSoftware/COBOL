@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §12.3.8.4 GR10 / GR11 — where a REPOSITORY prototype's details come from (kb/Work PB989; DESIGN-external-
-/// repository §8.2, §8.3, slice 6): a definition "specified previously in the same compilation group" (a), else a
+/// ISO §2023:12.3.8.4 GR10 / GR11 — where a REPOSITORY prototype's details come from (kb/Work PB989; DESIGN-external-
+/// repository §2023:8.2, §2023:8.3, slice 6): a definition "specified previously in the same compilation group" (a), else a
 /// prototype definition in it (b), else the external repository (c), the whole search keyed by EXTERNALIZED name and
 /// run AS OF the referencing source element's position. The goldens <c>2002/pb989_*</c> and
 /// <c>negative/pb989-*</c> carry the run-time and rejection witnesses; these tests carry what a golden cannot state: a
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class RepositoryDetailsOrderTests
 {
     /// <summary>A function PROTOTYPE whose AS literal-1 differs from its word, a function DEFINITION that shares the
-    /// WORD but not the externalized name, and a caller between them. §11.5.4 GR2: literal-1 "is the name of the
+    /// WORD but not the externalized name, and a caller between them. §2023:11.5.4 GR2: literal-1 "is the name of the
     /// function prototype that is externalized to the operating environment", so the REPOSITORY entry
     /// <c>FUNCTION P989GONE</c> — which names the prototype — activates the function externalized "P989NOWHERE", and the
     /// following definition P989GONE (externalized "P989GONE") is not it: GR11 a) accepts only a definition "specified
@@ -58,7 +58,7 @@ public sealed class RepositoryDetailsOrderTests
         END FUNCTION P989GONE.
         """;
 
-    [Fact]   // GR11 b) + §11.5.4 GR2: the prototype's literal-1 is the activation key, never the following definition.
+    [Fact]   // GR11 b) + §2023:11.5.4 GR2: the prototype's literal-1 is the activation key, never the following definition.
     public void PrototypeLiteral_IsTheActivatedName_EvenWhenAFollowingDefinitionSharesItsWord()
     {
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(PrototypeWordSharedByAFollowingDefinition, 2002);
@@ -68,7 +68,7 @@ public sealed class RepositoryDetailsOrderTests
         Assert.Equal("BEFORE", stdout.Trim());
     }
 
-    /// <summary>The §8.4.6.7 / SR10 word reading and the GR11 externalized-name reading name two functions: a
+    /// <summary>The §2023:8.4.6.7 / SR10 word reading and the GR11 externalized-name reading name two functions: a
     /// definition externalized "P989W" (its word P989WX) and a definition P989W AS "P989Z". D-R3: GR11 a) wins and the
     /// compilation says so (COBOL2969).</summary>
     private const string TwoFunctionsOneWord = """
@@ -134,7 +134,7 @@ public sealed class RepositoryDetailsOrderTests
         Assert.Equal("0001", run.Stdout.Trim());
     }
 
-    [Theory]   // §10.6.2 SR3 PAIRS a prototype with a definition of its externalized name: one function, so nothing to report.
+    [Theory]   // §2023:10.6.2 SR3 PAIRS a prototype with a definition of its externalized name: one function, so nothing to report.
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
@@ -179,7 +179,7 @@ public sealed class RepositoryDetailsOrderTests
         EditionHarness.AssertNoDiagnostic(warnings, "COBOL2969");
     }
 
-    /// <summary>The CLASS arm of the same search: a class's REPOSITORY reaches every method (§12.3.4 GR1), and its
+    /// <summary>The CLASS arm of the same search: a class's REPOSITORY reaches every method (§2023:12.3.4 GR1), and its
     /// "previously" is the CLASS's start. The function is written before the class in one variant and after it in the
     /// other, and nothing else differs.</summary>
     private const string ClassNamingAFunction = """
@@ -230,7 +230,7 @@ public sealed class RepositoryDetailsOrderTests
             : ClassNamingAFunction + "\n" + FunctionForTheClass;
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2002);
         Assert.Equal(binds, ok);
-        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOL5962");   // REPO-1, §12.3.8.3 SR10 (kb/Work PB2103)
+        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOL5962");   // REPO-1, §2023:12.3.8.3 SR10 (kb/Work PB2103)
     }
 
     /// <summary>GR10 a)/b): a program definition BELOW the caller, a program prototype definition ahead of both.</summary>
@@ -281,7 +281,7 @@ public sealed class RepositoryDetailsOrderTests
     {
         // The prototype block is the first unit: drop it, keep the caller and the following definition. Arm c) — "the
         // details are taken from the external repository" — finds no assembly that publishes P989CALLEE (the
-        // compilation's output directory holds none), so ISO §12.3.8.3 SR14 is violated: REPO-1 at the specifier, and the
+        // compilation's output directory holds none), so ISO §2023:12.3.8.3 SR14 is violated: REPO-1 at the specifier, and the
         // CALL through the unregistered prototype is COBOL1760 (DESIGN-external-repository §8.2 step 4; kb/Work PB2103).
         const string Header = "IDENTIFICATION DIVISION.";
         string withoutPrototype = string.Concat(CallerBetweenPrototypeAndDefinition

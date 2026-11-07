@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1567 - COBOL-85's STRING statement closes every sending group with its DELIMITED phrase;
-      *> the omission ISO §14.9.43.3 SR9 permits ("The DELIMITED phrase may be omitted only immediately
+      *> the omission ISO §2023:14.9.43.3 SR9 permits ("The DELIMITED phrase may be omitted only immediately
       *> preceding the INTO phrase") is a later form. VCR row 7.31 states the derived edge. The first group is
       *> delimited and only the last omits its phrase, which is where the gate reports.
        IDENTIFICATION DIVISION.

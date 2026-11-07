@@ -6,10 +6,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.2 Format 4:  USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1}
-      *> — a brace group requiring exactly one of TWO alternatives.  §14.9.49.3 SR16 scopes the class arm and
+      *> ISO §2023:14.9.49.2 Format 4:  USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1}
+      *> — a brace group requiring exactly one of TWO alternatives.  §2023:14.9.49.3 SR16 scopes the class arm and
       *> SR17 the interface arm: "Interface-name-1 shall be the name of an interface specified in the REPOSITORY
-      *> paragraph."  §14.9.49.4 GR14 selects among them in TWO PASSES:
+      *> paragraph."  §2023:14.9.49.4 GR14 selects among them in TWO PASSES:
       *>   a) "If object-class-name-1 is specified and the exception object that was raised is a factory object
       *>      or instance object of object-class-name-1 or of a subclass of object-class-name-1, the associated
       *>      declarative is executed and no other declaratives are executed; otherwise, all of the USE
@@ -17,7 +17,7 @@
       *>   b) "If interface-name-1 is specified and the exception object that was raised is described with an
       *>      IMPLEMENTS clause that references interface-name-1, the associated declarative is executed and no
       *>      other declaratives are executed".
-      *> §11.8.4 GR2 defines "implements" for an instance object as a CLOSURE — the direct IMPLEMENTS, plus
+      *> §2023:11.8.4 GR2 defines "implements" for an instance object as a CLOSURE — the direct IMPLEMENTS, plus
       *> anything an implemented interface inherits, plus anything an inherited class implements.
       *>
       *> THE POINT OF THIS PROGRAM IS THE PASS BOUNDARY, which a single interleaved scan cannot honour.  The
@@ -31,9 +31,9 @@
       *> name a class of the compilation group" — SR16's diagnostic answering SR17's question — and pass b)
       *> had no code at all.
       *>
-      *> DERIVATION OF THE EXPECTED OUTPUT.  RAISE OY: §14.9.29.4 GR1 makes OY the exception object; §14.9.49.4 GR3 makes
+      *> DERIVATION OF THE EXPECTED OUTPUT.  RAISE OY: §2023:14.9.29.4 GR1 makes OY the exception object; §2023:14.9.49.4 GR3 makes
       *> Format 4 selection replace the F1/F3 tiers; GR14 a) finds CL-SEC (OY is an instance object of CY) and
-      *> "no other declaratives are executed" -> CLASS-CY.  A RAISE is not by itself fatal (§14.9.29.4 GR2), so
+      *> "no other declaratives are executed" -> CLASS-CY.  A RAISE is not by itself fatal (§2023:14.9.29.4 GR2), so
       *> control returns after it -> AFTER-1.  RAISE OX: GR14 a) finds no qualifying class entry (CX is neither
       *> CY nor a subclass of it), the USE statements are analyzed again, and GR14 b) finds IF-SEC because CX's
       *> OBJECT paragraph is described with IMPLEMENTS IZ -> IFACE, then AFTER-2.  Expected, in order:

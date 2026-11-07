@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR7 — "The INPUT, OUTPUT, I-O, and EXTEND phrases may each be specified
+      *> ISO §2023:14.9.49.3 SR7 — "The INPUT, OUTPUT, I-O, and EXTEND phrases may each be specified
       *> only once in the declaratives portion of a given procedure division." Two Format 1 USE
       *> statements in ONE declaratives portion each specify the INPUT phrase, so the INPUT
       *> phrase is specified twice and the source shall be rejected. SR7 is a FORMAT 1 rule and

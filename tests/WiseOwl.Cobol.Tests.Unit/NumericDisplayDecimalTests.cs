@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE DECIMAL DEVICE FORM OF A NUMERIC ITEM (kb/Work PB3505, owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item
+/// ⛔ THE DECIMAL DEVICE FORM OF A NUMERIC ITEM (kb/Work PB3505, owner decision PB3467; ISO §2023:14.9.11.4 GR1, Annex A.1 item
 /// 56 — docs/CONFORMANCE.md DOC-A.1-56). Every expected string is the form the owner chose, GnuCOBOL 3.2.0's
 /// default configuration, as its <c>cobc -x -std=default</c> printed it for the same declaration (the survey is in the
 /// DOC-A.1-56 determination), never read back from <c>CobolNum.DisplayDecimal</c>. One composition serves the native
@@ -118,7 +118,7 @@ public sealed class NumericDisplayDecimalTests
             CobolNum.DisplayDecimalU(18446744073709551615UL, Binary(18, 0, false, NumericTruncation.BinaryCapacity, 8), false));
     }
 
-    /// <summary>Content a group MOVE deposits in a numeric item's image is carried through as stored (§14.6.13.2: undefined,
+    /// <summary>Content a group MOVE deposits in a numeric item's image is carried through as stored (§2023:14.6.13.2: undefined,
     /// and a decode-and-reformat round trip would turn it into zeros); only the sign position is read.</summary>
     [Fact]
     public void An_image_carries_its_digit_positions_as_stored_and_decodes_only_the_sign()
@@ -140,7 +140,7 @@ public sealed class NumericDisplayDecimalTests
         Assert.Equal("+1234", CobolNum.DisplayDecimal("1234", ascii, false));
     }
 
-    // ── ACCEPT reads the form back (kb/Work PB3513; ISO §14.9.1.4 GR1; DOC-A.1-1) ─────────────────────────────────────
+    // ── ACCEPT reads the form back (kb/Work PB3513; ISO §2023:14.9.1.4 GR1; DOC-A.1-1) ─────────────────────────────────────
     // Every expected value is GnuCOBOL 3.2.0's own result for the same declaration and the same typed text
     // (cobc -x -std=default, measured 2026-10-23 over 1,300 receiver and text pairs; the survey is in DOC-A.1-1), as
     // an UNSCALED value: the PICTURE's digits with the scale implied. A character-form item is handed its own

@@ -7,15 +7,15 @@ namespace WiseOwl.Cobol.Runtime;
 /// COS / TAN (kb/Work PB999, PB1041; the periodic arm of the exact-intake bodies in <c>CobolIntrinsics.Float.cs</c>).
 /// </summary>
 /// <remarks>
-/// <para>ISO §15.82.4 r1 / §15.20.4 r1 / §15.89.4 r1 return "the approximation of the sine [cosine / tangent] of
+/// <para>ISO §2023:15.82.4 r1 / §2023:15.20.4 r1 / §2023:15.89.4 r1 return "the approximation of the sine [cosine / tangent] of
 /// argument-1", and argument-1 is an exact decimal: a scaled item, or an SDIDI whose range reaches 9.999…E+6144
-/// (§8.8.1.5.2). Narrowing it to binary64 FIRST answers for a different argument in two ways. (1) Past binary64's
+/// (§2023:8.8.1.5.2). Narrowing it to binary64 FIRST answers for a different argument in two ways. (1) Past binary64's
 /// range it answers for +∞, and even inside it the narrowing is an ABSOLUTE error of about |x|·2^−53, a whole period
 /// once |x| passes ~10^16. (2) Near ANY multiple of π/2 the function is ill-conditioned: sin, cos and tan there
 /// equal (plus or minus) the residue x − k·π/2 or its reciprocal, so an argument error of 10^−17 is the whole answer
 /// — SIN(3.14159265358979323) is 8.46·10^−18, and sin of its binary64 is 1.22·10^−16. So the residue is formed on
 /// the decimal itself, and only it is narrowed; the body then evaluates sin / cos / ±tan / −cot of a residue that
-/// carries binary64's RELATIVE precision, which is the §15.4.1 approximation.</para>
+/// carries binary64's RELATIVE precision, which is the §2023:15.4.1 approximation.</para>
 /// <para>⛔ ON AN Int128 FIXED POINT, NOT A WIDER TYPE (DESIGN §1.2 invariant 2 — no arbitrary-precision
 /// integer in the runtime value model). With c = 1/(2π) = 0.c₁c₂c₃… and |x| = Sig·10^Exp, the turn count |x|·c
 /// is congruent modulo 1 to Sig·g, where g = frac(10^Exp·c) is just c's digit string read from place Exp+1 (zeros
@@ -158,7 +158,7 @@ public static partial class CobolIntrinsics
         {
             if (p > InverseTwoPiDigits.Length)
                 throw new InvalidOperationException(
-                    $"quarter-turn reduction at 10^{n}: past the SDIDI range 9.999…E+6144 (ISO §8.8.1.5.2) that InverseTwoPiDigits covers");
+                    $"quarter-turn reduction at 10^{n}: past the SDIDI range 9.999…E+6144 (ISO §2023:8.8.1.5.2) that InverseTwoPiDigits covers");
             v = v * 10 + (p >= 1 ? InverseTwoPiDigits[p - 1] - '0' : 0);
         }
         return v;
@@ -166,7 +166,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>The first 6320 fractional digits of 1/(2π) = 0.15915494309189533576…: enough for
     /// <see cref="ReductionPlaces"/> places past every place an SDIDI digit can occupy (the largest is 10^6144,
-    /// §8.8.1.5.2). Re-derived independently by <c>InverseTwoPiDigitsDriftTests</c> (Unit).</summary>
+    /// §2023:8.8.1.5.2). Re-derived independently by <c>InverseTwoPiDigitsDriftTests</c> (Unit).</summary>
     internal const string InverseTwoPiDigits =
         "1591549430918953357688837633725143620344596457404564487476673440588967976342265350901138027662530859" +
         "5607284272675795803689291184611457865287796741073169983922923996693740907757307774639692530768871739" +

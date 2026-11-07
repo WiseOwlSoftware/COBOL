@@ -14,18 +14,18 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <item><b>Release phase.</b> <see cref="Add"/> appends to ONE in-memory chunk. A record that would take the chunk past
 /// the limit first SEALS it: a SORT sorts the chunk (<see cref="SortKeyColumns"/> decoded once per record; a tie keeps
 /// release order) and writes it as a RUN; a MERGE appends each USING stream's part of the chunk to that stream's run —
-/// a USING file is already ordered (§14.9.24.4 GR6). F runs of one level (<see cref="SortMemory.FanIn"/>) merge into
+/// a USING file is already ordered (§2023:14.9.24.4 GR6). F runs of one level (<see cref="SortMemory.FanIn"/>) merge into
 /// one run of the next level, always the LAST F, so only consecutive runs are ever merged and the run list stays in
 /// release order.</item>
 /// <item><b>Sequence phase</b> (<see cref="Sequence"/>). When nothing was written the chunk is sorted (SORT) or its
 /// streams merged (MERGE) IN MEMORY, so a file that fits pays no disk cost. Otherwise the last chunk is written too and
 /// runs are merged until at most F remain.</item>
 /// <item><b>Return phase.</b> <see cref="Next"/> reads a <see cref="SortMergeCursor"/> over the runs; <see cref="Rewind"/>
-/// restarts it, so each GIVING file receives the whole result (§14.9.40.4 GR15, §14.9.24.4 GR12).</item>
+/// restarts it, so each GIVING file receives the whole result (§2023:14.9.40.4 GR15, §2023:14.9.24.4 GR12).</item>
 /// </list>
 /// ⛔ ONE ORDERING RULE for every merge, in memory or on disk: the lowest key, and on equal keys the EARLIEST run. The
 /// runs are in release order (SORT) or input-file order (MERGE) and each is stable, so equal keys come back in the
-/// order §14.9.40.4 GR3 a)/b) (DUPLICATES IN ORDER) and §14.9.24.4 GR4 a)/b) require — whatever the limit.
+/// order §2023:14.9.40.4 GR3 a)/b) (DUPLICATES IN ORDER) and §2023:14.9.24.4 GR4 a)/b) require — whatever the limit.
 /// </summary>
 internal sealed class SortWork : IDisposable
 {
@@ -65,7 +65,7 @@ internal sealed class SortWork : IDisposable
     /// <summary>MERGE: one entry per USING stream (file-name-2, -3, … in statement order) — empty for a SORT.</summary>
     private readonly List<MergeStream> _streams = [];
 
-    /// <summary>MERGE: the §14.9.24.4 GR6 order check over the records as they arrive — two slots, the previous
+    /// <summary>MERGE: the §2023:14.9.24.4 GR6 order check over the records as they arrive — two slots, the previous
     /// record's and this one's, alternating.</summary>
     private SortKeyColumns? _orderCheck;
     private int _orderPrev = -1;
@@ -73,7 +73,7 @@ internal sealed class SortWork : IDisposable
     private SortMergeCursor? _output;
     private bool _sequenced;
 
-    /// <summary>A new, empty store for a statement with these keys and GR5 sequences (the §14.6.6 r5 snapshots).</summary>
+    /// <summary>A new, empty store for a statement with these keys and GR5 sequences (the §2023:14.6.6 r5 snapshots).</summary>
     public SortWork(SortMemory memory, CobolSort.Key[] keys, CobolCollation? collation, CobolCollation? national)
     {
         _memory = memory;
@@ -98,7 +98,7 @@ internal sealed class SortWork : IDisposable
         FrameOverheadBytes + (2L * (frame.Image?.Length ?? 0)) + _keyBytes
         + (frame.Extents is { } e ? 64 + (8L * e.Count) : 0);
 
-    /// <summary>MERGE: the records released from here on belong to the next USING stream (§14.9.24.4 GR4 b)).</summary>
+    /// <summary>MERGE: the records released from here on belong to the next USING stream (§2023:14.9.24.4 GR4 b)).</summary>
     public void NextStream()
     {
         _streams.Add(new MergeStream(_chunk.Count));
@@ -118,7 +118,7 @@ internal sealed class SortWork : IDisposable
         if (_chunkBytes > PeakResidentBytes) PeakResidentBytes = _chunkBytes;
     }
 
-    /// <summary>The sequence phase (§14.9.40.4 GR9 b) for a SORT, the merge operation of §14.9.24.4 for a MERGE): from
+    /// <summary>The sequence phase (§2023:14.9.40.4 GR9 b) for a SORT, the merge operation of §2023:14.9.24.4 for a MERGE): from
     /// here on <see cref="Next"/> returns the records in key order.</summary>
     public void Sequence()
     {
@@ -129,7 +129,7 @@ internal sealed class SortWork : IDisposable
     }
 
     /// <summary>The first record of each MERGE stream that is out of KEY order, as (stream ordinal, record number in the
-    /// stream), both 1-based — the §14.9.24.4 GR6 findings <see cref="CobolSort.Merge"/> raises when checking is
+    /// stream), both 1-based — the §2023:14.9.24.4 GR6 findings <see cref="CobolSort.Merge"/> raises when checking is
     /// enabled.</summary>
     public IEnumerable<(int Stream, long Record)> OrderViolations()
     {
@@ -200,7 +200,7 @@ internal sealed class SortWork : IDisposable
     }
 
     /// <summary>The chunk's records in key order: an index sort over keys decoded once per record, a tie broken by
-    /// release order — the stable sort §14.9.40.4 GR3 needs (and GR4's undefined order safely refined).</summary>
+    /// release order — the stable sort §2023:14.9.40.4 GR3 needs (and GR4's undefined order safely refined).</summary>
     private int[] SortedOrder()
     {
         int n = _chunk.Count;
@@ -270,7 +270,7 @@ internal sealed class SortWork : IDisposable
         }
     }
 
-    /// <summary>MERGE, §14.9.24.4 GR6: is the arriving record out of KEY order against the stream's previous record?
+    /// <summary>MERGE, §2023:14.9.24.4 GR6: is the arriving record out of KEY order against the stream's previous record?
     /// The first such record of each stream is remembered and raised by <see cref="CobolSort.Merge"/> when checking is
     /// enabled; the scan runs only while it is, as the merge's own check did.</summary>
     private void CheckOrder(in StoredFrame frame)
@@ -410,7 +410,7 @@ internal sealed class SortRun
 /// <summary>⛔ THE ONE MERGE of a SORT/MERGE statement's runs (kb/Work PB3339) — the cascade, the consolidation and the
 /// return phase all read through it. Each run's head record holds a slot of one <see cref="SortKeyColumns"/>, decoded
 /// once; <see cref="Next"/> takes the lowest head, and a STRICT less-than keeps an equal head from displacing an
-/// earlier run's (§14.9.24.4 GR4 a), and §14.9.40.4 GR3 for runs in release order). One run is read straight through,
+/// earlier run's (§2023:14.9.24.4 GR4 a), and §2023:14.9.40.4 GR3 for runs in release order). One run is read straight through,
 /// with no key decoded at all.</summary>
 internal sealed class SortMergeCursor
 {

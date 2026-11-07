@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE VARIABLE-LENGTH ACTIVATION-BOUNDARY DRIFT LOCK (kb/Work PB204).
-/// <para>ISO §14.8.2.2 and §14.8.3.2 ADMIT a variable-length group across a Format-2 CALL / CALL RETURNING /
+/// <para>ISO §2023:14.8.2.2 and §2023:14.8.3.2 ADMIT a variable-length group across a Format-2 CALL / CALL RETURNING /
 /// INVOKE boundary "subject to compatibility as described in 8.5.1.12". What made that admission a rejection
 /// for years was not a missing rule text but a PREDICATE: every boundary screen and emit guard asked
 /// <c>IsImageCapable</c>, which is false for such a group BY DEFINITION, so conforming source was refused.
@@ -64,7 +64,7 @@ public sealed class VariableLengthBoundaryDriftTests
     }
 
     /// <summary>⛔ THE ONE-WAY TWIN (kb/Work PB3358). A variable-length group holding a class pointer/object leaf
-    /// has the §14.9.11.4 GR7 DISPLAY format (A.1 item 57) but no §8.5.1.12 carrier, because the carrier's receiving
+    /// has the §2023:14.9.11.4 GR7 DISPLAY format (A.1 item 57) but no §2023:8.5.1.12 carrier, because the carrier's receiving
     /// side stores components back and the leaf's placeholder has no inverse. That is
     /// <c>CurrentExtentTransferImageCapable</c>: defined once, beside <c>CurrentExtentImageCapable</c>, over the SAME
     /// member law (<c>CurrentExtentComposes</c>, one definition with a <c>transfer</c> flag - never a second copy that
@@ -140,7 +140,7 @@ public sealed class VariableLengthBoundaryDriftTests
         // formal-group arms asked BoundaryImageCapable and VariableLengthCompatibility.Mismatch, is deleted (kb/Work
         // PB3101). Every activation and pair-mode question describes a group through ActivationDescriptions.Of, whose
         // variable-length arm asks CurrentExtentImageCapable before IsImageCapable — the two halves of
-        // BoundaryImageCapable — and the §8.5.1.12 compatibility is the run-time relation's walk
+        // BoundaryImageCapable — and the §2023:8.5.1.12 compatibility is the run-time relation's walk
         // (ActivationRelations.VariableLengthViolation over the descriptions' atoms).
         string oo = File.ReadAllText(TestRepo.At("src", "WiseOwl.Cobol.Compiler", "Oo", "OoConformance.cs"));
         Assert.Equal(0, CodeOccurrences(oo, "BoundaryImageCapable"));
@@ -155,7 +155,7 @@ public sealed class VariableLengthBoundaryDriftTests
         string relations = File.ReadAllText(
             TestRepo.At("src", "WiseOwl.Cobol.Runtime", "Control", "ActivationRelations.cs"));
         Assert.True(CodeOccurrences(relations, "VariableLengthViolation(") > 1,
-            "ActivationRelations no longer asks its §8.5.1.12 walk — a variable-length group pair would be judged by "
+            "ActivationRelations no longer asks its §2023:8.5.1.12 walk — a variable-length group pair would be judged by "
             + "length alone (kb/Work PB204, PB3101).");
 
         // CallEmitter: the stage guard that used to refuse the crossing outright.

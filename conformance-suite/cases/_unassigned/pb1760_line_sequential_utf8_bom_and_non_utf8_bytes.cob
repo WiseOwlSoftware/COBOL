@@ -19,14 +19,14 @@
       *>  R2 - X'E9' ALONE IS NOT UTF-8 (A LATIN-1 "e-ACUTE"). IT
       *>       FORMS NO CHARACTER, SO THE RECORD AREA HOLDS ONE OUTSIDE
       *>       THE LINE SEQUENTIAL CHARACTER SET: THE READ IS
-      *>       SUCCESSFUL WITH '09' (§14.9.30.4 GR16: "If the execution
+      *>       SUCCESSFUL WITH '09' (§2023:14.9.30.4 GR16: "If the execution
       *>       of the READ statement is successful but the record area
       *>       contains one or more characters not in the
       *>       implementor-defined character set for a line sequential
       *>       file, the I-O status in the read file connector is set
       *>       to '09'"). "caf" IS DELIVERED; POSITION 4 IS NOT U+00E9.
       *>  X2 - REWRITING THAT RECORD AREA IS '44': ITS 6 BYTES EXCEED
-      *>       THE 4-BYTE LINE IT REPLACES (§14.9.35.4 GR17 b), WHICH
+      *>       THE 4-BYTE LINE IT REPLACES (§2023:14.9.35.4 GR17 b), WHICH
       *>       IS TESTED BEFORE GR17 d)'s '71' (kb/Work PB2834).
       *>  R3 - THE NEXT LINE READS NORMALLY: "OK", '00'.
        ENVIRONMENT DIVISION.

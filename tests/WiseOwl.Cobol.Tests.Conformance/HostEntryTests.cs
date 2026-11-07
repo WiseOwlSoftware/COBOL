@@ -7,18 +7,18 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The host harness of DESIGN-external-repository §17.1 (kb/Work PB2099): a .NET host compiled against WiseOwl COBOL
-/// modules calls their generated host entries (§4.3), the .NET counterpart of a CALL statement. ISO/IEC 1989:2023
-/// §14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is other than a COBOL runtime
+/// modules calls their generated host entries (§2023:4.3), the .NET counterpart of a CALL statement. ISO/IEC 1989:2023
+/// §2023:14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is other than a COBOL runtime
 /// element, the implementor shall specify the restrictions and mechanisms for all supported language products"; the
 /// entry is that mechanism, and its restriction — a host value is landed only when the landing loses nothing — refuses
 /// a lossy value BEFORE anything is activated.
-/// <para>Each line the host prints is derived from the standard: §14.2.3 9) lands a BY CONTENT argument by "a COMPUTE
+/// <para>Each line the host prints is derived from the standard: §2023:14.2.3 9) lands a BY CONTENT argument by "a COMPUTE
 /// statement without the ROUNDED phrase" (cite.py OK), so 100.25 lands exactly and 1.234 into two fraction positions
-/// would lose a digit; §14.2.3 8) (cite.py OK) "operates as if the formal parameter occupies the same storage area as the
+/// would lose a digit; §2023:14.2.3 8) (cite.py OK) "operates as if the formal parameter occupies the same storage area as the
 /// argument", so the activated program's stores reach the host's variable and one variable passed twice is one storage;
-/// §14.9.4.4 11) (cite.py OK) makes an omitted OPTIONAL argument's omitted-argument condition true; WORKING-STORAGE keeps
-/// its last-used state across activations in one run unit until a CANCEL (§14.9.5); and a numeric content is decoded
-/// only when the class test NUMERIC (§8.8.4.4.4 3) n), cite.py OK) is true of it.</para>
+/// §2023:14.9.4.4 11) (cite.py OK) makes an omitted OPTIONAL argument's omitted-argument condition true; WORKING-STORAGE keeps
+/// its last-used state across activations in one run unit until a CANCEL (§2023:14.9.5); and a numeric content is decoded
+/// only when the class test NUMERIC (§2023:8.8.4.4.4 3) n), cite.py OK) is true of it.</para>
 /// <para>The non-COBOL element is real: a C# host compiled here with Roslyn against the modules and run as its own
 /// process (<see cref="NonCobolElement"/>).</para>
 /// </summary>
@@ -236,7 +236,7 @@ public sealed class HostEntryTests
     /// <summary>Programs with GROUP formals and RETURNING items, which a host passes as published record structs
     /// (DESIGN-external-repository §4.3's group rows): nested groups, fixed tables of leaves and of groups, FILLER, a
     /// REDEFINES view (no member), COMP-3 and COMP members; national and USAGE BIT members (two bit members share a
-    /// byte, §8.5.1.6.3); a validity witness; an OPTIONAL group; and a function whose RETURNING item is a group.</summary>
+    /// byte, §2023:8.5.1.6.3); a validity witness; an OPTIONAL group; and a function whose RETURNING item is a group.</summary>
     private const string GroupPrograms = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. H2REC.
@@ -411,8 +411,8 @@ public sealed class HostEntryTests
     /// <summary>A host passes and receives GROUPS as published record structs (DESIGN-external-repository §4.3): each
     /// member lands exactly into the record image at the place the activated program's description gives it, or the
     /// call is refused with the member named before anything is activated; the activated program's stores come back
-    /// through the record (§14.2.3 8), cite.py OK); FILLER content round-trips through <c>FromImage</c>/<c>AsImage</c>;
-    /// a record any numeric member of which fails the class test NUMERIC (§8.8.4.4.4 3) n), cite.py OK) is not decoded,
+    /// through the record (§2023:14.2.3 8), cite.py OK); FILLER content round-trips through <c>FromImage</c>/<c>AsImage</c>;
+    /// a record any numeric member of which fails the class test NUMERIC (§2023:8.8.4.4.4 3) n), cite.py OK) is not decoded,
     /// and the host's variable is unchanged.</summary>
     [Fact]
     public void AHost_PassesGroupsAsPublishedRecords_LandingEachMemberExactlyAndDecodingByTheValidityRule()
@@ -526,7 +526,7 @@ public sealed class HostEntryTests
 
     /// <summary>A host passes groups holding OCCURS DEPENDING ON tables (DESIGN-external-repository §4.3): a table counted
     /// by an item of the record is an array of the DEPENDING ON value's entries, "the current number of occurrences"
-    /// (ISO §13.18.38.4 7), cite.py OK), so an array of another length, or a count outside the table's bounds, is refused
+    /// (ISO §2023:13.18.38.4 7), cite.py OK), so an array of another length, or a count outside the table's bounds, is refused
     /// before anything is activated, and the write-back decodes as many entries as the activated program's count says;
     /// a table counted by an item outside the record is its whole area; a count the activated program left outside the
     /// bounds leaves the host's variable unchanged.</summary>
@@ -554,7 +554,7 @@ public sealed class HostEntryTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>Programs whose group formal and RETURNING item are VARIABLE-LENGTH groups (ISO §8.5.1.12): a dynamic-length
+    /// <summary>Programs whose group formal and RETURNING item are VARIABLE-LENGTH groups (ISO §2023:8.5.1.12): a dynamic-length
     /// item with a LIMIT, a dynamic-capacity table of numeric leaves with a minimum capacity, a dynamic-capacity table whose
     /// elements hold a dynamic-length item (a table of variable-length elements), and a fixed table whose occurrences hold
     /// one each; and a group whose OCCURS DEPENDING ON table follows a dynamic-length item, as its trailing storage. The
@@ -669,14 +669,14 @@ public sealed class HostEntryTests
         }
         """;
 
-    /// <summary>A host passes and receives VARIABLE-LENGTH groups (ISO §8.5.1.12; DESIGN-external-repository §4.3): the
+    /// <summary>A host passes and receives VARIABLE-LENGTH groups (ISO §2023:8.5.1.12; DESIGN-external-repository §4.3): the
     /// published record presents a dynamic-length item as a string and a dynamic-capacity table as an array of its current
     /// capacity, and crosses as the CALL lane's variable-length carrier of its description. Expected values, derived: a
-    /// dynamic-length item stored past its LIMIT is "truncated on the right as necessary" (§8.5.1.10.4), so "LONGER NAMES"
+    /// dynamic-length item stored past its LIMIT is "truncated on the right as necessary" (§2023:8.5.1.10.4), so "LONGER NAMES"
     /// returns as its first 10 characters and "abcdef" as its first 4; a store past a dynamic-capacity table's capacity
-    /// creates the occurrence (§8.5.1.9.3), so the tables return with 3 and 2 entries; a landing that would lose content —
+    /// creates the occurrence (§2023:8.5.1.9.3), so the tables return with 3 and 2 entries; a landing that would lose content —
     /// a string past the LIMIT, an array below the minimum capacity ("Integer-4 is the minimum capacity of the table",
-    /// §13.18.38.4 16)), a null array — is refused before anything is activated.</summary>
+    /// §2023:13.18.38.4 16)), a null array — is refused before anything is activated.</summary>
     [Fact]
     public void AHost_PassesVariableLengthGroups_AsTheCallLanesVariableLengthCarrier()
     {
@@ -748,8 +748,8 @@ public sealed class HostEntryTests
     /// elements as the CALL lane's carrier, whose components are images (CONFORMANCE.md A.1 items 57 and 63; kb/Work
     /// PB3441): the host's text lands as the item's UTF-16BE bytes and comes back decoded. Expected values, derived: the
     /// item holds two positions, so four bytes, and the group two (LK-ID) + four + two elements of four = 14
-    /// (§15.14.4 rule 6); the host's U+4E2D U+6587 and the table's "de" (U+0064 U+0065) are what the activated program
-    /// compares; it stores three positions (xyz) and a THIRD element ("lm"), which creates the occurrence (§8.5.1.9.3).</summary>
+    /// (§2023:15.14.4 rule 6); the host's U+4E2D U+6587 and the table's "de" (U+0064 U+0065) are what the activated program
+    /// compares; it stores three positions (xyz) and a THIRD element ("lm"), which creates the occurrence (§2023:8.5.1.9.3).</summary>
     [Fact]
     public void AHost_PassesANationalVariableLengthGroup_AsItsUtf16Image()
     {
@@ -827,8 +827,8 @@ public sealed class HostEntryTests
         """;
 
     /// <summary>A host passes a strongly-typed group whose pointer members ride managed slots (DESIGN-external-repository
-    /// §4.3's last host-type row): the record crosses as the CALL lane's cell area, so the activated program's formal
-    /// occupies that storage (ISO §14.2.3 8), cite.py OK) — its references as well as its characters — and the pointers
+    /// §2023:4.3's last host-type row): the record crosses as the CALL lane's cell area, so the activated program's formal
+    /// occupies that storage (ISO §2023:14.2.3 8), cite.py OK) — its references as well as its characters — and the pointers
     /// it sets come back to the host, which can pass them in again.</summary>
     [Fact]
     public void AHost_PassesAStrongGroupWithPointers_AsTheCellAreaOfItsReferences()
@@ -952,18 +952,18 @@ public sealed class HostEntryTests
         """;
 
     /// <summary>A host passes and receives a strongly-typed group that holds BOTH a variable-length component and references
-    /// (ISO §14.2.3 13): the entry restriction PB3273 once stated). The published record crosses as the CALL lane's cell area
+    /// (ISO §2023:14.2.3 13): the entry restriction PB3273 once stated). The published record crosses as the CALL lane's cell area
     /// (the references in their managed slots beside the dynamic-length item and the dynamic-capacity table's element
-    /// cells), and the activated program's formal is laid over it (§14.2.3 8)), so its stores are the host's and the pointers
+    /// cells), and the activated program's formal is laid over it (§2023:14.2.3 8)), so its stores are the host's and the pointers
     /// it sets come back and can be passed in again. Expected values, derived: a dynamic-length item stored past its LIMIT
-    /// is "truncated on the right as necessary" (§8.5.1.10.4), so "longer than ten" returns as its first 10 characters; a
-    /// store into occurrence 3 of a table of capacity 2 creates the occurrence (§8.5.1.9.3), whose members the store does
-    /// not name are first initialized under the INITIALIZED phrase (§8.5.1.9.5: "as though they had been the subject of a
+    /// is "truncated on the right as necessary" (§2023:8.5.1.10.4), so "longer than ten" returns as its first 10 characters; a
+    /// store into occurrence 3 of a table of capacity 2 creates the occurrence (§2023:8.5.1.9.3), whose members the store does
+    /// not name are first initialized under the INITIALIZED phrase (§2023:8.5.1.9.5: "as though they had been the subject of a
     /// statement of the form INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT": TT-N zero, TT-P null), so the table
     /// returns with 3 entries and TT-N(3) is 00 — which holds only when the host's table is created by the DESCRIPTION'S
     /// factory (the host's area is built from it), never by a space-filling one; ADD 1 raises TN each call (7, 8, 9); a landing that would lose content — a string past the LIMIT, an
-    /// array below the minimum capacity ("Integer-4 is the minimum capacity of the table", §13.18.38.4 16)) — is refused
-    /// before anything is activated. The RETURNING item is an area the activated program fills (§14.2.3 6) NOTE 1).</summary>
+    /// array below the minimum capacity ("Integer-4 is the minimum capacity of the table", §2023:13.18.38.4 16)) — is refused
+    /// before anything is activated. The RETURNING item is an area the activated program fills (§2023:14.2.3 6) NOTE 1).</summary>
     [Fact]
     public void AHost_PassesAStrongVariableLengthGroupWithReferences_AsTheCellAreaOfItsComponentsAndReferences()
     {
@@ -1084,10 +1084,10 @@ public sealed class HostEntryTests
 
     /// <summary>The cell area's nested arms round-trip (kb/Work PB3273): a subordinate group's dynamic-length item and
     /// pointer, and an element cell's nested dynamic-capacity table of pointers, cross into the activated program's formal
-    /// laid over the area (ISO §14.2.3 8)) and come back. Expected values, derived: "nested" stored into a LIMIT 4 item
-    /// returns as "nest" (§8.5.1.10.4, "truncated on the right as necessary"); the store into TT-TN (3, 2) creates
-    /// occurrence 3 of TT (§8.5.1.9.3), whose members the store does not name are initialized as INITIALIZE … TO VALUE
-    /// THEN TO DEFAULT under TT's INITIALIZED phrase (§8.5.1.9.5), so TT-B (3) is 77 and TT-TN (3, 1) is 5, and it creates
+    /// laid over the area (ISO §2023:14.2.3 8)) and come back. Expected values, derived: "nested" stored into a LIMIT 4 item
+    /// returns as "nest" (§2023:8.5.1.10.4, "truncated on the right as necessary"); the store into TT-TN (3, 2) creates
+    /// occurrence 3 of TT (§2023:8.5.1.9.3), whose members the store does not name are initialized as INITIALIZE … TO VALUE
+    /// THEN TO DEFAULT under TT's INITIALIZED phrase (§2023:8.5.1.9.5), so TT-B (3) is 77 and TT-TN (3, 1) is 5, and it creates
     /// TT-T (3, 2), whose TT-TN is the 7 stored; both pointers the program sets come back and are passed in again (the
     /// second activation reads through them). The RETURNING item's "abcd" stored into a LIMIT 3 item is "abc", and only
     /// TF-P (2) was set.</summary>
@@ -1178,7 +1178,7 @@ public sealed class HostEntryTests
     }
 
     /// <summary>kb/Work PB3586 (branch review R1-1): an ELEMENTARY <c>USAGE BIT</c> formal and RETURNING item cross the host
-    /// entry as their boolean POSITIONS (ISO §14.8.2.1's NOTE and §8.5.2.5, cite.py OK), never the storage occupancy
+    /// entry as their boolean POSITIONS (ISO §2023:14.8.2.1's NOTE and §2023:8.5.2.5, cite.py OK), never the storage occupancy
     /// <c>ceil(n/8)</c>: <c>PIC 1(8) USAGE BIT</c> is one storage character but eight positions, so a host lands eight
     /// positions into the formal (the width <c>HostLanding.LandText</c> checks), refuses nine, and reads back an
     /// eight-position RETURNING item; <c>PIC 1(12) USAGE BIT</c> is two storage characters and twelve positions.</summary>

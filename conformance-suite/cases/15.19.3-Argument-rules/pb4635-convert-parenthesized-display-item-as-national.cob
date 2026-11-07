@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-2 - ISO §15.19.3 r6: "When the source-format is NAT, argument-1 shall be a valid string of national characters."
+      *> PB4635 review R1-2 - ISO §2023:15.19.3 r6: "When the source-format is NAT, argument-1 shall be a valid string of national characters."
       *> (cite.py --check OK). BB is a usage display item, so CONVERT(BB NAT ANUM) is refused, and so is CONVERT((BB) NAT ANUM).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGCONVPARENDISP.

@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>kb/Work PB2839 — the C# identifier derived from a COBOL word is INJECTIVE (<see cref="DataItem.IdentifierCharacters"/>,
 /// and through it <see cref="DataItem.Sanitize"/>, <see cref="DataItem.WordIdentifier"/> and
 /// <see cref="CsNames.ModuleNamespaceOf"/>): two different words, or two different assembly names, never give one
-/// identifier. ISO §8.3.2.1 (cite.py OK): a COBOL word's characters are "basic letters, basic digits, extended letters, and
+/// identifier. ISO §2023:8.3.2.1 (cite.py OK): a COBOL word's characters are "basic letters, basic digits, extended letters, and
 /// the basic special characters hyphen and underscore", so <c>A-B</c> and <c>A_B</c> are two words; the mapping wrote
 /// both <c>A_B</c>, and two methods, properties or formals so named were one C# member (CS0111) — and modules
 /// <c>PAY-ROLL</c> and <c>PAY_ROLL</c> one namespace and one registrar, so the second module was skipped.</summary>
@@ -89,10 +89,10 @@ public sealed class IdentifierInjectivityTests
             ObjectRefDescriptor.ActiveClass(OoStandardClasses.BaseName, factory: true).ClrTypeName);
     }
 
-    /// <summary>kb/Work PB929 (Annex A.1 item 121, docs/CONFORMANCE.md DOC-A.1-121; ISO §11.7.4 GR1 a), "the name is
+    /// <summary>kb/Work PB929 (Annex A.1 item 121, docs/CONFORMANCE.md DOC-A.1-121; ISO §2023:11.7.4 GR1 a), "the name is
     /// implementor-defined"): the documented accessor name is <c>__GET_&lt;P&gt;</c> / <c>__SET_&lt;P&gt;</c>, <c>&lt;P&gt;</c> the
     /// upper-cased property-name written by <see cref="DataItem.IdentifierCharacters"/>, for EVERY legal property-name. A
-    /// name spelled like a C# keyword, or starting with a digit (a user-defined word needs one letter, ISO §8.3.2.2 3)), takes
+    /// name spelled like a C# keyword, or starting with a digit (a user-defined word needs one letter, ISO §2023:8.3.2.2 3)), takes
     /// neither <see cref="DataItem.Sanitize"/>'s <c>@</c> nor its leading underscore: the prefix makes both useless, and the
     /// digit arm's <c>__GET__1LONG</c> was not the name the determination documents (<c>__GET_1LONG</c>).</summary>
     [Theory]

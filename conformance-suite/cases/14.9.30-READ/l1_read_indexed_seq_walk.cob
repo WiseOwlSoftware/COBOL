@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR21 indexed rule e — the sequential walk when
+      *> ISO §2023:14.9.30.4 GR21 indexed rule e — the sequential walk when
       *> the previous operation was a successful READ and the key of
       *> reference is NOT a duplicate-permitting alternate (the prime
       *> key here).
@@ -29,7 +29,7 @@
       *> symmetrically, strictly less).
       *>
       *> Keys 01/02/03.  N1 is rule d.1 (the previous operation is the
-      *> OPEN; §14.9.27.4 GR14 sets the file position indicator to "the
+      *> OPEN; §2023:14.9.27.4 GR14 sets the file position indicator to "the
       *> characters that have the lowest ordinal position in the
       *> collating sequence associated with the file, and the prime
       *> record key is established as the key of reference", so the

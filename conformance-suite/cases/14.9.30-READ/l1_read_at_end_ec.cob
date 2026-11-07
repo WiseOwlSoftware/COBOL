@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR24 a) — "The I-O status of the file connector
+      *> ISO §2023:14.9.30.4 GR24 a) — "The I-O status of the file connector
       *> associated with file-name-1 is set to '10' to indicate the at
       *> end condition, and, if enabled, the EC-I-O-AT-END exception
       *> condition is set to exist."
@@ -14,9 +14,9 @@
       *> suppress "any other applicable exception processing
       *> statements", but a) sets the exception condition BEFORE c) is
       *> reached ("the following occurs IN THE ORDER SPECIFIED"), so the
-      *> condition exists even though nothing handles it.  §9.1.13.1
+      *> condition exists even though nothing handles it.  §2023:9.1.13.1
       *> supplies the status-to-condition correspondence for the '1x'
-      *> family.  §15.33.1: "The EXCEPTION-STATUS function returns an
+      *> family.  §2023:15.33.1: "The EXCEPTION-STATUS function returns an
       *> alphanumeric value that is the exception-name associated with
       *> the last exception status" — the observable for "set to exist".
       *> An implementation that set the EC only on the declarative path
@@ -45,7 +45,7 @@
            CLOSE F.
            OPEN INPUT F.
       *> A successful read: status '00' raises no exception condition
-      *> (§9.1.13.1 - only a non-zero second digit is EC-I-O-WARNING).
+      *> (§2023:9.1.13.1 - only a non-zero second digit is EC-I-O-WARNING).
            READ F AT END DISPLAY "R1-ATEND" END-READ.
            DISPLAY "R1=" F-ST.
       *> The at end read WITH the AT END phrase: GR24 a) sets the

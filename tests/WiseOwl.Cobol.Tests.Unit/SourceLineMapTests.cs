@@ -120,7 +120,7 @@ public sealed class SourceLineMapTests : IDisposable
         Assert.Equal("r.cob(1,18)", m.Slice(12, 2).LocateAt(0).ToString());   // a slice begun mid-line is rebased
     }
 
-    [Fact] // kb/Work PB3031: written text counts a CHARACTER POSITION per character (ISO §6.1 1) a)), not a UTF-16 unit
+    [Fact] // kb/Work PB3031: written text counts a CHARACTER POSITION per character (ISO §2023:6.1 1) a)), not a UTF-16 unit
     public void OriginWriter_WrittenTextWithSupplementaryCharacters_CountsOnePositionPerCharacter()
     {
         string wide = "\U0001000D\U0001000E";
@@ -171,7 +171,7 @@ public sealed class SourceLineMapTests : IDisposable
         int aIndex = Array.FindIndex(lines, l => l.Contains("01 A PIC"));
         Assert.Equal(5, m.Lines[aIndex].Origin.Line);           // the joined line keeps its head line
         // and IS joined — the short continued line read as space-filled to margin R, so positions 33–72 are part of
-        // the literal (§6.3.5 "any spaces at the end of the fixed-form continued line are part of the literal";
+        // the literal (§2023:6.3.5 "any spaces at the end of the fixed-form continued line are part of the literal";
         // DOC-A.1-157; kb/Work PB1491)
         Assert.Contains("\"abc" + new string(' ', 40) + "def\"", lines[aIndex]);
     }
@@ -203,7 +203,7 @@ public sealed class SourceLineMapTests : IDisposable
     [Fact]
     public void Replace_StatementLinesVanish_FollowingLinesKeepTheirSourceNumbers()
     {
-        // REPLACE is Step 3 of the merged text-manipulation driver (ISO §7.2.1), run over the expanded group.
+        // REPLACE is Step 3 of the merged text-manipulation driver (ISO §2023:7.2.1), run over the expanded group.
         var bag = new DiagnosticBag();
         var copy = new CopyProcessor([_dir], bag, dialectLevel: 2023, permissive: false);
         var m = ConditionalCompilationProcessor.ProcessWithCopyMapped(

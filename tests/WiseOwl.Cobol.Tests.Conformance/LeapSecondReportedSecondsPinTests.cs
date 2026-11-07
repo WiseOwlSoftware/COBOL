@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The REPORTED side of the <c>&gt;&gt;LEAP-SECOND</c> directive at RUN time (ISO/IEC 1989:2023 §7.3.17.4 GR2 / GR3,
+/// The REPORTED side of the <c>&gt;&gt;LEAP-SECOND</c> directive at RUN time (ISO/IEC 1989:2023 §2023:7.3.17.4 GR2 / GR3,
 /// Annex A.1 item 111), pinned at the one instant where a reported 60 could arise: the last representable tick before
 /// the 2016-12-31 leap second, 23:59:59.9999999, through the <c>WISEOWL_COBOL_CLOCK</c> seam.
 ///
@@ -15,19 +15,19 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// position of the value returned from" ACCEPT … TIME, CURRENT-DATE, FORMATTED-CURRENT-DATE and WHEN-COMPILED
 /// (cite.py --check 7.3.17.4 → OK 3)); GR1 makes OFF the implied state with no directive (→ OK 1)). GR2 — "When ON is
 /// specified or implied, the implementor defines whether a value greater than 59 may be reported" (→ OK 2)); ON is
-/// IMPLIED by a bare <c>&gt;&gt;LEAP-SECOND</c>, because §7.3.17.2 prints ON without an underline and §5.2.3 optional
+/// IMPLIED by a bare <c>&gt;&gt;LEAP-SECOND</c>, because §2023:7.3.17.2 prints ON without an underline and §2023:5.2.3 optional
 /// words are those "shown in uppercase and not underlined in general formats" (cite.py --check 5.2.3 → OK). A.1 item
 /// 111 requires the determination and its maximum (cite.py --check A.1 → OK 111)); docs/CONFORMANCE.md DOC-A.1-111
 /// answers NO, maximum 59, on every branch. So every arm below — ON specified, ON implied, OFF specified, OFF implied —
 /// has the same observable: second 59, never 60.</para>
 ///
 /// <para>Expected values are derived from the layout rules applied to the pinned instant, never copied from a run:
-/// ACCEPT TIME is HHMMSShh (§14.9.1.4 11)) → hours 23, minutes 59, seconds 59, and "hundredths of a second past the
+/// ACCEPT TIME is HHMMSShh (§2023:14.9.1.4 11)) → hours 23, minutes 59, seconds 59, and "hundredths of a second past the
 /// second, in the range 00 through 99" → 0.9999999 s past the second is 99 completed hundredths; CURRENT-DATE is the
-/// §15.21.3 1) 21-character layout with the same time fields and a zero UTC offset rendered '+' ("the same as or ahead
+/// §2023:15.21.3 1) 21-character layout with the same time fields and a zero UTC offset rendered '+' ("the same as or ahead
 /// of Coordinated Universal time") "00" "00"; FORMATTED-CURRENT-DATE("YYYYMMDDThhmmss") is the basic combined format
-/// (§15.3.3.7, §15.38.4 1)). A renderer that ROUNDED the sub-second tail, or carried it into the seconds field under ON
-/// (where §15.3.3.3 lets a formatted-time seconds subfield ARGUMENT be 60 — the side pb65_leap_second_on pins), would
+/// (§2023:15.3.3.7, §2023:15.38.4 1)). A renderer that ROUNDED the sub-second tail, or carried it into the seconds field under ON
+/// (where §2023:15.3.3.3 lets a formatted-time seconds subfield ARGUMENT be 60 — the side pb65_leap_second_on pins), would
 /// report 23:59:60 or roll to the next day; the determination says it never does.</para>
 ///
 /// <para>The fourth source, WHEN-COMPILED, is read by the COMPILER, not by the run unit this pin reaches; its pin is
@@ -104,7 +104,7 @@ public sealed class LeapSecondReportedSecondsPinTests
 
     [Fact]
     public void ReportedSeconds_ImpliedOn_BareDirective_LastTickBeforeLeapSecond_NeverExceeds59() =>
-        // GR2's "or implied" arm: a bare >>LEAP-SECOND selects the un-underlined ON (§7.3.17.2, §5.2.3).
+        // GR2's "or implied" arm: a bare >>LEAP-SECOND selects the un-underlined ON (§2023:7.3.17.2, §2023:5.2.3).
         AssertReportedSeconds("L1G4PIN", ">>LEAP-SECOND");
 
     [Fact]

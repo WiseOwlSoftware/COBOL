@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Runtime.Mcs;
 
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>A message in flight (docs/rearchitecture/DESIGN-message-control.md design 5.3): its image, its extent table (§4.4; null for a message with no
+/// <summary>A message in flight (docs/rearchitecture/DESIGN-message-control.md design 5.3): its image, its extent table (§2023:4.4; null for a message with no
 /// variable-length component) and its slots, each a <see cref="MessageTag"/> (SEND SR3 and RECEIVE SR2 refuse every other slot class at compile time).</summary>
 internal sealed record MessageBody(string Image, RecordExtents? Extents, object?[] Slots)
 {

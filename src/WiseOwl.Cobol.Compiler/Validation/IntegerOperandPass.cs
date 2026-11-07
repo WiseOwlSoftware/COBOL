@@ -13,7 +13,7 @@ using Core = CobolParserCore;
 /// <summary>What one <c>integer-n</c> operand position of a general format admits.</summary>
 internal enum IntegerSlotKind
 {
-    /// <summary>§5.5 1)'s default — "unsigned and nonzero". The unsigned half is the grammar's own shape
+    /// <summary>§2023:5.5 1)'s default — "unsigned and nonzero". The unsigned half is the grammar's own shape
     /// (<c>integerLiteral : INTEGERLIT</c>); the nonzero half is this pass.</summary>
     NonZero,
 
@@ -30,13 +30,13 @@ internal enum IntegerSlotKind
 /// <summary>One operand position's classification, and the rule (or reason) that decides it.</summary>
 internal readonly record struct IntegerSlot(IntegerSlotKind Kind, string Basis)
 {
-    internal static readonly IntegerSlot Default = new(IntegerSlotKind.NonZero, "ISO §5.5 1)");
+    internal static readonly IntegerSlot Default = new(IntegerSlotKind.NonZero, "ISO §2023:5.5 1)");
     internal static IntegerSlot Zero(string basis) => new(IntegerSlotKind.ZeroPermitted, basis);
     internal static IntegerSlot Not(string reason) => new(IntegerSlotKind.NotGoverned, reason);
 }
 
 /// <summary>
-/// ⛔ THE ONE SCREEN for ISO §5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and
+/// ⛔ THE ONE SCREEN for ISO §2023:5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and
 /// associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise
 /// specified in the associated rules." (kb/Work PB859.)
 ///
@@ -68,7 +68,7 @@ internal sealed class IntegerOperandPass(IDiagnosticSink sink) : CursorFollowing
             string where = IntegerOperandRules.ConstructName(ctx);
             Sink.Report(new EditionDiagnostic(DiagnosticCatalog.IntegerOperandZero.Code, EditionSeverity.Error,
                 DiagnosticCatalog.IntegerOperandZero.Id,
-                $"{where}: the integer operand {text} shall be nonzero — ISO §5.5 1): an integer-n \"shall be unsigned "
+                $"{where}: the integer operand {text} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned "
                 + "and nonzero unless otherwise specified in the associated rules\", and no rule of this format "
                 + "permits zero here", where, DiagnosticCatalog.IntegerOperandZero.IsoSection));
         }
@@ -84,7 +84,7 @@ internal sealed class IntegerOperandPass(IDiagnosticSink sink) : CursorFollowing
     }
 }
 
-/// <summary>The per-position exceptions to §5.5 1)'s NONZERO default, and nothing else (see
+/// <summary>The per-position exceptions to §2023:5.5 1)'s NONZERO default, and nothing else (see
 /// <see cref="IntegerOperandPass"/>).</summary>
 internal static class IntegerOperandRules
 {
@@ -107,12 +107,12 @@ internal static class IntegerOperandRules
         // ── IDENTIFICATION / ENVIRONMENT ────────────────────────────────────────────────────────────────────
         [typeof(Core.MemorySizeClauseContext)] = Nonzero,      // OBJECT-COMPUTER MEMORY SIZE integer (1985)
         [typeof(Core.SegmentLimitClauseContext)] = Nonzero,    // SEGMENT-LIMIT IS segment-number (1985)
-        [typeof(Core.FileReserveClauseContext)] = Nonzero,     // §12.4.5.14 RESERVE integer-1 AREAS
+        [typeof(Core.FileReserveClauseContext)] = Nonzero,     // §2023:12.4.5.14 RESERVE integer-1 AREAS
         [typeof(Core.MultipleFileTapeEntryContext)] = Nonzero, // I-O-CONTROL MULTIPLE FILE … POSITION (1985)
         [typeof(Core.RerunEveryContext)] = Nonzero,            // I-O-CONTROL RERUN EVERY integer RECORDS (1985)
         [typeof(Core.SymbolicCharacterEntryContext)] = All(IntegerSlot.Not(
             "SYMBOLIC CHARACTERS integer-1 is an ORDINAL whose range, one through the size of the character set, is "
-            + "§12.3.7.3 SR16's own rule, reported by SpecialNamesBinder.SwitchBindSymbolic")),
+            + "§2023:12.3.7.3 SR16's own rule, reported by SpecialNamesBinder.SwitchBindSymbolic")),
 
         // ── PROCEDURE DIVISION HEADERS ──────────────────────────────────────────────────────────────────────
         [typeof(Core.SectionDefinitionContext)] = All(IntegerSlot.Not(
@@ -122,25 +122,25 @@ internal static class IntegerOperandRules
             "the declarative section header's segment-number is the 1985 Segmentation module's priority-number")),
 
         // ── DATA DIVISION ───────────────────────────────────────────────────────────────────────────────────
-        [typeof(Core.BlockContainsClauseContext)] = Nonzero,   // §13.18.10 — nothing permits 0; SR1 orders them (FileControlBinder.BindBlockContainsClause)
+        [typeof(Core.BlockContainsClauseContext)] = Nonzero,   // §2023:13.18.10 — nothing permits 0; SR1 orders them (FileControlBinder.BindBlockContainsClause)
         [typeof(Core.RecordClauseContext)] = RecordClause,
-        [typeof(Core.LinageClauseContext)] = Nonzero,          // §13.18.34 integer-1
-        [typeof(Core.LinageFootingPhraseContext)] = Nonzero,   // §13.18.34 integer-2
-        [typeof(Core.LinageLinesAtTopPhraseContext)] = All(IntegerSlot.Zero("ISO §13.18.34.3 SR4")),
-        [typeof(Core.LinageLinesAtBottomPhraseContext)] = All(IntegerSlot.Zero("ISO §13.18.34.3 SR4")),
-        [typeof(Core.DynamicLengthClauseContext)] = Nonzero,   // §13.18.19 LIMIT IS integer-1
-        [typeof(Core.PictureLocalePhraseContext)] = Nonzero,   // §13.18.40 PICTURE … LOCALE … SIZE integer-1
-        [typeof(Core.OccursClauseContext)] = OccursBound,      // integer-1 / integer-2: a literal or a constant-name (§13.10.3 SR2)
-        [typeof(Core.OccursStepPhraseContext)] = Nonzero,      // §13.18.38 Format 3 STEP integer-3
+        [typeof(Core.LinageClauseContext)] = Nonzero,          // §2023:13.18.34 integer-1
+        [typeof(Core.LinageFootingPhraseContext)] = Nonzero,   // §2023:13.18.34 integer-2
+        [typeof(Core.LinageLinesAtTopPhraseContext)] = All(IntegerSlot.Zero("ISO §2023:13.18.34.3 SR4")),
+        [typeof(Core.LinageLinesAtBottomPhraseContext)] = All(IntegerSlot.Zero("ISO §2023:13.18.34.3 SR4")),
+        [typeof(Core.DynamicLengthClauseContext)] = Nonzero,   // §2023:13.18.19 LIMIT IS integer-1
+        [typeof(Core.PictureLocalePhraseContext)] = Nonzero,   // §2023:13.18.40 PICTURE … LOCALE … SIZE integer-1
+        [typeof(Core.OccursClauseContext)] = OccursBound,      // integer-1 / integer-2: a literal or a constant-name (§2023:13.10.3 SR2)
+        [typeof(Core.OccursStepPhraseContext)] = Nonzero,      // §2023:13.18.38 Format 3 STEP integer-3
         [typeof(Core.OccursDynamicPhraseContext)] = OccursDynamic,
 
         // ── REPORT WRITER ───────────────────────────────────────────────────────────────────────────────────
-        [typeof(Core.ReportPageClauseContext)] = Nonzero,      // §13.18.39.3 SR6 — "shall be greater than zero"
-        [typeof(Core.ReportPageWidthContext)] = Nonzero,       // integer-2 COLUMNS — §5.5 1) NONZERO default (SR6 lists integer-1 and 3–7)
+        [typeof(Core.ReportPageClauseContext)] = Nonzero,      // §2023:13.18.39.3 SR6 — "shall be greater than zero"
+        [typeof(Core.ReportPageWidthContext)] = Nonzero,       // integer-2 COLUMNS — §2023:5.5 1) NONZERO default (SR6 lists integer-1 and 3–7)
         [typeof(Core.ReportPageSubclauseContext)] = Nonzero,   // ditto
         [typeof(Core.ReportLineOperandContext)] = ReportLine,
-        [typeof(Core.ReportNextGroupClauseContext)] = Nonzero, // §13.18.37 NEXT GROUP integer-1 / PLUS integer-2
-        [typeof(Core.ReportColumnOperandContext)] = Nonzero,   // §13.18.14 Format 1 COLUMN integer-1 / PLUS
+        [typeof(Core.ReportNextGroupClauseContext)] = Nonzero, // §2023:13.18.37 NEXT GROUP integer-1 / PLUS integer-2
+        [typeof(Core.ReportColumnOperandContext)] = Nonzero,   // §2023:13.18.14 Format 1 COLUMN integer-1 / PLUS
 
         // ── SCREEN SECTION (Annex A.4.2 — declined, refused whole by COBOL1560) ──────────────────────────
         [typeof(Core.ScreenLineClauseContext)] = ScreenDeclined,
@@ -150,51 +150,51 @@ internal static class IntegerOperandRules
         [typeof(Core.ScreenPositionLegContext)] = ScreenDeclined,
 
         // ── STATEMENTS ──────────────────────────────────────────────────────────────────────────────────────
-        // §14.9.28 PERFORM integer-1 TIMES: GR9's "equal to zero or is negative" speaks only of identifier-1's
-        // run-time VALUE; no syntax rule otherwise-specifies integer-1, so the §5.5 default holds.
+        // §2023:14.9.28 PERFORM integer-1 TIMES: GR9's "equal to zero or is negative" speaks only of identifier-1's
+        // run-time VALUE; no syntax rule otherwise-specifies integer-1, so the §2023:5.5 default holds.
         [typeof(Core.PerformTimesContext)] = Nonzero,
-        [typeof(Core.WriteBeforeAfterContext)] = All(IntegerSlot.Zero("ISO §14.9.51.3 SR15")),
+        [typeof(Core.WriteBeforeAfterContext)] = All(IntegerSlot.Zero("ISO §2023:14.9.51.3 SR15")),
         [typeof(Core.SendAdvancingPhraseContext)] = All(IntegerSlot.Zero("ISO/IEC 1989:2002 A.2.6.2 SR6")),
         [typeof(Core.CdClauseContext)] = All(IntegerSlot.Default),   // DESTINATION TABLE OCCURS integer-1 (ISO/IEC 1989:2002 A.1.2.1)
     };
 
-    /// <summary>§13.18.43.2's three formats: Format 1 <c>RECORD CONTAINS integer-1</c>; Format 2 <c>RECORD IS
+    /// <summary>§2023:13.18.43.2's three formats: Format 1 <c>RECORD CONTAINS integer-1</c>; Format 2 <c>RECORD IS
     /// VARYING … [FROM integer-2] [TO integer-3]</c>; Format 3 <c>RECORD CONTAINS integer-4 TO integer-5</c>.
     /// Integer-2 (SR7) and integer-4 (SR8) "shall be greater than or equal to zero".</summary>
     private static IntegerSlot RecordClause(ParserRuleContext owner, ParserRuleContext op)
     {
         var rc = (Core.RecordClauseContext)owner;
         if (PrecededBy(owner, OperandOf(op), Core.TO)) return IntegerSlot.Default;   // integer-3 / integer-5
-        if (rc.VARYING() is not null) return IntegerSlot.Zero("ISO §13.18.43.3 SR7"); // integer-2
-        return rc.TO() is not null ? IntegerSlot.Zero("ISO §13.18.43.3 SR8")         // integer-4
+        if (rc.VARYING() is not null) return IntegerSlot.Zero("ISO §2023:13.18.43.3 SR7"); // integer-2
+        return rc.TO() is not null ? IntegerSlot.Zero("ISO §2023:13.18.43.3 SR8")         // integer-4
             : IntegerSlot.Default;                                                     // integer-1
     }
 
-    /// <summary>§13.18.38 OCCURS: in <c>integer-1 TO integer-2</c> integer-1 "shall be greater than or equal to
+    /// <summary>§2023:13.18.38 OCCURS: in <c>integer-1 TO integer-2</c> integer-1 "shall be greater than or equal to
     /// zero" (SR16); a lone bound is integer-2 and keeps the default.</summary>
     private static IntegerSlot OccursBound(ParserRuleContext owner, ParserRuleContext op) =>
         owner is Core.OccursClauseContext oc && oc.TO() is not null && oc.integerOperand(0) == OperandOf(op)
-            ? IntegerSlot.Zero("ISO §13.18.38.3 SR16")
+            ? IntegerSlot.Zero("ISO §2023:13.18.38.3 SR16")
             : IntegerSlot.Default;
 
-    /// <summary>§13.18.38 Format 4 (DYNAMIC): FROM integer-4 "shall be nonnegative" (SR28); TO integer-5 keeps the
+    /// <summary>§2023:13.18.38 Format 4 (DYNAMIC): FROM integer-4 "shall be nonnegative" (SR28); TO integer-5 keeps the
     /// default.</summary>
     private static IntegerSlot OccursDynamic(ParserRuleContext owner, ParserRuleContext op) =>
         ((Core.OccursDynamicPhraseContext)owner).FROM() is not null
-            ? IntegerSlot.Zero("ISO §13.18.38.3 SR28")
+            ? IntegerSlot.Zero("ISO §2023:13.18.38.3 SR28")
             : IntegerSlot.Default;
 
-    /// <summary>§13.18.35 LINE: integer-1 is an absolute line number (default); integer-2, written after PLUS, is a
+    /// <summary>§2023:13.18.35 LINE: integer-1 is an absolute line number (default); integer-2, written after PLUS, is a
     /// relative one and "may be zero" (SR3).</summary>
     private static IntegerSlot ReportLine(ParserRuleContext owner, ParserRuleContext op) =>
         ((Core.ReportLineOperandContext)owner).reportRelativeSign() is not null
-            ? IntegerSlot.Zero("ISO §13.18.35.3 SR3")
+            ? IntegerSlot.Zero("ISO §2023:13.18.35.3 SR3")
             : IntegerSlot.Default;
 
     /// <summary>⛔ EVERY grammar rule that may still spell a BARE <c>integerLiteral</c>, each with the REASON a constant-name
-    /// does not need the <c>integerOperand</c> rule there (kb/Work PB1948, completing PB1947). ISO §13.10.3 SR2 —
+    /// does not need the <c>integerOperand</c> rule there (kb/Work PB1948, completing PB1947). ISO §2023:13.10.3 SR2 —
     /// "constant-name-1 may be used anywhere that a format specifies a literal of the class and category of
-    /// constant-name-1" — makes every <c>integer-n</c> (§5.5 1)) a position a constant-name stands in, so a clause that
+    /// constant-name-1" — makes every <c>integer-n</c> (§2023:5.5 1)) a position a constant-name stands in, so a clause that
     /// prints an <c>integer-n</c> writes <c>integerOperand</c> and this table is where the exceptions are argued, never
     /// the default. <c>IntegerOperandSlotDriftTests</c> derives the rules that write a bare <c>integerLiteral</c> from the
     /// generated parser and holds them to THIS set in both directions: a new clause that forgets <c>integerOperand</c>
@@ -247,11 +247,11 @@ internal static class IntegerOperandRules
     /// <summary>⛔ The grammar rules whose <c>integer-n</c> is NOT bound into the compiler's model as an
     /// <see cref="int"/>, because its value is meaningful at any magnitude and is carried at full width:
     /// <list type="bullet">
-    /// <item>a statement's repeat count (§14.9.28 PERFORM integer-1 TIMES) and line count (§14.9.51 WRITE
+    /// <item>a statement's repeat count (§2023:14.9.28 PERFORM integer-1 TIMES) and line count (§2023:14.9.51 WRITE
     /// ADVANCING integer-1 LINES), carried to run time through the one narrowing
     /// <c>WiseOwl.Cobol.Runtime.HostInteger</c> (kb/Work PB1033);</item>
     /// <item>the DYNAMIC LENGTH clause's LIMIT integer-1, read as an <see cref="Int128"/> and bounded by
-    /// §8.5.1.10.1 ("The maximum size of a dynamic-length elementary item is smallest of") against the implementor maximum (kb/Work PB463).</item>
+    /// §2023:8.5.1.10.1 ("The maximum size of a dynamic-length elementary item is smallest of") against the implementor maximum (kb/Work PB463).</item>
     /// </list>
     /// Every other rule's operand is bound through <see cref="HostValue"/>. A rule added here must read its
     /// operand wide; <c>IntegerOperandSlotDriftTests</c> holds the set.</summary>
@@ -270,7 +270,7 @@ internal static class IntegerOperandRules
         && TryHostValue(operand.GetText(), out _, out bool saturated) && saturated;
 
     /// <summary>True when <paramref name="operand"/> sits in one of the <see cref="FullValueSlots"/> — the written
-    /// literal and the integer constant-name that stands for it (ISO §13.10.3 SR2) are both exempt from the host limit
+    /// literal and the integer constant-name that stands for it (ISO §2023:13.10.3 SR2) are both exempt from the host limit
     /// there.</summary>
     internal static bool IsFullValueSlot(ParserRuleContext operand) =>
         OwnerOf(operand) is { } owner && FullValueSlots.Contains(owner.GetType());
@@ -283,7 +283,7 @@ internal static class IntegerOperandRules
 
     /// <summary>The grammar rule that OWNS an <c>integer-n</c> operand — the clause whose general format prints it,
     /// which is what <see cref="Slots"/> classifies. An <c>integerOperand</c> is only the shared carrier of "a literal or
-    /// a constant-name" (§13.10.3 SR2) and never a clause of its own, so it is looked through.</summary>
+    /// a constant-name" (§2023:13.10.3 SR2) and never a clause of its own, so it is looked through.</summary>
     internal static ParserRuleContext? OwnerOf(ParserRuleContext operand) => OperandOf(operand).Parent as ParserRuleContext;
 
     /// <summary>⛔ THE ONE READER of an <c>integer-n</c> the binder keeps in its model (kb/Work PB1058). A value
@@ -294,7 +294,7 @@ internal static class IntegerOperandRules
     /// and <c>LINAGE 77777777777</c>.</summary>
     internal static int HostValue(Core.IntegerLiteralContext operand) => HostValue(operand.GetText());
 
-    /// <summary>⛔ THE ONE READER of a SPECIAL-NAMES ORDINAL too (ISO §12.3.7.3 SR14 b1/c1, SR16 e/f, SR17 b2/c2 — kb/Work
+    /// <summary>⛔ THE ONE READER of a SPECIAL-NAMES ORDINAL too (ISO §2023:12.3.7.3 SR14 b1/c1, SR16 e/f, SR17 b2/c2 — kb/Work
     /// PB1091): an unsigned integer literal naming a 1-based position in a character set is read through THIS, whether
     /// it is written as an <c>integerLiteral</c> (SYMBOLIC CHARACTERS integer-1) or as a numeric literal of an ALPHABET
     /// or CLASS literal phrase (whose digits <c>SpecialNamesBinder.IntegerLiteralDigits</c> extracts). The value SATURATES at
@@ -308,7 +308,7 @@ internal static class IntegerOperandRules
         TryHostValue(integerText, out int v) ? v : HostLimit;
 
     /// <summary>⛔ THE ONE READER of the TEXT of a COBOL integer literal — an optional sign and decimal digits
-    /// (§8.3.3.3.2: "An integer literal is a fixed-point numeric literal that contains no decimal point"; the
+    /// (§2023:8.3.3.3.2: "An integer literal is a fixed-point numeric literal that contains no decimal point"; the
     /// SIGNED forms a few operands admit) — reached from a token, a constant's integer text or an expression's
     /// source text rather than an <c>integerLiteral</c> node (kb/Work PB1579). It separates the two questions a
     /// bare <c>int.TryParse</c> conflated: "is this an integer literal?" (the return value) and "what is its value
@@ -380,11 +380,11 @@ internal static class IntegerOperandRules
     internal static string BeyondLimitMessage(string where, string subject) =>
         $"{where}: {subject} exceeds this implementation's limit of {HostLimit:N0} for an integer-n that sizes, "
         + "counts or positions something the compiler lays out (docs/CONFORMANCE.md §3 'Integer operands and host "
-        + "carriers'). ISO §4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of "
+        + "carriers'). ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of "
         + "a compilation group\" — the limits of an implementation";
 
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
-    /// does not name takes §5.5 1)'s default — the drift test keeps that from being silent.</summary>
+    /// does not name takes §2023:5.5 1)'s default — the drift test keeps that from being silent.</summary>
     internal static IntegerSlot Classify(ParserRuleContext operand) =>
         OwnerOf(operand) is { } owner && Slots.TryGetValue(owner.GetType(), out var classify)
             ? classify(owner, operand)

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <param name="Files">The files it declares (copybooks, data files), relative to the suite root.</param>
 /// <param name="Requires">The Annex A.4 modules and A.3 elements it needs.</param>
 /// <param name="Words">Its words that are none of the standard's at this edition (what a profile's extra reserved
-/// words are checked against, ISO §4.2.10).</param>
+/// words are checked against, ISO §2023:4.2.10).</param>
 /// <param name="Expect"><c>accept</c> or <c>flag</c>.</param>
 /// <param name="ImplementorDefined">An accepted test's Annex A.1 items whose value its output depends on.</param>
 /// <param name="ExpectedOutput">An accepted test's expected output per A.1 value key (<c>""</c> when it has none).</param>

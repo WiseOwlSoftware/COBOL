@@ -10,14 +10,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE SEARCH STATEMENT IS WRITTEN IN ONE OF ITS TWO PRINTED GENERAL FORMATS OR IT IS REFUSED AT COMPILE TIME
-/// (kb/Work PB446, PB444). ISO/IEC 1989:2023 §14.9.37.2, rendered from PDF page 750 / printed folio 720:
+/// (kb/Work PB446, PB444). ISO/IEC 1989:2023 §2023:14.9.37.2, rendered from PDF page 750 / printed folio 720:
 /// <c>SEARCH identifier-1 [VARYING …] [AT END imperative-statement-1] {WHEN condition-1 {imperative-statement-2 |
 /// NEXT SENTENCE}} … [END-SEARCH]</c> and <c>SEARCH ALL identifier-1 [AT END imperative-statement-1] WHEN …
-/// [AND …] … {imperative-statement-2 | NEXT SENTENCE} [END-SEARCH]</c>; §14.9.37.3 SR4 forbids END-SEARCH with
+/// [AND …] … {imperative-statement-2 | NEXT SENTENCE} [END-SEARCH]</c>; §2023:14.9.37.3 SR4 forbids END-SEARCH with
 /// NEXT SENTENCE. Every refused shape below COMPILED before — a KEY phrase no binder read, a second Format-2
 /// WHEN, an AT END NEXT SENTENCE, a NEXT SENTENCE beside another statement, and the SR4 pair, which was given a
 /// meaning — and every row is written behind a GO TO so the statement is never reached: the verdict is a
-/// COMPILE-TIME one (§4.2.2), never a run-time one.
+/// COMPILE-TIME one (§2023:4.2.2), never a run-time one.
 /// </summary>
 public sealed class SearchGeneralFormatShapeTests
 {
@@ -51,8 +51,8 @@ MAIN.
         "COBOL2269", "SEARCH ALL NOT AT END")]
     [InlineData("F", "    SEARCH E AT END NEXT SENTENCE WHEN K (IX) = 9 DISPLAY \"H\".", "COBOL2269", "NEXT SENTENCE:")]
     [InlineData("G", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE DISPLAY \"T\".", "COBOL2269", "NEXT SENTENCE:")]
-    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§14.9.37.3 SR4")]
-    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§14.9.37.3 SR4")]
+    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§2023:14.9.37.3 SR4")]
+    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§2023:14.9.37.3 SR4")]
     [InlineData("J", "    SEARCH E WHEN K (IX) = 9 DISPLAY \"N\" WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.",
         "COBOL2409", "SEARCH: the END-SEARCH phrase")]
     public void ShapeNoFormatPrints_IsRefusedAtCompileTime(string id, string body, string code, string text)
@@ -68,7 +68,7 @@ MAIN.
 
     /// <summary>The CONFORMING spellings next to each refusal, so a screen that refuses too much is red here:
     /// NEXT SENTENCE as the whole WHEN body with no END-SEARCH, in both formats; CONTINUE where NEXT SENTENCE is
-    /// forbidden; the AT-less AT END (AT is not underlined — §5.2.3); and IF Format 2's two NEXT SENTENCE arms.</summary>
+    /// forbidden; the AT-less AT END (AT is not underlined — §2023:5.2.3); and IF Format 2's two NEXT SENTENCE arms.</summary>
     [Theory]
     [InlineData("K", "    SEARCH E AT END DISPLAY \"N\" WHEN K (IX) = 3 NEXT SENTENCE.")]
     [InlineData("L", "    SEARCH ALL E AT END DISPLAY \"N\" WHEN K (IX) = 3 NEXT SENTENCE.")]

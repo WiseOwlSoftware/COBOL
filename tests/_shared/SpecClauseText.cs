@@ -27,8 +27,8 @@ internal static class SpecClauseText
         new(@"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(\s|$)", RegexOptions.Compiled);
 
     /// <summary>⛔ THE ONE SPELLING of a general-format heading's title, both nouns and both numbers (kb/Work PB284):
-    /// the standard heads 321 clauses "General format(s)", one "General forms" (§14.9.7.2) and one "General format."
-    /// with a period (§7.3.23.2). Four drift guards each wrote <c>General formats?</c> privately and all four skipped
+    /// the standard heads 321 clauses "General format(s)", one "General forms" (§2023:14.9.7.2) and one "General format."
+    /// with a period (§2023:7.3.23.2). Four drift guards each wrote <c>General formats?</c> privately and all four skipped
     /// the other two. Compose a pattern from this; the Python reader of the same question is
     /// <c>scripts/spec/spec_headings.py</c>; <c>CatalogCoverageDriftTests</c> fails when the C# is re-typed and
     /// <c>spec_headings.py --self-test</c> when a script re-types the Python.</summary>
@@ -89,7 +89,7 @@ internal static class SpecClauseText
     }
 
     /// <summary>The FORMAT heading each numbered rule of a region is printed under, keyed by rule number.
-    /// §13.18.43.3 and its kin divide their syntax rules with bare <c>ALL FORMATS</c> / <c>FORMAT 1</c> lines
+    /// §2023:13.18.43.3 and its kin divide their syntax rules with bare <c>ALL FORMATS</c> / <c>FORMAT 1</c> lines
     /// rather than with subheadings, and that division is NORMATIVE — it is what says SR3 is a Format 1 rule and
     /// SR4 a Format 2 rule. A table with a format column can therefore have that column re-derived from the
     /// standard instead of trusted.

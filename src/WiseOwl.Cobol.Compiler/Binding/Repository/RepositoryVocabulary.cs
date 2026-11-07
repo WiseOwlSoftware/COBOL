@@ -219,7 +219,7 @@ internal static class RepositoryVocabulary
     };
 
     /// <summary>A method's accessor mark (<c>OoMethodSymbol.Accessor</c>: 'G' for a get property method, 'S' for a set
-    /// property method, '\0' for an ordinary method; ISO §11.7.2).</summary>
+    /// property method, '\0' for an ordinary method; ISO §2023:11.7.2).</summary>
     public static RepositoryAccessor PersistedAccessor(char accessor) => accessor switch
     {
         '\0' => RepositoryAccessor.None,

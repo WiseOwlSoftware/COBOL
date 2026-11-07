@@ -349,7 +349,7 @@ jobs:
 
   # ── ⛔ THE STATIC AUDITS — ON EVERY MERGE GROUP, DOCS-ONLY LANDINGS INCLUDED, AND NOWHERE ELSE (kb/Work PB1574,
   # PB4330). A wrong clause number is
-  # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md
+  # the one defect class no test can fail on (`// MOVE (§2023:14.9.24)` compiles; §2023:14.9.24 is MERGE), so CLAUDE.md
   # rule 1 is enforced by these scripts and nothing else — and until PB1574 they ran only in the local gate
   # and battery phase -1. Every commit that never ran the local gate (a cloud registrar's, a golden lane's, any
   # docs-only landing) therefore reached main unaudited: FOURTEEN wrong or unqualified clause numbers did, and every

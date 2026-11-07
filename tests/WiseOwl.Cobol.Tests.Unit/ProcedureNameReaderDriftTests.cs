@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A <c>procedureName</c> PARSE NODE IS READ BY <c>ProcedureNameShape</c> AND NOWHERE ELSE (kb/Work PB4238, PB4277).
-/// The grammar's <c>procedureName</c> is <c>word ((OF | IN) word)?</c> (ISO §8.4.2.2.2 format 4 qualification), so
+/// The grammar's <c>procedureName</c> is <c>word ((OF | IN) word)?</c> (ISO §2023:8.4.2.2.2 format 4 qualification), so
 /// <c>GetText()</c> of the node glues the words — <c>P1 OF S1</c> reads <c>P1OFS1</c>. PB4238 gave the node one reader
 /// and said so in its doc; three consumers still called <c>GetText()</c> (the declaratives-boundary message, the
 /// RESUME AT message, and the header message), so the claim was false and two diagnostics quoted a name no source

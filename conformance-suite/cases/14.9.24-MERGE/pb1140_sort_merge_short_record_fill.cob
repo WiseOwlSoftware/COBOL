@@ -40,7 +40,7 @@
       *> with no RECORD clause is the implied Format 1, whose every record is the largest description's size, so a
       *> RELEASE of the short description would send the whole 6-byte area and nothing would be short (kb/Work PB322 F,
       *> docs/CONFORMANCE.md DOC-A.1-147). The range 2..6 sits inside the GIVING files' fixed 6 bytes (SR11), and the
-      *> key is SG-SHORT, the 2 bytes every record has (§14.9.40.3 SR6 g: a key lies within the SD's minimum size).
+      *> key is SG-SHORT, the 2 bytes every record has (§2023:14.9.40.3 SR6 g: a key lies within the SD's minimum size).
       *> A leg fails if the fill is the alphanumeric space everywhere
       *> (U1, G1, M1 wrong), the national space everywhere (G3, M1 wrong),
       *> or taken from the connector's any-national-record flag (G3 wrong).

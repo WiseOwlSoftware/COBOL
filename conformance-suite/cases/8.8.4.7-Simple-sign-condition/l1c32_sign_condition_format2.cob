@@ -5,22 +5,22 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.7.2 Format 2 — the standard-float sign condition: IS, NOT, 3 keywords
+      *> ISO §2023:8.8.4.7.2 Format 2 — the standard-float sign condition: IS, NOT, 3 keywords
       *>
-      *> THE FORMAT. §8.8.4.7.2 Format 2 (standard-float):
+      *> THE FORMAT. §2023:8.8.4.7.2 Format 2 (standard-float):
       *>   data-name-1 IS [ NOT ] { POSITIVE | NEGATIVE | ZERO }
-      *> §8.8.4.7.3 SR2: "Data-name-1 shall be the name of a single data item in the data
+      *> §2023:8.8.4.7.3 SR2: "Data-name-1 shall be the name of a single data item in the data
       *> division described with a standard floating-point usage, and that name shall not
       *> be enclosed in parentheses."
-      *> §8.8.4.7.4 GR2: a) POSITIVE true "if the sign of the content ... is positive";
+      *> §2023:8.8.4.7.4 GR2: a) POSITIVE true "if the sign of the content ... is positive";
       *> b) NEGATIVE true "if the sign of the content ... is negative"; c) ZERO true "if the
       *> content ... is a valid representation of the numeric value zero".
-      *>   cite.py: OK  §8.8.4.7.2   (General format)  [data-name-1 IS [NOT ] ...]
-      *>   cite.py: OK  §8.8.4.7.3 2)  (Syntax rules)
-      *>   cite.py: OK  §8.8.4.7.4 2)  (General rules)  [a), b), c) of GR2]
-      *> NOT: §8.8.4.10.1 "A condition is negated by use of the logical operator 'NOT',
+      *>   cite.py: OK  §2023:8.8.4.7.2   (General format)  [data-name-1 IS [NOT ] ...]
+      *>   cite.py: OK  §2023:8.8.4.7.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:8.8.4.7.4 2)  (General rules)  [a), b), c) of GR2]
+      *> NOT: §2023:8.8.4.10.1 "A condition is negated by use of the logical operator 'NOT',
       *> which reverses the truth value of the condition to which it is applied."
-      *>   cite.py: OK  §8.8.4.10.1   (General)
+      *>   cite.py: OK  §2023:8.8.4.10.1   (General)
       *> Directory 2014: FLOAT-BINARY-64 (a §3 standard floating-point usage) enters with
       *> ISO/IEC 1989:2014; Annex E records no 2014->2023 change to the sign condition.
       *> Only non-zero values are used, so no line depends on how a zero is signed (the

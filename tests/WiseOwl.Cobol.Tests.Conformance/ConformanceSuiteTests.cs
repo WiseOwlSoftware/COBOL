@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para><b>A row is red exactly where <c>run.py</c> is red with no baseline</b> (§5): on FAIL or NO VERDICT. NOT
 /// APPLICABLE is the profile speaking (a module WiseOwl does not claim; a flagged test whose control does not
 /// compile, which the control's own row reports as a FAIL), never a pass over a test that ran.</para>
-/// <para><b>A refusal</b> is WiseOwl's own stricter check, outside the compiler-neutral cases (§3.2): at each edition
+/// <para><b>A refusal</b> is WiseOwl's own stricter check, outside the compiler-neutral cases (§2023:3.2): at each edition
 /// its entry names, the ordinary compile (the warning mechanism not invoked) must refuse the source (the front end or
 /// the binder, never the backend, whose refusal is the compiler's own failure) and report the entry's code or message
 /// substring.</para>

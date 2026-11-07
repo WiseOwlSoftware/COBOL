@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.4 GR13 — REWRITE leaves the file position
+      *> ISO §2023:14.9.35.4 GR13 — REWRITE leaves the file position
       *> indicator where the preceding READ set it (sequential file;
       *> relative file in sequential and dynamic access).
       *> "The file position indicator in the rewrite file connector is
       *> not affected by the execution of a REWRITE statement."
-      *> cite.py: OK  §14.9.35.4 13)  (General rules)
-      *> cite.py: OK  §14.9.35.4 5)  (General rules) - sequential
+      *> cite.py: OK  §2023:14.9.35.4 13)  (General rules)
+      *> cite.py: OK  §2023:14.9.35.4 5)  (General rules) - sequential
       *>   access: the REWRITE replaces the record accessed by the READ
-      *> cite.py: OK  §14.9.30.4 21)  (General rules) - c) "If the file
+      *> cite.py: OK  §2023:14.9.30.4 21)  (General rules) - c) "If the file
       *>   position indicator was established by a prior successful
       *>   READ statement, the first existing record in the physical
       *>   file whose relative key number is greater than the file

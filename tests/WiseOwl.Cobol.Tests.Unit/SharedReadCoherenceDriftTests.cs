@@ -11,10 +11,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ALREADY REPLACED (kb/Work PB753) — the READ-side twin of <see cref="SharedExtendWriteDriftTests"/>'s
 /// write-side rule.
 ///
-/// <para><b>The derivation.</b> §14.9.35.4 GR4: <i>"The successful execution of the REWRITE statement releases a
-/// logical record to the operating environment."</i> §14.9.51.4 GR12 says the same of WRITE. §9.1.15 3) makes
+/// <para><b>The derivation.</b> §2023:14.9.35.4 GR4: <i>"The successful execution of the REWRITE statement releases a
+/// logical record to the operating environment."</i> §2023:14.9.51.4 GR12 says the same of WRITE. §2023:9.1.15 3) makes
 /// the concurrency legal: <i>"The sharing with all other mode allows concurrent access to a physical file
-/// through other file connectors specifying input, I-O, or extend mode."</i> And §14.9.30.4 GR21 c)/d) say what
+/// through other file connectors specifying input, I-O, or extend mode."</i> And §2023:14.9.30.4 GR21 c)/d) say what
 /// the reader then owes — the record selected is <i>"the first existing record in the physical file whose
 /// relative key number is greater than the file position indicator if NEXT is specified or implied"</i>, and
 /// that record <i>"is made available in the record area associated with file-name-1"</i>. The physical file, at
@@ -51,11 +51,11 @@ public sealed class SharedReadCoherenceDriftTests
         /// <summary>SHARING WITH ALL OTHER + LOCK MODE IS MANUAL.</summary>
         AllOtherClause,
 
-        /// <summary>A LOCK MODE clause and no SHARING clause — §9.1.15's implementor default of the open mode.</summary>
+        /// <summary>A LOCK MODE clause and no SHARING clause — §2023:9.1.15's implementor default of the open mode.</summary>
         LockModeOnly,
 
         /// <summary>Neither clause. <c>FileConnector.SharedPhysical</c> is NULL for such a connector (it sets no
-        /// record locks — §12.4.5.9.4 GR1 b) 2.), which is exactly why the release generation had to be reachable
+        /// record locks — §2023:12.4.5.9.4 GR1 b) 2.), which is exactly why the release generation had to be reachable
         /// through <c>FileConnector.Physical</c> instead: the read-coherence rule is a rule about the medium, not
         /// about record locking (kb/Work PB740 widened the reach, PB753 covers it).</summary>
         NoClause,
@@ -125,7 +125,7 @@ public sealed class SharedReadCoherenceDriftTests
         reg.RewriteShared(name, image, -1, FileRecordLock.None, FileRetryKind.None, 0);
 
     /// <summary>Four printable characters per record, so LINE SEQUENTIAL's trailing-space trim cannot make the
-    /// physical span depend on the value (§14.9.35.4 GR17 c) rewrites within the replaced record's span).</summary>
+    /// physical span depend on the value (§2023:14.9.35.4 GR17 c) rewrites within the replaced record's span).</summary>
     private static string Rec(int n) => $"R{n % 1000:000}";
 
     private static void Seed(FileRegistry reg, string host, SharedExtendOpenDriftTests.Framing framing, int count)
@@ -141,13 +141,13 @@ public sealed class SharedReadCoherenceDriftTests
     // ── THE DEFECT: a sibling's REWRITE, over every framing and every sharing spelling ────────────────────────
 
     /// <summary>The reported shape, generalised. A reader that has already taken record 1 (and therefore filled
-    /// its read-ahead) must see the record a sibling I-O connector REWRITEs at a later ordinal — §14.9.35.4 GR4
-    /// put it in the physical file and §14.9.30.4 GR21 c)/d) select it FROM the physical file.
+    /// its read-ahead) must see the record a sibling I-O connector REWRITEs at a later ordinal — §2023:14.9.35.4 GR4
+    /// put it in the physical file and §2023:14.9.30.4 GR21 c)/d) select it FROM the physical file.
     /// <para>The rewritten ordinal is inside the reader's read-ahead in every framing, which is what makes the
     /// measurement about the buffer and not about the file.</para>
     /// <para>⛔ AND THE SEQUENCE IS NOT THE REPORTED ONE, BECAUSE THE REPORTED ONE CANNOT MEASURE THIS IN EVERY
     /// SPELLING. <c>FileRegistry.SyncHostPostures</c> calls <c>FileConnector.Reposture</c> on every OTHER
-    /// connector whenever the §9.1.15 union over the physical file CHANGES, and the sequential connector
+    /// connector whenever the §2023:9.1.15 union over the physical file CHANGES, and the sequential connector
     /// implements a reposture by REBUILDING its handle at the logical offset — which throws the read-ahead away
     /// as a side effect. For <see cref="ReaderSpelling.AllOtherClause"/> the union is already
     /// <c>FileShare.ReadWrite</c> and nothing moves, but for the two default spellings it WOULD widen at
@@ -208,7 +208,7 @@ public sealed class SharedReadCoherenceDriftTests
     /// <para>This is also the leg that keeps the CLOSE-FIRST ordering measured: the sibling closes before the
     /// reader reads again, which is the shape the defect was reported in. It is pinned to
     /// <see cref="ReaderSpelling.AllOtherClause"/> for the reason
-    /// <see cref="ASiblingsRewriteIsVisibleToAnAlreadyReadingConnector"/> gives — that spelling's §9.1.15 union
+    /// <see cref="ASiblingsRewriteIsVisibleToAnAlreadyReadingConnector"/> gives — that spelling's §2023:9.1.15 union
     /// is already <c>FileShare.ReadWrite</c>, so no reposture fires at the sibling's open or close and the
     /// stale buffer is still there to be caught.</para></summary>
     [Theory]
@@ -284,7 +284,7 @@ public sealed class SharedReadCoherenceDriftTests
     /// <summary>The APPEND control, measured on the PB739 tree and recorded in the note so a later reader does
     /// not widen this defect to a shape that was checked and is correct: a record a sibling adds after the
     /// reader has consumed everything IS delivered — a reader can only have buffered what existed. Re-measured
-    /// here because the invalidation now fires on an append too (§14.9.51.4 GR12 is a release), and firing
+    /// here because the invalidation now fires on an append too (§2023:14.9.51.4 GR12 is a release), and firing
     /// must not cost the record.</summary>
     [Theory]
     [MemberData(nameof(SiblingShapes))]
@@ -528,7 +528,7 @@ public sealed class SharedReadCoherenceDriftTests
     /// ANY posture. This was proved, not assumed — with the generation in place and the read handle still
     /// 4096-byte buffered, a sibling's REWRITE was STILL invisible, because <see cref="FileStream.Seek"/> reuses its
     /// read buffer when the target offset falls inside it (kb/Work PB753). The one buffer the connector keeps is
-    /// sized in ONE place, <c>HostFile.InputOutputAreaBuffer</c>, from the RESERVE clause's count (ISO §12.4.5.14.3
+    /// sized in ONE place, <c>HostFile.InputOutputAreaBuffer</c>, from the RESERVE clause's count (ISO §2023:12.4.5.14.3
     /// GR1, kb/Work PB643): the sequential reader and writer and the keyed connectors' areas all ask it, so a role
     /// that spelled its own size would be a connector whose RESERVE clause does nothing again. The keyed store handle
     /// is unbuffered too, and both keyed organizations' areas are the keyed store engine's page cache floor, one page
@@ -588,7 +588,7 @@ public sealed class SharedReadCoherenceDriftTests
     }
 
     /// <summary>The read-coherence rule is a rule about the MEDIUM, so its state reaches EVERY connector —
-    /// including the clause-less pair kb/Work PB740 admitted, for which <c>SharedPhysical</c> (the §9.1.16
+    /// including the clause-less pair kb/Work PB740 admitted, for which <c>SharedPhysical</c> (the §2023:9.1.16
     /// record-locking view) is null. One writer sets both, so they cannot fall out of step.</summary>
     [Fact]
     public void ThePhysicalStateReachesEveryConnectorAndTheLockingViewIsDerived()

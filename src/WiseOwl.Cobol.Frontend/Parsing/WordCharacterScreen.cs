@@ -11,9 +11,9 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Parsing;
 
 /// <summary>
-/// ⭐ THE CHARACTER HALF OF ISO §8.3.2.1, ASKED OF EVERY WORD THE LEXER PRODUCED — before, and whether or not, the parse
-/// succeeds (kb/Work PB3845). §8.3.2.1: "Each character of a COBOL word … shall be selected from the set of basic
-/// letters, basic digits, extended letters, and the basic special characters hyphen and underscore"; §8.1.3.2 GR4 makes
+/// ⭐ THE CHARACTER HALF OF ISO §2023:8.3.2.1, ASKED OF EVERY WORD THE LEXER PRODUCED — before, and whether or not, the parse
+/// succeeds (kb/Work PB3845). §2023:8.3.2.1: "Each character of a COBOL word … shall be selected from the set of basic
+/// letters, basic digits, extended letters, and the basic special characters hyphen and underscore"; §2023:8.1.3.2 GR4 makes
 /// the extended letters Annex B less the basic characters, and Annex B.3 places each one (anywhere, not first, medial).
 /// <list type="bullet">
 /// <item>the underscore is a COBOL-2002 introduction (<see cref="Constructs.UserWordUnderscore2002"/>; the '85 set is
@@ -42,17 +42,17 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// tree names (<see cref="CobolParserCore.CommentEntryContext"/>). The directive stages ask the same rule of the
 /// words they scan themselves (<see cref="CobolWordRule.DirectiveWordViolations"/>): a directive is removed from the
 /// text before the lexer runs.</para>
-/// <para>⛔ A HYPHEN AT A WORD'S EDGE IS THE ONE CHARACTER THE LEXER CANNOT GIVE ITS WORD (kb/Work PB4278). §8.3.1: "A
-/// character-string is delimited by separators", and the hyphen is no separator (§8.3.5), so <c>A-</c> and <c>-A</c> are
+/// <para>⛔ A HYPHEN AT A WORD'S EDGE IS THE ONE CHARACTER THE LEXER CANNOT GIVE ITS WORD (kb/Work PB4278). §2023:8.3.1: "A
+/// character-string is delimited by separators", and the hyphen is no separator (§2023:8.3.5), so <c>A-</c> and <c>-A</c> are
 /// each ONE character-string, a COBOL word whose first or last character is a hyphen. But <c>-</c> is also the special
 /// character word of the arithmetic minus, and the lexer cannot tell <c>A -B</c>, a subtraction written without its second
 /// space, from <c>DISPLAY A -B</c>, a word <c>-B</c>: only the parse knows whether that hyphen is an operator. So the lexer
 /// splits it (IDENTIFIER, MINUS) and this screen joins it back: a run of ADJACENT tokens (no separator between them) that
 /// are all word characters and hold a MINUS is one word, the run's text, judged by the same rule as every other word.
 /// Two such runs are not words: one holding a MINUS the tree made an arithmetic operator (<see cref="CobolParserCore.AddOpContext"/>:
-/// that boundary is §8.7.1's — "shall be preceded by a space and followed by a space" — and
+/// that boundary is §2023:8.7.1's — "shall be preceded by a space and followed by a space" — and
 /// <see cref="SeparatorRule.ArithmeticOperatorViolations"/> reports it, one report per boundary), and a hyphen followed by
-/// digits alone, a numeric literal's sign (§8.3.3.3.2 2), which the lexer cut from its digits outside a list region and the
+/// digits alone, a numeric literal's sign (§2023:8.3.3.3.2 2), which the lexer cut from its digits outside a list region and the
 /// literal rules own. A word token inside a joined run is judged as part of that run, never again alone.</para>
 /// <para>⛔ TWO WORD SOURCES, ONE RULE, chosen by whether the binder will run. When the frontend reported ANY error (a
 /// parse that FAILED, or one that parsed beside a separator, PICTURE or preprocessor error: the compiler driver stops
@@ -126,7 +126,7 @@ public static class WordCharacterScreen
     /// adjacent tokens — each one starting where the previous one stopped, so no separator stands between them — and a chain
     /// is read once it closes: a chain without a MINUS contributes its <see cref="IsCandidate"/> word tokens, as the screen
     /// always has; a chain with one is split into its runs of word-character tokens, and each run that holds a MINUS and
-    /// another token is ONE word, unless it is an arithmetic operator's (§8.7.1 reports it) or a literal's sign.
+    /// another token is ONE word, unless it is an arithmetic operator's (§2023:8.7.1 reports it) or a literal's sign.
     /// The only allocation on the ordinary path is the one reused chain list; a token's text is read only for the
     /// candidates and for the tokens of a chain that holds a MINUS.</summary>
     private sealed class WordScanner(ClientWrittenTokens clientWritten)
@@ -186,7 +186,7 @@ public static class WordCharacterScreen
             for (int i = start; i < end; i++)
             {
                 hasMinus |= _chain[i].Token.Type == CobolLexer.MINUS;
-                hasOperator |= _chain[i].Operator;   // §8.7.1's boundary, reported by SeparatorRule
+                hasOperator |= _chain[i].Operator;   // §2023:8.7.1's boundary, reported by SeparatorRule
             }
             if (end - start >= 2 && hasMinus && !hasOperator)
             {
@@ -208,7 +208,7 @@ public static class WordCharacterScreen
             if (IsCandidate(token, out string? text)) (_words ??= []).Add(new(text, ExpansionToken.CursorOf(token)));
         }
 
-        /// <summary>A hyphen followed by digits alone: a numeric literal's sign and its digits (§8.3.3.3.2 2).</summary>
+        /// <summary>A hyphen followed by digits alone: a numeric literal's sign and its digits (§2023:8.3.3.3.2 2).</summary>
         private static bool IsSignedInteger(string word)
         {
             if (word.Length < 2 || word[0] != '-') return false;
@@ -229,13 +229,13 @@ public static class WordCharacterScreen
         return true;
     }
 
-    /// <summary>Whether the tree made this MINUS an arithmetic operator — a binary or unary <c>addOp</c> (§8.7.1), or a sign
+    /// <summary>Whether the tree made this MINUS an arithmetic operator — a binary or unary <c>addOp</c> (§2023:8.7.1), or a sign
     /// the VALUE clause's literal slot parses as one.</summary>
     private static bool IsArithmeticOperator(ITerminalNode t) =>
         t.Symbol.Type == CobolLexer.MINUS && t.Parent is CobolParserCore.AddOpContext;
 
     /// <summary>Whether <paramref name="tokens"/> hold anything the screen judges: a <see cref="IsCandidate"/> word token, or a
-    /// MINUS that touches the token before or after it (a hyphen at a word's edge, or an operator §8.7.1 judges).</summary>
+    /// MINUS that touches the token before or after it (a hyphen at a word's edge, or an operator §2023:8.7.1 judges).</summary>
     private static bool HasCandidate(IList<IToken> tokens)
     {
         for (int i = 0; i < tokens.Count; i++)
@@ -280,9 +280,9 @@ public static class WordCharacterScreen
         }
     }
 
-    /// <summary>⛔ THE §8.3.2.1 CHARACTER RULE OF ONE COBOL WORD, every edition's arm, reported at the sink's position: the
+    /// <summary>⛔ THE §2023:8.3.2.1 CHARACTER RULE OF ONE COBOL WORD, every edition's arm, reported at the sink's position: the
     /// token walk asks it of every word the lexer reads, and the COPY statement of each text-name and library-name it
-    /// reads itself (a system-name, §8.3.2.3.1, so a COBOL word; the lexer never sees the statement, kb/Work PB4279).
+    /// reads itself (a system-name, §2023:8.3.2.3.1, so a COBOL word; the lexer never sees the statement, kb/Work PB4279).
     /// One rule, every caller, so a reader of words outside the token stream cannot grow a second copy of it.</summary>
     internal static void CheckWord(string word, EditionInfo edition, IDiagnosticSink sink)
     {
@@ -302,7 +302,7 @@ public static class WordCharacterScreen
         else
             sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordCharacterNotPermitted.Code,
                 EditionSeverity.Error, DiagnosticCatalog.WordCharacterNotPermitted.Id, character, "",
-                "ISO §8.3.2.1; Annex B.3"));
+                "ISO §2023:8.3.2.1; Annex B.3"));
     }
 
     /// <summary>One walk of <paramref name="tree"/>, which does not descend into a comment-entry: the stream indexes of every

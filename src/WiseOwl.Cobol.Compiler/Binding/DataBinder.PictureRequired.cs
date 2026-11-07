@@ -7,12 +7,12 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ⛔ <b>THE PICTURE-PLACEMENT INVARIANT — both directions of it, in ONE pass over the finished forest.</b>
 ///
-/// <para><b>ISO §13.16.3 SR8</b>, its last sentence: "For any other entry describing an elementary item, a
+/// <para><b>ISO §2023:13.16.3 SR8</b>, its last sentence: "For any other entry describing an elementary item, a
 /// PICTURE clause shall be specified except as indicated in Syntax rule 9." — <i>elementary ⇒ has a
 /// PICTURE</i>, the CLOSING GUARD that guarantees no elementary item ever reaches code generation without a
 /// <see cref="DataItem.Pic"/>.</para>
 ///
-/// <para><b>ISO §13.18.40.3 SR1</b>, its whole text: "The PICTURE clause may be specified only at the
+/// <para><b>ISO §2023:13.18.40.3 SR1</b>, its whole text: "The PICTURE clause may be specified only at the
 /// elementary level." — <i>has a PICTURE ⇒ elementary</i>, the converse, added by kb/Work PB527. The two are
 /// one rule about one thing (WHERE a PICTURE clause may stand) and they need the same fact to be decidable —
 /// whether the entry has subordinates — which is why they live in one pass and share
@@ -31,10 +31,10 @@ namespace WiseOwl.Cobol.Binding;
 /// </code>
 /// M is elementary (nothing is subordinate to it) and has no PICTURE, so it is SR8-nonconforming; the compiler
 /// answered with a stack trace and no diagnostic. It is the same hole the PB487 catch-all reached through
-/// <c>01 M MESSAGE-TAG.</c>, but it is reachable WITHOUT the catch-all, which is why closing the §13.16.2 clause
+/// <c>01 M MESSAGE-TAG.</c>, but it is reachable WITHOUT the catch-all, which is why closing the §2023:13.16.2 clause
 /// list does not close it.
 ///
-/// <para><b>Where the picture-less usages are handled instead.</b> §13.16.3 SR8's own first sentence exempts
+/// <para><b>Where the picture-less usages are handled instead.</b> §2023:13.16.3 SR8's own first sentence exempts
 /// binary-char/short/long/double, float-short/long/extended, index, message-tag, object reference, pointer,
 /// function-pointer and program-pointer — for those <c>BindEntry</c> SYNTHESIZES a <see cref="PicInfo"/>, and
 /// SR9's VALUE-implied PICTURE arrives with one too, synthesized by <c>SynthesizeImpliedPictures</c> two passes
@@ -55,14 +55,14 @@ public sealed partial class DataBinder
     /// <para>⛔ The test cannot be <see cref="DataItem.IsElementary"/>, which is DEFINED as
     /// <c>Pic is not null</c> — asking it about a picture-less item is vacuously false and the guard would never
     /// fire (measured: the first cut of this pass was a no-op for exactly that reason). “Elementary” in
-    /// §13.16.3 SR8's sense is a property of the SOURCE — §8.5.1.3.1 makes an entry with nothing subordinate to it
+    /// §2023:13.16.3 SR8's sense is a property of the SOURCE — §2023:8.5.1.3.1 makes an entry with nothing subordinate to it
     /// elementary whether or not it has a PICTURE — so the predicate is the CHILD COUNT.</para>
     /// <para>Levels 66 (RENAMES) and 88 (condition-name) are not data description entries in Format 1's sense
-    /// (§13.16.2 Formats 2–4) and never carry a PICTURE, so they are excluded by level.</para>
+    /// (§2023:13.16.2 Formats 2–4) and never carry a PICTURE, so they are excluded by level.</para>
     /// <para>An UNEXPANDED <c>TYPE</c> or <c>SAME AS</c> reference is excluded too, and by the rule's own words:
     /// SR8 governs "any other entry DESCRIBING an elementary item", and such an entry describes nothing —
-    /// §13.18.57.4 GR1 and §13.18.49.4 GR1/GR2 give it the REFERENCED entry's description. The exclusion bites for
-    /// the §13.16.3 SR9 synthesis (<c>SynthesizeImpliedPictures</c>), which runs BEFORE <c>ExpandTypes</c>, so a
+    /// §2023:13.18.57.4 GR1 and §2023:13.18.49.4 GR1/GR2 give it the REFERENCED entry's description. The exclusion bites for
+    /// the §2023:13.16.3 SR9 synthesis (<c>SynthesizeImpliedPictures</c>), which runs BEFORE <c>ExpandTypes</c>, so a
     /// TYPE subject's own VALUE never implies a PICTURE of its own (<c>01 W TYPE U VALUE "QRSTUV".</c> takes U's
     /// size). By the time this guard runs, every reference — a TYPEDEF template member's included, since each
     /// declaration is completed as a declaration (kb/Work PB1302) — is expanded, or refused and given a recovery
@@ -71,7 +71,7 @@ public sealed partial class DataBinder
         item.Pic is null && HasNoSubordinates(item) && item.Level is not (66 or 88)
         && item.TypeRefName is null && item.SameAsName is null;
 
-    /// <summary>⛔ §8.5.1.3.1'S OWN TEST, and the ONE place either direction of the picture-placement rule asks
+    /// <summary>⛔ §2023:8.5.1.3.1'S OWN TEST, and the ONE place either direction of the picture-placement rule asks
     /// it: "The most basic subdivisions of a record, that is, those not further subdivided, are called
     /// elementary items." An entry is elementary IN THE SOURCE'S SENSE exactly when nothing is subordinate to
     /// it — a property of the written hierarchy, never of <see cref="DataItem.IsElementary"/>, which is DEFINED

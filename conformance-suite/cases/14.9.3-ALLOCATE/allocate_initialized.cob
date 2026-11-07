@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.3 — ALLOCATE … INITIALIZED (COBOL-2002).
+      *> ISO §2023:14.9.3 — ALLOCATE … INITIALIZED (COBOL-2002).
       *>   GR7 (based form): the allocated storage is initialized "as if an INITIALIZE data-name-1
       *>        WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were executed" — VALUE clauses win,
       *>        then numeric/numeric-edited items get ZERO (the EDITED zero through MOVE editing),

@@ -8,8 +8,8 @@
       *> kb/Work PB3953 (docs/CONFORMANCE.md DOC-A.1-123) - an arithmetic expression used as a FUNCTION ARGUMENT is exact
       *> inside the 38-digit Int128 window and PAST it, up to the 77 digits of the exact wide intermediate a nested product
       *> keeps in a COMPUTE: the exact intrinsic family evaluates such an argument on that wide form.
-      *> ISO §8.8.1.3: "Native arithmetic is an implementor-defined method of evaluating an arithmetic expression, an
-      *> arithmetic statement, the SUM clause, and all integer and numeric functions." (cite.py: OK 8.8.1.3), and §15.4.1:
+      *> ISO §2023:8.8.1.3: "Native arithmetic is an implementor-defined method of evaluating an arithmetic expression, an
+      *> arithmetic statement, the SUM clause, and all integer and numeric functions." (cite.py: OK 8.8.1.3), and §2023:15.4.1:
       *> "When native arithmetic is in effect, the characteristics and representation of the returned value are defined by
       *> the implementor." (cite.py: OK 15.4.1). The standard fixes no width, so CLAUDE.md rule 1 makes GnuCOBOL's behaviour
       *> the answer, and GnuCOBOL's argument temporary is arbitrary-precision: every leg below shows the EXACT value of its
@@ -24,18 +24,18 @@
       *>   Leg 2 MOD (98999999999999999802000000000000000099, 1000) = 99, shown as the 9-position item a value under
       *>         2**31 has (DOC-A.1-92): 000000099.
       *>   Leg 3 BIG * BIG * K3 - (BIG * BIG * K3 - 999) is exact in a COMPUTE, 999, into S9(31): +0000000000000000000000000000999.
-      *>   Leg 4 ABS of the 39-digit product (§15.7.1: "The ABS function returns the absolute value of the argument.") shows all 39 digits.
-      *>   Leg 5 MOD (998999999999999998002000000000000000999, 1000) (§15.64.4: a - b * INTEGER (a / b)) = 999: 000000999.
-      *>   Leg 6 MAX of the product and the product + 1 (§15.59.4 1: the content of the argument having the greatest value) is
+      *>   Leg 4 ABS of the 39-digit product (§2023:15.7.1: "The ABS function returns the absolute value of the argument.") shows all 39 digits.
+      *>   Leg 5 MOD (998999999999999998002000000000000000999, 1000) (§2023:15.64.4: a - b * INTEGER (a / b)) = 999: 000000999.
+      *>   Leg 6 MAX of the product and the product + 1 (§2023:15.59.4 1: the content of the argument having the greatest value) is
       *>         998999999999999998002000000000000001000 - the two share their 34-digit image, so only the exact form orders them.
       *>   Leg 7 MOVE FUNCTION INTEGER (BIG * BIG * K3) TO R: INTEGER is the product itself, and the MOVE keeps its 31 low-order
-      *>         digits (§14.6.8.2 4: "transferred to the receiving digits with zero fill or truncation on either end as
+      *>         digits (§2023:14.6.8.2 4: "transferred to the receiving digits with zero fill or truncation on either end as
       *>         required"): +9999999998002000000000000000999.
       *>   Legs 8-11 (review R1-1): A = X * Y + C = 170141183460469231731687303715884105000 fits Int128 (39 digits, under
       *>         2**127 - 1 = ...884105727), so its temporary is exact; A + 1000 = ...884106000 is past Int128, on the wide
-      *>         form, and its 34-digit image (...8841 then zeros) lies BELOW A. §15.59.4 1): "The returned value is the
+      *>         form, and its 34-digit image (...8841 then zeros) lies BELOW A. §2023:15.59.4 1): "The returned value is the
       *>         content of the argument-1 having the greatest value" - legs 8 and 9 MAX (A, A + 1000) = ...884106000 in
-      *>         either argument order; §15.63.4 1) ("having the least value") - leg 10 MIN = ...884105000; §15.61.4 1) -
+      *>         either argument order; §2023:15.63.4 1) ("having the least value") - leg 10 MIN = ...884105000; §2023:15.61.4 1) -
       *>         leg 11 MEDIAN (A + 1000, A, A + 2000), the middle of the sorted three, = ...884106000.
       *> Each leg can fail on its own: legs 1/2 if the function window moved below 38 digits, leg 3 if the arithmetic
       *> statement lost the exact wide form, legs 4-6 if a function argument past the window is lowered to its image again,

@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §6.2.3.2 SR2 "The floating comment indicator of an inline comment
-*> shall be preceded by a separator space" (cite.py --check: OK §6.2.3.2
+*> ISO §2023:6.2.3.2 SR2 "The floating comment indicator of an inline comment
+*> shall be preceded by a separator space" (cite.py --check: OK §2023:6.2.3.2
 *> 2)). X*> is written with no space: COBOL2495 (kb/Work PB1493).
 *> Before, the lexer took it as a comment silently. Free form, so the
 *> COBOL-85 run is not refused by the fixed-form-only 2002 gate first.

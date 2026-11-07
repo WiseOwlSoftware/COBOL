@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.20.3 SR6 INITIALIZE statement — "The same category shall not be repeated in a
+      *> ISO §2023:14.9.20.3 SR6 INITIALIZE statement — "The same category shall not be repeated in a
       *> REPLACING phrase."
       *>   python scripts/spec/cite.py --check 14.9.20.3 "The same category shall not be repeated
-      *>   in a REPLACING phrase."  ->  OK  §14.9.20.3 6)  (Syntax rules)
+      *>   in a REPLACING phrase."  ->  OK  §2023:14.9.20.3 6)  (Syntax rules)
       *>
       *> WHY IT REJECTS AT EVERY EDITION. SR6 is a SYNTAX rule, so source that violates it is not a
       *> conforming source program and the compiler owes a diagnostic rather than a behaviour. The
@@ -25,7 +25,7 @@
       *> rejected — a fixture that also broke a second rule would keep passing for the wrong reason
       *> if the SR6 screen ever stopped firing:
       *>   SR1  identifier-1 (G) is an alphanumeric group item (no GROUP-USAGE clause, not strongly
-      *>        typed: §13.18.29.4 GR3), so of class alphanumeric (§8.5.2.1) — admitted outright
+      *>        typed: §2023:13.18.29.4 GR3), so of class alphanumeric (§2023:8.5.2.1) — admitted outright
       *>        ("Identifier-1 shall be strongly typed or of class alphabetic, alphanumeric,
       *>        boolean, message-tag, national, numeric, object, or pointer.").
       *>   SR3  no DATA-POINTER / FUNCTION-POINTER / MESSAGE-TAG / OBJECT-REFERENCE /
@@ -37,7 +37,7 @@
       *>        (numeric integer -> numeric; alphanumeric -> alphanumeric).
       *>   SR5  no data description entry here carries a RENAMES clause.
       *>
-      *> The category words are the standard's own spellings from the §14.9.20.2 category-name
+      *> The category words are the standard's own spellings from the §2023:14.9.20.2 category-name
       *> figure ("Every one of the thirteen words is underlined (required word)"), so this fixture
       *> does not depend on any spelling the general format does not define.
        IDENTIFICATION DIVISION.

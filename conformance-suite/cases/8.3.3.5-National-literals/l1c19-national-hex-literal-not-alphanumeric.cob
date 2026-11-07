@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.5.4 2) — a hex-national literal (format 2) is class
+      *> ISO §2023:8.3.3.5.4 2) — a hex-national literal (format 2) is class
       *>   national
       *> "National literals are of the class and category national"
-      *> OK  §8.3.3.5.4 2)  (General rules)
+      *> OK  §2023:8.3.3.5.4 2)  (General rules)
       *> 15.66.3 1) NATIONAL-OF: "Argument-1 shall be of class
       *>   alphabetic or
-      *> class alphanumeric."  OK  §15.66.3 1)  (Argument rules)
+      *> class alphanumeric."  OK  §2023:15.66.3 1)  (Argument rules)
       *> NATIONAL-OF(X"4142") is valid (hexadecimal alphanumeric
       *>   literal).
       *> NATIONAL-OF(NX"00410042") names a class-national argument (GR2

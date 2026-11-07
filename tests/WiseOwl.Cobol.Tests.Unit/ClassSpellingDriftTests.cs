@@ -10,14 +10,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A DIAGNOSTIC NAMES AN ISO §8.5.2.1 CLASS THROUGH THE ONE SPELLING, NEVER ITS OWN (kb/Work PB1400). The class
+/// ⛔ A DIAGNOSTIC NAMES AN ISO §2023:8.5.2.1 CLASS THROUGH THE ONE SPELLING, NEVER ITS OWN (kb/Work PB1400). The class
 /// lattice (<c>CobolClass</c>) carries two REFINED members a CATEGORY-worded rule needs — numeric-edited of usage display
 /// and of usage national — and <c>IntrinsicArgumentRules.Name</c> spells them as the class Table 2 gives them
 /// ("alphanumeric (numeric-edited)"). The messages that spelled the enum themselves with
 /// <c>ToString().ToLowerInvariant()</c> described a numeric-edited subscript, CALL / CANCEL target, BY VALUE argument or
 /// report CODE operand as "class numericediteddeediting"; and <c>ExpressionBinder.NonNumericOperandKind</c> wrote the class OUT as a literal —
-/// "group item … (class alphanumeric, ISO §8.5)" — for every group, which told the user a GROUP-USAGE BIT group (class
-/// boolean, §8.5.2.5 3)) and a GROUP-USAGE NATIONAL group (class national, §8.5.2.10 3)) were alphanumeric.
+/// "group item … (class alphanumeric, ISO §2023:8.5)" — for every group, which told the user a GROUP-USAGE BIT group (class
+/// boolean, §2023:8.5.2.5 3)) and a GROUP-USAGE NATIONAL group (class national, §2023:8.5.2.10 3)) were alphanumeric.
 /// <para>The class of a place is spelled by <c>IntrinsicArgumentRules.ClassNameOf</c> (or <c>Name</c> over a class the
 /// caller already holds); this sweep fails on an interpolated class word built from an enum's <c>ToString()</c>, and
 /// on the literal group-class text that stood in the arithmetic-operand screen.</para>
@@ -59,7 +59,7 @@ public sealed class ClassSpellingDriftTests
     public void TheArithmeticOperandScreen_AsksTheClassItNames()
     {
         string text = File.ReadAllText(TestRepo.Src(["WiseOwl.Cobol.Compiler", "Binding", "Procedure", "ExpressionBinder.cs"]));
-        Assert.DoesNotContain("(class alphanumeric, ISO §8.5)", text);
+        Assert.DoesNotContain("(class alphanumeric, ISO §2023:8.5)", text);
         Assert.DoesNotContain("a reference-modified operand (class alphanumeric", text);
         Assert.Contains("IntrinsicArgumentRules.ClassNameOf(p)", text);
     }
@@ -70,8 +70,8 @@ public sealed class ClassSpellingDriftTests
         RegexOptions.CultureInvariant);
 
     /// <summary>⛔ A DIAGNOSTIC THAT NAMES THE CLASS OF A DATA ITEM OR AN OPERAND ASKS <c>ClassNameOf</c> (kb/Work PB3192
-    /// review R1-1). <c>ClassOfItem</c> answers "alphanumeric" for a strongly-typed group — §15.3 item 2's reading of a
-    /// function ARGUMENT — while §8.5.2.1 makes its class the type-name everywhere else; the procedure-header BY VALUE
+    /// review R1-1). <c>ClassOfItem</c> answers "alphanumeric" for a strongly-typed group — §2023:15.3 item 2's reading of a
+    /// function ARGUMENT — while §2023:8.5.2.1 makes its class the type-name everywhere else; the procedure-header BY VALUE
     /// screen (COBOL1553) spelled <c>Name(ClassOfItem(item))</c> and told the user a strongly-typed formal was of
     /// class alphanumeric. Every BY VALUE class screen (header formal, CALL, INVOKE, user function) and the
     /// operand-class exclusion screen names the class through the family; no source spells Name over ClassOfItem.</summary>
@@ -118,7 +118,7 @@ public sealed class ClassSpellingDriftTests
     public void TheItemClassPattern_CatchesTheFormsItWasWrittenIn(string text, bool offends)
         => Assert.Equal(offends, ItemClassThroughName.IsMatch(text));
 
-    // The universal claim ISO §8.5.2.1 refutes, in the two shapes it was written. (1) Stated of any group: "a group is
+    // The universal claim ISO §2023:8.5.2.1 refutes, in the two shapes it was written. (1) Stated of any group: "a group is
     // class alphanumeric", "A group item (class alphanumeric, …)", "a group is class and category alphanumeric", "a
     // group is category alphanumeric". (2) Inferred from groupness within one clause: "(G) is a group item and so of
     // class alphanumeric", "A GROUP item takes its class from its own kind and is class alphanumeric", "a GROUP
@@ -168,7 +168,7 @@ public sealed class ClassSpellingDriftTests
             })
             .ToList();
         Assert.True(offenders.Count == 0,
-            "ISO §8.5.2.1: only an ALPHANUMERIC group is class alphanumeric — a bit group is boolean, a national "
+            "ISO §2023:8.5.2.1: only an ALPHANUMERIC group is class alphanumeric — a bit group is boolean, a national "
             + "group national, a strongly-typed group its type-name (kb/Work PB1400):\n"
             + string.Join("\n", offenders));
     }
@@ -178,12 +178,12 @@ public sealed class ClassSpellingDriftTests
     /// pattern missed and the claim a line break split), and the true statements beside them that must pass.</summary>
     [Theory]
     [InlineData("// a group is class alphanumeric", true)]
-    [InlineData("/// A group item (class alphanumeric, ISO §8.5) is not numeric", true)]
+    [InlineData("/// A group item (class alphanumeric, ISO §2023:8.5) is not numeric", true)]
     [InlineData("*> identifier-1 (G) is a group item and so of class alphanumeric", true)]
     [InlineData("*> A GROUP item takes its class from its own kind and is class alphanumeric.", true)]
-    [InlineData("// a GROUP operand in a relation condition is class alphanumeric (§8.8.4.2.1)", true)]
+    [InlineData("// a GROUP operand in a relation condition is class alphanumeric (§2023:8.8.4.2.1)", true)]
     [InlineData("      *> TOTAL: a group is class and\n      *> category alphanumeric", true)]
-    [InlineData("    // an alphanumeric group is\n    // category alphanumeric (§8.5.2.1)", false)]
+    [InlineData("    // an alphanumeric group is\n    // category alphanumeric (§2023:8.5.2.1)", false)]
     [InlineData("// a plain group key is category alphanumeric", false)]
     [InlineData("// a group item is class alphanumeric, boolean or national by its GROUP-USAGE", false)]
     [InlineData("*> a strongly-typed group item, and every argument here is class alphanumeric", false)]

@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.28.2 — GROUP INDICATE / GROUP (INDICATE optional):
+      *> ISO §2023:13.18.28.2 — GROUP INDICATE / GROUP (INDICATE optional):
       *>   printed only on the first detail
       *> General format: "GROUP INDICATE" with only GROUP underlined, so
       *>   INDICATE is an optional word.
-      *>   cite.py --check 13.18.28.2 "GROUP"  -> OK  §13.18.28.2
+      *>   cite.py --check 13.18.28.2 "GROUP"  -> OK  §2023:13.18.28.2
       *>     (General format)
       *> SR1: "The GROUP INDICATE clause may be specified only within a
       *>   detail report group description, in
@@ -19,7 +19,7 @@
       *>     specified only within a detail
       *>     report group description, in an elementary entry that also
       *>       contains a COLUMN clause and a
-      *>     SOURCE or VALUE clause."  -> OK  §13.18.28.3 1)  (Syntax
+      *>     SOURCE or VALUE clause."  -> OK  §2023:13.18.28.3 1)  (Syntax
       *>       rule)
       *> GR1: "The GROUP INDICATE clause has the same effect as a
       *>   PRESENT WHEN clause where the associated
@@ -33,7 +33,7 @@
       *>       first occasion that a GENERATE is
       *>     issued for the current detail group after any of the
       *>       following events."
-      *>     -> OK  §13.18.28.4 1)  (General rule)
+      *>     -> OK  §2023:13.18.28.4 1)  (General rule)
       *> Both spellings are written: COLUMN 1 (SOURCE K1) says GROUP
       *>   INDICATE, COLUMN 4 (VALUE "HDR") says
       *> GROUP alone.  COLUMN 8 (SOURCE V) has no clause and prints on

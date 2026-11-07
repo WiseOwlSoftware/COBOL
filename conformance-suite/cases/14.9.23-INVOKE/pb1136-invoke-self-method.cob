@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR4 g): "If identifier-1 references the predefined
+      *> ISO §2023:14.9.23.3 SR4 g): "If identifier-1 references the predefined
       *> object reference SELF and the method containing the INVOKE statement
       *> is an instance method, literal-1 shall be the name of a method
       *> contained in the instance interface of the class containing the

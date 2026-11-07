@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.1.2 (A.1 item 32) — the alphanumeric coded character
+      *> ISO §2023:8.1.2 (A.1 item 32) — the alphanumeric coded character
       *>   values of COBOL items
       *> Rule (A.1 item 32): "Computer's coded character set (coded
       *>   character values for certain COBOL items). This item is
       *>   required. This item shall be documented in the implementor's
       *>   user documentation."
       *> cite.py --check 8.1.2 "The implementor shall specify one and
-      *>   only one alphanumeric coded character value" -> OK  §8.1.2 3)
+      *>   only one alphanumeric coded character value" -> OK  §2023:8.1.2 3)
       *>   (Computer's coded character set)
       *> cite.py --check 15.70.4 "the returned value is the ordinal
       *>   position of argument-1 in the current alphanumeric program
-      *>   collating sequence" -> OK  §15.70.4 1)  (Returned value
+      *>   collating sequence" -> OK  §2023:15.70.4 1)  (Returned value
       *>   rules)
       *> The documented choice pinned (docs/CONFORMANCE.md DOC-A.1-32):
       *>   SPACE U+0020, QUOTE U+0022, ZERO U+0030, space fill U+0020, B
@@ -38,7 +38,7 @@
       *>   $99 of 5 = "$05": 24h 037
       *> SPACE, the space fill, B and the Z space are one value (033);
       *>   ZERO, the 0 insertion and the digit 0 are one value (049), as
-      *>   §8.1.2 requires.
+      *>   §2023:8.1.2 requires.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C05N.
        DATA DIVISION.

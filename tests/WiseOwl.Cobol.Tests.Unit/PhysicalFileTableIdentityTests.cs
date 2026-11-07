@@ -6,9 +6,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE RUN UNIT'S FILE AND RECORD LOCKS ARE OF A PHYSICAL FILE, NOT OF A PATH (kb/Work PB3576; §9.1.15, <i>"The successful
+/// ⛔ THE RUN UNIT'S FILE AND RECORD LOCKS ARE OF A PHYSICAL FILE, NOT OF A PATH (kb/Work PB3576; §2023:9.1.15, <i>"The successful
 /// opening of a file establishes a file lock for the applicable sharing rules, thereby preventing other run units from opening
-/// that file with incompatible sharing rules"</i>; §9.1.16, <i>"While locked by a given file connector, a record is not
+/// that file with incompatible sharing rules"</i>; §2023:9.1.16, <i>"While locked by a given file connector, a record is not
 /// accessible to another file connector"</i>). <see cref="PhysicalFileTable.For"/> finds a state by the host's identity of the file
 /// (<see cref="HostFile.IdentityAt"/>), so these cases hand it identities of their own choosing and run on every host: the real
 /// removal and replacement of a file under an open handle, which only Linux permits, is
@@ -116,7 +116,7 @@ public sealed class PhysicalFileTableIdentityTests
         Assert.NotSame(one, table.For("/d/y.dat", null));
     }
 
-    /// <summary>§12.4.5.9.4 GR7's ceiling is the RUN UNIT's: the implementor-defined <i>"maximum number of record locks that may be
+    /// <summary>§2023:12.4.5.9.4 GR7's ceiling is the RUN UNIT's: the implementor-defined <i>"maximum number of record locks that may be
     /// held by a run unit; that maximum shall be at least 255"</i> counts the locks of every physical file the table holds, a file reached under
     /// another name and a file set aside by a replacement at its path included. 255 locks across two files at one path, then
     /// one more: '53'.</summary>

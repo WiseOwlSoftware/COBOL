@@ -8,13 +8,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE PADDING OF AN ELEMENT OF A DYNAMIC-CAPACITY BIT TABLE IS NOT AN IMPLICIT FILLER ITEM, AND IT IS NOT STORED
 /// (kb/Work PB3598, the owner may overturn it; <c>docs/CONFORMANCE.md</c> USAGE BIT). An element of <c>05 T PIC 1(3) USAGE BIT
-/// OCCURS DYNAMIC</c> is out-of-line storage of its own — ISO §8.5.1.9.1 3): "table data items are not required to be
+/// OCCURS DYNAMIC</c> is out-of-line storage of its own — ISO §2023:8.5.1.9.1 3): "table data items are not required to be
 /// contiguous in physical memory. The size, location, and time of physical allocation of a dynamic-capacity table are
-/// implementor-defined" — so §8.5.1.6.3's filler, which advances alignment "to a required natural boundary for the next item within that
+/// implementor-defined" — so §2023:8.5.1.6.3's filler, which advances alignment "to a required natural boundary for the next item within that
 /// group", has no next item to advance to: the five bits that round a 3-bit element up to its one character are the rounding of
-/// its length (§15.14.4 4: "When argument-1 does not occupy an integral number of bytes, the returned value is rounded to the
-/// next larger integer value"), the same rounding a level 77 or level 01 elementary 3-bit item has, which §8.5.1.6.3's NOTE says generates no filler. A group
-/// MOVE carries the table's elements, not those bits (§14.6.9.2, which applies to a dynamic-capacity table: "Correspondingly
+/// its length (§2023:15.14.4 4: "When argument-1 does not occupy an integral number of bytes, the returned value is rounded to the
+/// next larger integer value"), the same rounding a level 77 or level 01 elementary 3-bit item has, which §2023:8.5.1.6.3's NOTE says generates no filler. A group
+/// MOVE carries the table's elements, not those bits (§2023:14.6.9.2, which applies to a dynamic-capacity table: "Correspondingly
 /// numbered elements are moved according to the rules of the MOVE statement"), so no operation of the language can write them.
 ///
 /// <para>The witness is INITIALIZE ... WITH FILLER, the one statement that writes every implicit filler item: it sets the

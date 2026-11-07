@@ -10,11 +10,11 @@
       *>   cite.py --check 12.3.7.4 "When the LOCALE phrase is
       *>     specified, the collating sequence identified is defined
       *>     by the locale referenced by locale-name-2 when specified"
-      *>     -> OK §12.3.7.4 7)  (GR7 e))
+      *>     -> OK §2023:12.3.7.4 7)  (GR7 e))
       *>   cite.py --check 8.8.4.2.11 "Comparison then proceeds by the
       *>     algorithm associated with the collating sequence defined
       *>     by category LC_COLLATE from the current locale"
-      *>     -> OK §8.8.4.2.11
+      *>     -> OK §2023:8.8.4.2.11
       *> The locale FT is "fi-u-co-traditional": CLDR release-48-2
       *> fi.xml, type traditional, rule  &T<<þ/h<<<Þ/h  (UTS #35
       *> Part 5 "Expansions": x/y sorts as x followed by y, and the

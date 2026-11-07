@@ -8,10 +8,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE CONFORMANCE RULES A CALL ASKS AT RUN TIME OVER A BOUNDARY ITEM'S DESCRIPTION (kb/Work PB165), each stated from
 /// the clause that gives it: <see cref="BoundaryItem.ArgumentViolation"/> for an argument and its formal when the activated
-/// program is located by name at run time (ISO §14.9.4.4 GR3 d) — §14.8.2.3.2 / §14.8.2.3.3 rule 1 "the formal parameter
+/// program is located by name at run time (ISO §2023:14.9.4.4 GR3 d) — §2023:14.8.2.3.2 / §2023:14.8.2.3.3 rule 1 "the formal parameter
 /// shall be of the same length as the corresponding argument" for a program the activating element has no
-/// program-specifier for, rule 2 for one it has; §14.8.2.2's group rules, the object-reference and class-pointer rules on
-/// both lanes) and <see cref="BoundaryItem.ReturningViolation"/> for a RETURNING pair (§14.8.3). The corpus goldens
+/// program-specifier for, rule 2 for one it has; §2023:14.8.2.2's group rules, the object-reference and class-pointer rules on
+/// both lanes) and <see cref="BoundaryItem.ReturningViolation"/> for a RETURNING pair (§2023:14.8.3). The corpus goldens
 /// <c>2002/pb165_dynamic_call_description_check</c> (rule 1) and <c>2002/pb165_repository_prototype_description_check</c>
 /// (rule 2) witness the same tables end to end; this pins each row where a regression names it.
 /// </summary>
@@ -56,7 +56,7 @@ public sealed class BoundaryItemConformanceTests
 
     [Theory]
     [InlineData(4, 4, true)]    // same length
-    [InlineData(4, 6, false)]   // §14.8.2.3.2 rule 1: the formal is longer
+    [InlineData(4, 6, false)]   // §2023:14.8.2.3.2 rule 1: the formal is longer
     [InlineData(6, 4, false)]   // … and shorter
     public void Rule1_Elementary_SameLengthOnly_InEveryMode(int argument, int formal, bool conforms)
     {
@@ -75,7 +75,7 @@ public sealed class BoundaryItemConformanceTests
     }
 
     [Theory]
-    [InlineData(8, 10, false)]  // §14.8.2.2 1): the formal is described with MORE bytes than the argument
+    [InlineData(8, 10, false)]  // §2023:14.8.2.2 1): the formal is described with MORE bytes than the argument
     [InlineData(10, 8, true)]   // … a smaller number is allowed
     [InlineData(8, 8, true)]    // … and so is the same number
     public void Group_ByReference_FormalNoLongerThanArgument_OnBothLanes(int argument, int formal, bool conforms)
@@ -99,7 +99,7 @@ public sealed class BoundaryItemConformanceTests
     {
         Assert.Null(Item(Group(8), 8).ArgumentViolation(CobolPassMode.Content, Item(Group(10), 10), Rule1));
         Assert.Null(Item(Group(8), 8).ArgumentViolation(CobolPassMode.Value, Item(Numeric(3), 3), Rule1));
-        // An arithmetic expression has no character image for the group move to copy (§14.9.25.4 GR4).
+        // An arithmetic expression has no character image for the group move to copy (§2023:14.9.25.4 GR4).
         var expression = new ActivationDescription
         {
             Shape = ActivationShape.Expression, Category = ActivationCategory.Numeric, Table16 = Table16Category.NumericNoninteger,
@@ -107,7 +107,7 @@ public sealed class BoundaryItemConformanceTests
         Assert.NotNull(Item(expression).ArgumentViolation(CobolPassMode.Content, Item(Group(8), 8), Rule2));
     }
 
-    /// <summary>§14.8.2.2: "If either the formal parameter or the corresponding argument is a strongly-typed group item,
+    /// <summary>§2023:14.8.2.2: "If either the formal parameter or the corresponding argument is a strongly-typed group item,
     /// both shall be of the same type" — on BOTH lanes (the registry used to exempt the pair from every check).</summary>
     [Fact]
     public void StronglyTypedGroups_AreTheSameType_InEveryModeAndLane()
@@ -181,10 +181,10 @@ public sealed class BoundaryItemConformanceTests
         Assert.NotNull(Item(Alnum(8), 8).ArgumentViolation(CobolPassMode.Reference, Item(universal), Rule2));
     }
 
-    // ── RETURNING: §14.8.3 has one rule for every lane ──
+    // ── RETURNING: §2023:14.8.3 has one rule for every lane ──
 
-    /// <summary>§14.8.3.2: an alphanumeric group pairs with a group or an elementary alphanumeric item of the same length;
-    /// §14.8.3.3: two elementary items have the same clauses.</summary>
+    /// <summary>§2023:14.8.3.2: an alphanumeric group pairs with a group or an elementary alphanumeric item of the same length;
+    /// §2023:14.8.3.3: two elementary items have the same clauses.</summary>
     [Fact]
     public void Returning_GroupsAndClauses()
     {

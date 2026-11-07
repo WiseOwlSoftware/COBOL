@@ -11,10 +11,10 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1004 — ISO §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
+/// kb/Work PB1004 — ISO §2023:14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
 /// imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL …". The two
 /// implicit ops go through the ONE directive-state stack with the written ones, so EVERY line-scoped directive
-/// state (§7.3.22.4 GR2: "the state of all of the directives other than EVALUATE, IF, PAGE, POP, or PUSH") written
+/// state (§2023:7.3.22.4 GR2: "the state of all of the directives other than EVALUATE, IF, PAGE, POP, or PUSH") written
 /// in a handler is gone after END-PERFORM, and one written in imperative-statement-1 — before the PUSH — survives.
 /// </summary>
 public sealed class ExceptionPerformDirectiveScopeTests
@@ -124,7 +124,7 @@ public sealed class ExceptionPerformDirectiveScopeTests
     public void ExplicitPushPop_AroundThePerform_StillPair()
     {
         // The implicit ops are balanced inside the statement, so a written PUSH before it and POP after it still
-        // pair with each other (§7.3.20.4 GR1): the ON written between them is revoked at the written POP.
+        // pair with each other (§2023:7.3.20.4 GR1): the ON written between them is revoked at the written POP.
         var d = Bound("""
                    >>PUSH ALL
                    >>REF-MOD-ZERO-LENGTH ON

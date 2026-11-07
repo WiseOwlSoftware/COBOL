@@ -14,8 +14,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A floating-point argument is legal for every exact-family intrinsic — §15.7.3 r1 and its siblings require
-/// class NUMERIC, and a COMP-2 item is class numeric (§8.5.2.1 Table 2). Before PB2 the emitter dispatched on the
+/// A floating-point argument is legal for every exact-family intrinsic — §2023:15.7.3 r1 and its siblings require
+/// class NUMERIC, and a COMP-2 item is class numeric (§2023:8.5.2.1 Table 2). Before PB2 the emitter dispatched on the
 /// FUNCTION's family rather than the ARGUMENT's type and handed a <c>double</c> to an <c>Int128</c> parameter, so
 /// legal COBOL produced a raw Roslyn <c>CS1503</c> that escaped as a backend error. Ten of eleven functions
 /// probed did it.
@@ -66,7 +66,7 @@ public sealed class IntrinsicRealArgDriftTests
     }
 
     private static HashSet<string> RealBodies() =>
-        // Int128 is in the alternation because FactorialReal returns it (§15.36 — 33! needs the wide carrier).
+        // Int128 is in the alternation because FactorialReal returns it (§2023:15.36 — 33! needs the wide carrier).
         // Without it the guard would report FactorialReal missing while it sat two lines away.
         [.. Regex.Matches(RealArgsSource(), @"public static (?:double|long|Int128) (?<m>\w+)\(")
             .Select(m => m.Groups["m"].Value)];
@@ -86,9 +86,9 @@ public sealed class IntrinsicRealArgDriftTests
     /// <para>
     /// ⛔ <b>'i' IS INCLUDED, AND ITS EXEMPTION WAS THE BUG (fix-queue PB21).</b> This used to scope on <c>'n'</c>
     /// alone, reasoning that "an integer-argument function ('i' — DATE-OF-INTEGER, FACTORIAL) … cannot receive a
-    /// float without violating their own argument rule first". <b>That premise is false.</b> §15.3's INTEGER type
-    /// resolves through CLASS NUMERIC — and a COMP-2 item is category numeric (§8.5.2.12 item 2) hence class
-    /// numeric (§8.5.2.1 Table 2) — so <c>IntrinsicArgumentRules.Admissible('i')</c> is <c>[Numeric]</c> and
+    /// float without violating their own argument rule first". <b>That premise is false.</b> §2023:15.3's INTEGER type
+    /// resolves through CLASS NUMERIC — and a COMP-2 item is category numeric (§2023:8.5.2.12 item 2) hence class
+    /// numeric (§2023:8.5.2.1 Table 2) — so <c>IntrinsicArgumentRules.Admissible('i')</c> is <c>[Numeric]</c> and
     /// ADMITS a float. The integer-ness is a VALUE property, checked at run time, not a class the screen can
     /// reject on. So an 'i' row can absolutely reach the renderer with a float, and did:
     /// <c>FUNCTION INTEGER-OF-DAY(&lt;COMP-2&gt;)</c> bound clean and then failed Roslyn with <b>CS0117</b>,
@@ -110,7 +110,7 @@ public sealed class IntrinsicRealArgDriftTests
     /// <c>IntrinsicFloatLaneArgumentRunDriftTests</c> holds the renderer to it from the other side.
     /// </para>
     /// <para>
-    /// ⛔ <b>AND A FUNCTION WHOSE EVERY POSITION IS §15.3 TYPE 6 NEVER REACHES THE LANE (kb/Work PB651).</b> The
+    /// ⛔ <b>AND A FUNCTION WHOSE EVERY POSITION IS §2023:15.3 TYPE 6 NEVER REACHES THE LANE (kb/Work PB651).</b> The
     /// renderer takes a type-6 operand's INTEGER before any lane is chosen (<c>IntrinsicRenderer.RawArg</c>), so a
     /// float there no longer makes the call binary64: MOD, FACTORIAL, the date family, the TEST- validators and the
     /// windowing trio owe no <c>…Real</c> body, and <see cref="NoRealBody_ServesAFunctionWhoseEveryPositionIsType6"/>
@@ -121,7 +121,7 @@ public sealed class IntrinsicRealArgDriftTests
     private static HashSet<string> NumericArgumentMethods() =>
         [.. NumericArgumentRows().Where(r => !EveryPositionIsType6(r.Name, r.Max)).Select(r => r.Rm)];
 
-    /// <summary>Does a float reach this function only through §15.3 type-6 positions — every operand position up to
+    /// <summary>Does a float reach this function only through §2023:15.3 type-6 positions — every operand position up to
     /// its maximum argument count (or <see cref="IntrinsicFloatLaneArgumentRunDriftTests.PastEveryDeclaredPosition"/>
     /// for an unbounded one) typed integer by its verified schema?</summary>
     private static bool EveryPositionIsType6(string name, string max)
@@ -146,7 +146,7 @@ public sealed class IntrinsicRealArgDriftTests
             // 'n' AND 'i' — both resolve to Admissible == [CobolClass.Numeric], which admits a float item.
             .Where(m => m.Groups["k"].Value.Contains('n') || m.Groups["k"].Value.Contains('i')
                      || m.Groups["k"].Value.Length == 0)
-            // …and the float LANE has to be reachable for the row at all: a function with a non-numeric §15.3
+            // …and the float LANE has to be reachable for the row at all: a function with a non-numeric §2023:15.3
             // argument position renders on its own arm whatever its operands are (PB635), so it owes no …Real
             // body. This is the SAME predicate the renderer dispatches on, so the two cannot disagree about who
             // is in the set — which is precisely how FIND-STRING slipped through a hand-written `EndsWith
@@ -158,7 +158,7 @@ public sealed class IntrinsicRealArgDriftTests
     }
 
     /// <summary>
-    /// ⛔ AN UNREACHABLE BODY IS NOT COVERAGE (kb/Work PB651). A function whose every operand position is §15.3 type 6
+    /// ⛔ AN UNREACHABLE BODY IS NOT COVERAGE (kb/Work PB651). A function whose every operand position is §2023:15.3 type 6
     /// receives its arguments as INTEGERS — <c>IntrinsicRenderer.RawArg</c> takes them before the lane is chosen — so
     /// no float argument can route it to a <c>…Real</c> body, and one that exists reads as a carrier the function has
     /// when it has none. The integer-only bodies PB21 wrote were deleted on that ground; this keeps them deleted.
@@ -175,7 +175,7 @@ public sealed class IntrinsicRealArgDriftTests
             .Order()
             .ToList();
         Assert.True(dead.Count == 0,
-            $"…Real body/bodies [{string.Join(", ", dead)}] serve a function whose every position is §15.3 type 6; the "
+            $"…Real body/bodies [{string.Join(", ", dead)}] serve a function whose every position is §2023:15.3 type 6; the "
             + "renderer takes those operands' integers before any lane is chosen, so no call can reach them. Delete them.");
     }
 

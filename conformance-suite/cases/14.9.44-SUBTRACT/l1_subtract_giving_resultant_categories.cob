@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR4 (FORMAT 2) — "Identifier-3 shall reference
+      *> ISO §2023:14.9.44.3 SR4 (FORMAT 2) — "Identifier-3 shall reference
       *> a numeric data item or a numeric-edited data item."  BOTH
       *> categories the rule admits are stored into by ONE statement,
       *> so the golden pins the admission itself and not merely that
@@ -17,17 +17,17 @@
       *> stored as raw digits.
       *>
       *> EVERY EXPECTED CHARACTER IS DERIVED FROM THE RULE TEXT.
-      *> §14.9.44.4 GR2 (format 2): the initial evaluation is
+      *> §2023:14.9.44.4 GR2 (format 2): the initial evaluation is
       *> literal-1 = 1; that value is subtracted from literal-2 = 20;
       *> "The result is stored as the new value of the data item
-      *> referenced by identifier-3", i.e. 19.  §14.7.7 rule 4b: the
+      *> referenced by identifier-3", i.e. 19.  §2023:14.7.7 rule 4b: the
       *> one intermediate is stored into each resulting data item in
       *> the left-to-right order written, so BOTH receivers get 19.
-      *>   G  — §14.6.8.2 rule 4: a fixed-point numeric receiver takes
+      *>   G  — §2023:14.6.8.2 rule 4: a fixed-point numeric receiver takes
       *>        the value aligned by decimal point "with zero fill or
       *>        truncation on either end as required" -> 0019.
-      *>   NE — §14.6.8.2 rule 5 sends a fixed-point numeric-edited
-      *>        receiver to §13.18.40's editing rules; §13.18.40.5
+      *>   NE — §2023:14.6.8.2 rule 5 sends a fixed-point numeric-edited
+      *>        receiver to §2023:13.18.40's editing rules; §2023:13.18.40.5
       *>        rule 7 makes 'Z' the zero-suppression-with-replacement
       *>        symbol whose replacement character is the space, and
       *>        7 a) puts that replacement into every position

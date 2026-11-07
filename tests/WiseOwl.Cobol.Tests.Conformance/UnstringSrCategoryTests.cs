@@ -5,13 +5,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// UNSTRING sender / receiver CATEGORY syntax rules (ISO §14.9.48.3). SR2: identifier-1 (the sender) shall be
+/// UNSTRING sender / receiver CATEGORY syntax rules (ISO §2023:14.9.48.3). SR2: identifier-1 (the sender) shall be
 /// category alphanumeric or national — a numeric (INCLUDING usage DISPLAY, whose zoned image would otherwise be
 /// examined as characters), numeric-edited, or boolean sender is not permitted (CONFORMANCE-FIX-QUEUE CA20). SR4:
 /// identifier-4 (an INTO receiver) shall be usage display + category alphabetic/alphanumeric/numeric, or usage
 /// national + category national/numeric — an edited, COMP/packed/COMP-5, index, boolean, or float receiver is not
 /// permitted (CA19). The compiler follows the STRING-side convention: a violating shape binds to a runtime-loud
-/// (BoundUnsupported ⇒ StatementEmitter LoudStmt) naming the SR, never a silent wrong extraction (§4.2.2 flagging
+/// (BoundUnsupported ⇒ StatementEmitter LoudStmt) naming the SR, never a silent wrong extraction (§2023:4.2.2 flagging
 /// duty). Positive controls prove the screen is category-specific, not over-broad (a display-numeric or
 /// alphanumeric receiver, and an alphanumeric sender, still bind and run).
 /// </summary>
@@ -32,7 +32,7 @@ public sealed class UnstringSrCategoryTests
     private static void AssertLouds(string programId, string ws, string proc, string sr)
     {
         var (ok, _, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(Program(programId, ws, proc));
-        Assert.False(ok, $"the UNSTRING must fail loud (§14.9.48.3 {sr}), not extract silently");
+        Assert.False(ok, $"the UNSTRING must fail loud (§2023:14.9.48.3 {sr}), not extract silently");
         Assert.Contains(sr, detail);
     }
 

@@ -6,13 +6,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The TYPEDEF residue rules (Phase 6, data-model D17, increment 4; P10 Step 16 reworked the EXTERNAL leg):
-/// COBOL1558 — the EXTERNAL type-declaration conformance rules (§13.18.22 GR2 level-1 reference; SR5
+/// COBOL1558 — the EXTERNAL type-declaration conformance rules (§2023:13.18.22 GR2 level-1 reference; SR5
 /// strong-external pairing — the former COBOL1534 stage is LIFTED, the accepted form is the
 /// <c>typedef_external</c> golden); COBOL1535 — a strong group with a boolean/object/pointer element compared
-/// with an ordering operator (a RENAMES inside a TYPEDEF is cloned into each reference, §13.18.58.4 GR1, kb/Work PB1304 —
-/// its staged refusal was this code's other meaning) (§8.8.4.2.3 SR4 — the complete spec rule: equality/inequality only — asked of the CLASS, so a
+/// with an ordering operator (a RENAMES inside a TYPEDEF is cloned into each reference, §2023:13.18.58.4 GR1, kb/Work PB1304 —
+/// its staged refusal was this code's other meaning) (§2023:8.8.4.2.3 SR4 — the complete spec rule: equality/inequality only — asked of the CLASS, so a
 /// program-pointer leaf is refused as a data-pointer one is). An ordering over same-type strong groups with a SIGNED
-/// numeric leaf is LEGAL and compiles (§8.8.4.2.12 element by element — kb/Work PB1469 retired the COBOL0899
+/// numeric leaf is LEGAL and compiles (§2023:8.8.4.2.12 element by element — kb/Work PB1469 retired the COBOL0899
 /// stage; the values are run-verified by the <c>strong_group_element_order</c> golden). A type whose OCCURS has an INDEXED BY
 /// phrase referenced ≥2× is LEGAL and works — each clone declares its own index cells (kb/Work PB919; the former
 /// COBOL1531 stage is retired). The positive companions (INDEXED-type references — also the
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class TypedefResidueTests
 {
-    /// <summary>§13.18.22 GR2 — a data description containing an EXTERNAL type declaration shall be at
+    /// <summary>§2023:13.18.22 GR2 — a data description containing an EXTERNAL type declaration shall be at
     /// level-number 1; a NESTED (level > 1) TYPE reference to an external type is COBOL1558. (The level-1
     /// form is ACCEPTED and run-verified by the <c>typedef_external</c> golden — the 1534 stage is lifted.)</summary>
     [Fact]
@@ -40,11 +40,11 @@ public sealed class TypedefResidueTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a below-level-1 reference to an EXTERNAL type must be rejected (ISO §13.18.22 GR2)");
+        Assert.False(ok, "a below-level-1 reference to an EXTERNAL type must be rejected (ISO §2023:13.18.22 GR2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1558");
     }
 
-    /// <summary>§13.18.22 SR5 — an EXTERNAL record described with a STRONG type requires that type declaration
+    /// <summary>§2023:13.18.22 SR5 — an EXTERNAL record described with a STRONG type requires that type declaration
     /// to be external too; a plain STRONG typedef on an EXTERNAL record is COBOL1558.</summary>
     [Fact]
     public void ExternalRecordWithNonExternalStrongType_Rejected1558()
@@ -62,11 +62,11 @@ public sealed class TypedefResidueTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "an EXTERNAL record of a non-external STRONG type must be rejected (ISO §13.18.22 SR5)");
+        Assert.False(ok, "an EXTERNAL record of a non-external STRONG type must be rejected (ISO §2023:13.18.22 SR5)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1558");
     }
 
-    /// <summary>§13.18.58.4 GR1 — a level-66 RENAMES inside a TYPEDEF is "part of the type declaration of that type", so a
+    /// <summary>§2023:13.18.58.4 GR1 — a level-66 RENAMES inside a TYPEDEF is "part of the type declaration of that type", so a
     /// TYPE reference compiles and owns its own alias (the staged COBOL1535 refusal is gone, kb/Work PB1304; the
     /// values are run-verified by the <c>pb1304_typedef_renames</c> golden).</summary>
     [Fact]
@@ -87,11 +87,11 @@ public sealed class TypedefResidueTests
                 DISPLAY "X".
                 STOP RUN.
             """, 2002);
-        Assert.True(ok, "a RENAMES inside a TYPEDEF is part of the type and compiles (ISO §13.18.58.4 GR1): " + string.Join("; ", diag));
+        Assert.True(ok, "a RENAMES inside a TYPEDEF is part of the type and compiles (ISO §2023:13.18.58.4 GR1): " + string.Join("; ", diag));
         Assert.DoesNotContain(diag, d => d.Contains("COBOL1535", StringComparison.Ordinal));
     }
 
-    /// <summary>§8.8.4.2.3 SR4 — a strongly-typed group whose elements include class boolean / object / pointer may be
+    /// <summary>§2023:8.8.4.2.3 SR4 — a strongly-typed group whose elements include class boolean / object / pointer may be
     /// compared only for equality; an ordering relation on such a group is staged loud (COBOL1535).</summary>
     [Fact]
     public void StrongBooleanGroupOrderingCompare_Rejected1535()
@@ -112,13 +112,13 @@ public sealed class TypedefResidueTests
                 END-IF.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "an ordering compare of a boolean-bearing strong group must be rejected (ISO §8.8.4.2.3 SR4)");
+        Assert.False(ok, "an ordering compare of a boolean-bearing strong group must be rejected (ISO §2023:8.8.4.2.3 SR4)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1535");
     }
 
-    /// <summary>§8.8.4.2.12 — an ORDERING relation between same-type strong groups with a SIGNED numeric leaf is
-    /// legal (§8.8.4.2.3 SR4 restricts only boolean / message-tag / object / pointer contents) and compares element
-    /// by element, the signed pair algebraically (§8.8.4.2.4). It was staged COBOL0899 while the relation was a
+    /// <summary>§2023:8.8.4.2.12 — an ORDERING relation between same-type strong groups with a SIGNED numeric leaf is
+    /// legal (§2023:8.8.4.2.3 SR4 restricts only boolean / message-tag / object / pointer contents) and compares element
+    /// by element, the signed pair algebraically (§2023:8.8.4.2.4). It was staged COBOL0899 while the relation was a
     /// whole-group image (kb/Work PB1469); the run-time VALUES are the <c>strong_group_element_order</c> golden's.</summary>
     [Fact]
     public void StrongSignedGroupOrderingCompare_CompilesClean()
@@ -142,12 +142,12 @@ public sealed class TypedefResidueTests
         foreach (var (id, op) in new[] { ("TR12A", "<"), ("TR12B", "="), ("TR12C", ">=") })
         {
             var (ok, diag) = EditionHarness.Compile(decl.Replace("{0}", id).Replace("{1}", op), 2002);
-            Assert.True(ok, $"'R1 {op} R2' over signed-leaf strong groups must compile clean (ISO §8.8.4.2.12): "
+            Assert.True(ok, $"'R1 {op} R2' over signed-leaf strong groups must compile clean (ISO §2023:8.8.4.2.12): "
                 + string.Join("; ", diag));
         }
     }
 
-    /// <summary>§8.8.4.2.3 SR4 names the CLASS pointer, which §8.5.2.1 Table 2 makes of THREE categories —
+    /// <summary>§2023:8.8.4.2.3 SR4 names the CLASS pointer, which §2023:8.5.2.1 Table 2 makes of THREE categories —
     /// data-pointer, program-pointer and function-pointer. A PROGRAM-POINTER leaf makes a strong group
     /// equality-only exactly as a data-pointer leaf does (kb/Work PB1469: the screen listed categories and let this
     /// ordering compile, and the run unit aborted on it); the EQUALITY compare of the same groups stays legal.</summary>
@@ -171,7 +171,7 @@ public sealed class TypedefResidueTests
                 STOP RUN.
             """;
         var (okGt, diagGt) = EditionHarness.Compile(decl.Replace("{0}", "TR35P").Replace("{1}", ">"), 2002);
-        Assert.False(okGt, "an ordering compare of a program-pointer strong group must be rejected (ISO §8.8.4.2.3 SR4)");
+        Assert.False(okGt, "an ordering compare of a program-pointer strong group must be rejected (ISO §2023:8.8.4.2.3 SR4)");
         EditionHarness.AssertHasDiagnostic(diagGt, "COBOL1535");
 
         var (okEq, diagEq) = EditionHarness.Compile(decl.Replace("{0}", "TR35Q").Replace("{1}", "="), 2002);
@@ -179,8 +179,8 @@ public sealed class TypedefResidueTests
     }
 
     /// <summary>kb/Work PB919 — a type whose OCCURS carries an INDEXED BY phrase, referenced twice, yields two tables
-    /// whose indexes are both named IX (§13.18.58.4 GR1 — the subordinate entries are part of the type); each owns
-    /// its cell and is referenced through its table (§8.4.2.2.3 SR6), while a bare IX is §8.4.2.2.3 SR1's
+    /// whose indexes are both named IX (§2023:13.18.58.4 GR1 — the subordinate entries are part of the type); each owns
+    /// its cell and is referenced through its table (§2023:8.4.2.2.3 SR6), while a bare IX is §2023:8.4.2.2.3 SR1's
     /// ambiguity. This was the COBOL1531 stage while the two shared one spelling-keyed cell.</summary>
     [Fact]
     public void IndexedTypeReferencedTwice_EachCloneOwnsItsIndex()
@@ -221,7 +221,7 @@ public sealed class TypedefResidueTests
                 SET IX TO 1.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "a bare IX over two TYPE clones' indexes is §8.4.2.2.3 SR1's ambiguity");
+        Assert.False(ok, "a bare IX over two TYPE clones' indexes is §2023:8.4.2.2.3 SR1's ambiguity");
         EditionHarness.AssertHasDiagnostic(diag, "does not uniquely identify an index-name");
         EditionHarness.AssertNoDiagnostic(diag, "COBOL1531");
     }

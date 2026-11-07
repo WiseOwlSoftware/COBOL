@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1213 — ISO/IEC 1989:2023 §13.10.3 SR12: "Data-name-1 and data-name-2 shall not be dynamic-length
-      *> elementary items or variable-length groups." G is a variable-length group (§8.5.1.12.1) because the
+      *> kb/Work PB1213 — ISO/IEC 1989:2023 §2023:13.10.3 SR12: "Data-name-1 and data-name-2 shall not be dynamic-length
+      *> elementary items or variable-length groups." G is a variable-length group (§2023:8.5.1.12.1) because the
       *> dynamic-length elementary item W is subordinate to it. Before the fix the screen walked dynamic-capacity
       *> TABLES only, so this compiled and DISPLAY K printed 2 — the length of G's fixed part.
        IDENTIFICATION DIVISION.

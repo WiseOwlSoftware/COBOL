@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// <see cref="CollationTable.Rebuild"/> closes every tailored table, whichever front-end built it).</para>
 /// <para>NFD here means: replace every code point by its full canonical decomposition (Hangul syllables through the
 /// arithmetic L V T mapping), then stable-sort every maximal run of non-starters by combining class (The Unicode
-/// Standard §3.11, Canonical Ordering Algorithm). No composition step — collation never needs NFC.</para>
+/// Standard §2023:3.11, Canonical Ordering Algorithm). No composition step — collation never needs NFC.</para>
 /// <para>The working arrays are pooled, so a normalization allocates nothing but the string it returns — and not even
 /// that in the span form, which a comparison uses (kb/Work PB107: the table-driven NFD cost 394 B on accented text
 /// against the host's 32 B).</para>

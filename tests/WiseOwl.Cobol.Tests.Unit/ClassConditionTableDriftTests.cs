@@ -13,12 +13,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE CLASS CONDITION'S ALTERNATIVES ARE ONE LIST, AND THIS TEST IS WHY "ONE" STAYS TRUE.
-/// ISO §8.8.4.4.2 prints fourteen alternatives in a single brace group. Before kb/Work PB571 + PB590 they were
+/// ISO §2023:8.8.4.4.2 prints fourteen alternatives in a single brace group. Before kb/Work PB571 + PB590 they were
 /// written down FOUR times — the <c>classConditionName</c> grammar rule, a second grammar rule <c>classCondition</c>
 /// serving <c>evaluateSubject</c> (which offered ALPHANUMERIC, not one of the fourteen, and omitted BOOLEAN,
 /// class-name-1 and alphabet-name-1), and a kind decode in each of two binders — and the lists DISAGREED, so
 /// the same class test meant different things in an IF and as an EVALUATE selection subject.
-/// <para>The alternatives now live in <c>classConditionName</c>; their §8.8.4.4.3 operand rules live in
+/// <para>The alternatives now live in <c>classConditionName</c>; their §2023:8.8.4.4.3 operand rules live in
 /// <c>ClassConditionModel</c>; their truth values live in <c>ConditionRenderer.RenderClass</c>. Adding an
 /// alternative to any ONE of the three and not the others is exactly the drift that produced a
 /// <c>NotImplementedCobolFeatureException</c> at run time for a class condition the grammar accepted, so the
@@ -28,11 +28,11 @@ public sealed class ClassConditionTableDriftTests
 {
     /// <summary>Grammar rules that enumerate class words and are NOT the class condition's list, each with the
     /// reason. Adding a name here is an adjudication — it must be a different CONSTRUCT with its own general
-    /// format in the standard, not a convenient second copy of §8.8.4.4.2's.</summary>
+    /// format in the standard, not a convenient second copy of §2023:8.8.4.4.2's.</summary>
     private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal)
     {
         ["validateClassOperand"] =
-            "ISO §13.18.11.2's CLASS clause of a DATA DESCRIPTION entry (the VALIDATE band) — a different "
+            "ISO §2023:13.18.11.2's CLASS clause of a DATA DESCRIPTION entry (the VALIDATE band) — a different "
             + "construct with its own printed brace group (PDF p412 / folio 382), which also offers "
             + "alphabet-name-1 and class-name-1 but is a data-description clause, not a condition. The clause "
             + "is DECLINED as a whole (Core/CobolDeclined.g4), so its operand arms are never bound.",
@@ -54,7 +54,7 @@ public sealed class ClassConditionTableDriftTests
     }
 
     /// <summary>The KEYWORD alternatives of <c>classConditionName</c> (an all-caps token reference on its own
-    /// alternative), which are §8.8.4.4.2's underlined words. <c>cobolWord</c> is the two user-defined-word
+    /// alternative), which are §2023:8.8.4.4.2's underlined words. <c>cobolWord</c> is the two user-defined-word
     /// alternatives, alphabet-name-1 and class-name-1, told apart at bind.</summary>
     private static List<string> KeywordAlternatives() =>
         [.. ClassNameRuleBody()
@@ -84,7 +84,7 @@ public sealed class ClassConditionTableDriftTests
             + $"{string.Join(", ", missing)}.{Environment.NewLine}The parser accepts them and "
             + $"BindClassConditionOn falls through, which is the silent-compile / loud-runtime staging PB590 "
             + $"closed. Add the arm in ConditionBinder.BindClassConditionOn, a row in ClassConditionModel with "
-            + $"the §8.8.4.4.3 rules that name it, and an arm in ConditionRenderer.RenderClass.");
+            + $"the §2023:8.8.4.4.3 rules that name it, and an arm in ConditionRenderer.RenderClass.");
     }
 
     /// <summary>Every kind the model declares is rendered: <c>RenderClass</c>'s switch has an arm for it, so no
@@ -142,7 +142,7 @@ public sealed class ClassConditionTableDriftTests
                 string body = m.Groups["body"].Value;
                 // A rule that alternates NUMERIC with an ALPHABETIC form is a class-condition list, whatever it
                 // is called. The PICTURE/REPLACING category words (CobolData.g4) name ALPHANUMERIC-EDITED and
-                // NUMERIC-EDITED too, which §8.8.4.4.2 never offers, so they are not this shape.
+                // NUMERIC-EDITED too, which §2023:8.8.4.4.2 never offers, so they are not this shape.
                 if (!Regex.IsMatch(body, @"\bNUMERIC\b") || !Regex.IsMatch(body, @"\bALPHABETIC(_LOWER|_UPPER)?\b")
                     || Regex.IsMatch(body, @"\b(NUMERIC_EDITED|ALPHANUMERIC_EDITED)\b")) continue;
                 string name = m.Groups["name"].Value;
@@ -158,7 +158,7 @@ public sealed class ClassConditionTableDriftTests
             + $"longer enumerates class words. Delete the entry.");
         Assert.True(offenders.Count == 0,
             $"a SECOND class-condition alternative list appeared in the grammar: {string.Join(", ", offenders)}."
-            + $"{Environment.NewLine}ISO §8.8.4.4.2 prints ONE list; the deleted `classCondition` rule is why "
+            + $"{Environment.NewLine}ISO §2023:8.8.4.4.2 prints ONE list; the deleted `classCondition` rule is why "
             + $"`EVALUATE X IS <user-class>` did not parse while `IF X IS <user-class>` did (kb/Work PB590). "
             + $"Point the new site at `classConditionName` instead.");
     }

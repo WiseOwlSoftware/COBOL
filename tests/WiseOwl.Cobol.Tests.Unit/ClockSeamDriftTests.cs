@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// behavioural test (the wall clock and the seam agree on a developer machine running without a pin), and
 /// silently splits the run unit onto two clocks: with <c>WISEOWL_COBOL_CLOCK</c> pinned, the seam-reading
 /// functions return the pinned instant while the direct reader returns real now — so SECONDS-PAST-MIDNIGHT
-/// and CURRENT-DATE disagree inside one run unit, and no deterministic golden for §15.21.3 r1 / §15.38.4 r1
+/// and CURRENT-DATE disagree inside one run unit, and no deterministic golden for §2023:15.21.3 r1 / §2023:15.38.4 r1
 /// can exist.
 /// <para>⛔ THIS IS NOT HYPOTHETICAL — it is R21. <c>CobolDate.CurrentDate</c> and
 /// <c>FormattedCurrentDate</c> predated the seam and kept their direct <c>DateTimeOffset.Now</c> reads
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// together. A SOURCE-FORM guard is the only shape that can see it.</para>
 /// <para>Allowed readers, each the seam's own edge: <c>IO/Clock.cs</c> (<c>SystemClock</c>'s unpinned
 /// fallback IS the system-clock read) and <c>IntrinsicBinder</c>'s <c>CompileClock</c> default
-/// (WHEN-COMPILED is the COMPILATION timestamp, §15.99.3 r2 — compile-time by definition, not a run-unit
+/// (WHEN-COMPILED is the COMPILATION timestamp, §2023:15.99.3 r2 — compile-time by definition, not a run-unit
 /// reading).</para>
 /// </summary>
 [Trait("Sweep", "tree")]

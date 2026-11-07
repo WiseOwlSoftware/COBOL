@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is the
+      *> ISO §2023:14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is the
       *> name of a procedure in the declaratives portion of the procedure division, both shall be
       *> procedure-names in the same declarative section." The rule is X3.23-1985's and is carried unchanged
       *> through 2002/2014/2023, so there is no edition below it and every --std rejects.
       *>
       *> HALF 1 of the rule (kb/Work PB433) — procedure-name-1 is a procedure of declarative section D-SEC and
       *> procedure-name-2 is in the NONdeclarative portion. Accepted, this compiled clean at every --std and
-      *> then died: the specified set (§14.9.28.4 GR4) runs forward from the declarative paragraph through
+      *> then died: the specified set (§2023:14.9.28.4 GR4) runs forward from the declarative paragraph through
       *> whatever physically follows END DECLARATIVES, which includes MAIN-P and therefore the PERFORM itself,
       *> so the dispatcher recursed until the CLR killed the process with a stack overflow.
        IDENTIFICATION DIVISION.

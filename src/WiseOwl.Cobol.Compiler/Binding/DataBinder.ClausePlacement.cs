@@ -6,11 +6,11 @@ using WiseOwl.Cobol.Frontend.Cst;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The SHAPE of a data-description clause-placement rule — what §13.16.3 and the clauses' own syntax
+/// <summary>The SHAPE of a data-description clause-placement rule — what §2023:13.16.3 and the clauses' own syntax
 /// rules restrict about WHERE a clause may be written, independent of what the clause means.</summary>
 internal enum ClausePlacementKind
 {
-    /// <summary>Only on an entry with no subordinate entries (§8.5.1.3.1's "not further subdivided"). Decidable
+    /// <summary>Only on an entry with no subordinate entries (§2023:8.5.1.3.1's "not further subdivided"). Decidable
     /// only over the finished forest — the subordinates are not parsed when the entry binds.</summary>
     ElementaryOnly,
     /// <summary>Only at the level-numbers <see cref="ClausePlacementRule.ResidenceLevels"/> admits (level 1 when
@@ -43,12 +43,12 @@ internal enum EntrySections
 
 /// <summary>One placement rule, transcribed from its sentence. <see cref="Clauses"/> is the SUBJECT set (every
 /// clause the sentence restricts), <see cref="Rule"/> the citation and <see cref="Sentence"/> the rule's own
-/// words, which is what the diagnostic quotes. <see cref="TypeDeclarationInAnySection"/> is §13.18.22.3 SR1's
+/// words, which is what the diagnostic quotes. <see cref="TypeDeclarationInAnySection"/> is §2023:13.18.22.3 SR1's
 /// third residence — "in level 1 type declarations", which names no section. <see cref="Levels"/> is the level-number
 /// set a <see cref="ClausePlacementKind.NotAtLevel"/> rule forbids; it is stated whole as the sentence states it, so
 /// a level the entry binder never sees here (66 and 88 are RENAMES and condition-name entries) is still in the row.
 /// <see cref="ResidenceLevels"/> is the OPPOSITE set — the level-numbers a <see cref="ClausePlacementKind.Residence"/>
-/// rule ADMITS; null is level 1 alone, which is what every residence sentence says but §13.16.3 SR16's ("The level
+/// rule ADMITS; null is level 1 alone, which is what every residence sentence says but §2023:13.16.3 SR16's ("The level
 /// number of such data description entries shall be 1 or 77").</summary>
 internal sealed record ClausePlacementRule(
     DataClauseKind Clauses, ClausePlacementKind Kind, string Rule, string Sentence, DiagnosticDescriptor Code,
@@ -81,7 +81,7 @@ internal sealed record ClausePlacementRule(
 /// {for an elementary item | at level 1 in sections S | with a data-name | without clause D}" — and before this
 /// file the shape had been written down as a scatter of ad-hoc checks that each covered one clause: PICTURE's
 /// elementary-only rule had a screen (COBOL2191) while JUSTIFIED and BLANK WHEN ZERO, named in the SAME
-/// sentence (§13.16.3 SR11), had none; BASED×EXTERNAL was refused while REDEFINES×EXTERNAL, named in the SAME
+/// sentence (§2023:13.16.3 SR11), had none; BASED×EXTERNAL was refused while REDEFINES×EXTERNAL, named in the SAME
 /// sentence (SR5), was not; and the EXTERNAL/GLOBAL level and entry-name rules lived only as <c>continue</c>
 /// filters inside the post-bind registration scan, so a misplaced clause was silently ANNULLED rather than
 /// reported. Each was the two-arm defect: one arm of a sentence enforced, its sibling not.</para>
@@ -102,76 +102,76 @@ internal sealed record ClausePlacementRule(
 ///
 /// <para><b>The table is total over the clause vocabulary.</b> <see cref="PlacementAnsweredElsewhere"/> names,
 /// for every <see cref="DataClauseKind"/> with no row here, where its placement rule IS enforced (or that
-/// §13.16.3 states none). <c>DataClausePlacementDriftTests</c> is red when a clause kind is in neither, so a
+/// §2023:13.16.3 states none). <c>DataClausePlacementDriftTests</c> is red when a clause kind is in neither, so a
 /// clause added to the grammar forces the question "where may it be written?" rather than inheriting silence.</para>
 /// </summary>
 internal static class ClausePlacementRules
 {
-    /// <summary>The rules, in §13.16.3 order where they come from §13.16.3.</summary>
+    /// <summary>The rules, in §2023:13.16.3 order where they come from §2023:13.16.3.</summary>
     public static readonly IReadOnlyList<ClausePlacementRule> Rules =
     [
-        // §13.18.40.3 SR1 — the PICTURE row predates the table (kb/Work PB527) and keeps its own code.
-        new(DataClauseKind.Picture, ClausePlacementKind.ElementaryOnly, "§13.18.40.3 SR1",
+        // §2023:13.18.40.3 SR1 — the PICTURE row predates the table (kb/Work PB527) and keeps its own code.
+        new(DataClauseKind.Picture, ClausePlacementKind.ElementaryOnly, "§2023:13.18.40.3 SR1",
             "The PICTURE clause may be specified only at the elementary level.",
             DiagnosticCatalog.PictureAtElementaryLevel),
-        // §13.16.3 SR11 (restated for JUSTIFIED by §13.18.32.3 SR1) — kb/Work PB512.
+        // §2023:13.16.3 SR11 (restated for JUSTIFIED by §2023:13.18.32.3 SR1) — kb/Work PB512.
         new(DataClauseKind.Justified | DataClauseKind.BlankWhenZero, ClausePlacementKind.ElementaryOnly,
-            "§13.16.3 SR11",
+            "§2023:13.16.3 SR11",
             "The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data item.",
             DiagnosticCatalog.ClauseElementaryOnly),
-        // §13.16.3 SR5 — kb/Work PB519. The BASED half used to be a private arm of the BASED block.
-        new(DataClauseKind.External, ClausePlacementKind.NotWith, "§13.16.3 SR5",
+        // §2023:13.16.3 SR5 — kb/Work PB519. The BASED half used to be a private arm of the BASED block.
+        new(DataClauseKind.External, ClausePlacementKind.NotWith, "§2023:13.16.3 SR5",
             "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or "
             + "BASED clause.",
             DiagnosticCatalog.DataClausePlacement, Excluded: DataClauseKind.Redefines | DataClauseKind.Based),
-        // §13.16.3 SR6 with §13.18.27.3 SR1 b) — kb/Work PB518.
-        new(DataClauseKind.Global, ClausePlacementKind.Residence, "§13.16.3 SR6 / §13.18.27.3 SR1 b)",
+        // §2023:13.16.3 SR6 with §2023:13.18.27.3 SR1 b) — kb/Work PB518.
+        new(DataClauseKind.Global, ClausePlacementKind.Residence, "§2023:13.16.3 SR6 / §2023:13.18.27.3 SR1 b)",
             "A data description entry whose level-number is 1 that is specified in the file, working-storage, "
             + "local-storage, or linkage section.",
             DiagnosticCatalog.DataClausePlacement,
             Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage),
-        // §13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
-        new(DataClauseKind.External, ClausePlacementKind.Residence, "§13.18.22.3 SR1",
+        // §2023:13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
+        new(DataClauseKind.External, ClausePlacementKind.Residence, "§2023:13.18.22.3 SR1",
             "The EXTERNAL clause may be specified only in file description entries, in level 1 data description "
             + "entries in the working-storage section, and in level 1 type declarations.",
             DiagnosticCatalog.DataClausePlacement, Sections: EntrySections.WorkingStorage,
             TypeDeclarationInAnySection: true),
-        // §13.16.3 SR16 — kb/Work PB516. Both sentences in one row: the level half used to be a private arm of the
+        // §2023:13.16.3 SR16 — kb/Work PB516. Both sentences in one row: the level half used to be a private arm of the
         // BASED block and the SECTION half was asked by nothing, so `FD F. 01 R BASED PIC X(10).` compiled — a
         // record area the file subsystem fills, described at once as an unallocated template. The TYPE / SAME AS
         // composed BASED asks the same row (DataBinder.ScreenComposedBased, ResidenceFault).
-        new(DataClauseKind.Based, ClausePlacementKind.Residence, "§13.16.3 SR16",
+        new(DataClauseKind.Based, ClausePlacementKind.Residence, "§2023:13.16.3 SR16",
             "The BASED clause may be specified only in data description entries in the linkage section, in the "
             + "working-storage section, and in the local-storage section. The level number of such data description "
             + "entries shall be 1 or 77.",
             DiagnosticCatalog.DataClausePlacement,
             Sections: EntrySections.Linkage | EntrySections.WorkingStorage | EntrySections.LocalStorage,
             ResidenceLevels: [1, 77]),
-        // §13.16.3 SR21 — kb/Work PB1273. It was a private arm of the OO pass, which walks only the object/factory
+        // §2023:13.16.3 SR21 — kb/Work PB1273. It was a private arm of the OO pass, which walks only the object/factory
         // working storage it synthesizes accessors for, so the refusal hung on SR1's placement being right.
-        new(DataClauseKind.Property, ClausePlacementKind.NotWith, "§13.16.3 SR21",
+        new(DataClauseKind.Property, ClausePlacementKind.NotWith, "§2023:13.16.3 SR21",
             "The PROPERTY clause shall not be specified in the same data description entry as: a) a BASED clause, "
             + "b) a TYPEDEF clause.",
             DiagnosticCatalog.PropertyWithBasedOrTypedef, Excluded: DataClauseKind.Based | DataClauseKind.Typedef),
-        // §13.18.42.3 SR3's ELEMENTARY half — kb/Work PB1273. Its qualification half ("whose name does not require
+        // §2023:13.18.42.3 SR3's ELEMENTARY half — kb/Work PB1273. Its qualification half ("whose name does not require
         // qualification for uniqueness of reference") asks the object's whole name space and is
         // OoDataBinder.BindPropertyClauses'; SR1 (object / factory working storage only) is BindEntry's, because its axis is
         // the source element, not the section.
-        new(DataClauseKind.Property, ClausePlacementKind.ElementaryOnly, "§13.18.42.3 SR3",
+        new(DataClauseKind.Property, ClausePlacementKind.ElementaryOnly, "§2023:13.18.42.3 SR3",
             "The PROPERTY clause may be specified only for an elementary item whose name does not require "
             + "qualification for uniqueness of reference.",
             DiagnosticCatalog.PropertyClauseRule),
-        // §13.18.38.3 SR1 a) — kb/Work PB1260. The OCCURS clause's level rule: no table at level 01 or 77 (66 and 88 are
+        // §2023:13.18.38.3 SR1 a) — kb/Work PB1260. The OCCURS clause's level rule: no table at level 01 or 77 (66 and 88 are
         // the same sentence; they reach the binder as RENAMES / condition-name entries, which carry no OCCURS clause,
         // and the grammar refuses the clause there). Level 01 is the one an entry binder SEES: `01 A PIC X OCCURS 3`
         // compiled as a table. The sibling SR1 b) (an occurs-depending table subordinate to the OCCURS entry) and SR10
         // (seven subscripts) need the finished forest and are OdoResolve's.
-        new(DataClauseKind.Occurs, ClausePlacementKind.NotAtLevel, "§13.18.38.3 SR1 a)",
+        new(DataClauseKind.Occurs, ClausePlacementKind.NotAtLevel, "§2023:13.18.38.3 SR1 a)",
             "The OCCURS clause shall not be specified in a data description entry that: a) Has a level-number of 01, "
             + "66, 77, or 88",
             DiagnosticCatalog.DataClausePlacement, Levels: [1, 66, 77, 88]),
-        // §13.16.3 SR7 — kb/Work PB518. The FD-record half is ScreenFileRecordEntryNames.
-        new(DataClauseKind.External | DataClauseKind.Global, ClausePlacementKind.DataNameRequired, "§13.16.3 SR7",
+        // §2023:13.16.3 SR7 — kb/Work PB518. The FD-record half is ScreenFileRecordEntryNames.
+        new(DataClauseKind.External | DataClauseKind.Global, ClausePlacementKind.DataNameRequired, "§2023:13.16.3 SR7",
             "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL "
             + "or EXTERNAL clause, or for record descriptions associated with a file description entry that "
             + "contains the EXTERNAL or GLOBAL clause.",
@@ -179,27 +179,27 @@ internal static class ClausePlacementRules
     ];
 
     /// <summary>Every clause kind with NO row above, and where its placement is answered. ⛔ Not a work list:
-    /// each entry names an EXISTING enforcement site or states that §13.16.3 / the clause's own syntax rules
+    /// each entry names an EXISTING enforcement site or states that §2023:13.16.3 / the clause's own syntax rules
     /// restrict nothing about placement. <c>DataClausePlacementDriftTests</c> requires every
     /// <see cref="DataClauseKind"/> to be in exactly one of the two.</summary>
     public static readonly IReadOnlyDictionary<DataClauseKind, string> PlacementAnsweredElsewhere =
         new Dictionary<DataClauseKind, string>
         {
-            [DataClauseKind.Usage] = "no placement rule — group or elementary (§13.18.60.4 GR1 inheritance)",
-            [DataClauseKind.Redefines] = "§13.18.44.3 — ScreenLeadingClausePosition (position) / ScreenRedefinesEntry (Passes/ResolveRedefinesPass.cs: level, file-section, size, alignment)",
-            [DataClauseKind.Value] = "§13.18.63.3 — ScreenValueLiteral / CheckGroupValueDeclarations",
-            [DataClauseKind.Sign] = "§13.18.52.3 — InheritSignClauses (group and elementary both legal)",
-            [DataClauseKind.Synchronized] = "§13.18.55 — group legal at 2023 (GateSynchronizedGroup)",
-            [DataClauseKind.Aligned] = "§13.18.1.3 SR1 — CheckAlignedClauses",
-            [DataClauseKind.ConstantRecord] = "§13.16.3 SR6 / §13.18.15.3 SR1 — BindEntry's CONSTANT RECORD block and BindEntries",
-            [DataClauseKind.Type] = "§13.16.3 SR14 — ScreenReferenceComposition",
-            [DataClauseKind.Typedef] = "§13.16.3 SR15 — RegisterTypeDecl and BindEntries (level 1, data-name); SR4 — ScreenLeadingClausePosition (first clause)",
-            [DataClauseKind.SameAs] = "§13.16.3 SR12 — ScreenReferenceComposition",
-            [DataClauseKind.AnyLength] = "§13.18.2.3 — AnyLengthValidateUnit (linkage, elementary)",
-            [DataClauseKind.DynamicLength] = "§13.18.19.3 — BindEntry's DYNAMIC LENGTH block",
-            [DataClauseKind.GroupUsage] = "§13.18.29.3 SR1 — UsageInheritanceGroup / UsageInheritanceElementary",
+            [DataClauseKind.Usage] = "no placement rule — group or elementary (§2023:13.18.60.4 GR1 inheritance)",
+            [DataClauseKind.Redefines] = "§2023:13.18.44.3 — ScreenLeadingClausePosition (position) / ScreenRedefinesEntry (Passes/ResolveRedefinesPass.cs: level, file-section, size, alignment)",
+            [DataClauseKind.Value] = "§2023:13.18.63.3 — ScreenValueLiteral / CheckGroupValueDeclarations",
+            [DataClauseKind.Sign] = "§2023:13.18.52.3 — InheritSignClauses (group and elementary both legal)",
+            [DataClauseKind.Synchronized] = "§2023:13.18.55 — group legal at 2023 (GateSynchronizedGroup)",
+            [DataClauseKind.Aligned] = "§2023:13.18.1.3 SR1 — CheckAlignedClauses",
+            [DataClauseKind.ConstantRecord] = "§2023:13.16.3 SR6 / §2023:13.18.15.3 SR1 — BindEntry's CONSTANT RECORD block and BindEntries",
+            [DataClauseKind.Type] = "§2023:13.16.3 SR14 — ScreenReferenceComposition",
+            [DataClauseKind.Typedef] = "§2023:13.16.3 SR15 — RegisterTypeDecl and BindEntries (level 1, data-name); SR4 — ScreenLeadingClausePosition (first clause)",
+            [DataClauseKind.SameAs] = "§2023:13.16.3 SR12 — ScreenReferenceComposition",
+            [DataClauseKind.AnyLength] = "§2023:13.18.2.3 — AnyLengthValidateUnit (linkage, elementary)",
+            [DataClauseKind.DynamicLength] = "§2023:13.18.19.3 — BindEntry's DYNAMIC LENGTH block",
+            [DataClauseKind.GroupUsage] = "§2023:13.18.29.3 SR1 — UsageInheritanceGroup / UsageInheritanceElementary",
             [DataClauseKind.SelectWhen] = "Annex A.4.8 — declined by name in BindEntry (COBOL1560 family)",
-            [DataClauseKind.Validation] = "§13.18.64 family — validation clauses have no §13.16.3 placement rule",
+            [DataClauseKind.Validation] = "§2023:13.18.64 family — validation clauses have no §2023:13.16.3 placement rule",
             [DataClauseKind.Unrecognized] = "not a clause — refused by name (COBOL1941)",
         };
 }
@@ -219,7 +219,7 @@ public sealed partial class DataBinder
             if (subject == DataClauseKind.None) continue;
             string? why = rule.Kind switch
             {
-                // Level 77 is not level 1: §13.16.3 SR1 lists them as distinct level-numbers, and a residence
+                // Level 77 is not level 1: §2023:13.16.3 SR1 lists them as distinct level-numbers, and a residence
                 // sentence admits 77 only where it says so (SR16 — the row's ResidenceLevels).
                 ClausePlacementKind.Residence =>
                     rule.ResidenceFault(level, section, (written & DataClauseKind.Typedef) != 0),
@@ -240,13 +240,13 @@ public sealed partial class DataBinder
         return refused;
     }
 
-    /// <summary>⛔ §13.16.3 SR12 and SR14 — THE REFERENCE-COMPOSITION SCREEN, the twin pair over the WRITTEN clause set
+    /// <summary>⛔ §2023:13.16.3 SR12 and SR14 — THE REFERENCE-COMPOSITION SCREEN, the twin pair over the WRITTEN clause set
     /// (kb/Work PB487): a SAME AS or TYPE clause shall share its entry with only the clauses
     /// <see cref="DataClauseKinds.SameAsCoPermitted"/> / <see cref="DataClauseKinds.TypeCoPermitted"/> name. Returns
     /// the clauses REFUSED, one diagnostic per violated rule, and the caller DROPS each refused clause's effect
     /// (the <see cref="ScreenClausePlacement"/> discipline).
     /// <para>⛔ <b>The recovery drops the co-clauses and KEEPS the reference</b> (kb/Work PB4602). The entry's
-    /// description is the referenced one (§13.18.57.4 GR1, §13.18.49.4 GR1/GR2), and it is the co-clause that is
+    /// description is the referenced one (§2023:13.18.57.4 GR1, §2023:13.18.49.4 GR1/GR2), and it is the co-clause that is
     /// wrong, so the written TYPE / SAME AS name stays and the entry expands as a legal one would. The former
     /// recovery cleared the REFERENCE: the entry reached the later screens as a PICTURE-less leaf, so
     /// <c>01 X TYPE T ALIGNED.</c> drew COBOL1942 and COBOL0881 beside the one real refusal, COBOL2150. Dropping the
@@ -269,7 +269,7 @@ public sealed partial class DataBinder
         {
             Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"{entryWhere}: the SAME AS clause shall not be "
                 + "specified in the same data description entry with any clauses except CONSTANT RECORD, "
-                + "entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12); this entry also "
+                + "entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §2023:13.16.3 SR12); this entry also "
                 + $"specifies {DataClauseKinds.Name(sameAsBad)}");
             refused |= sameAsBad & ~DataClauseKinds.EntryRoleClauses;   // reported whole, dropped as DESCRIPTION clauses only
         }
@@ -280,7 +280,7 @@ public sealed partial class DataBinder
             Edition.Error(DiagnosticCatalog.TypeEntryRule, $"{entryWhere}: the TYPE clause shall not be "
                 + "specified in the same data description entry with any clauses except BASED, CLASS, CONSTANT "
                 + "RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, "
-                + "PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING (ISO §13.16.3 SR14); "
+                + "PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING (ISO §2023:13.16.3 SR14); "
                 + $"this entry also specifies {DataClauseKinds.Name(typeBad)}");
             refused |= typeBad & ~DataClauseKind.SameAs;
         }
@@ -289,16 +289,16 @@ public sealed partial class DataBinder
 
     /// <summary>The clauses whose POSITION in the entry the standard fixes — "shall immediately follow the
     /// entry-name clause" — each with the rule that says so and the code it reports under. The REDEFINES row is
-    /// §13.18.44.3 SR1 (restated by §13.16.3 SR4); the TYPEDEF row is §13.16.3 SR4 alone, which nothing asked until
-    /// kb/Work PB486, so `01 T PIC X(4) IS TYPEDEF.` compiled. §13.16.3 SR4 ends "The remaining clauses may be
+    /// §2023:13.18.44.3 SR1 (restated by §2023:13.16.3 SR4); the TYPEDEF row is §2023:13.16.3 SR4 alone, which nothing asked until
+    /// kb/Work PB486, so `01 T PIC X(4) IS TYPEDEF.` compiled. §2023:13.16.3 SR4 ends "The remaining clauses may be
     /// written in any order", so this set is closed.</summary>
     private static readonly (DataClauseKind Kind, string Rule, DiagnosticDescriptor Code)[] LeadingClauses =
     [
-        (DataClauseKind.Redefines, "§13.18.44.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
-        (DataClauseKind.Typedef, "§13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
+        (DataClauseKind.Redefines, "§2023:13.18.44.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
+        (DataClauseKind.Typedef, "§2023:13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
     ];
 
-    /// <summary>§13.16.3 SR4's positional sentences: "The REDEFINES clause, if specified, shall immediately follow
+    /// <summary>§2023:13.16.3 SR4's positional sentences: "The REDEFINES clause, if specified, shall immediately follow
     /// the entry-name clause, if specified; otherwise, the REDEFINES clause shall immediately follow the
     /// level-number. If the TYPEDEF clause is specified, … the TYPEDEF clause shall immediately follow the
     /// entry-name clause." The clause list is free-order (<c>dataDescriptionClause*</c>), so the check is each
@@ -333,10 +333,10 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
             return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
                 + "character-string as category numeric-edited or as numeric without the picture symbol 'S' "
-                + $"(ISO §13.18.8.3 SR1) — this item is of category {ItemCategory.CategoryName(pic)}";
+                + $"(ISO §2023:13.18.8.3 SR1) — this item is of category {ItemCategory.CategoryName(pic)}";
         if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
             return "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage "
-                + $"display or usage national (ISO §13.18.8.3 SR2) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+                + $"display or usage national (ISO §2023:13.18.8.3 SR2) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 
@@ -345,7 +345,7 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)
             return "the JUSTIFIED clause may be specified only for a data item whose category is alphabetic, "
-                + $"alphanumeric, boolean, or national (ISO §13.18.32.3 SR3) — this item is of category "
+                + $"alphanumeric, boolean, or national (ISO §2023:13.18.32.3 SR3) — this item is of category "
                 + ItemCategory.CategoryName(pic);
         return null;
     }

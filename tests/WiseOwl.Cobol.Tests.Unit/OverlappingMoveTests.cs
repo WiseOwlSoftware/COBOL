@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §14.6.10 1) — AN OVERLAPPING MOVE'S RESULT IS UNDEFINED, SO WISEOWL COBOL FOLLOWS GNUCOBOL'S, AND THIS PINS
+/// ⛔ ISO §2023:14.6.10 1) — AN OVERLAPPING MOVE'S RESULT IS UNDEFINED, SO WISEOWL COBOL FOLLOWS GNUCOBOL'S, AND THIS PINS
 /// THE ALGORITHM (kb/Work PB1910, PB1907; docs/CONFORMANCE.md §3 D-OVL2; CLAUDE.md rule 1).
 /// <para>Every expected image below was MEASURED with GnuCOBOL 3.2.0 (<c>cobc -std=cobol2014</c>, ASCII sign
 /// convention unless a case says IBM) on a program that overlays the receiver on the sender with <c>REDEFINES</c> and

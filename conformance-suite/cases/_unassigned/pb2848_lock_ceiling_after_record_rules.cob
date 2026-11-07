@@ -20,14 +20,14 @@
       *> the write, so the refused statement releases no record.
       *>   python scripts/spec/cite.py --check 12.4.5.9.4 "Any I-O
       *>   statement that attempts to obtain a record lock that would
-      *>   exceed either limit is unsuccessful"   -> OK §12.4.5.9.4 7)
+      *>   exceed either limit is unsuccessful"   -> OK §2023:12.4.5.9.4 7)
       *>   python scripts/spec/cite.py --check 9.1.13.8 "this file
       *>   connector holds the maximum number of locks"
-      *>                                          -> OK §9.1.13.8 4)
+      *>                                          -> OK §2023:9.1.13.8 4)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the record
       *>   lock associated with the record written is set when the
       *>   execution of the WRITE statement is successful"
-      *>                                          -> OK §14.9.51.4 11)
+      *>                                          -> OK §2023:14.9.51.4 11)
       *> The connector's maximum is 15 (DOC-A.1-155; the standard's
       *> floor), reached by fifteen WRITE ... WITH LOCK statements on
       *> records 1..15 of a LOCK ON MULTIPLE RECORDS connector.

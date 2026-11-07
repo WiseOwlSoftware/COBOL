@@ -13,12 +13,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ REPETITION IN A REPORT GROUP IS A SUBTREE REPLAY, AND EVERY CLAUSE RIDES IT FOR FREE (kb/Work PB565).
-/// ISO §13.18.38.4 GR10 says a repeating entry "causes the entry to define integer-2 distinct report items" and
+/// ISO §2023:13.18.38.4 GR10 says a repeating entry "causes the entry to define integer-2 distinct report items" and
 /// GR11 says every clause has "the same effect on each repetition as they would on a single data item without
 /// the OCCURS clause" — so the ONE correct shape is to bind the entry's subtree once per repetition, not to
 /// teach each clause about repetition. <c>ReportSectionBinder.BindReportEntries</c> does exactly that, which is why
-/// §13.18.63.4 GR21's import of GR9 (a VALUE reaches every occurrence), GR22's OCCURS-DEPENDING suppressor and
-/// §13.18.64's VARYING counters all became correct at once.
+/// §2023:13.18.63.4 GR21's import of GR9 (a VALUE reaches every occurrence), GR22's OCCURS-DEPENDING suppressor and
+/// §2023:13.18.64's VARYING counters all became correct at once.
 ///
 /// <para>Three guards keep it structural:</para>
 /// <list type="number">
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <item>every <c>ReportColumnKindModel</c> is handled at BOTH placement readers (the emitter's compose switch
 /// and the binder's line-width walk) — a new placement kind that reaches only one of them is this repo's
 /// most reproducible defect, the two-arm dispatch with one arm fixed;</item>
-/// <item>BOTH AXES ride the one replay, and the axis is decided in ONE place: §13.18.38.4 GR10/GR12 split
+/// <item>BOTH AXES ride the one replay, and the axis is decided in ONE place: §2023:13.18.38.4 GR10/GR12 split
 /// a/b (COLUMN) from c/d (LINE), so an entry's integer-3 is a horizontal interval or a vertical one but never
 /// both, and a second axis test would be a second copy of that split.</item>
 /// </list>
@@ -86,7 +86,7 @@ public sealed class ReportRepeatingEntryDriftTests
     /// <summary>NEITHER AXIS STAGES ANY MORE, and the retired ids stay retired. The two COBOL0899
     /// descriptors that refused vertical repetition — <c>report-occurs-in-group</c> and
     /// <c>report-multiple-line</c> — are gone, and nothing may re-declare them: a re-added stage would refuse
-    /// §13.18.38.4 GR10c/GR10d and §13.18.35.4 GR9, both of which are conforming source this compiler now
+    /// §2023:13.18.38.4 GR10c/GR10d and §2023:13.18.35.4 GR9, both of which are conforming source this compiler now
     /// prints correctly.</summary>
     [Fact]
     public void NeitherRepetitionAxis_StagesLoud()
@@ -102,7 +102,7 @@ public sealed class ReportRepeatingEntryDriftTests
         Assert.DoesNotContain("DiagnosticCatalog.ReportMultipleLine", binder, StringComparison.Ordinal);
     }
 
-    /// <summary>⛔ THE AXIS IS DECIDED ONCE (ISO §13.18.38.4 GR10/GR12). Every reader of a repeating entry's
+    /// <summary>⛔ THE AXIS IS DECIDED ONCE (ISO §2023:13.18.38.4 GR10/GR12). Every reader of a repeating entry's
     /// STEP asks <c>Shift(axis)</c> or <c>Undisplaced(axis)</c> — never <c>Spec.Step</c> directly — because
     /// integer-3 is an interval on the entry's OWN axis and a second reading of it is the two-arm dispatch
     /// this file exists to prevent.</summary>
@@ -160,8 +160,8 @@ public sealed class ReportRepeatingEntryDriftTests
 
     /// <summary>A repetition's VARYING counter is the CLOSED form over the declaring entry's occurrence number, never an
     /// accumulator that lives in a field: a replayed entry becomes one field per repetition, and a field-local
-    /// accumulator could not span them (ISO §13.18.64.4 GR3 — occurrence n holds FROM + n × BY). The one exception is
-    /// the recurrence §13.18.64.3 SR3 creates ("may be referenced in arithmetic-expression-2 of the same VARYING
+    /// accumulator could not span them (ISO §2023:13.18.64.4 GR3 — occurrence n holds FROM + n × BY). The one exception is
+    /// the recurrence §2023:13.18.64.3 SR3 creates ("may be referenced in arithmetic-expression-2 of the same VARYING
     /// clause"): a BY naming a counter of its own entry is not FROM + n × BY, so only a counter the binder marked
     /// <c>Recurrent</c> is advanced step by step — and it is advanced from FROM afresh in every placement's block,
     /// so it too is a function of the occurrence number and never of the replay's state (kb/Work PB1306).</summary>

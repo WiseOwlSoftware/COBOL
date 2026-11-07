@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.45.4 3) b)-e) — SUPPRESS inhibits page advance, NEXT
+      *> ISO §2023:14.9.45.4 3) b)-e) — SUPPRESS inhibits page advance, NEXT
       *> GROUP and LINE-COUNTER changes, but not control-break
       *>    processing.
       *> Rule 3): "When the SUPPRESS statement is executed, the
@@ -20,15 +20,15 @@
       *> processing."  ((a), no printing, is
       *>    conformance:cases/13.18.16-CONTROL/rw_suppress)
       *> cite.py --check 14.9.45.4 "Any page advance associated with the
-      *>   report group."           -> OK  §14.9.45.4 3) b)
+      *>   report group."           -> OK  §2023:14.9.45.4 3) b)
       *> cite.py --check 14.9.45.4 "The processing of any NEXT GROUP
-      *>   clause in the report group." -> OK  §14.9.45.4 3) c)
+      *>   clause in the report group." -> OK  §2023:14.9.45.4 3) c)
       *> cite.py --check 14.9.45.4 "Any changes to LINE-COUNTER
-      *>   associated with the report group." -> OK  §14.9.45.4 3) d)
+      *>   associated with the report group." -> OK  §2023:14.9.45.4 3) d)
       *> cite.py --check 14.9.45.4 "the SUPPRESS statement does not
-      *>   affect the sensing for control breaks" -> OK  §14.9.45.4 3)
+      *>   affect the sensing for control breaks" -> OK  §2023:14.9.45.4 3)
       *>    e)
-      *> Layout rules used (all §13.18 / §14.9.16, 2023 text):
+      *> Layout rules used (all §2023:13.18 / §2023:14.9.16, 2023 text):
       *>  PAGE LIMIT 12 HEADING 1 FIRST DETAIL 2 LAST DETAIL 7 FOOTING
       *>    9;
       *>  LAST CONTROL HEADING omitted = LAST DETAIL 7 (13.18.39.4

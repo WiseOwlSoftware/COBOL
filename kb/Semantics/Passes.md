@@ -36,7 +36,7 @@ edition reads; the owner-disposition SYNC-on-group site).
 ## VersionConformancePass — the SOLE edition gate
 Runs as the manifest's named terminal pass (`Requires StorageComputed`, `Produces EditionConformanceChecked`), so the
 Bind result already carries every edition diagnostic. **Two arms:**
-- **Parse-tree arm** (`ParseArm`) fires every *syntactic* introduction/removal/phrase/literal gate + the §8.9
+- **Parse-tree arm** (`ParseArm`) fires every *syntactic* introduction/removal/phrase/literal gate + the §2023:8.9
   reserved-word funnel on the construct's **recognition** — because a below-edition construct that *also* fails to bind
   keeps its parse node but drops its bound node (a bound-arm intro gate would silently drop the `0900`).
 - **Bound-tree arm** (`GateStatement`/`GateMove`/`GateData`) fires only genuinely *semantic* gates whose identity is a
@@ -48,7 +48,7 @@ disjoint. The driver's single `HasErrors` gate then **halts before emit**, so co
 See [[kb/Compiler/Pipeline]].
 
 ## FlagConformancePass — sibling migration-flagging
-Runs right after — an orthogonal axis: directive-state-driven (`>>FLAG-02` §7.3.14 / `>>FLAG-14` §7.3.15), always a
+Runs right after — an orthogonal axis: directive-state-driven (`>>FLAG-02` §2023:7.3.14 / `>>FLAG-14` §2023:7.3.15), always a
 **Warning** (`COBOL1620`/`1621`), fires regardless of `--std`. A parse-tree visitor (flags are line-sensitive); a
 no-op when no FLAG directive is present.
 

@@ -7,8 +7,8 @@
       *> kb/Work PB1139 (and PB812) - THE PROCEDURE RANGE IS ASKED OF THE TEXT, NOT OF A NUMERIC INTERVAL.
       *>   cite.py --check 14.9.40.3 "A SORT statement shall not appear in imperative-statement-1 of an
       *>     exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure."
-      *>     -> OK §14.9.40.3 3)
-      *> INPUT PROCEDURE IS B1 THRU A1 names an INVERTED range (A1 stands before B1; §14.9.28.4 GR6 permits it). The
+      *>     -> OK §2023:14.9.40.3 3)
+      *> INPUT PROCEDURE IS B1 THRU A1 names an INVERTED range (A1 stands before B1; §2023:14.9.28.4 GR6 permits it). The
       *> file SORT written in A1 is in the input procedure; a Start..End interval over the pcs is empty for this pair,
       *> which is how the statement escaped the ban. PcRange.Spans is the one lexical membership test.
        IDENTIFICATION DIVISION.

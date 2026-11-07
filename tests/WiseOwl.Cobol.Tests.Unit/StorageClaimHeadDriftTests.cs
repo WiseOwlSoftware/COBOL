@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY STORAGE CLAIM RESOLVES ITS HEAD THROUGH THE ONE CONTAINED-AWARE RESOLVER (kb/Work PB3286). The data pass puts
 /// the record named by an <c>ADDRESS OF</c> head or a BY REFERENCE operand on addressable cell storage, and a head written
-/// in a CONTAINED program can only name the container's GLOBAL names (ISO §13.18.27.4 GR2; §8.4.6.2.1). The two arms each
+/// in a CONTAINED program can only name the container's GLOBAL names (ISO §2023:13.18.27.4 GR2; §2023:8.4.6.2.1). The two arms each
 /// resolved their head in the whole container scope — the ADDRESS OF arm took candidate 0, the BY REFERENCE arm required
 /// exactly one — so a container-local record sharing a name with a GLOBAL one hid the global record from the claim and
 /// the contained <c>SET P TO ADDRESS OF X</c> was refused. <c>DataBinder.Ptr.cs</c> carries the ONE resolver

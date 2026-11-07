@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>PIC 9V9(20)</c> divisor into a <c>PIC 9(10)V9(10)</c> receiver needs 1.2·10^9 × 10^30 = 1.2·10^39 — past the
 /// carrier although the QUOTIENT, 411 522 630, is tiny — and the wrapped dividend produced a wrong quotient with no
 /// condition. An alignment that does not fit is now formed on the SDIDI (<c>CobolDec.DivToOdd</c>, round-to-odd at 34
-/// digits) and rounded ONCE at the result scale; a quotient the carrier cannot hold is the §14.7.5 case-5 size
+/// digits) and rounded ONCE at the result scale; a quotient the carrier cannot hold is the §2023:14.7.5 case-5 size
 /// error. Every row below names which arm it takes: the alignment <c>a × 10^exp</c> (or <c>b × 10^−exp</c>) fits
 /// <see cref="Int128"/> (max 1.7014·10^38) or it does not.</para>
 /// </summary>

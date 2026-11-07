@@ -9,22 +9,22 @@
       *> kb/Work PB1305 - the standard-decimal lane of a report VARYING
       *> FROM / BY expression. Under ARITHMETIC IS STANDARD-DECIMAL an
       *> arithmetic expression is a standard-decimal intermediate
-      *> (§11.9.5.2 GR3), and the VARYING clause's noninteger test
-      *> (§13.18.64.4 GR5) applies to it as to any other value.
+      *> (§2023:11.9.5.2 GR3), and the VARYING clause's noninteger test
+      *> (§2023:13.18.64.4 GR5) applies to it as to any other value.
       *> "If the STANDARD-DECIMAL phrase is specified, the techniques
       *> used in handling arithmetic expressions, arithmetic statements,
       *> the SUM clause, and integer and numeric functions shall be as
       *> described for standard-decimal arithmetic"
-      *>   cite.py: OK  §11.9.5.2 3)  (General rules)
+      *>   cite.py: OK  §2023:11.9.5.2 3)  (General rules)
       *> "Each entry containing a VARYING clause establishes an
       *> independent temporary integer data item that shall be large
       *> enough to contain the maximum expected value."
-      *>   cite.py: OK  §13.18.64.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.64.4 1)  (General rules)
       *> "If the evaluation of arithmetic-expression-1 or
       *> arithmetic-expression-2 produces a noninteger value and the
       *> VARYING clause was specified in a report description entry,
       *> the EC-REPORT-VARYING exception condition is set to exist"
-      *>   cite.py: OK  §13.18.64.4 5)  (General rules)
+      *>   cite.py: OK  §2023:13.18.64.4 5)  (General rules)
       *>
       *> DERIVATION.
       *> DET-A  FROM 12 / 4 = 3 BY 6 / 3 = 2 (integers): 3 5 7 ->

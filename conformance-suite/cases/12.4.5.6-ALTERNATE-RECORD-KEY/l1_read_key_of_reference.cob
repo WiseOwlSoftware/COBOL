@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR30 and GR31 — which key becomes the key of
+      *> ISO §2023:14.9.30.4 GR30 and GR31 — which key becomes the key of
       *> reference on a Format-2 (random) READ of an indexed file, and
       *> how long it lasts.
       *> GR30 "if the KEY phrase is specified, data-name-1 or
@@ -18,7 +18,7 @@
       *>   prime record key" established instead.
       *> The key of reference is not directly displayable, so it is
       *> measured by the record the FOLLOWING sequential READ selects
-      *> (§14.9.30 GR21 rule e reads it through the file position
+      *> (§2023:14.9.30 GR21 rule e reads it through the file position
       *> indicator).  The file is built so the two orders are exact
       *> opposites — prime 01 02 03 04 against alternate AA(04) BB(03)
       *> CC(02) DD(01) — and each leg's second line is the answer only

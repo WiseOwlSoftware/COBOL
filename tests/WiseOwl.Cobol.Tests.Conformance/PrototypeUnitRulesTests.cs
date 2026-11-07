@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §10.6 — the prototype source-unit rules, over EVERY prototype kind (kb/Work PB894). §10.6.2 SR4 says its
+/// ISO §2023:10.6 — the prototype source-unit rules, over EVERY prototype kind (kb/Work PB894). §2023:10.6.2 SR4 says its
 /// six restrictions "apply to program prototypes, function prototypes, and method prototypes", so each restriction
 /// is asserted on a PROGRAM prototype AND on a FUNCTION prototype: a screen that one arm reaches and the other
 /// does not is exactly the two-arm shape this repository keeps producing. Each program carries ONE violation, and
@@ -107,7 +107,7 @@ public sealed class PrototypeUnitRulesTests
         EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(
             Prototype(function, name, procedure: procedure), 2023), PrototypeBody);
 
-    /// <summary>§10.6.1 — the prototype formats print the end marker unbracketed.</summary>
+    /// <summary>§2023:10.6.1 — the prototype formats print the end marker unbracketed.</summary>
     [Theory]
     [InlineData(false, "PUG1")]
     [InlineData(true, "FUG1")]

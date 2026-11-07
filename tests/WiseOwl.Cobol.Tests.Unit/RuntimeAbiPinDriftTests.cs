@@ -245,7 +245,7 @@ public sealed class RuntimeAbiPinDriftTests
         foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>()
                      .Where(f => f.Declaration.Type.ToString() == "NumProfile"))
             yield return Tokens(field);
-        // Every §8.5.1.12 atom array the arguments and formal adapters above name by field (GroupAtomTable writes each
+        // Every §2023:8.5.1.12 atom array the arguments and formal adapters above name by field (GroupAtomTable writes each
         // distinct array once into __GroupAtoms, kb/Work PB2690): the shape of a group or table that crosses, which the
         // lines above now carry only as a reference.
         foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>()

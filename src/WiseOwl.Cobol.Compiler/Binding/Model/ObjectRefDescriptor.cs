@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>Which of the three alternatives of the <c>USAGE OBJECT REFERENCE</c> general format
-/// (ISO §13.18.60.2) a description took — plus the "no optional phrase at all" case §13.18.60.4 GR22 b) names
+/// (ISO §2023:13.18.60.2) a description took — plus the "no optional phrase at all" case §2023:13.18.60.4 GR22 b) names
 /// UNIVERSAL. The printed format is
 /// <code>
 /// OBJECT REFERENCE [ interface-name-1                            ]
@@ -17,42 +17,42 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// alternatives, so at most one is written).</summary>
 public enum ObjectRefKind
 {
-    /// <summary>No optional phrase — §13.18.60.4 GR22 b): "If none of the optional phrases is specified,
+    /// <summary>No optional phrase — §2023:13.18.60.4 GR22 b): "If none of the optional phrases is specified,
     /// this data item is called a universal object reference. Its content may be a reference to any
     /// object."</summary>
     Universal,
 
-    /// <summary>interface-name-1 — §13.18.60.4 GR22 c): "If interface-name-1 is specified, the object
+    /// <summary>interface-name-1 — §2023:13.18.60.4 GR22 c): "If interface-name-1 is specified, the object
     /// referenced by this data item shall implement interface-1." Neither FACTORY nor ONLY may accompany it:
     /// this alternative of the general format carries no such phrase.</summary>
     Interface,
 
-    /// <summary>object-class-name-1, optionally FACTORY OF and/or ONLY — §13.18.60.4 GR22 d).</summary>
+    /// <summary>object-class-name-1, optionally FACTORY OF and/or ONLY — §2023:13.18.60.4 GR22 d).</summary>
     ObjectClass,
 
-    /// <summary>ACTIVE-CLASS, optionally FACTORY OF — §13.18.60.4 GR22 e): "the object referenced by this
+    /// <summary>ACTIVE-CLASS, optionally FACTORY OF — §2023:13.18.60.4 GR22 e): "the object referenced by this
     /// data item shall be of the same class as the object that was used to invoke the method in which this
-    /// data description entry is specified". §13.18.60.3 SR16 confines it to a factory definition, an
+    /// data description entry is specified". §2023:13.18.60.3 SR16 confines it to a factory definition, an
     /// instance definition, or the linkage or local-storage section of a method definition.</summary>
     ActiveClass,
 }
 
 /// <summary>
-/// ⛔ THE OBJECT-REFERENCE DESCRIPTION, AS A TUPLE — the four INDEPENDENT axes ISO §13.18.60.2 prints
+/// ⛔ THE OBJECT-REFERENCE DESCRIPTION, AS A TUPLE — the four INDEPENDENT axes ISO §2023:13.18.60.2 prints
 /// (<see cref="Kind"/> × <see cref="Factory"/> × <see cref="Only"/> × <see cref="Name"/>), carried on
 /// <see cref="PicInfo.ObjectRef"/> for every category-<c>ObjectReference</c> item.
 /// <para>
 /// It replaced a single nullable <c>string? ObjectClassName</c> (kb/Work PB389). That scalar could spell only
 /// "universal" (null) and "some name" (non-null): ACTIVE-CLASS and ONLY had no grammar alternative and were
 /// REJECTED OUTRIGHT as legal COBOL-2002+ source, FACTORY OF was loud-staged, and the KIND was re-derived
-/// downstream by asking the class table twice — so every one of §14.9.39.3's SET Format-5 rules that
+/// downstream by asking the class table twice — so every one of §2023:14.9.39.3's SET Format-5 rules that
 /// DISCRIMINATES on an unmodelled axis (SR10 b/c, SR11, SR12 a1/a3/b/c, SR13, SR14) had no expressible
 /// subject. Consumers now ASK this descriptor instead of guessing, which is also what retires the
 /// "universal" test being spelled "no class name recorded" — a test that is equally true of a factory, an
 /// interface or an ACTIVE-CLASS reference and so misdiagnosed them the moment they became declarable.
 /// </para>
 /// <para>
-/// <b>The GR22 reading of each axis</b> (§13.18.60.4 GR22 — "It shall contain either null or a reference to an
+/// <b>The GR22 reading of each axis</b> (§2023:13.18.60.4 GR22 — "It shall contain either null or a reference to an
 /// object, subject to the following rules"): b) no phrase ⇒ any object; c) interface-name-1 ⇒ an object that
 /// IMPLEMENTS it; d) object-class-name-1 ⇒ d)1. without ONLY, that class OR A SUBCLASS (d)1.a. its factory
 /// object when FACTORY is written, d)1.b. an instance object otherwise), d)2. with ONLY, EXACTLY that class
@@ -66,9 +66,9 @@ public enum ObjectRefKind
 /// interface-name-1 for <see cref="ObjectRefKind.Interface"/>, object-class-name-1 for
 /// <see cref="ObjectRefKind.ObjectClass"/>, and — for <see cref="ObjectRefKind.ActiveClass"/> — the CONTAINING
 /// class when the entry is written in a factory definition, an instance definition, or a method definition of a
-/// class — and NULL when it is written in a method PROTOTYPE of an interface definition, which §13.18.60.3 SR16 also
+/// class — and NULL when it is written in a method PROTOTYPE of an interface definition, which §2023:13.18.60.3 SR16 also
 /// admits (a prototype is a method definition) and which has no class: the description is then owner-less
-/// (<see cref="ActiveClass"/>). Otherwise null ONLY for <see cref="ObjectRefKind.Universal"/>. Carrying the containing class here is what lets §14.9.39.3 SR12 b)2.
+/// (<see cref="ActiveClass"/>). Otherwise null ONLY for <see cref="ObjectRefKind.Universal"/>. Carrying the containing class here is what lets §2023:14.9.39.3 SR12 b)2.
 /// ("the class containing the data item referenced by identifier-4 shall be the same class or a subclass of
 /// …") be asked of the descriptor rather than re-derived from the binder's ambient state at each use.
 /// </param>
@@ -78,18 +78,18 @@ public enum ObjectRefKind
 /// <param name="Only">The ONLY phrase (GR22 d)2.) — the referenced object is of EXACTLY the named class, not a
 /// subclass. Legal only on the object-class-name-1 alternative.</param>
 /// <param name="Formal">True when <paramref name="Name"/> is a PARAMETER-NAME of the parameterized class or interface
-/// definition being bound as itself (kb/Work PB2937; OO deep-dive D12 determination 6). ISO §11.3.4 GR6: "Parameter-name-1
+/// definition being bound as itself (kb/Work PB2937; OO deep-dive D12 determination 6). ISO §2023:11.3.4 GR6: "Parameter-name-1
 /// may be specified within this class definition only where an object-class-name or an interface-name is permitted", so a
 /// formal description takes the alternative its REPOSITORY specifier declares (<see cref="ObjectRefKind.ObjectClass"/> for
 /// <c>CLASS T</c>, <see cref="ObjectRefKind.Interface"/> for <c>INTERFACE T</c>) — it IS that alternative — while the class
-/// or interface it names is each expansion's actual (§9.3.8.2.4: "treated as if the actual parameter classes or interfaces
+/// or interface it names is each expansion's actual (§2023:9.3.8.2.4: "treated as if the actual parameter classes or interfaces
 /// were substituted for the parameters throughout the class definition"). So every question about the description that
 /// turns on WHICH class or interface it names is the expansion's, and every other one (the alternative itself, the FACTORY
 /// and ONLY axes, the identity of two references to one parameter-name) is asked of the skeleton. Only a skeleton's own
 /// binders produce one: an expansion's re-parsed text has every formal replaced (kb/Work PB759), and nothing emits a
 /// skeleton.</param>
 /// <param name="Identity">The EXTERNALIZED name of the class or interface <paramref name="Name"/> resolved to where the
-/// description was written (ISO §11.3.4 GR1, §11.6.4 GR1: the name "that is externalized to the operating environment";
+/// description was written (ISO §2023:11.3.4 GR1, §2023:11.6.4 GR1: the name "that is externalized to the operating environment";
 /// DESIGN-external-repository §6.4) — null for a universal description, a FORMAL one, and one whose name resolved to
 /// nothing. A word is per source element and a class's emitted name per group, so what two separately compiled groups
 /// agree on is this identity: the readers that hold no class table
@@ -115,7 +115,7 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// <see cref="ClrName"/>); <paramref name="clrName"/> is null for a symbol of the compilation group.</summary>
     public ObjectRefDescriptor Resolved(string identity, string? clrName) => this with { Identity = identity, ClrName = clrName };
 
-    /// <summary>The bare <c>USAGE OBJECT REFERENCE</c> — §13.18.60.4 GR22 b).</summary>
+    /// <summary>The bare <c>USAGE OBJECT REFERENCE</c> — §2023:13.18.60.4 GR22 b).</summary>
     public static ObjectRefDescriptor Universal { get; } = new(ObjectRefKind.Universal, null, false, false);
 
     /// <summary><c>USAGE OBJECT REFERENCE interface-name-1</c> — GR22 c).</summary>
@@ -134,10 +134,10 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
 
     /// <summary><c>USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS</c> — GR22 e). <paramref name="containing"/>
     /// is the class the entry is written in: a factory definition, an instance definition, or a method definition of
-    /// a class (§13.18.60.3 SR16). It is NULL for the one SR16 placement that has no class — a method PROTOTYPE of an
-    /// interface definition (a prototype IS a method definition, §10.6.1 NOTE): the description is OWNER-LESS there,
+    /// a class (§2023:13.18.60.3 SR16). It is NULL for the one SR16 placement that has no class — a method PROTOTYPE of an
+    /// interface definition (a prototype IS a method definition, §2023:10.6.1 NOTE): the description is OWNER-LESS there,
     /// and rightly so, because the class whose object the phrase names is a property of the activation (GR22 e)), not
-    /// of the description (§9.3.8.2.3 rule 2 d) compares only the phrase and the FACTORY presence).</summary>
+    /// of the description (§2023:9.3.8.2.3 rule 2 d) compares only the phrase and the FACTORY presence).</summary>
     public static ObjectRefDescriptor ActiveClass(string? containing, bool factory = false)
         => new(ObjectRefKind.ActiveClass, containing, factory, false);
 
@@ -153,13 +153,13 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     public bool IsUniversal => Kind is ObjectRefKind.Universal;
 
     /// <summary>True when the item is statically bound to a named CLASS (not an interface, not universal) —
-    /// i.e. §14.9.39.3's "described with an object-class-name". ACTIVE-CLASS is deliberately NOT included: the
+    /// i.e. §2023:14.9.39.3's "described with an object-class-name". ACTIVE-CLASS is deliberately NOT included: the
     /// rules treat it as its own alternative throughout (SR10 b vs c, SR12 a vs b, SR14).</summary>
     public bool IsObjectClass => Kind is ObjectRefKind.ObjectClass;
 
     /// <summary>The emitted C# type of a reference with this description, WITHOUT the trailing <c>?</c>.
     /// Universal → <c>CobolObject</c> (D-U1). Otherwise the name mapping the ClassUnit emission convention
-    /// uses (<c>DataItem.WordIdentifier</c> — two spellings of one COBOL word are one class, §8.1.3.2 GR3), plus
+    /// uses (<c>DataItem.WordIdentifier</c> — two spellings of one COBOL word are one class, §2023:8.1.3.2 GR3), plus
     /// behind <c>NamingConvention.FactoryClassName</c> when FACTORY OF was written, because a factory object's emitted
     /// type is the sibling singleton class (design D11), not the instance class. ACTIVE-CLASS emits its
     /// CONTAINING class: GR22 e) admits that class or, through inheritance of the method, a subclass — both of
@@ -176,17 +176,17 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// <summary>True when the emitted C# type is an INTERFACE (<c>OoEmitter.EmitInterfaceUnit</c>) — the one description
     /// kind C# cannot convert to <see cref="UniversalClrName"/> without a cast (a class type converts up implicitly; an
     /// interface type to a class type does not, CS0266), and so the one a COVARIANT RETURN needs the explicit
-    /// conversion for: §9.3.8.2.3 rule 5 a) admits ANY object reference where interface-2's returning item is
+    /// conversion for: §2023:9.3.8.2.3 rule 5 a) admits ANY object reference where interface-2's returning item is
     /// universal (kb/Work PB1499).</summary>
     public bool IsClrInterface => Kind is ObjectRefKind.Interface;
 
     /// <summary>How the description reads back in a diagnostic — the phrases as written, so a message never
     /// has to say "universal" about a typed reference (the PB389 misdiagnosis). The ONE spelling is the run-time
-    /// operand's (<see cref="ObjectReferenceOperand.Spelled"/>), which the §14.9.39.3 table's own refusals read.</summary>
+    /// operand's (<see cref="ObjectReferenceOperand.Spelled"/>), which the §2023:14.9.39.3 table's own refusals read.</summary>
     public string Spelled => new ObjectReferenceOperand(RuntimeKind, Name, Factory, Only, null, null).Spelled;
 
     /// <summary>The run-time kind of this description (<see cref="ObjectReferenceKind"/>) — the ONE mapping between the
-    /// compiler's and the runtime's names for the four §13.18.60.2 alternatives.</summary>
+    /// compiler's and the runtime's names for the four §2023:13.18.60.2 alternatives.</summary>
     public ObjectReferenceKind RuntimeKind => Kind switch
     {
         ObjectRefKind.Universal => ObjectReferenceKind.Universal,

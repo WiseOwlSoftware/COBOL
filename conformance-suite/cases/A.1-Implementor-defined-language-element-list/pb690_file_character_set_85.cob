@@ -7,8 +7,8 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB690FCS.
-      *> ISO/IEC 1989:2023 §8.1.2 (the computer's coded character
-      *> set, Annex A.1 item 31) and §9.1.13.11 item 1 (I-O status 9x)
+      *> ISO/IEC 1989:2023 §2023:8.1.2 (the computer's coded character
+      *> set, Annex A.1 item 31) and §2023:9.1.13.11 item 1 (I-O status 9x)
       *> — a record character with no byte image in the FILE coded
       *> character set is REFUSED, never written as '?' (kb/Work PB690).
       *>
@@ -18,10 +18,10 @@
       *> position; U+0000-U+00FF are the bytes of the same value; the
       *> WRITE or REWRITE of a record holding a character above U+00FF
       *> is unsuccessful with the implementor-defined I-O status '91'
-      *> (§9.1.13.11: "An implementor-defined condition exists. This
+      *> (§2023:9.1.13.11: "An implementor-defined condition exists. This
       *> condition shall not duplicate any other condition specified
       *> by another I-O status value."), nothing reaches the medium and
-      *> the record area is unchanged (§14.9.51.4 GR15: "the write
+      *> the record area is unchanged (§2023:14.9.51.4 GR15: "the write
       *> operation does not take place, the content of the record area
       *> is unaffected").
       *>
@@ -45,13 +45,13 @@
       *>             U+20AC; U+00E9 is written as its OWN byte 0xE9 —
       *>             never '?' — and the file holds that line alone.
       *>             The file is six bytes: the second WRITE is AFTER
-      *>             ADVANCING 1 LINE (§14.9.51.4 GR25 — kb/Work
+      *>             ADVANCING 1 LINE (§2023:14.9.51.4 GR25 — kb/Work
       *>             PB1027), so a line end (LF: the line end of a
       *>             record sequential print stream with no LINAGE
       *>             clause, DOC-A.1-146 (c'), kb/Work PB1664) comes
       *>             first, then P 0xE9 0 1 at bytes 2-5, and CLOSE
       *>             ends the open line (byte 6). The refused write
-      *>             travelled nowhere (§14.9.51.4 GR15).
+      *>             travelled nowhere (§2023:14.9.51.4 GR15).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.

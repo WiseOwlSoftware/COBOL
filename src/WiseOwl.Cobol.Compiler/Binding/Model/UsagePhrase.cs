@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
-/// <summary>The optional phrases the USAGE clause's general format (ISO §13.18.60.2) prints AFTER a usage word, on
+/// <summary>The optional phrases the USAGE clause's general format (ISO §2023:13.18.60.2) prints AFTER a usage word, on
 /// some of its lines and not others. The clause's other operands — <c>POINTER [ TO type-name-1 ]</c>, the two
 /// prototype pointers' <c>TO</c> phrases and OBJECT REFERENCE's class phrase — belong to one usage word each and
 /// are written inside that word's own grammar rule, so they cannot appear on the wrong usage and are not here.
@@ -29,7 +29,7 @@ public enum UsagePhrase
 /// <summary>One row of <see cref="UsagePhraseRules"/>: a phrase, the usages its general-format line admits it on,
 /// and how a phrase written anywhere else is refused.</summary>
 /// <param name="Phrase">The phrase.</param>
-/// <param name="Admits">Exactly the usages whose §13.18.60.2 line prints the phrase, as data (a model record carries
+/// <param name="Admits">Exactly the usages whose §2023:13.18.60.2 line prints the phrase, as data (a model record carries
 /// facts, never code: DESIGN-backend-abstraction §1.1, kb/Work PB4266). Keyed on the
 /// RESOLVED <see cref="Usage"/>, so a vendor spelling of a standard usage (COMP-3 for PACKED-DECIMAL, register row
 /// <c>usage-comp-3</c>) takes that usage's phrases, and a vendor usage with no standard twin (COMP-5) takes none.</param>
@@ -37,12 +37,12 @@ public enum UsagePhrase
 /// <param name="AdmittedOn">The usages the phrase is written with, for the diagnostic.</param>
 /// <param name="Refusal">The diagnostic for the phrase written on any other usage.</param>
 /// <param name="Rule">The general rule that gives the phrase its meaning on the usages that admit it, cited
-/// after §13.18.60.2 in the diagnostic.</param>
+/// after §2023:13.18.60.2 in the diagnostic.</param>
 public sealed record UsagePhraseRule(
     UsagePhrase Phrase, FrozenSet<Usage> Admits, string Words, string AdmittedOn, DiagnosticDescriptor Refusal,
     string Rule);
 
-/// <summary>⛔ THE ONE TABLE OF WHICH USAGE EACH OPTIONAL USAGE-CLAUSE PHRASE MAY FOLLOW — ISO §13.18.60.2's general
+/// <summary>⛔ THE ONE TABLE OF WHICH USAGE EACH OPTIONAL USAGE-CLAUSE PHRASE MAY FOLLOW — ISO §2023:13.18.60.2's general
 /// format, read off the PRINTED page (PDF p.533 = printed folio 503): <c>BINARY-CHAR { SIGNED | UNSIGNED }</c> and
 /// its three siblings, <c>PACKED-DECIMAL [ WITH NO SIGN ]</c>, <c>FLOAT-BINARY-32/-64/-128 [ endianness-phrase
 /// ]</c> and <c>FLOAT-DECIMAL-16/-34</c> followed by a bracketed choice-indicator group over { encoding-phrase,
@@ -63,35 +63,35 @@ public static class UsagePhraseRules
         UsagePhrase.NoSign => NoSign,
         UsagePhrase.Endianness => Endianness,
         UsagePhrase.Encoding => Encoding,
-        _ => throw new ArgumentOutOfRangeException(nameof(phrase), phrase, "no §13.18.60.2 row for this phrase"),
+        _ => throw new ArgumentOutOfRangeException(nameof(phrase), phrase, "no §2023:13.18.60.2 row for this phrase"),
     };
 
     /// <summary>Every <see cref="Usage"/> a family's predicate holds for: the predicate stays the family's one statement
     /// (<see cref="UsageFamilies"/>), and the row stores what it answered.</summary>
     private static FrozenSet<Usage> Every(Func<Usage, bool> family) => Enum.GetValues<Usage>().Where(family).ToFrozenSet();
 
-    /// <summary><c>BINARY-CHAR { SIGNED | UNSIGNED }</c> and its three siblings; §13.18.60.4 GR12 tabulates the
+    /// <summary><c>BINARY-CHAR { SIGNED | UNSIGNED }</c> and its three siblings; §2023:13.18.60.4 GR12 tabulates the
     /// signed and unsigned ranges of those four usages and of no other.</summary>
     private static readonly UsagePhraseRule Sign = new(UsagePhrase.Sign, Every(UsageFamilies.IsFixedWidthBinary),
         "SIGNED / UNSIGNED phrase", "USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG or BINARY-DOUBLE",
-        DiagnosticCatalog.UsageSignPhraseScope, "§13.18.60.4 GR12");
+        DiagnosticCatalog.UsageSignPhraseScope, "§2023:13.18.60.4 GR12");
 
-    /// <summary><c>PACKED-DECIMAL [ WITH NO SIGN ]</c>; §13.18.60.4 GR11 gives the phrase its meaning.</summary>
+    /// <summary><c>PACKED-DECIMAL [ WITH NO SIGN ]</c>; §2023:13.18.60.4 GR11 gives the phrase its meaning.</summary>
     private static readonly UsagePhraseRule NoSign = new(UsagePhrase.NoSign, Every(static u => u is Usage.Packed),
         "WITH NO SIGN phrase", "USAGE PACKED-DECIMAL",
-        DiagnosticCatalog.UsageNoSignPhraseScope, "§13.18.60.4 GR11");
+        DiagnosticCatalog.UsageNoSignPhraseScope, "§2023:13.18.60.4 GR11");
 
-    /// <summary>The five standard floating-point usages; §13.18.60.4 GR19c/d scope the IMPLIED phrase the same
+    /// <summary>The five standard floating-point usages; §2023:13.18.60.4 GR19c/d scope the IMPLIED phrase the same
     /// way. The implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) are outside it.</summary>
     private static readonly UsagePhraseRule Endianness = new(UsagePhrase.Endianness, Every(UsageFamilies.IsStandardFloat),
         "endianness-phrase (HIGH-ORDER-LEFT / HIGH-ORDER-RIGHT)",
         "a standard floating-point usage — FLOAT-BINARY-32/-64/-128 or FLOAT-DECIMAL-16/-34",
-        DiagnosticCatalog.UsageEndiannessPhraseScope, "§13.18.60.4 GR19c/d");
+        DiagnosticCatalog.UsageEndiannessPhraseScope, "§2023:13.18.60.4 GR19c/d");
 
-    /// <summary>Only FLOAT-DECIMAL-16/-34; §13.18.60.4 GR20a says the same in prose ("any standard decimal
+    /// <summary>Only FLOAT-DECIMAL-16/-34; §2023:13.18.60.4 GR20a says the same in prose ("any standard decimal
     /// floating-point usage").</summary>
     private static readonly UsagePhraseRule Encoding = new(UsagePhrase.Encoding, Every(UsageFamilies.IsStandardDecimalFloat),
         "encoding-phrase (BINARY-ENCODING / DECIMAL-ENCODING)",
         "a standard decimal floating-point usage — FLOAT-DECIMAL-16 or FLOAT-DECIMAL-34",
-        DiagnosticCatalog.UsageEncodingPhraseScope, "§13.18.60.4 GR20a");
+        DiagnosticCatalog.UsageEncodingPhraseScope, "§2023:13.18.60.4 GR20a");
 }

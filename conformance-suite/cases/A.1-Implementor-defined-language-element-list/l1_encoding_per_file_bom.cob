@@ -7,7 +7,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.1.3.2 GR2 (Annex A.1 item 26) — more than one encoding in
+      *> ISO §2023:8.1.3.2 GR2 (Annex A.1 item 26) — more than one encoding in
       *> one compilation group: the documented method is PER FILE, by
       *> byte-order mark, with no control functions.
       *>   cite.py --check 8.1.3.2 "If more than one encoding is permitted

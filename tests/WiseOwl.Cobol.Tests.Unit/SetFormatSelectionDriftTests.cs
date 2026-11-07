@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT GUARD FOR THE SET STATEMENT'S FORMAT-SELECTION TABLE (kb/Work PB449 + PB456).
 ///
-/// <para><b>Why it exists.</b> §14.9.39.2 prints seventeen general formats, several of which share one token
+/// <para><b>Why it exists.</b> §2023:14.9.39.2 prints seventeen general formats, several of which share one token
 /// shape, so which format a statement IS has to be decided semantically. That decision used to be spread across
 /// the candidate formats as independent peeks at <c>receivers[0]</c>, and the cost was measurable: the SAME two
 /// operands gave a correct SR23 diagnostic when the pointer was written first and a run-time crash when it was
@@ -46,7 +46,7 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
                 foreach (var kind in row.Admits)
                 {
                     Assert.False(seen.TryGetValue(kind, out var other),
-                        $"{dir}: {kind} is admitted by both {other} and {row.Format}; ISO §14.9.39.2's receiving "
+                        $"{dir}: {kind} is admitted by both {other} and {row.Format}; ISO §2023:14.9.39.2's receiving "
                         + "braces are disjoint and an overlap makes the selection order-dependent again");
                     seen[kind] = row.Format;
                 }
@@ -66,9 +66,9 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>ISO §14.9.39.2 Format 1's sending brace is
-    /// <c>{ arithmetic-expression-1 | index-name-2 | identifier-2 }</c>: §8.8.1.1 admits numeric operands in an
-    /// arithmetic expression and §14.9.39.3 SR2 makes identifier-2 "a data item of class index". Those are the
+    /// <summary>ISO §2023:14.9.39.2 Format 1's sending brace is
+    /// <c>{ arithmetic-expression-1 | index-name-2 | identifier-2 }</c>: §2023:8.8.1.1 admits numeric operands in an
+    /// arithmetic expression and §2023:14.9.39.3 SR2 makes identifier-2 "a data item of class index". Those are the
     /// kinds a Format-1 statement may legally SEND, and the sender tie-break exists precisely for the kinds it
     /// may NOT — so a kind in both sets would take a legal <c>SET IX TO IDX</c> away from Format 1 and hand it
     /// to another format's receiving rule.</summary>
@@ -78,14 +78,14 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
         SetOperandKind[] formatOneCanSend =
         [
             SetOperandKind.IndexName, SetOperandKind.IndexDataItem,     // index-name-2 / identifier-2 (SR2)
-            SetOperandKind.IntegerItem, SetOperandKind.OtherDataItem,   // arithmetic-expression-1 (§8.8.1.1)
+            SetOperandKind.IntegerItem, SetOperandKind.OtherDataItem,   // arithmetic-expression-1 (§2023:8.8.1.1)
             SetOperandKind.CapacityRegister, SetOperandKind.DynamicLength,   // numeric / alphanumeric items
             SetOperandKind.Unclassified,                                // no evidence is never evidence
         ];
         foreach (var row in SetFormatSelection.Rows)
             foreach (var kind in row.SendsOnly)
                 Assert.False(formatOneCanSend.Contains(kind),
-                    $"{row.Format}'s SendsOnly names {kind}, which ISO §14.9.39.2 Format 1's own sending brace "
+                    $"{row.Format}'s SendsOnly names {kind}, which ISO §2023:14.9.39.2 Format 1's own sending brace "
                     + "admits — the tie-break would take a legal Format-1 statement to another format");
     }
 
@@ -149,8 +149,8 @@ public sealed class SetFormatSelectionDriftTests : WiseOwlCobolTestBase
     [Fact]
     public void UpDownBy_AdmitsNoIntegerOrIndexDataItemReceiver()
     {
-        // ISO §14.9.39.2 Format 2 is `SET { index-name-3 } … {UP BY|DOWN BY} arithmetic-expression-2` and
-        // §14.9.39.4 GR4 is "For each occurrence of index-name-3": there is no identifier alternative, and
+        // ISO §2023:14.9.39.2 Format 2 is `SET { index-name-3 } … {UP BY|DOWN BY} arithmetic-expression-2` and
+        // §2023:14.9.39.4 GR4 is "For each occurrence of index-name-3": there is no identifier alternative, and
         // Formats 10 and 14 take a data-pointer and a capacity register. Nothing else has a format.
         Assert.Null(SetFormatSelection.Select([SetOperandKind.IntegerItem], SetDirections.UpDown, out _));
         Assert.Null(SetFormatSelection.Select([SetOperandKind.IndexDataItem], SetDirections.UpDown, out _));

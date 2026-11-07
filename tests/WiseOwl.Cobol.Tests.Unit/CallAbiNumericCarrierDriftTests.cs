@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// character route (<c>CallPlaceIsString</c>) declines, and <c>CallNumCarrier</c> is <c>DataItem.ElementType</c>
 /// — the item's own field type. The callee side is <c>CobolArgAdapt</c>'s private <c>ReadNumericCell</c> /
 /// <c>ReadRealCell</c> type switches. A carrier the caller can name and the callee cannot read does not fail to
-/// compile. Until kb/Work PB615 it did not fail at the boundary either: the adapter fell to the §14.9.4.4 GR12
+/// compile. Until kb/Work PB615 it did not fail at the boundary either: the adapter fell to the §2023:14.9.4.4 GR12
 /// OMITTED carrier, whose read raised EC-PROGRAM-ARG-OMITTED only under checking and otherwise returned ZERO — a
 /// SILENT zero (MEASURED: the boundary assertion below was first written as <c>ThrowsAny</c> and was red). It
 /// now fails the activation with EC-PROGRAM-ARG-MISMATCH (GR3d), which is what that assertion pins. The hole
@@ -60,7 +60,7 @@ public sealed class CallAbiNumericCarrierDriftTests
 
     /// <summary>Every carrier the CALL boundary may name for a numeric argument reaches the callee as its VALUE.
     /// <para>Each case is the same COBOL value, 1.50, in that carrier's own terms — the four integer tiers carry
-    /// the UNSCALED 150 with <c>CobolArg.Scale</c> 2 (ISO §14.2.3 GR10's "COMPUTE statement without the ROUNDED
+    /// the UNSCALED 150 with <c>CobolArg.Scale</c> 2 (ISO §2023:14.2.3 GR10's "COMPUTE statement without the ROUNDED
     /// phrase" then rescales to the formal's own scale, which here is the identity), and the two float carriers
     /// carry the binary64/32 value 1.5 with no scale meta at all, because a binary floating-point item has no
     /// PICTURE digits and the quantization is the RECEIVER's.</para></summary>
@@ -87,8 +87,8 @@ public sealed class CallAbiNumericCarrierDriftTests
         Assert.Equal(150L, CobolArgAdapt.NumValue<long>(args, 0, Formal, 2).Value);
     }
 
-    /// <summary>A carrier OUTSIDE the six is a SUPPLIED argument the formal cannot read — never the §14.9.4.4
-    /// GR12 omitted carrier (kb/Work PB615). §14.9.4.4 GR3d makes a §14.8.2 conformance violation "the program
+    /// <summary>A carrier OUTSIDE the six is a SUPPLIED argument the formal cannot read — never the §2023:14.9.4.4
+    /// GR12 omitted carrier (kb/Work PB615). §2023:14.9.4.4 GR3d makes a §2023:14.8.2 conformance violation "the program
     /// call is not successful" with EC-PROGRAM-ARG-MISMATCH, so the adoption throws that condition, marked as
     /// raised at adoption so the activation boundary attributes it to THIS call's GR3h. The test FAILS the day a
     /// seventh carrier is added to <c>DataItem.ElementType</c> without an arm in <c>CobolArgAdapt</c> only if
@@ -115,7 +115,7 @@ public sealed class CallAbiNumericCarrierDriftTests
         ByteForm = NumericByteForm.Binary,
     };
 
-    /// <summary>⛔ THE TWO ARMS ARE ONE RULE (kb/Work PB288). ISO §14.2.3 GR9 and GR10 describe the SAME
+    /// <summary>⛔ THE TWO ARMS ARE ONE RULE (kb/Work PB288). ISO §2023:14.2.3 GR9 and GR10 describe the SAME
     /// conversion — "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" into a
     /// record of the formal's description — and GR11 resolves every reference to the formal through that same
     /// description, so <see cref="CobolArgAdapt.Num"/>'s GR8 aliasing view and
@@ -123,12 +123,12 @@ public sealed class CallAbiNumericCarrierDriftTests
     /// argument. They did not: <c>Num</c> rescaled with the unchecked <c>CobolNum.Rescale</c> straight into
     /// <c>T.CreateTruncating</c> — two binary wraps in series, no digit-capacity landing — while <c>NumValue</c>
     /// composed with <c>CobolNum.Store</c>. 10^30 crossing to a <c>PIC S9(9)V9(9)</c> formal arrived as
-    /// 873995514006732800 through one arm and −123822295304634368 through the other; the §14.7.5 case-3
+    /// 873995514006732800 through one arm and −123822295304634368 through the other; the §2023:14.7.5 case-3
     /// no-phrase disposition (CONFORMANCE.md DOC-A.1-70) is the result's LOW-ORDER digits, 0.
     /// <para>PROVEN TO FAIL: reverting either <c>CobolArgAdapt.Land</c> call site to the bare
     /// <c>CobolNum.Rescale</c> / <c>CobolFloat.ToScaledUnchecked</c> makes the matching row red.</para></summary>
     [Theory]
-    // The 31-digit fixed-point argument (§8.3.3.3.2 admits 1 through 31 digits) at scale 0. Aligned at the
+    // The 31-digit fixed-point argument (§2023:8.3.3.3.2 admits 1 through 31 digits) at scale 0. Aligned at the
     // formal's scale 9 the result is 10^39; the formal's 18 digit positions keep its low-order 18 — all zero.
     [InlineData("Int128-10e30", 0L)]
     // The binary64 nearest 10^30 is exactly 1000000000000000019884624838656; at scale 9 that is
@@ -156,7 +156,7 @@ public sealed class CallAbiNumericCarrierDriftTests
         Assert.Equal(expected, view);
         Assert.Equal(expected, copy);
 
-        // ⛔ AND THE ACTIVATING SIDE IS THE SAME LANDING (kb/Work PB640). ISO §14.2.3 GR9/GR10 put this COMPUTE
+        // ⛔ AND THE ACTIVATING SIDE IS THE SAME LANDING (kb/Work PB640). ISO §2023:14.2.3 GR9/GR10 put this COMPUTE
         // in the ACTIVATING runtime element ("allocated by the activating runtime element during the process of
         // initiating the activation"), so wherever the formal's description is knowable at the call site the
         // caller performs it -- and the callee's own landing must then be the IDENTITY over the result, or one
@@ -171,7 +171,7 @@ public sealed class CallAbiNumericCarrierDriftTests
 
     /// <summary>⛔ THE CHECKED LANDING RAISES WHERE THE UNCHECKED ONE KEEPS LOW-ORDER DIGITS (kb/Work PB640).
     /// A crossing whose value is "further from zero than permitted for the associated resultant data item"
-    /// (ISO §14.7.5 case 3) sets EC-SIZE-TRUNCATION to exist when checking is enabled (§14.7.5 no-phrase rule
+    /// (ISO §2023:14.7.5 case 3) sets EC-SIZE-TRUNCATION to exist when checking is enabled (§2023:14.7.5 no-phrase rule
     /// 4); with checking off the documented disposition (CONFORMANCE.md DOC-A.1-70) is the result's low-order
     /// digits, which the theory above pins. The SAME argument must take both, selected only by the flag -- a
     /// checked landing that also changed the VALUE, or an unchecked one that threw, would be a second rule.
@@ -205,7 +205,7 @@ public sealed class CallAbiNumericCarrierDriftTests
         }
     }
 
-    /// <summary>The §14.9.4.4 GR11 OMITTED argument has no value to be the COMPUTE's sending operand, so the
+    /// <summary>The §2023:14.9.4.4 GR11 OMITTED argument has no value to be the COMPUTE's sending operand, so the
     /// activating-side landing passes it through UNCHANGED -- including under checking, where raising for an
     /// argument that was never supplied would invent a size error out of an omission.</summary>
     [Fact]
@@ -237,7 +237,7 @@ public sealed class CallAbiNumericCarrierDriftTests
         ByteForm = NumericByteForm.Zoned,
     };
 
-    /// <summary>⛔ BOTH IMAGE ARMS KEEP THE OPERATIONAL SIGN (kb/Work PB873 — ISO §14.2.3 GR8 / GR9's first
+    /// <summary>⛔ BOTH IMAGE ARMS KEEP THE OPERATIONAL SIGN (kb/Work PB873 — ISO §2023:14.2.3 GR8 / GR9's first
     /// branch for <see cref="CobolArgAdapt.Text"/>, GR10's record "of the same description as the formal
     /// parameter" for <see cref="CobolArgAdapt.TextValue"/>). Each arm used to build its image from a hard-coded
     /// <c>Signed = false</c> profile, so <c>-12.34</c> arrived as <c>00123D</c> (+12.34) on both; the image is
@@ -258,7 +258,7 @@ public sealed class CallAbiNumericCarrierDriftTests
     }
 
     /// <summary>The carried description decides the image's SHAPE, not only its sign: a <c>SIGN LEADING
-    /// SEPARATE</c> argument is one position longer and a <c>COMP-5</c> argument is its binary bytes (§14.2.3 GR8
+    /// SEPARATE</c> argument is one position longer and a <c>COMP-5</c> argument is its binary bytes (§2023:14.2.3 GR8
     /// — the formal sees the storage). Both were an unsigned zoned digit run before kb/Work PB873.</summary>
     [Fact]
     public void TheCarriedDescription_DecidesTheImageShape()

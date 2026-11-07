@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR21 indexed rule f + GR27 — the sequential walk
+      *> ISO §2023:14.9.30.4 GR21 indexed rule f + GR27 — the sequential walk
       *> when the previous operation was a successful READ and the key
       *> of reference IS an alternate key that allows duplicates.
       *> f.1 "If NEXT is specified or implied, and there exists in the
@@ -100,7 +100,7 @@
            READ F NEXT AT END DISPLAY "A5-ATEND=" F-ST END-READ.
       *> LEG B - reverse over the same key of reference.  The START
       *> re-establishes a valid file position indicator after the at
-      *> end above (§14.9.41 GR16/GR17).
+      *> end above (§2023:14.9.41 GR16/GR17).
            MOVE "ZZ" TO R-ALT.
            START F KEY IS <= R-ALT
                INVALID KEY DISPLAY "B-START-INV"

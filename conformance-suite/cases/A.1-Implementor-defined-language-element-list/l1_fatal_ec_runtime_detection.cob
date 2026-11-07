@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.6.13.1.3 8) / A.1 item 69 — fatal ECs detected at run time, code always produced
-      *> RULE (§14.6.13.1.3 8), last paragraph; cite.py OK): "If checking
+      *> ISO §2023:14.6.13.1.3 8) / A.1 item 69 — fatal ECs detected at run time, code always produced
+      *> RULE (§2023:14.6.13.1.3 8), last paragraph; cite.py OK): "If checking
       *> is not enabled for a fatal exception condition and the exception
       *> condition is detected by the compiler, the implementor is not
       *> required to produce executable code. It is implementor-defined
@@ -32,31 +32,31 @@
       *> run-time crash with checking OFF loses the last lines (the
       *> corpus also requires exit code 0).
       *> DERIVATION (checked half, >>TURN ... CHECKING ON):
-      *>   E (6) on OCCURS 5: §8.4.2.3.4 2) "greater than the highest
+      *>   E (6) on OCCURS 5: §2023:8.4.2.3.4 2) "greater than the highest
       *>     permissible occurrence number, the EC-BOUND-SUBSCRIPT
       *>     exception condition is set to exist" (cite.py OK)
-      *>   S (7:2) on PIC X(5): §8.4.3.3.4 5) c) EC-BOUND-REF-MOD
+      *>   S (7:2) on PIC X(5): §2023:8.4.3.3.4 5) c) EC-BOUND-REF-MOD
       *>     (cite.py OK)
-      *>   N / 0: §14.7.5 2) "if the divisor in a divide operation ... is
+      *>   N / 0: §2023:14.7.5 2) "if the divisor in a divide operation ... is
       *>     zero, the EC-SIZE-ZERO-DIVIDE exception condition is set to
       *>     exist" (cite.py OK)
-      *>   SQRT (-1): §15.84.3 2) "The value of argument-1 shall be zero
-      *>     or positive"; §15.3 14) EC-ARGUMENT-FUNCTION (cite.py OK)
-      *>   All four are Fatal (Table 13). §14.6.13.1.3 5): checking is
+      *>   SQRT (-1): §2023:15.84.3 2) "The value of argument-1 shall be zero
+      *>     or positive"; §2023:15.3 14) EC-ARGUMENT-FUNCTION (cite.py OK)
+      *>   All four are Fatal (Table 13). §2023:14.6.13.1.3 5): checking is
       *>   enabled and a USE names the condition, so the declarative runs;
-      *>   it displays §15.33.3 1) EXCEPTION-STATUS (31 chars, trailing
+      *>   it displays §2023:15.33.3 1) EXCEPTION-STATUS (31 chars, trailing
       *>   spaces trimmed by the harness) and RESUME AT NEXT STATEMENT
-      *>   (§14.9.33.4 2) a), cite.py OK) continues after the statement,
+      *>   (§2023:14.9.33.4 2) a), cite.py OK) continues after the statement,
       *>   so each statement yields exactly one CAUGHT line, in order.
       *> DERIVATION (unchecked half, after >>TURN EC-ALL CHECKING OFF):
-      *>   §14.6.13.1.1 "if checking for an exception condition is not
+      *>   §2023:14.6.13.1.1 "if checking for an exception condition is not
       *>   enabled, the exception condition will not be raised" -> no
       *>   CAUGHT line. Whether execution continues is A.1 item 70 (NOT
-      *>   item 69), §14.6.13.1.3 8) "the implementor defines whether or
+      *>   item 69), §2023:14.6.13.1.3 8) "the implementor defines whether or
       *>   not execution will continue" (cite.py OK), determined by
       *>   docs/CONFORMANCE.md DOC-A.1-70.
       *>   NO UNCHECKED ZERO DIVISOR: DOC-A.1-70 determines that a zero
-      *>   divisor (§14.7.5 case 2) has no result to store and, with
+      *>   divisor (§2023:14.7.5 case 2) has no result to store and, with
       *>   checking not enabled, the run unit terminates abnormally
       *>   (exit 1), which a golden cannot carry. It is left out here.
       *>   NO UNCHECKED REFERENCE MODIFICATION: a literal one outside the
@@ -69,7 +69,7 @@
       *>   value; it shows only that the code runs and execution
       *>   continues.
       *>   OBSERVABLE LEG: V is set to 5, then SQRT (-1) with checking
-      *>   off. §15.3 14) "the implementor defines the result of the
+      *>   off. §2023:15.3 14) "the implementor defines the result of the
       *>   function reference" (cite.py OK); DOC-A.1-90 determines the
       *>   numeric result is 0, so V=0000000 (PIC 9(3)V9(4), 7 digits, no
       *>   point). If the code for the statement were omitted, V would

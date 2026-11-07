@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §12.3.8.3 SR13 with Annex E.2 item 13 (kb/Work
+      *> ISO/IEC 1989:2023 §2023:12.3.8.3 SR13 with Annex E.2 item 13 (kb/Work
       *> PB1083): under FUNCTION ALL INTRINSIC the COBOL-2023 function
       *> names CONCAT, FIND-STRING and BASECONVERT "are prohibited within
       *> the scope of that REPOSITORY paragraph as user-defined words".

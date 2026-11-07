@@ -5,27 +5,27 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.51.2 Format 1 — WRITE … BEFORE AFTER ADVANCING … (COBOL-2023, Annex §E.3.3 item 2).
+      *> ISO §2023:14.9.51.2 Format 1 — WRITE … BEFORE AFTER ADVANCING … (COBOL-2023, Annex §2023:E.3.3 item 2).
       *> ⛔ THE PRINTED FORMAT WAS MEASURED OFF THE PDF (page 815, printed folio 785): the choice indicators
       *> — the | bars, enclosed by braces — enclose ONLY the two WORDS BEFORE and AFTER; ADVANCING and the
-      *> whole operand group sit OUTSIDE them, ONCE. §5.2.6.4: "one or more of the alternatives contained
+      *> whole operand group sit OUTSIDE them, ONCE. §2023:5.2.6.4: "one or more of the alternatives contained
       *> within the choice indicators shall be specified, but any single alternative shall be specified only
       *> once. … The alternatives may be specified in any order." So the spellings are BEFORE …, AFTER …,
       *> BEFORE AFTER … and AFTER BEFORE … — never two ADVANCING operands (kb/Work PB712; the two-operand
       *> spelling this golden used to carry is now the negative fixture pb712-write-two-advancing-operands).
       *>
       *> EXPECTED VALUES, DERIVED BEFORE THEY WERE MEASURED:
-      *>  • §14.9.51.4 GR25 a) advances the page "the number of lines equal to that value" — ONE advance, of
-      *>    the ONE printed operand, however many of the two words precede it. §13.18.34 GR7 c) then increments
+      *>  • §2023:14.9.51.4 GR25 a) advances the page "the number of lines equal to that value" — ONE advance, of
+      *>    the ONE printed operand, however many of the two words precede it. §2023:13.18.34 GR7 c) then increments
       *>    LINAGE-COUNTER by that amount and GR7 d) sets it to 1 at OPEN OUTPUT. So on a 20-line body:
       *>    OPEN 001; BEFORE AFTER ADVANCING 3 -> 004; AFTER BEFORE ADVANCING 2 -> 006; and the CONTROL
       *>    write, a lone BEFORE ADVANCING 3, -> 009. A two-advance reading would read 007 / 011 / 014.
-      *>  • §14.9.51.4 GR25 e)/f) place that one advance: e) presents the line BEFORE the page is advanced;
+      *>  • §2023:14.9.51.4 GR25 e)/f) place that one advance: e) presents the line BEFORE the page is advanced;
       *>    f) second sentence — "If the AFTER phrase is used and the BEFORE phrase is also used, the printed
       *>    page is advanced … after the line was presented as specified in General rule 25e" — puts the PAIR
       *>    on e)'s side. So the pair presents FIRST, exactly as a lone BEFORE does, and a lone AFTER does not.
       *>    Read back off the medium: the record is on line 001 for the pair, on line 003 for AFTER ADVANCING 2.
-      *>  • §14.9.51.4 GR26 a) + §13.18.34 GR7 c) 4: on a 4-line body from counter 1, the pair's advance of 4
+      *>  • §2023:14.9.51.4 GR26 a) + §2023:13.18.34 GR7 c) 4: on a 4-line body from counter 1, the pair's advance of 4
       *>    leaves the counter past the page body, so the end-of-page condition occurs (GR27 b) transfers to
       *>    the AT END-OF-PAGE imperative) and the device is repositioned — EOP, then LINAGE-COUNTER 001.
        IDENTIFICATION DIVISION.
@@ -62,7 +62,7 @@
        01 EOF-FLAG PIC X VALUE "N".
        PROCEDURE DIVISION.
        MAIN.
-      *>   ── ONE advance for the pair, and the two word orders (§5.2.6.4 "in any order") ──
+      *>   ── ONE advance for the pair, and the two word orders (§2023:5.2.6.4 "in any order") ──
            OPEN OUTPUT PRTF.
            MOVE LINAGE-COUNTER OF PRTF TO LC.
            DISPLAY "OPEN LC=" LC.

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 
-/// <summary>A <c>dataAddressIdentifier</c> head (ISO §8.4.3.11): the data-name and the OF/IN qualifiers written after it.</summary>
+/// <summary>A <c>dataAddressIdentifier</c> head (ISO §2023:8.4.3.11): the data-name and the OF/IN qualifiers written after it.</summary>
 internal readonly record struct AddressTarget(string Name, List<string> Qualifiers);
 
 /// <summary>The data-name head of one operand an activation may pass BY REFERENCE (or, <paramref name="SlotsOnly"/>, a BY CONTENT
@@ -19,10 +19,10 @@ internal readonly record struct ByReferenceOperand(
 
 /// <summary>⛔ THE ONE WALK OF A COMPILATION'S PARSE TREE FOR THE STORAGE-CLAIM OPERANDS (kb/Work PB4302). The pointer pass
 /// (<c>PtrBindBasedAndAddressablesPass</c>) and the linkage pass (<c>LinkageBinder.CallBindLinkage</c>) ask, of each source
-/// element, which data-names a data-address-identifier (<c>ADDRESS OF x</c>, ISO §8.4.3.11) takes and which operands an
-/// activation may pass BY REFERENCE (§14.9.4.4 GR5, §14.9.23.4 GR6) — and a CONTAINING element asks the same of every
+/// element, which data-names a data-address-identifier (<c>ADDRESS OF x</c>, ISO §2023:8.4.3.11) takes and which operands an
+/// activation may pass BY REFERENCE (§2023:14.9.4.4 GR5, §2023:14.9.23.4 GR6) — and a CONTAINING element asks the same of every
 /// program it contains, because a contained program references the container's GLOBAL names without describing them again
-/// (§13.18.27.4 GR2) and the storage they name is the container's. Asked by walking the subtree, that is one re-walk of every
+/// (§2023:13.18.27.4 GR2) and the storage they name is the container's. Asked by walking the subtree, that is one re-walk of every
 /// contained program's whole subtree from EVERY container above it: a chain of N nested programs walked N×(N+1)/2 programs,
 /// through a recursive iterator that charged each node its depth in MoveNext calls on top (558 ms at depth 100, 3,640 ms at 200).
 /// <para>This walks the tree ONCE, with an explicit stack, and records the operands in document order together with the span of
@@ -45,12 +45,12 @@ internal sealed class StorageClaimScan
     }
 
     /// <summary>The operands under <paramref name="region"/> (as <see cref="AddressTargets"/>) an activation may pass BY REFERENCE, in
-    /// document order: each INVOKE argument passed BY REFERENCE (§14.9.23.4 GR6 a) 1.), each CALL USING operand in a BY REFERENCE
-    /// phrase or before any phrase (§14.9.4.4 GR5 — "transitive across the parameters that follow them until another BY CONTENT or BY
+    /// document order: each INVOKE argument passed BY REFERENCE (§2023:14.9.23.4 GR6 a) 1.), each CALL USING operand in a BY REFERENCE
+    /// phrase or before any phrase (§2023:14.9.4.4 GR5 — "transitive across the parameters that follow them until another BY CONTENT or BY
     /// REFERENCE phrase is encountered"; GR9 a) 1. — "BY REFERENCE is assumed"), and each argument of a function
     /// <paramref name="isUserFunction"/> says is user-defined, whose identifier argument is passed by reference whenever its formal is
     /// — a fact of the function's header, not of the reference, so every one is a candidate. The predicate is the ASKING element's
-    /// (§8.4.6.6: a prototype name or the containing definition's own name), which is why the walk records the function-call
+    /// (§2023:8.4.6.6: a prototype name or the containing definition's own name), which is why the walk records the function-call
     /// arguments untested. Only an operand that IS one identifier is recorded: a subscript, a reference modifier's operands or an
     /// arithmetic expression's terms are SENDING operands of the reference, never passed, and an expression argument is passed by
     /// content. Also recorded, <see cref="ByReferenceOperand.SlotsOnly"/> (kb/Work PB1940): each CALL USING operand passed BY CONTENT
@@ -124,7 +124,7 @@ internal sealed class StorageClaimScan
                     if (HeadOf(target) is { } head) Addresses.Add(new AddressTarget(head.Name, head.Qualifiers));
                     break;
 
-                // An INVOKE argument (§14.9.23.2): BY REFERENCE, or written with no BY phrase — which §14.9.23.4 GR6 a) 1.
+                // An INVOKE argument (§2023:14.9.23.2): BY REFERENCE, or written with no BY phrase — which §2023:14.9.23.4 GR6 a) 1.
                 // passes BY REFERENCE whenever the formal is BY REFERENCE and the argument is an identifier.
                 case Core.InvokeUsingContext invokeUsing:
                     foreach (var ia in invokeUsing.invokeArgument())
@@ -149,7 +149,7 @@ internal sealed class StorageClaimScan
                     break;
 
                 case Core.CallUsingPhraseContext phrase:
-                    // The phrase in force (§14.9.4.4 GR5 — transitive until the next BY phrase): null = BY VALUE.
+                    // The phrase in force (§2023:14.9.4.4 GR5 — transitive until the next BY phrase): null = BY VALUE.
                     bool? byReference = true;
                     foreach (var arg in phrase.callArgument())
                     {

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR17 (INDEXED FILES). START behaves as if:
+      *> ISO §2023:14.9.41.4 GR17 (INDEXED FILES). START behaves as if:
       *>   b) the first temporary area's length is the LENGTH value if
       *>      specified, else the length of data-name-1;
       *>   c) for EQUAL, GREATER, NOT LESS or GREATER OR EQUAL "the file

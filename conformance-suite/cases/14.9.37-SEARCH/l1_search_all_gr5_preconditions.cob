@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR5 SEARCH statement, FORMAT 2 (all) — "At the
+      *> ISO §2023:14.9.37.4 GR5 SEARCH statement, FORMAT 2 (all) — "At the
       *> start of the execution of a SEARCH statement with the ALL
       *> phrase specified, the following conditions shall be true:
       *> a) The contents of each key data item referenced in the WHEN
@@ -21,7 +21,7 @@
       *>   of each key data item referenced in the WHEN phrase shall be
       *>   sequenced in the table according to the ASCENDING or
       *>   DESCENDING phrase associated with that key data item."
-      *>   -> OK  §14.9.37.4 5) a)  (General rules)
+      *>   -> OK  §2023:14.9.37.4 5) a)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.37.4 "If
       *>   identifier-1 is subordinate to one or more data description
       *>   entries that contain an OCCURS clause, the evaluation of the
@@ -29,7 +29,7 @@
       *>   item subordinate to identifier-1 shall result in the same
       *>   occurrence number for any subscripts associated with a given
       *>   level of the superordinate tables."
-      *>   -> OK  §14.9.37.4 5) b)  (General rules)
+      *>   -> OK  §2023:14.9.37.4 5) b)  (General rules)
       *>
       *> ⛔ WHAT IS OBSERVABLE ABOUT A RULE ADDRESSED TO THE PROGRAM.
       *> GR5 states conditions the PROGRAM shall meet, and GR6 defines
@@ -56,13 +56,13 @@
       *> the literals below. GR5a reads "the contents of EACH key data
       *> item ... shall be sequenced ... according to the ASCENDING or
       *> DESCENDING phrase associated with THAT key data item", and
-      *> §13.18.38.4 GR3 says it the same way for the OCCURS side: "the
+      *> §2023:13.18.38.4 GR3 says it the same way for the OCCURS side: "the
       *> contents of the data items referenced by data-name-2 shall be
       *> in ascending order if the ASCENDING phrase is specified".
       *>   python scripts/spec/cite.py --check 13.18.38.4 "the contents
       *>   of the data items referenced by data-name-2 shall be in
       *>   ascending order if the ASCENDING phrase is specified"
-      *>   -> OK  §13.18.38.4 3)  (General rules)
+      *>   -> OK  §2023:13.18.38.4 3)  (General rules)
       *> WS-K2 is referenced in a WHEN condition, so its OWN column has
       *> to ascend, not just the composite (K1,K2). The data below is
       *> laid out so BOTH readings hold at once — outer 1 carries
@@ -75,10 +75,10 @@
       *>
       *> ⛔ GR5b IS THE BRANCH NO EXISTING GOLDEN REACHES. WS-E is
       *> subordinate to WS-O, which has an OCCURS clause, so
-      *> §14.9.37.3 SR3 ("Identifier-1 may be contained within one or
+      *> §2023:14.9.37.3 SR3 ("Identifier-1 may be contained within one or
       *> more other tables, for which the subscripting is still
       *> required") makes SEARCH ALL WS-E (OX) the correct spelling and
-      *> §14.9.37.4 GR1 puts the superordinate occurrence in the
+      *> §2023:14.9.37.4 GR1 puts the superordinate occurrence in the
       *> programmer's hands: "The subscript that is used to determine
       *> the occurrence of each superordinate table to search is
       *> specified by the user in the WHEN phrases." Both WHEN

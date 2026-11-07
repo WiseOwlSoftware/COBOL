@@ -49,7 +49,7 @@ public sealed class ParseRecoveryDeletionTests
     }
 
     /// <summary>⛔ THE VERB OF A COMPLETE NEXT STATEMENT, WHERE THE OPEN STATEMENT STILL REQUIRES MORE THAN ONE ELEMENT
-    /// (kb/Work PB4286). ISO §14.9.31.2 prints <c>GIVING identifier-1 data-name-2</c>, so after a bare GIVING the next
+    /// (kb/Work PB4286). ISO §2023:14.9.31.2 prints <c>GIVING identifier-1 data-name-2</c>, so after a bare GIVING the next
     /// statement's verb is not in the follow of identifier-1 alone, and the deletion dropped it because the operand after
     /// it fits identifier-1: <c>DISPLAY W-B.</c> lost its verb and the period drew a second COBOL0001 where data-name-2
     /// was due. The same for the missing data-name-1 before GIVING and the SEARCH ALL table before its required WHEN. The

@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 /// key. Keys are the channel bytes the frame payload carries (2.2.1.5), so an order that is not the bytes' own decodes them
 /// first. The four orders are in <see cref="KeyOrders"/>; the order of the transactions' UNDO and HOLDINGS trees, which
 /// composes the file's own, is <see cref="HoldingsKeyOrder"/>.
-/// <para><see cref="ComparePrefix"/> is the order of a START's partial key (§14.9.41.4 GR17 b) sets the length of the
+/// <para><see cref="ComparePrefix"/> is the order of a START's partial key (§2023:14.9.41.4 GR17 b) sets the length of the
 /// first temporary area; GR17 c) and d): <i>"This second temporary area is truncated to the same length as the first"</i>):
 /// the leading <c>prefix.Length</c> byte positions of a stored key's KEY PART (a composite key's part before its ordinal)
 /// against the prefix. GR17 c) and d) define the answer as a SEQUENTIAL search — <i>"the file is searched sequentially"</i>,
@@ -21,9 +21,9 @@ internal interface IKeyOrder
 {
     /// <summary>⛔ Whether the entries a prefix of <paramref name="prefixLength"/> positions qualifies, under every relation,
     /// are one run of the key order, so a binary search finds its end. True for an order that compares character position
-    /// by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1), which §14.9.41.4
+    /// by character position from the left — the bytes, and the STANDARD comparison of §2023:8.8.4.2.7 1), which §2023:14.9.41.4
     /// GR17 e) names for operands of equal length — at every length: a key below another never has a greater prefix.
-    /// Under a LOCALE-BASED sequence (§8.8.4.2.11, <i>"not necessarily performed character-by-character"</i>) true only for
+    /// Under a LOCALE-BASED sequence (§2023:8.8.4.2.11, <i>"not necessarily performed character-by-character"</i>) true only for
     /// a prefix as long as the key itself: GR17 c) then truncates nothing, so <see cref="ComparePrefix"/> IS
     /// <see cref="Compare"/>. A shorter one is not: under the CLDR/UCA engine "áa" is below "ab" (primary a,a &lt; a,b)
     /// while its one-character prefix "á" is above "a" (secondary), so a binary search would land past a qualifying
@@ -44,7 +44,7 @@ internal interface IKeyOrder
 
     /// <summary>The PRIMARY-LEVEL BOUND B of a partial key <paramref name="prefix"/> in a tree whose marks are
     /// <paramref name="marks"/>: the prefix's first level-1 weights, at most <see cref="TreeMarks.Margin"/> of them, which
-    /// every stored key's truncation to the prefix's length (§14.9.41.4 GR17 c) and d)) shares with the stored key's own
+    /// every stored key's truncation to the prefix's length (§2023:14.9.41.4 GR17 c) and d)) shares with the stored key's own
     /// leading weights — so an entry whose leading weights are below B has a truncation below the prefix and one above
     /// B a truncation above it. Empty (no bound) when the marks leave no margin, and for an order whose prefixes
     /// narrow.</summary>

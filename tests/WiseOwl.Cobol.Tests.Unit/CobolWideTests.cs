@@ -139,7 +139,7 @@ public sealed class CobolWideTests
     [Fact]
     public void Prohibited_RaisesOnAnInexactTransfer_WhetherOrNotChecked()
     {
-        // §14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the unchecked
+        // §2023:14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the unchecked
         // transfer used to land 0.1 as 0.
         CobolWide tenth = W(1);                                                      // 1 at scale 1 = 0.1
         foreach (bool checkedTransfer in new[] { true, false })

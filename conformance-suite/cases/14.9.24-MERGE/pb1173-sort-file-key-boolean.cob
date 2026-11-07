@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1173 — A FILE SORT KEY OF CLASS BOOLEAN IS REFUSED BY THE KEY-CLASS RULE.
       *>   cite.py --check 14.9.40.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.40.3 6) c)
+      *>     pointer." -> OK §2023:14.9.40.3 6) c)
       *> KB is PIC 1 USAGE BIT, class boolean (USAGE BIT is a COBOL-2002 construct, so the rule can only fire from
       *> 2002). The statement used to compile clean.
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its

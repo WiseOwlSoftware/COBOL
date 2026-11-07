@@ -8,27 +8,27 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// ONE ROW of the implementor code-name table — one name this implementation supports in the
 /// <c>code-name-1</c> / <c>code-name-2</c> position of an ALPHABET clause, together with everything ISO
-/// §12.3.7.4 GR7 i/j obliges the implementor to specify for it.
+/// §2023:12.3.7.4 GR7 i/j obliges the implementor to specify for it.
 /// <para>GR7 i, in full: "<i>When code-name-1 is specified, the alphanumeric coded character set and collating
 /// sequence referenced are defined by the implementor. The implementor shall specify the ordinal number of each
 /// character for use when code-name-1 references a coded character set and the collating position of each
 /// character for use when code-name-1 references a collating sequence. The implementor also shall specify the
 /// correspondence between characters of the alphanumeric coded character set specified by code-name-1 and the
 /// characters of the native alphanumeric coded character set.</i>" GR7 j says the same of code-name-2 over the
-/// national sets. §12.3.7.4 Table 6 gives BOTH code-name rows a Y in the coded-character-set column AND a Y in
+/// national sets. §2023:12.3.7.4 Table 6 gives BOTH code-name rows a Y in the coded-character-set column AND a Y in
 /// the collating-sequence column, so one row supplies both halves: <see cref="OrdinalCount"/> +
 /// <see cref="MediumCorrespondence"/> are the SET, <see cref="Table"/> is the SEQUENCE.</para>
 /// <para>"<i>The coded character set referenced by code-name-1 is statically defined</i>" (GR7 i, last sentence)
 /// — hence a compile-time table with no runtime resolution step, unlike the LOCALE arm.</para>
 /// </summary>
 /// <param name="Name">The code-name's spelling, matched case-insensitively in the ALPHABET clause's bare-word
-/// position. It is NOT a reserved word and means a code-name ONLY there (§12.3.7.3 SR15 defines the names for
+/// position. It is NOT a reserved word and means a code-name ONLY there (§2023:12.3.7.3 SR15 defines the names for
 /// "the ALPHABET clause"), so a program may still use the spelling as a user-defined word elsewhere.</param>
 /// <param name="National">The class this row serves: false = code-name-1, the ALPHANUMERIC branch of the
-/// §12.3.7.2 general format; true = code-name-2, the FOR NATIONAL branch. A row serves exactly one, because
+/// §2023:12.3.7.2 general format; true = code-name-2, the FOR NATIONAL branch. A row serves exactly one, because
 /// GR7 a/b make the referenced set and sequence take the class of the branch they are written in.</param>
 /// <param name="OrdinalCount">GR7 i/j's "<i>the ordinal number of each character</i>" — how many characters the
-/// coded character set HAS, which is the §12.3.7.3 SR16 e/f (SYMBOLIC CHARACTERS … IN) and SR17 b2 (CLASS … IN)
+/// coded character set HAS, which is the §2023:12.3.7.3 SR16 e/f (SYMBOLIC CHARACTERS … IN) and SR17 b2 (CLASS … IN)
 /// range bound. Ordinal n names the character at <see cref="MediumCorrespondence"/>[n−1], or the native
 /// character U+(n−1) when the correspondence is the identity.</param>
 /// <param name="Table">GR7 i/j's "<i>the collating position of each character</i>", as the ONE sparse
@@ -38,14 +38,14 @@ namespace WiseOwl.Cobol.Binding;
 /// character set specified by code-name-1 and the characters of the native … coded character set</i>", as the
 /// native character each code unit 0…<see cref="OrdinalCount"/>−1 of THIS set represents — or NULL when that
 /// correspondence is the IDENTITY (the set's code unit n IS native character U+00nn). It is what
-/// §13.18.13.4 GR6 replaces on each side of a CODE-SET conversion; an identity row with fewer characters than
+/// §2023:13.18.13.4 GR6 replaces on each side of a CODE-SET conversion; an identity row with fewer characters than
 /// the one-byte channel (ASCII) still converts, through the identity table
 /// <see cref="CodedCharacterSet.MediumCorrespondence"/> derives from <see cref="OrdinalCount"/> (kb/Work PB1542).</param>
 public sealed record ImplementorCodeName(string Name, bool National, int OrdinalCount,
     CollatingTable? Table, char[]? MediumCorrespondence);
 
 /// <summary>
-/// ⛔ THE ONE IMPLEMENTOR CODE-NAME TABLE — this implementation's whole answer to ISO §12.3.7.3 SR15,
+/// ⛔ THE ONE IMPLEMENTOR CODE-NAME TABLE — this implementation's whole answer to ISO §2023:12.3.7.3 SR15,
 /// "<i>The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause,
 /// if any.</i>" Adding the next supported code-name is A ROW HERE and nothing else: the binder looks the word up
 /// (<c>SpecialNamesBinder.AlphabetCodeName</c>), the coded-character-set reference sites read the row's ordinal count and
@@ -61,7 +61,7 @@ public sealed record ImplementorCodeName(string Name, bool National, int Ordinal
 /// national set is the UTF-16 repertoire (determination D-N1) and the standard's own UCS-4 / UTF-8 / UTF-16
 /// keywords already name the ISO/IEC 10646 forms.</para>
 /// <para><b>ASCII</b> — the ISO/IEC 646 International Reference Version, 128 characters, ordinal n = native
-/// character U+(n−1), collating sequence = the native order. That is the SAME set and sequence §12.3.7.4 GR7 c
+/// character U+(n−1), collating sequence = the native order. That is the SAME set and sequence §2023:12.3.7.4 GR7 c
 /// defines for the STANDARD-1 keyword, and deliberately so: "ASCII" names a 7-bit code (ANSI X3.4 / ISO/IEC 646
 /// IRV), not a 256-character one, and the first 128 positions of this compiler's native alphanumeric character
 /// set ARE that code (implementor item 188 / determination D-N1), so GR7 i's required correspondence is the
@@ -85,13 +85,13 @@ public sealed record ImplementorCodeName(string Name, bool National, int Ordinal
 /// units (determination D-N1) and CCSID 37 spells only 256 of them, so 65 280 native characters have NO EBCDIC
 /// ordinal and NO EBCDIC code unit. Two consequences, both already the standard's own answer rather than a new
 /// rule: (1) as a COLLATING SEQUENCE they are the "<i>characters of the native collating sequence that are not
-/// specified</i>" of §12.3.7.4 GR7 k3 — they "<i>assume a position … greater than that of the highest character
+/// specified</i>" of §2023:12.3.7.4 GR7 k3 — they "<i>assume a position … greater than that of the highest character
 /// specified</i>", with "<i>the relative order within the set of these unspecified characters … unchanged from
 /// the native collating sequence</i>" — which is precisely the tail every sparse <see cref="CollatingTable"/>
 /// already computes, so GR7 i's obligation to give EVERY character a collating position is discharged by
 /// adopting GR7 k3's own rule as this implementor's specification; (2) as a CODED CHARACTER SET they are simply
 /// not members, so no SYMBOLIC CHARACTERS or CLASS ordinal reaches them and a CODE-SET record area holding one
-/// cannot be represented on the medium (§13.18.13.4 GR6 b) — reported by the runtime, never silently mangled.
+/// cannot be represented on the medium (§2023:13.18.13.4 GR6 b) — reported by the runtime, never silently mangled.
 /// The page's own 256 native characters are exactly U+0000…U+00FF, so an alphanumeric record area — one byte per
 /// character on this substrate — never holds one of the 65 280 in practice.</para>
 /// </summary>
@@ -102,7 +102,7 @@ public static class ImplementorCodeNames
     public const int EbcdicCodePage = 37;
 
     /// <summary>The number of characters in the ISO/IEC 646 International Reference Version — the set
-    /// <c>ASCII</c> names, and the same count §12.3.7.4 GR7 c gives STANDARD-1.</summary>
+    /// <c>ASCII</c> names, and the same count §2023:12.3.7.4 GR7 c gives STANDARD-1.</summary>
     private const int AsciiCharacters = 128;
 
     static ImplementorCodeNames()
@@ -122,13 +122,13 @@ public static class ImplementorCodeNames
     /// <summary>IBM CCSID <see cref="EbcdicCodePage"/> (see the type remarks).</summary>
     public static ImplementorCodeName Ebcdic { get; }
 
-    /// <summary>⛔ THE SUPPORTED SET — §12.3.7.3 SR15's answer, in both classes at once. Everything else reads
+    /// <summary>⛔ THE SUPPORTED SET — §2023:12.3.7.3 SR15's answer, in both classes at once. Everything else reads
     /// this list; nothing else enumerates code-names.</summary>
     public static IReadOnlyList<ImplementorCodeName> All { get; }
 
     /// <summary>The row a bare ALPHABET word names in <paramref name="national"/>'s class, or null when the word
-    /// is not a supported code-name of that class (§12.3.7.3 SR15 — the caller's diagnostic). Matched
-    /// case-insensitively: a code-name is written in COBOL basic letters, and §8.1.3.2 GR3 a says "<i>COBOL basic
+    /// is not a supported code-name of that class (§2023:12.3.7.3 SR15 — the caller's diagnostic). Matched
+    /// case-insensitively: a code-name is written in COBOL basic letters, and §2023:8.1.3.2 GR3 a says "<i>COBOL basic
     /// letters appearing elsewhere within the compilation group are treated in a case-insensitive manner</i>"
     /// (elsewhere = outside a non-hexadecimal literal, which this position is).</summary>
     public static ImplementorCodeName? Find(string word, bool national)
@@ -154,7 +154,7 @@ public static class ImplementorCodeNames
     /// (GR7 i "the collating position of each character"), and the page itself is the correspondence with the
     /// native set (GR7 i's third sentence). ⛔ DERIVED, never transcribed — the whole table comes out of
     /// <see cref="Encoding.GetEncoding(int)"/>, so there is no 256-entry literal here to mistype or to drift.
-    /// <para>Every native character the page does NOT spell takes the §12.3.7.4 GR7 k3 tail this implementation
+    /// <para>Every native character the page does NOT spell takes the §2023:12.3.7.4 GR7 k3 tail this implementation
     /// adopts as its GR7 i specification — see the type remarks — which is exactly what the sparse table's
     /// unspecified region already means, so nothing is stored for it.</para></summary>
     private static ImplementorCodeName SingleByteCodePage(string name, int codePage)
@@ -172,7 +172,7 @@ public static class ImplementorCodeNames
             if (!pos.TryAdd(toNative[unit], unit))
                 throw new InvalidOperationException(
                     $"code page {codePage} maps two code units to U+{(int)toNative[unit]:X4}: it cannot define "
-                    + "a collating sequence (ISO §12.3.7.4 GR7 i)");
+                    + "a collating sequence (ISO §2023:12.3.7.4 GR7 i)");
             order.Add(toNative[unit]);
             repByPos.Add(toNative[unit]);
         }

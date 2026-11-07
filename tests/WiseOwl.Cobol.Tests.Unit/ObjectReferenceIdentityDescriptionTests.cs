@@ -14,10 +14,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A RUN-TIME DESCRIPTION NAMES A CLASS OR AN INTERFACE BY ITS IDENTITY, NEVER BY ITS WORD (DESIGN-external-repository
-/// §6.4; kb/Work PB2104). A word is per source element; two separately compiled groups name one class by its EXTERNALIZED
-/// name (ISO §11.3.4 GR1: "literal-1, if specified, is the name of the class that is externalized to the operating
-/// environment"; §11.6.4 GR1 for an interface), and the run-time relations compare the descriptions of the two (§14.9.4.4
-/// GR3 d), §14.8.2.3.2 rule 3: "the same object-class-name"). So <c>ActivationDescriptions.Of</c> spells the class or
+/// §2023:6.4; kb/Work PB2104). A word is per source element; two separately compiled groups name one class by its EXTERNALIZED
+/// name (ISO §2023:11.3.4 GR1: "literal-1, if specified, is the name of the class that is externalized to the operating
+/// environment"; §2023:11.6.4 GR1 for an interface), and the run-time relations compare the descriptions of the two (§2023:14.9.4.4
+/// GR3 d), §2023:14.8.2.3.2 rule 3: "the same object-class-name"). So <c>ActivationDescriptions.Of</c> spells the class or
 /// interface a description names, and every class and interface of its facts, by the externalized name, while the
 /// compile-time SET table (<c>OoClassTable.SetOperand</c>), which relates two descriptions of one scope, keeps the words.
 /// The fixture's class and interface are each declared with one word and externalized under another.

@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///
 /// <para><b>What this replaces.</b> The NUMVAL digit cap was a two-state ternary
 /// (<c>num.StandardDecimal ? 34 : ""</c>), so STANDARD-BINARY fell through the else-branch and would have taken
-/// the NATIVE cap of 31 where §15.93.4 r1b sub-note 3 says 35. Unreachable — the mode is declined at bind — but
+/// the NATIVE cap of 31 where §2023:15.93.4 r1b sub-note 3 says 35. Unreachable — the mode is declined at bind — but
 /// that is precisely the kind of entry that is never contradicted and so is never found wrong
 /// (<c>feedback_a_dead_lookup_is_also_unverified</c>). The table now states all four modes and this test walks
 /// the enum, so a fifth mode cannot be added and silently inherit somebody's else-branch.</para>
@@ -31,7 +31,7 @@ public sealed class ArithmeticModeTableTests
     }
 
     [Theory]
-    // §15.93.4 r1b (and its §15.94.4 twin) states the cap in three sub-notes, one per mode:
+    // §2023:15.93.4 r1b (and its §2023:15.94.4 twin) states the cap in three sub-notes, one per mode:
     [InlineData(ArithmeticMode.Native, 31)]           //  2) "…greater than 31 digits is the 32nd digit…"
     [InlineData(ArithmeticMode.StandardBinary, 35)]   //  3) "…the argument has more than 35 digits…"
     [InlineData(ArithmeticMode.StandardDecimal, 34)]  //  4) "…the argument has more than 34 digits…"
@@ -84,7 +84,7 @@ public sealed class ArithmeticModeTableTests
     [InlineData(ArithmeticMode.Native, false, 308, -324)]
     [InlineData(ArithmeticMode.Standard, true, 6145, -6176)]
     [InlineData(ArithmeticMode.StandardDecimal, true, 6145, -6176)]
-    // §8.8.1.4.2 NOTE 3 — the SBIDI's ±(2**16384 − 2**16271) ≈ 1.19E+4932 and 2**-16494 ≈ 6.5E−4966.
+    // §2023:8.8.1.4.2 NOTE 3 — the SBIDI's ±(2**16384 − 2**16271) ≈ 1.19E+4932 and 2**-16494 ≈ 6.5E−4966.
     // Unreachable (declined at bind), recorded anyway — the NumvalDigitCap precedent above.
     [InlineData(ArithmeticMode.StandardBinary, false, 4932, -4966)]
     public void IntermediateExponentRange_PinnedToSpec(ArithmeticMode mode, bool decimalEngine, int far, int near)
@@ -131,7 +131,7 @@ public sealed class ArithmeticModeTableTests
             + string.Join(", ", offenders));
     }
 
-    // ── kb/Work PB452 — the mode's intermediate EXTREME VALUES (SET format 15, §14.9.39.4 GR32 b / GR36 b) ──
+    // ── kb/Work PB452 — the mode's intermediate EXTREME VALUES (SET format 15, §2023:14.9.39.4 GR32 b / GR36 b) ──
 
     [Fact]
     public void IntermediateExtremes_AreTotalOverEveryArithmeticMode()

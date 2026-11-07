@@ -10,10 +10,10 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// The §13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §13.18.63.4 GR12–GR16 odometer resolution (kb/Work PB505; Passes/ResolveTableValuesPass.cs). Placed HERE, and no earlier, because every one of those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after the entry binds — and because the dimension ceilings it measures subscripts against are the ones OdoResolve / DynamicResolve have settled (§8.5.1.8's allocated maximum, the dynamic expected capacity). Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
+/// The §2023:13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §2023:13.18.63.4 GR12–GR16 odometer resolution (kb/Work PB505; Passes/ResolveTableValuesPass.cs). Placed HERE, and no earlier, because every one of those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after the entry binds — and because the dimension ceilings it measures subscripts against are the ones OdoResolve / DynamicResolve have settled (§2023:8.5.1.8's allocated maximum, the dynamic expected capacity). Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
 /// </para>
 /// <para>
-/// ⛔ THE FORMAT 2 (table) VALUE GEOMETRY — ISO §13.18.63.3 SR18–SR23 and the §13.18.63.4 GR12–GR16 resolution,
+/// ⛔ THE FORMAT 2 (table) VALUE GEOMETRY — ISO §2023:13.18.63.3 SR18–SR23 and the §2023:13.18.63.4 GR12–GR16 resolution,
 /// in ONE place, run as the declared <c>ResolveTableValues</c> pass (see <c>BindPipeline</c>).
 ///
 /// <para><b>Why a post-forest pass and not the entry binder.</b> Every one of these rules is written against
@@ -50,13 +50,13 @@ internal sealed class ResolveTableValuesPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.None;
 
-    /// <summary>The §13.18.63.3 SR18–SR23 screen plus the §13.18.63.4 GR12–GR16 resolution, once per COMPOSED
+    /// <summary>The §2023:13.18.63.3 SR18–SR23 screen plus the §2023:13.18.63.4 GR12–GR16 resolution, once per COMPOSED
     /// entry carrying a Format-2 (table) VALUE.
     ///
     /// <para>⛔ Runs over <see cref="DataBinder.CompositionForest"/> MINUS the TYPE DECLARATIONS, and the exclusion is the
     /// rules' own doing: every dimension count these rules test is a property of where the entry ENDS UP, and a
     /// template has no such place. `01 TT TYPEDEF. 05 X PIC X(2) VALUE "AB" FROM (1).` is an SR18 violation when
-    /// read alone and CONFORMING the moment it is referenced from inside an OCCURS entry — §13.18.57.4 GR1 copies
+    /// read alone and CONFORMING the moment it is referenced from inside an OCCURS entry — §2023:13.18.57.4 GR1 copies
     /// the description into the reference site, and the composed clone (which IS in this forest, once per
     /// reference) is the entry the rule is about. The same reasoning is why the SR13/SR14 group-VALUE screen
     /// reads the composition forest.</para></summary>
@@ -69,7 +69,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
             using var _ = binder.Edition.At(item);
             string where = $"data item '{item.CobolName ?? "FILLER"}'";
 
-            // ── §13.18.63.3 SR20/SR21's dimension list: "each OCCURS clause for the subject of the entry or
+            // ── §2023:13.18.63.3 SR20/SR21's dimension list: "each OCCURS clause for the subject of the entry or
             //    superordinate to that entry, specified in the same order as a subscripted reference to the
             //    subject of the entry would be specified" — i.e. the OCCURS chain, MOST inclusive first.
             var dims = OccursChainOf(item);
@@ -80,14 +80,14 @@ internal sealed class ResolveTableValuesPass : IBindPass
             {
                 binder.Edition.Error(DiagnosticCatalog.TableValueWithoutOccurs, $"{where}: a Format 2 (table) VALUE "
                     + "clause is specified, but the entry neither contains an OCCURS clause nor is subordinate "
-                    + "to a data description entry that contains one (ISO §13.18.63.3 SR18)");
+                    + "to a data description entry that contains one (ISO §2023:13.18.63.3 SR18)");
                 item.TableValues = null;   // nothing to key the literals to — never reaches an emitter
                 continue;
             }
 
             foreach (var spec in specs) ScreenTableValueGeometry(binder, item, spec, dims, where);
 
-            // ── §13.18.63.4 GR12–GR15: the odometer fill. Built from the phrases that ARE well-formed for these
+            // ── §2023:13.18.63.4 GR12–GR15: the odometer fill. Built from the phrases that ARE well-formed for these
             //    dimensions (TableValueOdometer.Resolve skips the rest — a mis-shaped phrase has already been
             //    diagnosed and must not seed the wrong element, and under --permissive a demoted diagnostic
             //    still reaches emit).
@@ -100,7 +100,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
             // (TableValueRuns.Of) without walking the subtree for plans.
             for (DataItem? a = item; a is not null; a = a.Parent) a.ContainsTableValue = true;
 
-            // ── §13.18.63.4 GR16: the initial capacity this clause gives each DYNAMIC dimension. "If more than
+            // ── §2023:13.18.63.4 GR16: the initial capacity this clause gives each DYNAMIC dimension. "If more than
             //    one VALUE clause applies, the maximum value thus calculated becomes the initial capacity" — the
             //    accumulation lives on the OCCURS-carrying item, so two subordinate entries' VALUE clauses over
             //    the same dynamic table cannot each answer separately.
@@ -121,10 +121,10 @@ internal sealed class ResolveTableValuesPass : IBindPass
 
     /// <summary>The subject's dimension list — every entry from the ROOT down to the subject that carries an
     /// OCCURS clause (fixed, occurs-depending or dynamic-capacity), MOST inclusive first: exactly the order
-    /// §13.18.63.3 SR20 names, "the same order as a subscripted reference to the subject of the entry would be
-    /// specified". A dimension's ceiling is §13.18.63.4 GR12's "the maximum number of occurrences, or, in the
+    /// §2023:13.18.63.3 SR20 names, "the same order as a subscripted reference to the subject of the entry would be
+    /// specified". A dimension's ceiling is §2023:13.18.63.4 GR12's "the maximum number of occurrences, or, in the
     /// case of a dynamic-capacity table, the expected number of occurrences, specified by its corresponding
-    /// OCCURS clause" — <see cref="DataItem.Occurs"/> for a fixed or occurs-depending table (§8.5.1.8 allocates
+    /// OCCURS clause" — <see cref="DataItem.Occurs"/> for a fixed or occurs-depending table (§2023:8.5.1.8 allocates
     /// the maximum), the OCCURS TO capacity for a dynamic one, and null when a dynamic table declares none.</summary>
     private static List<TableValueDim> OccursChainOf(DataItem item)
     {
@@ -138,7 +138,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
         return dims;
     }
 
-    /// <summary>True when <paramref name="item"/> lies inside a TYPE DECLARATION (ISO §13.18.58) — a template
+    /// <summary>True when <paramref name="item"/> lies inside a TYPE DECLARATION (ISO §2023:13.18.58) — a template
     /// that allocates no storage and has no composed OCCURS chain. See <see cref="Run"/>.</summary>
     private static bool IsInsideTypeDeclaration(DataItem item)
     {
@@ -147,7 +147,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
         return false;
     }
 
-    /// <summary>One phrase's §13.18.63.3 SR20–SR23 screen. Each rule is stated once, and every rule that speaks
+    /// <summary>One phrase's §2023:13.18.63.3 SR20–SR23 screen. Each rule is stated once, and every rule that speaks
     /// about "each OCCURS clause for the subject of the entry or superordinate to that entry" is checked over the
     /// WHOLE tuple rather than over a first dimension.</summary>
     private static void ScreenTableValueGeometry(DataBinder binder, 
@@ -165,7 +165,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
                 + $"{spec.From.Count} subscript(s) but the subject of the entry has {dims.Count} dimension(s) "
                 + $"({DimensionList(dims)}) — there shall be one subscript-1 for each OCCURS clause for the "
                 + "subject of the entry or superordinate to that entry, in subscripted-reference order "
-                + "(ISO §13.18.63.3 SR20)");
+                + "(ISO §2023:13.18.63.3 SR20)");
             return;
         }
         if (spec.To is { } toList && toList.Count != dims.Count)
@@ -174,7 +174,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
                 + $"{toList.Count} subscript(s) but the subject of the entry has {dims.Count} dimension(s) "
                 + $"({DimensionList(dims)}) — there shall be one subscript-2 for each OCCURS clause for the "
                 + "subject of the entry or superordinate to that entry, in subscripted-reference order "
-                + "(ISO §13.18.63.3 SR21)");
+                + "(ISO §2023:13.18.63.3 SR21)");
             return;
         }
 
@@ -186,7 +186,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
             if (spec.From[k] >= 1 && spec.From[k] <= dims[k].Ceiling) continue;
             binder.Edition.Error(DiagnosticCatalog.TableValueFromSubscriptOutOfRange, $"{phrase}: a Format 2 VALUE FROM subscript ({spec.FromWritten[k]}) is out of "
                 + $"range 1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
-                + $"(ISO §13.18.63.3 SR20{CeilingProvenance(dims[k])})");
+                + $"(ISO §2023:13.18.63.3 SR20{CeilingProvenance(dims[k])})");
         }
 
         if (spec.To is { } to)
@@ -197,12 +197,12 @@ internal sealed class ResolveTableValuesPass : IBindPass
                 if (to[k] >= 1 && to[k] <= dims[k].Ceiling) continue;
                 binder.Edition.Error(DiagnosticCatalog.TableValueToSubscriptInvalid, $"{phrase}: a Format 2 VALUE TO subscript ({spec.ToWritten![k]}) is out of range "
                     + $"1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
-                    + $"(ISO §13.18.63.3 SR21{CeilingProvenance(dims[k])})");
+                    + $"(ISO §2023:13.18.63.3 SR21{CeilingProvenance(dims[k])})");
             }
 
             // ── SR21 sentence 3 — "The specification of subscript-2 in one TO phrase shall be such that the
             //    table element associated with subscript-2 is the same occurrence or a successive occurrence of
-            //    the table element associated with the corresponding subscript-1." §13.18.63.4 GR12's fill order
+            //    the table element associated with the corresponding subscript-1." §2023:13.18.63.4 GR12's fill order
             //    increments the LEAST inclusive subscript and carries into the next most inclusive one, so
             //    "successive" is the LEXICOGRAPHIC order of the whole tuple — a per-dimension comparison would
             //    reject `FROM (1 3) TO (2 1)`, which is two successive elements of a 2×3 table.
@@ -210,7 +210,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.TableValueToSubscriptInvalid, $"{phrase}: the TO subscripts ({spec.ToText}) identify a "
                     + $"table element PRECEDING the one the FROM subscripts ({spec.FromText}) "
                     + "identify — subscript-2 shall be the same occurrence or a successive occurrence of the "
-                    + "table element associated with the corresponding subscript-1 (ISO §13.18.63.3 SR21)");
+                    + "table element associated with the corresponding subscript-1 (ISO §2023:13.18.63.3 SR21)");
 
             // ── SR23 — "If the TO phrase is specified and an OCCURS clause with a DYNAMIC phrase but no TO
             //    phrase is specified in the same entry or in any superordinate entry, the values of subscript-1
@@ -229,7 +229,7 @@ internal sealed class ResolveTableValuesPass : IBindPass
                     + $"({spec.FromWritten[k]}) and subscript-2 ({spec.ToWritten![k]}) differ for {DimensionName(dims, k)}, "
                     + $"which is more inclusive than {DimensionName(dims, d)} — an OCCURS DYNAMIC clause "
                     + "with no TO phrase; the subscripts corresponding to all levels higher than that "
-                    + "OCCURS clause shall be equal (ISO §13.18.63.3 SR23)");
+                    + "OCCURS clause shall be equal (ISO §2023:13.18.63.3 SR23)");
             }
         }
         // ── SR22 — "A VALUE clause without the TO phrase shall not be specified in the same entry as an OCCURS
@@ -240,13 +240,13 @@ internal sealed class ResolveTableValuesPass : IBindPass
             binder.Edition.Error(DiagnosticCatalog.TableValueWithoutToUnderDynamic, $"{phrase}: a Format 2 VALUE with no TO phrase is not permitted "
                 + $"{(ReferenceEquals(unbounded.Owner, item) ? "in the same entry as" : "in an entry subordinate to")}"
                 + $" the OCCURS DYNAMIC clause on '{unbounded.Owner.CobolName ?? "FILLER"}', which specifies no TO "
-                + "(expected) capacity (ISO §13.18.63.3 SR22)");
+                + "(expected) capacity (ISO §2023:13.18.63.3 SR22)");
     }
 
     /// <summary>Says so IN THE MESSAGE when the ceiling a subscript was measured against is this implementation's
     /// rather than the program's: a number the source never wrote must never look like one it did.</summary>
     private static string CeilingProvenance(TableValueDim dim) => dim.Max is null
-        ? "; the ceiling is this implementation's §8.5.1.9.1 maximum capacity — the OCCURS DYNAMIC clause "
+        ? "; the ceiling is this implementation's §2023:8.5.1.9.1 maximum capacity — the OCCURS DYNAMIC clause "
           + "specifies no TO (expected) capacity, so the standard specifies no maximum for this dimension"
         : "";
 

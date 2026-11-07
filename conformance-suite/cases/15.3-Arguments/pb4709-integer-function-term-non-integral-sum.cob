@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4709 (the sibling arm of pb4709_integer_expression_argument) - ISO §15.3 item 6 (cite.py --check 15.3 OK): an Integer
+      *> PB4709 (the sibling arm of pb4709_integer_expression_argument) - ISO §2023:15.3 item 6 (cite.py --check 15.3 OK): an Integer
       *> argument is "an arithmetic expression that will always result in an integer value". An INTEGER-type function-identifier is an
-      *> integer for every reference (§15.2), so in I2 + 0.5 + FUNCTION INTEGER(S2) every term but 0.5 is an integer and the sum is
-      *> never one (3 + 0.5 + 2 = 5.5): FACTORIAL's integer argument position (§15.36.3 1), cite.py --check 15.36.3 OK) refuses
+      *> integer for every reference (§2023:15.2), so in I2 + 0.5 + FUNCTION INTEGER(S2) every term but 0.5 is an integer and the sum is
+      *> never one (3 + 0.5 + 2 = 5.5): FACTORIAL's integer argument position (§2023:15.36.3 1), cite.py --check 15.36.3 OK) refuses
       *> it - COBOL1627. The screen used to read the function term as unknown and fail open.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB4709FUNCSUM.

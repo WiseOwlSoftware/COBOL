@@ -4,16 +4,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO 1989:2023 §14.9.32.3 syntax rule 1: "Record-name-1 shall be the name of a logical record
+*> ISO 1989:2023 §2023:14.9.32.3 syntax rule 1: "Record-name-1 shall be the name of a logical record
 *> in a sort-merge file description entry and it may be qualified."
-*> A record-name is a user-defined word (§8.3.2.2.25) and §5.2.4 gives that operand type "User-defined
+*> A record-name is a user-defined word (§2023:8.3.2.2.25) and §2023:5.2.4 gives that operand type "User-defined
 *> word, including qualification and subscripting if needed" - those two decorations and no other.
-*> §8.4.3.3.3 SR5 permits reference modification only "anywhere an identifier referencing a data item
+*> §2023:8.4.3.3.3 SR5 permits reference modification only "anywhere an identifier referencing a data item
 *> of class alphanumeric, boolean, or national is permitted", and its NOTE draws the consequence:
 *> "where data-name-n is used in a general format or syntax rule, then reference-modification is not
 *> permitted". The printed general format writes record-name-1, not identifier-1.
 *> Accepted, RELEASE SRT-REC(1:3) put a 3-byte record into an 8-byte sort file.
-*> §4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
+*> §2023:4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
 *> explicit syntax rules of standard COBOL". The rule is written identically in 1985, 2002 and 2014, so
 *> there is no edition gate and every edition rejects. COBOL1757 (kb/Work PB347).
        IDENTIFICATION DIVISION.

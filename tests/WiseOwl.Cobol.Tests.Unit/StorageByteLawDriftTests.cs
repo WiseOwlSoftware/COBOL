@@ -65,7 +65,7 @@ public sealed class StorageByteLawDriftTests
     }
 
     /// <summary>⛔ A HEXADECIMAL ALPHANUMERIC LITERAL IS A BYTE-TO-CHARACTER SITE TOO (kb/Work PB2919). X"hh" is the
-    /// character whose DISPLAY byte is hh (§8.3.3.2.4 GR4), so it is imaged by the same law as a binary item's
+    /// character whose DISPLAY byte is hh (§2023:8.3.3.2.4 GR4), so it is imaged by the same law as a binary item's
     /// storage: X"FF" is U+FFFF, which makes <c>IF GX = X"FFFFFFFE"</c> true for the REDEFINES view of a binary -2.
     /// Every decoder of the pair form (the literal, the COPY library-text name's digits) is this one mapping.</summary>
     [Fact]
@@ -86,7 +86,7 @@ public sealed class StorageByteLawDriftTests
         Assert.Null(CobolLiteral.DecodeHexDigits("ZZ"));
     }
 
-    /// <summary>A national hexadecimal group is a UTF-16 code unit (§8.3.3.5.4 GR4), not a byte: NX"00FF" stays U+00FF.</summary>
+    /// <summary>A national hexadecimal group is a UTF-16 code unit (§2023:8.3.3.5.4 GR4), not a byte: NX"00FF" stays U+00FF.</summary>
     [Fact]
     public void HexNationalLiteralGroupsAreCodeUnitsNotBytes()
     {

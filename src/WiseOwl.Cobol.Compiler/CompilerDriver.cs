@@ -33,39 +33,39 @@ public static class CompilerDriver
     /// compile is verdict-equivalent to a full one for that question while skipping the backend — the dominant
     /// cost. Backend (C#-type) errors are NOT surfaced (they are not an edition-continuity concern).</param>
     /// <param name="SignEncoding">The DISPLAY over-punch convention for a signed item whose sign is not written
-    /// SEPARATE CHARACTER (CLI <c>--sign-encoding</c>; kb/Work PB803, owner decision 2026-09-09). ISO §13.18.52.4
+    /// SEPARATE CHARACTER (CLI <c>--sign-encoding</c>; kb/Work PB803, owner decision 2026-09-09). ISO §2023:13.18.52.4
     /// GR4 leaves the representation to the implementor and GR5 b) the valid-sign set — Annex A.1 items 177 and
     /// 178 — and the owner's answer is both conventions behind one option, defaulting to
     /// <see cref="Runtime.SignEncoding.Ibm"/> (IBM / Micro Focus compatibility). Orthogonal to
     /// <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
     /// <param name="SourceFormat">The reference format the compilation group starts in (CLI <c>--source-format</c>;
-    /// kb/Work PB1362): fixed form, ISO §7.3.24.3 2)'s default, unless free form or the documented auto-detection
-    /// extension is selected (§4.2.10 3) — docs/CONFORMANCE.md DOC-A.1-158).</param>
-    /// <param name="FlagExtensions">The §4.2.10 warning mechanism (CLI <c>--flag-extensions</c>; kb/Work PB1525):
+    /// kb/Work PB1362): fixed form, ISO §2023:7.3.24.3 2)'s default, unless free form or the documented auto-detection
+    /// extension is selected (§2023:4.2.10 3) — docs/CONFORMANCE.md DOC-A.1-158).</param>
+    /// <param name="FlagExtensions">The §2023:4.2.10 warning mechanism (CLI <c>--flag-extensions</c>; kb/Work PB1525):
     /// "An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time
     /// to indicate use of a nonstandard extension in a compilation group". When set, every use of a syntactically
     /// distinguishable extension of the register (<see cref="Editions.NonstandardExtensionRegister"/>) is named by a
     /// COBOL2894 warning. Orthogonal to <paramref name="DialectLevel"/> and <paramref name="Permissive"/>.</param>
     /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (CLI <c>--numeric-display</c>; kb/Work
-    /// PB3505, owner decision PB3467). ISO §14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
+    /// PB3505, owner decision PB3467). ISO §2023:14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
     /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading
     /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.NumericDisplayForm.Digits"/> keeps the digit image.
     /// Orthogonal to <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
     /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (CLI
-    /// <c>--repository-update on|off</c>, default on; ISO §8.13: "The implementor shall provide a mechanism that allows the
+    /// <c>--repository-update on|off</c>, default on; ISO §2023:8.13: "The implementor shall provide a mechanism that allows the
     /// user to specify whether to update the external repository when a compilation unit is compiled";
-    /// DESIGN-external-repository §9.1). ON is the state §8.4.6.7 names ("if the external repository is updated"), in
+    /// DESIGN-external-repository §9.1). ON is the state §2023:8.4.6.7 names ("if the external repository is updated"), in
     /// which a separately compiled unit binds against this group's signatures; OFF emits the unit index, the host
     /// entries and the registrar only, so the group runs and is locatable by name but no later compilation binds
-    /// against it (§7.1).</param>
+    /// against it (§2023:7.1).</param>
     /// <param name="RepositoryPaths">The external repository's directories, in search order (CLI <c>--repository DIR</c>,
     /// repeatable; DESIGN-external-repository §9.3): where a REPOSITORY specifier the compilation group cannot answer is
-    /// looked for (ISO §12.3.8.4 GR10 c) / GR11 c)). Null means the output directory. Annex A.1 item 66
+    /// looked for (ISO §2023:12.3.8.4 GR10 c) / GR11 c)). Null means the output directory. Annex A.1 item 66
     /// (docs/CONFORMANCE.md DOC-A.1-66).</param>
     /// <param name="ReferencePaths">Assemblies searched after the directories, in order (CLI <c>--reference FILE.dll</c>,
     /// repeatable).</param>
     /// <param name="RepositoryCheck">Whether the compilation flags a unit whose signature differs from the information the
-    /// external repository holds for it (CLI <c>--repository-check on|off</c>, default on; ISO §8.13: "The implementor shall
+    /// external repository holds for it (CLI <c>--repository-check on|off</c>, default on; ISO §2023:8.13: "The implementor shall
     /// provide a mechanism that allows the user to specify whether to flag differences in prototypes and definitions in the
     /// compilation group from the information in the external repository"; REPO-9, DESIGN-external-repository §9.2).</param>
     public sealed record Options(
@@ -153,7 +153,7 @@ public static class CompilerDriver
         public IReadOnlyList<string> OutputFiles { get; init; } = [];
 
         /// <summary>What the compilation itself transferred to its operator, in order — the lines of every DISPLAY directive
-        /// it processed (ISO §7.3.12.4 GR1, kb/Work PB1538), each with the compiler stream it is written to. Present on
+        /// it processed (ISO §2023:7.3.12.4 GR1, kb/Work PB1538), each with the compiler stream it is written to. Present on
         /// every outcome the front end ran for; the CLI writes them before the diagnostics.</summary>
         public IReadOnlyList<Frontend.Diagnostics.CompileOutputLine> CompileOutput { get; init; } = [];
     }
@@ -186,11 +186,11 @@ public static class CompilerDriver
             DialectLevel = options.DialectLevel,
             // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
             Permissive = options.Permissive,
-            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §7.3.24.3 2) fixed by default
+            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 2) fixed by default
         };
         foreach (string dir in options.CopyPaths ?? [])
             frontend.AddCopySearchPath(dir);
-        // The implementor-defined DEFAULT COBOL LIBRARY (ISO §7.2.3.4 GR3 — "the implementor defines the
+        // The implementor-defined DEFAULT COBOL LIBRARY (ISO §2023:7.2.3.4 GR3 — "the implementor defines the
         // mechanism for identifying the default COBOL library"): in NIST mode it is the `copylib/` directory
         // sibling to the source's directory, so the SM COPY suite resolves its K*/KP*/ALTLB texts.
         // Appended AFTER caller-supplied paths so an explicit --copy outranks the convention.
@@ -208,13 +208,13 @@ public static class CompilerDriver
         // Phase 2 — BIND under the targeted EDITION, then emit typed-native C#. The Binder phase
         // (BinderDriver.Bind, P6) runs the DECLARED manifest whose NAMED TERMINAL pass is the
         // ONE version-conformance funnel (P3's two-arm pass — the SOLE edition gate: its parse-tree arm fires the
-        // syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel on RECOGNITION, its
+        // syntactic introduction/removal/phrase gates + the §2023:8.9 reserved-word funnel on RECOGNITION, its
         // bound-tree arm the genuinely-semantic gates), so the returned BoundCompilation already carries EVERY
         // edition diagnostic on the sink — for BOTH a full compile and a CheckOnly verdict. Edition-gating
         // diagnostics (the four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the
         // program) are semantic errors, not runtime guards; they fail the compile here, BEFORE emit — a removed
         // or not-yet-introduced construct may have no emit path at all (exit criterion 9: no codegen on an
-        // errored tree). frontend.Directives carries the >>TURN directive events (ISO §7.3.25) that build the
+        // errored tree). frontend.Directives carries the >>TURN directive events (ISO §2023:7.3.25) that build the
         // group's compile-time TurnState (deep-dive D10).
         var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive)
         {
@@ -231,7 +231,7 @@ public static class CompilerDriver
             // kb/Work PB3505: the form DISPLAY gives a numeric operand rides the same per-compilation object, and is
             // read by the DISPLAY emitter alone (EmitContext.NumericDisplay).
             NumericDisplay = options.NumericDisplay,
-            // kb/Work PB1525: the §4.2.10 warning mechanism rides the same per-compilation object, and is read by
+            // kb/Work PB1525: the §2023:4.2.10 warning mechanism rides the same per-compilation object, and is read by
             // EditionContext.Extension alone.
             FlagExtensions = options.FlagExtensions,
             // kb/Work PB4319: --repository-update rides the same per-compilation object to the binder, which writes each
@@ -240,7 +240,7 @@ public static class CompilerDriver
             // kb/Work PB4721: the screens of the bind skip a word or literal the client wrote into this expansion's text.
             ClientWritten = options.ClientWritten,
         };
-        // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §7.3.10.3) is judged HERE, on the directive stage's map
+        // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §2023:7.3.10.3) is judged HERE, on the directive stage's map
         // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse
         // errors instead of losing it behind them (kb/Work PB4586). A directive that fails SR3/SR4 on a program that parses
         // reaches the bind with the same diagnostics on the edition's sink, as before.
@@ -250,7 +250,7 @@ public static class CompilerDriver
                 [.. diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!), .. edition.Diagnostics], feWarnings)
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
         var emitter = new CSharpEmitter();
-        // The external repository (ISO §8.13; DESIGN-external-repository §9.3): the --repository directories, else the
+        // The external repository (ISO §2023:8.13; DESIGN-external-repository §9.3): the --repository directories, else the
         // output directory, then the --reference assemblies; the output itself is never resolved against.
         string outputDll = options.OutputDll();
         var repository = new Binding.RepositorySearchSpace(

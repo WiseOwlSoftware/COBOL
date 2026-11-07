@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY SPECIAL-NAMES LITERAL OPERAND ASKS THE ONE ZERO-LENGTH QUESTION (kb/Work PB3218). ISO §12.3.7.3 SR11 bars a
+/// ⛔ EVERY SPECIAL-NAMES LITERAL OPERAND ASKS THE ONE ZERO-LENGTH QUESTION (kb/Work PB3218). ISO §2023:12.3.7.3 SR11 bars a
 /// zero-length literal from literal-1 through literal-6 and literal-9 (<c>cite.py --check 12.3.7.3</c> → OK 12.3.7.3 11)),
-/// and §8.8.3.3 GR2/GR3 make a concatenation of zero-length literals one. The ALPHABET / CLASS operands tested the raw
+/// and §2023:8.8.3.3 GR2/GR3 make a concatenation of zero-length literals one. The ALPHABET / CLASS operands tested the raw
 /// token (<c>""&amp;""</c> is not zero-length as written) while the LOCALE / ORDER TABLE literals tested the folded
 /// value, so the same operand was refused by one clause and compiled clean in the other.
 /// <para>The literal operands of the <c>SpecialNamesBinder*.cs</c> partials ask <c>IsZeroLengthOperand</c> (a literal) or

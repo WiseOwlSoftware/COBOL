@@ -65,7 +65,7 @@ public sealed class DataClauseEditionTests
                05 WF PIC X.
             """), 85, "the TYPEDEF clause"));
 
-    /// <summary>A MISPLACED subordinate TYPEDEF (illegal per §13.18.58 → COBOL1529) still keeps its init-only
+    /// <summary>A MISPLACED subordinate TYPEDEF (illegal per §2023:13.18.58 → COBOL1529) still keeps its init-only
     /// <c>IsTypedef</c> in the Roots subtree, so the edition gate fires ONCE there too (recognition-equivalent, matching
     /// the former BindEntry Check which fired for every entry regardless of placement).</summary>
     [Fact]
@@ -100,7 +100,7 @@ public sealed class DataClauseEditionTests
     /// <summary>A FILLER (nameless) level-01 TYPEDEF still names its edition at 85 — the parse node is present even
     /// though <c>RegisterTypeDecl</c> discards the item (unnamed → COBOL1529, never added to <c>TypeDecls</c>). A
     /// bound-arm gate saw nothing to fire (Defect 1).
-    /// <para>Spelled with FILLER: at COBOL-85 §8.9 does not reserve TYPEDEF, so the nameless spelling
+    /// <para>Spelled with FILLER: at COBOL-85 §2023:8.9 does not reserve TYPEDEF, so the nameless spelling
     /// <c>01 TYPEDEF PIC X.</c> is a legal data item NAMED TYPEDEF there (kb/Work PB655) — no TYPEDEF clause at all.</para></summary>
     [Fact]
     public void FillerTypedef_At85_StillGatesOnce()

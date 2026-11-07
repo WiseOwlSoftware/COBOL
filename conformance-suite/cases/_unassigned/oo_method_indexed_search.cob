@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7 / §13.18.38 / §14.9.37 — OCCURS … INDEXED BY + SEARCH in a METHOD's LOCAL-STORAGE
-      *> (M2-OO-1h step 4). The index-name IX is method-private (§11.7.4 GR5); SEARCH drives the method's OWN
+      *> ISO §2023:11.7 / §2023:13.18.38 / §2023:14.9.37 — OCCURS … INDEXED BY + SEARCH in a METHOD's LOCAL-STORAGE
+      *> (M2-OO-1h step 4). The index-name IX is method-private (§2023:11.7.4 GR5); SEARCH drives the method's OWN
       *> index cell, and SET reads its occurrence number.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OOIDX.

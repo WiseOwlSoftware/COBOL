@@ -13,11 +13,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// kb/Work PB437 — the EVALUATION WINDOW of every PERFORM VARYING operand slot, pinned per slot.
 ///
-/// <para><b>The rule.</b> ISO §14.9.28.4 GR12 states it as one sentence: "Item identification for identifier-3,
+/// <para><b>The rule.</b> ISO §2023:14.9.28.4 GR12 states it as one sentence: "Item identification for identifier-3,
 /// identifier-4, identifier-6, identifier-7, index-name-2, and index-name-4 is done each time the content of the
 /// data item referenced by the identifier or the index referenced by the index-name is used in a SETTING or
 /// AUGMENTING operation." So every FROM and every BY is re-read at each such operation — and a FUNCTION
-/// reference in one activates at each such operation (§8.4.3.2.4 GR1/GR6a: the value "is determined when the
+/// reference in one activates at each such operation (§2023:8.4.3.2.4 GR1/GR6a: the value "is determined when the
 /// function is referenced at runtime"). The FIRST level's FROM is the one slot whose setting operation happens
 /// exactly ONCE per execution of the statement (GR13 a) for TEST BEFORE, GR13 b) for TEST AFTER, both of which
 /// initialize it before any transfer of control and never again), which is the only window a statement-scoped
@@ -32,14 +32,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (COBOL1509, on source the standard admits).</para>
 ///
 /// <para><b>What is measured.</b> Each program carries exactly ONE function reference, in one operand slot,
-/// written as a table SUBSCRIPT so it registers a §15.4 temporary store as a pre-op — the same pending list a
-/// user-function activation uses, because §8.8.4.13 r2 governs "functions" and not one spelling of them. The
+/// written as a table SUBSCRIPT so it registers a §2023:15.4 temporary store as a pre-op — the same pending list a
+/// user-function activation uses, because §2023:8.8.4.13 r2 governs "functions" and not one spelling of them. The
 /// generated C# is then asked where that store landed relative to the varying phrase's own loop header.</para>
 /// </summary>
 public sealed class PerformVaryingOperandWindowDriftTests
 {
-    /// <summary>The §15.4 temporary store a function-bearing subscript emits. <c>FUNCTION INTEGER</c> lowers to
-    /// the floor intrinsic (ISO §15.36 — "the greatest integer ≤ argument-1"), and each program below writes
+    /// <summary>The §2023:15.4 temporary store a function-bearing subscript emits. <c>FUNCTION INTEGER</c> lowers to
+    /// the floor intrinsic (ISO §2023:15.36 — "the greatest integer ≤ argument-1"), and each program below writes
     /// exactly one function reference, so every occurrence of this text is one activation of it.</summary>
     private const string Activation = "CobolIntrinsics.Floor(";
 
@@ -111,7 +111,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
             + "        CONTINUE\n"
             + "    END-PERFORM.");
         Assert.True(acts.Count == 1 && acts[0] < loop,
-            "the FIRST-level FROM operand is set once per execution of the statement (ISO §14.9.28.4 GR13 a)/b)), "
+            "the FIRST-level FROM operand is set once per execution of the statement (ISO §2023:14.9.28.4 GR13 a)/b)), "
             + "so its function activation belongs on the statement hoist, once, BEFORE the loop header:\n" + cs);
     }
 
@@ -126,7 +126,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
             + "        CONTINUE\n"
             + "    END-PERFORM.");
         Assert.True(acts.Count == 1 && acts[0] > loop,
-            "a BY operand is read at every augmenting operation (ISO §14.9.28.4 GR12), so its function activation "
+            "a BY operand is read at every augmenting operation (ISO §2023:14.9.28.4 GR12), so its function activation "
             + "belongs INSIDE the loop. Before kb/Work PB437 this program was REJECTED (COBOL1509):\n" + cs);
     }
 
@@ -147,6 +147,6 @@ public sealed class PerformVaryingOperandWindowDriftTests
         Assert.True(acts.Count == 2 && acts[0] < loop && acts[1] > loop,
             "an AFTER level's FROM operand is read at GR13 a)'s initialization (before the loop) AND at "
             + "GR13 e) 2 a.'s re-initialization (inside the outer loop) — both are setting operations under ISO "
-            + "§14.9.28.4 GR12. Before kb/Work PB437 this program was REJECTED (COBOL1509):\n" + cs);
+            + "§2023:14.9.28.4 GR12. Before kb/Work PB437 this program was REJECTED (COBOL1509):\n" + cs);
     }
 }

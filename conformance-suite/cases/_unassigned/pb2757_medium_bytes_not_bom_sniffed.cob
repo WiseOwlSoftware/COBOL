@@ -8,11 +8,11 @@
       *> kb/Work PB2757 -- a sequential file's medium is read as BYTES,
       *> never sniffed for a Unicode byte-order mark.
       *>   python scripts/spec/cite.py --check 14.9.30.4 "is made
-      *>   available in the record area"   -> OK  §14.9.30.4 13) c)
+      *>   available in the record area"   -> OK  §2023:14.9.30.4 13) c)
       *>   python scripts/spec/cite.py --check 9.1.7.2 "In record
       *>   sequential files the length of each record is determined by
       *>   any information the implementor may add to the record on the
-      *>   physical storage medium"         -> OK  §9.1.7.2
+      *>   physical storage medium"         -> OK  §2023:9.1.7.2
       *> (1) A fixed record sequential file adds no information to the
       *> medium (docs/CONFORMANCE.md DOC-A.1-146 (a)), so its record is
       *> the next 4 bytes. The first record's first field is PIC S9(4)

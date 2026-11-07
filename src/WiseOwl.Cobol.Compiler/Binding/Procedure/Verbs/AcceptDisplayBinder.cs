@@ -20,7 +20,7 @@ using Core = CobolParserCore;
 /// (Exec Step E folds it).</summary>
 internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder host)
 {
-        /// <summary>Bind ACCEPT (ISO §14.9.1). Format 1: no FROM (the implementor default device, GR5) or FROM a
+        /// <summary>Bind ACCEPT (ISO §2023:14.9.1). Format 1: no FROM (the implementor default device, GR5) or FROM a
     /// SPECIAL-NAMES mnemonic-name (SR2). Format 2: FROM a temporal source; the <c>YYYYMMDD</c>/<c>YYYYDDD</c>
     /// four-digit-year phrases are COBOL-2002+ and rejected below that edition (the version-gating rule).
     /// <para>Format 3 (screen) is the DECLINED Annex A.4.2 module and is refused by name here — see
@@ -39,7 +39,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ScreenFacility.ReportAcceptScreen(ctx.Edition, why);
             return BoundRejected.Reported(ctx.Edition);
         }
-        if (DeviceFormatPhrase(ac.conditionalPhrases(), "ACCEPT", ac.receivingIdentifier(), "§14.9.1.2 Format 1 (device)",
+        if (DeviceFormatPhrase(ac.conditionalPhrases(), "ACCEPT", ac.receivingIdentifier(), "§2023:14.9.1.2 Format 1 (device)",
                 "Format 3 (screen), whose operand is screen-name-1") is { } shape)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, shape);
 
@@ -48,32 +48,32 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // (Step 14e), reading BoundAccept.HasEndTerminator — computed once here and stamped on each ACCEPT node.
         bool endTerm = AcceptHasTerminator(ac);
 
-        // An index-NAME receiver: not an identifier at all (ISO §8.4.3.1.2 — an index-name is none of the
-        // identifier formats), and §13.18.38.3 r7 closes the contexts that may reference one. The context
-        // diagnostic (COBOL1637), not the §8.4.2.1 UNDEFINED report the demanding resolve would produce.
+        // An index-NAME receiver: not an identifier at all (ISO §2023:8.4.3.1.2 — an index-name is none of the
+        // identifier formats), and §2023:13.18.38.3 r7 closes the contexts that may reference one. The context
+        // diagnostic (COBOL1637), not the §2023:8.4.2.1 UNDEFINED report the demanding resolve would produce.
         if (ac.receivingIdentifier().dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
-                + "index-name is not an identifier (ISO §8.4.3.1.2) and ACCEPT is not among the contexts that "
-                + "may reference one (§13.18.38.3 r7); SET a data item to it first (§14.9.39)");
+                + "index-name is not an identifier (ISO §2023:8.4.3.1.2) and ACCEPT is not among the contexts that "
+                + "may reference one (§2023:13.18.38.3 r7); SET a data item to it first (§2023:14.9.39)");
         }
 
         // ⛔ THE RECEIVING CHOKEPOINT, NOT THE SENDING RESOLVER (kb/Work PB429). ACCEPT's operand is the
-        // statement's RECEIVER (§14.9.1.4 GR6 — the transfer is "in accordance with the rules of the MOVE
+        // statement's RECEIVER (§2023:14.9.1.4 GR6 — the transfer is "in accordance with the rules of the MOVE
         // statement"), so it asks ExpressionBinder.ResolveReceiving, where the receiver-side rules are written
-        // down once: §8.4.3.15.3 SR1 admits PAGE-COUNTER and SR3 refuses LINE-COUNTER, §13.10.4 GR1 refuses a
-        // constant-name, §8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT.
+        // down once: §2023:8.4.3.15.3 SR1 admits PAGE-COUNTER and SR3 refuses LINE-COUNTER, §2023:13.10.4 GR1 refuses a
+        // constant-name, §2023:8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT.
         if (host.Expr.ResolveReceiving(ac.receivingIdentifier()) is not { } target)
             return new BoundUnsupported("ACCEPT receiving operand");   // the chokepoint reported it — not a deferral (kb/Work PB236)
 
         // Format 2 is FROM a temporal source; FROM omitted / FROM mnemonic is the Format 1 device transfer.
         bool temporal = ac.acceptSource() is { } tsrc && tsrc.cobolWord() is null;
 
-        // §14.9.1.3 SR1 (identifier-1) / SR3 (identifier-2): the excluded receiver CLASSES both formats share.
+        // §2023:14.9.1.3 SR1 (identifier-1) / SR3 (identifier-2): the excluded receiver CLASSES both formats share.
         // SR1 — "neither a strongly-typed group item nor a data item of class index, message-tag, object, or
         // pointer"; SR3 repeats the same class rows for the temporal receiver. SR3's class-alphabetic/boolean exclusions are NOT listed here — they fall
         // out of the MOVE-validity ask below (MoveTable16.Validity, asked with the GR7–GR12 conceptual item). A strongly-typed group temporal receiver fails GR6's MOVE-rules store
-        // identically (§14.9.25.3 SR2 — the sender must be a group of the SAME type, and the conceptual
+        // identically (§2023:14.9.25.3 SR2 — the sender must be a group of the SAME type, and the conceptual
         // temporal sender is an untyped integer), so both formats screen it.
         var rItem = target.Item;
         string? excluded =
@@ -87,17 +87,17 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (excluded is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
-                + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
-                            : "the device format excludes (ISO §14.9.1.3 SR1)"));
+                + (temporal ? "the temporal format excludes (ISO §2023:14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §2023:14.9.25.3 SR2 via §2023:14.9.1.4 GR6" : "") + ")"
+                            : "the device format excludes (ISO §2023:14.9.1.3 SR1)"));
         }
 
-        // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
+        // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§2023:8.5.1.12 —
         // a group with a DYNAMIC LENGTH elementary item or dynamic-capacity table subordinate at any depth).
         if (rItem.IsGroup && DataItem.HasVariableLengthSubordinate(rItem))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
                 + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "
-                + "it) — ISO §14.9.1.3 SR6");
+                + "it) — ISO §2023:14.9.1.3 SR6");
         }
 
         if (ac.acceptSource() is not { } src)
@@ -119,7 +119,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             : AcceptKind.Device;   // unreachable by grammar; Device keeps the bind total
         if (kind is AcceptKind.Device) return new BoundAccept(target, kind) { HasEndTerminator = endTerm };
 
-        // ⛔ §14.9.1.4 GR6 — "transferred to the data item specified by identifier-2 ACCORDING TO THE RULES FOR THE
+        // ⛔ §2023:14.9.1.4 GR6 — "transferred to the data item specified by identifier-2 ACCORDING TO THE RULES FOR THE
         // MOVE STATEMENT" — IS A MOVE, SO IT IS BOUND AS ONE (kb/Work PB887). GR7–GR12 name the sender: a conceptual
         // "unsigned elementary integer data item of usage display" of 6/8/5/7/8/1 digits. It is materialized as
         // exactly that item (a compiler temp the emitter fills from the clock, once) and the transfer is
@@ -131,14 +131,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (ConceptualItem(kind, ac.Start.Line) is not { } conceptual) return new BoundUnsupported("ACCEPT date/time temporary");
         var sender = new BoundFieldOperand(conceptual);
 
-        // §14.9.1.3 SR3 excludes class alphabetic and boolean receivers, and they are exactly the receivers
-        // §14.9.25.3 refuses an integer sender, so the question is asked of the ONE validity chain
+        // §2023:14.9.1.3 SR3 excludes class alphabetic and boolean receivers, and they are exactly the receivers
+        // §2023:14.9.25.3 refuses an integer sender, so the question is asked of the ONE validity chain
         // (MoveTable16.Validity — SR2, SR6–SR9, Table 16) with the ACTUAL conceptual item as sender, and framed
         // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
         if (MoveTable16.Validity(sender, target) is { } refusal)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
-                + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
+                + $"stores by the MOVE rules (ISO §2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
         }
         return new BoundAccept(target, kind)
         {
@@ -148,7 +148,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         };
     }
 
-    /// <summary>The §14.9.1.4 GR7–GR12 conceptual data item of a temporal source: "an unsigned elementary integer
+    /// <summary>The §2023:14.9.1.4 GR7–GR12 conceptual data item of a temporal source: "an unsigned elementary integer
     /// data item of usage display" whose length GR7–GR12 fix per source (<see cref="AcceptKinds.ConceptualDigits"/>).
     /// A compiler temp, because the MOVE the statement performs needs a real sending item to classify.</summary>
     private Place? ConceptualItem(AcceptKind kind, int line)
@@ -163,7 +163,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         return ctx.Refs.Places.ResolveItem(temp);
     }
 
-    /// <summary><c>ACCEPT … FROM mnemonic-name-1</c> (ISO §14.9.1 Format 1, SR2): the mnemonic shall be declared in
+    /// <summary><c>ACCEPT … FROM mnemonic-name-1</c> (ISO §2023:14.9.1 Format 1, SR2): the mnemonic shall be declared in
     /// SPECIAL-NAMES and associated with a device CAPABLE OF INPUT. An undeclared name or an output-only device is
     /// a bind-time rejection — the legacy silently treated every FROM word as the console; the spec says reject.
     /// The operand is the WORD the grammar admits (<c>acceptSource</c>'s <c>cobolWord</c> arm, kb/Work PB2499), so
@@ -185,20 +185,20 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         return false;
     }
 
-    /// <summary>The classes a DISPLAY operand shall not present (kb/Work PB148): §14.9.11.3 SR1 excludes
+    /// <summary>The classes a DISPLAY operand shall not present (kb/Work PB148): §2023:14.9.11.3 SR1 excludes
     /// class message-tag, object and pointer — the old fall-through printed a pointer's
-    /// ManagedPointer.ToString() and an object's CLR text; §13.18.60.3 SR10's closed list keeps an index DATA
+    /// ManagedPointer.ToString() and an object's CLR text; §2023:13.18.60.3 SR10's closed list keeps an index DATA
     /// item out of DISPLAY — the old numeric arm printed a zero-digit EMPTY image for it; and the
-    /// grammar-carried NULL word (class pointer — NOT a §8.3.3.6.2 figurative) rejects through the same
+    /// grammar-carried NULL word (class pointer — NOT a §2023:8.3.3.6.2 figurative) rejects through the same
     /// gate, where it previously printed U+0000.</summary>
     private static readonly CobolClass[] DisplayExcludedClasses =
         [CobolClass.Pointer, CobolClass.MessageTag, CobolClass.Object, CobolClass.Index];
 
     private const string DisplayClassCite =
-        "ISO §14.9.11.3 SR1 (class message-tag/object/pointer); §13.18.60.3 SR10 (an index data item may be referenced "
+        "ISO §2023:14.9.11.3 SR1 (class message-tag/object/pointer); §2023:13.18.60.3 SR10 (an index data item may be referenced "
         + "only in SEARCH/SET, a relation condition, an intrinsic/method argument, or a USING phrase)";
 
-    /// <summary>Is this ACCEPT / DISPLAY the SCREEN format (ISO §14.9.1.2 format 3 / §14.9.11.2 format 2 —
+    /// <summary>Is this ACCEPT / DISPLAY the SCREEN format (ISO §2023:14.9.1.2 format 3 / §2023:14.9.11.2 format 2 —
     /// Annex A.4.2 items 1 and 9)? Returns the REASON it was recognized, or null for the device/temporal formats.
     /// <para>⛔ THE TWO RECOGNITIONS ARE NOT EQUALLY VISIBLE, and that asymmetry is the whole defect kb/Work
     /// PB260 measured. A positioning or exception phrase can only be the screen format. But the MINIMAL screen
@@ -207,7 +207,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// device input was read into a screen record, with no diagnostic anywhere. Only the operand's DECLARATION
     /// tells them apart, which is why <see cref="ForestSlice.ScreenNames"/> is consulted here.</para>
     /// <para>The [NOT] ON EXCEPTION phrases are printed by the screen format alone and independently of the
-    /// positioning phrase (§14.9.1.2 Format 3, §14.9.11.2 Format 2), so a screen-name statement holding one is the
+    /// positioning phrase (§2023:14.9.1.2 Format 3, §2023:14.9.11.2 Format 2), so a screen-name statement holding one is the
     /// screen format with or without AT / LINE / COLUMN. The parser gives an unpositioned statement such a phrase only
     /// when no enclosing statement may take it (ConditionalPhraseAssociation's presumed reading, kb/Work PB1528); when
     /// the operand then proves to be no screen-name, the statement is no screen statement at all, and
@@ -239,7 +239,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// <summary>An exception phrase on a statement that <see cref="ScreenFormatOf"/> found to be no screen statement —
     /// its operand is no screen-name — or null when it holds none. Only the screen format prints [NOT] ON EXCEPTION, so
     /// the statement is Format 1, which prints none: the phrase "may be syntactically associated" with no statement
-    /// open here (ISO §14.5.3.3), the parser having given it to this one only because no enclosing statement may take
+    /// open here (ISO §2023:14.5.3.3), the parser having given it to this one only because no enclosing statement may take
     /// it and a screen-name is a declaration fact it cannot see (kb/Work PB1528). The statement-format shape COBOL2269,
     /// the parse layer's code for an unowned phrase, and never the screen refusal COBOL1707: a device ACCEPT / DISPLAY
     /// with an exception phrase is not the declined module, and claiming that module would not make it legal.</summary>
@@ -251,7 +251,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
               + " is not declared in the SCREEN SECTION, "
               + $"so this is ISO {format1}, which prints no exception phrase — only {screenFormat}, "
               + "prints [NOT] ON EXCEPTION — and the phrase may be syntactically associated with no statement open here "
-              + "(ISO §14.5.3.3)"
+              + "(ISO §2023:14.5.3.3)"
             : null;
 
     public BoundStatement BindDisplay(Core.DisplayStatementContext display)
@@ -265,7 +265,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         }
         // A DISPLAY whose phrase was associated wrote exactly one data-reference operand (the selectors rule out the rest).
         if (DeviceFormatPhrase(display.conditionalPhrases(), "DISPLAY", display.dataReference(0),
-                "§14.9.11.2 Format 1 (device)", "Format 2 (screen), whose one operand is screen-name-1") is { } shape)
+                "§2023:14.9.11.2 Format 1 (device)", "Format 2 (screen), whose one operand is screen-name-1") is { } shape)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, shape);
 
         var ops = new List<BoundOperand>();
@@ -281,23 +281,23 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             {
                 Core.LiteralContext lit => host.Expr.LiteralOperand(lit),
                 Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
-                // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
+                // DISPLAY FUNCTION … (ISO §2023:8.4.4.1 — an identifier includes a function-identifier; §2023:14.9.11.2).
                 Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
-                // §14.9.11.3 SR1's operand-1 is an identifier: §8.4.3.1.2 Format 4 too (kb/Work PB428).
+                // §2023:14.9.11.3 SR1's operand-1 is an identifier: §2023:8.4.3.1.2 Format 4 too (kb/Work PB428).
                 Core.InlineMethodInvocationContext imi => host.Oo.OoInlineInvocationOperand(imi),
                 _ => null,
             };
             if (op is null) continue;
             string text = child.GetText();
-            // DISPLAY is none of §13.18.38.3 r7's five index-name contexts (kb/Work R16 — this compiled
+            // DISPLAY is none of §2023:13.18.38.3 r7's five index-name contexts (kb/Work R16 — this compiled
             // clean and aborted at run time before).
             if (child is Core.DataReferenceContext && host.Expr.ScreenIndexNameOperand(op, text, "DISPLAY"))
             {
-                ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY of the index-name '{text}' (ISO §13.18.38.3 r7)"));
+                ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY of the index-name '{text}' (ISO §2023:13.18.38.3 r7)"));
                 continue;
             }
             // The operand-class gate (kb/Work PB148) — every operand shape, literals and intrinsic results
-            // included (FUNCTION MAX(IX1 IX2) is class index per §15.2 item 6).
+            // included (FUNCTION MAX(IX1 IX2) is class index per §2023:15.2 item 6).
             if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite))
             {
                 ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY operand '{text}' of an excluded class"));
@@ -309,11 +309,11 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         return new BoundDisplay(ops, display.displayNoAdvancing() is not null, toStdErr);
     }
 
-    /// <summary><c>DISPLAY … UPON mnemonic-name-1</c> (ISO §14.9.11.3 SR2): the mnemonic shall be declared in
+    /// <summary><c>DISPLAY … UPON mnemonic-name-1</c> (ISO §2023:14.9.11.3 SR2): the mnemonic shall be declared in
     /// SPECIAL-NAMES and associated with a device CAPABLE OF RECEIVING data from the program. An undeclared name or an
     /// input-only device is a bind-time rejection — the legacy silently dropped the UPON phrase and always displayed on
     /// the standard device. Returns true iff the resolved device is SYSERR (standard error routing); every other
-    /// output device — and every rejected case — uses the standard display device (§14.9.11.4 GR8).</summary>
+    /// output device — and every rejected case — uses the standard display device (§2023:14.9.11.4 GR8).</summary>
     private bool BindDisplayUpon(Core.DisplayUponContext upon)
     {
         string name = upon.cobolWord().GetText();
@@ -322,9 +322,9 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                && device.Device.HasFlag(DeviceCapability.StandardError);
     }
 
-    /// <summary>The ONE screen for an ACCEPT FROM / DISPLAY UPON mnemonic-name (§14.9.1.3 SR2 / §14.9.11.3 SR2 —
+    /// <summary>The ONE screen for an ACCEPT FROM / DISPLAY UPON mnemonic-name (§2023:14.9.1.3 SR2 / §2023:14.9.11.3 SR2 —
     /// the mnemonic "shall be associated with" a device capable of the transfer): the mnemonic shall be declared in
-    /// SPECIAL-NAMES, its name shall be a DEVICE-name (§12.3.7.3 SR7 — "Mnemonic-name-3 may be specified only in
+    /// SPECIAL-NAMES, its name shall be a DEVICE-name (§2023:12.3.7.3 SR7 — "Mnemonic-name-3 may be specified only in
     /// the ACCEPT and DISPLAY statements", and only mnemonic-name-3 is a device's), and the device shall have
     /// <paramref name="need"/> (SR7's "additional restrictions", read off the ONE table, <see cref="ImplementorNames"/>).
     /// Returns the device row, or null after reporting COBOL0817.</summary>
@@ -335,21 +335,21 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + $"(ISO §{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
-                + "§12.3.7.2 'device-name-1 IS mnemonic-name-3')");
+                + "§2023:12.3.7.2 'device-name-1 IS mnemonic-name-3')");
             return null;
         }
         if (row.Kind != SystemNameKind.Device)
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': '{name}' is the mnemonic-name of the "
                 + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
-                + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §12.3.7.3 SR7; "
+                + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §2023:12.3.7.3 SR7; "
                 + $"§{sr2} SR2)");
             return null;
         }
         if (!row.Device.HasFlag(need))
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
-                + "SR2; the available device-names and their capabilities are this implementation's §12.3.7.3 SR7/SR8 "
+                + "SR2; the available device-names and their capabilities are this implementation's §2023:12.3.7.3 SR7/SR8 "
                 + $"specification: {ImplementorNames.DescribeDevices()})");
             return null;
         }

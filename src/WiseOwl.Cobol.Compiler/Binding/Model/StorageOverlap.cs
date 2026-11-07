@@ -3,9 +3,9 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// ⛔ THE ONE CONSERVATIVE "MAY THESE TWO REFERENCES OCCUPY THE SAME STORAGE?" QUESTION (ISO §14.6.10 — overlapping
+/// ⛔ THE ONE CONSERVATIVE "MAY THESE TWO REFERENCES OCCUPY THE SAME STORAGE?" QUESTION (ISO §2023:14.6.10 — overlapping
 /// operands; kb/Work PB1907). A verb whose rules call a result undefined when two operands "occupy the same storage
-/// area" (INSPECT §14.9.22.4 GR13/GR18/GR21, Annex A.2 item 21) still has to DO something when they do, and what it
+/// area" (INSPECT §2023:14.9.22.4 GR13/GR18/GR21, Annex A.2 item 21) still has to DO something when they do, and what it
 /// does is a documented implementor choice (docs/CONFORMANCE.md "Implementor behavior in Annex A.2 undefined
 /// cases"). The emitter that implements the choice must know whether the choice can matter, so that the statements
 /// that cannot overlap keep their single-snapshot code unchanged.

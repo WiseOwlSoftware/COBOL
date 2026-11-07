@@ -8,7 +8,7 @@
       *> prohibited at EVERY edition, not only at 2023:
       *>   cite.py --check 14.9.25.3 "In all other cases, the move of an alphanumeric figurative constant (SPACE,
       *>     QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL symbolic-character) to either a numeric item or a
-      *>     numeric-edited item is prohibited" -> OK §14.9.25.3 5)
+      *>     numeric-edited item is prohibited" -> OK §2023:14.9.25.3 5)
       *> The 2002 text states the SPACE arm alone, as syntax rule 5 of its clause 14.8.24.2: "The figurative
       *> constant SPACE shall not be moved to a numeric or numeric-edited item" (the same sentence is in the 2009
       *> committee draft that led to 2014); VCR row 7.41 records the derived 1985 edge. So it is no 2023 removal

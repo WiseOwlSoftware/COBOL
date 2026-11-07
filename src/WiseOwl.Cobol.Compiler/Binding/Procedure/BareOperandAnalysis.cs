@@ -13,23 +13,23 @@ public enum BareOperandForm
     /// <summary>A plain value operand — an identifier, a literal or an arithmetic expression.</summary>
     Value = 0,
 
-    /// <summary>A level-88 condition-name, which IS a complete condition (ISO §8.8.4.2.7 rule 2).</summary>
+    /// <summary>A level-88 condition-name, which IS a complete condition (ISO §2023:8.8.4.2.7 rule 2).</summary>
     ConditionName = 1,
 
     /// <summary>A switch-status condition-name declared in SPECIAL-NAMES, which IS a complete condition
-    /// (ISO §8.8.4.6).</summary>
+    /// (ISO §2023:8.8.4.6).</summary>
     SwitchStatus = 2,
 
-    /// <summary>A boolean expression (ISO §8.8.2) — a category-boolean item, a boolean literal, the figurative
-    /// ZERO or <c>ALL B"…"</c>, or a boolean function reference. Whether it is ALSO a §8.8.4.3 simple boolean
-    /// CONDITION is the consuming clause's question: everywhere but EVALUATE it always is, while §14.9.13.3 SR6
+    /// <summary>A boolean expression (ISO §2023:8.8.2) — a category-boolean item, a boolean literal, the figurative
+    /// ZERO or <c>ALL B"…"</c>, or a boolean function reference. Whether it is ALSO a §2023:8.8.4.3 simple boolean
+    /// CONDITION is the consuming clause's question: everywhere but EVALUATE it always is, while §2023:14.9.13.3 SR6
     /// decides it from the other side of the selection pair.</summary>
     Boolean = 3,
 
     /// <summary>A class-name-1 or alphabet-name-1 declared in SPECIAL-NAMES — the user-defined-word alternatives of
-    /// the class condition (ISO §8.8.4.4.2). Not a condition by itself (the class condition's identifier is
-    /// missing), and not a value either (§8.3.2.2: the word is not a data-name); only EVALUATE gives the shape a
-    /// meaning, as §14.9.13.3 SR5's "class condition without the identifier" (kb/Work PB843).</summary>
+    /// the class condition (ISO §2023:8.8.4.4.2). Not a condition by itself (the class condition's identifier is
+    /// missing), and not a value either (§2023:8.3.2.2: the word is not a data-name); only EVALUATE gives the shape a
+    /// meaning, as §2023:14.9.13.3 SR5's "class condition without the identifier" (kb/Work PB843).</summary>
     ClassName = 4,
 }
 
@@ -40,11 +40,11 @@ public enum BareOperandForm
 /// <param name="Condition">The bound condition for <see cref="BareOperandForm.ConditionName"/> and
 /// <see cref="BareOperandForm.SwitchStatus"/>, which are conditions outright; null otherwise.</param>
 /// <param name="Boolean">The bound boolean EXPRESSION for <see cref="BareOperandForm.Boolean"/>, deliberately
-/// NOT yet wrapped as a §8.8.4.3 simple boolean condition — that wrapper carries the clause's SR1 length-1
+/// NOT yet wrapped as a §2023:8.8.4.3 simple boolean condition — that wrapper carries the clause's SR1 length-1
 /// screen, and firing it before the classification is settled reports a rule the operand is not subject to.</param>
-/// <param name="BooleanLength">The §8.8.2 rules 9/10 RESULT length in boolean positions, or null when the
+/// <param name="BooleanLength">The §2023:8.8.2 rules 9/10 RESULT length in boolean positions, or null when the
 /// operand is positionless (figurative ZERO / <c>ALL B"…"</c>) or its length is a run-time value. This is the
-/// length §14.9.13.3 SR6's "results in one boolean character" turns on.</param>
+/// length §2023:14.9.13.3 SR6's "results in one boolean character" turns on.</param>
 /// <param name="ClassWord">The class-name / alphabet-name as written, for <see cref="BareOperandForm.ClassName"/>;
 /// null otherwise.</param>
 public readonly record struct BareOperandAnalysis(
@@ -64,7 +64,7 @@ public readonly record struct BareOperandAnalysis(
         new(form, cond, null, null);
 
     /// <summary>True when the operand is a condition REGARDLESS of the consuming clause — the two
-    /// condition-name forms. A boolean operand is deliberately excluded: §14.9.13.3 SR6 makes its classification
+    /// condition-name forms. A boolean operand is deliberately excluded: §2023:14.9.13.3 SR6 makes its classification
     /// depend on the other side of the pair, and answering "yes" here is what let EVALUATE's object classifier
     /// recognise a shape its subject classifier did not.</summary>
     public bool IsConditionName => Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus;

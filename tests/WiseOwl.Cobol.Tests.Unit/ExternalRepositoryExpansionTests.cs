@@ -13,14 +13,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ PARAMETERIZED CLASSES ACROSS ASSEMBLIES: SKELETONS, EXPANSIONS, THEIR KEY, THEIR PLACEMENT AND STALE EXPANSIONS
-/// (ISO §9.3.12, §9.3.13, §12.3.8.3 SR4/SR6, §12.3.8.4 GR5/GR8; DESIGN-external-repository §10.5, §17.1; kb/Work PB2104). Each Fact
+/// (ISO §2023:9.3.12, §2023:9.3.13, §2023:12.3.8.3 SR4/SR6, §2023:12.3.8.4 GR5/GR8; DESIGN-external-repository §10.5, §17.1; kb/Work PB2104). Each Fact
 /// compiles a library that defines a class BOX and the parameterized class HOLD USING ELEM into a directory, and one or more
 /// callers against it, as separate compilations, and reads what each wrote with the same reader a later compilation uses. The
 /// multi-unit goldens (<c>conformance-suite/wiseowl/cases/12.3.8-REPOSITORY/pb2104_expand_skeleton_from_repository</c> and
 /// <c>pb2104_expansion_is_one_class_across_groups</c>) run the result; these are the cases that need a directory layout, a second
 /// build of a changed library or the bytes and units of what was written.
-/// <para>§9.3.12: "Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same
-/// parameterized class with the same actual parameters are the same class instance"; §12.3.8.4 GR5: "The class object-class-name-1 is
+/// <para>§2023:9.3.12: "Within a run unit, two classes with the same externalized object-class-name that are created by expanding the same
+/// parameterized class with the same actual parameters are the same class instance"; §2023:12.3.8.4 GR5: "The class object-class-name-1 is
 /// created from the parameterized class object-class-name-2 by replacing each specification of the formal parameter by the
 /// corresponding actual parameter".</para>
 /// </summary>
@@ -115,7 +115,7 @@ public sealed class ExternalRepositoryExpansionTests
     }
 
     /// <summary>Run the compiled program <paramref name="dll"/> in <paramref name="dir"/> (the repository directory is the run unit's
-    /// directory, §11.4) and return its exit code, stdout and stderr.</summary>
+    /// directory, §2023:11.4) and return its exit code, stdout and stderr.</summary>
     private static (int Exit, string Stdout, string Stderr) Run(string dll, string dir)
     {
         var observed = ProcessObserver.ObserveOrThrow(new ProcessStartInfo("dotnet", $"\"{dll}\"") { WorkingDirectory = dir }, null, runDirectory: dir);
@@ -142,7 +142,7 @@ public sealed class ExternalRepositoryExpansionTests
         return outcome.Records;
     }
 
-    [Fact]   // §7.2: a parameterized definition emits a static class with [CobolUnit(ParameterizedClass)] + [CobolSkeleton].
+    [Fact]   // §2023:7.2: a parameterized definition emits a static class with [CobolUnit(ParameterizedClass)] + [CobolSkeleton].
     public void AParameterizedClass_IsPublishedAsASkeleton_WithItsFormalsResolutionsAndCompileState()
     {
         WithDirectory("skeleton-record", dir =>
@@ -164,7 +164,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5 (4a): an expansion that names no class of the expanding group is its own assembly, published as an expansion.
+    [Fact]   // §2023:10.5 (4a): an expansion that names no class of the expanding group is its own assembly, published as an expansion.
     public void AnExpansionThatNamesNoClassOfTheGroup_IsWrittenToAnAssemblyOfItsOwn_AndRuns()
     {
         WithDirectory("expansion-own", dir =>
@@ -207,7 +207,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §9.3.12: a second group expanding the same triple imports the first's class — one file, written once, one class.
+    [Fact]   // §2023:9.3.12: a second group expanding the same triple imports the first's class — one file, written once, one class.
     public void ASecondGroupExpandingTheSameTriple_ImportsTheExistingExpansion_AndDoesNotRewriteIt()
     {
         WithDirectory("expansion-import", dir =>
@@ -228,7 +228,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5 step (3): the skeleton's own group writes the same expansion; the assembly that holds it references the group's previous build.
+    [Fact]   // §2023:10.5 step (3): the skeleton's own group writes the same expansion; the assembly that holds it references the group's previous build.
     public void TheSkeletonsOwnGroup_ImportsAnExpansionThatReferencesItsPreviousBuild()
     {
         WithDirectory("expansion-cycle", dir =>
@@ -249,7 +249,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Theory]   // kb/Work PB4650, ISO §9.3.12: a group that WRITES the class an existing expansion was compiled against elsewhere does not import it.
+    [Theory]   // kb/Work PB4650, ISO §2023:9.3.12: a group that WRITES the class an existing expansion was compiled against elsewhere does not import it.
     [InlineData("CLIENT1", "CLIENT2")]
     [InlineData("CLIENT2", "CLIENT1")]
     public void AnExpansionCompiledAgainstALibrarysClass_IsNotImported_ByAGroupThatWritesThatClassItself(string first, string second)
@@ -286,7 +286,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // kb/Work PB4650, ISO §9.3.12: the same, where the other home is a second library's class — the file (a) would write is not written over.
+    [Fact]   // kb/Work PB4650, ISO §2023:9.3.12: the same, where the other home is a second library's class — the file (a) would write is not written over.
     public void AnExpansionCompiledAgainstAnotherAssemblysClass_IsNotImported_NorWrittenOver()
     {
         WithDirectory("expansion-other-home-library", dir =>
@@ -369,7 +369,7 @@ public sealed class ExternalRepositoryExpansionTests
         END PROGRAM {id}.
         """;
 
-    [Theory]   // kb/Work PB4650, ISO §9.3.12: whether an expansion is the class this compilation names does not depend on what its code happens to reference.
+    [Theory]   // kb/Work PB4650, ISO §2023:9.3.12: whether an expansion is the class this compilation names does not depend on what its code happens to reference.
     [InlineData(false, 2014, 2014)]   // the formal is named by no member: the expansion's assembly has no reference to BOX's
     [InlineData(true, 2014, 2014)]    // a skeleton REPOSITORY entry from another library that no member uses
     [InlineData(false, 2014, 2023)]   // the skeleton's state is not the groups': the expansion is made apart, in an assembly of its own
@@ -451,7 +451,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5 "Stale expansions": another skeleton source under one name and triple — REPO-9 names the component and the stale callers.
+    [Fact]   // §2023:10.5 "Stale expansions": another skeleton source under one name and triple — REPO-9 names the component and the stale callers.
     public void AnExpansionWhoseSkeletonChanged_IsStale_NamedByRepo9_AndReplaced()
     {
         WithDirectory("expansion-stale", dir =>
@@ -473,7 +473,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5 (4b): an expansion whose actual is a class of the expanding group lives in the group's assembly.
+    [Fact]   // §2023:10.5 (4b): an expansion whose actual is a class of the expanding group lives in the group's assembly.
     public void AnExpansionThatNamesAClassOfTheGroup_LivesInTheGroupsAssembly()
     {
         WithDirectory("expansion-in-group", dir =>
@@ -494,7 +494,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §6.5, §7.6: the same library and caller in two directories write byte-identical expansion assemblies, and the key is a function of meaning alone.
+    [Fact]   // §2023:6.5, §7.6: the same library and caller in two directories write byte-identical expansion assemblies, and the key is a function of meaning alone.
     public void TheExpansionAssembly_IsDeterministic_AcrossGroupsAndDirectories()
     {
         WithDirectory("expansion-determinism", dir =>
@@ -516,7 +516,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5: a file of the expansion's own name that is not an expansion is not ours to overwrite.
+    [Fact]   // §2023:10.5: a file of the expansion's own name that is not an expansion is not ours to overwrite.
     public void AnAssemblyThatIsNoExpansionOfThatName_IsNeverOverwritten()
     {
         WithDirectory("expansion-foreign", dir =>
@@ -530,7 +530,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §12.3.8.4 GR2: the expansion specifier's own AS literal externalizes the EXPANSION (the file, the unit, the identity).
+    [Fact]   // §2023:12.3.8.4 GR2: the expansion specifier's own AS literal externalizes the EXPANSION (the file, the unit, the identity).
     public void TheExpansionSpecifiersAsLiteral_IsTheExpansionsExternalizedName()
     {
         WithDirectory("expansion-as", dir =>
@@ -548,7 +548,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §9.3.13: the interface arm — a parameterized INTERFACE is a skeleton too, and its expansion an assembly of its own that a class of the group implements.
+    [Fact]   // §2023:9.3.13: the interface arm — a parameterized INTERFACE is a skeleton too, and its expansion an assembly of its own that a class of the group implements.
     public void AParameterizedInterface_IsPublished_ExpandedFromTheRepository_AndImplementedByAGroupClass()
     {
         const string iput = """
@@ -646,7 +646,7 @@ public sealed class ExternalRepositoryExpansionTests
             SourceFormat: InitialReferenceFormat.Free, RepositoryPaths: [repository]));
     }
 
-    [Fact]   // §9.3.12 "shall not": a different class under the name of the file placement (a) would overwrite is refused, and the file stays.
+    [Fact]   // §2023:9.3.12 "shall not": a different class under the name of the file placement (a) would overwrite is refused, and the file stays.
     public void ASameNameExpansionOfOtherActuals_AtTheFilePlacementAWouldOverwrite_IsRefused_AndTheFileIsLeftAlone()
     {
         WithDirectory("expansion-same-name-target", dir =>
@@ -667,7 +667,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §9.3.12 "shall not", §10.5: the same refusal where the other class lives in an assembly the group references (the skeleton's own).
+    [Fact]   // §2023:9.3.12 "shall not", §2023:10.5: the same refusal where the other class lives in an assembly the group references (the skeleton's own).
     public void ASameNameExpansionInAnAssemblyTheGroupReferences_IsRefused()
     {
         WithDirectory("expansion-same-name-referenced", dir =>
@@ -684,7 +684,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5, REPO-2: a same-name, different-triple expansion that is merely elsewhere in the search space is a warning; this one is made as usual.
+    [Fact]   // §2023:10.5, REPO-2: a same-name, different-triple expansion that is merely elsewhere in the search space is a warning; this one is made as usual.
     public void ASameNameExpansionElsewhereInTheSearchSpace_IsRepo2_AndTheExpansionIsMade()
     {
         WithDirectory("expansion-same-name-elsewhere", dir =>
@@ -722,7 +722,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §12.3.8.4 GR5, §10.5 "Residual": a skeleton compiled under another state whose expansion names a class of the group is refused, naming the entry's kind.
+    [Fact]   // §2023:12.3.8.4 GR5, §2023:10.5 "Residual": a skeleton compiled under another state whose expansion names a class of the group is refused, naming the entry's kind.
     public void AnImportedSkeletonUnderAnotherCompileState_WhoseExpansionNamesAGroupClass_IsRefused()
     {
         WithDirectory("expansion-foreign-state", dir =>
@@ -781,7 +781,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §10.5, §7.2: a numeric literal argument to a method of an expansion in another assembly crosses through the method's own profile.
+    [Fact]   // §2023:10.5, §2023:7.2: a numeric literal argument to a method of an expansion in another assembly crosses through the method's own profile.
     public void ANumericLiteralArgument_ToAMethodOfAnExpansionInAnotherAssembly_Compiles()
     {
         string hold = Hold().Replace("METHOD-ID. SHOW-IT.", """
@@ -812,7 +812,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §9.3.12, §10.5 (4a): the expansion's text reaches its own compilation with every literal intact, whatever its length and spaces.
+    [Fact]   // §2023:9.3.12, §2023:10.5 (4a): the expansion's text reaches its own compilation with every literal intact, whatever its length and spaces.
     public void AnExpansionWhoseSkeletonHoldsLongLiteralsWithSpaces_IsWrittenIntact()
     {
         // 140 characters with a space after every second one, so any 200-position fill point of the expansion text lands inside a literal.
@@ -829,7 +829,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §6.2.3.1, §6.5 8): the free-form lines of an expansion's text read back as the text does, for a literal of any length.
+    [Fact]   // §2023:6.2.3.1, §2023:6.5 8): the free-form lines of an expansion's text read back as the text does, for a literal of any length.
     public void TheFreeFormLines_OfALiteralLongerThanALine_ReadBackAsTheLiteral()
     {
         string literal = string.Concat(Enumerable.Range(0, 220).Select(i => i % 7 == 0 ? "it''s " : $"w{i} ")).TrimEnd();   // doubled apostrophes straddle fill points
@@ -858,7 +858,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // §9.3.12, §10.5 (kb/Work PB4457): the warnings of an expansion compiled in an assembly of its own are kept, at the EXPANDS entry.
+    [Fact]   // §2023:9.3.12, §2023:10.5 (kb/Work PB4457): the warnings of an expansion compiled in an assembly of its own are kept, at the EXPANDS entry.
     public void AWarningOfAnExpansionInAnAssemblyOfItsOwn_IsCarriedAndReportedAtTheExpandsEntry()
     {
         // NEXT SENTENCE is obsolete at COBOL-2023 (COBOL0903, a warning, Annex F.1): the skeleton's text carries it into the expansion.
@@ -878,7 +878,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    /// <summary>A skeleton whose text raises a warning at every edition: a relation of two literals (COBOL3146, ISO §8.8.4.2.1 — "A relation
+    /// <summary>A skeleton whose text raises a warning at every edition: a relation of two literals (COBOL3146, ISO §2023:8.8.4.2.1 — "A relation
     /// condition shall contain at least one reference to an operand that is not a literal"), which the BIND raises, so the group's bind of the
     /// expansion's text and the expansion's own compilation both do.</summary>
     private const string RelationOfLiterals = "IF 1 = 1 DISPLAY \"A\".\n        INVOKE ITEM \"SHOW\".";
@@ -952,12 +952,12 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    /// <summary>A skeleton text that raises two warnings of two kinds at COBOL-2023: COBOL3146 (the BIND's, ISO §8.8.4.2.1: "A relation
+    /// <summary>A skeleton text that raises two warnings of two kinds at COBOL-2023: COBOL3146 (the BIND's, ISO §2023:8.8.4.2.1: "A relation
     /// condition shall contain at least one reference to an operand that is not a literal") and COBOL0903 (the parse-tree arm of the edition
     /// pass: NEXT SENTENCE is archaic, Annex F.1), so a placement that reports one kind and not the other shows.</summary>
     private const string BindAndEditionWarnings = "IF 1 = 1 NEXT SENTENCE ELSE DISPLAY \"A\".\n        INVOKE ITEM \"SHOW\".";
 
-    /// <summary>Two places of one skeleton text that raise the same words (COBOL3146 twice, ISO §8.8.4.2.1).</summary>
+    /// <summary>Two places of one skeleton text that raise the same words (COBOL3146 twice, ISO §2023:8.8.4.2.1).</summary>
     private const string TwoRelationsOfLiterals = "IF 1 = 1 DISPLAY \"A\".\n        IF 1 = 1 DISPLAY \"B\".\n        INVOKE ITEM \"SHOW\".";
 
     /// <summary>The client of <see cref="Client"/> with its own class LBOX as the actual: the expansion names a class of the group, so it
@@ -971,7 +971,7 @@ public sealed class ExternalRepositoryExpansionTests
 
     private static string[] WithCode(CompilerDriver.Result r, string code) => [.. r.Warnings.Where(w => w.Contains(code, StringComparison.Ordinal))];
 
-    [Theory]   // kb/Work PB4483, ISO §9.3.12: an imported expansion is a class this compilation compiles nothing of; the client that made it reported its text.
+    [Theory]   // kb/Work PB4483, ISO §2023:9.3.12: an imported expansion is a class this compilation compiles nothing of; the client that made it reported its text.
     [InlineData("CLIENT1", "CLIENT2")]
     [InlineData("CLIENT2", "CLIENT1")]
     public void AnImportedExpansion_ReportsNoWarningOfItsText_WhicheverClientMadeIt(string first, string second)
@@ -1075,7 +1075,7 @@ public sealed class ExternalRepositoryExpansionTests
         END PROGRAM CLIENTW.
         """;
 
-    [Theory]   // kb/Work PB4483 review R1-1, ISO §8.9: the once-per-word COBOL0901 belongs to each text; a report the group withdraws hides none.
+    [Theory]   // kb/Work PB4483 review R1-1, ISO §2023:8.9: the once-per-word COBOL0901 belongs to each text; a report the group withdraws hides none.
     [InlineData(false)]
     [InlineData(true)]
     public void AReservedWordOfAWithdrawnExpansionText_DoesNotHideTheSameWordInAnotherText(bool declares) =>
@@ -1085,7 +1085,7 @@ public sealed class ExternalRepositoryExpansionTests
     /// character of a word: Annex B.3 item 3 permits it only inside a word.</summary>
     private const string RemovedCharacterWord = "ABC・";
 
-    [Theory]   // kb/Work PB4649, ISO §8.3.2.1 + Annex B.3: the word-character screen walks the text of an expansion of a repository skeleton, per text.
+    [Theory]   // kb/Work PB4649, ISO §2023:8.3.2.1 + Annex B.3: the word-character screen walks the text of an expansion of a repository skeleton, per text.
     [InlineData(false)]
     [InlineData(true)]
     public void ARemovedCharacterOfAnExpansionText_IsReportedAtTheEntry_InEveryPlacement_AndOncePerText(bool declares) =>
@@ -1129,7 +1129,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // kb/Work PB4721, ISO §8.3.2.1: a word the CLIENT wrote into an expansion (its name) is one fault, reported where it is written, not again at the EXPANDS entry.
+    [Fact]   // kb/Work PB4721, ISO §2023:8.3.2.1: a word the CLIENT wrote into an expansion (its name) is one fault, reported where it is written, not again at the EXPANDS entry.
     public void AnIllegalWordTheClientWroteIntoAnExpansion_IsReportedOnce_WhereItIsWritten()
     {
         WithDirectory("expansion-client-word", dir =>
@@ -1157,7 +1157,7 @@ public sealed class ExternalRepositoryExpansionTests
                 .Replace($"CLASS {written} EXPANDS", $"CLASS {written}{asPhrase} EXPANDS", StringComparison.Ordinal);
     }
 
-    [Fact]   // kb/Work PB4721 review R1-1, ISO §8.3.2.1: the word-length ceiling reads the client's expansion name once, in the group placement too.
+    [Fact]   // kb/Work PB4721 review R1-1, ISO §2023:8.3.2.1: the word-length ceiling reads the client's expansion name once, in the group placement too.
     public void AnOverlongNameTheClientWroteIntoAnExpansion_IsReportedOnce_InTheGroupPlacement()
     {
         WithDirectory("expansion-client-long-name", dir =>
@@ -1171,7 +1171,7 @@ public sealed class ExternalRepositoryExpansionTests
         });
     }
 
-    [Fact]   // kb/Work PB4721 review R1-2, ISO §8.3.2.1 + Annex B.3: an expansion compiled in an assembly of its own does not report the client's word again.
+    [Fact]   // kb/Work PB4721 review R1-2, ISO §2023:8.3.2.1 + Annex B.3: an expansion compiled in an assembly of its own does not report the client's word again.
     public void ARemovedCharacterTheClientWroteIntoAnExpansion_IsReportedOnce_InTheOwnAssemblyPlacement()
     {
         WithDirectory("expansion-client-word-apart", dir =>
@@ -1246,8 +1246,8 @@ public sealed class ExternalRepositoryExpansionTests
         string At(string diagnostic) => ExpansionAssemblies.AtTheEntry(diagnostic, temp, "HOLD-BOX", entry);
 
         // A positioned diagnostic: the throw-away file and its line are replaced; the expansion is named.
-        Assert.Equal("client.cob(8,5): error COBOL2690: boom (ISO §6.4.2) [in the expansion 'HOLD-BOX']",
-            At($"{temp}(41,9): error COBOL2690: boom (ISO §6.4.2)"));
+        Assert.Equal("client.cob(8,5): error COBOL2690: boom (ISO §2023:6.4.2) [in the expansion 'HOLD-BOX']",
+            At($"{temp}(41,9): error COBOL2690: boom (ISO §2023:6.4.2)"));
         Assert.Equal("client.cob(8,5): warning COBOL0903: obsolete [in the expansion 'HOLD-BOX']", At($"{temp}(3,1): warning COBOL0903: obsolete"));
         // A diagnostic that names no position takes the entry's.
         Assert.Equal("client.cob(8,5): error COBOL5962: nothing [in the expansion 'HOLD-BOX']", At("error COBOL5962: nothing"));
@@ -1256,7 +1256,7 @@ public sealed class ExternalRepositoryExpansionTests
         Assert.DoesNotContain("expansion-0123456789abcdef", mention, StringComparison.Ordinal);
         Assert.Contains("the text of the expansion 'HOLD-BOX'", mention, StringComparison.Ordinal);
         // The header line and the Roslyn diagnostics of the generated C# are not positions in the text.
-        Assert.Equal("the expansion assembly 'HOLD-BOX.dll' (ISO §9.3.12):", At("the expansion assembly 'HOLD-BOX.dll' (ISO §9.3.12):"));
+        Assert.Equal("the expansion assembly 'HOLD-BOX.dll' (ISO §2023:9.3.12):", At("the expansion assembly 'HOLD-BOX.dll' (ISO §2023:9.3.12):"));
         Assert.Equal("HOLD-BOX.g.cs(12,3): error CS0103: no", At("HOLD-BOX.g.cs(12,3): error CS0103: no"));
     }
 

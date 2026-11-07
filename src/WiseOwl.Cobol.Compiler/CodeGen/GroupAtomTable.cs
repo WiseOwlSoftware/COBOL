@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
-/// ⛔ THE ONE PLACE A §8.5.1.12 ATOM ARRAY IS WRITTEN INTO EMITTED C# (kb/Work PB2690). Every shape a statement or an
+/// ⛔ THE ONE PLACE A §2023:8.5.1.12 ATOM ARRAY IS WRITTEN INTO EMITTED C# (kb/Work PB2690). Every shape a statement or an
 /// activation boundary hands the runtime — <c>CobolVarGroup.Reshape</c> / <c>Overlay</c> / <c>Compare</c>, the
 /// fixed ⇄ variable-length conversions, <c>CobolArg.Atoms</c>, a formal's adapter — is a <see cref="GroupAtom"/> array
 /// that the compiler knows in full, so the module states each DISTINCT array ONCE as a <c>static readonly</c> field of
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.CodeGen;
 internal sealed class GroupAtomTable
 {
     /// <summary>The emitted static class that holds the arrays. A name no COBOL word spells (a user word never begins with
-    /// an underscore followed by a letter, ISO §8.3.2.1), like the module registrar's.</summary>
+    /// an underscore followed by a letter, ISO §2023:8.3.2.1), like the module registrar's.</summary>
     public const string ClassName = "__GroupAtoms";
 
     private readonly Dictionary<string, string> _fieldOfLiteral = new(StringComparer.Ordinal);

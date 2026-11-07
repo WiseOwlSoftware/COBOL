@@ -6,18 +6,18 @@
 *> portable: unverified
 *>---
       *> GROUP INDICATE IS A PRESENT WHEN ON THE ITEM, ARMED PER DETAIL GROUP (kb/Work PB1244).
-      *> ISO/IEC 1989:2023 §13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
+      *> ISO/IEC 1989:2023 §2023:13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
       *> WHEN clause where the associated condition is true only on the first occasion that a GENERATE is
       *> issued for the current detail group after any of the following events." a) an INITIATE, b) a
       *> page advance, c) a control break.
       *>   cite.py --check 13.18.28.4 "true only on the first occasion that a GENERATE is issued for the
-      *>     current detail group"  -> OK  §13.18.28.4 1)  (General rule)
-      *> §13.18.41.4 GR2b: a false condition declares the item absent, "and the effect on processing is as
+      *>     current detail group"  -> OK  §2023:13.18.28.4 1)  (General rule)
+      *> §2023:13.18.41.4 GR2b: a false condition declares the item absent, "and the effect on processing is as
       *> though the entry were omitted" -- so an indicated item that is not presented is NOT a span of
       *> spaces: it occupies no column and does not move the horizontal counter.
       *>   cite.py --check 13.18.41.4 "the corresponding data item is declared to be absent and the effect
-      *>     on processing is as though the entry were omitted"  -> OK  §13.18.41.4 2) b)
-      *> §13.18.14.4 GR7-GR9: the horizontal counter starts each line at zero; a relative item's leftmost
+      *>     on processing is as though the entry were omitted"  -> OK  §2023:13.18.41.4 2) b)
+      *> §2023:13.18.14.4 GR7-GR9: the horizontal counter starts each line at zero; a relative item's leftmost
       *> column is "obtained by adding integer-2 to the current line's horizontal counter", except that
       *> "If integer-2 is specified for an item that is the first printable item in the current line, it
       *> specifies the leftmost column of that item"; "The rightmost column position of each printable item
@@ -26,9 +26,9 @@
       *>     item in the current line, it specifies the leftmost column of that item"  -> OK  8)
       *>   cite.py --check 13.18.14.4 "The rightmost column position of each printable item becomes the
       *>     new value of the horizontal counter"  -> OK  9)
-      *> Page fit (§13.18.35.4 GR4c): every fit below has the same outcome whether the trial sum adds the
+      *> Page fit (§2023:13.18.35.4 GR4c): every fit below has the same outcome whether the trial sum adds the
       *> first LINE clause's integer-2 or not, so the derivation does not lean on that reading. The first
-      *> body group on a page lands on FIRST DETAIL (§13.18.35.4 GR5b3).
+      *> body group on a page lands on FIRST DETAIL (§2023:13.18.35.4 GR5b3).
       *>
       *> WHY EACH LEG CAN FAIL. DA and DB are two detail groups; each has its own condition, so a GENERATE
       *> of one neither reads nor consumes the other's (a report-wide flag prints DB's first line without

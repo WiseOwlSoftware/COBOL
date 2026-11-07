@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.6.3 SR3 — an interface that inherits, INDIRECTLY, from
+      *> ISO §2023:11.6.3 SR3 — an interface that inherits, INDIRECTLY, from
       *> itself (L1C15QA -> L1C15QB -> L1C15QA).
       *> Rule: "Interface-name-2 shall not inherit directly or
       *> indirectly from interface-name-1."
-      *> cite.py: OK  §11.6.3 3)  (Syntax rules)
+      *> cite.py: OK  §2023:11.6.3 3)  (Syntax rules)
       *> Each INHERITS name is in the inheriting interface's own
       *> REPOSITORY (SR2 satisfied), and neither interface names itself,
       *> so only the indirect cycle is wrong. Diagnostic COBOL2791

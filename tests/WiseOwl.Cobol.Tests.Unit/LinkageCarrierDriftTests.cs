@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// <c>ProgramEmitter</c>'s formal loop used to carry a <c>bool isNum</c>: numeric on one side, "everything else
 /// as a space-filled <c>ManagedPointer&lt;string&gt;</c>" on the other. The model has FOUR crossing forms, not
-/// two — the native cell, the character image, the §8.5.1.12 variable-length carrier, and the MANAGED SLOT of a
+/// two — the native cell, the character image, the §2023:8.5.1.12 variable-length carrier, and the MANAGED SLOT of a
 /// class-pointer or class-object-reference item — and the fourth had no arm at all. The consequence was not a
 /// wrong value: <c>01 L-P USAGE POINTER.</c> + <c>PROCEDURE DIVISION USING L-P.</c> emitted
 /// <c>ManagedPointer&lt;string&gt; __lnkp0 = … new string(' ', 1)</c>, and the first reference to the formal was
@@ -104,7 +104,7 @@ public sealed class LinkageCarrierDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>MEASURED, not deduced: the real compiler emits the formal's own carrier for each managed class,
-    /// and the program runs. The CALL is <c>AS NESTED</c> because §14.9.4.3 SR10 bars a Format-1 CALL from
+    /// and the program runs. The CALL is <c>AS NESTED</c> because §2023:14.9.4.3 SR10 bars a Format-1 CALL from
     /// passing a data item of class object or pointer BY REFERENCE at all — the callee side is reachable only
     /// through a Format-2 activation or a separately-compiled activator, which is precisely why the hole stayed
     /// open.</summary>

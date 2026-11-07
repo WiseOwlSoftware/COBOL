@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.57.4 GR4 — the TYPE subject's own BASED clause
+      *> ISO §2023:13.18.57.4 GR4 — the TYPE subject's own BASED clause
       *>   applies
       *> "If a BASED clause is specified in the data description of
       *>   the subject
@@ -16,7 +16,7 @@
       *>   BASED
       *>   clause specified in the description of type-name-1 is
       *>     ignored for
-      *>   this entry" -> OK §13.18.57.4 4) (General rules)
+      *>   this entry" -> OK §2023:13.18.57.4 4) (General rules)
       *> T and TG are NOT based; V and VG write BASED beside TYPE.
       *>   Under GR4 the
       *> subject's BASED applies, so V and VG are based items with no

@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR14 c)4 + SR17 c)5 — national count at bound
+      *> ISO §2023:12.3.7.3 SR14 c)4 + SR17 c)5 — national count at bound
       *> THE RULES:
       *>   SR14 c)4 (ALPHABET, NATIONAL phrase): "The number of
       *>   characters specified shall not exceed the number of
       *>   characters in the native national character set."
       *>   cite.py --check 12.3.7.3 "The number of characters
       *>     specified shall not exceed the number of characters in
-      *>     the native national character set." -> OK §12.3.7.3 14)
+      *>     the native national character set." -> OK §2023:12.3.7.3 14)
       *>   SR17 c)5 (CLASS, NATIONAL phrase): "The number of
       *>   characters specified shall not exceed the number of
       *>   characters in the native national character set or, when
@@ -20,18 +20,18 @@
       *>   character set referenced by alphabet-name-4."
       *>   cite.py --check 12.3.7.3 "the number of characters in the
       *>     character set referenced by alphabet-name-4."
-      *>     -> OK §12.3.7.3 17)
+      *>     -> OK §2023:12.3.7.3 17)
       *>   cite.py --check 12.3.7.4 "The characters specified by the
       *>     values of the literals in this clause define the
       *>     exclusive set of characters of which class-name-1
-      *>     consists." -> OK §12.3.7.4 12)
+      *>     consists." -> OK §2023:12.3.7.4 12)
       *>   cite.py --check 12.3.7.4 "may specify characters of the
       *>     native character set in either ascending or descending
-      *>     sequence" -> OK §12.3.7.4 7) 2.  (cite.py mislabels list
+      *>     sequence" -> OK §2023:12.3.7.4 7) 2.  (cite.py mislabels list
       *>     items, PB1554: the text is GR7 k) 5.)
       *> "Shall not EXCEED" makes EQUAL legal. The native national set
       *> is the 65,536 UTF-16 code units, ordinal n = code unit n-1
-      *> (docs/CONFORMANCE.md DOC-A.1-8, §12.3.7.4 GR6). Both clauses
+      *> (docs/CONFORMANCE.md DOC-A.1-8, §2023:12.3.7.4 GR6). Both clauses
       *> below name EXACTLY 65,536 characters - the bound - so the
       *> source is legal and must compile; a count check off by one
       *> would reject it. The over-bound side cannot be written
@@ -49,7 +49,7 @@
       *> PROGRAM COLLATING SEQUENCE FOR NATIONAL enter at 2002.
       *> DERIVATION of every .out line:
       *>   N"B" (U+0042) < N"A" (U+0041) under the reversed national
-      *>   PCS (§12.3.6.4)                  -> NB-LT-NA=Y (native: N)
+      *>   PCS (§2023:12.3.6.4)                  -> NB-LT-NA=Y (native: N)
       *>   N"€A" IS NALL: U+20AC and U+0041 are both among the 65,536
       *>                                    -> EURO-A-IN-NALL=Y
        IDENTIFICATION DIVISION.

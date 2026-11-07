@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.35.3 SR2 — LINES is a synonym of LINE in the
+      *> ISO §2023:13.18.35.3 SR2 — LINES is a synonym of LINE in the
       *>   report-writer
       *> LINE clause (single absolute, relative, and multiple operands)
       *> SR2 "LINE and LINES are synonyms."
-      *>   cite.py: OK  §13.18.35.3 2)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.35.3 2)  (Syntax rules)
       *> Every LINE clause below is spelled LINES, so each must behave
       *>   exactly
       *> as the LINE spelling the general rules describe:
@@ -25,9 +25,9 @@
       *>   clause with a single operand, together with a simple OCCURS
       *>     clause
       *>   whose integer is equal to the number of operands"
-      *>   cite.py: OK  §13.18.35.4 9)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 9)  (General rules)
       *> GR7 "Any unoccupied lines on the page result in a blank line."
-      *>   cite.py: OK  §13.18.35.4 7) b)  (General rules)
+      *>   cite.py: OK  §2023:13.18.35.4 7) b)  (General rules)
       *> REPORT R: PAGE LIMIT 12, HEADING 1, FIRST DETAIL 3, LAST DETAIL
       *>   10.
       *> DERIVATION (LC = LINE-COUNTER; INITIATE sets LC 0):

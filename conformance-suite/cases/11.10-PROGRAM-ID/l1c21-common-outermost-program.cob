@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.10.3 SR4 — COMMON on an OUTERMOST program is illegal
+      *> ISO §2023:11.10.3 SR4 — COMMON on an OUTERMOST program is illegal
       *> "The COMMON clause may be specified only if the program is
       *> contained within another program."
-      *>   cite.py --check 11.10.3 -> OK  §11.10.3 4)  (Syntax rules)
+      *>   cite.py --check 11.10.3 -> OK  §2023:11.10.3 4)  (Syntax rules)
       *> L1C21J is the outermost program of its compilation group (it
       *> is contained in nothing), yet its PROGRAM-ID says IS COMMON.
       *> Everything else is valid in every edition, so the only reason

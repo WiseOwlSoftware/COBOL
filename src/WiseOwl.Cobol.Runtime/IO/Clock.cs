@@ -6,17 +6,17 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>The run unit's clock (DESIGN-runtime-library §2.7 — replaces the process-global mutable
 /// <c>AcceptSource.Now</c> seam): every ACCEPT temporal source reads <c>RunUnit.Current.Clock.Now()</c>
-/// (ISO §14.9.1.4 GR7 — "the hardware clock provides the current date and time"), and every now-intrinsic
+/// (ISO §2023:14.9.1.4 GR7 — "the hardware clock provides the current date and time"), and every now-intrinsic
 /// (CURRENT-DATE, FORMATTED-CURRENT-DATE, SECONDS-PAST-MIDNIGHT, the windowing execution-time defaults)
-/// reads the SAME seam, so one run unit observes one clock (§15.21.1 — the "local time differential factor
-/// provided by the system on which the function is evaluated"; §15.38.4 r1). Injectable per run unit
+/// reads the SAME seam, so one run unit observes one clock (§2023:15.21.1 — the "local time differential factor
+/// provided by the system on which the function is evaluated"; §2023:15.38.4 r1). Injectable per run unit
 /// (<c>RunUnit.Current.Clock = new FixedClock(...)</c> in an in-process test). <c>ClockSeamDriftTests</c>
 /// is the source-form guard: no direct <c>DateTime[Offset].Now</c> read survives outside
 /// <see cref="SystemClock"/> and the WHEN-COMPILED compile-time capture.</summary>
 public interface IClock
 {
     /// <summary>The current local wall-clock reading WITH its offset from UTC — the local time differential
-    /// factor CURRENT-DATE renders in positions 17–21 (§15.21.3 r1) and the §15.3.3 offset format fields emit.</summary>
+    /// factor CURRENT-DATE renders in positions 17–21 (§2023:15.21.3 r1) and the §2023:15.3.3 offset format fields emit.</summary>
     DateTimeOffset Now();
 }
 

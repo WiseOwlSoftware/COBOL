@@ -9,9 +9,9 @@
       *> edition COBOL-2002 (VCR row 7.31; constructs.json string-delimited-omitted-2002; below 2002 it is
       *> COBOL0900, negative pb1567-string-delimited-omitted-below-2002).
       *>   cite.py --check 14.9.43.3 "The DELIMITED phrase may be omitted only immediately preceding the INTO
-      *>     phrase. If it is omitted, DELIMITED BY SIZE is implied" -> OK §14.9.43.3 9)
+      *>     phrase. If it is omitted, DELIMITED BY SIZE is implied" -> OK §2023:14.9.43.3 9)
       *>   cite.py --check 14.9.43.4 "the entire content of literal-1, or the content of the data item
-      *>     referenced by identifier-1, is transferred" -> OK §14.9.43.4 3) c)
+      *>     referenced by identifier-1, is transferred" -> OK §2023:14.9.43.4 3) c)
       *> EXPECTED OUTPUT, DERIVED FROM THE RULES:
       *>   B=[ABCABC]    STRING A A INTO B: no DELIMITED phrase at all, so BY SIZE is implied for the whole
       *>                 sending group and both copies of "ABC" are transferred.

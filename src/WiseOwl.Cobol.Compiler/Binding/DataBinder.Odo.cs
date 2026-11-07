@@ -10,33 +10,33 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The OCCURS DEPENDING ON half of the data binder (ISO/IEC 1989:2023 §13.18.38): Format-2 clause capture
+/// The OCCURS DEPENDING ON half of the data binder (ISO/IEC 1989:2023 §2023:13.18.38): Format-2 clause capture
 /// (<see cref="OdoBindOccursSpec"/>) and the post-build resolution + structural-validation pass
 /// (<see cref="OdoResolvePass.Run"/>). Partial-class extension over <c>DataBinder</c> — the entry binder stores the array
-/// capacity (the MAXIMUM, §8.5.1.8) in <see cref="DataItem.Occurs"/> and the bounds/DEPENDING/KEY surface here.
+/// capacity (the MAXIMUM, §2023:8.5.1.8) in <see cref="DataItem.Occurs"/> and the bounds/DEPENDING/KEY surface here.
 /// </summary>
 public sealed partial class DataBinder
 {
     /// <summary>Capture an OCCURS clause's structured description: the Format-2 <c>integer-1 TO integer-2</c>
-    /// bounds and DEPENDING ON name, plus the ASCENDING/DESCENDING KEY data-names (Formats 1 and 2, §13.18.38
+    /// bounds and DEPENDING ON name, plus the ASCENDING/DESCENDING KEY data-names (Formats 1 and 2, §2023:13.18.38
     /// GR3). Returns <see langword="null"/> for a plain keyless fixed table — <see cref="DataItem.Occurs"/>
     /// alone carries those (the dominant case stays allocation-free).</summary>
     private OccursSpec? OdoBindOccursSpec(Core.OccursClauseContext occ, string where, int? maxBound)
     {
         NarrowToDataDivisionFormats(occ, where);
         bool depending = occ.DEPENDING() is not null;
-        // ONE list in PHRASE ORDER — ISO §13.18.38.4 GR3 "If more than one data-name-2 is specified, they are
-        // specified in descending order of significance", which is what §14.9.37.3 SR11 is a rule about. Splitting
+        // ONE list in PHRASE ORDER — ISO §2023:13.18.38.4 GR3 "If more than one data-name-2 is specified, they are
+        // specified in descending order of significance", which is what §2023:14.9.37.3 SR11 is a rule about. Splitting
         // the phrase into per-direction lists would lose the relative order of a mixed
-        // `ASCENDING KEY IS A B DESCENDING KEY IS C`. The name AND ITS QUALIFIERS (kb/Work PB1018): §13.18.38.3 SR3
+        // `ASCENDING KEY IS A B DESCENDING KEY IS C`. The name AND ITS QUALIFIERS (kb/Work PB1018): §2023:13.18.38.3 SR3
         // confines data-name-2 to the OCCURS entry or an entry subordinate to it, but two subordinates may share the
-        // name, and then `K OF B` is the only thing that says which one is the key (§8.4.2.2.3 SR1). The capture
+        // name, and then `K OF B` is the only thing that says which one is the key (§2023:8.4.2.2.3 SR1). The capture
         // used to keep the base word alone, and the lookup took the first K under the table.
         var keys = new List<OccursKey>();
         foreach (var kc in occ.occursKeyClause())
         {
             bool descending = kc.DESCENDING() is not null;
-            // SCREENED first (kb/Work PB885): §13.18.38.3 SR2 "Data-name-1 and data-name-2 shall not be
+            // SCREENED first (kb/Work PB885): §2023:13.18.38.3 SR2 "Data-name-1 and data-name-2 shall not be
             // subscripted" and SR5 "Data-name-2 shall be specified without the subscripting normally required" —
             // a written subscript used to be dropped here in silence. A refused key is not recorded: the
             // refusal is the verdict, and a key named by its written spelling would only draw a second one.
@@ -47,7 +47,7 @@ public sealed partial class DataBinder
             }
         }
 
-        // Format 4 — a DYNAMIC-capacity table (§13.18.38 Format 4, D9): capture CAPACITY IN / FROM / TO / INITIALIZED
+        // Format 4 — a DYNAMIC-capacity table (§2023:13.18.38 Format 4, D9): capture CAPACITY IN / FROM / TO / INITIALIZED
         // (each at most once and in the printed order — NarrowToDataDivisionFormats has refused anything else, so a
         // phrase here is the only one of its kind). ALWAYS returns a spec (a keyless dynamic table still needs IsDynamic recorded,
         // unlike a keyless fixed table where DataItem.Occurs alone suffices). DataItem.Occurs stays null — a dynamic
@@ -81,21 +81,21 @@ public sealed partial class DataBinder
         }
         if (!depending && keys.Count == 0) return null;
 
-        // Each fixed bound is an integer literal or an integer constant-name (§13.10.3 SR2); the caller already
+        // Each fixed bound is an integer literal or an integer constant-name (§2023:13.10.3 SR2); the caller already
         // resolved the LAST bound (the maximum) via IntegerOperandValue — <paramref name="maxBound"/> — so an
         // unresolvable bound reports exactly once. Only integer-1 of a Format-2 pair resolves here.
         var bounds = occ.integerOperand();
         int max = maxBound ?? 0;
-        // Format 2 is `OCCURS integer-1 TO integer-2 … DEPENDING …` (§13.18.38 general formats); `OCCURS n
+        // Format 2 is `OCCURS integer-1 TO integer-2 … DEPENDING …` (§2023:13.18.38 general formats); `OCCURS n
         // DEPENDING` without TO was REFUSED by NarrowToDataDivisionFormats (kb/Work PB1265) and binds here, under
         // that failed compile, with minimum 1 only so the rest of the entry still binds. Min feeds only the SR16
-        // check and the later EC-BOUND-ODO bounds — allocation is ALWAYS Max (§8.5.1.8).
+        // check and the later EC-BOUND-ODO bounds — allocation is ALWAYS Max (§2023:8.5.1.8).
         int min = !depending ? max
             : bounds.Length > 1 ? Constants.IntegerOperandValue(bounds[0], where) ?? 1
             : 1;
         // data-name-1 — a QUALIFIED-DATA-NAME through the ONE data-name-n capture (kb/Work PB885). The whole
         // reference's GetText() stood here: `DEPENDING ON CNT OF G1` became the undefined name `CNTOFG1` (legal
-        // source rejected), and `DEPENDING ON WS-TE (2)` drew "not defined" instead of §13.18.38.3 SR2.
+        // source rejected), and `DEPENDING ON WS-TE (2)` drew "not defined" instead of §2023:13.18.38.3 SR2.
         string? depName = null;
         IReadOnlyList<string> depQuals = [];
         if (depending && occ.dataReference() is { } depRef)
@@ -114,14 +114,14 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE DATA DIVISION'S OCCURS CLAUSE IS FORMAT 1, 2 OR 4 — NARROWED HERE FROM THE GRAMMAR'S SUPERSET
     /// (kb/Work PB1265). <c>occursClause</c> parses every phrase of every format optionally and Format 4's phrases in
     /// any order and number, so that the refusal can name the rule; the report section narrows the same parse to
-    /// Format 3 (<c>ReportSectionBinder.cs#ReportOccursOf</c>), and this is the other arm. ISO §13.18.38.2:
+    /// Format 3 (<c>ReportSectionBinder.cs#ReportOccursOf</c>), and this is the other arm. ISO §2023:13.18.38.2:
     /// <list type="bullet">
     /// <item>Format 2 prints <c>integer-1 TO integer-2 TIMES DEPENDING ON data-name-1</c> with nothing bracketed, so a
     /// TO without DEPENDING and a DEPENDING without TO are each in no data-division format (the bracketed
     /// <c>[ integer-1 TO ]</c> and <c>[ DEPENDING … ]</c> are Format 3's, the report writer's).</item>
     /// <item>STEP integer-3 exists only in Format 3.</item>
     /// <item>Format 4 prints <c>[ CAPACITY IN data-name-3 ] [ FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ]</c>:
-    /// each phrase at most once, and — §5.2.1, "The words, phrases, clauses, punctuation, and operands in each
+    /// each phrase at most once, and — §2023:5.2.1, "The words, phrases, clauses, punctuation, and operands in each
     /// general format shall be written in the compilation group in the sequence given in the general format, unless
     /// otherwise specified by the rules of that format" — in that order. A repeated FROM used to bind its last value
     /// in silence.</item>
@@ -148,20 +148,20 @@ public sealed partial class DataBinder
                 int r = Rank(ph);
                 if (r == last)
                     Refuse(ph, $"the {names[r]} phrase is written twice; Format 4 prints each of its phrases once "
-                        + "(ISO §13.18.38.2: OCCURS DYNAMIC [ CAPACITY IN data-name-3 ] [ FROM integer-4 ] "
+                        + "(ISO §2023:13.18.38.2: OCCURS DYNAMIC [ CAPACITY IN data-name-3 ] [ FROM integer-4 ] "
                         + "[ TO integer-5 ] [ INITIALIZED ])");
                 else if (r < last)
                     Refuse(ph, $"the {names[r]} phrase is written after the {names[last]} phrase; Format 4 prints "
-                        + "CAPACITY IN, FROM, TO, INITIALIZED in that order (ISO §13.18.38.2), and \"The words, "
+                        + "CAPACITY IN, FROM, TO, INITIALIZED in that order (ISO §2023:13.18.38.2), and \"The words, "
                         + "phrases, clauses, punctuation, and operands in each general format shall be written in the "
-                        + "compilation group in the sequence given in the general format\" (ISO §5.2.1)");
+                        + "compilation group in the sequence given in the general format\" (ISO §2023:5.2.1)");
                 last = Math.Max(last, r);
             }
             return;
         }
         if (occ.occursStepPhrase() is { } step)
             Refuse(step, "the STEP phrase belongs only to the report-writer format, which a report group "
-                + "description entry uses (ISO §13.18.38.2 Format 3: OCCURS [ integer-1 TO ] integer-2 TIMES "
+                + "description entry uses (ISO §2023:13.18.38.2 Format 3: OCCURS [ integer-1 TO ] integer-2 TIMES "
                 + "[ DEPENDING ON data-name-1 ] [ STEP integer-3 ])");
         bool hasTo = occ.TO() is not null, depending = occ.DEPENDING() is not null;
         if (hasTo != depending)
@@ -169,10 +169,10 @@ public sealed partial class DataBinder
                                : "DEPENDING ON data-name-1 is written without integer-1 TO")
                 + "; a data description entry's occurs-depending table is Format 2, which prints "
                 + "\"OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1\" with no part optional, and a fixed "
-                + "table is Format 1, \"OCCURS integer-2 TIMES\" (ISO §13.18.38.2)");
+                + "table is Format 1, \"OCCURS integer-2 TIMES\" (ISO §2023:13.18.38.2)");
     }
 
-    /// <summary>⛔ §13.18.38.3 SR29 (kb/Work PB1264): "The implementor shall specify a maximum permissible value for
+    /// <summary>⛔ §2023:13.18.38.3 SR29 (kb/Work PB1264): "The implementor shall specify a maximum permissible value for
     /// integer-4 and integer-5. Their values shall not exceed this maximum value." The maximum is the highest
     /// permissible occurrence number of a dynamic-capacity table, <c>CobolDynTable.MaxOccurrences</c>
     /// (docs/CONFORMANCE.md DOC-A.1-60), and a FROM / TO value above it is refused HERE — it used to compile and
@@ -185,14 +185,14 @@ public sealed partial class DataBinder
         Edition.Error(DiagnosticCatalog.OccursDynamicBoundAboveMaximum,
             $"OCCURS DYNAMIC {which} {v}: the value exceeds this implementation's maximum of "
             + $"{WiseOwl.Cobol.Runtime.CobolDynTable<byte>.MaxOccurrences:N0} for integer-4 and integer-5 "
-            + "(docs/CONFORMANCE.md DOC-A.1-60); ISO §13.18.38.3 SR29: \"Their values shall not exceed this maximum "
+            + "(docs/CONFORMANCE.md DOC-A.1-60); ISO §2023:13.18.38.3 SR29: \"Their values shall not exceed this maximum "
             + "value.\"");
         return null;
     }
 
-    /// <summary>The name a <c>CAPACITY IN data-name-3</c> phrase DEFINES (ISO §13.18.38.3 SR30 — "Data-name-3 shall
+    /// <summary>The name a <c>CAPACITY IN data-name-3</c> phrase DEFINES (ISO §2023:13.18.38.3 SR30 — "Data-name-3 shall
     /// not be defined elsewhere in the source element", i.e. the phrase is its definition), or null when the
-    /// written operand is not a data-name. SR31 — "Data-name-3 shall not be subscripted" — and the §8.4.2.2.2
+    /// written operand is not a data-name. SR31 — "Data-name-3 shall not be subscripted" — and the §2023:8.4.2.2.2
     /// qualified-data-name shape are the <see cref="ClauseDataName"/> screen; a QUALIFIER is refused here too,
     /// because a defining occurrence names the register and SR30 itself supplies its qualification ("it shall be
     /// treated as though implicitly defined at the same level as the entry containing the OCCURS clause"). The
@@ -205,7 +205,7 @@ public sealed partial class DataBinder
         if (quals.Count == 0) return name;
         using var _ = Edition.At(capRef);
         Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName, $"{where}: OCCURS DYNAMIC CAPACITY IN "
-            + $"'{WrittenText(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §13.18.38.3 SR30), "
+            + $"'{WrittenText(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §2023:13.18.38.3 SR30), "
             + "and a defining occurrence is a bare data-name whose qualification SR30 itself supplies");
         return null;
     }
@@ -219,15 +219,15 @@ public sealed partial class DataBinder
             : "";
 
     /// <summary>Is <paramref name="record"/> — and so every data-name subordinate to it — a global name? ISO
-    /// §8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
+    /// §2023:8.4.6.2.2: "A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a
     /// GLOBAL clause is a global name. All data-names and screen-names subordinate to a global name are global
-    /// names" — the record's own GLOBAL clause, or its file description's (§13.18.27.3 SR1 b) and d)).</summary>
+    /// names" — the record's own GLOBAL clause, or its file description's (§2023:13.18.27.3 SR1 b) and d)).</summary>
     internal bool IsGlobalRecord(DataItem record) =>
         record.HasGlobalClause || State.Files.Declared.Any(f => f.IsGlobal && f.Records.Contains(record));
 
 }
 
-/// <summary>⛔ THE ONE ADMISSION OF AN OCCURS DEPENDING ON OBJECT (ISO §13.18.38.3 SR17: "Data-name-1 shall describe an
+/// <summary>⛔ THE ONE ADMISSION OF AN OCCURS DEPENDING ON OBJECT (ISO §2023:13.18.38.3 SR17: "Data-name-1 shall describe an
 /// integer"; SR2: "Data-name-1 and data-name-2 shall not be subscripted"; SR20: data-name-1 "shall not occupy a byte
 /// position within the range of the first byte position defined by the data description entry containing the OCCURS
 /// clause and the last byte position defined by the record description entry containing that OCCURS clause"; kb/Work
@@ -243,9 +243,9 @@ internal readonly record struct DependingAdmission(bool NotInteger, bool Subscri
     /// <summary>The link may be recorded.</summary>
     public bool Admitted => !NotInteger && !Subscripted && !InTableRange;
 
-    /// <summary>⛔ §13.18.38.3 SR20 over the record's STORAGE AREA, not its entry (kb/Work PB1261). The range is
+    /// <summary>⛔ §2023:13.18.38.3 SR20 over the record's STORAGE AREA, not its entry (kb/Work PB1261). The range is
     /// byte positions — from the table's first to its record's last — and a byte position belongs to an AREA, which
-    /// more than one record description can describe: §13.18.33.4 GR3, "Multiple level 1 entries subordinate to a FD
+    /// more than one record description can describe: §2023:13.18.33.4 GR3, "Multiple level 1 entries subordinate to a FD
     /// or SD entry represent implicit redefinitions of the same area", and a level-1 REDEFINES. Such records share
     /// one <see cref="RedefinesClass"/> and each begins at the area's first byte, so a counter in a sibling record
     /// sits at its own record offset in the same area. The test compared record ROOTS and so let that counter
@@ -256,7 +256,7 @@ internal readonly record struct DependingAdmission(bool NotInteger, bool Subscri
     /// occupies every byte of the range, and the test that looked for data-name-1 itself among the leaves passed it
     /// (kb/Work PB3510). Across the records of one area the counter's byte window is compared with the table's:
     /// its offset in its own record against the table's offset and its record's extent (the table at its maximum,
-    /// §8.5.1.8 — the allocation every record of the area is described against).</para></summary>
+    /// §2023:8.5.1.8 — the allocation every record of the area is described against).</para></summary>
     private static bool DependingInsideTableRange(DataItem table, DataItem dep)
     {
         if (ReferenceEquals(dep.Root, table.Root))

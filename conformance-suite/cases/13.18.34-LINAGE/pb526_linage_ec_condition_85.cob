@@ -9,19 +9,19 @@
       *> conformance-suite/cases/9.1.13.11-Implementor-defined-condition-with-unsuccessful-completion/pb526_linage_ec_condition, which carries
       *> the full derivation and every cite.py --check line.
       *>
-      *> WHY THE TWIN EXISTS. §13.18.34.4 GR6 b)'s two value rules and the
+      *> WHY THE TWIN EXISTS. §2023:13.18.34.4 GR6 b)'s two value rules and the
       *> continuation they prescribe are VERSION-INVARIANT — no edition
       *> gate touches the LINAGE clause — but the two channels the rule
       *> reaches a program through are not equally old. The exception
       *> condition it names is the 2002 EC model's (checking is enabled by
       *> a >>TURN directive, which COBOL-85 does not have), while the I-O
       *> STATUS and the format-1 USE declarative that read it are COBOL-85
-      *> constructs. §14.6.13.1.3 3) is what joins them:
+      *> constructs. §2023:14.6.13.1.3 3) is what joins them:
       *>   python scripts/spec/cite.py --check 14.6.13.1.3 "If the
       *>   exception condition is a fatal EC-I-O exception condition, then
       *>   the rules for 9.1.13, I-O status apply, then if the implementor
       *>   has not specified otherwise, the following rules apply for all
-      *>   fatal exception conditions."   -> OK  §14.6.13.1.3 3)
+      *>   fatal exception conditions."   -> OK  §2023:14.6.13.1.3 3)
       *> so the whole of GR6 b) 2's observable behaviour — the '90' status
       *> (docs/CONFORMANCE.md §7 DOC-A.1-110), the declarative, the
       *> counter pinned at 0, the continuation with the statement after

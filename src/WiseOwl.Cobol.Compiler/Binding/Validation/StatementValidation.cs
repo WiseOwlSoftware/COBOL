@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Binding.Validation;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⭐ ONE ROW PER CORRESPONDING VERB — the operand rule §14.9.25.3 SR12, §14.9.2.3 SR6 and §14.9.44.3 SR6 each
+/// ⭐ ONE ROW PER CORRESPONDING VERB — the operand rule §2023:14.9.25.3 SR12, §2023:14.9.2.3 SR6 and §2023:14.9.44.3 SR6 each
 /// state, AS DATA, so <see cref="StatementValidation.CheckCorrespondingGroupOperand"/> can ask each caller's own
 /// rule instead of the intersection of the three (kb/Work PB392).
 /// <para>The three rules differ on two axes and agreed on neither before this: ADD and SUBTRACT enumerate FOUR
@@ -24,15 +24,15 @@ using Core = CobolParserCore;
 /// would be a row here and no edit anywhere else.</para>
 /// </summary>
 /// <param name="Verb">MOVE | ADD | SUBTRACT — the statement the programmer wrote, for the message.</param>
-/// <param name="Clause">The caller's own rule, e.g. "§14.9.2.3 SR6".</param>
+/// <param name="Clause">The caller's own rule, e.g. "§2023:14.9.2.3 SR6".</param>
 /// <param name="Admitted">The group kinds the rule's own text admits.</param>
 /// <param name="ExcludesLevel66">True when the rule's text names level-number 66 (the arithmetic spellings), so
 /// the diagnostic may quote it. MOVE's SR12 does not, and quoting it there was a miscitation.</param>
-/// <summary>⭐ ONE ROW PER OPEN TAPE PHRASE — the two alternatives of ISO §14.9.27.2's per-file-name
+/// <summary>⭐ ONE ROW PER OPEN TAPE PHRASE — the two alternatives of ISO §2023:14.9.27.2's per-file-name
 /// <c>[ REVERSED | WITH NO REWIND ]</c> bracket, each stating its own ORGANIZATION rule and its own OPEN MODE
 /// rule AS DATA, so <see cref="StatementValidation.CheckOpenTapePhrase"/> is a lookup rather than a chain of
 /// per-phrase methods. The two phrases' rules differ on BOTH axes — NO REWIND admits either sequential kind
-/// (§9.1.7.2) and INPUT or OUTPUT (§14.9.27.3 SR5/SR6), REVERSED admits record sequential only and INPUT only
+/// (§2023:9.1.7.2) and INPUT or OUTPUT (§2023:14.9.27.3 SR5/SR6), REVERSED admits record sequential only and INPUT only
 /// — which is exactly why a shared screen has to carry the difference as a row. A third tape phrase is a row
 /// here and no edit anywhere else (kb/Work PB668).</summary>
 /// <param name="Phrase">The phrase AS WRITTEN, for the message.</param>
@@ -47,22 +47,22 @@ internal readonly record struct OpenTapePhraseRule(
     string Phrase, Func<FileModel, bool> AdmitsOrganization, string OrganizationFace, string OrganizationClause,
     BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode)
 {
-    /// <summary>§14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§9.1.7.2 admits BOTH sequential
-    /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §14.9.6.3 SR1 tests) under
+    /// <summary>§2023:14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§2023:9.1.7.2 admits BOTH sequential
+    /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §2023:14.9.6.3 SR1 tests) under
     /// INPUT or OUTPUT.</summary>
     private static readonly OpenTapePhraseRule NoRewind = new(
-        "WITH NO REWIND", f => f.IsSequential, "sequential", "ISO §14.9.27.3 SR5",
-        [BoundOpenMode.Input, BoundOpenMode.Output], "ISO §14.9.27.3 SR6",
+        "WITH NO REWIND", f => f.IsSequential, "sequential", "ISO §2023:14.9.27.3 SR5",
+        [BoundOpenMode.Input, BoundOpenMode.Output], "ISO §2023:14.9.27.3 SR6",
         DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code);
 
     /// <summary>COBOL-85's REVERSED — NARROWER than its sibling on BOTH axes (VERSION_CHANGE_REFERENCE row
     /// 7.12): RECORD sequential organization only, because the phrase's whole effect is the backward retrieval
-    /// §14.9.30.4 GR21 c) defines over a record number and §14.9.30.3 SR7 denies to LINE SEQUENTIAL; and the
+    /// §2023:14.9.30.4 GR21 c) defines over a record number and §2023:14.9.30.3 SR7 denies to LINE SEQUENTIAL; and the
     /// INPUT group only, because the other three modes have no READ for a retrieval direction to govern.</summary>
     private static readonly OpenTapePhraseRule Reversed = new(
         "REVERSED", f => f.Organization is FileOrganization.Sequential, "record sequential",
-        "ISO §14.9.30.4 GR21 c) — REVERSED establishes the backward retrieval only a record sequential "
-        + "file's record number supports (§14.9.30.3 SR7 denies it to LINE SEQUENTIAL); "
+        "ISO §2023:14.9.30.4 GR21 c) — REVERSED establishes the backward retrieval only a record sequential "
+        + "file's record number supports (§2023:14.9.30.3 SR7 denies it to LINE SEQUENTIAL); "
         + "VERSION_CHANGE_REFERENCE row 7.12",
         [BoundOpenMode.Input], "VERSION_CHANGE_REFERENCE row 7.12 — COBOL-85's OPEN general format writes "
         + "REVERSED in the INPUT group only",
@@ -78,7 +78,7 @@ internal readonly record struct OpenTapePhraseRule(
         BoundOpenTapePhrase.NoRewind => NoRewind,
         BoundOpenTapePhrase.Reversed => Reversed,
         _ => throw new InvalidOperationException(
-            $"no syntax-rule row for the OPEN tape phrase {phrase} — a new alternative of §14.9.27.2's "
+            $"no syntax-rule row for the OPEN tape phrase {phrase} — a new alternative of §2023:14.9.27.2's "
             + "per-file-name bracket needs its organization rule and its open-mode rule here (kb/Work PB668)"),
     };
 }
@@ -86,25 +86,25 @@ internal readonly record struct OpenTapePhraseRule(
 internal readonly record struct CorrespondingOperandRule(
     string Verb, string Clause, GroupKinds Admitted, bool ExcludesLevel66)
 {
-    /// <summary>ISO §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall
-    /// not be reference-modified." Every group kind is a group data item, and NOTE 5 under §14.9.25.4 GR11 puts
+    /// <summary>ISO §2023:14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall
+    /// not be reference-modified." Every group kind is a group data item, and NOTE 5 under §2023:14.9.25.4 GR11 puts
     /// it beyond doubt for the two the other verbs exclude: "For purposes of MOVE CORRESPONDING, bit group items
     /// and national group items are processed as group items, rather than as elementary items."</summary>
     public static readonly CorrespondingOperandRule Move =
-        new("MOVE", "§14.9.25.3 SR12", GroupKinds.Any, ExcludesLevel66: false);
+        new("MOVE", "§2023:14.9.25.3 SR12", GroupKinds.Any, ExcludesLevel66: false);
 
-    /// <summary>ISO §14.9.2.3 SR6 — "Identifier-4 and identifier-5 shall be alphanumeric group items, national
+    /// <summary>ISO §2023:14.9.2.3 SR6 — "Identifier-4 and identifier-5 shall be alphanumeric group items, national
     /// group items, variable-length groups, or strongly-typed group items and shall not be described with
     /// level-number 66."</summary>
-    public static readonly CorrespondingOperandRule Add = new("ADD", "§14.9.2.3 SR6", ArithmeticKinds, true);
+    public static readonly CorrespondingOperandRule Add = new("ADD", "§2023:14.9.2.3 SR6", ArithmeticKinds, true);
 
-    /// <summary>ISO §14.9.44.3 SR6 — word for word ADD's SR6, with identifier-4 the subtrahend group.</summary>
+    /// <summary>ISO §2023:14.9.44.3 SR6 — word for word ADD's SR6, with identifier-4 the subtrahend group.</summary>
     public static readonly CorrespondingOperandRule Subtract =
-        new("SUBTRACT", "§14.9.44.3 SR6", ArithmeticKinds, true);
+        new("SUBTRACT", "§2023:14.9.44.3 SR6", ArithmeticKinds, true);
 
     /// <summary>SR6's four admitted kinds, written ONCE because the two rules are the same sentence: a bit group
-    /// is the one kind left out, and §14.7.6 rule 3 is why — "In an ADD or SUBTRACT statement, both of the data
-    /// items are numeric data items", which no child of a bit group (category boolean, §13.18.29.4 GR1) can be,
+    /// is the one kind left out, and §2023:14.7.6 rule 3 is why — "In an ADD or SUBTRACT statement, both of the data
+    /// items are numeric data items", which no child of a bit group (category boolean, §2023:13.18.29.4 GR1) can be,
     /// so every implied pair would silently fail to correspond.</summary>
     private const GroupKinds ArithmeticKinds =
         GroupKinds.Alphanumeric | GroupKinds.National | GroupKinds.VariableLength | GroupKinds.StronglyTyped;
@@ -124,7 +124,7 @@ internal sealed class StatementValidation(DataBinder data)
     // ── THE STATEMENT-OPERAND SCREENS THAT USED TO BE RUN-TIME LOUDS (kb/Work PB236) ─────────────────────────
     //    `BoundUnsupported` was the carrier for THREE incompatible jobs — a genuine feature DEFERRAL, an
     //    ill-formed OPERAND, and an illegal PLACEMENT — and StatementEmitter rendered all three as the same
-    //    `NotImplemented.Run(...)`. The two user-error jobs belong at COMPILE time, per ISO §4.2.2 ¶2 ("An
+    //    `NotImplemented.Run(...)`. The two user-error jobs belong at COMPILE time, per ISO §2023:4.2.2 ¶2 ("An
     //    implementation shall provide a warning mechanism that optionally may be invoked by the user at compile
     //    time to indicate violations of the general formats and the explicit syntax rules of standard COBOL"),
     //    and they belong HERE, in the one syntax-rule check catalog, not at each verb binder.
@@ -134,7 +134,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// own <c>FilesByName.TryGetValue</c> (now <c>VisibleFiles</c>) and its own unreported <c>BoundUnsupported</c>, so a word naming no
     /// file connector compiled clean at every edition and either aborted the run unit or, on an unexecuted
     /// path, said nothing at all. Each of those statements' general formats writes the operand as
-    /// <c>file-name-1</c>, and ISO §8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
+    /// <c>file-name-1</c>, and ISO §2023:8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
     /// shall contain a reference that uniquely identifies that resource." A word that identifies no file
     /// connector identifies no resource.
     /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOL1639),
@@ -145,12 +145,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="name">The file-name as written.</param>
     /// <param name="verb">The statement, for the message, e.g. "OPEN".</param>
     /// <param name="file">The resolved model when this returns true.</param>
-    /// <param name="admitsReportFile">True ONLY for the statements §13.4.5.3 SR9 lists — CLOSE, and OPEN (whose
+    /// <param name="admitsReportFile">True ONLY for the statements §2023:13.4.5.3 SR9 lists — CLOSE, and OPEN (whose
     /// INPUT / I-O half is <see cref="CheckOpenModeForFile"/>'s). Every other statement resolving a file-name is
     /// refused a report file by <see cref="ScreenReportFileReference"/>, so a new statement is screened by
     /// construction (kb/Work PB1171).</param>
     /// <param name="statementRule">The statement's own restatement of the report-file rule, quoted with its
-    /// citation, when it has one (SORT §14.9.40.3 SR8, MERGE §14.9.24.3 SR9).</param>
+    /// citation, when it has one (SORT §2023:14.9.40.3 SR8, MERGE §2023:14.9.24.3 SR9).</param>
     /// <returns>true when the name identifies a file connector the statement may reference; false after
     /// reporting.</returns>
     /// <remarks>⛔ IT TAKES THE PARSE NODE, NEVER A STRING (kb/Work PB2040). Two operand shapes reach it: the
@@ -176,12 +176,12 @@ internal sealed class StatementValidation(DataBinder data)
     }
 
     /// <summary>⛔ THE ONE FILE-NAME OPERAND SHAPE RULE (kb/Work PB2040). A file-name is a user-defined word that
-    /// names a file connector, and nothing more may be written in its place: ISO §8.4.2.2.2 prints the qualified
+    /// names a file connector, and nothing more may be written in its place: ISO §2023:8.4.2.2.2 prints the qualified
     /// formats of a data-name, a condition-name, an index-name, a paragraph-name, a screen-name, a record-key-name,
     /// LINAGE-COUNTER and the report counters, and a file-name appears in them only AS a qualifier (the
     /// <c>file-report-qualifier</c>) — it has no qualified format of its own, so <c>A OF B</c> in a file-name
-    /// position names no file. Subscripting (§8.4.2.3.1: "Subscripts are used when reference is made to an
-    /// individual element within a table of like elements") and reference modification (§8.4.3.3.1, "by specifying
+    /// position names no file. Subscripting (§2023:8.4.2.3.1: "Subscripts are used when reference is made to an
+    /// individual element within a table of like elements") and reference modification (§2023:8.4.3.3.1, "by specifying
     /// an identifier") are identifier decorations, and a special register is no user-defined word at all.
     /// <para>The production these positions share with a data-name is a superset parse, so this screen is where
     /// the narrower operand is refused BY NAME (COBOL2972), quoting the reference as written; the statement is
@@ -195,9 +195,9 @@ internal sealed class StatementValidation(DataBinder data)
         using var _ = data.Edition.At(operand);
         data.Edition.Error(DiagnosticCatalog.FileNameOperandShape,
             $"{verb} '{DataBinder.WrittenText(operand)}' — a file-name is a user-defined word naming a file "
-            + "connector, and is written alone: ISO §8.4.2.2.2 gives a file-name no qualified format (it "
-            + "appears there only as the file-report-qualifier of another name), and subscripting (§8.4.2.3.1) and "
-            + "reference modification (§8.4.3.3.1) decorate identifiers, not file-names. Write the file-name as its "
+            + "connector, and is written alone: ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it "
+            + "appears there only as the file-report-qualifier of another name), and subscripting (§2023:8.4.2.3.1) and "
+            + "reference modification (§2023:8.4.3.3.1) decorate identifiers, not file-names. Write the file-name as its "
             + "SELECT clause spells it.");
         return null;
     }
@@ -210,21 +210,21 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
             + "or file description entry in this source element gives that name, so the statement's reference "
-            + "identifies no resource (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
+            + "identifies no resource (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
             + "identifies that resource\"). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
         return false;
     }
 
-    /// <summary>⛔ THE ONE REPORT-FILE REFERENCE RULE (kb/Work PB1171) — ISO §13.4.5.3 SR9, stated a second time
-    /// from the REPORT clause's side as §13.18.46.3 SR3: "The subject of a file description entry that specifies a
+    /// <summary>⛔ THE ONE REPORT-FILE REFERENCE RULE (kb/Work PB1171) — ISO §2023:13.4.5.3 SR9, stated a second time
+    /// from the REPORT clause's side as §2023:13.18.46.3 SR3: "The subject of a file description entry that specifies a
     /// REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase of a
     /// PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase." It used to be
     /// asked by OPEN alone (COBOL2371, its INPUT / I-O half), so READ, START, DELETE, DELETE FILE, UNLOCK, a
     /// SORT / MERGE USING or GIVING file and WRITE of a report FD's record compiled clean and ran against the report
     /// writer's file. <see cref="ResolveFile"/> asks it for every statement that is not in the list; the statements
     /// whose operand is not a file-name ask it themselves (SORT/MERGE USING/GIVING through ResolveFile with their
-    /// own rule; WRITE §14.9.51.3 SR12 and REWRITE §14.9.35.3 SR11 on the file of the record they resolved — such a
-    /// record is already refused at its entry, §13.4.5.3 SR8 COBOL2578, and the statement's own rule is reported
+    /// own rule; WRITE §2023:14.9.51.3 SR12 and REWRITE §2023:14.9.35.3 SR11 on the file of the record they resolved — such a
+    /// record is already refused at its entry, §2023:13.4.5.3 SR8 COBOL2578, and the statement's own rule is reported
     /// as well, because every rule a statement violates is, kb/Work PB352).</summary>
     /// <returns>true when <paramref name="file"/> is not a report file; false after reporting.</returns>
     public bool ScreenReportFileReference(FileModel file, string verb, string? statementRule = null)
@@ -232,7 +232,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!file.IsReportFile) return true;
         data.Edition.Error(DiagnosticCatalog.ReportFileReference,
             $"{verb} '{file.CobolName}' — '{file.CobolName}' is a report file (its file description entry specifies "
-            + "a REPORT clause), and ISO §13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
+            + "a REPORT clause), and ISO §2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
             + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
             + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\""
             + (statementRule is null ? "" : $"; {statementRule}")
@@ -243,51 +243,51 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RULE (kb/Work PB390), reported for every statement
     /// whose general format prints that operand: PERFORM, GO TO (both formats), ALTER, RESUME AT and the
     /// SORT/MERGE INPUT/OUTPUT PROCEDURE phrases. The resolution itself is
-    /// <see cref="Procedure.ProcedureTableBuilder.ResolveProcedureOperand"/> — §8.4.2.2's in-section →
+    /// <see cref="Procedure.ProcedureTableBuilder.ResolveProcedureOperand"/> — §2023:8.4.2.2's in-section →
     /// global → section-name order, ONE implementation — and this is where its failure becomes a DIAGNOSTIC
     /// instead of a bound node.
     /// <para>⛔ THE STAGE WAS THE DEFECT. Eight sites each turned "this name resolves to nothing" into a
     /// <c>BoundUnsupported</c>, which the emitter renders as <c>NotImplemented.Run(...)</c>: a misspelled
     /// <c>PERFORM</c> COMPILED, shipped an assembly, and aborted the run unit with an unhandled .NET exception
     /// telling the user that WiseOwl COBOL had not implemented a feature — the diagnosis sent to the wrong party,
-    /// at the wrong time, and on an unexecuted path never sent at all. ISO §4.2.2 ¶2 puts violations of "the
+    /// at the wrong time, and on an unexecuted path never sent at all. ISO §2023:4.2.2 ¶2 puts violations of "the
     /// general formats and the explicit syntax rules" in the compile-time mechanism.</para>
     /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOL1639)
-    /// and no new code — "this source element defines no such name" is ONE rule (ISO §8.4.2.1), and the
+    /// and no new code — "this source element defines no such name" is ONE rule (ISO §2023:8.4.2.1), and the
     /// procedure-name space was simply missing from the place that already reports it for data-names and (since
     /// kb/Work PB236) for file-names. SORT's own private copy of this message folded into it here.</para>
-    /// <para>The scope half is quoted because it is the half a reader disbelieves: §8.4.6.1 lists paragraph-name
+    /// <para>The scope half is quoted because it is the half a reader disbelieves: §2023:8.4.6.1 lists paragraph-name
     /// and section-name among the words that "may be referenced only by statements in the source element in
     /// which the user-defined word is declared", which is why a CONTAINED program's paragraph, and a sibling
     /// METHOD's, are correctly not found — a method definition begins with an identification division
-    /// (§11.7.1), so it is a contained source unit (§3.165) and thus its own source element (§3.164).
-    /// ⛔ NOT §11.7 ALONE, which is where the deleted <c>OoScopeHint</c> pointed: that clause is the
-    /// METHOD-ID paragraph, and the only scoping rule it states (§11.7.4 GR5) is about words defined in the
+    /// (§2023:11.7.1), so it is a contained source unit (§2023:3.165) and thus its own source element (§2023:3.164).
+    /// ⛔ NOT §2023:11.7 ALONE, which is where the deleted <c>OoScopeHint</c> pointed: that clause is the
+    /// METHOD-ID paragraph, and the only scoping rule it states (§2023:11.7.4 GR5) is about words defined in the
     /// method's DATA DIVISION — a real clause answering a different question.</para></summary>
     /// <param name="refText">The procedure-name as written, for the message.</param>
     /// <param name="head">Its head word (the qualifier stripped), for the data-name discrimination.</param>
     /// <param name="verb">The statement or phrase, e.g. "PERFORM" or "SORT INPUT PROCEDURE".</param>
     /// <param name="rule">The caller's own syntax rule quoted with its citation, or "" where the statement
-    /// states none of its own (GO TO and ALTER rest on §8.4.2.1 alone).</param>
-    /// <param name="methodLocal">True inside a method body — resolution is confined there (ISO §11.7).</param>
+    /// states none of its own (GO TO and ALTER rest on §2023:8.4.2.1 alone).</param>
+    /// <param name="methodLocal">True inside a method body — resolution is confined there (ISO §2023:11.7).</param>
     /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
     public bool RejectProcedureName(string refText, string head, string verb, string rule, bool methodLocal)
     {
         bool isDataName = data.Symbols.TryResolve(head, data.ActiveScope, out _);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{verb} '{refText}' names no procedure: no paragraph or section in this source element carries "
-            + "that name, so the reference identifies no resource (ISO §8.4.2.1 — \"In order to use a resource, "
-            + "a statement shall contain a reference that uniquely identifies that resource\"; §8.4.6.1 — a "
+            + "that name, so the reference identifies no resource (ISO §2023:8.4.2.1 — \"In order to use a resource, "
+            + "a statement shall contain a reference that uniquely identifies that resource\"; §2023:8.4.6.1 — a "
             + "paragraph-name or section-name \"may be referenced only by statements in the source element in "
             + "which the user-defined word is declared\")"
             + (isDataName
                 ? $"; '{head}' is declared as a DATA ITEM, and a procedure-name is a different class of "
-                  + "user-defined word (§8.3.2.2)"
+                  + "user-defined word (§2023:8.3.2.2)"
                 : "")
             + (methodLocal
                 ? "; resolution inside a method is METHOD-LOCAL — a method definition begins with an "
-                  + "identification division (ISO §11.7.1) so it is a contained source unit (§3.165) and "
-                  + "therefore its own source element (§3.164: \"source unit excluding any contained source "
+                  + "identification division (ISO §2023:11.7.1) so it is a contained source unit (§2023:3.165) and "
+                  + "therefore its own source element (§2023:3.164: \"source unit excluding any contained source "
                   + "units\"), which is what the scope rule above is measured against — so the paragraphs of "
                   + "sibling methods and of the driver program are not visible here"
                 : "")
@@ -295,21 +295,21 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>⛔ THE OTHER HALF OF §8.4.2.1's "UNIQUELY identifies that resource" (kb/Work PB466): the
+    /// <summary>⛔ THE OTHER HALF OF §2023:8.4.2.1's "UNIQUELY identifies that resource" (kb/Work PB466): the
     /// reference names MORE than one procedure. <see cref="RejectProcedureName"/> above answers "no such name";
     /// this answers "which one?", and the two are separate diagnostics because a user sent to look for a
     /// missing paragraph will not find the second one they wrote.
     /// <para>Which rule broke decides which code and which repair the message can honestly offer.
-    /// §8.4.2.2.1 rule 1 — "No other name has the identical spelling" — false with no rule-2-through-6 excuse
-    /// means §8.4.2.2.3 SR1's "sequence of qualifiers that precludes any ambiguity of reference" was owed and
-    /// not written, which the user CAN supply (§8.4.2.2.2 format 4, <c>paragraph-name IN section-name</c>) —
-    /// unless the duplicated word is the section-name itself, which takes no qualifier at all. §8.4.2.2.3 SR7 —
+    /// §2023:8.4.2.2.1 rule 1 — "No other name has the identical spelling" — false with no rule-2-through-6 excuse
+    /// means §2023:8.4.2.2.3 SR1's "sequence of qualifiers that precludes any ambiguity of reference" was owed and
+    /// not written, which the user CAN supply (§2023:8.4.2.2.2 format 4, <c>paragraph-name IN section-name</c>) —
+    /// unless the duplicated word is the section-name itself, which takes no qualifier at all. §2023:8.4.2.2.3 SR7 —
     /// "If explicitly referenced, a paragraph-name shall not be duplicated within a section" — admits no
     /// qualifier by construction, so the only repair is a rename, and telling the user to qualify would be
     /// telling them to write something the standard has no format for.</para>
     /// <para>Reported at the REFERENCE, never at the declaration: both rules are conditioned on the name being
     /// "explicitly referenced", so a program that declares a duplicate and never mentions it is conforming and
-    /// shall compile (§4.2.2 — an implementation "shall accept the syntax … for all standard language elements
+    /// shall compile (§2023:4.2.2 — an implementation "shall accept the syntax … for all standard language elements
     /// required by" the standard).</para></summary>
     /// <param name="ambiguity">The rule that failed, the spelling, and every declaration carrying it.</param>
     /// <param name="verb">The statement or phrase, e.g. "PERFORM" or "SORT INPUT PROCEDURE".</param>
@@ -322,27 +322,27 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.ParagraphNameDuplicatedInSection,
                 $"{verb} '{ambiguity.Name}': that paragraph-name is declared {ambiguity.Candidates.Count} times "
                 + $"within section '{ambiguity.Section}' ({candidates}), "
-                + "and it is explicitly referenced here (ISO §8.4.2.2.3 SR7 — \"If explicitly referenced, a "
+                + "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
                 + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
-                + "two: §8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
+                + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
                 + "both declarations carry the same one — rename one of the paragraphs.");
             return false;
         }
         data.Edition.Error(DiagnosticCatalog.AmbiguousProcedureName,
             $"{verb} '{ambiguity.Name}': the reference is not unique — this source element declares that name "
             + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure (ISO "
-            + "§8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\"). "
-            + "§8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
+            + "§2023:8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\"). "
+            + "§2023:8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
             + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
             + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
             + "paragraph-name and the section containing the reference also contains the named paragraph\") "
             + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
-            + "§8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
+            + "§2023:8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
             + "qualifier at all and can only be renamed.");
         return false;
     }
 
-    /// <summary>⛔ ISO §14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
+    /// <summary>⛔ ISO §2023:14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
     /// procedure-name-2</c> range (kb/Work PB433): "When procedure-name-1 and procedure-name-2 are both
     /// specified and either is the name of a procedure in the declaratives portion of the procedure division,
     /// both shall be procedure-names in the same declarative section."
@@ -355,7 +355,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// one test — asked of the SECTION each end resolved from, never of pc arithmetic.</para>
     /// <para>The test is section IDENTITY, not name equality: <see cref="Procedure.SectionInfo"/> is the
     /// collected object, one per declarative section, so two sections that share a spelling (which
-    /// §8.4.2.2.1 would already have made an ambiguous reference) cannot pass by accident.</para>
+    /// §2023:8.4.2.2.1 would already have made an ambiguous reference) cannot pass by accident.</para>
     /// <para>⛔ CHECKED WHERE BOTH ENDS ARE STILL RESOLUTIONS. After <see cref="PcRange.Through"/> composes the
     /// range there is only a pc pair, and which section each end came from is gone — which is why the rule was
     /// implemented nowhere and why <see cref="Procedure.ResolvedProcedure"/> carries the section.</para>
@@ -381,7 +381,7 @@ internal sealed class StatementValidation(DataBinder data)
             + "straddles a boundary the standard does not admit — \"When procedure-name-1 and procedure-name-2 "
             + "are both specified and either is the name of a procedure in the declaratives portion of the "
             + "procedure division, both shall be procedure-names in the same declarative section\" (ISO "
-            + "§14.9.28.3 SR11). The range is a SEQUENCE of procedures (§14.9.28.4 GR4 — \"all statements "
+            + "§2023:14.9.28.3 SR11). The range is a SEQUENCE of procedures (§2023:14.9.28.4 GR4 — \"all statements "
             + "beginning with the first statement of procedure-name-1 and ending with the last statement of "
             + "procedure-name-2\"), and the procedures between the two ends here belong to a different USE "
             + "procedure, or to none. Perform the declarative range and the nondeclarative range separately, "
@@ -389,7 +389,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>⛔ ISO §14.9.49.3 SR3 and SR4 — the DECLARATIVES BOUNDARY on a procedure-name reference (kb/Work
+    /// <summary>⛔ ISO §2023:14.9.49.3 SR3 and SR4 — the DECLARATIVES BOUNDARY on a procedure-name reference (kb/Work
     /// PB362). A two-arm rule whose arms point in OPPOSITE directions, and each arm exempts a different verb:
     /// <list type="bullet">
     /// <item><b>SR3, OUT of a declarative</b> — "Within a declarative procedure, there shall be no reference to any
@@ -403,9 +403,9 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>Both are asked of SECTION IDENTITY (the collected <see cref="Procedure.SectionInfo"/> the reference is
     /// written in and the one the resolution carries), never of pc arithmetic — the PB433 shape.</para>
     /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3, "Declaratives reference boundary"): the standard asks of a
-    /// syntax-rule violation only §4.2.2's warning mechanism, so the SEVERITY is ours to choose, and the owner's
+    /// syntax-rule violation only §2023:4.2.2's warning mechanism, so the SEVERITY is ours to choose, and the owner's
     /// precedence (ISO, then GnuCOBOL) settles it: an SR4 violation is an ERROR — a GO TO, ALTER or SORT/MERGE
-    /// procedure phrase that enters a USE procedure from outside has no activating USE to return to (§14.9.49.4
+    /// procedure phrase that enters a USE procedure from outside has no activating USE to return to (§2023:14.9.49.4
     /// GR7), and GnuCOBOL refuses it ("invalid reference … in DECLARATIVES") — while an SR3 violation is a
     /// WARNING, as GnuCOBOL's is: a PERFORM of a nondeclarative paragraph from a USE procedure is executable as
     /// written and is common in production source, which IBM Enterprise COBOL and Micro Focus accept outright.</para>
@@ -431,7 +431,7 @@ internal sealed class StatementValidation(DataBinder data)
                     ? $"in a different declarative section, '{referencingSection!.Name}'"
                     : "in the nondeclarative portion of the procedure division")
                 + " — \"Procedure-names within a declarative section may be referenced in a different declarative "
-                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO §14.9.49.3 SR4). A USE "
+                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO §2023:14.9.49.3 SR4). A USE "
                 + "procedure is entered by its USE dispatch or performed; PERFORM it, or move the shared code out of "
                 + "the declaratives.");
             return false;
@@ -442,22 +442,22 @@ internal sealed class StatementValidation(DataBinder data)
                 $"{verb} '{name}': '{name}' is in the nondeclarative portion of the procedure division, and this "
                 + $"statement is in declarative section '{referencingSection!.Name}' — \"Within a declarative "
                 + "procedure, there shall be no reference to any nondeclarative procedures except in a RESUME "
-                + "statement\" (ISO §14.9.49.3 SR3)");
+                + "statement\" (ISO §2023:14.9.49.3 SR3)");
         return true;
     }
 
     /// <summary>One end of a procedure range, described the way SR11 divides them: the declarative section it
-    /// belongs to, or the nondeclarative portion (ISO §14.3).</summary>
+    /// belongs to, or the nondeclarative portion (ISO §2023:14.3).</summary>
     private static string Portion(ResolvedProcedure end, string name) =>
         end.Section is { IsDeclarative: true } s
             ? $"'{name}' is a procedure of declarative section '{s.Name}'"
             : $"'{name}' is in the nondeclarative portion of the procedure division";
 
-    /// <summary>⛔ ISO §14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
+    /// <summary>⛔ ISO §2023:14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
     /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE | FALSE</c> operand rule. COBOL has TWO kinds of
-    /// condition-name (§8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one
+    /// condition-name (§2023:8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one
     /// associated with the status of an EXTERNAL SWITCH (a SPECIAL-NAMES <c>ON STATUS IS</c> / <c>OFF STATUS
-    /// IS</c> name, §12.3.7). SR6 admits the first kind only — the second is set through Format 3,
+    /// IS</c> name, §2023:12.3.7). SR6 admits the first kind only — the second is set through Format 3,
     /// <c>SET mnemonic-name-1 TO ON|OFF</c>, whose SR5 requires an external switch "the status of which may be
     /// altered".
     /// <para>⛔ THE OLD MESSAGE DENIED THE FACT THE RULE TURNS ON. A switch-status name reached a
@@ -468,7 +468,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// the run unit.</para></summary>
     /// <param name="refText">The operand as written.</param>
     /// <param name="toTrue">Which phrase the group of <paramref name="refText"/> wrote: Format 4 prints
-    /// <c>TO { TRUE | FALSE }</c> (§14.9.39.2) and each group of a statement chooses its own, so the message
+    /// <c>TO { TRUE | FALSE }</c> (§2023:14.9.39.2) and each group of a statement chooses its own, so the message
     /// quotes the one this operand's group wrote and never the other (kb/Work PB1314).</param>
     /// <param name="switchName">The implementor's external-switch name when the operand IS a switch-status
     /// condition-name, else null.</param>
@@ -488,29 +488,29 @@ internal sealed class StatementValidation(DataBinder data)
                 or NonDataDeclarationKind.TypeName or NonDataDeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
-                + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name associated with "
+                + "identifies no resource (ISO §2023:8.4.2.1), and §2023:14.9.39.3 SR6 requires a condition-name associated with "
                 + "a conditional variable.");
         else if (switchName is not null)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{set} — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
-                + $"names the status of external switch {switchName} (ISO §12.3.7), and §8.4.4.1 distinguishes "
+                + $"names the status of external switch {switchName} (ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes "
                 + "that kind from the level-88 kind, which is the one associated with a conditional variable. "
-                + "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §14.9.39.3 SR6), "
+                + "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), "
                 + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
         else
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' is not a condition-name: no level-88 entry and no "
                 + "SPECIAL-NAMES switch-status name in this source element declares it, so the reference "
-                + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name "
+                + "identifies no resource (ISO §2023:8.4.2.1), and §2023:14.9.39.3 SR6 requires a condition-name "
                 + "associated with a conditional variable.");
         return false;
     }
 
     /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236), each
     /// asked as ITS OWN <see cref="CorrespondingOperandRule"/> row rather than as a shared approximation:
-    /// MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall not be
-    /// reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT §14.9.44.3 SR6 — "Identifier-4 and identifier-5
+    /// MOVE §2023:14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall not be
+    /// reference-modified" — and ADD §2023:14.9.2.3 SR6 / SUBTRACT §2023:14.9.44.3 SR6 — "Identifier-4 and identifier-5
     /// shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group
     /// items and shall not be described with level-number 66." The two spellings differ (only the arithmetic
     /// ones exclude level-66 and enumerate the admitted group kinds), so the message names the rule the CALLER
@@ -518,22 +518,22 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>⛔ THE ADMITTED KINDS ARE A SET, AND THE SCREEN ASKS THE SET (kb/Work PB392). This read
     /// <c>if (item.IsGroup) return true;</c> — a boolean where SR6 names FOUR of the five group kinds — so a
     /// <c>GROUP-USAGE BIT</c> group was admitted to ADD and SUBTRACT CORRESPONDING, and the statement then ran
-    /// as a SILENT NO-OP: §14.7.6 rule 3 requires both items of an implied pair to be numeric and every child of
+    /// as a SILENT NO-OP: §2023:14.7.6 rule 3 requires both items of an implied pair to be numeric and every child of
     /// a bit group is category boolean, which is precisely WHY SR6 leaves bit groups out. MEASURED at
     /// <c>--std 2023</c>: <c>SUBTRACT CORRESPONDING SRC FROM DST</c> over two <c>GROUP-USAGE BIT</c> groups
-    /// compiled, ran and changed nothing. MOVE's SR12 admits every group kind — NOTE 5 under §14.9.25.4 GR11
+    /// compiled, ran and changed nothing. MOVE's SR12 admits every group kind — NOTE 5 under §2023:14.9.25.4 GR11
     /// processes bit and national groups "as group items" for MOVE CORRESPONDING — so the fix is NOT a stricter
     /// screen for all three verbs but the rule's own set, per verb.</para>
     /// <para>⛔ AND THE LEVEL-66 ARM IS SR6'S, NOT SR12'S. Its message quoted "shall not be described with
     /// level-number 66" under whatever <c>clause</c> the caller passed, so a <c>MOVE CORRESPONDING</c> over a
-    /// RENAMES entry attributed to §14.9.25.3 SR12 eight words SR12 does not contain — a citation that passes
+    /// RENAMES entry attributed to §2023:14.9.25.3 SR12 eight words SR12 does not contain — a citation that passes
     /// <c>cite.py --check</c> on the arithmetic spelling and is false on the MOVE one. (Its replacement then
     /// claimed "a RENAMES entry is not a group data item" under SR12 — false for the THROUGH form, which GR2
     /// makes one; kb/Work PB966.)</para>
     /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON — AND ONLY WHERE THE RULE GIVES ONE (kb/Work PB966). The
     /// arithmetic SR6 excludes level 66 BY NAME, asked of <see cref="Place.DenotedItem"/> so the non-THROUGH
     /// alias (which resolves to data-name-2's place) cannot slip past it. MOVE's SR12 names no level number: a
-    /// THROUGH alias IS an alphanumeric group item (§13.18.45.4 GR2) and is admitted, and a non-THROUGH alias is
+    /// THROUGH alias IS an alphanumeric group item (§2023:13.18.45.4 GR2) and is admitted, and a non-THROUGH alias is
     /// judged by data-name-2's attributes (GR1).</para>
     /// <para>⛔ AND THE OPERAND IS A <see cref="Place"/>, NOT A <see cref="DataItem"/>, BECAUSE SR12's SECOND
     /// HALF IS ABOUT THE REFERENCE (kb/Work PB390). "…and shall not be reference-modified" cannot be asked of
@@ -544,7 +544,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// storage-shape message naming neither the rule nor reference modification; and once that factory started
     /// switching on <c>Place.Undecorated</c> (kb/Work PB393) the accident stopped catching it at all, so
     /// <c>MOVE CORRESPONDING G1(1:3) TO G2</c> silently moved the WHOLE group with the modifier discarded. The
-    /// arithmetic spellings need no separate rule for it: §8.4.3.3.4 GR6 makes the result of reference
+    /// arithmetic spellings need no separate rule for it: §2023:8.4.3.3.4 GR6 makes the result of reference
     /// modification an ELEMENTARY data item ("The unique data item is considered to be an elementary data item
     /// without the JUSTIFIED clause"), which is none of the four group kinds their SR6 admits.</para></summary>
     /// <param name="operand">The resolved operand, DECORATIONS INTACT.</param>
@@ -560,13 +560,13 @@ internal sealed class StatementValidation(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                     $"{rule.Verb} CORRESPONDING operand '{refText}' is reference-modified — the operands of a "
                     + "CORRESPONDING statement are group items, and reference modification yields an "
-                    + "elementary data item (ISO §8.4.3.3.4 GR6: \"The unique data item is considered to be an "
+                    + "elementary data item (ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an "
                     + $"elementary data item without the JUSTIFIED clause\"), so it is not one (ISO {rule.Clause}). "
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
                 return false;
             }
         // ⛔ "DESCRIBED WITH LEVEL-NUMBER 66" IS AN IDENTITY QUESTION, SO IT ASKS THE DENOTED ITEM (kb/Work PB966).
-        // The non-THROUGH alias resolves to data-name-2's own place (§13.18.45.4 GR1), whose Item is data-name-2 —
+        // The non-THROUGH alias resolves to data-name-2's own place (§2023:13.18.45.4 GR1), whose Item is data-name-2 —
         // asked of Item, `ADD CORRESPONDING ALIAS-OF-GROUP TO G` passed SR6's "shall not be described with
         // level-number 66" because the entry it asked about was the 05, not the 66. DenotedItem is the entry the
         // NAME denotes (Place.DenotesAs), for both RENAMES forms.
@@ -578,7 +578,7 @@ internal sealed class StatementValidation(DataBinder data)
             return false;
         }
         // ⛔ AND WHERE THE RULE DOES NOT NAME LEVEL 66, A LEVEL-66 ENTRY IS JUDGED BY WHAT IT IS (kb/Work PB966).
-        // MOVE's SR12 asks only for "group data items", and §13.18.45.4 GR2 — "When the THROUGH phrase is
+        // MOVE's SR12 asks only for "group data items", and §2023:13.18.45.4 GR2 — "When the THROUGH phrase is
         // specified, data-name-1 defines an alphanumeric group item that includes all elementary items" — makes a
         // THROUGH alias exactly that; GroupKindsOf answers Alphanumeric for it. What stood here refused EVERY
         // level-66 operand by name under SR12, which names no level number: legal source rejected. The
@@ -597,8 +597,8 @@ internal sealed class StatementValidation(DataBinder data)
     }
 
     /// <summary>⛔ THE ONE <c>record-name-1</c> OPERAND RULE, shared by the three statements whose general
-    /// format prints that operand: WRITE (ISO §14.9.51.3 SR5), REWRITE (§14.9.35.3 SR1) and RELEASE
-    /// (§14.9.32.3 SR1). All three say the same thing — the operand shall be "the name of a logical record" in
+    /// format prints that operand: WRITE (ISO §2023:14.9.51.3 SR5), REWRITE (§2023:14.9.35.3 SR1) and RELEASE
+    /// (§2023:14.9.32.3 SR1). All three say the same thing — the operand shall be "the name of a logical record" in
     /// a file description entry, and it "may be qualified". Returns the owning file, or false HAVING REPORTED;
     /// the shape is <see cref="ResolveFile"/>'s, so a fourth verb naming a record inherits the rule instead of
     /// re-deriving it.
@@ -614,10 +614,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// the EXPLANATION rather than the verdict: naming the record the operand is subordinate to is the one
     /// thing that tells the user what to write instead.</para>
     /// <para>⛔ AND record-name-1 IS NOT AN IDENTIFIER, so it is not reference-modifiable. A record-name is a
-    /// user-defined word (§8.3.2.2.25, "A record-name identifies a record described in a record description
-    /// entry"), and §5.2.4's operand table gives that operand type — "User-defined word, including
+    /// user-defined word (§2023:8.3.2.2.25, "A record-name identifies a record described in a record description
+    /// entry"), and §2023:5.2.4's operand table gives that operand type — "User-defined word, including
     /// qualification and subscripting if needed" — qualification and subscripting, and nothing else.
-    /// §8.4.3.3.3 SR5 permits reference modification only "anywhere an identifier referencing a data item of
+    /// §2023:8.4.3.3.3 SR5 permits reference modification only "anywhere an identifier referencing a data item of
     /// class alphanumeric, boolean, or national is permitted", and its NOTE spells the consequence out:
     /// "Because the references to data items are restricted to identifiers, where data-name-n is used in a
     /// general format or syntax rule, then reference-modification is not permitted." The printed RELEASE format
@@ -627,7 +627,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// released a 3-byte record into an 8-byte sort file.</para>
     /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.StatementOperandRule"/> (COBOL1757)
     /// and no new code: that descriptor's own contract is that "the CODE is the identity of the MECHANISM (a
-    /// bind-time operand refusal), the MESSAGE carries the rule", and this IS that mechanism. ISO §4.2.2 ¶2
+    /// bind-time operand refusal), the MESSAGE carries the rule", and this IS that mechanism. ISO §2023:4.2.2 ¶2
     /// puts the indication at compile time; before this, WRITE and REWRITE staged it to
     /// <c>BoundUnsupported</c>, so <c>WRITE WS-REC</c> got a COBOL1756 deferral WARNING — the compiler's own
     /// gap — for what is the source's error.</para></summary>
@@ -636,12 +636,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="verb">WRITE | REWRITE | RELEASE.</param>
     /// <param name="rule">The caller's own syntax rule, quoted verbatim with its citation.</param>
     /// <param name="containedRule">The caller's own rule for a record-name "defined in a containing program and
-    /// … referenced in a contained program" (WRITE §14.9.51.3 SR21, REWRITE §14.9.35.3 SR3), quoted verbatim.</param>
+    /// … referenced in a contained program" (WRITE §2023:14.9.51.3 SR21, REWRITE §2023:14.9.35.3 SR3), quoted verbatim.</param>
     /// <param name="file">The owning file when this returns true.</param>
     /// <returns>true when the reference IS a logical record of a file description entry visible here.</returns>
-    /// <remarks>⛔ A RECORD CAN BE VISIBLE WHEN ITS FILE IS NOT (kb/Work PB1193). §13.18.27.3 SR1 b) lets a
+    /// <remarks>⛔ A RECORD CAN BE VISIBLE WHEN ITS FILE IS NOT (kb/Work PB1193). §2023:13.18.27.3 SR1 b) lets a
     /// file-section level-1 entry carry its OWN GLOBAL clause, which makes the record-name a global name
-    /// (§13.18.27.4 GR1) under an FD that has none — so a contained program resolves the record, but the file stays
+    /// (§2023:13.18.27.4 GR1) under an FD that has none — so a contained program resolves the record, but the file stays
     /// the container's alone, and SR21 / SR3 are exactly the rule for that case ("the file description entry … shall
     /// contain a GLOBAL clause"). The record is found in <see cref="InheritedGlobals.ContainerLocalFiles"/> and refused BY
     /// THAT RULE; it used to fall to the "not a logical record of any file description entry" arm below, a false
@@ -655,8 +655,8 @@ internal sealed class StatementValidation(DataBinder data)
             {
                 data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                     $"{verb} '{refText}' — record-name-1 is a record-name, not an identifier, so it shall not "
-                    + "be reference-modified: ISO §5.2.4 gives a \"User-defined word, including qualification "
-                    + "and subscripting if needed\" those two decorations and no other, and §8.4.3.3.3 SR5 "
+                    + "be reference-modified: ISO §2023:5.2.4 gives a \"User-defined word, including qualification "
+                    + "and subscripting if needed\" those two decorations and no other, and §2023:8.4.3.3.3 SR5 "
                     + "permits reference modification only \"anywhere an identifier referencing a data item of "
                     + $"class alphanumeric, boolean, or national is permitted\". {rule}. Write the record-name "
                     + "alone; to send part of a record, use the FROM phrase or a MOVE.");
@@ -667,7 +667,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{verb} '{refText}' — '{refText}' is a logical record of '{hiddenFile.CobolName}', which a containing "
-                + "program describes without the GLOBAL clause; the record's own GLOBAL clause (ISO §13.18.27.3 SR1 b)) "
+                + "program describes without the GLOBAL clause; the record's own GLOBAL clause (ISO §2023:13.18.27.3 SR1 b)) "
                 + $"makes the record-name visible here, not the file. {containedRule}. Specify GLOBAL in the file "
                 + $"description entry of '{hiddenFile.CobolName}', or write the {verb} in the program that describes it.");
             return false;
@@ -685,7 +685,7 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>The file whose <see cref="FileModel.Records"/> contain this item — the IDENTITY test behind
     /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
-    /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §13.18.27.4 GR1 — the record-names
+    /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §2023:13.18.27.4 GR1 — the record-names
     /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
     /// this unit only through <c>DataBindState.VisibleFiles</c> (<see cref="InheritedGlobals.Files"/>), so a contained program's
     /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
@@ -699,7 +699,7 @@ internal sealed class StatementValidation(DataBinder data)
         return null;
     }
 
-    /// <summary>ISO §14.9.32.3 SR1's SECOND half — "…in a SORT-MERGE file description entry". The first half
+    /// <summary>ISO §2023:14.9.32.3 SR1's SECOND half — "…in a SORT-MERGE file description entry". The first half
     /// ("shall be the name of a logical record", and its no-reference-modification corollary) is
     /// <see cref="ResolveRecordName"/>'s, shared with WRITE and REWRITE; this is the part RELEASE alone has,
     /// and it is asked only of a reference that already IS a logical record — so <paramref name="file"/> is
@@ -712,29 +712,29 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RELEASE '{refText}' — record-name-1 shall be the name of a logical record in a sort-merge (SD) "
-            + $"file description entry (ISO §14.9.32.3 SR1); '{refText}' is a record of '{file.CobolName}', "
+            + $"file description entry (ISO §2023:14.9.32.3 SR1); '{refText}' is a record of '{file.CobolName}', "
             + "which is described by an FD");
         return false;
     }
 
-    /// <summary>ISO §14.9.34.3 SR1 — "File-name-1 shall be described by a sort-merge file description entry in
+    /// <summary>ISO §2023:14.9.34.3 SR1 — "File-name-1 shall be described by a sort-merge file description entry in
     /// the data division." The RETURN twin of <see cref="CheckReleaseRecord"/> (kb/Work PB236). The
     /// "not declared at all" case is NOT this rule and never reaches here: it is
-    /// <see cref="ResolveFile"/>'s §8.4.2.1 verdict, and conflating the two told a user whose file simply had
+    /// <see cref="ResolveFile"/>'s §2023:8.4.2.1 verdict, and conflating the two told a user whose file simply had
     /// an FD that the name was undefined.</summary>
     public bool CheckReturnFile(FileModel file)
     {
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RETURN '{file.CobolName}' — file-name-1 shall be described by a sort-merge (SD) file description "
-            + "entry in the data division (ISO §14.9.34.3 SR1); this file is described by an FD");
+            + "entry in the data division (ISO §2023:14.9.34.3 SR1); this file is described by an FD");
         return false;
     }
 
     /// <summary>A SORT/MERGE operand list the statement's GENERAL FORMAT does not print (kb/Work PB236) —
-    /// §14.9.24.2's MERGE format prints <c>USING file-name-2 {file-name-3}…</c> (two names minimum) and
-    /// requires one of <c>OUTPUT PROCEDURE</c> or <c>GIVING</c>; §14.9.40.3's table-sort rules fix what a key
-    /// may be. ISO §4.2.2 ¶2 puts violations of "the general formats and the explicit syntax rules" in the
+    /// §2023:14.9.24.2's MERGE format prints <c>USING file-name-2 {file-name-3}…</c> (two names minimum) and
+    /// requires one of <c>OUTPUT PROCEDURE</c> or <c>GIVING</c>; §2023:14.9.40.3's table-sort rules fix what a key
+    /// may be. ISO §2023:4.2.2 ¶2 puts violations of "the general formats and the explicit syntax rules" in the
     /// compile-time warning mechanism, and these used to be run-time louds.</summary>
     public bool RejectStatementOperand(string message)
     {
@@ -742,7 +742,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>⛔ THE ONE ENTRY for the <c>SEARCH ALL</c> Format-2 operand rules, ISO §14.9.37.3 SR7–SR13
+    /// <summary>⛔ THE ONE ENTRY for the <c>SEARCH ALL</c> Format-2 operand rules, ISO §2023:14.9.37.3 SR7–SR13
     /// (kb/Work PB445) — seven consecutive syntax rules that read the same two things and so were unenforced
     /// together. The rules themselves live in <see cref="SearchAllFormat2Rules"/> because they are predicates over
     /// a MODEL (the ordered OCCURS KEY phrase, and the WHEN decomposed into its Format-2 operands) rather than
@@ -753,24 +753,24 @@ internal sealed class StatementValidation(DataBinder data)
     /// '–'" — a fact the bound operand has already erased. The <see cref="ReferenceResolver"/> comes from the
     /// caller for the same reason (the raw subscript segments are its to read), and so does the
     /// <see cref="ConditionBinder"/>: SR9 and SR11 are rules about WHICH level-88 a WHEN operand names, which is
-    /// ISO §8.4.2.2 Format 2's question and is answered in exactly one place — <c>ConditionBinder.ConditionOf</c>
+    /// ISO §2023:8.4.2.2 Format 2's question and is answered in exactly one place — <c>ConditionBinder.ConditionOf</c>
     /// (kb/Work PB443; the screen used to answer it again, by base word, and disagree with the bind).</para></summary>
     public bool CheckSearchAllFormat2(Core.SearchAllStatementContext s, DataItem table, ReferenceResolver refs,
                                      ConditionBinder conditions) =>
         new SearchAllFormat2Rules(data, refs, this, conditions).Check(s, table);
 
-    /// <summary>⛔ THE ONE RESOLUTION AND SCREEN OF SEARCH's <c>identifier-1</c>, ISO §14.9.37.3 SR1–SR3 — the
+    /// <summary>⛔ THE ONE RESOLUTION AND SCREEN OF SEARCH's <c>identifier-1</c>, ISO §2023:14.9.37.3 SR1–SR3 — the
     /// three ALL-FORMATS rules, which are three predicates over the SAME thing: the reference as written
     /// (kb/Work PB443). Both formats call it, because both print the same operand.
     /// <para>⛔ THE RESOLUTION IS HALF THE FIX AND IT IS THE HALF THAT WAS A WRONG ANSWER. Both binder arms read
     /// <c>dref.cobolWord()</c> — the BASE WORD — and then took <c>candidates.FirstOrDefault(i =&gt; i.IsTable)</c>,
     /// so with two groups each declaring a table <c>E</c>, <c>SEARCH E IN G2</c> searched whichever <c>E</c> was
     /// declared FIRST and quietly produced the wrong answer on legal, unambiguous COBOL; swapping the two
-    /// declarations was the whole difference between right and wrong. §8.4.2.2 makes qualification the thing that
-    /// establishes uniqueness, and §14.9.37.4 GR1 ("The SEARCH statement automatically varies the first or only
+    /// declarations was the whole difference between right and wrong. §2023:8.4.2.2 makes qualification the thing that
+    /// establishes uniqueness, and §2023:14.9.37.4 GR1 ("The SEARCH statement automatically varies the first or only
     /// index associated with identifier-1") fixes the expected answer: for a qualified reference, identifier-1 is
     /// the QUALIFIED table. <see cref="ReferenceResolver.ResolveTableOperand"/> is that one resolution.</para>
-    /// <para>Staging: every verdict here is a COMPILE-TIME diagnostic (ISO §4.2.2 ¶2), never the
+    /// <para>Staging: every verdict here is a COMPILE-TIME diagnostic (ISO §2023:4.2.2 ¶2), never the
     /// <c>BoundUnsupported</c> run-time loud these used to be — which told the user WiseOwl COBOL had not implemented
     /// a feature, on a program that still compiled and shipped, and said nothing at all on an unexecuted path
     /// (kb/Work PB390's invariant; PB444 owns the SR4 arm). SR1, SR2's second sentence and SR3 report and let the
@@ -778,21 +778,21 @@ internal sealed class StatementValidation(DataBinder data)
     /// because without a table there is nothing left to bind.</para></summary>
     /// <param name="dref">identifier-1 as written.</param>
     /// <param name="verb">"SEARCH" or "SEARCH ALL", for the message.</param>
-    /// <param name="refs">The resolver whose §8.4.2.2 matcher settles the qualification.</param>
+    /// <param name="refs">The resolver whose §2023:8.4.2.2 matcher settles the qualification.</param>
     /// <returns>The table identifier-1 names with the subscripts it wrote, or null after reporting when the statement cannot bind.</returns>
     public ReferenceResolver.TableOperand? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
     {
         string written = dref.GetText();
         if (refs.ResolveTableOperand(dref) is not { } operand)
         {
-            // A name identifying no item is already reported (COBOL1639 — §8.4.2.1 "In order to use a
+            // A name identifying no item is already reported (COBOL1639 — §2023:8.4.2.1 "In order to use a
             // resource, a statement shall contain a reference that uniquely identifies that resource"). What is
             // left is a reference that identifies a resource with NO data description — a special register — and
             // the rule it violates is SR2's first sentence.
             if (!refs.WasDiagnosed(dref))
                 Identifier1(verb, written, "identifier-1 is a special register, which has no data description "
                     + "entry: \"the data description of identifier-1 shall contain an OCCURS clause with an "
-                    + "INDEXED phrase\" (ISO §14.9.37.3 SR2)");
+                    + "INDEXED phrase\" (ISO §2023:14.9.37.3 SR2)");
             return null;
         }
         var table = operand.Item;
@@ -803,14 +803,14 @@ internal sealed class StatementValidation(DataBinder data)
         if (!table.IsTable)
         {
             Identifier1(verb, written, $"'{table.CobolName}' is not a table — \"the data description of "
-                + "identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO §14.9.37.3 SR2)");
+                + "identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO §2023:14.9.37.3 SR2)");
             return null;
         }
         if (table.IndexNames.Count == 0)
         {
             Identifier1(verb, written, $"the OCCURS clause of '{table.CobolName}' has no INDEXED phrase — \"the "
                 + "data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO "
-                + "§14.9.37.3 SR2). The search varies the first index associated with identifier-1 (§14.9.37.4 "
+                + "§2023:14.9.37.3 SR2). The search varies the first index associated with identifier-1 (§2023:14.9.37.4 "
                 + "GR1), so a table with no index cannot be searched; add INDEXED BY to the OCCURS clause.");
             return null;
         }
@@ -818,16 +818,16 @@ internal sealed class StatementValidation(DataBinder data)
         // SR1 — the reference modifier. Not a shape this backend has not got round to: identifier-1 names a
         // TABLE, and a character slice of one is not a table.
         if (operand.IsReferenceModified)
-            Identifier1(verb, written, "\"Identifier-1 shall not be reference-modified\" (ISO §14.9.37.3 SR1)");
+            Identifier1(verb, written, "\"Identifier-1 shall not be reference-modified\" (ISO §2023:14.9.37.3 SR1)");
 
         // SR2's second sentence — the ONLY written-form rule the subscript count can decide, and it is an UPPER
-        // bound: a reference to a table item normally takes one subscript per OCCURS level (§8.4.2.3), SR2
+        // bound: a reference to a table item normally takes one subscript per OCCURS level (§2023:8.4.2.3), SR2
         // removes the SEARCHED level's, so more subscripts than identifier-1 has SUPERORDINATE tables means one
         // of them is at that level.
         //
         // ⛔ THERE IS NO LOWER BOUND, AND SR3 IS NOT ONE. "Identifier-1 may be contained within one or more other
         // tables, for which the subscripting is still required" reads like a demand on identifier-1's own written
-        // form, and §14.9.37.4 GR1 says in so many words that it is not: "The subscript that is used to determine
+        // form, and §2023:14.9.37.4 GR1 says in so many words that it is not: "The subscript that is used to determine
         // the occurrence of each superordinate table to search is specified by the user IN THE WHEN PHRASES.
         // Therefore, each appropriate subscript shall be set to the desired value before the SEARCH statement is
         // executed." The subscripting SR3 keeps required is required THERE — in the WHEN phrases, at run time —
@@ -853,8 +853,8 @@ internal sealed class StatementValidation(DataBinder data)
                 + (superordinate == 0 ? "no enclosing table"
                     : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
                 + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
-                + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
-                + "index (§14.9.37.4 GR1); "
+                + "(ISO §2023:14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
+                + "index (§2023:14.9.37.4 GR1); "
                 + (IdentifierOneMayWriteEnclosingSubscripts
                     ? "an enclosing table's occurrence may be written here or left to the WHEN phrases, which is where GR1 puts it."
                     : "an enclosing table's occurrence is left to the WHEN phrases, which is where GR1 puts it "
@@ -869,31 +869,31 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>⛔ A DYNAMIC-CAPACITY TABLE UNDER OTHER TABLES, SEARCHED WITH NO OCCURRENCE TO BOUND THE SCAN (kb/Work
     /// PB3365). The bound of a fixed table is its OCCURS integer and an occurs-depending table's is its data-name-1
-    /// (outside the table, §13.18.38.3 SR20): one value for every occurrence of the enclosing tables, which is why
-    /// §14.9.37.4 GR1 can leave those occurrences to the WHEN phrases. A dynamic-capacity table's bound is its CURRENT
-    /// CAPACITY (§8.5.1.9.1), and each occurrence of an enclosing table holds a capacity of its own, so the bound exists
+    /// (outside the table, §2023:13.18.38.3 SR20): one value for every occurrence of the enclosing tables, which is why
+    /// §2023:14.9.37.4 GR1 can leave those occurrences to the WHEN phrases. A dynamic-capacity table's bound is its CURRENT
+    /// CAPACITY (§2023:8.5.1.9.1), and each occurrence of an enclosing table holds a capacity of its own, so the bound exists
     /// only for the occurrence the statement names — in identifier-1 (SR2 permits the enclosing subscripts there) or,
     /// as GR1 says, "in the WHEN phrases". Reported when neither names one: no WHEN condition references an element of
     /// the table, so the search can neither bound itself nor test anything about the table it varies.</summary>
     public void SearchNestedDynamicWithoutOccurrence(string verb, string written, DataItem table) =>
         Identifier1(verb, written, $"'{table.CobolName}' is a dynamic-capacity table inside "
             + $"{table.SubscriptArity - 1} enclosing table{(table.SubscriptArity == 2 ? "" : "s")}, so the search is "
-            + "bounded by the current capacity of ONE occurrence's table (§8.5.1.9.1: \"The number of occurrences "
+            + "bounded by the current capacity of ONE occurrence's table (§2023:8.5.1.9.1: \"The number of occurrences "
             + "allocated at a particular time is referred to as the current capacity of the table\"), and neither "
             + "identifier-1 nor any WHEN phrase subscripts it: \"The subscript that is used to determine the "
             + "occurrence of each superordinate table to search is specified by the user in the WHEN phrases\" "
-            + "(ISO §14.9.37.4 GR1). "
+            + "(ISO §2023:14.9.37.4 GR1). "
             + (IdentifierOneMayWriteEnclosingSubscripts ? "Write the enclosing subscripts on identifier-1, or reference" : "Reference")
             + $" an element of '{table.CobolName}' in a WHEN phrase"
             + (IdentifierOneMayWriteEnclosingSubscripts ? "." : " (COBOL-2023 first lets identifier-1 write the enclosing subscripts)."));
 
     /// <summary>Whether the edition under compile lets identifier-1 of SEARCH carry its enclosing tables' subscripts
-    /// (ISO §14.9.37.3 SR2, a COBOL-2023 permission; kb/Work PB4609). The ONE reading is the construct row the parse arm of
+    /// (ISO §2023:14.9.37.3 SR2, a COBOL-2023 permission; kb/Work PB4609). The ONE reading is the construct row the parse arm of
     /// VersionConformancePass gates on, so the advice in the SR2 and PB3365 messages can never name an edge the gate does not.</summary>
     private bool IdentifierOneMayWriteEnclosingSubscripts =>
         ConstructRegistry.IsAvailable(data.Edition.Edition, Constructs.SearchIdentifier1EnclosingSubscript2023);
 
-    /// <summary>The identifier-1 sink (ISO §14.9.37.3 SR1–SR3) — one code for one operand position, the same way
+    /// <summary>The identifier-1 sink (ISO §2023:14.9.37.3 SR1–SR3) — one code for one operand position, the same way
     /// COBOL1964–1966 group SR7–SR13 by the operand each is about.</summary>
     private bool Identifier1(string verb, string written, string message)
     {
@@ -901,12 +901,12 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>ISO §14.9.37.3 SR4, an ALL-FORMATS rule — "If the END-SEARCH phrase is specified, the NEXT SENTENCE
+    /// <summary>ISO §2023:14.9.37.3 SR4, an ALL-FORMATS rule — "If the END-SEARCH phrase is specified, the NEXT SENTENCE
     /// phrase shall not be specified" (kb/Work PB444). Both formats call it with their WHEN arms, so the two cannot
     /// disagree. "The NEXT SENTENCE phrase" is the WHEN phrase's own brace alternative — an arm that IS NEXT
     /// SENTENCE (<see cref="StatementBinder.IsNextSentenceArm"/>, the ONE reading of that alternative); a NEXT
     /// SENTENCE inside an IF nested in a WHEN arm is the IF's phrase, not this statement's. Reported and the bind
-    /// continues (§4.2.2 ¶2 — the compile has failed, and one compile reports every violation it can see).</summary>
+    /// continues (§2023:4.2.2 ¶2 — the compile has failed, and one compile reports every violation it can see).</summary>
     /// <param name="verb">"SEARCH" or "SEARCH ALL", for the message.</param>
     /// <param name="endSearch">The END-SEARCH phrase, or null.</param>
     /// <param name="whenArms">The WHEN phrases' bodies, in source order.</param>
@@ -916,21 +916,21 @@ internal sealed class StatementValidation(DataBinder data)
         if (endSearch is null || !whenArms.Any(StatementBinder.IsNextSentenceArm)) return true;
         data.Edition.Error(DiagnosticCatalog.SearchEndSearchNextSentence,
             $"{verb}: the END-SEARCH phrase is specified and a WHEN phrase's body is NEXT SENTENCE — \"If the "
-            + "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §14.9.37.3 "
+            + "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 "
             + "SR4). Write CONTINUE in that WHEN phrase, or remove END-SEARCH and end the sentence with a period.");
         return false;
     }
 
-    // ── INSPECT (ISO §14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
+    // ── INSPECT (ISO §2023:14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
 
     /// <summary>SR5 — a TALLYING counter shall be an elementary numeric data item.</summary>
     public bool CheckInspectTallyCounter(Place counter)
     {
-        // "An elementary numeric data item" is §8.5.2.1 Table 2's class NUMERIC — a USAGE INDEX item is class INDEX, and
+        // "An elementary numeric data item" is §2023:8.5.2.1 Table 2's class NUMERIC — a USAGE INDEX item is class INDEX, and
         // its storage PicInfo (category Numeric, Digits 0) must not pass for it (kb/Work PB1127, the R27/PB640 trap).
         if (counter.Item.Pic is { Category: PicCategory.Numeric, Usage: not Usage.Index }) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
-            + "be an elementary numeric data item (ISO §14.9.22.3 SR5)");
+            + "be an elementary numeric data item (ISO §2023:14.9.22.3 SR5)");
         return false;
     }
 
@@ -940,11 +940,11 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (rep is not BoundStringLiteral { Value.Length: not 1 } bad) return true;
         data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
-            + "character literal — literal-3 shall be one character in length (ISO §14.9.22.3 SR7)");
+            + "character literal — literal-3 shall be one character in length (ISO §2023:14.9.22.3 SR7)");
         return false;
     }
 
-    /// <summary>⛔ ONE SIZE RULE FOR BOTH INSPECT LITERAL PAIRS (kb/Work PB3233). ISO §14.9.22.3 SR6 ("When both
+    /// <summary>⛔ ONE SIZE RULE FOR BOTH INSPECT LITERAL PAIRS (kb/Work PB3233). ISO §2023:14.9.22.3 SR6 ("When both
     /// literal-1 and literal-3 are specified, they shall be the same size except when literal-3 is a figurative
     /// constant") and SR9 ("When both literal-4 and literal-5 are specified they shall be the same size except when
     /// literal-5 is a figurative constant") are one rule over two pairs, so both pairs are asked here. Each operand
@@ -964,12 +964,12 @@ internal sealed class StatementValidation(DataBinder data)
             : ("SR6", "REPLACING", ("literal-1", "literal-3"));
         data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
             + $"and {names.Item2} {InspectLiteralImage(replacement, replacementSize)} differ in size "
-            + $"(ISO §14.9.22.3 {rule} — the same size unless {names.Item2} is a figurative constant)");
+            + $"(ISO §2023:14.9.22.3 {rule} — the same size unless {names.Item2} is a figurative constant)");
         return false;
     }
 
     /// <summary>The statically known size of an INSPECT literal operand, for SR6 / SR9: a figurative constant is ONE
-    /// character (ISO §14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
+    /// character (ISO §2023:14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
     /// implicit one character data item"), a nonnumeric literal its character count; null for an identifier, a
     /// function-identifier or an operand already refused, none of which is a literal.</summary>
     private static int? InspectLiteralSize((BoundOperand Op, bool Figurative) operand) =>
@@ -983,7 +983,7 @@ internal sealed class StatementValidation(DataBinder data)
             ? $"'{literal.Value}' ({size} character{(size == 1 ? "" : "s")})"
             : "(a figurative constant, an implicit one-character item by SR3)";
 
-    /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §14.9.22.3 SR1 and SR2 end in
+    /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §2023:14.9.22.3 SR1 and SR2 end in
     /// the same words — "an elementary item described implicitly or explicitly as usage display or national" — and
     /// SR2 used to be read as its DISPLAY half only, so a national identifier operand was refused while the
     /// diagnostic quoted the rule that admits it. Both rules read this predicate; the usage half is the ONE
@@ -993,7 +993,7 @@ internal sealed class StatementValidation(DataBinder data)
     internal static bool IsInspectElementaryCharacterItem(DataItem item) =>
         !ItemCategory.IsGroupItem(item) && ItemCategory.IsDisplayOrNationalUsage(item);
 
-    /// <summary>ISO §14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
+    /// <summary>ISO §2023:14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
     /// an elementary item described implicitly or explicitly as usage display or national": the group kinds by
     /// the ONE group classifier (a bit, strongly-typed or variable-length group is none of the two named), the
     /// elementary arm shared with SR2.</summary>
@@ -1007,40 +1007,40 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (IsInspectElementaryCharacterItem(p.Item)) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' shall reference an elementary item "
-            + "described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR2)");
+            + "described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR2)");
         return false;
     }
 
     /// <summary>SR2's function-identifier half (kb/Work PB3665): identifier-3 … identifier-n "shall reference an
     /// elementary item described implicitly or explicitly as usage display or national", and a function-identifier is
-    /// described by its §15.2 type, so a numeric, integer, index or boolean function (the folded FUNCTION LENGTH
+    /// described by its §2023:15.2 type, so a numeric, integer, index or boolean function (the folded FUNCTION LENGTH
     /// included) is refused beside the data item that is not display or national, through the ONE function
     /// reader (<see cref="IntrinsicArgumentRules.FunctionIsNotDisplayOrNational"/>) STRING SR1 asks.</summary>
     public bool CheckInspectFunctionUsage(BoundOperand function, string refText)
     {
         if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
-            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR2)");
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR2)");
         return false;
     }
 
     /// <summary>SR1's function-identifier half (kb/Work PB3665): identifier-1 "shall reference either an alphanumeric or
     /// national group item or an elementary item described implicitly or explicitly as usage display or national", and
-    /// a Format 1 (TALLYING only) function-identifier is described by its §15.2 type, so the numeric, integer, index
+    /// a Format 1 (TALLYING only) function-identifier is described by its §2023:15.2 type, so the numeric, integer, index
     /// and boolean ones are refused through the SAME reader as <see cref="CheckInspectFunctionUsage"/> (SR2).</summary>
     public bool CheckInspectIdentifier1FunctionUsage(BoundOperand function, string refText)
     {
         if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
         data.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"INSPECT identifier-1 '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
-            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR1)");
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)");
         return false;
     }
 
-    // ── The … INTO phrase's OWN syntax rules (READ §14.9.30.3 · RETURN §14.9.34.3) ───────────────────────────
+    // ── The … INTO phrase's OWN syntax rules (READ §2023:14.9.30.3 · RETURN §2023:14.9.34.3) ───────────────────────────
 
     /// <summary>
-    /// ⛔ <b>THE ONE ADMISSIBILITY SCREEN FOR AN <c>… INTO</c> RECEIVER</b> — READ (ISO §14.9.30.3 SR1 and SR2)
-    /// and RETURN (§14.9.34.3 SR2 and SR3), four syntax rules over two verbs, reached from the ONE place all
+    /// ⛔ <b>THE ONE ADMISSIBILITY SCREEN FOR AN <c>… INTO</c> RECEIVER</b> — READ (ISO §2023:14.9.30.3 SR1 and SR2)
+    /// and RETURN (§2023:14.9.34.3 SR2 and SR3), four syntax rules over two verbs, reached from the ONE place all
     /// three INTO arms funnel through (<c>MoveBinder.BindIntoPhrase</c>), so the next INTO-bearing verb inherits
     /// the rule by construction rather than by an edit.
     ///
@@ -1051,13 +1051,13 @@ internal sealed class StatementValidation(DataBinder data)
     /// Both rules' wording, and the one place they differ, ride <see cref="IntoPhraseRules"/>.</para>
     ///
     /// <para><b>Why arm b) is worded over ALL the record-names.</b> Several record descriptions share ONE record
-    /// area (§13.4.2), and the phrase moves <i>the record area</i> (§14.9.30.4 GR4 b). Which description the area
+    /// area (§2023:13.4.2), and the phrase moves <i>the record area</i> (§2023:14.9.30.4 GR4 b). Which description the area
     /// currently holds is a run-time fact, so the only way the move's category can be known at compile time is
     /// for every description — and the receiver — to be a shape a group move copies without conversion.</para>
     ///
-    /// <para><b>What this screen deliberately does NOT check.</b> The second sentence of §14.9.30.3 SR2 /
-    /// §14.9.34.3 SR3 (<i>"shall be a strongly-typed group item of the same type as identifier-1"</i>) is the same
-    /// predicate over the same pair that §14.9.25.3 SR2 already applies to this move's SENDER — which IS the
+    /// <para><b>What this screen deliberately does NOT check.</b> The second sentence of §2023:14.9.30.3 SR2 /
+    /// §2023:14.9.34.3 SR3 (<i>"shall be a strongly-typed group item of the same type as identifier-1"</i>) is the same
+    /// predicate over the same pair that §2023:14.9.25.3 SR2 already applies to this move's SENDER — which IS the
     /// record area — and <c>MoveTable16.Validity</c> refuses it under SR2 and <c>MoveBinder</c> reports it as COBOL1533, naming the phrase. A second
     /// copy here is one rule in two places, this repository's most reproducible defect. The COUNT obligation is
     /// checked here because nothing else can express it: with several record areas the MOVE screen inspects only
@@ -1069,7 +1069,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// shapes that make the 2023 wording NARROWER than its '85 ancestor — <i>alphanumeric</i> group item rather
     /// than any group item, and category <i>national</i> — cannot be DECLARED below the edition that introduced
     /// them (TYPEDEF/TYPE and USAGE NATIONAL are COBOL-2002, DYNAMIC LENGTH is COBOL-2014), so one predicate is
-    /// per-edition-correct by construction rather than by a gate that could drift. §13.4.5.3 SR3's record-less FD
+    /// per-edition-correct by construction rather than by a gate that could drift. §2023:13.4.5.3 SR3's record-less FD
     /// is likewise unobservable: the binder materializes the implied record area (FILES design D18), so arm a)
     /// answers the same at every edition.</para>
     /// </summary>
@@ -1085,18 +1085,18 @@ internal sealed class StatementValidation(DataBinder data)
         // record area" (count ≤ 1); RETURN's read "only one" and "exactly one" (count = 1).
         bool admittedByCount = rules.AdmitsRecordCount(count);
 
-        // ── §14.9.30.3 SR2 / §14.9.34.3 SR3, the COUNT obligation. A strongly-typed identifier-1 is unreachable
+        // ── §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3, the COUNT obligation. A strongly-typed identifier-1 is unreachable
         //    below COBOL-2002 (the TYPE clause's edition), so this arm needs no gate of its own.
         //    The receiver's PLACE KIND is deliberately not filtered the way arm b) filters it below: a
-        //    reference-modified or RENAMES view of a strongly-typed group — which §8.4.3.3.4 GR6 would make an
+        //    reference-modified or RENAMES view of a strongly-typed group — which §2023:8.4.3.3.4 GR6 would make an
         //    elementary alphanumeric item, outside this rule's reach — cannot BE written. Measured, not assumed:
-        //    `READ f INTO WS-STRONG(1:4)` draws COBOL1647 (§8.4.3.3.3 SR1, reference modification of a
-        //    strongly-typed group item) and a RENAMES over one draws COBOL1532 (§13.18.57.3 SR4), both before
+        //    `READ f INTO WS-STRONG(1:4)` draws COBOL1647 (§2023:8.4.3.3.3 SR1, reference modification of a
+        //    strongly-typed group item) and a RENAMES over one draws COBOL1532 (§2023:13.18.57.3 SR4), both before
         //    this screen runs. A guard for a shape nothing can reach is a guard nothing can contradict. ──
         if (StrongTypeModel.IsStrongGroup(receiver.Item))
         {
             // ⛔ THE ADMISSIBILITY RULE IS NOT ALSO REPORTED FOR A STRONG RECEIVER, and that is a derivation, not
-            // a preference: §13.18.29.4 GR3 excludes a strongly-typed group from the alphanumeric group items, so
+            // a preference: §2023:13.18.29.4 GR3 excludes a strongly-typed group from the alphanumeric group items, so
             // arm b) can NEVER admit one, leaving arm a) — which is the condition just tested. For this receiver
             // the two rules say the same thing and SR2/SR3 is the one that names the reason; emitting both is
             // emitting one fact twice.
@@ -1108,7 +1108,7 @@ internal sealed class StatementValidation(DataBinder data)
             return false;
         }
 
-        // ── §14.9.30.3 SR1 / §14.9.34.3 SR2, arm a) then arm b). ──
+        // ── §2023:14.9.30.3 SR1 / §2023:14.9.34.3 SR2, arm a) then arm b). ──
         if (admittedByCount) return true;
         // BOTH halves of arm b), and the FIRST offender of each is kept so the message names WHICH item failed
         // rather than restating the rule. identifier-1 is reported in preference to a record: it is the operand
@@ -1130,9 +1130,9 @@ internal sealed class StatementValidation(DataBinder data)
     }
 
     /// <summary>Arm b) applied to identifier-1. A REFERENCE-MODIFIED or level-66 RENAMES receiver is admitted
-    /// WITHOUT reading the item behind it: §8.4.3.3.4 GR6 makes the unique data item a ref-mod identifies "an
+    /// WITHOUT reading the item behind it: §2023:8.4.3.3.4 GR6 makes the unique data item a ref-mod identifies "an
     /// elementary item of class and category alphanumeric" whatever identifier-1 is described as, and a level-66
-    /// THROUGH alias is "an alphanumeric group item" by §13.18.45.4 GR2 — the FIRST alternative arm b) admits,
+    /// THROUGH alias is "an alphanumeric group item" by §2023:13.18.45.4 GR2 — the FIRST alternative arm b) admits,
     /// not the elementary one — so asking the underlying entry's category would reject a legal
     /// <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. Both places are admitted, by two
     /// different clauses; the alias is a group item, NOT a composed elementary view (kb/Work PB430). The same
@@ -1142,7 +1142,7 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>Arm b) applied to ONE record-name — "an alphanumeric group item or an elementary item of category
     /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:
-    /// its group arm IS §13.18.29.4 GR3's alphanumeric group item and its national arm covers both the elementary
+    /// its group arm IS §2023:13.18.29.4 GR3's alphanumeric group item and its national arm covers both the elementary
     /// national item and the GR2 b) national group. Never a second category walk.</summary>
     private static bool AdmitsIntoRecord(DataItem item) => ItemCategory.IsAlphanumericOrNational(item);
 
@@ -1155,33 +1155,33 @@ internal sealed class StatementValidation(DataBinder data)
     private static string EntryFace(FileModel file, IntoPhraseRules rules, int count) =>
         $"this {rules.EntryFace} for '{file.CobolName}' has {count}";
 
-    // ── Arithmetic composite of operands (ISO §14.7.7 rule 2) — lifted at 10e ──────────────────────────────────
+    // ── Arithmetic composite of operands (ISO §2023:14.7.7 rule 2) — lifted at 10e ──────────────────────────────────
 
-    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7.7 rule 2, NATIVE arithmetic, the four
-    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §8.8.1.2 r7): the hypothetical item
+    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 rule 2, NATIVE arithmetic, the four
+    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
     /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
     {
-        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
+        if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
             maxInt = Math.Max(maxInt, digits - scale);   // a negative (P-scaled) scale ADDS integer positions
             maxFrac = Math.Max(maxFrac, Math.Max(0, scale));
         }
-        // ISO §14.7.7 rule 2b: a data item of usage binary-char/-short/-long/-double is EXCLUDED from the composite
+        // ISO §2023:14.7.7 rule 2b: a data item of usage binary-char/-short/-long/-double is EXCLUDED from the composite
         // (the composite is then over the OTHER operands, still capped at 31) — like a floating-point operand. Those
         // four picture-less usages carry Category Numeric + IsFloat false, so without this guard they were wrongly
         // superimposed (BINARY-DOUBLE contributes up to 20 integer digits) and pushed a conforming program past 31
         // (COBOL0805). COMP-5 is NOT in rule 2b's list and stays counted; float usages are already IsFloat. (CA6.)
         // Category NUMERIC-EDITED is IN the composite (kb/Work PB155): a MULTIPLY/DIVIDE GIVING resultant is a
-        // composite member (§14.9.26.3 SR4 counts ALL operands; §14.9.12.3 SR4 excludes only REMAINDER) and
-        // §14.9.26.3/§14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
+        // composite member (§2023:14.9.26.3 SR4 counts ALL operands; §2023:14.9.12.3 SR4 excludes only REMAINDER) and
+        // §2023:14.9.26.3/§2023:14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
         // A floating-point-FORM edited mask (IsFloatEdited) is excluded as a DOCUMENTED READING, not rule 2b's
         // text (its list names usages and float literals, never an edited form): the composite is a
-        // superimposition "aligned on their decimal points" (§14.7.7 r2's own definition) and an E-form mask
+        // superimposition "aligned on their decimal points" (§2023:14.7.7 r2's own definition) and an E-form mask
         // has no fixed decimal point to align — the same property that puts every listed exclusion outside
         // the superimposition. Its DigitPositions is 0 anyway, so inclusion would contribute nothing.
         static bool InComposite(PicInfo p) =>
@@ -1195,7 +1195,7 @@ internal sealed class StatementValidation(DataBinder data)
                     var (d, s) = data.StoredShapeOf(p);   // the ONE fixed-point geometry (edited: mask-derived)
                     Shape(d, s);
                     break;
-                // §14.7.7 rule 2a/2b: a FLOATING-POINT literal is excluded from the composite — counting the
+                // §2023:14.7.7 rule 2a/2b: a FLOATING-POINT literal is excluded from the composite — counting the
                 // E-form's characters here rejected legal `ADD 1.5E+3 TO <PIC 9(28)>` (kb/Work PB155).
                 case BoundNumLiteral lit when !WiseOwl.Cobol.Common.NumericLiteral.IsFloatingPointForm(lit.Text):
                     string t = lit.Text.TrimStart('+', '-');
@@ -1212,7 +1212,7 @@ internal sealed class StatementValidation(DataBinder data)
                 Shape(rd, rs);
             }
 
-        // The cap is 31 at EVERY edition (ISO §14.7.7 rule 2 a) — the 2023 text). A COBOL-85-specific tightening to
+        // The cap is 31 at EVERY edition (ISO §2023:14.7.7 rule 2 a) — the 2023 text). A COBOL-85-specific tightening to
         // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
         // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
         // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
@@ -1220,40 +1220,40 @@ internal sealed class StatementValidation(DataBinder data)
         if (composite <= 31) return true;
         data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
-            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7.7 rule 2 a))");
+            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))");
         return false;
     }
 
-    // ── INITIALIZE (ISO §14.9.20.3) — lifted at 10e ──────────────────────────────────────────────────────────
+    // ── INITIALIZE (ISO §2023:14.9.20.3) — lifted at 10e ──────────────────────────────────────────────────────────
 
-    /// <summary>§14.9.20.3 SR6 ("the same category shall not be repeated in a REPLACING phrase") AND §5.2.6.4
+    /// <summary>§2023:14.9.20.3 SR6 ("the same category shall not be repeated in a REPLACING phrase") AND §2023:5.2.6.4
     /// ("any single alternative shall be specified only once") — ONE check, because a category-name is a SET of
-    /// category words and the two rules are the same ban at two scopes: SR6 across the phrase's items, §5.2.6.4
+    /// category words and the two rules are the same ban at two scopes: SR6 across the phrase's items, §2023:5.2.6.4
     /// within one item's category-name. <paramref name="namedSoFar"/> is the caller's running union.</summary>
     public bool CheckInitializeCategoryUnique(InitializeCategorySet namedSoFar, InitializeCategory cat)
     {
         if (!namedSoFar.Contains(cat)) return true;
         data.Edition.Error(DiagnosticCatalog.InitializeCategoryRepeated,
             $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
-            + "(ISO §14.9.20.3 SR6 — each category at most once in the phrase; §5.2.6.4 — each alternative at "
+            + "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
             + "most once within one category-name)");
         return false;
     }
 
-    /// <summary>ISO §14.9.20.2 + §5.2.6.3 — the VALUE phrase's <c>{ ALL | category-name }</c> is a BRACE, and
+    /// <summary>ISO §2023:14.9.20.2 + §2023:5.2.6.3 — the VALUE phrase's <c>{ ALL | category-name }</c> is a BRACE, and
     /// "one of the alternatives contained within the braces shall be explicitly specified or is implicitly
     /// selected": neither is implicitly selected here, so a bare <c>TO VALUE</c> is not conforming source. It was
-    /// accepted (and read as ALL) on the strength of a §14.9.20.2 "note 2" the clause does not carry — kb/Work
+    /// accepted (and read as ALL) on the strength of a §2023:14.9.20.2 "note 2" the clause does not carry — kb/Work
     /// PB415. The binder recovers as ALL after this diagnostic, so one statement yields one message.</summary>
     public void CheckInitializeValueChoicePresent() =>
         data.Edition.Error(DiagnosticCatalog.InitializeValueChoiceMissing,
-            "INITIALIZE TO VALUE requires ALL or a category-name before VALUE (ISO §14.9.20.2 — the braced "
-            + "choice is mandatory, §5.2.6.3)");
+            "INITIALIZE TO VALUE requires ALL or a category-name before VALUE (ISO §2023:14.9.20.2 — the braced "
+            + "choice is mandatory, §2023:5.2.6.3)");
 
-    /// <summary>ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or
+    /// <summary>ISO §2023:14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or
     /// PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be
-    /// specified". literal-1 is what the rule excludes, because §14.9.20.4 GR4 makes the implicit statement a SET
-    /// for exactly those five categories and no SET format (§14.9.39) admits a literal sending operand.</summary>
+    /// specified". literal-1 is what the rule excludes, because §2023:14.9.20.4 GR4 makes the implicit statement a SET
+    /// for exactly those five categories and no SET format (§2023:14.9.39) admits a literal sending operand.</summary>
     public void CheckInitializeReplacingSetCategoryIdentifier(InitializeCategorySet cats, string literalText)
     {
         foreach (var cat in InitializeCategories.All)
@@ -1261,16 +1261,16 @@ internal sealed class StatementValidation(DataBinder data)
             {
                 data.Edition.Error(DiagnosticCatalog.InitializeReplacingPointerNeedsIdentifier,
                     $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY the literal {literalText}: "
-                    + "identifier-2 shall be specified (ISO §14.9.20.3 SR3 — the implicit statement for this "
-                    + "category is a SET, §14.9.20.4 GR4, and no SET format admits a literal sending operand)");
+                    + "identifier-2 shall be specified (ISO §2023:14.9.20.3 SR3 — the implicit statement for this "
+                    + "category is a SET, §2023:14.9.20.4 GR4, and no SET format admits a literal sending operand)");
                 return;   // one message per REPLACING item, naming the first offending category
             }
     }
 
-    /// <summary>ISO §14.9.20.3 SR4 for the SET-form categories — "a SET statement with identifier-2 as the sending
-    /// operand and an item of the specified category as the receiving operand shall be valid". §14.9.39's pointer
+    /// <summary>ISO §2023:14.9.20.3 SR4 for the SET-form categories — "a SET statement with identifier-2 as the sending
+    /// operand and an item of the specified category as the receiving operand shall be valid". §2023:14.9.39's pointer
     /// and object-reference formats admit only a sending operand of the receiver's own category, so category
-    /// agreement is the necessary condition; an object-reference pair's §9.3.8.2 class conformance is the OO
+    /// agreement is the necessary condition; an object-reference pair's §2023:9.3.8.2 class conformance is the OO
     /// lane's rule and is not re-stated here.</summary>
     public void CheckInitializeReplacingSetCategoryAgrees(
         InitializeCategory cat, InitializeCategory? senderCat, string senderText)
@@ -1279,11 +1279,11 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.InitializeReplacingSetCategoryMismatch,
             $"INITIALIZE REPLACING {spelled} DATA BY {senderText}, which is "
             + (senderCat is { } sc ? $"an item of category {InitializeCategories.Spelling(sc)}" : "not a data item")
-            + $": ISO §14.9.20.3 SR4 requires that `SET <a {spelled} item> TO identifier-2` be valid, and "
-            + "§14.9.39 admits only a sending operand of the receiver's own category");
+            + $": ISO §2023:14.9.20.3 SR4 requires that `SET <a {spelled} item> TO identifier-2` be valid, and "
+            + "§2023:14.9.39 admits only a sending operand of the receiver's own category");
     }
 
-    /// <summary>ISO §14.9.20.3 SR5 — "The data description entry for the data item referenced by identifier-1
+    /// <summary>ISO §2023:14.9.20.3 SR5 — "The data description entry for the data item referenced by identifier-1
     /// shall not contain a RENAMES clause" (a level-66 entry).
     /// <para>⛔ IT TAKES THE <b>RESOLVED</b> ITEM (kb/Work PB416). It used to take the candidate list a NAME
     /// lookup returns, and its only caller asked it on the arm where the reference did NOT resolve — an arm a
@@ -1293,7 +1293,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// QUALIFICATION-correct: `INITIALIZE R66 IN REC-2` names one entry, and a name lookup that returns every
     /// same-named candidate answers about the wrong one as readily as the right one.</para>
     /// <para>⛔ AND IT ASKS THE ENTRY THE NAME DENOTES, NOT THE ONE WHOSE STORAGE IS USED (kb/Work PB966). The
-    /// non-THROUGH alias resolves to data-name-2's own place (§13.18.45.4 GR1), whose <see cref="Place.Item"/> is
+    /// non-THROUGH alias resolves to data-name-2's own place (§2023:13.18.45.4 GR1), whose <see cref="Place.Item"/> is
     /// data-name-2 — so `INITIALIZE GALIAS` over `66 GALIAS RENAMES SG` compiled and initialized SG, measured,
     /// while its THROUGH sibling was refused. <see cref="Place.DenotedItem"/> answers the level-66 entry for both
     /// forms; a reference-modified operand (whose DenotedItem is null — there is no declared item) is asked
@@ -1305,35 +1305,35 @@ internal sealed class StatementValidation(DataBinder data)
         if ((named.DenotedItem ?? place.Item).Renames is null) return true;
         data.Edition.Error(DiagnosticCatalog.InitializeRenamesItem,
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
-            + "clause (ISO §14.9.20.3 SR5)");
+            + "clause (ISO §2023:14.9.20.3 SR5)");
         return false;
     }
 
-    // ── Sequential file I/O (ISO §14.9.27 / §14.9.51) — lifted at 10h ───────────────────────────────────────
+    // ── Sequential file I/O (ISO §2023:14.9.27 / §2023:14.9.51) — lifted at 10h ───────────────────────────────────────
 
-    /// <summary>§13.4.6.3 SR3/SR4 — a sort-merge (SD) file-name may be referenced ONLY by SORT / MERGE /
+    /// <summary>§2023:13.4.6.3 SR3/SR4 — a sort-merge (SD) file-name may be referenced ONLY by SORT / MERGE /
     /// RELEASE / RETURN (and a SORT/MERGE USING/GIVING). Every other input-output statement rejects at BIND
     /// time; the old posture was a patchwork — a bind error at UNLOCK (its own copy, folded in here by kb/Work
     /// PB700), a runtime loud stage at OPEN/WRITE/READ/REWRITE, and NOTHING at CLOSE / DELETE / DELETE FILE,
     /// where the statement then ran against an UNREGISTERED connector and the fail-open registry reported the
     /// SUCCESSFUL '00' (kb/Work PB140). <paramref name="verbRule"/> is the verb's OWN restatement of the rule
-    /// where its clause carries one (UNLOCK: §14.9.47.3 SR1, "File-name-1 shall not refer to a sort file or a
-    /// merge file."), named beside §13.4.6.3 so the message cites both. Returns the message (for the caller's
+    /// where its clause carries one (UNLOCK: §2023:14.9.47.3 SR1, "File-name-1 shall not refer to a sort file or a
+    /// merge file."), named beside §2023:13.4.6.3 so the message cites both. Returns the message (for the caller's
     /// BoundUnsupported placeholder), or null for a non-SD file.</summary>
     public string? ScreenSortMergeFile(FileModel file, string verb, string? verbRule = null)
     {
         if (!file.IsSortMerge) return null;
         string msg = $"{verb} may not name the sort-merge file '{file.CobolName}' — an SD file-name may "
-            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6.3 SR3/SR4"
+            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO §2023:13.4.6.3 SR3/SR4"
             + (verbRule is null ? ")" : $"; {verbRule})");
         data.Edition.Error(DiagnosticCatalog.SortMergeFileInIoStatement, msg);
         return msg;
     }
 
-    /// <summary>⛔ THE ONE §13.4.6.3 SR4 SCREEN, ASKED OF EVERY INPUT-OUTPUT STATEMENT'S OWN OPERANDS (kb/Work
+    /// <summary>⛔ THE ONE §2023:13.4.6.3 SR4 SCREEN, ASKED OF EVERY INPUT-OUTPUT STATEMENT'S OWN OPERANDS (kb/Work
     /// PB1291) — <i>"A record description entry associated with file-name-1 shall not be specified in an
     /// input-output statement other than following the word FROM or the word INTO."</i> The input-output statements
-    /// are the eight statements §9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ,
+    /// are the eight statements §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ,
     /// REWRITE, START, UNLOCK and WRITE — and the statement binder calls this for each of them from its ONE
     /// funnel, so a new operand position in any of them is screened by construction.
     /// <para>It used to be asked only at the WRITE / REWRITE record-name slot (<see cref="ScreenSortMergeFile"/> on
@@ -1378,7 +1378,7 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.SortMergeRecordInIoStatement,
                 $"{verb} '{DataBinder.WrittenText(dref)}' — "
                 + (ReferenceEquals(root, probe.Item) ? "" : $"'{probe.Item.CobolName}' belongs to ")
-                + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and ISO §13.4.6.3 SR4: \"A record description entry associated "
+                + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and ISO §2023:13.4.6.3 SR4: \"A record description entry associated "
                 + "with file-name-1 shall not be specified in an input-output statement other than following the word "
                 + "FROM or the word INTO.\" Move the value to a working-storage item first, or name it in the FROM / "
                 + "INTO phrase.");
@@ -1403,7 +1403,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="phrase">The phrase as the program wrote it, e.g. "INVALID KEY".</param>
     /// <param name="verb">The statement, e.g. "REWRITE".</param>
     /// <param name="because">The rule's own condition, quoted from it, e.g. "a file with sequential organization".</param>
-    /// <param name="citation">The §/SR, e.g. "ISO §14.9.35.3 SR2".</param>
+    /// <param name="citation">The §/SR, e.g. "ISO §2023:14.9.35.3 SR2".</param>
     public bool ScreenForbiddenPhrase(bool forbidden, string phrase, string verb, string because, string citation)
     {
         if (!forbidden) return false;
@@ -1413,18 +1413,18 @@ internal sealed class StatementValidation(DataBinder data)
         return true;
     }
 
-    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §14.9.30.3 SR6 — "None of the phrases ADVANCING, AT END, NEXT,
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §2023:14.9.30.3 SR6 — "None of the phrases ADVANCING, AT END, NEXT,
     /// NOT AT END, or PREVIOUS shall be specified if ACCESS MODE RANDOM is specified in the file control entry
     /// for file-name-1." Both READ binder arms call THIS: the rule is about the file control entry's access
-    /// mode, which every organization has, and a copy per arm is how §14.9.30.3's other phrase rules came to be
+    /// mode, which every organization has, and a copy per arm is how §2023:14.9.30.3's other phrase rules came to be
     /// enforced on one arm only (kb/Work PB334). ⚠ On the SEQUENTIAL-organization arm it is now
-    /// DEFENCE IN DEPTH, not the only guard: §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
+    /// DEFENCE IN DEPTH, not the only guard: §2023:12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
     /// specified for a sequential file") is screened at the FILE CONTROL ENTRY as of kb/Work PB692
     /// (<c>FileControlBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
     /// no longer reaches a statement at all. It stays because it is the STATEMENT's own rule and costs a
     /// field test — never because the entry rule might be missing.
     /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice
-    /// indicators (§5.2.6.4), so AT END and NOT AT END can both be present and both are named.</para></summary>
+    /// indicators (§2023:5.2.6.4), so AT END and NOT AT END can both be present and both are named.</para></summary>
     public bool CheckReadRandomAccessPhrases(FileModel file, bool advancing, bool atEnd, bool notAtEnd,
         bool next, bool previous)
     {
@@ -1432,11 +1432,11 @@ internal sealed class StatementValidation(DataBinder data)
         if (WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is not { Length: > 0 } present)
             return true;
         ScreenForbiddenPhrase(true, present, "READ",
-            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
+            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §2023:14.9.30.3 SR6");
         return false;
     }
 
-    /// <summary>The phrases ISO §14.9.30.3 SR6 lists, which only a sequential (Format 1) READ prints —
+    /// <summary>The phrases ISO §2023:14.9.30.3 SR6 lists, which only a sequential (Format 1) READ prints —
     /// "ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS" — as the statement wrote them, joined with " / ", or
     /// null when it wrote none. ⛔ THE ONE LIST: <see cref="CheckReadRandomAccessPhrases"/> (SR6 itself) and
     /// <see cref="CheckReadKeyFormat"/> (the same phrases beside a KEY phrase) both name what the statement
@@ -1455,17 +1455,17 @@ internal sealed class StatementValidation(DataBinder data)
     }
 
     /// <summary>⛔ THE ONE ENFORCEMENT OF "A READ WITH A KEY PHRASE IS A FORMAT 2 (RANDOM) READ" (kb/Work PB3569),
-    /// asked of an INDEXED file after <see cref="CheckReadKeyOrganization"/> (SR10) has passed. ISO §14.9.30.2
+    /// asked of an INDEXED file after <see cref="CheckReadKeyOrganization"/> (SR10) has passed. ISO §2023:14.9.30.2
     /// prints the KEY phrase in Format 2 only, and Format 2 prints none of the phrases ADVANCING, AT END, NEXT,
-    /// NOT AT END or PREVIOUS; §14.9.30.4 GR19: "An implicit or explicit NEXT phrase or a PREVIOUS phrase results
+    /// NOT AT END or PREVIOUS; §2023:14.9.30.4 GR19: "An implicit or explicit NEXT phrase or a PREVIOUS phrase results
     /// in a sequential read: otherwise, the read is a random read and the rules for format 2 apply." The statement
     /// is refused in either of two ways, and the message names the one that applies, never the other:
     /// <list type="number">
     /// <item><b>It writes a sequential-read phrase beside the KEY phrase</b> (<c>READ f NEXT KEY IS k</c>): the
     /// message names every such phrase the statement wrote, from the list SR6 itself names.</item>
     /// <item><b>It writes none and the file's access mode is SEQUENTIAL</b> (written, or assumed when the ACCESS
-    /// MODE clause is absent, §12.4.5.5.3 GR1): ⛔ <b>THE READING IS THE ONE THE BINDER AND ITS SIBLING SCREEN
-    /// ALREADY USE.</b> §14.9.30.3 SR8 ("If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS
+    /// MODE clause is absent, §2023:12.4.5.5.3 GR1): ⛔ <b>THE READING IS THE ONE THE BINDER AND ITS SIBLING SCREEN
+    /// ALREADY USE.</b> §2023:14.9.30.3 SR8 ("If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS
     /// MODE SEQUENTIAL is specified in the file control entry for file-name-1, the NEXT phrase is implied")
     /// supplies the NEXT phrase, GR19 makes a statement with an implicit NEXT a sequential read, and a sequential
     /// read has no KEY phrase to bind. That is how <c>KeyedIoBinder.BindRead</c> chooses <see cref="ReadKind.Next"/>
@@ -1475,7 +1475,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// the two diagnostics cannot explain the same shape by contradictory readings of SR8 and GR19. The statement
     /// has no phrase in it that is wrong: the FILE is the wrong mode for it, so the message names the access mode
     /// and the implied NEXT, never a phrase the statement wrote. Random retrieval needs ACCESS MODE RANDOM
-    /// (§12.4.5.5.3 GR3) or DYNAMIC (GR4: "accessed sequentially, randomly, or both").</item></list>
+    /// (§2023:12.4.5.5.3 GR3) or DYNAMIC (GR4: "accessed sequentially, randomly, or both").</item></list>
     /// An ACCESS MODE RANDOM file is not asked: <see cref="CheckReadRandomAccessPhrases"/> has already named every
     /// sequential-read phrase against SR6 (a warning under <c>--permissive</c> with the bind unchanged, so the
     /// KEY phrase still binds as the random read it is), and a second diagnostic for the same words would only
@@ -1490,28 +1490,28 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.AccessMode == FileAccessMode.Random) return true;
         string? refusal = WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is { } phrases
             ? $"the KEY phrase belongs to the random READ (Format 2), whose general format prints none of the phrases "
-                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §14.9.30.2), and this statement specifies {phrases}; "
-                + "those phrases make a sequential read (ISO §14.9.30.4 GR19), which has no KEY phrase"
+                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §2023:14.9.30.2), and this statement specifies {phrases}; "
+                + "those phrases make a sequential read (ISO §2023:14.9.30.4 GR19), which has no KEY phrase"
             : file.AccessMode == FileAccessMode.Sequential
                 ? "the file's access mode is SEQUENTIAL"
-                    + (file.AccessModeWritten ? "" : " (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1)")
-                    + ", so the NEXT phrase is implied (ISO §14.9.30.3 SR8) and the READ is a sequential read (ISO §14.9.30.4 GR19), "
-                    + "which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO §14.9.30.2); specify "
-                    + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §12.4.5.5.3 GR3, GR4)"
+                    + (file.AccessModeWritten ? "" : " (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §2023:12.4.5.5.3 GR1)")
+                    + ", so the NEXT phrase is implied (ISO §2023:14.9.30.3 SR8) and the READ is a sequential read (ISO §2023:14.9.30.4 GR19), "
+                    + "which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO §2023:14.9.30.2); specify "
+                    + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §2023:12.4.5.5.3 GR3, GR4)"
                 : null;
         if (refusal is null) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': {refusal}");
         return false;
     }
 
-    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §13.4.5.3 SR3 c) — "When no record description entries are specified:
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §2023:13.4.5.3 SR3 c) — "When no record description entries are specified:
     /// … c) an INTO phrase shall be specified on all READ statements associated with the file." (kb/Work PB694). The
     /// rule is about the FILE DESCRIPTION ENTRY, which every organization has, so <c>SequentialIoBinder.BindRead</c>
     /// asks it BEFORE its organization reroute and the relative arm (<c>KeyedIoBinder.BindRead</c>) is under it too
-    /// (feedback_two_arm_dispatch). The record area such a READ fills is §14.9.30.4 GR6's implied entry, which has no
+    /// (feedback_two_arm_dispatch). The record area such a READ fills is §2023:14.9.30.4 GR6's implied entry, which has no
     /// record-name, so without INTO the program could never see what it read.
     /// <para>SR3 b) — the WRITE/REWRITE half — has no screen of its own because none can be reached: the
-    /// record-name-1 alternative names "a logical record in the file section" (§14.9.51.3 SR5, §14.9.35.3 SR1), which
+    /// record-name-1 alternative names "a logical record in the file section" (§2023:14.9.51.3 SR5, §2023:14.9.35.3 SR1), which
     /// a record-less entry does not have, and the <c>FILE file-name-1</c> alternative is Annex A.4.13, refused by
     /// COBOL1706 (docs/CONFORMANCE.md §5, row A.4.13).</para>
     /// <para>A hard error at every edition: the source states a READ the standard gives no meaning, so there is no
@@ -1522,13 +1522,13 @@ internal sealed class StatementValidation(DataBinder data)
         if (intoWritten || !file.HasNoRecordDescriptionEntries) return true;
         data.Edition.Error(DiagnosticCatalog.RecordLessFdReadWithoutInto, $"READ {file.CobolName}: the file "
             + "description entry specifies no record description entries, so an INTO phrase shall be specified on "
-            + "all READ statements associated with the file (ISO §13.4.5.3 SR3 c)) — its record area is the implied "
-            + "record of §14.9.30.4 GR6, which has no name, and only READ … INTO can deliver the record. Write "
+            + "all READ statements associated with the file (ISO §2023:13.4.5.3 SR3 c)) — its record area is the implied "
+            + "record of §2023:14.9.30.4 GR6, which has no name, and only READ … INTO can deliver the record. Write "
             + $"READ {file.CobolName} INTO identifier, or describe the record under the FD.");
         return false;
     }
 
-    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §14.9.30.3 SR10 — "The KEY phrase may be specified only if
+    /// <summary>⛔ THE ONE ENFORCEMENT OF ISO §2023:14.9.30.3 SR10 — "The KEY phrase may be specified only if
     /// ORGANIZATION IS INDEXED is specified in the file control entry for file-name-1." The rule names an
     /// ORGANIZATION, so it cannot live on one organization's binder arm: it was enforced only in
     /// <c>KeyedIoBinder.BindRead</c> (which reaches RELATIVE) while <c>SequentialIoBinder.BindRead</c> — the arm
@@ -1539,30 +1539,30 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': the KEY phrase may be "
-            + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30.3 SR10)");
+            + "specified only when ORGANIZATION IS INDEXED (ISO §2023:14.9.30.3 SR10)");
         return false;
     }
 
     /// <summary>⛔ THE ONE SCREEN for the MIRROR of <see cref="ScreenForbiddenPhrase"/>: a phrase the printed
-    /// general format shows WITHOUT brackets, and that the program omitted (kb/Work PB350). ISO §5.2.6.2 makes
-    /// brackets the ONLY convention that lets a portion of a format be omitted and §5.2.2 makes an underlined
+    /// general format shows WITHOUT brackets, and that the program omitted (kb/Work PB350). ISO §2023:5.2.6.2 makes
+    /// brackets the ONLY convention that lets a portion of a format be omitted and §2023:5.2.2 makes an underlined
     /// keyword required subject to those conventions, so an unbracketed phrase line is MANDATORY — a grammar
     /// that writes it <c>phrase?</c> under-rejects, which is the falsely-PERMISSIVE twin of the transcription's
     /// falsely-restrictive OCR bias.
     /// <para>⚠ THIS IS A HARD ERROR AT EVERY EDITION, deliberately NOT routed through
     /// <see cref="EditionContext.Removed"/> the way its forbidden-phrase mirror is. That seam exists because the
-    /// CCVS-85 corpus really does write the phrases §14.9.30.3 SR6 forbids, and tolerating them leaves the bind
+    /// CCVS-85 corpus really does write the phrases §2023:14.9.30.3 SR6 forbids, and tolerating them leaves the bind
     /// UNCHANGED. Nothing is lenient about the omission this screen catches: measured over
     /// <c>conformance-suite</c> and <c>tests/nist</c>, every RETURN in them writes its AT END, and a
     /// permissive arm would keep alive exactly the wrong answer PB350 reports — control falling THROUGH a
-    /// RETURN at end of data onto an undefined record area (§14.9.34.4 GR3).</para>
+    /// RETURN at end of data onto an undefined record area (§2023:14.9.34.4 GR3).</para>
     /// <para>⚠ It is screened HERE and not in the grammar on purpose. The grammar already produces a tree the
     /// binder can read, and a bind-time diagnostic can NAME the omitted phrase, the statement and the clause,
     /// where an ANTLR parse error can only report an unexpected token. Making the phrase mandatory in the
-    /// grammar would also make the §14.9.34.3 SR4 reversed spelling report as a token-level surprise. The
+    /// grammar would also make the §2023:14.9.34.3 SR4 reversed spelling report as a token-level surprise. The
     /// grammar rule carries a comment pointing here; <c>RequiredFormatPhraseDriftTests</c> re-derives from the
-    /// transcription that RETURN's AT END is still the only §14.9 CONDITIONAL-PHRASE line this applies to. The other
-    /// callers are the unbracketed lines of SEND (§14.9.38.2: END-SEND in both formats, Format 1's RETURNING;
+    /// transcription that RETURN's AT END is still the only §2023:14.9 CONDITIONAL-PHRASE line this applies to. The other
+    /// callers are the unbracketed lines of SEND (§2023:14.9.38.2: END-SEND in both formats, Format 1's RETURNING;
     /// <c>DeclinedFacilityBinder.ScreenSendRequiredPhrases</c>), found by the inverse class of
     /// <c>scripts/spec/audit_grammar_optional_words.py</c>, which a grammar rule's <c>audit:required-word</c> line
     /// answers by naming the member that screens the word (kb/Work PB2024).</para>
@@ -1573,18 +1573,18 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="phrase">The phrase as the format prints it, e.g. "AT END".</param>
     /// <param name="verb">The statement, e.g. "RETURN".</param>
     /// <param name="because">Why the format makes it mandatory, in the format's own terms.</param>
-    /// <param name="citation">The §, e.g. "ISO §14.9.34.2".</param>
+    /// <param name="citation">The §, e.g. "ISO §2023:14.9.34.2".</param>
     public bool ScreenOmittedRequiredPhrase(bool omitted, string phrase, string verb, string because, string citation)
     {
         if (!omitted) return false;
         data.Edition.Error(DiagnosticCatalog.FormatRequiredPhraseOmitted,
             $"the {phrase} phrase is required on every {verb} statement and is omitted — {because} "
             + $"({citation}; brackets are the only convention that makes a portion of a general format "
-            + "omissible, ISO §5.2.6.2)");
+            + "omissible, ISO §2023:5.2.6.2)");
         return true;
     }
 
-    /// <summary>⛔ THE ONE AND ONLY ENFORCEMENT OF ISO §14.9.27.3 SR8 — "When file-name-1 is not subject to an
+    /// <summary>⛔ THE ONE AND ONLY ENFORCEMENT OF ISO §2023:14.9.27.3 SR8 — "When file-name-1 is not subject to an
     /// APPLY COMMIT clause, then if the sharing phrase is omitted from the OPEN statement and the ALL phrase is
     /// specified in the SHARING clause of the file control entry for file-name-1 or if the ALL phrase is
     /// specified on the OPEN statement, the LOCK MODE clause shall be specified in the file control entry for
@@ -1594,45 +1594,45 @@ internal sealed class StatementValidation(DataBinder data)
     /// an I-O-CONTROL clause bound later — and so rejected legal source while double-reporting the violations.
     /// <para>THE ANTECEDENT IS WRITTEN OUT IN FULL, IN THE RULE'S OWN ORDER. (1) The leading conjunct: a file
     /// subject to an APPLY COMMIT clause is EXEMPT, and the exemption is load-bearing rather than decorative
-    /// because §12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an APPLY
+    /// because §2023:12.4.5.9.3 SR1 forbids writing a LOCK MODE clause "for a file that is the subject of an APPLY
     /// COMMIT clause" — without the exemption the two rules would make such a file unwritable; the clause is accepted
-    /// for every organization §9.1.18.2 admits (kb/Work PB3338, PB3340). (2) The two disjuncts collapse to ONE test on the EFFECTIVE sharing mode, which is what the
+    /// for every organization §2023:9.1.18.2 admits (kb/Work PB3338, PB3340). (2) The two disjuncts collapse to ONE test on the EFFECTIVE sharing mode, which is what the
     /// caller passes: <c>sharing ?? file.Sharing</c> is the ALL phrase when the OPEN group wrote one and the
-    /// file control entry's clause when it did not (§14.9.27.4 GR23), which is exactly "[ALL on the OPEN]" OR
+    /// file control entry's clause when it did not (§2023:14.9.27.4 GR23), which is exactly "[ALL on the OPEN]" OR
     /// "[phrase omitted AND the SELECT says ALL]". A phrase that is present and is NOT ALL satisfies neither
     /// disjunct, and a file with no OPEN statement is never asked at all — both are legal.</para>
     /// <para>Pure: returns false when the rule is violated so a call site reads as a screen.</para></summary>
     public bool CheckOpenSharingAllOther(FileModel file, SharingMode? effectiveSharing)
     {
-        if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §12.4.5.9.3 SR1
+        if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §2023:12.4.5.9.3 SR1
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
         data.Edition.Error(DiagnosticCatalog.OpenSharingAllRequiresLockMode, $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
-            + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");
+            + "requires the file to have a LOCK MODE clause (ISO §2023:14.9.27.3 SR8)");
         return false;
     }
 
     /// <summary>⛔ THE ONE SCREEN for the OPEN statement's per-file-name TAPE PHRASE — both alternatives of
-    /// §14.9.27.2's <c>[ REVERSED | WITH NO REWIND ]</c> bracket, over ONE table
+    /// §2023:14.9.27.2's <c>[ REVERSED | WITH NO REWIND ]</c> bracket, over ONE table
     /// (<see cref="OpenTapePhraseRule"/>, one NAMED row per phrase behind
     /// <see cref="OpenTapePhraseRule.For"/>). Each phrase constrains the same two axes — the file's ORGANIZATION
     /// and its group's OPEN MODE — so the table has a column per axis and the next tape phrase is a ROW, not a
     /// third pair of methods. Returns true when the phrase stands; false when it was REPORTED and the caller
-    /// shall drop it (both rules are screens, not branches: §14.9.27.3's violations are reported and the
+    /// shall drop it (both rules are screens, not branches: §2023:14.9.27.3's violations are reported and the
     /// statement still binds, so the run-time phrase effects only ever see combinations their general rules
     /// define — kb/Work PB317/PB318, and kb/Work PB668 for REVERSED).
-    /// <para>NO REWIND's two rules are §14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for
-    /// sequential files"</i>, the EXACT twin of the CLOSE rule §14.9.6.3 SR1 that <c>BindClose</c> enforces as
+    /// <para>NO REWIND's two rules are §2023:14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for
+    /// sequential files"</i>, the EXACT twin of the CLOSE rule §2023:14.9.6.3 SR1 that <c>BindClose</c> enforces as
     /// COBOL1693, which is why the OPEN half went unchecked for so long — and SR6, <i>"The NO REWIND phrase
-    /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §14.9.27.4 GR12 a)
+    /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §2023:14.9.27.4 GR12 a)
     /// corroborates by naming only EXTEND as the mode that suppresses the positioning the phrase talks about.
-    /// SR5's predicate is ORGANIZATION, not access mode — §9.1.7.2 puts record sequential and line sequential
-    /// both under sequential organization — and it is what makes §14.9.27.4 GR11 answerable: GR11 keys on the
-    /// storage medium and a relative or indexed file is category (d) Non-sequential under §14.9.6.4 GR2 — a
-    /// category for which §14.9.27.4 defines no NO REWIND effect in either GR11 or GR12.</para>
+    /// SR5's predicate is ORGANIZATION, not access mode — §2023:9.1.7.2 puts record sequential and line sequential
+    /// both under sequential organization — and it is what makes §2023:14.9.27.4 GR11 answerable: GR11 keys on the
+    /// storage medium and a relative or indexed file is category (d) Non-sequential under §2023:14.9.6.4 GR2 — a
+    /// category for which §2023:14.9.27.4 defines no NO REWIND effect in either GR11 or GR12.</para>
     /// <para>REVERSED's two rules come from the COBOL-85 general format this repository does not hold
     /// (VERSION_CHANGE_REFERENCE row 7.12): the INPUT group only, and — one step NARROWER than its sibling —
     /// record sequential organization only, because the phrase's whole effect is the backward retrieval
-    /// §14.9.30.4 GR21 c) defines and §14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL
+    /// §2023:14.9.30.4 GR21 c) defines and §2023:14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL
     /// organization.</para></summary>
     public bool CheckOpenTapePhrase(FileModel file, BoundOpenMode mode, BoundOpenTapePhrase phrase)
     {
@@ -1659,10 +1659,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>⛔ THE ONE SCREEN for the OPEN statement's syntax rules that pair a group's OPEN MODE with a
     /// property of the FILE (kb/Work PB318) — the two rules that had no site at all:
     /// <list type="bullet">
-    /// <item>§14.9.27.3 SR1 — <i>"The OPEN statement for a report file shall not contain the INPUT phrase or the
-    /// I-O phrase."</i> §13.18.46.3 SR3 states the same boundary from the file's side ("the OPEN statement with the
+    /// <item>§2023:14.9.27.3 SR1 — <i>"The OPEN statement for a report file shall not contain the INPUT phrase or the
+    /// I-O phrase."</i> §2023:13.18.46.3 SR3 states the same boundary from the file's side ("the OPEN statement with the
     /// OUTPUT or EXTEND phrase").</item>
-    /// <item>§14.9.27.3 SR2 — <i>"The EXTEND phrase shall be specified only if the access mode of the file
+    /// <item>§2023:14.9.27.3 SR2 — <i>"The EXTEND phrase shall be specified only if the access mode of the file
     /// connector referenced by file-name-1 is sequential and the LINAGE clause is not specified in the file
     /// description entry for file-name-1."</i> ONE sentence, TWO conjuncts, and it keys on the ACCESS MODE, not the
     /// organization, so EXTEND stays legal on a relative or indexed file with ACCESS MODE IS SEQUENTIAL. Both
@@ -1679,7 +1679,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.OpenReportFileMode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — a report file shall not be opened INPUT or I-O "
-                + "(ISO §14.9.27.3 SR1; §13.18.46.3 SR3)");
+                + "(ISO §2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3)");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)
@@ -1687,20 +1687,20 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file's access mode is "
                 + $"{file.AccessMode.ToString().ToUpperInvariant()}; EXTEND requires sequential access "
-                + "(ISO §14.9.27.3 SR2)");
+                + "(ISO §2023:14.9.27.3 SR2)");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.Linage is not null)
         {
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
-                + "EXTEND does not admit (ISO §14.9.27.3 SR2)");
+                + "EXTEND does not admit (ISO §2023:14.9.27.3 SR2)");
             ok = false;
         }
         return ok;
     }
 
-    /// <summary>The written form of an open mode, for a diagnostic (§14.9.27.2's four phrase words).</summary>
+    /// <summary>The written form of an open mode, for a diagnostic (§2023:14.9.27.2's four phrase words).</summary>
     private static string OpenModeFace(BoundOpenMode mode) => mode switch
     {
         BoundOpenMode.Output => "OUTPUT",
@@ -1710,17 +1710,17 @@ internal sealed class StatementValidation(DataBinder data)
     };
 
 
-    /// <summary>§14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
+    /// <summary>§2023:14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
     /// a LINAGE clause in the file's file description entry.</summary>
     public bool CheckWriteEopLinage(FileModel file)
     {
         if (file.Linage is not null) return true;
         data.Edition.Error(DiagnosticCatalog.WriteEndOfPageWithoutLinage, $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
-            + "description entry has no LINAGE clause (ISO §14.9.51.3 SR19)");
+            + "description entry has no LINAGE clause (ISO §2023:14.9.51.3 SR19)");
         return false;
     }
 
-    /// <summary>§14.9.51 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
+    /// <summary>§2023:14.9.51 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
     /// single WRITE statement."</i> The END-OF-PAGE phrase is the AT phrase (GR27 b)'s imperative-statement-1);
     /// SR19 and GR28 name the NOT END-OF-PAGE phrase separately, so the caller passes true only when the WRITE
     /// carries ADVANCING PAGE AND the AT phrase (kb/Work PB578).</summary>
@@ -1728,52 +1728,52 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!advancingPageWithAtEop) return true;
         data.Edition.Error(DiagnosticCatalog.WriteAdvancingPageWithEndOfPage, "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
-            + "shall not both be specified in a single WRITE statement (ISO §14.9.51.3 SR18)");
+            + "shall not both be specified in a single WRITE statement (ISO §2023:14.9.51.3 SR18)");
         return false;
     }
 
-    /// <summary>§14.9.51.3 SR17 — <i>"The BEFORE and AFTER phrases shall not both be specified if the PAGE
-    /// phrase is specified."</i> The pair itself is a COBOL-2023 addition (Annex §E.3.3 item 2, gated in
+    /// <summary>§2023:14.9.51.3 SR17 — <i>"The BEFORE and AFTER phrases shall not both be specified if the PAGE
+    /// phrase is specified."</i> The pair itself is a COBOL-2023 addition (Annex §2023:E.3.3 item 2, gated in
     /// <c>VersionConformancePass</c>); this is the one SYNTAX rule that narrows it, and it lives here beside
     /// SR18 and SR19 rather than inside the WRITE binder's operand plumbing (kb/Work PB712 — the old
     /// two-ADVANCING-phrase grammar checked SR17 as one arm of a malformed-pair test that also caught shapes
-    /// §14.9.51.2 Format 1 cannot print).</summary>
+    /// §2023:14.9.51.2 Format 1 cannot print).</summary>
     public bool CheckWriteBeforeAfterPage(bool bothWords, bool advancingPage)
     {
         if (!(bothWords && advancingPage)) return true;
         data.Edition.Error(DiagnosticCatalog.WriteBeforeAfterAdvancingPage,
             "WRITE BEFORE and AFTER ADVANCING PAGE: the BEFORE and AFTER phrases shall not both be specified if "
-            + "the PAGE phrase is specified (ISO §14.9.51.3 SR17)");
+            + "the PAGE phrase is specified (ISO §2023:14.9.51.3 SR17)");
         return false;
     }
 
-    /// <summary>§14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
+    /// <summary>§2023:14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
     /// mnemonic (the caller resolves the mnemonic test through the per-unit registry).</summary>
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
     {
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
         data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE ADVANCING mnemonic-name on file '{file.CobolName}', whose "
-            + "file description entry contains a LINAGE clause (ISO §14.9.51.3 SR13)");
+            + "file description entry contains a LINAGE clause (ISO §2023:14.9.51.3 SR13)");
         return false;
     }
 
-    /// <summary>⛔ ISO §8.8.4.2.1 — "A relation condition shall contain at least one reference to an operand that is not
+    /// <summary>⛔ ISO §2023:8.8.4.2.1 — "A relation condition shall contain at least one reference to an operand that is not
     /// a literal" (the clause's closing unnumbered sentence; <c>cite.py</c> stamps it "13)", kb/Work PB222). A figurative
-    /// constant is a literal (§8.3.3.6 is a clause of §8.3.3 Literals, and a symbolic-character is "a user-defined
-    /// figurative constant", §8.3.2.2.29), and so is a constant-name, whose effect "is as if literal-1 … were written
-    /// where constant-name-1 is written" (§13.10.4 GR1). So `IF 1 = 1`, `IF "A" = SPACE`, `IF ZERO = ZERO` and
+    /// constant is a literal (§2023:8.3.3.6 is a clause of §2023:8.3.3 Literals, and a symbolic-character is "a user-defined
+    /// figurative constant", §2023:8.3.2.2.29), and so is a constant-name, whose effect "is as if literal-1 … were written
+    /// where constant-name-1 is written" (§2023:13.10.4 GR1). So `IF 1 = 1`, `IF "A" = SPACE`, `IF ZERO = ZERO` and
     /// `PERFORM UNTIL 1 = 2` each compare two literals (kb/Work PB1470).
     /// <para>The rule is about a relation CONDITION, so it is asked where one is written
     /// (<c>ConditionBinder.WrittenRelational</c>: IF, PERFORM UNTIL, SEARCH WHEN, a boolean relation, an abbreviated
-    /// relation's inserted subject, and an EVALUATE partial-expression, which §14.9.13.3 SR8 treats "as though it were
+    /// relation's inserted subject, and an EVALUATE partial-expression, which §2023:14.9.13.3 SR8 treats "as though it were
     /// specified as condition-2"). It is NOT asked at <see cref="CheckRelationalOperands"/>, whose EVALUATE callers pair
-    /// a selection subject with a selection object: §14.9.13.3 SR10's Table 15 is the rule for which pairs are
+    /// a selection subject with a selection object: §2023:14.9.13.3 SR10's Table 15 is the rule for which pairs are
     /// permitted, and it already refuses a literal object against a literal subject while permitting a range-expression
     /// against one.</para>
     /// <para>"A literal" is what the source WROTE: a function-identifier folded at bind time (a LENGTH fold) is a
     /// <see cref="BoundNumericLiteral"/> with <see cref="BoundNumericLiteral.FunctionValue"/> set and references a
     /// function, and an arithmetic expression of literals (<c>IF 1 + 1 = 2</c>) is an expression; neither is a
-    /// literal. The severity is a WARNING at every edition (§4.2.2: "This warning mechanism shall indicate violations
+    /// literal. The severity is a WARNING at every edition (§2023:4.2.2: "This warning mechanism shall indicate violations
     /// of such rules"; docs/CONFORMANCE.md D-RELLITERAL follows GnuCOBOL, which warns), and the relation keeps the
     /// value it always had.</para></summary>
     public void CheckRelationHasNonLiteralOperand(BoundOperand subject, BoundOperand obj)
@@ -1781,7 +1781,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!IsWrittenLiteral(subject) || !IsWrittenLiteral(obj)) return;
         data.Edition.Warning(DiagnosticCatalog.RelationOperandsAllLiteral,
             "both operands of this relation condition are literals (a figurative constant, a symbolic-character and a "
-            + "constant-name are literals: §8.3.3.6, §8.3.2.2.29, §13.10.4 GR1), and ISO §8.8.4.2.1 requires that \"A "
+            + "constant-name are literals: §2023:8.3.3.6, §2023:8.3.2.2.29, §2023:13.10.4 GR1), and ISO §2023:8.8.4.2.1 requires that \"A "
             + "relation condition shall contain at least one reference to an operand that is not a literal\" — compare "
             + "a data item; the relation is evaluated as written");
     }
@@ -1793,35 +1793,35 @@ internal sealed class StatementValidation(DataBinder data)
         o is BoundStringLiteral or BoundAllLiteral or BoundFigurative or BoundNumericLiteral { FunctionValue: false }
             or BoundBoolOperand { Expr: BoundBoolLiteral };
 
-    // ── The relational-operand SR checkpoint (ISO §8.8.4.2.2 / §8.8.4.2.3; lifted from ConditionBinder's
+    // ── The relational-operand SR checkpoint (ISO §2023:8.8.4.2.2 / §2023:8.8.4.2.3; lifted from ConditionBinder's
     //    CheckedRelational at P7 Step 10t/3 — the 10o deviation-(b) pure-lift discharged). ────────────────────
 
     /// <summary>The edition-invariant SR checks that ride the ONE <c>BoundRelational</c> checkpoint — reached
     /// by every relation (IF, EVALUATE pairings/ranges, PERFORM UNTIL, SEARCH WHEN, sole-operand conditions).
     /// A PURE emission check (no verdict — the caller always builds the node; the checks are side-effect
-    /// diagnostics): class-boolean comparability (§8.8.4.2.2 Format 2 — boolean operands compare only with a
+    /// diagnostics): class-boolean comparability (§2023:8.8.4.2.2 Format 2 — boolean operands compare only with a
     /// boolean or the figurative ZERO, equality only — COBOL0844), and the strongly-typed-group rules
-    /// (§8.8.4.2.3 SR1: same type both sides — COBOL1533; SR4: a strong group with a boolean/object/pointer
+    /// (§2023:8.8.4.2.3 SR1: same type both sides — COBOL1533; SR4: a strong group with a boolean/object/pointer
     /// leaf is equality-only — COBOL1535 <c>strong-compare-ordering</c>), and the
-    /// §8.8.4.2.2 FORMAT 3 band (<see cref="CheckFormat3Relation"/>) — "a relation condition involving operands
+    /// §2023:8.8.4.2.2 FORMAT 3 band (<see cref="CheckFormat3Relation"/>) — "a relation condition involving operands
     /// of class message-tag, object, or pointer is a message-tag-object-or-pointer-reference relation
-    /// condition" (§8.8.4.2.1), whose general format admits ONLY <c>IS [NOT] EQUAL TO</c> / <c>=</c> /
+    /// condition" (§2023:8.8.4.2.1), whose general format admits ONLY <c>IS [NOT] EQUAL TO</c> / <c>=</c> /
     /// <c>&lt;&gt;</c> and whose SR5 requires both operands to be of one of those three classes AND of the same
     /// CATEGORY (COBOL0868 for a relation naming class object, COBOL0869 otherwise).
     /// <para>⛔ THAT BAND WAS WRITTEN IN <c>ConditionBinder.BindComparison</c>'s relation arm until kb/Work
     /// PB399 — one caller of this checkpoint, not the checkpoint — so it screened `IF P &gt;= Q` and said
     /// nothing about the SAME pair under EVALUATE, SEARCH WHEN, PERFORM UNTIL or an abbreviated relation.
     /// Measured: `EVALUATE WS-P WHEN WS-Q THRU WS-R` compiled clean and ordered raw addresses, and
-    /// `EVALUATE WS-P WHEN WS-X` reached the BACKEND and failed as a raw C# CS1503. §14.9.13.3 SR7 a) makes an
-    /// EVALUATE pair's objects "valid operands for comparison … in accordance with 8.8.4.2", so every §8.8.4.2
+    /// `EVALUATE WS-P WHEN WS-X` reached the BACKEND and failed as a raw C# CS1503. §2023:14.9.13.3 SR7 a) makes an
+    /// EVALUATE pair's objects "valid operands for comparison … in accordance with 8.8.4.2", so every §2023:8.8.4.2
     /// rule is owed to it; the two-arm shape is fixed by moving the rule to the arm both sides share, never by
     /// copying it. It was also written TWICE there, once per class, which is why the two copies disagreed about
     /// the same category (only the object copy screened its operands' identity at all).</para></summary>
     public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
     {
         CheckFormat3Relation(left, op, right);
-        // ISO §8.3.3.6.3 SR3 — a multi-character ALL literal shall not be ASSOCIATED with a numeric or
-        // numeric-edited item, and §8.3.3.6.4 GR2's NOTE 1 names "compared with it" as an association. Asked of
+        // ISO §2023:8.3.3.6.3 SR3 — a multi-character ALL literal shall not be ASSOCIATED with a numeric or
+        // numeric-edited item, and §2023:8.3.3.6.4 GR2's NOTE 1 names "compared with it" as an association. Asked of
         // the ONE predicate the MOVE edition pass asks (FigurativeAssociation — kb/Work PB422), in either
         // operand order; this checkpoint is every relation's (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN).
         CheckFigurativeAssociation(left, right);
@@ -1830,16 +1830,16 @@ internal sealed class StatementValidation(DataBinder data)
         // over literals, fields, ref-mod views, groups, ALL literals, boolean expressions and COMPUTED operands),
         // never re-derived here (kb/Work PB68): the local switch that stood here had no arm for a
         // BoundComputedOperand wrapping a BOOLEAN-result intrinsic, so `IF FUNCTION BOOLEAN-OF-INTEGER(544, 6) =
-        // B"100000"` — exactly the §8.8.4.2.8 boolean comparison — was rejected as a class mix, while the mirror
-        // against an ALPHANUMERIC literal (illegal) was accepted and evaluated. §15.13.1 makes the function's type
-        // boolean; §15.2 item 2 its class and category; the classifier already knew.
+        // B"100000"` — exactly the §2023:8.8.4.2.8 boolean comparison — was rejected as a class mix, while the mirror
+        // against an ALPHANUMERIC literal (illegal) was accepted and evaluated. §2023:15.13.1 makes the function's type
+        // boolean; §2023:15.2 item 2 its class and category; the classifier already knew.
         static bool IsBoolOperand(BoundOperand o) => IntrinsicResultType.OperandCategory(o) is PicCategory.Boolean;
         bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
         if (lb || rb)
         {
-            // Asked of the §8.5.2.1 Table-2 lattice's CANDIDATE set (kb/Work PB1427): an operand is boolean-compatible
+            // Asked of the §2023:8.5.2.1 Table-2 lattice's CANDIDATE set (kb/Work PB1427): an operand is boolean-compatible
             // when class boolean is among the classes it may present — ZERO is "one or more of the boolean character
-            // '0'" (§8.3.3.6.4 GR4), SPACE / QUOTE / HIGH-VALUE / LOW-VALUE are character values only (GR5–GR8), an
+            // '0'" (§2023:8.3.3.6.4 GR4), SPACE / QUOTE / HIGH-VALUE / LOW-VALUE are character values only (GR5–GR8), an
             // index data item is class index. The set is EMPTY only for "not statically decidable" (a recovery
             // profile, an operand whose binding already failed — kb/Work PB960), which fails OPEN: the rule rejects
             // what it NAMES, never what the compiler could not classify. (The category reader that stood here
@@ -1850,14 +1850,14 @@ internal sealed class StatementValidation(DataBinder data)
                 && (set.Length == 0 || Array.IndexOf(set, CobolClass.Boolean) >= 0);
             if (!(BoolCompatible(left) && BoolCompatible(right)))
                 data.Edition.Error(DiagnosticCatalog.BooleanRelationForm, "a boolean operand may be compared only with another "
-                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.3 "
+                    + "boolean operand or the figurative constant ZERO (ISO §2023:8.8.4.2.2; §2023:8.8.4.2.3 "
                     + "SR2/SR3 exclude class boolean from the general relation)");
             else if (op is not ("==" or "!="))
                 data.Edition.Error(DiagnosticCatalog.BooleanRelationForm, "boolean operands compare for equality only — an ordering "
-                    + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
+                    + "relation is not defined for class boolean (ISO §2023:8.8.4.2.2 Format 2)");
         }
-        // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
-        // type (§8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
+        // §2023:8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
+        // type (§2023:8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
         // PERFORM UNTIL, and SEARCH WHEN.
         DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
         DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
@@ -1865,21 +1865,21 @@ internal sealed class StatementValidation(DataBinder data)
         {
             if (sl is null || sr is null || !StrongTypeModel.SameType(sl, sr))
                 data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
-                    + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
-            // §8.8.4.2.3 SR4: "Strongly-typed group items that contain elementary items of class boolean,
+                    + "same type (ISO §2023:8.8.4.2.3 SR1 / §2023:8.5.3.3)");
+            // §2023:8.8.4.2.3 SR4: "Strongly-typed group items that contain elementary items of class boolean,
             // message-tag, object, or pointer, may be compared only for equality or inequality" — an ordering
             // relation on such a group is a syntax error. Every other same-type ordering is LEGAL and is compared
-            // element by element (§8.8.4.2.12 — ConditionBinder.CheckedRelational lowers it; kb/Work PB1469
+            // element by element (§2023:8.8.4.2.12 — ConditionBinder.CheckedRelational lowers it; kb/Work PB1469
             // retired the signed-leaf stage that stood here while the relation was a whole-group image).
             else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
                 data.Edition.Error(DiagnosticCatalog.StrongCompareOrdering, "a strongly-typed group containing a boolean, message-tag, object-reference, "
                     + "or pointer element may be compared only for equality or inequality "
-                    + "(ISO §8.8.4.2.3 SR4 — no ordering relation is defined for such a group)");
+                    + "(ISO §2023:8.8.4.2.3 SR4 — no ordering relation is defined for such a group)");
         }
-        // ISO §8.5.1.12.1 (kb/Work PB1467): a variable-length group "may not undergo a comparison … unless the other
+        // ISO §2023:8.5.1.12.1 (kb/Work PB1467): a variable-length group "may not undergo a comparison … unless the other
         // operand is a compatible group" — asked of the ONE pair classifier the relation's construction also asks,
-        // and of the ONE §8.5.1.12.1 reader the MOVE asks (VariableLengthCompatibility.PairRefusal). A strongly-typed
-        // pair is not asked: §8.8.4.2.12 compares it element by element (SR1 above already required one type).
+        // and of the ONE §2023:8.5.1.12.1 reader the MOVE asks (VariableLengthCompatibility.PairRefusal). A strongly-typed
+        // pair is not asked: §2023:8.8.4.2.12 compares it element by element (SR1 above already required one type).
         else if (RelationPair.Classify(left, right) is RelationPairShape.VariableLengthGroup)
         {
             if (VariableLengthCompatibility.PairRefusal(OperandItem(left), OperandItem(right), "first", "second",
@@ -1887,19 +1887,19 @@ internal sealed class StatementValidation(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.VariableLengthGroupComparison, why);
         }
         // Every other pair is a GENERAL relation (or a boolean / Format 3 one, which the table answers "not mine"):
-        // §8.8.4.2.1's closed "Comparisons are defined for the following:" list, asked of the ONE table.
+        // §2023:8.8.4.2.1's closed "Comparisons are defined for the following:" list, asked of the ONE table.
         else CheckGeneralRelationComparability(left, right);
     }
 
-    /// <summary>⛔ §8.8.4.2.1's "Comparisons are defined for the following:" over the general relation, asked of the
+    /// <summary>⛔ §2023:8.8.4.2.1's "Comparisons are defined for the following:" over the general relation, asked of the
     /// ONE table (<see cref="RelationComparability"/>, kb/Work PB1468) at the ONE relation checkpoint — so IF,
     /// EVALUATE subject/object pairs and ranges, PERFORM UNTIL, SEARCH WHEN and abbreviated relations inherit it.
     /// <list type="bullet">
-    /// <item>§8.8.4.2.13's index pairs are an unconditional error: "Relation tests may be made only between" its
+    /// <item>§2023:8.8.4.2.13's index pairs are an unconditional error: "Relation tests may be made only between" its
     /// three pairs, and a pair outside them has no comparison to fall back on — an index-name against an
     /// alphanumeric operand used to abort the run unit ("computed expression in a string context").</item>
-    /// <item>§8.8.4.2.5's numeric operand of item 6 is an error with the leniency dialect-gated — the DA6
-    /// disposition (<c>IntrinsicArgumentRules</c>' remarks): §4.2.2's "This warning mechanism shall indicate
+    /// <item>§2023:8.8.4.2.5's numeric operand of item 6 is an error with the leniency dialect-gated — the DA6
+    /// disposition (<c>IntrinsicArgumentRules</c>' remarks): §2023:4.2.2's "This warning mechanism shall indicate
     /// violations of such rules" obliges the flag, and the character comparison of the value's text that
     /// --permissive keeps is what the compiler has always evaluated for the pair.</item>
     /// </list></summary>
@@ -1909,22 +1909,22 @@ internal sealed class StatementValidation(DataBinder data)
         {
             case RelationComparabilityBreach.IndexPair:
                 data.Edition.Error(DiagnosticCatalog.RelationIndexPair, "an index-name or index data item is compared "
-                    + "with an operand ISO §8.8.4.2.13 does not pair it with — \"Relation tests may be made only "
+                    + "with an operand ISO §2023:8.8.4.2.13 does not pair it with — \"Relation tests may be made only "
                     + "between\" two index-names, an index-name and a numeric data item or numeric literal, or an index "
                     + "data item and an index-name or another index data item");
                 break;
             case RelationComparabilityBreach.NumericAgainstCharacter when data.Edition.Permissive:
                 data.Edition.Warning(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand that is not an "
                     + "integer literal or an integer numeric data item of usage display or national is compared with a "
-                    + "character operand (ISO §8.8.4.2.5) — accepted under --permissive as the character comparison of "
+                    + "character operand (ISO §2023:8.8.4.2.5) — accepted under --permissive as the character comparison of "
                     + "its value's text");
                 break;
             case RelationComparabilityBreach.NumericAgainstCharacter:
                 data.Edition.Error(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand compared with an "
                     + "operand of class alphanumeric, alphabetic or national shall be \"an integer literal or an integer "
-                    + "numeric data item of usage display or national\" (ISO §8.8.4.2.5; §8.8.4.2.1 item 6 is the only "
+                    + "numeric data item of usage display or national\" (ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only "
                     + "such pair the standard defines) — a non-integer, COMPUTATIONAL, packed, floating-point, "
-                    + "arithmetic-expression or numeric, integer or index function-identifier operand (§15.2 states no "
+                    + "arithmetic-expression or numeric, integer or index function-identifier operand (§2023:15.2 states no "
                     + "usage for the item such a function returns) has no defined comparison with it");
                 break;
         }
@@ -1934,9 +1934,9 @@ internal sealed class StatementValidation(DataBinder data)
     /// figurative constant, a computed value, a reference-modified view — kb/Work PB602's identity question).</summary>
     private static DataItem? OperandItem(BoundOperand o) => o is BoundFieldOperand { Place.DenotedItem: { } item } ? item : null;
 
-    /// <summary>§8.3.3.6.3 SR3 over one side of a relation: <paramref name="figurative"/> compared with the DATA
+    /// <summary>§2023:8.3.3.6.3 SR3 over one side of a relation: <paramref name="figurative"/> compared with the DATA
     /// ITEM <paramref name="other"/> names — an elementary item's own category (a reference-modified view is
-    /// operated upon as alphanumeric, §8.4.3.3.4 GR2, and a group is never numeric, §8.5.2.1, so neither is SR3's).</summary>
+    /// operated upon as alphanumeric, §2023:8.4.3.3.4 GR2, and a group is never numeric, §2023:8.5.2.1, so neither is SR3's).</summary>
     private void CheckFigurativeAssociation(BoundOperand figurative, BoundOperand other)
     {
         if (!FigurativeAssociation.IsMultiCharacterAll(figurative)
@@ -1945,37 +1945,37 @@ internal sealed class StatementValidation(DataBinder data)
             $"a comparison of ALL \"{((BoundAllLiteral)figurative).Literal}\" with {place.Item.CobolName}");
     }
 
-    /// <summary>⛔ THE ONE §8.8.4.2.2 FORMAT 3 SCREEN — the "message-tag-object-or-pointer-reference relation
-    /// condition" ISO §8.8.4.2.1 names: "a relation condition involving operands of class message-tag, object,
+    /// <summary>⛔ THE ONE §2023:8.8.4.2.2 FORMAT 3 SCREEN — the "message-tag-object-or-pointer-reference relation
+    /// condition" ISO §2023:8.8.4.2.1 names: "a relation condition involving operands of class message-tag, object,
     /// or pointer is a message-tag-object-or-pointer-reference relation condition". Two rules, over one pair:
     /// <list type="number">
     /// <item>the Format 3 general format prints only <c>IS [NOT] EQUAL TO</c> / <c>IS [NOT] =</c> / <c>IS
     /// &lt;&gt;</c> — no ordering operator is written in it at all, so an ordering relation on such an operand
     /// is a format violation;</item>
-    /// <item>§8.8.4.2.3 SR5 — "Identifier-3 and identifier-4 shall reference data items of class message-tag,
-    /// object, or pointer, and shall be of the same category", which §8.8.4.2.1 item 11 states a second way for
+    /// <item>§2023:8.8.4.2.3 SR5 — "Identifier-3 and identifier-4 shall reference data items of class message-tag,
+    /// object, or pointer, and shall be of the same category", which §2023:8.8.4.2.1 item 11 states a second way for
     /// the pointer class ("Two operands of class pointer where each operand is of the same category").</item>
     /// </list>
     /// <para>⛔ ONE SCREEN OVER ALL THREE CLASSES, because the standard writes ONE format and ONE syntax rule
     /// over all three (kb/Work PB399). The object and pointer halves used to be two independently-written
     /// blocks, and every difference between them was a hole: only the object half existed for message-tag
     /// (which is none of it), and NEITHER asked SR5's "same CATEGORY", so a data-pointer compared to a
-    /// program-pointer — two categories §8.8.4.2.1 item 11 keeps apart — was accepted. Both halves also asked
+    /// program-pointer — two categories §2023:8.8.4.2.1 item 11 keeps apart — was accepted. Both halves also asked
     /// <c>Pic?.Category == PicCategory.Pointer</c>, which is one of the THREE categories Table 2 gathers into
     /// class pointer, so a program-pointer or function-pointer operand answered "not a pointer" and left the
     /// whole band silent.</para>
-    /// <para>The figurative NULL rides on either side and in either class: §8.4.3.10.1 makes it "a predefined
-    /// address of class pointer or a predefined content of class message-tag", §8.4.3.9 makes the object
-    /// spelling "class object and category object reference", and §8.4.3.10.3 SR1 a) admits it "in a
+    /// <para>The figurative NULL rides on either side and in either class: §2023:8.4.3.10.1 makes it "a predefined
+    /// address of class pointer or a predefined content of class message-tag", §2023:8.4.3.9 makes the object
+    /// spelling "class object and category object reference", and §2023:8.4.3.10.3 SR1 a) admits it "in a
     /// pointer-or-object-reference relation condition" by name. It has no category of its own, so it is exempt
     /// from SR5's same-category test as well.</para></summary>
     private void CheckFormat3Relation(BoundOperand left, string op, BoundOperand right)
     {
-        // ⛔ CLASS IS ASKED OF THE ONE ISO §8.5.2.1 TABLE-2 LATTICE (IntrinsicArgumentRules), never of a local
+        // ⛔ CLASS IS ASKED OF THE ONE ISO §2023:8.5.2.1 TABLE-2 LATTICE (IntrinsicArgumentRules), never of a local
         // `Pic?.Category == …` test. That local test is what the two old copies used, and it is one of the
         // THREE categories Table 2 gathers into class pointer — so a PROGRAM-POINTER or FUNCTION-POINTER
         // operand answered "not a pointer" and the whole band stayed silent on it. The lattice also folds a
-        // bit / national GROUP onto its §13.18.29.4 as-if picture and reports an INDEX item as class index
+        // bit / national GROUP onto its §2023:13.18.29.4 as-if picture and reports an INDEX item as class index
         // rather than its storage category, neither of which raw `Pic` could see.
         static bool IsFormat3(CobolClass? c) => c is CobolClass.MessageTag or CobolClass.Object or CobolClass.Pointer;
         static bool IsNull(BoundOperand o) => o is BoundPredefinedNull;
@@ -1989,17 +1989,17 @@ internal sealed class StatementValidation(DataBinder data)
                 [var oc] when IsFormat3(oc) => oc,
                 _ => CobolClass.Pointer,
             };
-        // ⚠ NULL HAS NO CLASS OF ITS OWN IN A RELATION. §8.4.3.10.3 SR1 selects its reading from "the
-        // associated data item's class" (a) pointer, b) message-tag) and §8.4.3.9 gives the object spelling
+        // ⚠ NULL HAS NO CLASS OF ITS OWN IN A RELATION. §2023:8.4.3.10.3 SR1 selects its reading from "the
+        // associated data item's class" (a) pointer, b) message-tag) and §2023:8.4.3.9 gives the object spelling
         // class object, so in a relation it takes the OTHER operand's class. The lattice reports it as class
         // POINTER — the right answer for every class-CLOSED operand slot it is asked about, and the wrong one
-        // here, where `IF an-object-reference = NULL` is the relation §8.4.3.10.3 SR1 a) admits by name.
+        // here, where `IF an-object-reference = NULL` is the relation §2023:8.4.3.10.3 SR1 a) admits by name.
         // ⛔ …BUT ONLY OPPOSITE A FORMAT-3 OPERAND (kb/Work PB1427). Taking the other side's class UNCONDITIONALLY
         // gave NULL class alphanumeric opposite an alphanumeric item and class numeric opposite a numeric one, so
         // `IF X = NULL` / `IF N = NULL` made neither side Format 3, left the band silent, and ran NULL as LOW-VALUE.
-        // §8.4.3.10.3 SR1 a) admits NULL only "in a pointer-or-object-reference relation condition"; opposite
+        // §2023:8.4.3.10.3 SR1 a) admits NULL only "in a pointer-or-object-reference relation condition"; opposite
         // anything else it keeps the class the lattice gives it — pointer — and SR5 below refuses the pair.
-        // NULL opposite NULL: §8.4.3.10.3 SR1 — "This item may be used only in the following cases, depending upon
+        // NULL opposite NULL: §2023:8.4.3.10.3 SR1 — "This item may be used only in the following cases, depending upon
         // the associated data item's class" — and neither operand is a data item for NULL to be associated with, so
         // no case applies; it is the ONE SR1 refusal, COBOL2576 (kb/Work PB1427). The pair must stop here: no
         // renderer reads NULL, because every admitted slot compares it against the class of its other operand.
@@ -2021,17 +2021,17 @@ internal sealed class StatementValidation(DataBinder data)
             : lc is CobolClass.MessageTag || rc is CobolClass.MessageTag ? "a message-tag" : "a data-pointer";
         if (op is not ("==" or "!="))
         {
-            data.Edition.Error(code, $"{band} relation admits only [NOT] EQUAL / '=' / '<>' — ISO §8.8.4.2.2 "
+            data.Edition.Error(code, $"{band} relation admits only [NOT] EQUAL / '=' / '<>' — ISO §2023:8.8.4.2.2 "
                 + "Format 3 (message-tag-object-or-pointer-reference) prints no ordering operator, and no "
                 + "ordering is defined for a reference or an address");
             return;   // ONE diagnostic per written relation: the operand rule below is about the same pair
         }
-        // §8.8.4.2.3 SR5's two halves, asked of the pair. An operand whose class is not statically decidable
+        // §2023:8.8.4.2.3 SR5's two halves, asked of the pair. An operand whose class is not statically decidable
         // (an already-reported error node, a figurative whose class the context picks) abstains rather than
         // drawing a second diagnostic about something the binder has already spoken about.
-        // ⛔ A FIGURATIVE CONSTANT IS DECIDED, NOT UNDECIDABLE (kb/Work PB4740 review R1-4): its class set (§8.3.3.6.4) holds
+        // ⛔ A FIGURATIVE CONSTANT IS DECIDED, NOT UNDECIDABLE (kb/Work PB4740 review R1-4): its class set (§2023:8.3.3.6.4) holds
         // no Format 3 class, and identifier-3 / identifier-4 are data items, with NULL the one predefined operand
-        // (§8.4.3.10.3 SR1), so `IF T = SPACE` against a message tag, pointer or object is the SR5 violation. It used to
+        // (§2023:8.4.3.10.3 SR1), so `IF T = SPACE` against a message tag, pointer or object is the SR5 violation. It used to
         // abstain with the already-reported nodes (ClassOf answers null for its plural set) and rendered as NULL.
         static bool Decided(BoundOperand o, CobolClass? c) => c is not null || o is BoundFigurative or BoundAllLiteral;
         if (!IsFormat3(lc) || !IsFormat3(rc))
@@ -2039,25 +2039,25 @@ internal sealed class StatementValidation(DataBinder data)
             if (Decided(left, lc) && Decided(right, rc))
                 data.Edition.Error(code, $"both operands of {band} relation shall be of class message-tag, "
                     + "object or pointer — a data item of one of those classes, or the predefined NULL "
-                    + "(ISO §8.8.4.2.3 SR5; §8.4.3.10.3 SR1)");
+                    + "(ISO §2023:8.8.4.2.3 SR5; §2023:8.4.3.10.3 SR1)");
             return;
         }
         // "… and shall be of the same category" — the three pointer CATEGORIES are ONE class (Table 2) but SR5
-        // keeps them apart, and §8.8.4.2.1 item 11 says the same in the comparison-defined list ("Two operands
+        // keeps them apart, and §2023:8.8.4.2.1 item 11 says the same in the comparison-defined list ("Two operands
         // of class pointer where each operand is of the same category"). NULL is exempt: it is a predefined
         // address, not an identifier-3/identifier-4, and has no category of its own.
         if (IsNull(left) || IsNull(right)) return;
         if (lc != rc || (IntrinsicResultType.OperandCategory(left) is { } lcat
                          && IntrinsicResultType.OperandCategory(right) is { } rcat && lcat != rcat))
             data.Edition.Error(code, $"the two operands of {band} relation are not of the same category "
-                + "(ISO §8.8.4.2.3 SR5 — \"Identifier-3 and identifier-4 shall reference data items of class "
-                + "message-tag, object, or pointer, and shall be of the same category\"; §8.8.4.2.1 item 11 "
+                + "(ISO §2023:8.8.4.2.3 SR5 — \"Identifier-3 and identifier-4 shall reference data items of class "
+                + "message-tag, object, or pointer, and shall be of the same category\"; §2023:8.8.4.2.1 item 11 "
                 + "defines the pointer comparison only \"where each operand is of the same category\")");
     }
 
-    /// <summary>True when a group (or elementary) item has any elementary item of a CLASS §8.8.4.2.3 SR4 names —
+    /// <summary>True when a group (or elementary) item has any elementary item of a CLASS §2023:8.8.4.2.3 SR4 names —
     /// boolean, message-tag, object or pointer — which makes a strongly-typed group comparable only for equality.
-    /// ⛔ THE CLASS IS ASKED OF THE ONE §8.5.2.1 TABLE-2 LATTICE (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
+    /// ⛔ THE CLASS IS ASKED OF THE ONE §2023:8.5.2.1 TABLE-2 LATTICE (<see cref="IntrinsicArgumentRules.ClassOfItem"/>),
     /// never of a local category list (kb/Work PB1469): the list that stood here named three CATEGORIES —
     /// boolean, object-reference and data-pointer — and so missed PROGRAM-POINTER and FUNCTION-POINTER, the other
     /// two categories Table 2 gathers into class pointer; `IF T1 &gt; T2` over a strong group with a

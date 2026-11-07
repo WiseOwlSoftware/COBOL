@@ -8,16 +8,16 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// The mixed-usage record-image codec (DESIGN §14.4/§8.2, the Phase-1E Tier-C lift): a fixed-point
 /// BINARY/PACKED leaf's image inside a record/group image is its TRUE BYTES — radix-2 two's complement
 /// (big-endian) or BCD with a <c>0xC</c>/<c>0xD</c>/<c>0xF</c> sign nibble, of exactly
-/// <c>PicInfo.StorageWidth</c> (V59). This is implementor-defined territory: ISO/IEC 1989:2023 §13.18.60.4 GR4 —
+/// <c>PicInfo.StorageWidth</c> (V59). This is implementor-defined territory: ISO/IEC 1989:2023 §2023:13.18.60.4 GR4 —
 /// "Each implementor specifies the precise effect of the USAGE BINARY clause upon the … representation of the data
 /// item …, including the representation of any algebraic sign" — and GR11 the same for PACKED-DECIMAL; group MOVE
-/// (§14.9.25.4 GR4) / group compare (§8.8.4.2.1) are statements about that representation. The facts here are
+/// (§2023:14.9.25.4 GR4) / group compare (§2023:8.8.4.2.1) are statements about that representation. The facts here are
 /// therefore <b>spec-pinned</b>, never legacy-pinned (the NIST ST goldens stay the regression net — they observe
 /// COMP values only through numeric moves, never raw bytes). What the spec DOES fix regardless of representation is pinned throughout: SORT/MERGE keys compare by
-/// ALGEBRAIC value (§14.9.40 GR8 / §8.8.4.2.4 — "regardless of the manner in which their usage is described"),
-/// DUPLICATES IN ORDER stability (GR3b), the RELEASE/RETURN record-area round trip (§14.9.32 GR2 / §14.9.34 GR3),
-/// group-move positional fill without conversion (§14.9.25.4 GR4), and SAME RECORD AREA as an implicit leftmost-
-/// aligned redefinition (§12.4.6.4.4 GR2). Exercised end-to-end by NIST ST108A/ST127A/ST133A/ST134A.
+/// ALGEBRAIC value (§2023:14.9.40 GR8 / §2023:8.8.4.2.4 — "regardless of the manner in which their usage is described"),
+/// DUPLICATES IN ORDER stability (GR3b), the RELEASE/RETURN record-area round trip (§2023:14.9.32 GR2 / §2023:14.9.34 GR3),
+/// group-move positional fill without conversion (§2023:14.9.25.4 GR4), and SAME RECORD AREA as an implicit leftmost-
+/// aligned redefinition (§2023:12.4.6.4.4 GR2). Exercised end-to-end by NIST ST108A/ST127A/ST133A/ST134A.
 /// </summary>
 public sealed class MixedUsageRecordImageDifferentialTests
 {
@@ -41,7 +41,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
         Assert.Equal(CutRunner.Normalize(expected), cout);
     }
 
-    /// <summary>A file-sort program over one SD with INPUT/OUTPUT PROCEDUREs (whole-SECTION ranges, §14.9.40
+    /// <summary>A file-sort program over one SD with INPUT/OUTPUT PROCEDUREs (whole-SECTION ranges, §2023:14.9.40
     /// GR10/GR13). The output procedure RETURNs until AT END, running <paramref name="perRecord"/> for each.</summary>
     private static string SortProgram(string id, string sdRecord, string ws, string sortClauses, string releases,
         string perRecord) => $"""
@@ -89,10 +89,10 @@ public sealed class MixedUsageRecordImageDifferentialTests
             STOP RUN.
         """;
 
-    // ── SORT keys over signed BINARY/PACKED leaves (ISO §14.9.40 GR8 / §8.8.4.2.4 — algebraic order) ─────────
+    // ── SORT keys over signed BINARY/PACKED leaves (ISO §2023:14.9.40 GR8 / §2023:8.8.4.2.4 — algebraic order) ─────────
 
     /// <summary>An ASCENDING signed-COMP key orders NEGATIVES algebraically (−8000 &lt; −14 &lt; 0 &lt; +1 &lt; +99)
-    /// — §14.9.40 GR8 via §8.8.4.2.4: numeric comparison is "with respect to the algebraic value of the operands
+    /// — §2023:14.9.40 GR8 via §2023:8.8.4.2.4: numeric comparison is "with respect to the algebraic value of the operands
     /// regardless of the manner in which their usage is described". The load-bearing piece is the decode of the key
     /// WINDOW through the key item's own profile (<c>CobolSort.Key.Profile</c>): reading two's-complement bytes as
     /// text would sort every negative LAST, since a negative's first byte is 0xFF (hazard 1 — silent if untested).</summary>
@@ -134,7 +134,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "        MOVE S-KEY TO WS-ED DISPLAY \"K=\" WS-ED \" \" S-TXT"),
             "K=+0099 R2\nK=-0014 R1\nK=-8000 R3");
 
-    /// <summary>DUPLICATES IN ORDER over equal signed-COMP keys returns the duplicates in RELEASE order (§14.9.40
+    /// <summary>DUPLICATES IN ORDER over equal signed-COMP keys returns the duplicates in RELEASE order (§2023:14.9.40
     /// GR3b — the sequence phase must be stable; the ST127A duplicate-key-stability shape).</summary>
     [Fact]
     public void Sort_SignedBinaryKey_DuplicatesInOrder_PreservesReleaseOrder()
@@ -173,7 +173,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "        MOVE P-KEY TO WS-ED DISPLAY \"K=\" WS-ED \" \" P-TXT"),
             "K=-300 N2\nK=-005 N1\nK=+003 P1");
 
-    // ── MERGE keys over signed BINARY/PACKED leaves, and the sequence-error path (ISO §14.9.24.4 GR3/GR6) ─────────
+    // ── MERGE keys over signed BINARY/PACKED leaves, and the sequence-error path (ISO §2023:14.9.24.4 GR3/GR6) ─────────
 
     /// <summary>A MERGE program over two USING files, each written (ascending by <paramref name="keyPic"/>'s value)
     /// by the program itself, merged on <paramref name="direction"/> KEY and returned through an output procedure.
@@ -232,8 +232,8 @@ public sealed class MixedUsageRecordImageDifferentialTests
             IF WS-EOF = "N" GO TO DUMP-1.
         """;
 
-    /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§14.9.24.4 GR3 a) via
-    /// §8.8.4.2.4), negatives first: −8000 &lt; −20 &lt; −14 &lt; 0 &lt; +5 &lt; +99. The merge key window is decoded
+    /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§2023:14.9.24.4 GR3 a) via
+    /// §2023:8.8.4.2.4), negatives first: −8000 &lt; −20 &lt; −14 &lt; 0 &lt; +5 &lt; +99. The merge key window is decoded
     /// through the key item's own profile, exactly as the SORT key is — a byte-wise compare would put every negative
     /// (high bit set: 0x80.. and above) after every positive, SILENTLY.</summary>
     [Fact]
@@ -348,7 +348,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             MOVE -14 TO {file}-KEY WRITE {file}-REC.
         """;
 
-    /// <summary>EC-SORT-MERGE-SEQUENCE (§14.9.24.4 GR6) is judged on the same algebraic order, ASCENDING and WITH a
+    /// <summary>EC-SORT-MERGE-SEQUENCE (§2023:14.9.24.4 GR6) is judged on the same algebraic order, ASCENDING and WITH a
     /// USE declarative. FA holds −14 then +5: ascending by VALUE although its bytes (0xFFF2, 0x0005) descend, so the
     /// checked MERGE raises nothing and completes. FB holds +5 then −14: out of key order by value, so the checked
     /// MERGE raises EC-SORT-MERGE-SEQUENCE, the declarative runs, the statement is terminated (its output procedure
@@ -360,7 +360,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
                 MinusFourteenThenFive('A'), FiveThenMinusFourteen('B')),
             "K=-0014\nK=-0003\nK=+0005\nFIRST-DONE\nEC=EC-SORT-MERGE-SEQUENCE\nSECOND-DONE");
 
-    /// <summary>The DESCENDING direction (§14.9.24.4 GR3 b)), WITH a declarative: FA holds +5 then −14 — descending
+    /// <summary>The DESCENDING direction (§2023:14.9.24.4 GR3 b)), WITH a declarative: FA holds +5 then −14 — descending
     /// by VALUE although its bytes (0x0005, 0xFFF2) ascend — so the checked MERGE raises nothing; FB holds −14 then
     /// +5 and raises. A check that judged a DESCENDING merge by the ascending order would reverse both verdicts.</summary>
     [Fact]
@@ -371,7 +371,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
 
     /// <summary>The same two verdicts WITHOUT a USE declarative (ASCENDING): the in-order merge completes; the
     /// out-of-order one raises the fatal condition, no declarative applies, so the statement alone is terminated
-    /// (§14.6.13.1.3 2), docs/CONFORMANCE.md §3 D-SMA (b)): its output procedure never runs, nothing is displayed for
+    /// (§2023:14.6.13.1.3 2), docs/CONFORMANCE.md §3 D-SMA (b)): its output procedure never runs, nothing is displayed for
     /// the condition, and the run unit continues to SECOND-DONE.</summary>
     [Fact]
     public void Merge_SignedBinaryKey_SequenceCheck_Ascending_WithoutDeclarative_TerminatesTheStatementOnly()
@@ -386,11 +386,11 @@ public sealed class MixedUsageRecordImageDifferentialTests
                 FiveThenMinusFourteen('A'), MinusFourteenThenFive('B')),
             "K=+0005\nK=-0003\nK=-0014\nFIRST-DONE\nSECOND-DONE");
 
-    // ── RELEASE/RETURN round trip (ISO §14.9.32 GR2 / §14.9.34 GR3 — the record area carries the image) ──────
+    // ── RELEASE/RETURN round trip (ISO §2023:14.9.32 GR2 / §2023:14.9.34 GR3 — the record area carries the image) ──────
 
     /// <summary>RELEASE then RETURN round-trips signed COMP values EXACTLY — ±0 and ±max at 2/6/8 digits (the
     /// overpunch encode/decode tables are mutual inverses; the brief's hazard 7-iv verification). The checks
-    /// compare algebraically (numeric relation, §8.8.4.2.4), so they hold under ANY correct representation.</summary>
+    /// compare algebraically (numeric relation, §2023:8.8.4.2.4), so they hold under ANY correct representation.</summary>
     [Fact]
     public void ReleaseReturn_SignedCompLeaves_RoundTripZeroAndMax()
         => AssertSpec(SortProgram("MXSRT5", """
@@ -419,16 +419,16 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "ROW1 OK\nROW2 OK");
 
-    // ── Whole-group MOVE / compare over the byte-image representation (§14.9.25.4 GR4 / §8.8.4.2.1) ─────────
+    // ── Whole-group MOVE / compare over the byte-image representation (§2023:14.9.25.4 GR4 / §2023:8.8.4.2.1) ─────────
 
     /// <summary>A NON-ALIGNED mixed-group MOVE (3 source leaves → 4 receiver leaves — the ST127A 10→11 shape) is a
-    /// positional representation copy "without consideration for the individual elementary or group items" (§14.9.25.4 GR4):
+    /// positional representation copy "without consideration for the individual elementary or group items" (§2023:14.9.25.4 GR4):
     /// the source's image is <c>"AB" + FF 85 + "CDE"</c> — a <c>PIC S9(4) COMP</c> holding −123 is TWO bytes of
-    /// two's complement, 0x10000 − 123 = 0xFF85 (§13.18.60.4 GR4, radix 2; V59) — and it refills the receiver's
+    /// two's complement, 0x10000 − 123 = 0xFF85 (§2023:13.18.60.4 GR4, radix 2; V59) — and it refills the receiver's
     /// windows as AB | FF | 85 | CDE. Each one-byte <c>PIC S9(2) COMP</c> receiver then reads its byte as signed:
     /// 0xFF ⇒ −1, 0x85 ⇒ −123. (−123 exceeds a 2-digit picture, which is exactly what GR4 permits: the copy is of
     /// REPRESENTATION, and the resulting content need not be consistent with the receiver's description —
-    /// §14.6.13.2 leaves the subsequent numeric use undefined, so this pins OUR deterministic decode.)</summary>
+    /// §2023:14.6.13.2 leaves the subsequent numeric use undefined, so this pins OUR deterministic decode.)</summary>
     [Fact]
     public void Move_NonAlignedMixedGroups_FillsPositionallyByImage()
         => AssertSpec(Program("MXMOV1", """
@@ -452,7 +452,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "OK");
 
     /// <summary>A SIGNED NEGATIVE binary leaf's group image is its TWO'S-COMPLEMENT BYTES, big-endian, and FIXED
-    /// width: −7 in <c>PIC S9(4) COMP</c> is 0x10000 − 7 = <c>FF F9</c> — TWO bytes (§13.18.60.4 GR4 radix 2, the
+    /// width: −7 in <c>PIC S9(4) COMP</c> is 0x10000 − 7 = <c>FF F9</c> — TWO bytes (§2023:13.18.60.4 GR4 radix 2, the
     /// pinned 1-2-4-8 ladder), so the group is 4 and the following leaf does not shift. Two failure modes this
     /// pins at once: the retired inline concat formatted the leaf with its own BinaryMinus profile
     /// (<c>"-0007"</c>, VARIABLE width — a negative value shifted every following leaf), and the zoned digit image
@@ -479,7 +479,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "04\nAT2");
 
-    /// <summary>A fixed-OCCURS COMP child participates in the group image (ISO §14.9 — every OCCURS position is
+    /// <summary>A fixed-OCCURS COMP child participates in the group image (ISO §2023:14.9 — every OCCURS position is
     /// part of the whole group; the retired MixedGroupImage bailed on OCCURS entirely): a group-to-group move
     /// round-trips every element's value through the concatenated per-occurrence images.</summary>
     [Fact]
@@ -505,11 +505,11 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "OK");
 
-    // ── The mixed FD record codec (WRITE sends AsImage, READ distributes via FromImage — §8.2) ───────────────
+    // ── The mixed FD record codec (WRITE sends AsImage, READ distributes via FromImage — §2023:8.2) ───────────────
 
     /// <summary>WRITE of a mixed FD record then READ back restores every leaf's VALUE — negative, zero, positive
     /// (the ST133A tape-copy shape): the record codec is the generated AsImage/FromImage pair, and sequential
-    /// retrieval is write order (§14.9.30).</summary>
+    /// retrieval is write order (§2023:14.9.30).</summary>
     [Fact]
     public void MixedFdRecord_WriteThenReadBack_RoundTripsValues()
         => AssertSpec($"""
@@ -549,10 +549,10 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """,
             "R=AAA -00000199 T1\nR=BBB +00000000 T2\nR=CCC +00000099 T3");
 
-    // ── SAME RECORD AREA over a COMP leaf (ISO §12.4.6.4.4 GR2 — the ST134A Tier-B leg) ──────────────────────
+    // ── SAME RECORD AREA over a COMP leaf (ISO §2023:12.4.6.4.4 GR2 — the ST134A Tier-B leg) ──────────────────────
 
     /// <summary>SAME RECORD AREA makes the named files' record areas ONE storage area — "equivalent to an implicit
-    /// redefinition of the area, with records aligned on the leftmost byte position" (§12.4.6.4.4 GR2). With a COMP
+    /// redefinition of the area, with records aligned on the leftmost byte position" (§2023:12.4.6.4.4 GR2). With a COMP
     /// leaf the class is Tier B under the byte-image representation: a store through one record's leaf is visible
     /// through the other record's same-offset leaf, character image and algebraic value alike.</summary>
     [Fact]

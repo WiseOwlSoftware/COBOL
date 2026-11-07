@@ -5,12 +5,12 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The prototype a restricted program- or function-pointer's <c>TO prototype-name-1</c> phrase resolves to
-/// through its unit's prototype tables (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, ISO §8.4.6.8 /
-/// §8.4.6.6 and §12.3.8.4 GR10 / GR11): its namespace, its externalized name, and its signature — the external repository
+/// through its unit's prototype tables (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, ISO §2023:8.4.6.8 /
+/// §2023:8.4.6.6 and §2023:12.3.8.4 GR10 / GR11): its namespace, its externalized name, and its signature — the external repository
 /// entry's when GR10 c) / GR11 c) take the details from there (DESIGN-external-repository §8.2). Attached to the pointer as
 /// <see cref="DataItem.RestrictedPrototype"/> (kb/Work PB2495), it gives the pointer its two restrictions: the TO phrase's
 /// identity, the externalized name (<see cref="PrototypeSignatures.NamedRestriction(DataItem)"/>), and what it may contain,
-/// the identity of the signature (<see cref="PrototypeSignatures.Identity(RestrictedPrototype)"/>, ISO §13.18.60.4 GR25 /
+/// the identity of the signature (<see cref="PrototypeSignatures.Identity(RestrictedPrototype)"/>, ISO §2023:13.18.60.4 GR25 /
 /// GR26; kb/Work PB4491). <paramref name="Origin"/> is null for a prototype the compilation group declares, and the record
 /// it was decoded from otherwise.</summary>
 internal sealed record RestrictedPrototype(bool Function, string ExternalizedName, CalleeSignature Signature, PrototypeOrigin? Origin = null)

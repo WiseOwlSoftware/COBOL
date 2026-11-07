@@ -95,7 +95,7 @@ public sealed class PrintedFormatAlternativeDriftTests
         return blocks;
     }
 
-    /// <summary>⛔ ONE <c>goToStatement</c> ALTERNATIVE PER PRINTED §14.9.17.2 FORMAT, PLUS EXACTLY ONE
+    /// <summary>⛔ ONE <c>goToStatement</c> ALTERNATIVE PER PRINTED §2023:14.9.17.2 FORMAT, PLUS EXACTLY ONE
     /// ADJUDICATED ARM. That one arm is the ANSI X3.23-1985 target-less <c>GO TO.</c>, which the 2023 standard
     /// prints NO format for: it stays in the grammar so the removal can be reported by name
     /// (COBOL0811 / <c>BareGotoRemoved2002</c>) instead of as a no-viable-alternative parse error, which the
@@ -115,10 +115,10 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// COMPOSES WITH. <c>moveReceivingPhrase</c> carried a second alternative
     /// <c>(CORRESPONDING | CORR) dataReference TO dataReference</c>, which composed with
     /// <c>MOVE sendingOperand moveReceivingPhrase</c> to admit
-    /// <c>MOVE &lt;sending-operand&gt; CORRESPONDING id-3 TO id-4</c> — a shape NEITHER §14.9.25.2 format
+    /// <c>MOVE &lt;sending-operand&gt; CORRESPONDING id-3 TO id-4</c> — a shape NEITHER §2023:14.9.25.2 format
     /// prints, because a phrase rule cannot know what the statement rule already spelled.
     /// <para>The invariant is stated over the WHOLE grammar rather than over the one rule that broke it: the
-    /// CORRESPONDING/CORR pair selects a general format in three clauses (§14.9.2.2, §14.9.25.2, §14.9.44.2),
+    /// CORRESPONDING/CORR pair selects a general format in three clauses (§2023:14.9.2.2, §2023:14.9.25.2, §2023:14.9.44.2),
     /// and in every one of them the format prints the keyword immediately after the verb. A new phrase rule
     /// that names it is the same defect in a new clause, and fails here.</para></summary>
     [Fact]
@@ -157,11 +157,11 @@ public sealed class PrintedFormatAlternativeDriftTests
     }
 
     /// <summary>⛔ THE MIRROR DIRECTION, AND THE ONE THAT REJECTS LEGAL SOURCE (kb/Work PB402, PB407). The
-    /// standard prints <c>LAST EXCEPTION</c> in three general formats — §14.9.14.2 Format 2 (EXIT PROGRAM,
-    /// canonical PDF page 653), §14.9.18.2 (GOBACK, page 661) and §14.9.38.2 Format 2 (SEND, page 756) — and on
+    /// standard prints <c>LAST EXCEPTION</c> in three general formats — §2023:14.9.14.2 Format 2 (EXIT PROGRAM,
+    /// canonical PDF page 653), §2023:14.9.18.2 (GOBACK, page 661) and §2023:14.9.38.2 Format 2 (SEND, page 756) — and on
     /// all three, rendered and measured, RAISING and LAST carry underline rectangles while the EXCEPTION after
-    /// LAST does not. §5.2.3 makes a non-underlined uppercase word an OPTIONAL word, so <c>RAISING LAST</c> is
-    /// legal at every one of those sites, and §7.3.21.4 rule 2 is the standard citing itself — the PROPAGATE
+    /// LAST does not. §2023:5.2.3 makes a non-underlined uppercase word an OPTIONAL word, so <c>RAISING LAST</c> is
+    /// legal at every one of those sites, and §2023:7.3.21.4 rule 2 is the standard citing itself — the PROPAGATE
     /// rule writes the phrase back as "as though a GOBACK RAISING LAST statement were executed".
     /// <para>This is stated over the GRAMMAR TEXT rather than over one rule because the defect recurred by
     /// COPY: PB407 relaxed the shared <c>raisingPhrase</c>, and <c>messagingSendStatement</c>'s inline spelling of the
@@ -176,7 +176,7 @@ public sealed class PrintedFormatAlternativeDriftTests
         foreach (var (file, text) in Grammars())
             foreach (Match m in Regex.Matches(text, @"\b(SET\s+)?LAST\s+EXCEPTION(\??)"))
             {
-                if (m.Groups[1].Success) continue;      // §14.9.39 Format 13's own figure — see the test below
+                if (m.Groups[1].Success) continue;      // §2023:14.9.39 Format 13's own figure — see the test below
                 sites.Add($"{file}@{m.Index}");
                 if (m.Groups[2].Value != "?")
                     offenders.Add($"{file}: 'LAST EXCEPTION' with a REQUIRED second EXCEPTION near offset {m.Index}");
@@ -190,7 +190,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     }
 
     /// <summary>⚠ THE SITE THAT MAY NOT BE SWEPT WITH THE OTHERS, named so the sweep above cannot be misread.
-    /// <c>SET LAST EXCEPTION TO OFF</c> (§14.9.39 Format 13) prints its own figure with its own underlining, and
+    /// <c>SET LAST EXCEPTION TO OFF</c> (§2023:14.9.39 Format 13) prints its own figure with its own underlining, and
     /// a sweep that treated every <c>LAST EXCEPTION</c> in the language as one fact would relax it on this
     /// grammar rule's authority rather than on its own page's
     /// (feedback_a_real_clause_can_answer_a_different_question). It is excluded HERE by spelling, not by
@@ -206,7 +206,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// <summary>⛔ A PRINTED OUTER REPETITION IS A NAMED PHRASE RULE, NEVER AN INLINE <c>( … )+</c> GROUP
     /// (kb/Work PB450).
     ///
-    /// <para>§14.9.39.2 prints an outer ellipsis on four of the SET statement's formats — 3 (switch-setting),
+    /// <para>§2023:14.9.39.2 prints an outer ellipsis on four of the SET statement's formats — 3 (switch-setting),
     /// 4 (condition-setting), 6 (attribute) and 7 (data-pointer-assignment, where the repeated unit is the
     /// receiving-operand brace). Formats 3 and 4 have the SAME printed skeleton, and the grammar transcribed
     /// Format 3's outer `…` and dropped Format 4's, eighteen lines away in the same file: conforming
@@ -229,18 +229,18 @@ public sealed class PrintedFormatAlternativeDriftTests
     {
         // Shape assertion 1: the clause really does print the many-format figure set this is about.
         Assert.True(PrintedFormats("14.9.39.2") >= 15,
-            "§14.9.39.2 printed fewer figures than the SET statement has formats — the scrape is broken");
+            "§2023:14.9.39.2 printed fewer figures than the SET statement has formats — the scrape is broken");
 
         // Shape assertion 2: and its figure notes really do describe outer repetitions, which is the fact the
         // grammar shape below exists to carry. Derived from the transcription, not from a list kept here.
         string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL_2023.md"));
         var section = Regex.Match(spec, @"^#+\s+14\.9\.39\.2\s+" + SpecClauseText.GeneralFormatNoun + @"\s*$(.*?)^#+\s+14\.9\.39\.3\s",
                                   RegexOptions.Singleline | RegexOptions.Multiline);
-        Assert.True(section.Success, "§14.9.39.2's own section was not found — the scrape is broken");
+        Assert.True(section.Success, "§2023:14.9.39.2's own section was not found — the scrape is broken");
         int outerRepeats = Regex.Matches(section.Groups[1].Value,
             @"repeats the whole braced portion|repeats the braced receiving operand|repeats the whole outer braced group").Count;
         Assert.True(outerRepeats >= 3,
-            $"the §14.9.39.2 figure notes described {outerRepeats} outer repetition(s) — the scrape is broken");
+            $"the §2023:14.9.39.2 figure notes described {outerRepeats} outer repetition(s) — the scrape is broken");
 
         var swept = new List<string>();
         var offenders = new List<string>();
@@ -278,7 +278,7 @@ public sealed class PrintedFormatAlternativeDriftTests
 
     /// <summary>⛔ <c>setToSender</c>'s ARMS ARE NULL, THEN ADDRESS OF, THEN THE ARITHMETIC EXPRESSION, AND NOTHING
     /// ELSE (kb/Work PB4231; feedback_grammar_precedence — ANTLR takes the first matching alternative).
-    /// <para>§14.9.39.3 SR19 lets Format 7's identifier-6 be "the predefined address NULL", and Format 5's sender may
+    /// <para>§2023:14.9.39.3 SR19 lets Format 7's identifier-6 be "the predefined address NULL", and Format 5's sender may
     /// be the predefined object reference NULL, so <c>SET X TO NULL</c> is token-identical in both and only the
     /// RECEIVER's category tells them apart — <c>SetFormatSelection</c>'s question, asked at BIND. The grammar
     /// therefore has ONE <c>setToStatement</c>, and its sender decides its arm at the left edge: NULL FIRST, because

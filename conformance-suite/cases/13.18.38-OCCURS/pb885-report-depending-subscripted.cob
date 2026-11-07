@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> A REPORT-WRITER OCCURS ... DEPENDING ON OPERAND SHALL NOT BE SUBSCRIPTED (kb/Work PB885).
-      *> ISO/IEC 1989:2023 §13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be
+      *> ISO/IEC 1989:2023 §2023:13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be
       *> subscripted." The grammar's shared dataReference parses WS-TE (2), and the binder used to keep the
       *> name and DROP the subscript in silence — this entry printed three repetitions where WS-TE (2) = 2
       *> asked for two. The capture is now the ONE data-name-n screen (COBOL2024). The report-writer

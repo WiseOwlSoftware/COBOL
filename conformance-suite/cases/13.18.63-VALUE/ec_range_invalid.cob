@@ -6,13 +6,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-RANGE-INVALID (ISO §14.7.8 THROUGH phrase rule 2, spec :24863; Table 13 Nonfatal): an alphanumeric or
+      *> EC-RANGE-INVALID (ISO §2023:14.7.8 THROUGH phrase rule 2, spec :24863; Table 13 Nonfatal): an alphanumeric or
       *> national THRU range whose starting value collates AFTER its ending value (an inverted range) — in a level-88
       *> VALUE clause or an EVALUATE WHEN range — sets the nonfatal EC-RANGE-INVALID and the range is treated as EMPTY.
       *> A numeric descending range (rule 1) sets NO exception. Observed via FUNCTION EXCEPTION-STATUS under
       *> >>TURN EC-RANGE-INVALID CHECKING ON.
       *> A level-88 range reaches the run-time arm only when its collating sequence is UNKNOWN at compile time:
-      *> §13.18.63.3 SR26 requires literal-2 less than literal-3 for a numeric range, and for a character range
+      *> §2023:13.18.63.3 SR26 requires literal-2 less than literal-3 for a numeric range, and for a character range
       *> "when ... the runtime collating sequence is known" (cite.py OK; COBOL2961, kb/Work PB552), and "The
       *> runtime collating sequence is unknown when the collating sequence is defined by a locale". So the
       *> inverted 88 is ordered IN a LOCALE alphabet, and the numeric descending range is an EVALUATE WHEN range,

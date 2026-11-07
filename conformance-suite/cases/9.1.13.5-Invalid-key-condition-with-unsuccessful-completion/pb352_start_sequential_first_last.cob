@@ -9,9 +9,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 §14.9.41 START on SEQUENTIAL organization — the
+      *> ISO 1989:2023 §2023:14.9.41 START on SEQUENTIAL organization — the
       *> arm the standard REQUIRES and this compiler refused until
-      *> kb/Work PB352. §14.9.41.3 SR2: "If the organization of the file
+      *> kb/Work PB352. §2023:14.9.41.3 SR2: "If the organization of the file
       *> referenced by file-name-1 is sequential, either the FIRST or
       *> the LAST phrase shall be specified" — so START is not merely
       *> permitted here, FIRST/LAST is the ONLY form it can take.
@@ -30,23 +30,23 @@
       *>         either the content of the record area …" — AREA= below
       *>         prints the value MOVEd in before the START, unchanged.
       *>   GR1   the open mode shall be input or I-O; Table 20's blank
-      *>         Output/Extend cells are §9.1.13.7 item 7's '47', and
+      *>         Output/Extend cells are §2023:9.1.13.7 item 7's '47', and
       *>         neither INVALID nor NOT INVALID runs for a '4x'
-      *>         (§9.1.14 keys the two branches on the invalid key
+      *>         (§2023:9.1.14 keys the two branches on the invalid key
       *>         condition and on successful completion).
       *>   GR5   an OPTIONAL input file that is not present raises the
-      *>         invalid key condition — §9.1.13.5 item 3 b)'s '23'.
+      *>         invalid key condition — §2023:9.1.13.5 item 3 b)'s '23'.
       *>   GR7   after an unsuccessful START "the file position
       *>         indicator is set to indicate that no valid record
-      *>         position has been established", which §9.1.13.7 item
+      *>         position has been established", which §2023:9.1.13.7 item
       *>         6 a) reads back as '46' on the next sequential READ.
-      *> The record the next READ delivers is §14.9.30.4 GR21's own
+      *> The record the next READ delivers is §2023:14.9.30.4 GR21's own
       *> sequential arm b): "If the file position indicator was
       *> established by a prior successful OPEN or START statement, the
       *> first existing record that is selected is made available" —
       *> INCLUSIVE positioning, so START FIRST + READ yields record 1
       *> and START LAST + READ yields the last record.
-      *> §9.1.7.2's RECORD-sequential type is walked here. The
+      *> §2023:9.1.7.2's RECORD-sequential type is walked here. The
       *> LINE-sequential type is the same two rules over a different
       *> framing, and is walked by
       *> 2023/pb352_start_sequential_first_last_line: ORGANIZATION IS
@@ -131,7 +131,7 @@
                NOT INVALID KEY DISPLAY "EF-OK"
            END-START
            DISPLAY "EF=" ST-E
-      *> GR7 -> §9.1.13.7 item 6 a): the next sequential READ is '46'.
+      *> GR7 -> §2023:9.1.13.7 item 6 a): the next sequential READ is '46'.
            READ EMF AT END CONTINUE END-READ
            DISPLAY "ER=" ST-E
            START EMF LAST

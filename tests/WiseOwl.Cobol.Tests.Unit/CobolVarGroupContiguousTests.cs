@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The D-FRA split rule (docs/CONFORMANCE.md §3; kb/Work PB981) — <see cref="CobolVarGroup.FromContiguous"/>, the
 /// ONE decomposition of a variable-length record read back from a file. A WRITE sends the record "as though it
-/// were in fact contiguous with its neighbors" (ISO §8.5.1.11.2), so the read record carries no marker of where a
+/// were in fact contiguous with its neighbors" (ISO §2023:8.5.1.11.2), so the read record carries no marker of where a
 /// dynamic member ends; each component takes as many whole units as the record holds beyond the fixed material
 /// still to come, up to its maximum. These pin the rule's three stated properties: an exact inverse of the
 /// composer for ONE variable-length member wherever it sits, the EARLIER component taking the excess when there
@@ -142,7 +142,7 @@ public sealed class CobolVarGroupContiguousTests
         Assert.Equal("H", taken.Fixed);
     }
 
-    // ── kb/Work PB3030: a table counted in BITS (ISO §8.5.1.6.3 puts each USAGE BIT occurrence at the next bit
+    // ── kb/Work PB3030: a table counted in BITS (ISO §2023:8.5.1.6.3 puts each USAGE BIT occurrence at the next bit
     // position, so occurrences share bytes). Member H = B PIC 1 USAGE BIT · TB PIC 1 USAGE BIT OCCURS 1 TO 8: the table
     // starts at bit 1 of H's first character (Lead 1), one bit per occurrence, and H is ceiling(9 / 8) = 2 characters.
 
@@ -153,7 +153,7 @@ public sealed class CobolVarGroupContiguousTests
     {
         Assert.Equal(2, BitTail.Width);                 // 1 + 8 bits
         Assert.Equal(0, BitTail.CutAt(8));
-        Assert.Equal(1, BitTail.CutAt(7));              // 1 + 7 = 8 bits: one character (§15.50.4 rule 9)
+        Assert.Equal(1, BitTail.CutAt(7));              // 1 + 7 = 8 bits: one character (§2023:15.50.4 rule 9)
         Assert.Equal(1, BitTail.CutAt(2));              // 1 + 2 = 3 bits: still one character
         Assert.Equal(1, BitTail.CutAt(0));              // B alone shares the table's first character
         Assert.Equal(1, BitTail.CutAt(-3));             // clamped to 0, as the declared group's count is
@@ -165,7 +165,7 @@ public sealed class CobolVarGroupContiguousTests
     [Fact]
     public void BitOdoTail_KeepUnused_SplicesAtTheFirstUnusedOccurrencesBit()
     {
-        // §13.18.38.4 GR8 a): a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender and keeps
+        // §2023:13.18.38.4 GR8 a): a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender and keeps
         // every later bit of the receiver's own image, inside the shared first character too.
         string received = CobolBits.Pack("010" + "00000" + "00000000");
         string current = CobolBits.Pack("111" + "11111" + "10000000");
@@ -267,7 +267,7 @@ public sealed class CobolVarGroupContiguousTests
     [Fact]
     public void AReceivingCellWindow_UsesOnlyTheCurrentOccurrences_AndTheRestKeepTheirContent()
     {
-        // ISO §13.18.38.4 GR8 a): with the DEPENDING item outside the group, "only that part of the table area that is
+        // ISO §2023:13.18.38.4 GR8 a): with the DEPENDING item outside the group, "only that part of the table area that is
         // specified by the value of the data item ... at the start of the operation will be used" - occurrence 1 of 3.
         var carrier = new CobolVarGroup("HNEW", ["n1", "n2", "n3"]);
         var cell = ElementCell();
@@ -333,7 +333,7 @@ public sealed class CobolVarGroupContiguousTests
         var one = layout.Decompose("1abx", null, count: 1);
         Assert.Equal("1x", one.Fixed);
         Assert.Equal(["ab"], one.Dynamic);
-        // at the maximum (the default, §13.18.38.4 GR8 b) the same record leaves every component empty, the fixed run
+        // at the maximum (the default, §2023:13.18.38.4 GR8 b) the same record leaves every component empty, the fixed run
         // taking the characters in turn: the first pass, which places a data-name-1 the record holds before the table
         var max = layout.Decompose("1abx");
         Assert.Equal("1abx", max.Fixed);

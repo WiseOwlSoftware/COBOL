@@ -5,10 +5,10 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1173 — A FILE SORT KEY UNDER OCCURS IS REFUSED BY SR6 b) AND f), NOT BY THE SUBSCRIPT RULE.
-      *>   cite.py --check 14.9.40.3 "Key data names shall not be subject to any OCCURS clauses" -> OK §14.9.40.3 6) b)
+      *>   cite.py --check 14.9.40.3 "Key data names shall not be subject to any OCCURS clauses" -> OK §2023:14.9.40.3 6) b)
       *>   cite.py --check 14.9.40.3 "None of the data items identified by key data-names may be described by an
       *>     entry that either contains an OCCURS clause or is subordinate to an entry that contains an OCCURS
-      *>     clause." -> OK §14.9.40.3 6) f)
+      *>     clause." -> OK §2023:14.9.40.3 6) f)
       *> KOCC is a table; writing it unsubscripted used to draw COBOL2270 ("a table element needs a subscript"),
       *> true and beside the point: no subscript would make it a legal key. The key-admissibility predicate names the
       *> rule the statement breaks, for the key whether or not it is subscripted.

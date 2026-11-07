@@ -8,15 +8,15 @@ namespace WiseOwl.Cobol.Binding.Bound;
 // Binding/Procedure/Verbs/SetAlterBinder.cs; these types STAY here — BoundAlter/BoundGoToAlterable are
 // VersionConformancePass gate anchors, and the source-generated visitor keys on this namespace).
 
-/// <summary><c>SET {mnemonic-name-1}… TO {ON|OFF} …</c> (ISO §14.9.39 Format 3), resolved to implementor
+/// <summary><c>SET {mnemonic-name-1}… TO {ON|OFF} …</c> (ISO §2023:14.9.39 Format 3), resolved to implementor
 /// switch-names: GR5 — each switch associated with a mnemonic-name is modified so that a condition-name associated
 /// with it evaluates on (ON phrase) / off (OFF phrase). Both the mnemonic list and the outer group repeat (a
 /// compound <c>SET A TO ON B TO OFF</c> is ONE statement); assignments apply in source order.</summary>
 public sealed record BoundSetSwitches(IReadOnlyList<(string Name, bool On)> Switches) : BoundStatement;
 
-/// <summary>A switch-status condition (ISO §8.8.4.6.2 — just <c>condition-name-1</c>): true when the external
+/// <summary>A switch-status condition (ISO §2023:8.8.4.6.2 — just <c>condition-name-1</c>): true when the external
 /// switch <paramref name="ImplementorName"/> is set to the position the condition-name posits (GR1) — ON when
-/// <paramref name="TestsOn"/>, OFF otherwise. A simple condition (§8.8.4.4), freely combinable with AND/OR/NOT.</summary>
+/// <paramref name="TestsOn"/>, OFF otherwise. A simple condition (§2023:8.8.4.4), freely combinable with AND/OR/NOT.</summary>
 public sealed record BoundSwitchCondition(string ImplementorName, bool TestsOn) : BoundCondition;
 
 /// <summary>One <c>ALTER proc-1 TO [PROCEED TO] proc-2</c> entry, fully resolved: assign <paramref name="NewPc"/>
@@ -25,7 +25,7 @@ public sealed record BoundSwitchCondition(string ImplementorName, bool TestsOn) 
 public sealed record BoundAlterEntry(string AlterField, int NewPc);
 
 /// <summary><c>ALTER</c> (ANSI X3.23-1985 ¶VI.6 — obsolete there; DELETED by ISO/IEC 1989:2002; the 2023 standard
-/// has no ALTER and its GO TO has only Formats 1–2, §14.9.17): each entry replaces the GO TO target of the named
+/// has no ALTER and its GO TO has only Formats 1–2, §2023:14.9.17): each entry replaces the GO TO target of the named
 /// single-GO-TO paragraph. The most recent ALTER executed governs subsequent transfers.</summary>
 public sealed record BoundAlter(IReadOnlyList<BoundAlterEntry> Entries) : BoundStatement;
 

@@ -7,10 +7,10 @@ using WiseOwl.Cobol.CodeGen.Emit;
 namespace WiseOwl.Cobol.CodeGen;
 
 /// <summary>
-/// THE §14.6.2.3.2 action-1 BACKGROUND — the one place that answers "what fills storage that has no VALUE
+/// THE §2023:14.6.2.3.2 action-1 BACKGROUND — the one place that answers "what fills storage that has no VALUE
 /// clause" (kb/Work PB152).
 ///
-/// <para><b>The rule, in order.</b> §14.6.2.3.2 numbers the initial-state actions, and the first two settle both
+/// <para><b>The rule, in order.</b> §2023:14.6.2.3.2 numbers the initial-state actions, and the first two settle both
 /// scope and sequence: action 1 — "If the INITIALIZE clause is specified in the OPTIONS paragraph, the storage
 /// allocated for the implied or associated sections is set to the specified-fill-character"; action 2 — "The
 /// internal data described in the working-storage section and local-storage section is initialized as described
@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// initializer is one expression, and this changes only what the expression is when no VALUE was written.</para>
 ///
 /// <para><b>Why it exists as its own type.</b> "What fills a VALUE-less item" was composed in THREE places and
-/// only one of them had ever been fixed. PB151 wired the ALLOCATE arm (§14.9.3.4 GR8/GR9) and left the other
+/// only one of them had ever been fixed. PB151 wired the ALLOCATE arm (§2023:14.9.3.4 GR8/GR9) and left the other
 /// two: <c>PicInfo.DefaultInitializer</c> (the native-field arm) and <c>GroupImageCodec</c>'s fall-through (the
 /// Tier-B image arm) each hardcoded <c>' '</c> / <c>'0'</c> / <c>0L</c> and never consulted the OPTIONS model at
 /// all. Worse, the landed arm's fill decoder was PRIVATE to <c>PtrEmitter</c>, so the two dead arms could not
@@ -29,10 +29,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// one choke point to route through — and a drift test asserts the two arms agree.</para>
 ///
 /// <para><b>⛔ EVERY STORAGE POSITION TAKES THE FILL, NUMERIC ITEMS INCLUDED</b> (owner decision kb/Work R53,
-/// overturning the former "a native-numeric carrier takes its zero" determination; kb/Work PB1134). §14.6.2.3.2
+/// overturning the former "a native-numeric carrier takes its zero" determination; kb/Work PB1134). §2023:14.6.2.3.2
 /// action 1 sets "the storage allocated for the implied or associated sections" to the specified-fill-character
-/// with no exception for numeric items, and §13.18.63.4 GR4 c)'s "undefined" latitude is the NO-clause baseline
-/// (§11.9.10.4 GR6), not a license to ignore a clause the program wrote. So a VALUE-less fixed-point numeric item
+/// with no exception for numeric items, and §2023:13.18.63.4 GR4 c)'s "undefined" latitude is the NO-clause baseline
+/// (§2023:11.9.10.4 GR6), not a license to ignore a clause the program wrote. So a VALUE-less fixed-point numeric item
 /// of a governed section is given IMAGE storage at bind time (<c>StorageFormPass</c>, the same promotion a group
 /// move's receiver gets) and its image is the fill: a USAGE DISPLAY item holds the fill CHARACTERS, a BINARY /
 /// COMP-5 / PACKED item holds the fill BYTES (the fill character's byte by the storage-byte law — HIGH-VALUES is
@@ -42,11 +42,11 @@ namespace WiseOwl.Cobol.CodeGen;
 /// effective OPTIONS clause (<c>StorageFormPass</c> step 5b). Two carve-outs, each from a RULE rather than from
 /// convenience:</para>
 /// <list type="bullet">
-///   <item><b>Class object / message-tag / pointer take NULL, never the fill.</b> §13.18.63.4 GR4 c) states this
+///   <item><b>Class object / message-tag / pointer take NULL, never the fill.</b> §2023:13.18.63.4 GR4 c) states this
 ///     as a positive requirement — those items "are initialized to null" — in the same sentence that leaves
 ///     every other item undefined. A rule beats a background.</item>
 ///   <item><b>USAGE BIT keeps its packed zero seed</b> (D19 / kb/Work PB43). Its storage is ceil(n/8) PACKED
-///     bytes laid out by the §8.5.1.6.3 walk, not a run of character positions, so a character fill has no
+///     bytes laid out by the §2023:8.5.1.6.3 walk, not a run of character positions, so a character fill has no
 ///     position to occupy. A DISPLAY-form boolean item DOES take the fill: under D-B1 its storage is one
 ///     alphanumeric character per boolean position, which is exactly what the background sets.</item>
 /// </list>
@@ -58,15 +58,15 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     private HashSet<DataItem>? _lsRoots;
     private IReadOnlyList<DataItem>? _lsSource;   // the list _lsRoots was built from — rebuilt when the activation changes
 
-    /// <summary>The §11.9.10.4 GR5 specified-fill-character that applies to THIS item's initial state, or null
+    /// <summary>The §2023:11.9.10.4 GR5 specified-fill-character that applies to THIS item's initial state, or null
     /// when no background applies to it — the ONE predicate, so section selectivity, the GR7 exclusion and the
     /// no-clause case are answered once instead of once per storage arm.</summary>
-    /// <summary>THE §11.9.10.4 GR5 specified-fill-character of the clause itself, section selection aside — or
-    /// null when there is no clause, or when its literal-1 was rejected by §11.9.10.3 SR1 (a rejected clause
+    /// <summary>THE §2023:11.9.10.4 GR5 specified-fill-character of the clause itself, section selection aside — or
+    /// null when there is no clause, or when its literal-1 was rejected by §2023:11.9.10.3 SR1 (a rejected clause
     /// behaves as an absent one rather than laying down a byte the program did not conformingly ask for).
     ///
     /// <para>⛔ GR5 b and d resolve through <c>FigurativeConstants.FillChar</c> — the compiler's ONE definition
-    /// of the alphanumeric high and low value — and NOT through a second map written here. §8.3.3.6.4 GR6 makes
+    /// of the alphanumeric high and low value — and NOT through a second map written here. §2023:8.3.3.6.4 GR6 makes
     /// the high-value format "the character … that has the highest ordinal position in the program collating
     /// sequence", so it is a PCS-dependent fact, not a constant. This was measured wrong: PB151's landed
     /// ALLOCATE arm carried its own map spelling HIGH-VALUES as U+FFFF, while every other HIGH-VALUE in the
@@ -86,11 +86,11 @@ internal sealed class InitialStateBackground(EmitContext ctx)
         { Fill: OptionsFill.LowValues } => FigurativeConstants.FillChar('L', ctx.Data.Configuration.Collating),
         { Fill: OptionsFill.Spaces } => FigurativeConstants.FillChar('S', ctx.Data.Configuration.Collating),
         { Fill: OptionsFill.Literal, LiteralFillChar: var c } => c,
-        // ⛔ EXHAUSTIVE BY CONSTRUCTION over §11.9.10.4 GR5 a–e. A new OptionsFill member is a new GR5 arm and
+        // ⛔ EXHAUSTIVE BY CONSTRUCTION over §2023:11.9.10.4 GR5 a–e. A new OptionsFill member is a new GR5 arm and
         // needs a derived fill character, so it fails LOUD here rather than defaulting to a space — a silent
         // default would make the new arm behave as "no clause" and look like it worked.
         { Fill: var unknown } => throw new InvalidOperationException(
-            $"OPTIONS INITIALIZE fill kind {unknown} has no ISO §11.9.10.4 GR5 fill character; add its arm"),
+            $"OPTIONS INITIALIZE fill kind {unknown} has no ISO §2023:11.9.10.4 GR5 fill character; add its arm"),
     };
 
     private char? FillFor(DataItem item)
@@ -161,7 +161,7 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     private static string FillRun(char fill, int length) =>
         length <= 0 ? "\"\"" : $"new string({EmitText.CsCharLiteral(fill)}, {length})";
 
-    /// <summary>The §14.9.3.4 GR8/GR9 ALLOCATE background as a C# char literal (kb/Work PB151's arm, now reading
+    /// <summary>The §2023:14.9.3.4 GR8/GR9 ALLOCATE background as a C# char literal (kb/Work PB151's arm, now reading
     /// the resolved model instead of re-decoding the literal). ⛔ GR8/GR9 key on the CLAUSE, not on its section
     /// list — allocated storage belongs to no section, so <see cref="FillFor"/>'s section predicate deliberately
     /// does NOT govern here; the CONFORMANCE.md GR8 determination records that. No clause ⇒ the space, which

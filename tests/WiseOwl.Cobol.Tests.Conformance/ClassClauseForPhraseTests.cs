@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB976 — THE CLASS CLAUSE'S FOR PHRASE IS READ, and every class-dependent sub-rule of ISO §12.3.7.3 SR17
+/// kb/Work PB976 — THE CLASS CLAUSE'S FOR PHRASE IS READ, and every class-dependent sub-rule of ISO §2023:12.3.7.3 SR17
 /// ("When the CLASS clause is specified:") keys on that one reading. The phrase was parsed and IGNORED, so the b-
 /// and c-series went unenforced and SR-12.3.7.3-17 was recorded CONFORMS on evidence that never exercised it.
 /// <para>One fact per sub-rule and class (<c>feedback_two_arm_dispatch</c>: the b arm and the c arm are pinned
@@ -39,65 +39,65 @@ public sealed class ClassClauseForPhraseTests
         EditionHarness.AssertHasDiagnostic(errors, expected);
     }
 
-    /// <summary>§12.3.7.3 SR17 d) — "<i>Alphabet-name-4 shall not reference an alphabet specified with the LOCALE
+    /// <summary>§2023:12.3.7.3 SR17 d) — "<i>Alphabet-name-4 shall not reference an alphabet specified with the LOCALE
     /// phrase.</i>" Both classes (the national arm is the one SR17 c) 5. — once row SR-12.3.7.3-L7.5, folded into
     /// SR-12.3.7.3-17 by kb/Work PB55 — lumps with c5): a LOCALE alphabet defines a collating sequence and no coded
-    /// character set (§12.3.7.4 GR7 Table 6), so the ONE coded-set resolver refuses it by SR17 d's name.</summary>
+    /// character set (§2023:12.3.7.4 GR7 Table 6), so the ONE coded-set resolver refuses it by SR17 d's name.</summary>
     [Theory]
     [InlineData("PB1557D", "ALPHABET LA IS LOCALE\n    CLASS CL IS 1 THRU 3 IN LA.", "COBOL1669: CLASS CL IN LA: the alphabet 'LA' is associated with a locale")]
     [InlineData("PB1557DN", "ALPHABET LN FOR NATIONAL IS LOCALE\n    CLASS CN FOR NATIONAL IS 1 THRU 3 IN LN.", "COBOL1669: CLASS CN IN LN: the alphabet 'LN' is associated with a locale")]
     public void InLocaleAlphabet_IsSR17d(string pid, string clauses, string expected)
     {
         Rejects(pid, clauses, expected);
-        Rejects(pid + "R", clauses, "ISO §12.3.7.3 SR17 d");
+        Rejects(pid + "R", clauses, "ISO §2023:12.3.7.3 SR17 d");
     }
 
-    /// <summary>§12.3.7.3 SR17 b) 1. / c) 1. — "When the IN phrase is specified, alphabet-name-4 shall reference an
+    /// <summary>§2023:12.3.7.3 SR17 b) 1. / c) 1. — "When the IN phrase is specified, alphabet-name-4 shall reference an
     /// alphabet that defines an alphanumeric / a national character set". SR17 a) implies ALPHANUMERIC when no FOR
     /// phrase is written, so the unmarked class takes the b arm.</summary>
     [Theory]
-    [InlineData("PB976B1", "CLASS C3 IS 1 THRU 5 IN NA.", "COBOL1671: CLASS C3 IN NA: alphabet-name-4 shall reference an alphabet that defines an ALPHANUMERIC character set — this alphabet is FOR NATIONAL (ISO §12.3.7.3 SR17 b1)")]
-    [InlineData("PB976B1F", "CLASS C3 FOR ALPHANUMERIC IS 1 THRU 5 IN NA.", "(ISO §12.3.7.3 SR17 b1)")]
-    [InlineData("PB976C1", "CLASS C2 FOR NATIONAL IS 1 THRU 5 IN AA.", "COBOL1671: CLASS C2 FOR NATIONAL IN AA: alphabet-name-4 shall reference an alphabet that defines a NATIONAL character set — this alphabet is alphanumeric (ISO §12.3.7.3 SR17 c1)")]
+    [InlineData("PB976B1", "CLASS C3 IS 1 THRU 5 IN NA.", "COBOL1671: CLASS C3 IN NA: alphabet-name-4 shall reference an alphabet that defines an ALPHANUMERIC character set — this alphabet is FOR NATIONAL (ISO §2023:12.3.7.3 SR17 b1)")]
+    [InlineData("PB976B1F", "CLASS C3 FOR ALPHANUMERIC IS 1 THRU 5 IN NA.", "(ISO §2023:12.3.7.3 SR17 b1)")]
+    [InlineData("PB976C1", "CLASS C2 FOR NATIONAL IS 1 THRU 5 IN AA.", "COBOL1671: CLASS C2 FOR NATIONAL IN AA: alphabet-name-4 shall reference an alphabet that defines a NATIONAL character set — this alphabet is alphanumeric (ISO §2023:12.3.7.3 SR17 c1)")]
     public void InAlphabetOfTheOtherClass_IsSR17_1(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
-    /// <summary>§12.3.7.3 SR17 b) 2. / c) 2. — "Literal-5, if numeric, shall be an unsigned integer and shall have
+    /// <summary>§2023:12.3.7.3 SR17 b) 2. / c) 2. — "Literal-5, if numeric, shall be an unsigned integer and shall have
     /// a value within the range of one through …" the native set or, under IN, alphabet-name-4's set. Both halves
     /// of the sentence, on both arms.</summary>
     [Theory]
-    [InlineData("PB976B2S", "CLASS C9 IS +65 THRU 66.", "COBOL1671: CLASS C9: +65 — each numeric literal shall be an UNSIGNED integer (ISO §12.3.7.3 SR17 b2)")]
-    [InlineData("PB976C2S", "CLASS C9 FOR NATIONAL IS +65.", "(ISO §12.3.7.3 SR17 c2)")]
-    [InlineData("PB976B2R", "CLASS C9 IS 1 THRU 129 IN S1.", "the ordinal 129 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §12.3.7.3 SR17 b2")]
-    [InlineData("PB976C2R", "CLASS C9 FOR NATIONAL IS 65537.", "(ISO §12.3.7.3 SR17 c2)")]
+    [InlineData("PB976B2S", "CLASS C9 IS +65 THRU 66.", "COBOL1671: CLASS C9: +65 — each numeric literal shall be an UNSIGNED integer (ISO §2023:12.3.7.3 SR17 b2)")]
+    [InlineData("PB976C2S", "CLASS C9 FOR NATIONAL IS +65.", "(ISO §2023:12.3.7.3 SR17 c2)")]
+    [InlineData("PB976B2R", "CLASS C9 IS 1 THRU 129 IN S1.", "the ordinal 129 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §2023:12.3.7.3 SR17 b2")]
+    [InlineData("PB976C2R", "CLASS C9 FOR NATIONAL IS 65537.", "(ISO §2023:12.3.7.3 SR17 c2)")]
     // kb/Work PB1557's sibling: an integer too long for an `int` is still an INTEGER, held to the ordinal rule — it
     // used to fail int.TryParse and be reported under SR17 b3, the NONINTEGER literal's class rule.
     [InlineData("PB1557B2L", "CLASS C9 IS 12345678901.", "COBOL1671: CLASS C9: the ordinal 12345678901 does not exist in the native alphanumeric character set")]
-    [InlineData("PB1557B2I", "CLASS C9 IS 1 THRU 99999999999999999999 IN S1.", "the ordinal 99999999999999999999 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §12.3.7.3 SR17 b2")]
+    [InlineData("PB1557B2I", "CLASS C9 IS 1 THRU 99999999999999999999 IN S1.", "the ordinal 99999999999999999999 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §2023:12.3.7.3 SR17 b2")]
     public void Ordinal_IsSR17_2(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
-    /// <summary>§12.3.7.3 SR17 b) 3. / c) 3. — "Each noninteger literal shall be an alphanumeric / a national
+    /// <summary>§2023:12.3.7.3 SR17 b) 3. / c) 3. — "Each noninteger literal shall be an alphanumeric / a national
     /// literal." ⛔ The b arm also pins the classifier: a N"…" literal used to pass the ALPHANUMERIC test (it asked
     /// "is this a quoted literal?", true for every prefix), in the ALPHABET clause too — the sweep's second fact.</summary>
     [Theory]
-    [InlineData("PB976B3", "CLASS C1 IS N\"0\" THRU N\"9\".", "COBOL1671: CLASS C1: N\"0\" — each noninteger literal shall be an alphanumeric literal (ISO §12.3.7.3 SR17 b3)")]
+    [InlineData("PB976B3", "CLASS C1 IS N\"0\" THRU N\"9\".", "COBOL1671: CLASS C1: N\"0\" — each noninteger literal shall be an alphanumeric literal (ISO §2023:12.3.7.3 SR17 b3)")]
     [InlineData("PB976C3", "CLASS HN FOR NATIONAL IS \"0\" THRU \"9\".", "COBOL1671: CLASS HN FOR NATIONAL: \"0\" — each noninteger literal shall be a NATIONAL literal")]
     [InlineData("PB976C3A", "CLASS HN FOR NATIONAL IS ALL \"AB\".", "COBOL1671: CLASS HN FOR NATIONAL: ALL \"AB\" — each noninteger literal shall be a NATIONAL literal")]
-    [InlineData("PB976B3AL", "CLASS C9 IS \"A\".\n    ALPHABET AX IS N\"A\" \"B\".", "COBOL1906: ALPHABET AX: N\"A\" — each noninteger literal shall be an alphanumeric literal (ISO §12.3.7.3 SR14 b2)")]
+    [InlineData("PB976B3AL", "CLASS C9 IS \"A\".\n    ALPHABET AX IS N\"A\" \"B\".", "COBOL1906: ALPHABET AX: N\"A\" — each noninteger literal shall be an alphanumeric literal (ISO §2023:12.3.7.3 SR14 b2)")]
     public void LiteralOfTheOtherClass_IsSR17_3(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
-    /// <summary>§12.3.7.3 SR17 b) 4. / c) 4. — "Each alphanumeric / national literal, when a THROUGH phrase is
+    /// <summary>§2023:12.3.7.3 SR17 b) 4. / c) 4. — "Each alphanumeric / national literal, when a THROUGH phrase is
     /// specified, shall be one character in length." The multi-character operand used to be taken as a plain
     /// literal-5 with literal-6 silently dropped.</summary>
     [Theory]
-    [InlineData("PB976B4", "CLASS C9 IS \"AB\" THRU \"C\".", "COBOL1671: CLASS C9: the operand 'AB' is 2 characters — each alphanumeric literal, when a THROUGH phrase is specified, shall be one character in length (ISO §12.3.7.3 SR17 b4)")]
-    [InlineData("PB976C4", "CLASS C9 FOR NATIONAL IS N\"A\" THRU N\"YZ\".", "(ISO §12.3.7.3 SR17 c4)")]
+    [InlineData("PB976B4", "CLASS C9 IS \"AB\" THRU \"C\".", "COBOL1671: CLASS C9: the operand 'AB' is 2 characters — each alphanumeric literal, when a THROUGH phrase is specified, shall be one character in length (ISO §2023:12.3.7.3 SR17 b4)")]
+    [InlineData("PB976C4", "CLASS C9 FOR NATIONAL IS N\"A\" THRU N\"YZ\".", "(ISO §2023:12.3.7.3 SR17 c4)")]
     public void MultiCharacterThroughOperand_IsSR17_4(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
     /// <summary>kb/Work PB1091 (SR17 c) 4., row SR-12.3.7.3-17 since kb/Work PB55 folded row SR-12.3.7.3-L7.4 into
     /// it) — SR17 c4 is a rule about NATIONAL LITERALS ("Each national literal, when a THROUGH phrase is specified,
     /// shall be one character in length"); a NUMERIC literal is an ordinal, names one character of its set by construction, and is held to c2's range rule. The one-character test is asked of the operand
     /// AS WRITTEN, so an ordinal under <c>IN</c> UCS-4 that names a SUPPLEMENTARY character (two UTF-16 code units) is no
-    /// longer refused under c4. What a THROUGH phrase needs of it is a position in the NATIVE set (§12.3.7.4 GR12:
+    /// longer refused under c4. What a THROUGH phrase needs of it is a position in the NATIVE set (§2023:12.3.7.4 GR12:
     /// "the contiguous characters in the native character set beginning with … literal-5 … ending with … literal-6"),
     /// which a character of two code units has none in — refused under that rule's own message (implementor-defined,
     /// DOC-A.1-188). The BMP ordinals of the same IN alphabet, and a supplementary ordinal OUTSIDE a THROUGH phrase, are
@@ -108,7 +108,7 @@ public sealed class ClassClauseForPhraseTests
     public void SupplementaryOrdinalUnderThrough_IsRefusedByGR12_NotC4(string pid, string clauses)
     {
         Rejects(pid, clauses, "(it needs 2 of its 16-bit code units)");
-        Rejects(pid + "G", clauses, "ISO §12.3.7.4 GR12");
+        Rejects(pid + "G", clauses, "ISO §2023:12.3.7.4 GR12");
         var (_, errors, _) = EditionHarness.CompileFull(Prog(pid + "N", clauses), 2023);
         Assert.DoesNotContain(errors, e => e.Contains("SR17 c4"));
     }
@@ -130,38 +130,38 @@ public sealed class ClassClauseForPhraseTests
     /// noninteger literal (c3). The b arm is <see cref="Ordinal_IsSR17_2"/>'s PB1557B2L/I.</summary>
     [Theory]
     [InlineData("PB1091C2L", "CLASS C9 FOR NATIONAL IS 12345678901.", "COBOL1671: CLASS C9 FOR NATIONAL: the ordinal 12345678901 does not exist in the native national character set")]
-    [InlineData("PB1091C2I", "ALPHABET U4 FOR NATIONAL IS UCS-4\n    CLASS C9 FOR NATIONAL IS 99999999999 IN U4.", "the ordinal 99999999999 does not exist in the character set referenced by the IN alphabet (UCS-4, 1112064 characters) — ISO §12.3.7.3 SR17 c2")]
+    [InlineData("PB1091C2I", "ALPHABET U4 FOR NATIONAL IS UCS-4\n    CLASS C9 FOR NATIONAL IS 99999999999 IN U4.", "the ordinal 99999999999 does not exist in the character set referenced by the IN alphabet (UCS-4, 1112064 characters) — ISO §2023:12.3.7.3 SR17 c2")]
     public void TooLongNationalOrdinal_IsSR17_c2(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
-    /// <summary>§12.3.7.3 SR17 b) 5. — "The number of characters specified shall not exceed … the number of
+    /// <summary>§2023:12.3.7.3 SR17 b) 5. — "The number of characters specified shall not exceed … the number of
     /// characters in the character set referenced by alphabet-name-4": the 256-character Latin-1 block, named
     /// THROUGH the native set, outnumbers STANDARD-1's 128 (the positive control's 26 do not).</summary>
     [Fact]
     public void MoreCharactersThanTheInSet_IsSR17_5() =>
         Rejects("PB976B5", "CLASS C9 IS 1 THRU 2 X\"00\" THRU \"ÿ\" IN S1.",
-            "256 characters are specified — more than the 128 characters of the character set referenced by alphabet-name-4 (STANDARD-1) (ISO §12.3.7.3 SR17 b5)");
+            "256 characters are specified — more than the 128 characters of the character set referenced by alphabet-name-4 (STANDARD-1) (ISO §2023:12.3.7.3 SR17 b5)");
 
     /// <summary>kb/Work PB2919 — the hexadecimal literal X"FF" is the byte 0xFF, U+FFFF (the storage-byte law), so
     /// <c>X"00" THRU X"FF"</c> names the whole 65,536-character native set, not the Latin-1 block of the test above.</summary>
     [Fact]
     public void HexRangeToFF_NamesTheWholeNativeSet_IsSR17_5() =>
         Rejects("PB2919B5", "CLASS C9 IS 1 THRU 2 X\"00\" THRU X\"FF\" IN S1.",
-            "65536 characters are specified — more than the 128 characters of the character set referenced by alphabet-name-4 (STANDARD-1) (ISO §12.3.7.3 SR17 b5)");
+            "65536 characters are specified — more than the 128 characters of the character set referenced by alphabet-name-4 (STANDARD-1) (ISO §2023:12.3.7.3 SR17 b5)");
 
-    /// <summary>§12.3.7.3 SR11 — "Literal-1, literal-2, literal-3, literal-4, literal-5, literal-6, and literal-9 shall
+    /// <summary>§2023:12.3.7.3 SR11 — "Literal-1, literal-2, literal-3, literal-4, literal-5, literal-6, and literal-9 shall
     /// specify neither a symbolic-character figurative constant nor a zero-length literal", for the CLASS clause and
     /// the ALPHABET clause through the one decoder.</summary>
     [Theory]
-    [InlineData("PB976Z1", "CLASS C9 IS \"\" \"A\".", "COBOL1671: CLASS C9: \"\" — an operand shall not be a zero-length literal (ISO §12.3.7.3 SR11)")]
-    [InlineData("PB976Z2", "CLASS C9 IS \"A\".\n    ALPHABET AX IS \"\", \"A\".", "COBOL1906: ALPHABET AX: \"\" — an operand shall not be a zero-length literal (ISO §12.3.7.3 SR11)")]
+    [InlineData("PB976Z1", "CLASS C9 IS \"\" \"A\".", "COBOL1671: CLASS C9: \"\" — an operand shall not be a zero-length literal (ISO §2023:12.3.7.3 SR11)")]
+    [InlineData("PB976Z2", "CLASS C9 IS \"A\".\n    ALPHABET AX IS \"\", \"A\".", "COBOL1906: ALPHABET AX: \"\" — an operand shall not be a zero-length literal (ISO §2023:12.3.7.3 SR11)")]
     // kb/Work PB226 — SR11's OTHER half in the ALPHABET literal phrase: a symbolic-character name is refused under
     // SR11 itself (it used to draw the class rule, SR14 b2), whichever order the two clauses are written in.
-    [InlineData("PB226S1", "ALPHABET AX IS \"A\" ALSO BEL\n    SYMBOLIC CHARACTERS BEL IS 8.", "COBOL1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §12.3.7.3 SR11)")]
-    [InlineData("PB226S2", "SYMBOLIC CHARACTERS BEL IS 8\n    ALPHABET AX IS \"A\" THRU BEL.", "COBOL1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §12.3.7.3 SR11)")]
+    [InlineData("PB226S1", "ALPHABET AX IS \"A\" ALSO BEL\n    SYMBOLIC CHARACTERS BEL IS 8.", "COBOL1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §2023:12.3.7.3 SR11)")]
+    [InlineData("PB226S2", "SYMBOLIC CHARACTERS BEL IS 8\n    ALPHABET AX IS \"A\" THRU BEL.", "COBOL1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §2023:12.3.7.3 SR11)")]
     public void ZeroLengthLiteral_IsSR11(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
     /// <summary>kb/Work PB977 — a FOR phrase written AFTER the clause's definition is refused BY NAME, the same code
-    /// for all three clauses that print the phrase (ISO §12.3.7.2), at every edition. The ALPHABET spelling used to
+    /// for all three clauses that print the phrase (ISO §2023:12.3.7.2), at every edition. The ALPHABET spelling used to
     /// compile clean; the CLASS and SYMBOLIC CHARACTERS spellings drew a bare <c>COBOL0001: unexpected 'FOR'</c>.</summary>
     [Theory]
     [InlineData("PB977A", "ALPHABET A2 IS NATIVE FOR NATIONAL.", "COBOL2315: ALPHABET A2: the phrase 'FOR NATIONAL' follows the clause's definition — the FOR phrase belongs between the name and IS", 2023)]
@@ -174,7 +174,7 @@ public sealed class ClassClauseForPhraseTests
 
     /// <summary>THE POSITIVE CONTROL for every fact above: each class, with and without IN, with THROUGH, a
     /// figurative constant, an ALL literal and the FOR phrase at its printed position — and the ALPHABET clause's
-    /// ALL literal (§8.3.3.6.4 GR3 c: "The length of the string is the length of literal-1"), which it used to
+    /// ALL literal (§2023:8.3.3.6.4 GR3 c: "The length of the string is the length of literal-1"), which it used to
     /// refuse under SR11, a rule about something else.</summary>
     [Theory]
     [InlineData("PB976OKA", "CLASS C1 IS \"0\" THRU \"9\" SPACE ALL \"AB\" 66 THRU 68 X\"41\".")]

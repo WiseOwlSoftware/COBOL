@@ -4,12 +4,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.11.3 SR2 DISPLAY statement — the UPON mnemonic "shall be associated with an implementor-defined
+      *> ISO §2023:14.9.11.3 SR2 DISPLAY statement — the UPON mnemonic "shall be associated with an implementor-defined
       *> device-name that is identified in the operating environment as a hardware or software device CAPABLE OF
       *> RECEIVING DATA FROM THE PROGRAM".
       *>   python scripts/spec/cite.py --check 14.9.11.3 "shall be associated with an implementor-defined
       *>   device-name that is identified in the operating environment as a hardware or software device capable
-      *>   of receiving data from the program"  ->  OK  §14.9.11.3 2)
+      *>   of receiving data from the program"  ->  OK  §2023:14.9.11.3 2)
       *>
       *> The COMPLEMENT of Annex A.1 item 59's determination (docs/CONFORMANCE.md#DOC-A.1-59), and the leg that
       *> makes the item-59 golden a MEASUREMENT of a device SET rather than of one name: SYSIN is the implementor

@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §14.6.2.3.2 action-1 background has ONE choke point, and the §11.9.10.4 GR5 fill map has ONE definition
+/// The §2023:14.6.2.3.2 action-1 background has ONE choke point, and the §2023:11.9.10.4 GR5 fill map has ONE definition
 /// of the alphanumeric extremes (kb/Work PB152).
 ///
 /// <para><b>Why this test exists.</b> "What fills storage that has no VALUE clause" was written in THREE places
@@ -27,7 +27,7 @@ public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
     private static readonly Type Background =
         typeof(WiseOwl.Cobol.CodeGen.ValueInitializer).Assembly
             .GetType("WiseOwl.Cobol.CodeGen.InitialStateBackground")
-        ?? throw new InvalidOperationException("InitialStateBackground is gone — the §14.6.2.3.2 action-1 choke "
+        ?? throw new InvalidOperationException("InitialStateBackground is gone — the §2023:14.6.2.3.2 action-1 choke "
             + "point was removed or renamed. Re-derive the rule before re-shaping this test.");
 
     /// <summary>⛔ THE CHOKE-POINT PIN. Exactly the members that may compose a background seed, and no others:
@@ -45,10 +45,10 @@ public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
 
     /// <summary>⛔ THE ONE-DEFINITION PIN. The GR5 b/d extremes must be resolved through
     /// <c>FigurativeConstants.FillChar</c> — the compiler's single definition of the alphanumeric high and low
-    /// value, which §8.3.3.6.4 GR6 makes a PROGRAM-COLLATING-SEQUENCE-dependent fact rather than a constant.
+    /// value, which §2023:8.3.3.6.4 GR6 makes a PROGRAM-COLLATING-SEQUENCE-dependent fact rather than a constant.
     /// A hand-written map in the OPTIONS path is exactly how the landed ALLOCATE arm came to disagree with the
     /// rest of the compiler, so the model is asserted to carry NO figurative character at all: the only fill
-    /// character it may resolve at bind time is literal-1's, whose §11.9.10.3 SR1 check belongs there.</summary>
+    /// character it may resolve at bind time is literal-1's, whose §2023:11.9.10.3 SR1 check belongs there.</summary>
     [Fact]
     public void TheOptionsModelResolvesOnlyTheLiteralFillCharacter()
     {
@@ -62,8 +62,8 @@ public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
         Assert.DoesNotContain("FigurativeFillChar", props);
     }
 
-    /// <summary>The §11.9.10.3 SR1 decode, at the bind-time resolver. "Literal-1 shall specify a one-byte
-    /// hexadecimal-alphanumeric literal" — §8.3.3.2.2's FORMAT 2 (<c>X"…"</c> / <c>X'…'</c>) with exactly two
+    /// <summary>The §2023:11.9.10.3 SR1 decode, at the bind-time resolver. "Literal-1 shall specify a one-byte
+    /// hexadecimal-alphanumeric literal" — §2023:8.3.3.2.2's FORMAT 2 (<c>X"…"</c> / <c>X'…'</c>) with exactly two
     /// hexadecimal digits. ⛔ The format-1 rows are the point: a one-character quoted literal READS admissible
     /// and is not, and the pre-screen decoder accepted every one of them by taking <c>raw[0]</c>.</summary>
     [Theory]
@@ -76,7 +76,7 @@ public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
     [InlineData("\"AB\"", -1)]
     [InlineData("X\"5A5B\"", -1)]     // right format, TWO bytes
     [InlineData("X\"5\"", -1)]        // half a byte
-    [InlineData("X\"GG\"", -1)]       // §8.3.3.2.3 SR5 — not hexadecimal digits
+    [InlineData("X\"GG\"", -1)]       // §2023:8.3.3.2.3 SR5 — not hexadecimal digits
     [InlineData("X\"5A'", -1)]        // mismatched delimiters
     [InlineData("", -1)]
     public void Sr1AdmitsOnlyAOneByteHexadecimalAlphanumericLiteral(string raw, int expected)
@@ -89,7 +89,7 @@ public sealed class InitialStateBackgroundDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>The end-to-end invariant the whole landing rests on, stated as a test rather than as trust:
-    /// with NO OPTIONS INITIALIZE clause the seed is unchanged from the documented §11.9.10.4 GR6 baseline.
+    /// with NO OPTIONS INITIALIZE clause the seed is unchanged from the documented §2023:11.9.10.4 GR6 baseline.
     /// Every program in the corpus is in this population, so a regression here is a corpus-wide wrong answer.
     /// </summary>
     [Fact]

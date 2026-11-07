@@ -14,10 +14,10 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// FUNCTION STANDARD-COMPARE (ISO §15.85) and the SPECIAL-NAMES ORDER TABLE clause (§12.3.7.2), increment T7 of
+/// FUNCTION STANDARD-COMPARE (ISO §2023:15.85) and the SPECIAL-NAMES ORDER TABLE clause (§2023:12.3.7.2), increment T7 of
 /// <c>docs/rearchitecture/DESIGN-locale-facility.md</c> §4.9 (kb/Work PB101; owner decision Q4, 2026-08-18).
-/// Two halves: the RUNTIME function's returned-value rules (§15.85.4 r1–r7) over the derived CLDR/UCA collation
-/// engine, and the BIND-time rules of the clause and of the reference (§12.3.7.3 SR9/SR10/SR11, §15.85.3 r4/r5/r6).
+/// Two halves: the RUNTIME function's returned-value rules (§2023:15.85.4 r1–r7) over the derived CLDR/UCA collation
+/// engine, and the BIND-time rules of the clause and of the reference (§2023:12.3.7.3 SR9/SR10/SR11, §2023:15.85.3 r4/r5/r6).
 /// <para>⚖ Conformance statement, verbatim (owner decision Q4): "Implements collation behavior consistent with
 /// ISO/IEC 14651 through derived tables and CLDR/UCA data."</para>
 /// </summary>
@@ -35,9 +35,9 @@ public sealed class StandardCompareTests
         finally { ExceptionState.OrderNotSupportedChecking = saved; }
     }
 
-    // ── §15.85.4 r1 / r2 — the ordering LEVEL ────────────────────────────────────────────────────────────────
+    // ── §2023:15.85.4 r1 / r2 — the ordering LEVEL ────────────────────────────────────────────────────────────────
 
-    /// <summary>§15.85.4 r5 — "Argument-1 and argument-2 are compared in accordance with the ordering table and
+    /// <summary>§2023:15.85.4 r5 — "Argument-1 and argument-2 are compared in accordance with the ordering table and
     /// ordering level being used". Level 1 is the base-letter level: case, accents and the level-4 punctuation
     /// weight are all invisible there.</summary>
     [Fact]
@@ -84,7 +84,7 @@ public sealed class StandardCompareTests
         Assert.Equal("<", CobolIntrinsics.StandardCompare("a-b", "ab", null, 4));
     }
 
-    /// <summary>§15.85.4 r1 — "If argument-4 is unspecified, the highest level defined in the ordering table is
+    /// <summary>§2023:15.85.4 r1 — "If argument-4 is unspecified, the highest level defined in the ordering table is
     /// used for the comparison." The renderer passes 0 for an omitted argument-4; the highest level of this
     /// table is 4, so the answer must equal the explicit level-4 answer and differ from level 3's.</summary>
     [Fact]
@@ -97,9 +97,9 @@ public sealed class StandardCompareTests
                         CobolIntrinsics.StandardCompare("a-b", "ab", null, null));
     }
 
-    // ── §15.85.4 r4 / r6 / r7 — the operands and the result ──────────────────────────────────────────────────
+    // ── §2023:15.85.4 r4 / r6 / r7 — the operands and the result ──────────────────────────────────────────────────
 
-    /// <summary>§15.85.4 r4: "For purposes of comparison, trailing spaces are truncated from the operands except
+    /// <summary>§2023:15.85.4 r4: "For purposes of comparison, trailing spaces are truncated from the operands except
     /// that an operand consisting of all spaces is truncated to a single space." NOT a plain trim — the
     /// all-spaces operand becomes ONE space, so it is greater than a zero-length one, not equal to it.</summary>
     [Fact]
@@ -113,7 +113,7 @@ public sealed class StandardCompareTests
         Assert.Equal("=", CobolIntrinsics.StandardCompare(null, "", null, null));
     }
 
-    /// <summary>§15.85.4 r6 — the three returned values — and r7: "The length of the returned value is 1."</summary>
+    /// <summary>§2023:15.85.4 r6 — the three returned values — and r7: "The length of the returned value is 1."</summary>
     [Fact]
     public void ReturnedValue_IsOneOfThreeCharacters_LengthOne()
     {
@@ -129,14 +129,14 @@ public sealed class StandardCompareTests
             Assert.Contains(r, new[] { "<", "=", ">" });
         }
         Assert.Equal("=", CobolIntrinsics.StandardCompare("abc", "abc", null, null));
-        // Culturally sensitive, and "not necessarily a character-by-character comparison" (§15.85.4's NOTE):
+        // Culturally sensitive, and "not necessarily a character-by-character comparison" (§2023:15.85.4's NOTE):
         // ordinally 'R' (0x52) < 'r' (0x72), so a code-unit comparison would answer ">" here.
         Assert.Equal("<", CobolIntrinsics.StandardCompare("resume", "Résumé", null, null));
     }
 
-    // ── §15.85.3 r5 / §12.3.7.4 GR17 — which ordering table ──────────────────────────────────────────────────
+    // ── §2023:15.85.3 r5 / §2023:12.3.7.4 GR17 — which ordering table ──────────────────────────────────────────────────
 
-    /// <summary>§15.85.3 r5 names the default table 'ISO 14651_2020_TABLE1' and §12.3.7.4's NOTE 5 spells it
+    /// <summary>§2023:15.85.3 r5 names the default table 'ISO 14651_2020_TABLE1' and §2023:12.3.7.4's NOTE 5 spells it
     /// 'ISO_14651_2020_TABLE1'. The standard therefore uses BOTH spellings for the same table, so an explicit
     /// ORDER TABLE naming either must behave exactly as the omitted-ordering-name form does.</summary>
     [Theory]
@@ -152,7 +152,7 @@ public sealed class StandardCompareTests
         Assert.Equal("<", CobolIntrinsics.StandardCompare("a", "A", name, 3));
     }
 
-    /// <summary>§12.3.7.4 GR17 — "The implementor specifies the allowable content of literal-9" — and WiseOwl COBOL's
+    /// <summary>§2023:12.3.7.4 GR17 — "The implementor specifies the allowable content of literal-9" — and WiseOwl COBOL's
     /// determination is that a CLDR locale tag naming a tailored collation is allowable. Spanish orders ñ as a
     /// letter of its own between n and o, so a name the root table orders BELOW "nz" is ordered ABOVE it under
     /// es-ES: the same two operands, two tables, two answers.</summary>
@@ -164,10 +164,10 @@ public sealed class StandardCompareTests
         Assert.Equal("<", CobolIntrinsics.StandardCompare("ñu", "nz", null, null));
     }
 
-    // ── §15.85.4 r2 — EC-ORDER-NOT-SUPPORTED ─────────────────────────────────────────────────────────────────
+    // ── §2023:15.85.4 r2 — EC-ORDER-NOT-SUPPORTED ─────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// §15.85.4 r2: "If the cultural ordering table is not available on the processor, or the specified ordering
+    /// §2023:15.85.4 r2: "If the cultural ordering table is not available on the processor, or the specified ordering
     /// level is not available, or the level number specified by argument-4 is not defined in the ordering table,
     /// the EC-ORDER-NOT-SUPPORTED exception condition is set to exist." Table 13 makes it FATAL, so with
     /// checking enabled it throws for the statement guard to dispatch to a USE declarative.
@@ -191,7 +191,7 @@ public sealed class StandardCompareTests
         }));
     }
 
-    /// <summary>kb/Work PB2631 - §15.85.3 r6: "Argument-4, if specified, shall be a positive nonzero integer". A
+    /// <summary>kb/Work PB2631 - §2023:15.85.3 r6: "Argument-4, if specified, shall be a positive nonzero integer". A
     /// SPECIFIED zero or negative level (a data item's run-time value) violates the ARGUMENT rule: EC-ARGUMENT-FUNCTION,
     /// and with checking off the one-character substituted result (row DOC-A.1-90) is one space. Level 0 used to mean
     /// "unspecified" and compared at level 4; a negative one raised EC-ORDER-NOT-SUPPORTED, which is r2's rule for a
@@ -219,11 +219,11 @@ public sealed class StandardCompareTests
     }
 
     /// <summary>
-    /// ⛔ WITH CHECKING OFF, NOTHING IS RAISED AND NOTHING IS RECORDED. §14.6.13.1.1: "If no exception is
+    /// ⛔ WITH CHECKING OFF, NOTHING IS RAISED AND NOTHING IS RECORDED. §2023:14.6.13.1.1: "If no exception is
     /// detected during the execution of a statement or if checking for an exception that occurs is not enabled,
-    /// no exception condition is raised" — so the last exception status stays clear. §14.6.13.1.3 #8 then leaves
+    /// no exception condition is raised" — so the last exception status stays clear. §2023:14.6.13.1.3 #8 then leaves
     /// the outcome to the implementor, and WiseOwl COBOL's determination (CONFORMANCE.md §4 item 5) is to continue
-    /// and return "=", a value §15.85.4 r6 defines and r7 sizes.
+    /// and return "=", a value §2023:15.85.4 r6 defines and r7 sizes.
     /// </summary>
     [Fact]
     public void UnavailableTable_WithCheckingOff_ReturnsEqual_AndRecordsNothing()
@@ -276,9 +276,9 @@ public sealed class StandardCompareTests
     private const string Ot1 = "           ORDER TABLE OT1 IS \"ISO 14651_2020_TABLE1\".\n";
     private const string Move = "           MOVE FUNCTION STANDARD-COMPARE(\"a\" \"b\") TO R.\n";
 
-    /// <summary>The clause parses and binds, and the reference compiles in every written shape §15.85.2's two
+    /// <summary>The clause parses and binds, and the reference compiles in every written shape §2023:15.85.2's two
     /// positional optionals admit: two arguments, three-with-an-ordering-name, three-with-a-level (as a literal
-    /// AND as the integer DATA ITEM §15.3 type 6 admits), and four.</summary>
+    /// AND as the integer DATA ITEM §2023:15.3 type 6 admits), and four.</summary>
     [Fact]
     public void TheClauseAndEveryReferenceShape_Compile()
     {
@@ -287,7 +287,7 @@ public sealed class StandardCompareTests
             "FUNCTION STANDARD-COMPARE(\"a\" \"b\")",
             "FUNCTION STANDARD-COMPARE(\"a\" \"b\" OT1)",
             "FUNCTION STANDARD-COMPARE(\"a\" \"b\" 2)",
-            "FUNCTION STANDARD-COMPARE(\"a\" \"b\" LV)",       // §15.3 type 6 admits an integer DATA ITEM
+            "FUNCTION STANDARD-COMPARE(\"a\" \"b\" LV)",       // §2023:15.3 type 6 admits an integer DATA ITEM
             "FUNCTION STANDARD-COMPARE(\"a\" \"b\" OT1 4)",
         })
         {
@@ -296,9 +296,9 @@ public sealed class StandardCompareTests
         }
     }
 
-    /// <summary>§12.3.7.4 GR17 leaves literal-9's allowable content to the implementor, so a spelling this
+    /// <summary>§2023:12.3.7.4 GR17 leaves literal-9's allowable content to the implementor, so a spelling this
     /// implementation cannot resolve is LEGAL SOURCE — the compile succeeds — with the COBOL1662 advisory
-    /// saying every reference will set EC-ORDER-NOT-SUPPORTED (§15.85.4 r2). Rejecting it would refuse a
+    /// saying every reference will set EC-ORDER-NOT-SUPPORTED (§2023:15.85.4 r2). Rejecting it would refuse a
     /// conforming program; saying nothing would ship a silently inoperative one.</summary>
     [Fact]
     public void AnUnresolvableLiteral9_IsAWarning_NotAnError()
@@ -314,7 +314,7 @@ public sealed class StandardCompareTests
         Assert.DoesNotContain(warnings2, w => w.Contains("COBOL1662"));
     }
 
-    /// <summary>§12.3.7.3 SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals" — and
+    /// <summary>§2023:12.3.7.3 SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals" — and
     /// SR11's zero-length half. A national literal IS admitted; a numeric or boolean one is not.</summary>
     [Theory]
     [InlineData("N\"ISO 14651_2020_TABLE1\"", true, "", "")]
@@ -329,7 +329,7 @@ public sealed class StandardCompareTests
             Assert.Contains(errors, e => e.Contains(code) && e.Contains(rule));
     }
 
-    /// <summary>The §12.3.7.2 general format brackets the ORDER TABLE clause WITHOUT the ellipsis its repeatable
+    /// <summary>The §2023:12.3.7.2 general format brackets the ORDER TABLE clause WITHOUT the ellipsis its repeatable
     /// neighbours carry (CLASS, CURRENCY, LOCALE, the switch entry, SYMBOLIC CHARACTERS), so a second clause is a
     /// form violation — measured against the printed format, not assumed from the singular wording of GR17.</summary>
     [Fact]
@@ -341,8 +341,8 @@ public sealed class StandardCompareTests
         Assert.Contains(errors, e => e.Contains("COBOL5990") && e.Contains("only once"));
     }
 
-    /// <summary>§15.85.3 r5 / §15.3 argument type 12: with four arguments written the third position IS
-    /// ordering-name-1 (§15.85.2's two optionals are positional), so a word naming no ORDER TABLE clause is
+    /// <summary>§2023:15.85.3 r5 / §2023:15.3 argument type 12: with four arguments written the third position IS
+    /// ordering-name-1 (§2023:15.85.2's two optionals are positional), so a word naming no ORDER TABLE clause is
     /// COBOL1663 — and r6's "positive nonzero integer" is decidable for a literal level.</summary>
     [Theory]
     [InlineData("FUNCTION STANDARD-COMPARE(\"a\" \"b\" NOSUCH 2)", "ordering-name")]
@@ -355,7 +355,7 @@ public sealed class StandardCompareTests
         Assert.Contains(errors, e => e.Contains("COBOL1663") && e.Contains(fragment));
     }
 
-    /// <summary>§15.85.3 r4 — "Neither argument-1 nor argument-2 shall be a zero-length literal" — reached
+    /// <summary>§2023:15.85.3 r4 — "Neither argument-1 nor argument-2 shall be a zero-length literal" — reached
     /// through the ONE ordinal schema every other zero-length clause rides (kb/Work PB35), not a hand-written
     /// arm; and r1/r2's class screen rejects a numeric operand.</summary>
     [Theory]

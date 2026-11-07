@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
-/// <summary>⛔ ISO §8.8.4.2.12 — THE COMPARISON OF TWO STRONGLY-TYPED GROUP ITEMS, lowered at bind to the comparisons
+/// <summary>⛔ ISO §2023:8.8.4.2.12 — THE COMPARISON OF TWO STRONGLY-TYPED GROUP ITEMS, lowered at bind to the comparisons
 /// of their elementary items (kb/Work PB1469):
 /// <para>"When two strongly-typed group items are compared, each elementary item of the first operand is compared
 /// with the corresponding elementary item of the second operand, in accordance with the rules for comparison of
@@ -20,15 +20,15 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// overpunch does not order algebraically (it was staged COBOL0899 instead), a pointer leaf has no image at all
 /// (the run unit aborted), and a collating sequence with equal weights makes image-unequal leaves element-equal.
 /// Each elementary pair is instead a <see cref="BoundRelational"/> over the two leaves' own places, so every leaf
-/// kind compares by the SAME rule an explicit relation between those two items uses (§8.8.4.2.4 numeric,
-/// §8.8.4.2.7/.9 alphanumeric/national under the collating sequence, §8.8.4.2.8 boolean, §8.8.4.2.16 pointer) —
+/// kind compares by the SAME rule an explicit relation between those two items uses (§2023:8.8.4.2.4 numeric,
+/// §2023:8.8.4.2.7/.9 alphanumeric/national under the collating sequence, §2023:8.8.4.2.8 boolean, §2023:8.8.4.2.16 pointer) —
 /// the NEXT leaf kind is automatic, because there is nothing here that knows about kinds.</para>
 /// <para>The lexicographic order is composed from each pair's strict relation and its equality:
 /// <c>A &lt; B ⟺ a₁ &lt; b₁ ∨ (a₁ = b₁ ∧ (a₂ &lt; b₂ ∨ (a₂ = b₂ ∧ …)))</c>, terminating in FALSE for a strict
 /// operator and TRUE for <c>&lt;=</c> / <c>&gt;=</c> ("equal if all pairs … are equal") — built in halves
 /// (<see cref="Before"/>) so its nesting is logarithmic in the number of elementary items. Written that way — rather
 /// than as "not greater" — the relation stays exact for an UNORDERED pair (a NaN float leaf under native
-/// arithmetic, §8.8.4.2.4): neither less, nor equal, so every ordering over it is false, as the pair's own
+/// arithmetic, §2023:8.8.4.2.4): neither less, nor equal, so every ordering over it is false, as the pair's own
 /// relation says. Evaluation is short-circuit, so no pair after the first unequal one is read ("proceeds until a
 /// pair of elementary items is unequal") and none of its checks can fire.</para></summary>
 internal sealed class StrongGroupComparison(BinderContext ctx)
@@ -51,7 +51,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
         var ll = new List<(Place Leaf, BoundCondition? Present)>();
         var rl = new List<(Place Leaf, BoundCondition? Present)>();
         if (!Walk(lc, lc, present: null, ll, ref unbuilt) || !Walk(rc, rc, present: null, rl, ref unbuilt)) return null;
-        // "the CORRESPONDING elementary item": §8.5.3.1 makes two type declarations equivalent when "for each
+        // "the CORRESPONDING elementary item": §2023:8.5.3.1 makes two type declarations equivalent when "for each
         // elementary item in one type declaration there is a corresponding elementary item in the other type
         // declaration, starting at the same relative byte or bit position" — a correspondence of ELEMENTARY items by
         // position, not of the declarations' group structure (two equivalent declarations in different source
@@ -70,7 +70,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
             "!=" => new BoundNot(AllEqual(pairs)),
             "<" or "<=" => Lexicographic(pairs, "<", allEqualAnswer: op == "<="),
             ">" or ">=" => Lexicographic(pairs, ">", allEqualAnswer: op == ">="),
-            _ => throw new InvalidOperationException($"relation operator '{op}' is not one §8.8.4.2 defines"),
+            _ => throw new InvalidOperationException($"relation operator '{op}' is not one §2023:8.8.4.2 defines"),
         };
     }
 
@@ -88,8 +88,8 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
             }
             if (child.IsDynamicTable)
             {
-                // A dynamic-capacity table has a per-operand RUN-TIME capacity (§8.5.1.9), so its occurrences cannot
-                // be enumerated at bind, and what corresponds past the smaller capacity is §14.6.9.3's table rule.
+                // A dynamic-capacity table has a per-operand RUN-TIME capacity (§2023:8.5.1.9), so its occurrences cannot
+                // be enumerated at bind, and what corresponds past the smaller capacity is §2023:14.6.9.3's table rule.
                 unbuilt = $"the dynamic-capacity table '{child.CobolName ?? "FILLER"}'";
                 return false;
             }
@@ -110,11 +110,11 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
     /// <summary>Every occurrence of the table <paramref name="table"/>, in order — each one's elementary items are
     /// "the elementary items … specified" in the group, one occurrence after another.
     /// <para>⚠ AN OCCURS-DEPENDING TABLE'S OCCURRENCES BEYOND ITS MINIMUM EXIST ONLY UP TO THE DEPENDING VALUE:
-    /// §13.18.38.4 GR8 makes a strongly-typed group with such a table an occurs-depending group item, of which "only
+    /// §2023:13.18.38.4 GR8 makes a strongly-typed group with such a table an occurs-depending group item, of which "only
     /// that part of the table area that is specified by the value of the data item referenced by data-name-1 at the
     /// start of the operation will be used" (a) outside the group, b) inside it and sending — a comparison operand
     /// is never receiving). ONE count answers for BOTH operands: data-name-1 outside the group is one item for every
-    /// group of the type; inside it, §13.18.38.3 SR20 places it BEFORE the table ("shall not occupy a byte position
+    /// group of the type; inside it, §2023:13.18.38.3 SR20 places it BEFORE the table ("shall not occupy a byte position
     /// within the range of the first byte position defined by the data description entry containing the OCCURS
     /// clause and the last byte position defined by the record description entry") and SR22 lets nothing but the
     /// table's own subordinates follow the table — so the two counts were already compared, as elementary items, and
@@ -140,7 +140,7 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
             BoundCondition? here = present;
             if (k > always)
             {
-                // ISO §13.18.38.4 GR8 — occurrence k takes part iff data-name-1 ≥ k.
+                // ISO §2023:13.18.38.4 GR8 — occurrence k takes part iff data-name-1 ≥ k.
                 var exists = new BoundRelational(new BoundFieldOperand(count!), ">=", new BoundNumericLiteral(k.ToString()));
                 here = present is null ? exists : new BoundLogical("&&", [present, exists]);
             }
@@ -174,8 +174,8 @@ internal sealed class StrongGroupComparison(BinderContext ctx)
     /// Condition-names and level-66 entries describe no storage of their own. ⚠ DETERMINATION: an entry with a
     /// REDEFINES clause (and its subordinates) is not a separate elementary item of the comparison — it describes
     /// the storage of the entry it redefines, which is already compared at that entry's position (the same
-    /// exclusion §8.5.1.12.1 makes for group compatibility, "any subordinate data items that specify the
-    /// REDEFINES clause … are ignored", and §14.9.20.4 GR5 a) 3) for INITIALIZE).</summary>
+    /// exclusion §2023:8.5.1.12.1 makes for group compatibility, "any subordinate data items that specify the
+    /// REDEFINES clause … are ignored", and §2023:14.9.20.4 GR5 a) 3) for INITIALIZE).</summary>
     private static List<DataItem> StorageChildren(DataItem group) =>
         [.. group.Children.Where(c => (c.IsGroup || c.IsElementary) && c.Renames is null && c.RedefinesTargetName is null)];
 

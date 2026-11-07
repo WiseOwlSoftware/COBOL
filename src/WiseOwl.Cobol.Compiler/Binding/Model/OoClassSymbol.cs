@@ -12,14 +12,14 @@ public enum OoSymbolOrigin
     /// <summary>A CLASS-ID, INTERFACE-ID or METHOD-ID definition of the compilation group (it has a parse context and is emitted).</summary>
     Source,
 
-    /// <summary>The standard class BASE (ISO §16.1), implemented by the runtime (<see cref="OoStandardClasses"/>).</summary>
+    /// <summary>The standard class BASE (ISO §2023:16.1), implemented by the runtime (<see cref="OoStandardClasses"/>).</summary>
     Standard,
 
-    /// <summary>A class another compilation group published in an assembly of the external repository (ISO §8.13), built by
+    /// <summary>A class another compilation group published in an assembly of the external repository (ISO §2023:8.13), built by
     /// <c>MetadataRepositoryProvider.Class</c> from its record: reached by identity, never emitted.</summary>
     Imported,
 
-    /// <summary>A METHOD the compiler built from other source of the group — a PROPERTY clause's accessor (ISO §13.18.42): emitted like a
+    /// <summary>A METHOD the compiler built from other source of the group — a PROPERTY clause's accessor (ISO §2023:13.18.42): emitted like a
     /// source method, but with no METHOD-ID of its own (<c>SourceMap.Of</c> throws for it). No class is generated.</summary>
     Generated,
 
@@ -29,14 +29,14 @@ public enum OoSymbolOrigin
 }
 
 /// <summary>The assembly an imported class or interface was taken from (DESIGN-external-repository §10.1): its file, its
-/// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §4.5), which is how
+/// module version id and the CLR namespace its types live in (<c>Cobol.&lt;assembly&gt;</c>, §2023:4.5), which is how
 /// <c>MetadataRepositoryProvider.NamespaceCollision</c> finds two assemblies a compilation needs that share a namespace (REPO-6) — and its
 /// assembly simple name, which is how another assembly's <c>AssemblyRef</c> table names it (<c>ExpansionPlacementPass</c>: an existing expansion
-/// serves a compilation only when it is compiled against the assemblies that compilation's classes live in; ISO §9.3.12).</summary>
+/// serves a compilation only when it is compiled against the assemblies that compilation's classes live in; ISO §2023:9.3.12).</summary>
 public sealed record ImportedFrom(string AssemblyFile, Guid Mvid, string ClrNamespace, string AssemblyName);
 
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
-/// case-insensitive per §8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
+/// case-insensitive per §2023:8.3.2.2). <see cref="ClrName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
 public sealed class OoClassSymbol
 {
@@ -49,10 +49,10 @@ public sealed class OoClassSymbol
     }
 
     public string Name { get; }
-    /// <summary>The name externalized to the operating environment (ISO §11.3.4 GR1: "literal-1, if
+    /// <summary>The name externalized to the operating environment (ISO §2023:11.3.4 GR1: "literal-1, if
     /// specified, is the name of the class that is externalized to the operating environment"), from the
     /// CLASS-ID <c>AS literal-1</c>; else <see cref="Name"/>. An object-class-name is only ever referenced
-    /// by a user-defined WORD (§8.4.6.4 — the containing definition or a REPOSITORY entry), so nothing
+    /// by a user-defined WORD (§2023:8.4.6.4 — the containing definition or a REPOSITORY entry), so nothing
     /// in COBOL resolves against this, and <see cref="ClrName"/> deliberately does NOT derive from it: the
     /// emitted type name is a WIRE CONTRACT with <c>PicInfo.ClrType</c>, which maps a declared
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
@@ -72,14 +72,14 @@ public sealed class OoClassSymbol
     public OoSymbolOrigin Origin { get; }
 
     /// <summary>The assembly an <see cref="OoSymbolOrigin.Imported"/> class was taken from (DESIGN-external-repository
-    /// §10.1); null for every other origin. Its <see cref="ClrName"/> is the type's full name under <c>global::</c>, so the
+    /// §2023:10.1); null for every other origin. Its <see cref="ClrName"/> is the type's full name under <c>global::</c>, so the
     /// generated code reaches the type without a source declaration of it, and the backend references the assembly
     /// (<c>BackendOptions.RepositoryReferences</c>).</summary>
     public ImportedFrom? Imported { get; init; }
     /// <summary>The FIRST (and, in v1, only permitted) INHERITS base-class name — null for a root class.</summary>
     public string? BaseName { get; init; }
 
-    /// <summary>The FULL `INHERITS FROM` list as written (ISO §11.3 permits several; SSOT §18 #18 / A.4.10
+    /// <summary>The FULL `INHERITS FROM` list as written (ISO §2023:11.3 permits several; SSOT §18 #18 / A.4.10
     /// restricts v1 to SINGLE inheritance and REJECTS 2+ bases LOUDLY — COBOL0849, the declined Annex A.4.10 item 1, at pass-1 — so the extra
     /// bases are representable here for the diagnostic, never silently dropped).</summary>
     public IReadOnlyList<string> Bases { get; init; } = [];
@@ -87,24 +87,24 @@ public sealed class OoClassSymbol
     public OoClassSymbol? Base { get; set; }
 
     /// <summary>The PARAMETER-NAME a parameterized class definition bound as itself names in its INHERITS clause
-    /// (§11.3.4 GR6 admits one wherever an object-class-name is permitted; kb/Work PB2937), else null. Its superclass is
+    /// (§2023:11.3.4 GR6 admits one wherever an object-class-name is permitted; kb/Work PB2937), else null. Its superclass is
     /// each expansion's actual, so a method this definition does not define itself may be inherited from it, and the
-    /// SUPER search that would start there (§8.4.3.8.4 GR3) is the expansion's: <see cref="Base"/> stays null.</summary>
+    /// SUPER search that would start there (§2023:8.4.3.8.4 GR3) is the expansion's: <see cref="Base"/> stays null.</summary>
     public string? FormalBaseName { get; set; }
 
-    /// <summary>CLASS-ID … IS FINAL (§11.3.4 GR3: a FINAL class shall not be a superclass; an INHERITS naming one
-    /// is §11.3.3 SR5, COBOL2791). Emits
+    /// <summary>CLASS-ID … IS FINAL (§2023:11.3.4 GR3: a FINAL class shall not be a superclass; an INHERITS naming one
+    /// is §2023:11.3.3 SR5, COBOL2791). Emits
     /// C# <c>sealed</c>; every fresh method slot in it emits NON-virtual (the CS0549 trap — a virtual
     /// member inside a sealed class is a Roslyn error on emitted code).</summary>
     public bool IsFinal { get; init; }
 
-    /// <summary>The OBJECT paragraph's IMPLEMENTS interfaces (§11.8.2), resolved at pass-1; the CONFORMANCE
-    /// closure (§11.8.4 GR2: direct + interface-INHERITed + class-INHERITed) is computed by
+    /// <summary>The OBJECT paragraph's IMPLEMENTS interfaces (§2023:11.8.2), resolved at pass-1; the CONFORMANCE
+    /// closure (§2023:11.8.4 GR2: direct + interface-INHERITed + class-INHERITed) is computed by
     /// <c>ValidateImplements</c> — the C# base-list emission carries only the DIRECT list (the closure
     /// arrives transitively at the C# level).</summary>
     public List<OoInterfaceSymbol> Implements { get; } = [];
 
-    /// <summary>The FACTORY paragraph's IMPLEMENTS interfaces (§11.8.2 :12755). The factory SINGLETON class
+    /// <summary>The FACTORY paragraph's IMPLEMENTS interfaces (§2023:11.8.2 :12755). The factory SINGLETON class
     /// (brief D11 — real virtual members, post-FACTORY-wave) emits and satisfies them exactly like the
     /// instance side; the original brief's validate-only posture is SUPERSEDED by D11.</summary>
     public List<OoInterfaceSymbol> FactoryImplements { get; } = [];
@@ -117,9 +117,9 @@ public sealed class OoClassSymbol
     private readonly List<OoMethodSymbol> _methodList = [];
 
     /// <summary>The emitted C# type of this class's FACTORY OBJECT (brief D11 — a REAL sibling singleton
-    /// class, `__FACTORY_FOO : __FACTORY_BASE | CobolObject`, NEVER statics: §8.6.4 gives every class its OWN
-    /// copy of inherited factory data; SELF in a factory method is polymorphic §14.9.23.3 SR4f + §8.4.3.8
-    /// GR2; factory resolution walks INHERITS §9.3.6. A <see cref="NamingConvention.FactoryClassName"/> prefix
+    /// class, `__FACTORY_FOO : __FACTORY_BASE | CobolObject`, NEVER statics: §2023:8.6.4 gives every class its OWN
+    /// copy of inherited factory data; SELF in a factory method is polymorphic §2023:14.9.23.3 SR4f + §2023:8.4.3.8
+    /// GR2; factory resolution walks INHERITS §2023:9.3.6. A <see cref="NamingConvention.FactoryClassName"/> prefix
     /// family, which no class-name spells — kb/Work PB2921).</summary>
     public string FactoryClrName => NamingConvention.FactoryClassName(ClrName);
 
@@ -127,22 +127,22 @@ public sealed class OoClassSymbol
     /// SORT stores (<c>BinderDriver.QualifyClassFiles</c>) — formed by the run-time table's own former
     /// (<see cref="ProgramTable.ClassPath"/>) from the EXTERNALIZED name, never from <see cref="ClrName"/>: the C# name
     /// is a wire contract with <c>PicInfo.ClrType</c> and is the DECLARED name, which two separately compiled modules
-    /// may both use for different classes (kb/Work PB2920; ISO §8.3.2.2 2)).</summary>
+    /// may both use for different classes (kb/Work PB2920; ISO §2023:8.3.2.2 2)).</summary>
     public string RunUnitKey => ProgramTable.ClassPath(ExternalizedName);
 
     /// <summary>The run-unit identity of this class's OBJECT or FACTORY half as an EXTERNAL describer
-    /// (<see cref="ProgramTable.ClassHalfPath"/>; ISO §14.8.4).</summary>
+    /// (<see cref="ProgramTable.ClassHalfPath"/>; ISO §2023:14.8.4).</summary>
     public string HalfKey(bool factory) => ProgramTable.ClassHalfPath(ExternalizedName, factory);
 
     /// <summary>The emitted C# types a COBOL reference to THIS class selects when the rule names the class
-    /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "the exception
+    /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §2023:14.9.49.4 GR14 a): "the exception
     /// object that was raised is a factory object or instance object of object-class-name-1 or of a subclass
     /// of object-class-name-1". A COBOL class is emitted as TWO DISJOINT C# hierarchies —
     /// <see cref="ClrName"/> rooted at its base's instance half, <see cref="FactoryClrName"/> at its base's
     /// FACTORY half — so ONE COBOL class-name is a SET of C# types, never one, and a single
     /// <c>is ClrName</c> test silently answers false for every factory object (kb/Work PB366). Both halves
     /// mirror INHERITS, so the pair of C# type tests covers "or of a subclass" in both hierarchies.
-    /// A rule that names only ONE kind takes the single name it means instead — §13.18.60.4 GR22 d) 1. b):
+    /// A rule that names only ONE kind takes the single name it means instead — §2023:13.18.60.4 GR22 d) 1. b):
     /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
     /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
@@ -150,8 +150,8 @@ public sealed class OoClassSymbol
 
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(CobolNames.Comparer);
 
-    /// <summary>The FACTORY methods in declaration order (§11.4 — a SEPARATE interface from the instance
-    /// roster; the two may share names, §9.3.6).</summary>
+    /// <summary>The FACTORY methods in declaration order (§2023:11.4 — a SEPARATE interface from the instance
+    /// roster; the two may share names, §2023:9.3.6).</summary>
     public IReadOnlyList<OoMethodSymbol> FactoryMethods => _factoryMethodList;
     private readonly List<OoMethodSymbol> _factoryMethodList = [];
 
@@ -169,7 +169,7 @@ public sealed class OoClassSymbol
         return true;
     }
 
-    /// <summary>Resolve a FACTORY method by name over THIS class and its base chain (§9.3.6 — factory
+    /// <summary>Resolve a FACTORY method by name over THIS class and its base chain (§2023:9.3.6 — factory
     /// resolution walks INHERITS exactly like instance resolution, over the factory interface).</summary>
     public OoMethodSymbol? FindFactoryMethod(string name)
     {
@@ -180,7 +180,7 @@ public sealed class OoClassSymbol
         return null;
     }
 
-    /// <summary>Resolve a method by name over THIS class and its base chain (§9.3.6 method resolution; the
+    /// <summary>Resolve a method by name over THIS class and its base chain (§2023:9.3.6 method resolution; the
     /// walk is cycle-safe — pass-1 rejects unknown bases, and a cycle cannot outlast the seen-set).</summary>
     public OoMethodSymbol? FindMethod(string name)
     {
@@ -192,8 +192,8 @@ public sealed class OoClassSymbol
     }
 
     /// <summary>True when the standard class BASE is this class or one of its superclasses — i.e. the class has
-    /// BASE's life-cycle methods, New in its factory interface and FactoryObject in its object interface (ISO §16.2;
-    /// §9.3.9). The emitter derives the class's two C# halves from the runtime BASE pair exactly when this holds.</summary>
+    /// BASE's life-cycle methods, New in its factory interface and FactoryObject in its object interface (ISO §2023:16.2;
+    /// §2023:9.3.9). The emitter derives the class's two C# halves from the runtime BASE pair exactly when this holds.</summary>
     public bool InheritsStandardBase
     {
         get
@@ -207,7 +207,7 @@ public sealed class OoClassSymbol
     }
 
     /// <summary>True when <paramref name="other"/> is this class or one of its superclasses — the object-view /
-    /// RETURNING-receiver conformance direction (§14.8: a subclass object conforms to its superclass).</summary>
+    /// RETURNING-receiver conformance direction (§2023:14.8: a subclass object conforms to its superclass).</summary>
     public bool ConformsTo(OoClassSymbol other)
     {
         var seen = new HashSet<OoClassSymbol>();

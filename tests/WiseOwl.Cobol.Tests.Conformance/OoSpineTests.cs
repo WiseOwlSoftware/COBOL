@@ -97,13 +97,13 @@ public sealed class OoSpineTests
         Assert.Equal("M1-A\nM1-B\nAFTER-M1", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>Trap #10 — cross-method PERFORM: a method definition is its own SOURCE ELEMENT (§3.164 with
-    /// §3.165 and §11.7.1), so §8.4.6.1 confines its paragraph-names to it and a PERFORM
+    /// <summary>Trap #10 — cross-method PERFORM: a method definition is its own SOURCE ELEMENT (§2023:3.164 with
+    /// §2023:3.165 and §2023:11.7.1), so §2023:8.4.6.1 confines its paragraph-names to it and a PERFORM
     /// of a sibling method's paragraph is REFUSED, never a silent cross-method transfer.
     /// <para>⛔ THE STAGE MOVED, AND THE INTENT DID NOT (kb/Work PB390). This test used to require the RUN to
     /// die — it asserted the <c>NotImplementedCobolFeatureException</c> text "unknown procedure 'PARA-C'" — so
     /// a GREEN test was pinning the broken stage: the program COMPILED, shipped an assembly, and blamed a gap
-    /// in WiseOwl COBOL for what is an error in the source (ISO §4.2.2 ¶2 requires the compile-time mechanism).
+    /// in WiseOwl COBOL for what is an error in the source (ISO §2023:4.2.2 ¶2 requires the compile-time mechanism).
     /// The refusal is now the compile-time COBOL1639, and the method-local explanation rides it.</para></summary>
     [Fact]
     public void Trap10_CrossMethodPerform_IsRefusedAtCompileTime()
@@ -126,12 +126,12 @@ public sealed class OoSpineTests
         string e = Assert.Single(errors, x => x.Contains("COBOL1639", StringComparison.Ordinal));
         Assert.Contains("PERFORM 'PARA-C' names no procedure", e, StringComparison.Ordinal);
         Assert.Contains("METHOD-LOCAL", e, StringComparison.Ordinal);
-        Assert.Contains("§3.164", e, StringComparison.Ordinal);
+        Assert.Contains("§2023:3.164", e, StringComparison.Ordinal);
     }
 
-    // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.42.4 GR1) ───────────
+    // ── D8: the method-return / run-unit-stop / program-return split (§2023:14.9.18.4 GR4 / §2023:14.9.42.4 GR1) ───────────
 
-    /// <summary>GOBACK in a method terminates the METHOD only (§14.9.18.4 GR4; D8): the INVOKE site continues.
+    /// <summary>GOBACK in a method terminates the METHOD only (§2023:14.9.18.4 GR4; D8): the INVOKE site continues.
     /// The GOBACK sits inside an out-of-line PERFORM, so the MethodReturn signal must unwind the NESTED
     /// bounded __Dispatch frame too (the reason D8's realization is catch-at-entry, not a plain return) —
     /// and the paragraphs after the PERFORM and after the GOBACK must both be skipped.</summary>
@@ -159,7 +159,7 @@ public sealed class OoSpineTests
         Assert.Equal("IN-DEEP\nDRIVER-CONTINUES", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§14.9.42.4 GR1) — it must NOT be caught at the
+    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§2023:14.9.42.4 GR1) — it must NOT be caught at the
     /// method boundary as if it were a method return (the D8 anti-conflation fact).</summary>
     [Fact]
     public void StopRun_InsideMethod_TerminatesRunUnit()
@@ -215,7 +215,7 @@ public sealed class OoSpineTests
         return errors;
     }
 
-    /// <summary>§13.18.60.4 — the declared class of a typed object reference must be a class of the group.</summary>
+    /// <summary>§2023:13.18.60.4 — the declared class of a typed object reference must be a class of the group.</summary>
     [Fact]
     public void TypedObjectReference_UnknownClass_0813()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -230,7 +230,7 @@ public sealed class OoSpineTests
             END PROGRAM OOSP6.
             """), "COBOL0813");
 
-    /// <summary>§10.7.3 SR4 — END CLASS names its class (Validation.EndMarkerPass; kb/Work PB988).</summary>
+    /// <summary>§2023:10.7.3 SR4 — END CLASS names its class (Validation.EndMarkerPass; kb/Work PB988).</summary>
     [Fact]
     public void EndClassNameMismatch_2793()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -284,7 +284,7 @@ public sealed class OoSpineTests
             + string.Join("\n", knownErrors));
     }
 
-    /// <summary>§14.9.23.3 SR4 b) — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
+    /// <summary>§2023:14.9.23.3 SR4 b) — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
     /// static analog of EC-OO-METHOD, GR7b).</summary>
     [Fact]
     public void InvokeUnknownMethod_0825()
@@ -296,8 +296,8 @@ public sealed class OoSpineTests
             END METHOD M1.
             """)), "COBOL0825");
 
-    /// <summary>§16.2.1 — NEW's only result is the reference: RETURNING is required and USING is meaningless;
-    /// the receiver must conform (§14.8 — a typed receiver of an UNRELATED class rejects).</summary>
+    /// <summary>§2023:16.2.1 — NEW's only result is the reference: RETURNING is required and USING is meaningless;
+    /// the receiver must conform (§2023:14.8 — a typed receiver of an UNRELATED class rejects).</summary>
     [Fact]
     public void InvokeNew_ShapeAndConformance_0826()
     {
@@ -335,7 +335,7 @@ public sealed class OoSpineTests
             """), "COBOL0826");
     }
 
-    /// <summary>§14.9.14.3 SR7 — EXIT PROGRAM only in a program procedure division; the method form only in a
+    /// <summary>§2023:14.9.14.3 SR7 — EXIT PROGRAM only in a program procedure division; the method form only in a
     /// method (both COBOL0827).</summary>
     [Fact]
     public void ExitPlacement_0827()
@@ -361,12 +361,12 @@ public sealed class OoSpineTests
     }
 
     /// <summary>M2-OO-1i — a method definition shall NOT own an ENVIRONMENT DIVISION, FILE SECTION, REPORT
-    /// SECTION, or SCREEN SECTION: each may appear only in a factory or instance definition (ISO §12.4.3 SR1 /
-    /// §13.4.3 SR1 / §13.9 / §13.10). A method's own data division is limited to LOCAL-STORAGE (§13.6.3) +
-    /// LINKAGE (§13.7.3). Each violation is a HARD COBOL1519 (superseding the old "recognized but not yet
+    /// SECTION, or SCREEN SECTION: each may appear only in a factory or instance definition (ISO §2023:12.4.3 SR1 /
+    /// §2023:13.4.3 SR1 / §2023:13.9 / §2023:13.10). A method's own data division is limited to LOCAL-STORAGE (§2023:13.6.3) +
+    /// LINKAGE (§2023:13.7.3). Each violation is a HARD COBOL1519 (superseding the old "recognized but not yet
     /// implemented" 0899 — the construct is spec-forbidden, not merely unimplemented). Object/factory FILE-CONTROL
     /// + FILE SECTION ARE legal (the M2-OO-1i object/factory leg); a method references those files via
-    /// §11.7.4 GR5, it never declares its own.</summary>
+    /// §2023:11.7.4 GR5, it never declares its own.</summary>
     [Theory]
     [InlineData("""
         DATA DIVISION.
@@ -395,9 +395,9 @@ public sealed class OoSpineTests
             """)), "COBOL1519");
 
     /// <summary>M2-OO-1i — the GLOBAL clause shall not be specified in a factory / instance / method definition
-    /// (ISO §13.18.27.3 SR4). A FACTORY <c>FD … IS GLOBAL</c> is COBOL1520 — GLOBAL is a nested-PROGRAM
+    /// (ISO §2023:13.18.27.3 SR4). A FACTORY <c>FD … IS GLOBAL</c> is COBOL1520 — GLOBAL is a nested-PROGRAM
     /// containment mechanism that does not cross the class boundary; program↔class file sharing is EXTERNAL only
-    /// (§9.1.5). (The FACTORY file itself is legal — inc 3 — only the GLOBAL clause on it is rejected.)</summary>
+    /// (§2023:9.1.5). (The FACTORY file itself is legal — inc 3 — only the GLOBAL clause on it is rejected.)</summary>
     [Fact]
     public void FactoryFile_Global_1520()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(("""
@@ -432,7 +432,7 @@ public sealed class OoSpineTests
             END CLASS GFCLS.
             """)), "COBOL1520");
 
-    /// <summary>M2-OO-1i — the GLOBAL clause is barred in an INSTANCE (object) definition too (ISO §13.18.27.3
+    /// <summary>M2-OO-1i — the GLOBAL clause is barred in an INSTANCE (object) definition too (ISO §2023:13.18.27.3
     /// SR4). An OBJECT <c>FD … IS GLOBAL</c> is COBOL1520. (The OBJECT file itself is legal — inc 4, a
     /// per-object connector — only the GLOBAL clause on it is rejected.)</summary>
     [Fact]
@@ -466,7 +466,7 @@ public sealed class OoSpineTests
             END CLASS GOCLS.
             """)), "COBOL1520");
 
-    /// <summary>kb/Work PB369 — §13.18.27.3 SR4 bars GLOBAL on a REPORT description entry too (SR1 e) is the
+    /// <summary>kb/Work PB369 — §2023:13.18.27.3 SR4 bars GLOBAL on a REPORT description entry too (SR1 e) is the
     /// third entry kind it names). The RD GLOBAL staging used to answer this shape with "not yet implemented";
     /// once the clause was implemented for programs, the class arm needed its own SR4 refusal.</summary>
     [Fact]
@@ -503,7 +503,7 @@ public sealed class OoSpineTests
             END CLASS GRCLS.
             """)), "COBOL1520");
 
-    /// <summary>M2-OO-1i review — §13.18.27.3 SR4 bars GLOBAL on a DATA item too (not just an FD) in a factory /
+    /// <summary>M2-OO-1i review — §2023:13.18.27.3 SR4 bars GLOBAL on a DATA item too (not just an FD) in a factory /
     /// instance / method definition. A GLOBAL level-01 in an OBJECT WORKING-STORAGE is COBOL1520 (was silently
     /// accepted — a false-negative diagnostic).</summary>
     [Fact]
@@ -533,7 +533,7 @@ public sealed class OoSpineTests
             """)), "COBOL1520");
 
     /// <summary>M2-OO-1i review — a GLOBAL data item in a METHOD (here LINKAGE) is COBOL1520, superseding the
-    /// old mislabeled COBOL0899 "not yet implemented": §13.18.27.3 SR4 makes GLOBAL spec-FORBIDDEN in a method,
+    /// old mislabeled COBOL0899 "not yet implemented": §2023:13.18.27.3 SR4 makes GLOBAL spec-FORBIDDEN in a method,
     /// not merely unimplemented.</summary>
     [Fact]
     public void MethodData_Global_1520()
@@ -550,8 +550,8 @@ public sealed class OoSpineTests
             END METHOD M.
             """)), "COBOL1520");
 
-    /// <summary>kb/Work PB1045 — a CONSTANT entry is an entry §13.18.27.3 SR1 a) lets carry the GLOBAL clause, so SR4
-    /// bars it in every factory, instance and method definition, a method prototype included (§10.6.1 NOTE: "A
+    /// <summary>kb/Work PB1045 — a CONSTANT entry is an entry §2023:13.18.27.3 SR1 a) lets carry the GLOBAL clause, so SR4
+    /// bars it in every factory, instance and method definition, a method prototype included (§2023:10.6.1 NOTE: "A
     /// method-definition in an interface-definition defines a method prototype"). Each constant here compiled
     /// clean: the class arm asked only the bound files, reports and level-1 data items, and the method arm only its
     /// data description entries. Each refusal names its entry and sits on its clause's line.</summary>
@@ -647,7 +647,7 @@ public sealed class OoSpineTests
     // ── Slice 2 (deep-dive D3/D6 — method LINKAGE/LOCAL-STORAGE/WS + INVOKE USING/RETURNING) ───────────────
 
     /// <summary>Trap #6 — sibling-method LINKAGE cross-wiring: two methods each declare <c>LK-V</c> with
-    /// DIFFERENT descriptions; each resolves its OWN (per-method data scopes, §11.7 GR5) — the legacy
+    /// DIFFERENT descriptions; each resolves its OWN (per-method data scopes, §2023:11.7 GR5) — the legacy
     /// static-<c>_linkage_</c> field bug is structurally impossible.</summary>
     [Fact]
     public void Trap6_SiblingMethodLinkage_NoCrossWiring()
@@ -705,7 +705,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>Methods are implicitly RECURSIVE (spec :12032): recursion through a typed object-reference
-    /// FORMAL, with LOCAL-STORAGE re-initialized per activation (§14.5.3) — each frame keeps its own LK-N
+    /// FORMAL, with LOCAL-STORAGE re-initialized per activation (§2023:14.5.3) — each frame keeps its own LK-N
     /// (the local-function dispatcher captures per-activation locals), and the driver's BY REFERENCE argument
     /// is untouched (the method never writes LK-N).</summary>
     [Fact]
@@ -762,10 +762,10 @@ public sealed class OoSpineTests
         Assert.Equal("AT-03\nAT-02\nAT-01\nUP-01\nUP-02\nUP-03\nN-AFTER=03", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
+    /// <summary>§2023:14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
     /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOL4269 on every receiver: a typed
-    /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which §14.9.23.3 SR6
+    /// one, the predefined NULL (an object reference, §2023:8.4.3.7.3 SR2) and a universal one, through which §2023:14.9.23.3 SR6
     /// makes even a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
     /// visible.</summary>
     [Fact]
@@ -841,7 +841,7 @@ public sealed class OoSpineTests
         EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20U", "OSPC20U", "LU", "")), "COBOL4269");
     }
 
-    /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
+    /// <summary>§2023:14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
     /// argument) is the compile-time 0828 — never a silent re-scale across the boundary. RETURNING pairing
     /// mismatches (either direction) are equally loud (the deep-dive signature-check edge case).</summary>
     [Fact]
@@ -867,13 +867,13 @@ public sealed class OoSpineTests
             """)), "COBOL0828");   // method declares no RETURNING
     }
 
-    /// <summary>ISO §13.5.3 SR1 — "Within a class definition, the working-storage section may be specified only in a
+    /// <summary>ISO §2023:13.5.3 SR1 — "Within a class definition, the working-storage section may be specified only in a
     /// factory definition or an instance definition, but not in a method definition" — is the standard's own text, not
     /// a 2023 window (kb/Work PB1308, decision R62; Annex E.2 lists no removal of it), so a method's WORKING-STORAGE
     /// SECTION is refused at EVERY edition with COBOL1519 and <c>--permissive</c> does not relax it (a syntax-rule
     /// violation is not an edition-gated construct). The legal way to share a counter across activations is the
     /// instance definition's working-storage, which the same program then compiles and runs: one copy per INSTANCE,
-    /// persistent across activations, while the method's LOCAL-STORAGE is initial on every activation (§8.6.4).</summary>
+    /// persistent across activations, while the method's LOCAL-STORAGE is initial on every activation (§2023:8.6.4).</summary>
     [Theory]
     [InlineData(2002, false)]
     [InlineData(2014, false)]
@@ -884,14 +884,14 @@ public sealed class OoSpineTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(MethodCounterSource("OOSP23", "OSPC23",
             "WORKING-STORAGE SECTION.\n01 CTR PIC 9(2) VALUE 0."), dialect, permissive: permissive);
-        Assert.False(ok, $"method WS must be rejected at --std {dialect} (ISO §13.5.3 SR1)");
+        Assert.False(ok, $"method WS must be rejected at --std {dialect} (ISO §2023:13.5.3 SR1)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1519");
     }
 
     [Fact]
     public void MethodStorage_ObjectWorkingStorageSharesAcrossActivations_LocalStorageDoesNot()
     {
-        // The same counter, moved to where §13.5.3 SR1 allows it: the instance definition's working-storage.
+        // The same counter, moved to where §2023:13.5.3 SR1 allows it: the instance definition's working-storage.
         const string src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP24.
@@ -983,10 +983,10 @@ public sealed class OoSpineTests
         END CLASS {{cls}}.
         """;
 
-    // ── Slice 3a/3b (INHERITS + SELF/SUPER — deep-dive D5/D7, §8.4.3.8, §9.3.6/§9.3.8.2) ───────────────────
+    // ── Slice 3a/3b (INHERITS + SELF/SUPER — deep-dive D5/D7, §2023:8.4.3.8, §2023:9.3.6/§2023:9.3.8.2) ───────────────────
 
     /// <summary>A three-level SUPER chain (trap #10's chain case): C : B : A, each override calls SUPER then
-    /// speaks — the non-virtual restricted search (§8.4.3.8 GR3) runs A, B, C in order and cannot recurse;
+    /// speaks — the non-virtual restricted search (§2023:8.4.3.8 GR3) runs A, B, C in order and cannot recurse;
     /// the same instance through a ROOT-typed reference still dispatches virtually to C's override (GR2).</summary>
     [Fact]
     public void ThreeLevelSuperChain_RunsBaseFirst_NoRecursion()
@@ -1071,7 +1071,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>Trap #2 — a CASE-MISMATCHED override spelling ("Speak" vs "SPEAK") still overrides and still
-    /// dispatches virtually (COBOL names are case-insensitive, §8.3.2.2; the uppercase ClrName convention
+    /// dispatches virtually (COBOL names are case-insensitive, §2023:8.3.2.2; the uppercase ClrName convention
     /// collapses both onto ONE C# slot — the legacy silently took a NEW slot and dispatched to the base).</summary>
     [Fact]
     public void Trap2_CaseMismatchedOverride_StillDispatches()
@@ -1210,9 +1210,9 @@ public sealed class OoSpineTests
         Assert.Equal("S=21\nS=20\nB=10", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§9.3.8.2 — an override whose SIGNATURE does not conform to the overridden method is the
+    /// <summary>§2023:9.3.8.2 — an override whose SIGNATURE does not conform to the overridden method is the
     /// compile-time COBOL0829 (never a Roslyn CS error on user source); trap #7 — SUPER in a root class
-    /// and SELF outside any method are clean COBOL6002 placement diagnostics; an INHERITS cycle is ISO §11.3.3 SR4 (COBOL2791, kb/Work PB1505).</summary>
+    /// and SELF outside any method are clean COBOL6002 placement diagnostics; an INHERITS cycle is ISO §2023:11.3.3 SR4 (COBOL2791, kb/Work PB1505).</summary>
     [Fact]
     public void InheritanceDiagnostics_0829_6002_2791()
     {
@@ -1302,9 +1302,9 @@ public sealed class OoSpineTests
             """), "COBOL2791");
     }
 
-    /// <summary>§11.3.3 SR4 is a rule of EVERY class on a cycle and of no class that merely inherits into one (kb/Work
+    /// <summary>§2023:11.3.3 SR4 is a rule of EVERY class on a cycle and of no class that merely inherits into one (kb/Work
     /// PB1784): with A30 → B30 ⇄ C30, B30 and C30 each break it and A30 breaks nothing. The cycle walk used to cut the
-    /// links as it went, so it reported A30 and never reached C30. A class named like an interface is ONE §8.3.2.2
+    /// links as it went, so it reported A30 and never reached C30. A class named like an interface is ONE §2023:8.3.2.2
     /// report (COBOL0820), not that report plus a duplicate-class one.</summary>
     [Fact]
     public void InheritsCycle_ReportsEachMember_AndNotTheClassLeadingIntoIt()
@@ -1351,7 +1351,7 @@ public sealed class OoSpineTests
 
     // ── The 3a/3b adversarial-review fixes (workflow find→verify, DEVLOG 603) ───────────────────────────────
 
-    /// <summary>§14.8.3.3 rule 1 — RETURNING delivery follows SET rules: a method returning a SUBCLASS object
+    /// <summary>§2023:14.8.3.3 rule 1 — RETURNING delivery follows SET rules: a method returning a SUBCLASS object
     /// delivers into a receiver declared with the SUPERCLASS (widening — SET SR12a2), and into a UNIVERSAL
     /// receiver; C# covariance renders it directly. The former strict-identity 0828 was the review's confirmed
     /// spec violation.</summary>
@@ -1440,8 +1440,8 @@ public sealed class OoSpineTests
         Assert.Equal("WOOF", CutRunner.Normalize(stdout));   // virtual dispatch through the widened receiver
     }
 
-    /// <summary>§9.3.8.2.3 rules 5a/5c2 — a COVARIANT override RETURNING (the override returns a SUBCLASS of
-    /// the base method's returning class) is legal and dispatches; §14.8.2.3.2 rule 2 — a SIGN-clause
+    /// <summary>§2023:9.3.8.2.3 rules 5a/5c2 — a COVARIANT override RETURNING (the override returns a SUBCLASS of
+    /// the base method's returning class) is legal and dispatches; §2023:14.8.2.3.2 rule 2 — a SIGN-clause
     /// mismatch on a BY REFERENCE argument is the 0828 the old check silently passed.</summary>
     [Fact]
     public void CovariantOverrideReturning_And_SignClauseConformance()
@@ -1563,8 +1563,8 @@ public sealed class OoSpineTests
                 "01 WS PIC S9(4) SIGN LEADING SEPARATE VALUE -1.\n01 T USAGE OBJECT")), "the argument is described with SIGN LEADING SEPARATE and the formal parameter is not");
     }
 
-    /// <summary>§14.8.2.3.3 rule 2a — BY CONTENT numeric arguments follow COMPUTE rules: ANY numeric argument
-    /// (or literal, §9.3.6 rule 5 — truncation legal) converts into the formal's description; the value
+    /// <summary>§2023:14.8.2.3.3 rule 2a — BY CONTENT numeric arguments follow COMPUTE rules: ANY numeric argument
+    /// (or literal, §2023:9.3.6 rule 5 — truncation legal) converts into the formal's description; the value
     /// crosses rescaled through the OWNER's internal profile.</summary>
     [Fact]
     public void ByContentNumeric_ComputeRuleConversion()
@@ -1587,15 +1587,15 @@ public sealed class OoSpineTests
         Assert.Equal("LK=123.0\nLK=042.5", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup
+    /// <summary>§2023:8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup
     /// path: SEARCH's table resolution and the subscript index-name lookup must see the method's item, never
     /// the object's same-named table/index (the review's scope-bypass findings). And level-66 RENAMES in method
     /// data is now LIVE (M2-OO-1h step 1, DEVLOG 637 — the alias resolves structurally over the method record).
     /// <para>⛔ THE STAGE MOVED, AND THE INTENT DID NOT (kb/Work PB443, the PB390 shape again). The shadow half
     /// used to require the RUN to die: `SEARCH TAB2` over a method-local non-table returned a
     /// <c>BoundUnsupported</c>, so the program COMPILED, shipped an assembly and aborted the run unit claiming
-    /// WiseOwl COBOL had not implemented a feature — a GREEN test pinning the broken stage, on a rule ISO §4.2.2 ¶2
-    /// puts in the compile-time mechanism. It is now COBOL2075 quoting §14.9.37.3 SR2, and the SHADOWING
+    /// WiseOwl COBOL had not implemented a feature — a GREEN test pinning the broken stage, on a rule ISO §2023:4.2.2 ¶2
+    /// puts in the compile-time mechanism. It is now COBOL2075 quoting §2023:14.9.37.3 SR2, and the SHADOWING
     /// claim is asserted more sharply than before: the error names TAB2 as "not a table", which only the
     /// METHOD-LOCAL `PIC X(4)` is — the object's same-named item IS a table with an INDEXED phrase, so a lookup
     /// that had bypassed the method scope would have compiled clean.</para></summary>
@@ -1604,7 +1604,7 @@ public sealed class OoSpineTests
     {
         // SEARCH of a method-local NON-table (shadowing an object-level TABLE of the same name) must bind
         // the METHOD-LOCAL item — the not-a-table verdict fires, never a silent search of the object's
-        // table (§8.4.6.2.1 rule 3a: shadowing is replacement).
+        // table (§2023:8.4.6.2.1 rule 3a: shadowing is replacement).
         var shadowErrors = ErrorsOf(DriverAndClass("OOSP34", "OSPC34", """
                 INVOKE OSPC34 "NEW" RETURNING T.
                 INVOKE T "M".
@@ -1629,9 +1629,9 @@ public sealed class OoSpineTests
             """));
         string shadow = Assert.Single(shadowErrors, x => x.Contains("COBOL2075", StringComparison.Ordinal));
         Assert.Contains("'TAB2' is not a table", shadow, StringComparison.Ordinal);
-        Assert.Contains("§14.9.37.3 SR2", shadow, StringComparison.Ordinal);
+        Assert.Contains("§2023:14.9.37.3 SR2", shadow, StringComparison.Ordinal);
         // level-66 RENAMES in method LOCAL-STORAGE now compiles and runs — the alias reads the record span
-        // (§13.18.45 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
+        // (§2023:13.18.45 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
         var (ok66, out66, detail66) = CompileAndRun(DriverAndClass("OOSP35", "OSPC35", """
                 INVOKE OSPC35 "NEW" RETURNING T.
                 INVOKE T "M".
@@ -1653,7 +1653,7 @@ public sealed class OoSpineTests
         Assert.Contains("AL=PQRS", out66);
     }
 
-    /// <summary>§11.7.4 GR5 (M2-OO-1h step 2) — a method table's OCCURS DEPENDING data-name-1 may resolve to a
+    /// <summary>§2023:11.7.4 GR5 (M2-OO-1h step 2) — a method table's OCCURS DEPENDING data-name-1 may resolve to a
     /// VISIBLE, UNSHADOWED OBJECT item (the global fallback in LookupDataInScopeOf), not only a method-local name.
     /// The gate is gone; a false COBOL0851 "not defined" must not fire on a method-scoped depending name.</summary>
     [Fact]
@@ -1687,7 +1687,7 @@ public sealed class OoSpineTests
         Assert.Contains("T=XYZ", output);   // extent 3 (the object OCNT) — depending-name resolved via the fallback
     }
 
-    /// <summary>§13.18.44.3 SR (M2-OO-1h step 3) — a method 01 REDEFINES may only overlay a preceding item in the
+    /// <summary>§2023:13.18.44.3 SR (M2-OO-1h step 3) — a method 01 REDEFINES may only overlay a preceding item in the
     /// SAME method scope; naming an OBJECT item is out of scope → COBOL1577 (renumbered from the 1518 collision, review V11), never a silent cross-scope bind
     /// (the pre-fix behavior bound the method redefiner to the object item through the global Roots pool).</summary>
     [Fact]
@@ -1714,9 +1714,9 @@ public sealed class OoSpineTests
             """)), "COBOL1577");
     }
 
-    /// <summary>§13.18.44.3 SR (M2-OO-1h review B) — a REDEFINES target must be in the SAME data description; a
+    /// <summary>§2023:13.18.44.3 SR (M2-OO-1h review B) — a REDEFINES target must be in the SAME data description; a
     /// LOCAL-STORAGE 01 may NOT redefine a method LINKAGE 01 (their storage classes differ — caller storage vs
-    /// per-activation LOCAL; a method has no WORKING-STORAGE, §13.5.3 SR1). The scope is the redefiner's OWN section,
+    /// per-activation LOCAL; a method has no WORKING-STORAGE, §2023:13.5.3 SR1). The scope is the redefiner's OWN section,
     /// so the cross-section target is not found → 1577.</summary>
     [Fact]
     public void MethodRedefines_CrossSection_Rejected()
@@ -1738,11 +1738,11 @@ public sealed class OoSpineTests
             """)), "COBOL1577");
     }
 
-    // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
+    // ── The FACTORY slice (§2023:11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
 
-    /// <summary>An instance method and a factory method may SHARE a name (§9.3.6 — two interfaces): INVOKE
+    /// <summary>An instance method and a factory method may SHARE a name (§2023:9.3.6 — two interfaces): INVOKE
     /// through the class-name resolves the FACTORY roster, through an object the INSTANCE roster — dual
-    /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §11.7.3
+    /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §2023:11.7.3
     /// SR4 a) 0837 (kb/Work PB1582); INVOKE class-name
     /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
     /// trap-#7 COBOL6002 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOL4269).</summary>
@@ -1797,7 +1797,7 @@ public sealed class OoSpineTests
         Assert.Equal("FACTORY-PING\nINSTANCE-PING", CutRunner.Normalize(stdout));
 
         // kb/Work PB1582: a factory METHOD-ID NEW in a BASE subclass redefines BASE's New, so without OVERRIDE it is
-        // ISO §11.7.3 SR4 a) (0837) — it used to be the blanket 0836 "a factory method may not be named NEW".
+        // ISO §2023:11.7.3 SR4 a) (0837) — it used to be the blanket 0836 "a factory method may not be named NEW".
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPC37 INHERITS FROM BASE.
@@ -1876,7 +1876,7 @@ public sealed class OoSpineTests
             """), "COBOL4269");   // SR10's own code (kb/Work PB1136); FW and LN otherwise conform
     }
 
-    /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§8.9 reserves it only from 2002) — the continuity
+    /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§2023:8.9 reserves it only from 2002) — the continuity
     /// invariant for the newly-admitted token; at 2002+ the funnel 0901s it.</summary>
     [Fact]
     public void FactoryWord_UserNameAt85_Reserved2002Plus()
@@ -1906,13 +1906,13 @@ public sealed class OoSpineTests
                 STOP RUN.
             END PROGRAM OOSP42.
             """, 2002);
-        Assert.False(ok02, "FACTORY is §8.9-reserved at 2002+ — the funnel must 0901");
+        Assert.False(ok02, "FACTORY is §2023:8.9-reserved at 2002+ — the funnel must 0901");
         EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
-    // ── The OVERRIDE/FINAL attribute wave (§11.7 SR3/SR4a/GR3, §11.3 GR3 — DEVLOG 605) ─────────────────────
+    // ── The OVERRIDE/FINAL attribute wave (§2023:11.7 SR3/SR4a/GR3, §2023:11.3 GR3 — DEVLOG 605) ─────────────────────
 
-    /// <summary>§11.7 SR4a — redefining an inherited method WITHOUT the OVERRIDE attribute is 0837 STRICT
+    /// <summary>§2023:11.7 SR4a — redefining an inherited method WITHOUT the OVERRIDE attribute is 0837 STRICT
     /// (the pre-wave name-match inference is retired as the default); under <c>--permissive</c> it is a
     /// WARNING and the inference stands (the documented migration leniency), so the pre-wave program still
     /// runs with virtual dispatch.</summary>
@@ -1980,8 +1980,8 @@ public sealed class OoSpineTests
         EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOL0837");
     }
 
-    /// <summary>§11.7.3 SR3 first sentence — OVERRIDE with no matching superclass method (incl. no INHERITS at all)
-    /// is 0838; its second sentence and §11.7.4 GR3 — overriding a FINAL method — is 0839; §11.3.3 SR5 / §11.3.4
+    /// <summary>§2023:11.7.3 SR3 first sentence — OVERRIDE with no matching superclass method (incl. no INHERITS at all)
+    /// is 0838; its second sentence and §2023:11.7.4 GR3 — overriding a FINAL method — is 0839; §2023:11.3.3 SR5 / §2023:11.3.4
     /// GR3 — inheriting a FINAL class — is the INHERITS clause's rule, 2791. One descriptor per rule (kb/Work
     /// PB1784).</summary>
     [Fact]
@@ -2033,10 +2033,10 @@ public sealed class OoSpineTests
             REPOSITORY.
                 CLASS BAS46.
             END CLASS SUB46.
-            """), "COBOL2791");   // a FINAL superclass is §11.3.3 SR5, the INHERITS clause's rule (kb/Work PB1784)
+            """), "COBOL2791");   // a FINAL superclass is §2023:11.3.3 SR5, the INHERITS clause's rule (kb/Work PB1784)
     }
 
-    /// <summary>OVERRIDE is a legal USER word at COBOL-85 (§8.9 reserves it from 2002) — the continuity
+    /// <summary>OVERRIDE is a legal USER word at COBOL-85 (§2023:8.9 reserves it from 2002) — the continuity
     /// invariant for the newly-admitted token; the funnel 0901s it at 2002+.</summary>
     [Fact]
     public void OverrideWord_UserNameAt85_Reserved2002Plus()
@@ -2066,11 +2066,11 @@ public sealed class OoSpineTests
                 STOP RUN.
             END PROGRAM OOSP48.
             """, 2002);
-        Assert.False(ok02, "OVERRIDE is §8.9-reserved at 2002+ — the funnel must 0901");
+        Assert.False(ok02, "OVERRIDE is §2023:8.9-reserved at 2002+ — the funnel must 0901");
         EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
-    // ── The INTERFACE/PROPERTY wave (§11.5/§11.6/§11.8/§13.18.42 — DEVLOG 606) ──────────────────────────────
+    // ── The INTERFACE/PROPERTY wave (§2023:11.5/§2023:11.6/§2023:11.8/§2023:13.18.42 — DEVLOG 606) ──────────────────────────────
 
     private const string SpeakerInterface = """
         IDENTIFICATION DIVISION.
@@ -2086,7 +2086,7 @@ public sealed class OoSpineTests
         """;
 
     /// <summary>THE headline 0841: PIC 9(4) and PIC 9(8) formals BOTH project to C# <c>ref long</c>, so
-    /// Roslyn would accept the implementation — §9.3.8.2.3 rules 2/3 demand identical descriptions and only
+    /// Roslyn would accept the implementation — §2023:9.3.8.2.3 rules 2/3 demand identical descriptions and only
     /// the binder can check them. The under-rejection direction of the D-I1 authority argument.</summary>
     [Fact]
     public void Implements_NumericDescriptionMismatch_0841()
@@ -2112,7 +2112,7 @@ public sealed class OoSpineTests
             END CLASS CSPK50.
             """), "COBOL0841");
 
-    /// <summary>§9.3.11 — a class shall implement ALL prototypes of its interfaces (incl. inherited).</summary>
+    /// <summary>§2023:9.3.11 — a class shall implement ALL prototypes of its interfaces (incl. inherited).</summary>
     [Fact]
     public void Implements_MissingMethod_0841()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
@@ -2135,7 +2135,7 @@ public sealed class OoSpineTests
     /// numeric-DISPLAY formal to image storage (a ref-mod store — StoreAsImage), while the interface PROTOTYPE's
     /// identical formal has no body and stays native: without the implements-pair unification the emitted C# is
     /// interface member `M(ref long)` vs class method `M(ref string)` — Roslyn CS0535/CS0738 on legal COBOL
-    /// (§9.3.11 / §9.3.8.2.3: the descriptions ARE identical; the storage form is a compile-time decision the
+    /// (§2023:9.3.11 / §2023:9.3.8.2.3: the descriptions ARE identical; the storage form is a compile-time decision the
     /// harmonize must settle on BOTH sides).</summary>
     [Fact]
     public void Implements_RefModStoreInFormal_HarmonizesInterfaceCrossing()
@@ -2190,7 +2190,7 @@ public sealed class OoSpineTests
         Assert.Contains("AFTER 7234", stdout);
     }
 
-    /// <summary>§11.3.2 permits several INHERITS bases; WiseOwl COBOL v1 restricts to SINGLE inheritance and
+    /// <summary>§2023:11.3.2 permits several INHERITS bases; WiseOwl COBOL v1 restricts to SINGLE inheritance and
     /// rejects 2+ LOUDLY (SSOT §18 #18 / A.4.10 — the R9 fix: the repetition PARSES per the superset-parse
     /// doctrine, then pass-1 raises 0849; previously the 2nd base was a bare syntax error).</summary>
     [Fact]
@@ -2207,7 +2207,7 @@ public sealed class OoSpineTests
             END CLASS MBBASEB.
             """), "COBOL0849");
 
-    /// <summary>§10.7.3 SR6 — END INTERFACE names its interface (Validation.EndMarkerPass; kb/Work PB988).</summary>
+    /// <summary>§2023:10.7.3 SR6 — END INTERFACE names its interface (Validation.EndMarkerPass; kb/Work PB988).</summary>
     [Fact]
     public void Interface_EndNameMismatch_2793()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -2216,7 +2216,7 @@ public sealed class OoSpineTests
             END INTERFACE OTHER52.
             """), "COBOL2793");
 
-    /// <summary>§10.6.2 SR4 f) — a method prototype is a header only. A body is COBOL2272, the ONE
+    /// <summary>§2023:10.6.2 SR4 f) — a method prototype is a header only. A body is COBOL2272, the ONE
     /// prototype-body screen every prototype kind shares (kb/Work PB894; formerly the 0840 family).</summary>
     [Fact]
     public void Interface_PrototypeWithBody_2272()
@@ -2232,7 +2232,7 @@ public sealed class OoSpineTests
             END INTERFACE ISPK53.
             """), "COBOL2272");
 
-    /// <summary>ISO §11.7.3 SR6 — a GET accessor has no USING and a single RETURNING (COBOL2790, kb/Work PB1503).</summary>
+    /// <summary>ISO §2023:11.7.3 SR6 — a GET accessor has no USING and a single RETURNING (COBOL2790, kb/Work PB1503).</summary>
     [Fact]
     public void AccessorShape_GetWithUsing_2790()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -2251,7 +2251,7 @@ public sealed class OoSpineTests
             END CLASS CPRP54.
             """), "COBOL2790");
 
-    /// <summary>ISO §11.7.3 SR5 — a PROPERTY-clause subject shall not ALSO have an explicit accessor (COBOL2790,
+    /// <summary>ISO §2023:11.7.3 SR5 — a PROPERTY-clause subject shall not ALSO have an explicit accessor (COBOL2790,
     /// kb/Work PB1503 — its own rule now, no longer a by-product of an accessor-name collision).</summary>
     [Fact]
     public void PropertyClause_DuplicateExplicitAccessor_2790()
@@ -2274,8 +2274,8 @@ public sealed class OoSpineTests
             END CLASS CPRP55.
             """), "COBOL2790");
 
-    /// <summary>The property REFERENCE binds (§8.4.3.9 — the GR1 implicit get-INVOKE desugar; DEVLOG 607
-    /// retired the DEVLOG-606 named-0899 stage) when the §8.4.3.9.3 SR1 REPOSITORY specifier is present.</summary>
+    /// <summary>The property REFERENCE binds (§2023:8.4.3.9 — the GR1 implicit get-INVOKE desugar; DEVLOG 607
+    /// retired the DEVLOG-606 named-0899 stage) when the §2023:8.4.3.9.3 SR1 REPOSITORY specifier is present.</summary>
     [Fact]
     public void PropertyReference_Binds_WithSpecifier()
     {
@@ -2315,7 +2315,7 @@ public sealed class OoSpineTests
         Assert.True(ok, "a specifier-backed property reference must bind (GR1): " + string.Join("\n", errors));
     }
 
-    /// <summary>PROPERTY/GET/INTERFACE are legal USER words at 85 (§8.9 reserves them from 2002) — the
+    /// <summary>PROPERTY/GET/INTERFACE are legal USER words at 85 (§2023:8.9 reserves them from 2002) — the
     /// continuity invariant for the wave's newly-admitted tokens; the funnel 0901s them at 2002+.</summary>
     [Theory]
     [InlineData("PROPERTY")]
@@ -2338,11 +2338,11 @@ public sealed class OoSpineTests
         var (ok85, errors85, _) = EditionHarness.CompileFull(src("OOSP57"), 85);
         Assert.True(ok85, $"{word} must be a legal user word at --std 85: " + string.Join("\n", errors85));
         var (ok02, errors02, _) = EditionHarness.CompileFull(src("OOSP58"), 2002);
-        Assert.False(ok02, $"{word} is §8.9-reserved at 2002+ — the funnel must 0901");
+        Assert.False(ok02, $"{word} is §2023:8.9-reserved at 2002+ — the funnel must 0901");
         EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
-    /// <summary>IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (spec :10853), NOT §8.9-reserved — a legal user word
+    /// <summary>IMPLEMENTS is §2023:8.10 CONTEXT-SENSITIVE (spec :10853), NOT §2023:8.9-reserved — a legal user word
     /// at EVERY edition, including 2023 (the deliberate asymmetry with the XOR-recipe words).</summary>
     [Theory]
     [InlineData(85)]
@@ -2361,11 +2361,11 @@ public sealed class OoSpineTests
                 STOP RUN.
             END PROGRAM OOSP59.
             """, edition);
-        Assert.True(ok, $"IMPLEMENTS must stay a user word at --std {edition} (§8.10 context-sensitive): "
+        Assert.True(ok, $"IMPLEMENTS must stay a user word at --std {edition} (§2023:8.10 context-sensitive): "
             + string.Join("\n", errors));
     }
 
-    /// <summary>SET SR10/§9.3.8.2 — a class that does NOT implement the interface cannot widen into an
+    /// <summary>SET SR10/§2023:9.3.8.2 — a class that does NOT implement the interface cannot widen into an
     /// interface-typed receiver (the negative of the oo_interface golden's NEW-RETURNING path).</summary>
     [Fact]
     public void InterfaceReceiver_NonImplementingClass_Rejected()
@@ -2397,10 +2397,10 @@ public sealed class OoSpineTests
             END CLASS CSPK60.
             """), "COBOL0826");
 
-    // ── Property REFERENCES (§8.4.3.9 — the GR1–GR3 desugar; DEVLOG 607) ────────────────────────────────────
+    // ── Property REFERENCES (§2023:8.4.3.9 — the GR1–GR3 desugar; DEVLOG 607) ────────────────────────────────────
 
     /// <summary>A driver over class <paramref name="cls"/>; <paramref name="repository"/> is further REPOSITORY
-    /// specifiers WITH the paragraph's one closing period (ISO §12.3.8.2 prints it once, after the last specifier;
+    /// specifiers WITH the paragraph's one closing period (ISO §2023:12.3.8.2 prints it once, after the last specifier;
     /// kb/Work PB2727), so the CLASS specifier takes the period only when nothing follows it.</summary>
     private static string PropRefDriver(string pid, string cls, string repository, string statements) => $"""
         IDENTIFICATION DIVISION.
@@ -2422,7 +2422,7 @@ public sealed class OoSpineTests
         END PROGRAM {pid}.
         """;
 
-    /// <summary>§8.4.3.9.3 SR1 — a property reference requires a REPOSITORY PROPERTY specifier (0843).</summary>
+    /// <summary>§2023:8.4.3.9.3 SR1 — a property reference requires a REPOSITORY PROPERTY specifier (0843).</summary>
     [Fact]
     public void PropertyReference_NoRepositorySpecifier_0843()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP61", "CPRR61", "",
@@ -2444,7 +2444,7 @@ public sealed class OoSpineTests
             END CLASS CPRR61.
             """), "COBOL0843");
 
-    /// <summary>§8.4.3.9.3 SR3 — a SENDING property reference needs a GET accessor; WITH NO GET → 0843.</summary>
+    /// <summary>§2023:8.4.3.9.3 SR3 — a SENDING property reference needs a GET accessor; WITH NO GET → 0843.</summary>
     [Fact]
     public void PropertyReference_SendingWithNoGet_0843()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP62", "CPRR62", "    PROPERTY BAL.",
@@ -2466,7 +2466,7 @@ public sealed class OoSpineTests
             END CLASS CPRR62.
             """), "COBOL0843");
 
-    /// <summary>§8.4.3.9.3 SR4 — a RECEIVING property reference needs a SET accessor; WITH NO SET → 0843.
+    /// <summary>§2023:8.4.3.9.3 SR4 — a RECEIVING property reference needs a SET accessor; WITH NO SET → 0843.
     /// The polarity is CLASSIFIED (BoundStores), so the same reference is fine as a sender.</summary>
     [Fact]
     public void PropertyReference_ReceivingWithNoSet_0843()
@@ -2496,15 +2496,15 @@ public sealed class OoSpineTests
             + string.Join("\n", errors));
     }
 
-    // ── The UNIVERSAL wave (D10, §13.18.60.4 / §14.9.23 GR7c / §14.9.39 F5 / §8.8.4.2 F3 — DEVLOG 608) ──────
+    // ── The UNIVERSAL wave (D10, §2023:13.18.60.4 / §2023:14.9.23 GR7c / §2023:14.9.39 F5 / §2023:8.8.4.2 F3 — DEVLOG 608) ──────
 
     /// <summary>One driver + two classes whose same-named method takes DIFFERENT PIC formals — THE
-    /// polymorphic hazard: a wrong-shaped crossing through universal must NOT bind (§9.3.6 match rule 3 —
+    /// polymorphic hazard: a wrong-shaped crossing through universal must NOT bind (§2023:9.3.6 match rule 3 —
     /// EC-OO-METHOD, kb/Work PB1500), never deliver silently wrong data (both formals project to C# <c>ref long</c>);
     /// a BOUND method's residual violation (a RETURNING description that differs) is GR7c's EC-OO-UNIVERSAL.
     ///
     /// <para>⚠ The <c>&gt;&gt;TURN</c> is REQUIRED for these tests to assert the EC NAME, and its position is
-    /// load-bearing: §14.9.23.4 GR7c sets EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the
+    /// load-bearing: §2023:14.9.23.4 GR7c sets EC-OO-UNIVERSAL only "if checking for it is enabled in BOTH the
     /// activated method and the activating runtime element". At the top of the compilation group it covers the
     /// program AND the classes, so the tests exercise the enabled-in-both path. Without it nothing may be
     /// attributed — the crossing is still refused, but as a non-attributing implementor stop, which is what
@@ -2582,7 +2582,7 @@ public sealed class OoSpineTests
     [Fact]
     public void Universal_WrongShapedArg_NoMatch_EcOoMethod()
     {
-        // U holds a CUH8B (formal 9(8)); the caller crosses N4 (9(4)) — same C# type, WRONG description. §9.3.6 match
+        // U holds a CUH8B (formal 9(8)); the caller crosses N4 (9(4)) — same C# type, WRONG description. §2023:9.3.6 match
         // rule 3 e) makes the description a condition of RESOLUTION, so BUMP is not bound and step 6) sets EC-OO-METHOD
         // (kb/Work PB1500) — never silently wrong data, and never GR7c's conformance violation of an unbound method.
         var (ok, stdout, detail) = CompileAndRun(UnivHazard("OOUV10", """
@@ -2609,7 +2609,7 @@ public sealed class OoSpineTests
     [Fact]
     public void Universal_ArityMismatch_NoMatch_EcOoMethod()
     {
-        // §9.3.6 match rule 1 (an equal number of parameters) is a condition of resolution — kb/Work PB1500.
+        // §2023:9.3.6 match rule 1 (an equal number of parameters) is a condition of resolution — kb/Work PB1500.
         var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV12", """
             INVOKE CUH4A "NEW" RETURNING U.
             INVOKE U "BUMP".
@@ -2622,7 +2622,7 @@ public sealed class OoSpineTests
     [Fact]
     public void Universal_ReturningPresenceMismatch_NoMatch_EcOoMethod()
     {
-        // BUMP declares no RETURNING — §9.3.6 match rule 1: "if there is a returning item in the invocation there shall be
+        // BUMP declares no RETURNING — §2023:9.3.6 match rule 1: "if there is a returning item in the invocation there shall be
         // a returning item in the invoked method", so BUMP is not bound (kb/Work PB1500).
         var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV13", """
             INVOKE CUH4A "NEW" RETURNING U.
@@ -2636,8 +2636,8 @@ public sealed class OoSpineTests
     [Fact]
     public void Universal_ReturningDescriptionMismatch_Bound_EcOoUniversal()
     {
-        // RD4 RETURNING PIC 9(4) into the caller's PIC 9(8): the pair can meet in a MOVE, so §9.3.6 match rule 7 BINDS
-        // GET — and §14.8.3.3 then requires the SAME PICTURE, which §14.9.23.4 GR7 c) checks of the bound method:
+        // RD4 RETURNING PIC 9(4) into the caller's PIC 9(8): the pair can meet in a MOVE, so §2023:9.3.6 match rule 7 BINDS
+        // GET — and §2023:14.8.3.3 then requires the SAME PICTURE, which §2023:14.9.23.4 GR7 c) checks of the bound method:
         // EC-OO-UNIVERSAL, checking being enabled in both elements (kb/Work PB1500).
         var (ok, _, detail) = CompileAndRun(UnivHazard("OOUVRD", """
             INVOKE CUH4A "NEW" RETURNING U.
@@ -2650,7 +2650,7 @@ public sealed class OoSpineTests
     [Fact]
     public void Universal_ReturningReferenceClassMismatch_NoMatch_EcOoMethod()
     {
-        // RD4 RETURNING PIC 9(4) into an OBJECT REFERENCE: no MOVE or SET can deliver it, so §9.3.6 match rules 6/7
+        // RD4 RETURNING PIC 9(4) into an OBJECT REFERENCE: no MOVE or SET can deliver it, so §2023:9.3.6 match rules 6/7
         // fail and nothing is bound (kb/Work PB1500).
         var (ok, _, detail) = CompileAndRun(UnivHazard("OOUVRC", """
             INVOKE CUH4A "NEW" RETURNING U.
@@ -2681,7 +2681,7 @@ public sealed class OoSpineTests
         Assert.Contains("EC-OO-NULL", detail);
     }
 
-    /// <summary>§14.9.23.3 SR6 — BY CONTENT/BY VALUE and literal arguments are compile-rejected through a
+    /// <summary>§2023:14.9.23.3 SR6 — BY CONTENT/BY VALUE and literal arguments are compile-rejected through a
     /// universal receiver (0866).</summary>
     [Theory]
     [InlineData("INVOKE U \"BUMP\" USING BY CONTENT N4.")]
@@ -2692,7 +2692,7 @@ public sealed class OoSpineTests
             ErrorsOf(UnivHazard("OOUV16", "    INVOKE CUH4A \"NEW\" RETURNING U.\n    " + stmt)),
             "COBOL0866");
 
-    /// <summary>§14.9.39 F5 SR12 — a UNIVERSAL sender cannot narrow into a TYPED receiver (an object view
+    /// <summary>§2023:14.9.39 F5 SR12 — a UNIVERSAL sender cannot narrow into a TYPED receiver (an object view
     /// is the narrowing tool); SUPER is never a sender (SR9); a non-object receiver fails SR8.</summary>
     [Theory]
     [InlineData("SET G TO U.")]
@@ -2722,7 +2722,7 @@ public sealed class OoSpineTests
             END CLASS CUV17.
             """), "COBOL0867");
 
-    // ── The EC-OO wave (§14.9.29 / §14.9.18 SR4 / §14.9.49 F4 / §8.4.3.6 — DEVLOG 609) ─────────────────────
+    // ── The EC-OO wave (§2023:14.9.29 / §2023:14.9.18 SR4 / §2023:14.9.49 F4 / §2023:8.4.3.6 — DEVLOG 609) ─────────────────────
 
     private static string EcOoDriver(string pid, string decls, string statements) => $$"""
         IDENTIFICATION DIVISION.
@@ -2760,7 +2760,7 @@ public sealed class OoSpineTests
         END CLASS CEOX2.
         """;
 
-    /// <summary>§14.9.29.4 GR2 — a RAISE of an object with no matching declarative CONTINUES with the next
+    /// <summary>§2023:14.9.29.4 GR2 — a RAISE of an object with no matching declarative CONTINUES with the next
     /// statement; it is never fatal by itself.</summary>
     [Fact]
     public void RaiseObject_NoDeclarative_ContinuesNextStatement()
@@ -2771,10 +2771,10 @@ public sealed class OoSpineTests
         Assert.Equal("CONTINUED", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§14.6.13.1.5 rule 4 + §14.9.18.4 GR1 b) — the EC-OO-EXCEPTION conversion of an object no F4 declarative
+    /// <summary>§2023:14.6.13.1.5 rule 4 + §2023:14.9.18.4 GR1 b) — the EC-OO-EXCEPTION conversion of an object no F4 declarative
     /// took is RAISED in the activating element only "if checking for that exception condition is enabled" THERE
-    /// (§14.6.13.1.1: off by default), and then it enters the F3 tiers: a USE AFTER EC EC-OO declarative catches it.
-    /// EC-OO-EXCEPTION is FATAL (Table 13), so surviving it needs RESUME AT NEXT STATEMENT (§14.6.13.1.3 #5 NOTE 2
+    /// (§2023:14.6.13.1.1: off by default), and then it enters the F3 tiers: a USE AFTER EC EC-OO declarative catches it.
+    /// EC-OO-EXCEPTION is FATAL (Table 13), so surviving it needs RESUME AT NEXT STATEMENT (§2023:14.6.13.1.3 #5 NOTE 2
     /// — the same rule as every fatal named condition). The checking-OFF twin below is kb/Work PB1121.</summary>
     [Fact]
     public void GobackRaisingObject_NoF4_ActivatorChecked_F3CatchesEcOoException()
@@ -2842,7 +2842,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>kb/Work PB1121 — the checking-OFF twin of <see cref="GobackRaisingObject_NoF4_ActivatorChecked_F3CatchesEcOoException"/>:
-    /// EC-OO-EXCEPTION checking is not enabled in the activator, so §14.9.18.4 GR1 b) raises nothing, the F3
+    /// EC-OO-EXCEPTION checking is not enabled in the activator, so §2023:14.9.18.4 GR1 b) raises nothing, the F3
     /// declarative does not run and the INVOKE completes. (The unrecovered checked arm is
     /// <c>FatalRaiseSelectionTests.ObjectPropagation_ActivatorChecked_NoHandler_TerminatesAbnormally</c>.)</summary>
     [Fact]
@@ -2909,7 +2909,7 @@ public sealed class OoSpineTests
         Assert.Equal("AFTER", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>§9.3.8.2 :12291 — SET typed TO EXCEPTION-OBJECT narrows at RUNTIME; a wrong-class object
+    /// <summary>§2023:9.3.8.2 :12291 — SET typed TO EXCEPTION-OBJECT narrows at RUNTIME; a wrong-class object
     /// raises EC-OO-UNIVERSAL.</summary>
     [Fact]
     public void SetTypedFromExceptionObject_WrongClass_EcOoUniversal()
@@ -2921,18 +2921,18 @@ public sealed class OoSpineTests
     }
 
     /// <summary>The 0848 band: RAISE NULL (SR2), RAISE of a non-object item (SR2), and EXCEPTION-OBJECT as
-    /// a receiving operand (§8.4.3.6 SR1).</summary>
+    /// a receiving operand (§2023:8.4.3.6 SR1).</summary>
     [Theory]
     [InlineData("    RAISE NULL.", "COBOL0848")]
     [InlineData("    RAISE N4.", "COBOL0848")]
-    // kb/Work PB922: ONE rule, ONE code. ISO §8.4.3.6.3 SR1 is a rule about EVERY receiving operand, so SET's
+    // kb/Work PB922: ONE rule, ONE code. ISO §2023:8.4.3.6.3 SR1 is a rule about EVERY receiving operand, so SET's
     // arm now draws the SAME COBOL2196 the general receiving chokepoint does, and with SR1's own clause number
-    // (the message said §8.4.3.6, where cite.py --check FAILS).
+    // (the message said §2023:8.4.3.6, where cite.py --check FAILS).
     [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOL2196")]
     public void RaiseObject_BindViolations(string stmt, string code)
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC13", "", stmt)), code);
 
-    /// <summary>The §14.9.18.3 SR4 band, COBOL4211 (split off the A.4.10 decline COBOL0849, kb/Work PB745): a
+    /// <summary>The §2023:14.9.18.3 SR4 band, COBOL4211 (split off the A.4.10 decline COBOL0849, kb/Work PB745): a
     /// UNIVERSAL identifier (SR4d) and a declared class missing from the PD-header RAISING list (SR4a).</summary>
     [Theory]
     [InlineData("    GOBACK RAISING U.")]
@@ -2940,7 +2940,7 @@ public sealed class OoSpineTests
     public void GobackRaising_BindViolations_4211(string stmt)
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOL4211");
 
-    /// <summary>§14.2.2 SR7 — a header RAISING exception-name shall be level-3 EC-USER (0858).</summary>
+    /// <summary>§2023:14.2.2 SR7 — a header RAISING exception-name shall be level-3 EC-USER (0858).</summary>
     [Fact]
     public void MethodHeaderRaising_NonEcUser_0858()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -2958,7 +2958,7 @@ public sealed class OoSpineTests
             END CLASS CEOZ1.
             """), "COBOL0858");
 
-    /// <summary>§14.9.49.3 SR16 — USE AFTER EXCEPTION OBJECT names a class of the group (0859).</summary>
+    /// <summary>§2023:14.9.49.3 SR16 — USE AFTER EXCEPTION OBJECT names a class of the group (0859).</summary>
     [Fact]
     public void UseF4_UnknownClass_0859()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC15",
@@ -2972,7 +2972,7 @@ public sealed class OoSpineTests
             """,
             "    CONTINUE.")), "COBOL0859");
 
-    /// <summary>§8.8.4.2.2 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
+    /// <summary>§2023:8.8.4.2.2 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
     [Theory]
     [InlineData("IF U > G DISPLAY \"X\" END-IF.")]
     [InlineData("IF U = N4 DISPLAY \"X\" END-IF.")]

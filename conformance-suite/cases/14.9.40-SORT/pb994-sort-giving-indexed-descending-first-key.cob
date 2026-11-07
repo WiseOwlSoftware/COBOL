@@ -8,7 +8,7 @@
       *>   cite.py --check 14.9.40.3 "If file-name-3 references an indexed file, the first specification of data-name-1
       *>     shall be associated with an ASCENDING phrase and the data item referenced by that data-name-1 shall begin
       *>     at the same byte location within its record and occupy the same number of bytes as the prime record key
-      *>     for that file." -> OK §14.9.40.3 9)
+      *>     for that file." -> OK §2023:14.9.40.3 9)
       *> The records would reach F1 in DESCENDING order, not the ascending prime-key order an indexed file is built in.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB994A.

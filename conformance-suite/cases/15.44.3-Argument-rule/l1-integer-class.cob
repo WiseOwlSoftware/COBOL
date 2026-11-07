@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.44.3 r1 — "Argument-1 shall be of class numeric."
+      *> ISO §2023:15.44.3 r1 — "Argument-1 shall be of class numeric."
       *>
-      *> WS-X is described PIC X(4), which §8.5.2.1 Table 2 (Class and category relationships for elementary
-      *> data items) puts in class ALPHANUMERIC; §15.3's argument type 10 admits only "an arithmetic
+      *> WS-X is described PIC X(4), which §2023:8.5.2.1 Table 2 (Class and category relationships for elementary
+      *> data items) puts in class ALPHANUMERIC; §2023:15.3's argument type 10 admits only "an arithmetic
       *> expression or a numeric data item". ⛔ ITS VALUE IS THE CHARACTERS "12.5" ON PURPOSE — the rule
       *> screens the operand's CLASS, not whether its content happens to look numeric, so a compiler that
       *> reinterpreted the characters would silently answer 12 for source the standard forbids.

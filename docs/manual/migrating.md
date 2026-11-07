@@ -66,7 +66,7 @@ change them.
 For example, a program that writes `ENTRY "OTHER"` is refused:
 
 ```text
-  migentry.cob(6,12): error COBOL2269: ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and this implementation admits none (ISO §4.2.2). Make the entry point a separate program, or a nested program, and CALL it
+  migentry.cob(6,12): error COBOL2269: ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and this implementation admits none (ISO §2023:4.2.2). Make the entry point a separate program, or a nested program, and CALL it
 ```
 
 The full list of optional facilities WiseOwl COBOL does not claim, with the diagnostic for each, is section 4 and

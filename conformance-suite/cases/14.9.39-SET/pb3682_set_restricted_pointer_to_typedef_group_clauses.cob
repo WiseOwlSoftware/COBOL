@@ -13,7 +13,7 @@
       *>   whatever clause the declaration's group wrote for its members (13.18.60.4 GR1 hands a group's USAGE down to each
       *>   elementary item, cite.py: OK  13.18.60.4 1); the SIGN clause of a group applies the same way, 13.18.52.4 GR1).
       *>   The pointer's restriction names the type declaration itself (the TEMPLATE) and WA's type is the declaration its TYPE
-      *>   clause copied, and the §8.5.3.1 comparison reads both forms by the same characteristics. The usage walk and the SIGN
+      *>   clause copied, and the §2023:8.5.3.1 comparison reads both forms by the same characteristics. The usage walk and the SIGN
       *>   walk reached the copies and never the template, so the template's members kept the default usage and sign and the
       *>   same type was refused as two (COBOL0869).
       *>   Each leg can fail: any of the three SET statements is refused.

@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// ⛔ THE ONE LAYOUT OF A VARIABLE-LENGTH RECORD'S CONTIGUOUS IMAGE (docs/CONFORMANCE.md §3 determinations D-FRA
 /// and D-KWV; kb/Work PB981, PB1025). A WRITE / RELEASE sends a variable-length record "as though it were in fact
-/// contiguous with its neighbors" (ISO §8.5.1.11.2), so a record read back — or a record held in a sort store or
+/// contiguous with its neighbors" (ISO §2023:8.5.1.11.2), so a record read back — or a record held in a sort store or
 /// an indexed file — carries no marker of where a dynamic member ends. This object is that record type's
 /// component layout, emitted ONCE per record type beside its <c>FromContiguousImage</c>, and it answers the two
 /// questions every reader of such an image asks:
@@ -23,28 +23,28 @@ namespace WiseOwl.Cobol.Runtime;
 /// maximum.
 /// </summary>
 /// <param name="FixedTotal">The width of the FIXED run — the record with every variable-length component
-/// collapsed to nothing (the §8.5.1.12.3 zero-length accounting).</param>
+/// collapsed to nothing (the §2023:8.5.1.12.3 zero-length accounting).</param>
 /// <param name="FixedAt">Component k's offset in the FIXED run.</param>
 /// <param name="Unit">Component k's unit width in image characters: the element width of a table, the image characters of
 /// one character position of a dynamic-length item (one alphanumeric, two for a national item's UTF-16BE bytes - kb/Work
 /// PB3441), the unit its fixed form pads and trims by.</param>
-/// <param name="MaxUnits">Component k's maximum size in units (§8.5.1.10.1 / the table's maximum capacity).</param>
-/// <param name="StructureCodes">Component k's LAYOUT CODE: its DYNAMIC LENGTH STRUCTURE (§12.3.7.4 GR18/GR19) as
+/// <param name="MaxUnits">Component k's maximum size in units (§2023:8.5.1.10.1 / the table's maximum capacity).</param>
+/// <param name="StructureCodes">Component k's LAYOUT CODE: its DYNAMIC LENGTH STRUCTURE (§2023:12.3.7.4 GR18/GR19) as
 /// <see cref="CobolDynStructure.Code"/> when the clause names one, else the bare unit of its data
 /// (<see cref="CobolDynStructure.PlainCode"/>: 0 for one image character a position, 32 for a national item's two bytes;
-/// §13.18.19.3 SR3 — the implementor's structure is the bare data and the extent table), or null when every component
+/// §2023:13.18.19.3 SR3 — the implementor's structure is the bare data and the extent table), or null when every component
 /// is the bare 0. Whether a code names a structure is asked of <see cref="CobolDynStructure.FromCode"/> /
 /// <see cref="CobolDynStructure.FromCodes"/>, never <c>code != 0</c>; the pad and trim space of a component derives from the
 /// code's unit (<see cref="CobolDynStructure.UnitOf"/>), as a width of two cannot say whether it is a national item
 /// or a table of two-character elements.
 /// <para>⛔ THE LAYOUT HAS TWO FORMS OF THE ONE RECORD (kb/Work PB1094). The CONTIGUOUS image is what a procedural
-/// operation on the group sees (§8.5.1.11.2) — the data alone. The MEDIUM image is what a file or a sort store holds:
+/// operation on the group sees (§2023:8.5.1.11.2) — the data alone. The MEDIUM image is what a file or a sort store holds:
 /// the contiguous image with each structured component replaced by its length field, data and delimiter
 /// (<see cref="CobolDynStructure.Frame"/>). A WRITE / REWRITE / RELEASE converts once on the way out
 /// (<see cref="MediumImage"/> + <see cref="MediumExtents"/>); a READ / RETURN converts back once in
 /// <see cref="Decompose"/>. An unstructured layout's two forms are the same string, so nothing else changes.</para></param>
 /// <param name="Odo">The group's OCCURS DEPENDING table (<see cref="OdoTail"/>; kb/Work PB244, PB2497), the record's
-/// trailing storage (§13.18.38.3 SR22), or <c>default</c> when it holds none. Its two shapes are two layouts:
+/// trailing storage (§2023:13.18.38.3 SR22), or <c>default</c> when it holds none. Its two shapes are two layouts:
 /// <list type="bullet">
 /// <item>ELEMENTS OF A FIXED IMAGE (<c>Comps</c> zero): the table is the LAST component, one element per unit up to
 /// its maximum, so the record's own length says how many occurrences it holds. The group's activation-boundary
@@ -81,7 +81,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     /// <summary>The layout of a record whose table of variable-length elements holds <paramref name="count"/>
     /// occurrences (clamped to 0..the maximum, as <see cref="OdoTail.CutAt"/> clamps): the components of the
     /// occurrences beyond it and their fixed runs left out. The table is the record's trailing storage
-    /// (§13.18.38.3 SR22), so they are the layout's last ones. A plain layout: it holds no table.</summary>
+    /// (§2023:13.18.38.3 SR22), so they are the layout's last ones. A plain layout: it holds no table.</summary>
     private CobolContiguousLayout AtCount(int count)
     {
         int m = FixedAt.Length - Odo.CutComponents(count);
@@ -104,11 +104,11 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     public bool HasStructure => _structure is not null;
 
     /// <summary>The most characters component k can occupy in the MEDIUM image — its maximum data
-    /// (§8.5.1.10.1) plus its length field and delimiter. What the fixed form (<see cref="ToFixedForm"/>) pads it to.</summary>
+    /// (§2023:8.5.1.10.1) plus its length field and delimiter. What the fixed form (<see cref="ToFixedForm"/>) pads it to.</summary>
     private long MaxExtent(int k) => MaxUnits[k] * Unit[k] + (_structure?[k]?.Overhead ?? 0);
 
     /// <summary>⛔ THE MEDIUM IMAGE of a record this layout's type sent — the contiguous <paramref name="image"/> with
-    /// each structured component framed by its DYNAMIC LENGTH STRUCTURE (§12.3.7.4 GR18 length field before the data,
+    /// each structured component framed by its DYNAMIC LENGTH STRUCTURE (§2023:12.3.7.4 GR18 length field before the data,
     /// GR19 delimiter after it). <paramref name="extents"/> is the table that was built over the same image
     /// (<see cref="ExtentsOf"/>); an unstructured layout returns the image itself.</summary>
     /// <exception cref="InvalidOperationException">The table does not describe the image — a record sent through its
@@ -177,13 +177,13 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
         : throw new ArgumentException("an extent table has at most one length per component of its layout", nameof(lengths));
 
     /// <summary>⛔ THE FIXED FORM OF A VARIABLE-LENGTH RECORD — the record as a file of FIXED-LENGTH records holds it
-    /// (determination D-FRA (vi); kb/Work PB1562). ISO §13.18.43.4 GR6 makes every record of a Format 1 file the same
-    /// size and §9.1.6 makes the record type and size fixed file attributes that every program using the file
+    /// (determination D-FRA (vi); kb/Work PB1562). ISO §2023:13.18.43.4 GR6 makes every record of a Format 1 file the same
+    /// size and §2023:9.1.6 makes the record type and size fixed file attributes that every program using the file
     /// shares, so such a file can neither frame its records as variable-length ones nor carry an extent table: a
     /// second program describing the same file as <c>RECORD CONTAINS 20</c> over <c>PIC X(20)</c> must read the
     /// same bytes. A record with variable-length members therefore occupies the one shape every record of the file
-    /// shares — each member at the position it has when it holds its MAXIMUM size (§8.5.1.10.1 — the number
-    /// §13.18.43.4 GR8 b) sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
+    /// shares — each member at the position it has when it holds its MAXIMUM size (§2023:8.5.1.10.1 — the number
+    /// §2023:13.18.43.4 GR8 b) sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
     /// drops the padding: a space in a fixed-size field is padding, never data.
     /// <para>The padding is the space of the member's own unit (<see cref="CobolVarGroup.SpacesFor"/>, the unit its
     /// layout code names): the space character for an alphanumeric member, the national space (the UTF-16BE pair) for a
@@ -251,7 +251,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     /// member — a fixed member cannot start where a following component starts, because it occupies at least one
     /// position of the fixed run first.</summary>
     /// <para>A table of variable-length elements lays the record out at the count its extent table states, and at the
-    /// table's maximum when no table describes it (§13.18.38.4 GR8 b: a receiving group takes its maximum length) —
+    /// table's maximum when no table describes it (§2023:13.18.38.4 GR8 b: a receiving group takes its maximum length) —
     /// the layout the READ's first decomposition uses (<see cref="Decompose"/>).</para>
     public int Position(string record, int fixedOffset, RecordExtents? extents = null)
     {
@@ -268,7 +268,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     }
 
     /// <summary>The recorded component lengths, when <paramref name="extents"/> is THIS record's table under THIS
-    /// layout; null otherwise — the ONE place the §8.5.1.12.2 correspondence test is asked.</summary>
+    /// layout; null otherwise — the ONE place the §2023:8.5.1.12.2 correspondence test is asked.</summary>
     private IReadOnlyList<int>? Recorded(string? record, RecordExtents? extents) =>
         extents is not null && extents.Describes(record?.Length ?? 0, FixedTotal, FixedAt, Unit) ? extents.Lengths : null;
 }

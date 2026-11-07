@@ -2,15 +2,15 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Globalization;
 
-/// <summary>How a locale-phrase of the CHARACTER CLASSIFICATION clause names its locale (ISO/IEC 1989:2023 §12.3.6.2:
-/// <c>locale-name-n | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT</c>; §12.3.6.4 GR5 a–d / f–i).</summary>
+/// <summary>How a locale-phrase of the CHARACTER CLASSIFICATION clause names its locale (ISO/IEC 1989:2023 §2023:12.3.6.2:
+/// <c>locale-name-n | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT</c>; §2023:12.3.6.4 GR5 a–d / f–i).</summary>
 public enum LocalePhraseKind
 {
     /// <summary>The phrase is absent — the classification of the coded character set (GR5 e/j, GR6).</summary>
     None = 0,
     /// <summary>A SPECIAL-NAMES locale-name (GR5 a/f) — its L1-normalized tag travels.</summary>
     Named = 1,
-    /// <summary>The word LOCALE — the locale CURRENT at activation (GR5 b/g; §14.6.6 r2).</summary>
+    /// <summary>The word LOCALE — the locale CURRENT at activation (GR5 b/g; §2023:14.6.6 r2).</summary>
     Current = 2,
     /// <summary>SYSTEM-DEFAULT (GR5 c/h).</summary>
     SystemDefault = 3,
@@ -19,15 +19,15 @@ public enum LocalePhraseKind
 }
 
 /// <summary>
-/// The CHARACTER CLASSIFICATION in effect for one runtime module (ISO §12.3.6 OBJECT-COMPUTER; DESIGN-locale-facility
-/// §4.5; kb/Work PB64 T5): the LC_CTYPE facts for alphanumeric characters and for national characters, each null
-/// when "the character classification associated with the computer's coded character set" applies (§12.3.6.4 GR5
-/// e/j, GR6 — the implementor's correspondence, §15.57.4 r4 / §15.97.4 r4). Resolved at the module's ACTIVATION
-/// (§12.3.6.4 GR8 — "effective with the initial state of the runtime modules to which they apply"; §14.6.6 r2 —
+/// The CHARACTER CLASSIFICATION in effect for one runtime module (ISO §2023:12.3.6 OBJECT-COMPUTER; DESIGN-locale-facility
+/// §2023:4.5; kb/Work PB64 T5): the LC_CTYPE facts for alphanumeric characters and for national characters, each null
+/// when "the character classification associated with the computer's coded character set" applies (§2023:12.3.6.4 GR5
+/// e/j, GR6 — the implementor's correspondence, §2023:15.57.4 r4 / §2023:15.97.4 r4). Resolved at the module's ACTIVATION
+/// (§2023:12.3.6.4 GR8 — "effective with the initial state of the runtime modules to which they apply"; §2023:14.6.6 r2 —
 /// "On activation of a runtime element, if the CHARACTER CLASSIFICATION clause is specified … category LC_CTYPE in
 /// the specified locale is used"), so the word LOCALE binds the locale current WHEN THE PROGRAM IS ENTERED, not at
-/// each use. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§15.57.4 r3 / §15.97.4 r3) and by the class
-/// tests ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§8.8.4.4.4 GR3 b/c/d) — §12.3.6.4 GR7 a/b.
+/// each use. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§2023:15.57.4 r3 / §2023:15.97.4 r3) and by the class
+/// tests ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§2023:8.8.4.4.4 GR3 b/c/d) — §2023:12.3.6.4 GR7 a/b.
 /// </summary>
 public sealed class CharacterClassification
 {
@@ -49,7 +49,7 @@ public sealed class CharacterClassification
     /// <summary>The facts for an operand of the given class.</summary>
     public LocaleFacts? For(bool national) => national ? National : Alphanumeric;
 
-    /// <summary>Resolve the clause's two phrases for the module being activated (§12.3.6.4 GR5 — the eight cases;
+    /// <summary>Resolve the clause's two phrases for the module being activated (§2023:12.3.6.4 GR5 — the eight cases;
     /// DETERMINATION: a named locale that is unavailable or has no culture data yields the invariant facts here, and
     /// the operations that use it raise EC-LOCALE-MISSING / EC-LOCALE-INVALID at their own sites).</summary>
     public static CharacterClassification Resolve(LocalePhraseKind alphanumericKind, string? alphanumericTag,

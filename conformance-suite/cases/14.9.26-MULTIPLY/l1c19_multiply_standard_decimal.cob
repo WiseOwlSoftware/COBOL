@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.26.4 3) — MULTIPLY under STANDARD-DECIMAL: product =
+      *> ISO §2023:14.9.26.4 3) — MULTIPLY under STANDARD-DECIMAL: product =
       *>   expression
       *> "When format 1 or 2 is used and standard-decimal, or
       *>   standard-binary
@@ -14,20 +14,20 @@
       *> expression (multiplier * multiplicand) where the values for
       *>   multiplier
       *> and multiplicand are as defined in General rules 1 and 2".
-      *> OK  §14.9.26.4 3)  (General rules)
+      *> OK  §2023:14.9.26.4 3)  (General rules)
       *> 11.9.5.2 3) STANDARD-DECIMAL selects 8.8.1.5 standard-decimal
       *>   arithmetic
       *> (34-digit decimal intermediate; every product below is exact
       *>   within it).
       *> The STANDARD-BINARY half is declined (docs/CONFORMANCE.md,
       *>   PB198); this
-      *> golden pins the STANDARD-DECIMAL half.  OK  §11.9.5.2 3)
+      *> golden pins the STANDARD-DECIMAL half.  OK  §2023:11.9.5.2 3)
       *> Transfer into the resultant: no ROUNDED = TRUNCATION
-      *>   OK  §14.7.4.3 2)  (General rules)
+      *>   OK  §2023:14.7.4.3 2)  (General rules)
       *> ROUNDED without MODE: 11.9.6.3 2) "DEFAULT ROUNDED MODE IS
       *> NEAREST-AWAY-FROM-ZERO is implied"; 14.7.4.3 4) nearest, tie
       *>   away
-      *> from zero.  OK  §14.7.4.3 4)  (General rules)
+      *> from zero.  OK  §2023:14.7.4.3 4)  (General rules)
       *> Needs the 2014 OPTIONS paragraph (lowest edition 2014).
       *> Derivation (exact products by decimal arithmetic):
       *>  P1  12345678901234.5678 * 98765432.1234

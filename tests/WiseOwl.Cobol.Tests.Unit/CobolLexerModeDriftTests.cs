@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reference modifier or a keyword-omitted argument list; a '(' after <c>FUNCTION name</c> is the argument-list paren
 /// (<c>FNARG_LPAREN</c>); anything else is a grouping <c>LPAREN</c>. Since kb/Work PB2113 (owner ruling D10) no paren
 /// changes the lexer MODE: the tokens inside every one are the ordinary vocabulary, and the two list regions (argument
-/// and reference) differ from a group only in keeping the §8.3.5 separator and the sign-adjacent literal.</para>
+/// and reference) differ from a group only in keeping the §2023:8.3.5 separator and the sign-adjacent literal.</para>
 /// <para>⛔ WHY THIS TEST EXISTS. The PB8 fix-queue entry recorded the root cause of "reference-modifying a function
 /// result is a parse error" as a LEXER defect, and called a lexer change "the riskiest category in this codebase". A
 /// token dump showed that was wrong: in BOTH keyword-present shapes the ref-mod paren was never a reference paren, so
@@ -49,7 +49,7 @@ public sealed class CobolLexerModeDriftTests
     }
 
     /// <summary>A ref-mod written after a FUNCTION NAME or after a function's argument-list ')' is no reference paren,
-    /// so it reaches <c>functionCall</c>'s <c>refModPart</c> tail (ISO §8.4.3.3.3 SR2 — the PB8 shapes).</summary>
+    /// so it reaches <c>functionCall</c>'s <c>refModPart</c> tail (ISO §2023:8.4.3.3.3 SR2 — the PB8 shapes).</summary>
     [Theory]
     // After a zero-argument function's NAME: the lexer's FUNCTION suppression makes the '(' the argument-list twin.
     [InlineData("MOVE FUNCTION CURRENT-DATE (1:4) TO X", "FNARG_LPAREN")]
@@ -76,7 +76,7 @@ public sealed class CobolLexerModeDriftTests
         Assert.Contains("REF_RPAREN", names);
     }
 
-    /// <summary>The RESERVED intrinsic names (§8.9 ∩ §8.11) written WITHOUT the FUNCTION keyword (fix-queue
+    /// <summary>The RESERVED intrinsic names (§2023:8.9 ∩ §2023:8.11) written WITHOUT the FUNCTION keyword (fix-queue
     /// PB9): each carries <c>subscriptTrigger=true</c>, so with no FUNCTION token before it the lexer types the '('
     /// REF_LPAREN. That is why the <c>functionCall</c> alternative for them takes a <c>subscriptPart</c> and binds
     /// through the ONE D2 argument path (IntrinsicBinder.ArgumentsOf), instead of the <c>functionArgList</c> the
@@ -93,10 +93,10 @@ public sealed class CobolLexerModeDriftTests
         Assert.Contains("REF_RPAREN", names);
     }
 
-    /// <summary>ISO §8.3.5 1)/2) INSIDE a reference paren (kb/Work PB2113): the space and the comma-plus-space separate
-    /// subscripts, so the lexer keeps the §8.3.5 2) separator as FNARG_SEPARATOR and retypes a sign that follows a
-    /// separator and touches its digits as the literal's own sign (§8.3.3.3.2) — `T (I -1)` is two subscripts — while
-    /// a space-surrounded sign stays the operator (§8.7.1) — `T (I - 1)` is one. Outside every list region nothing
+    /// <summary>ISO §2023:8.3.5 1)/2) INSIDE a reference paren (kb/Work PB2113): the space and the comma-plus-space separate
+    /// subscripts, so the lexer keeps the §2023:8.3.5 2) separator as FNARG_SEPARATOR and retypes a sign that follows a
+    /// separator and touches its digits as the literal's own sign (§2023:8.3.3.3.2) — `T (I -1)` is two subscripts — while
+    /// a space-surrounded sign stays the operator (§2023:8.7.1) — `T (I - 1)` is one. Outside every list region nothing
     /// changes: the same `I -1` after COMPUTE is the subtraction it always was.</summary>
     [Theory]
     [InlineData("MOVE T (I -1) TO X", "SIGNED_INTEGERLIT")]
@@ -114,8 +114,8 @@ public sealed class CobolLexerModeDriftTests
         if (expected is "MINUS" or "PLUS") Assert.DoesNotContain(names, n => n.StartsWith("SIGNED_", StringComparison.Ordinal));
     }
 
-    /// <summary>The DECIMAL-POINT IS COMMA fixed-point literal in a list region (kb/Work PB2506): §8.3.3.3.2 2) puts the
-    /// sign inside the literal and §8.3.5 2) makes a comma a separator only when a space follows it, so `-1,5`, `+1,5`
+    /// <summary>The DECIMAL-POINT IS COMMA fixed-point literal in a list region (kb/Work PB2506): §2023:8.3.3.3.2 2) puts the
+    /// sign inside the literal and §2023:8.3.5 2) makes a comma a separator only when a space follows it, so `-1,5`, `+1,5`
     /// and `-,5` are each ONE SIGNED_DECIMALLIT token — never SIGNED_INTEGERLIT(-1) plus a contiguous `,5` that the
     /// parser assembles into a second argument. Outside every list region the sign is cut off as the operator and the
     /// unsigned literal assembles in numericLiteralCore as it always has (no SIGNED_* token).</summary>
@@ -150,7 +150,7 @@ public sealed class CobolLexerModeDriftTests
 
     private const string ReportSectionHead = "DATA DIVISION. REPORT SECTION. RD R1. 01 TYPE DETAIL. 05 COLUMN 1 PIC 9999 ";
 
-    /// <summary>ISO §13.18.54.3 SR9: within a report description entry a SUM not preceded by FUNCTION is the SUM
+    /// <summary>ISO §2023:13.18.54.3 SR9: within a report description entry a SUM not preceded by FUNCTION is the SUM
     /// CLAUSE, whose addend (arithmetic-expression-1) may open with '(' — so that '(' is an arithmetic LPAREN,
     /// never a reference paren.</summary>
     [Theory]
@@ -166,7 +166,7 @@ public sealed class CobolLexerModeDriftTests
 
     /// <summary>The OTHER arm of SR9 and of the region, which a region-blind "turn the trigger off" fix breaks:
     /// FUNCTION SUM( inside a report description entry is still the function's argument list (FNARG_LPAREN),
-    /// and every §8.9 ∩ §8.11 word (LENGTH, RANDOM, SIGN, SUM) written keyword-omitted in the PROCEDURE DIVISION
+    /// and every §2023:8.9 ∩ §2023:8.11 word (LENGTH, RANDOM, SIGN, SUM) written keyword-omitted in the PROCEDURE DIVISION
     /// — after the REPORT SECTION has closed — still opens a reference paren for its arguments.</summary>
     [Theory]
     [InlineData(ReportSectionHead + "SOURCE FUNCTION SUM(1 2 3).", "FNARG_LPAREN")]
@@ -200,7 +200,7 @@ public sealed class CobolLexerModeDriftTests
 
     /// <summary>
     /// A '(' that immediately follows <c>FUNCTION &lt;name&gt;</c> is FNARG_LPAREN, and its ')' FNARG_RPAREN
-    /// (ISO §8.4.3.2.3 SR6 — that paren is ALWAYS the argument list, never a grouping paren).
+    /// (ISO §2023:8.4.3.2.3 SR6 — that paren is ALWAYS the argument list, never a grouping paren).
     /// </summary>
     /// <remarks>
     /// ⛔ THIS IS THE WHOLE OF PB48's MECHANISM. <c>ZeroTokenRewriter</c> converts a figurative ZERO adjacent to
@@ -222,7 +222,7 @@ public sealed class CobolLexerModeDriftTests
     }
 
     /// <summary>A bare ZERO argument keeps its FIGURATIVE token, so the binder — which alone knows the
-    /// function's §15.3 argument type — decides between §8.3.3.6.4 GR4's numeric and character readings.</summary>
+    /// function's §2023:15.3 argument type — decides between §2023:8.3.3.6.4 GR4's numeric and character readings.</summary>
     [Theory]
     [InlineData("MOVE FUNCTION LOWER-CASE(ZERO) TO X")]
     [InlineData("COMPUTE N = FUNCTION MAX(ZERO 5)")]      // numeric context, still figurative AT THE TOKEN
@@ -250,7 +250,7 @@ public sealed class CobolLexerModeDriftTests
         Assert.DoesNotContain("ZERO", names);
     }
 
-    /// <summary>kb/Work PB3846 — the word ALL before ZERO is §8.3.3.6.2 Format 1's optional word, so the context that
+    /// <summary>kb/Work PB3846 — the word ALL before ZERO is §2023:8.3.3.6.2 Format 1's optional word, so the context that
     /// decides is the token BEFORE the ALL: each operand position (right, left, parenthesised, unary, ref-mod) rewrites
     /// the ZERO and keeps the ALL for the parser's <c>ALL? ZERO_ARITH</c> arm. Before, a ZERO whose left neighbour was
     /// ALL was never rewritten, and <c>1 + ALL ZERO</c> was a bare COBOL0001.</summary>
@@ -281,8 +281,8 @@ public sealed class CobolLexerModeDriftTests
     public void AllZero_OutsideAnArithmeticPosition_StaysFigurative(string src) =>
         Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
 
-    /// <summary>kb/Work PB3962 — a sign TOUCHING the digits of the next literal is that literal's sign (§8.7.1: a binary
-    /// operator is "preceded by a space and followed by a space"; §8.3.3.3.2 2): the sign is "the leftmost character of
+    /// <summary>kb/Work PB3962 — a sign TOUCHING the digits of the next literal is that literal's sign (§2023:8.7.1: a binary
+    /// operator is "preceded by a space and followed by a space"; §2023:8.3.3.3.2 2): the sign is "the leftmost character of
     /// the literal"), so the ZERO before it is a list operand and keeps its figurative token, whatever the list is.</summary>
     [Theory]
     [InlineData("DISPLAY ZERO -1")]
@@ -295,7 +295,7 @@ public sealed class CobolLexerModeDriftTests
     public void Zero_BeforeASignTouchingItsLiteral_StaysFigurative(string src) =>
         Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
 
-    /// <summary>The converse of the sign rule: a sign with a separator space after it IS the §8.7.1 operator (the
+    /// <summary>The converse of the sign rule: a sign with a separator space after it IS the §2023:8.7.1 operator (the
     /// digits are not touched), and an operator on the ZERO's LEFT is an operator whatever follows.</summary>
     [Theory]
     [InlineData("COMPUTE N = ZERO - 1")]
@@ -308,7 +308,7 @@ public sealed class CobolLexerModeDriftTests
 
     /// <summary>A reference modifier written directly after a ZERO-ARGUMENT function name is delimited by
     /// FNARG parens too — the lexer cannot know the arity, which is why <c>refModPart</c> accepts both flavours
-    /// — so a ZERO in one of its positions has no arithmetic paren beside it. §8.4.3.3.3 SR4 makes both
+    /// — so a ZERO in one of its positions has no arithmetic paren beside it. §2023:8.4.3.3.3 SR4 makes both
     /// positions arithmetic expressions, and the rewriter's COLON arms are what keep that true.</summary>
     [Theory]
     [InlineData("MOVE FUNCTION CURRENT-DATE (ZERO:4) TO X")]
@@ -333,10 +333,10 @@ public sealed class CobolLexerModeDriftTests
     }
 
     /// <summary>kb/Work PB1465 — the reference-paren trigger is narrowed PER COMPILE to the words the compile admits as
-    /// user-defined words (ISO §8.3.2.1 GR1: "Reserved words shall not be used as user-defined words"). A '(' after
-    /// a boolean operator §8.9 reserves (2002+) groups a boolean sub-expression, which §8.8.2 Table 4 permits; at
+    /// user-defined words (ISO §2023:8.3.2.1 GR1: "Reserved words shall not be used as user-defined words"). A '(' after
+    /// a boolean operator §2023:8.9 reserves (2002+) groups a boolean sub-expression, which §2023:8.8.2 Table 4 permits; at
     /// COBOL-85, where B-OR is a user word, the same '(' is still a subscript. A data-name and an intrinsic-function
-    /// name (a keyword-omitted call, §8.4.3.2.3 SR2 — SUM is reserved at every edition) keep their reference paren.</summary>
+    /// name (a keyword-omitted call, §2023:8.4.3.2.3 SR2 — SUM is reserved at every edition) keep their reference paren.</summary>
     [Theory]
     [InlineData("IF BZ B-OR (BW B-AND BW)", 2023, false)]
     [InlineData("IF B-NOT (BW B-XOR BZ)", 2002, false)]

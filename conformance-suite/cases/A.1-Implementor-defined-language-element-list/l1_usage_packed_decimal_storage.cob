@@ -5,10 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 GR11 — USAGE PACKED-DECIMAL: computer storage allocation, alignment
+      *> ISO §2023:13.18.60.4 GR11 — USAGE PACKED-DECIMAL: computer storage allocation, alignment
       *> and representation of data (Annex A.1 item 215; docs/CONFORMANCE.md DOC-A.1-215).
       *>
-      *> THE RULE. §13.18.60.4 GR11: "The USAGE PACKED-DECIMAL clause specifies that a radix
+      *> THE RULE. §2023:13.18.60.4 GR11: "The USAGE PACKED-DECIMAL clause specifies that a radix
       *> of 10 is used to represent a numeric item in the storage of the computer.
       *> Furthermore, this clause specifies that each digit position shall occupy the minimum
       *> possible configuration in computer storage. Each implementor specifies the precise
@@ -34,7 +34,7 @@
       *>     still answer 2 for 9(3) and is caught only by the 9(4) pair, 3 against 2.
       *> DIG - the digit nibbles themselves: BCD, TWO DIGITS PER BYTE, most significant first,
       *>     left-padded with a zero nibble when the digit count is even. 1234 is X"01" X"23"
-      *>     ahead of its sign nibble. FUNCTION ORD is 1-based (§15.70.1 "The lowest ordinal
+      *>     ahead of its sign nibble. FUNCTION ORD is 1-based (§2023:15.70.1 "The lowest ordinal
       *>     position is 1") so the bytes read 1+1 = 2 and 35+1 = 36. A digit-per-byte (zoned)
       *>     representation answers 49 50 here; a low-order-first one answers 53 36.
       *> SGN - GR11's "representation of any algebraic sign": a TRAILING sign nibble in the low
@@ -49,7 +49,7 @@
       *>     PACKED-DECIMAL is 1 + 3 = 4. An implementation aligning it would answer more.
       *> RT - the same bytes decode back to the same value, sign included, and leave the
       *>     neighbouring character leaf intact. The bytes are reached by a group move to an
-      *>     alphanumeric item, which §14.9.25.4 GR4 makes a byte transfer ("treated exactly
+      *>     alphanumeric item, which §2023:14.9.25.4 GR4 makes a byte transfer ("treated exactly
       *>     as if it were an alphanumeric to alphanumeric elementary move").
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1UPKD01.

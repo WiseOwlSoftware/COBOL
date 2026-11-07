@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.4 GR2 b) — "If the method to be invoked is a
+      *> ISO §2023:14.9.23.4 GR2 b) — "If the method to be invoked is a
       *> non-COBOL method, the behavior of the INVOKE statement is
       *> implementor-defined." (cite.py --check 14.9.23.4 OK, GR 2.)
       *> Annex A.1 item 101 requires that behavior be documented. The
@@ -12,7 +12,7 @@
       *> members every .NET object carries (ToString, GetHashCode,
       *> Equals, ...) "are not methods of a COBOL object: on a typed
       *> receiver INVOKE T "ToString" is the compile-time error
-      *> COBOL0825 (§14.9.23.3 SR4 b))".
+      *> COBOL0825 (§2023:14.9.23.3 SR4 b))".
       *> SR4 b) (cite.py --check 14.9.23.3 OK, SR 4): "If identifier-1
       *> references an object reference described with an
       *> object-class-name without the FACTORY phrase, literal-1 shall

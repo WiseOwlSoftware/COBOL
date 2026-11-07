@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The first two witnesses, a killed child's connected stream and its unaccepted backlog, DECIDE THE TRANSPORT
 /// (§9 S0): if a peer cannot see a killed process's sockets end on Windows, no 2023 runtime slice starts and the owner
 /// re-decides with §8's liveness-byte design. The rest set constants and mappings; a failed rename witness only switches
-/// that OS to <c>McsPublishByte</c> publishing (§5.4.1).</para>
+/// that OS to <c>McsPublishByte</c> publishing (§2023:5.4.1).</para>
 /// <para>A witness whose answer the design leaves OS-specific asserts the SET of answers the runtime's mapping handles
 /// and writes the observed one to the test output, where a reader of the CI log finds it.</para>
 /// <para>The child process is a file-based C# app (<c>dotnet run</c>), so the kills are real ones: no close, no flush,
@@ -166,7 +166,7 @@ public sealed class PlatformAssumptionTests : IDisposable
                           + $"(native {error.NativeErrorCode})");
         if (fileSurvives)
         {
-            // §5.4.1's refusal rule rests on this: a file under s/ or p/ that refuses a connect belonged to an ended owner.
+            // §2023:5.4.1's refusal rule rests on this: a file under s/ or p/ that refuses a connect belonged to an ended owner.
             Assert.Equal(SocketError.ConnectionRefused, error.SocketErrorCode);
         }
     }

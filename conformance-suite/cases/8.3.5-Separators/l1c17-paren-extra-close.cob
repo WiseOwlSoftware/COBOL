@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.5 4) — an unmatched right parenthesis
+      *> ISO §2023:8.3.5 4) — an unmatched right parenthesis
       *> "Except in pseudo-text, parentheses may appear only in
       *>  balanced pairs of left and right parentheses delimiting
       *>  subscripts, a list of function or method arguments, a
@@ -14,7 +14,7 @@
       *>   appear only in balanced pairs of left and right parentheses
       *>   delimiting subscripts, a list of function or method
       *>   arguments, a reference modifier, arithmetic or boolean
-      *>   expressions, or conditions." -> OK §8.3.5 4)
+      *>   expressions, or conditions." -> OK §2023:8.3.5 4)
       *> The expression closes one parenthesis more than it opens:
       *> not a balanced pair.  Pure-syntax rule, so the generic parse
       *> code is the diagnostic.

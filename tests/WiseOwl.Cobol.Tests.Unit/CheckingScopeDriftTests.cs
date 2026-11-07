@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB891 + PB841 — <b>the run-time checking flags are a SCOPE, never a set/reset pair.</b> Enablement is a
-/// property of the SOURCE TEXT of the executing statement (ISO §7.3.25.4 GR6: checking "is enabled for the
+/// property of the SOURCE TEXT of the executing statement (ISO §2023:7.3.25.4 GR6: checking "is enabled for the
 /// procedure division statements and procedure division headers that follow in the compilation group"; GR5: a
 /// TURN inside a statement "applies to any succeeding statement … whether or not that succeeding statement is
 /// within the scope of the statement in which the TURN directive is specified"), and the

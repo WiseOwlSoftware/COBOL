@@ -7,8 +7,8 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
-/// ⛔ WHAT A COMPILATION PUBLISHES TO THE EXTERNAL REPOSITORY, DECIDED AT BIND TIME (ISO §8.13; DESIGN-external-repository §7.2,
-/// §9.1; kb/Work PB4319). Which units publish a host entry (<see cref="EntryUnitsOf"/>), and, when the compilation updates the
+/// ⛔ WHAT A COMPILATION PUBLISHES TO THE EXTERNAL REPOSITORY, DECIDED AT BIND TIME (ISO §2023:8.13; DESIGN-external-repository §7.2,
+/// §2023:9.1; kb/Work PB4319). Which units publish a host entry (<see cref="EntryUnitsOf"/>), and, when the compilation updates the
 /// repository, each published unit's record, written by the one encoder (<see cref="RepositoryCodec"/>) over the bound data
 /// once <c>BinderDriver.Bind</c> has finished everything else. The bound compilation carries the records as model data
 /// (<see cref="BoundUnit.Record"/>, <see cref="OoClassUnit.Record"/>, <see cref="BoundCompilation.InterfaceRecords"/>), so a
@@ -18,9 +18,9 @@ internal static class RepositoryPublication
 {
     /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
     /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2). The pairing
-    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §8.3.2.2 2)): a prototype
+    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §2023:8.3.2.2 2)): a prototype
     /// <c>psub</c> beside a definition <c>PSUB</c> is one externalized name (kb/Work PB3872). Nothing else is withheld: every
-    /// outermost unit publishes its entry, and so its repository record (§7.2); a group item the published-record emitter
+    /// outermost unit publishes its entry, and so its repository record (§2023:7.2); a group item the published-record emitter
     /// refuses is an internal compiler error in the backend, never a missing entry (the binder admits no such shape since
     /// kb/Work PB3273: COBOL0853, COBOL0854).</summary>
     public static IReadOnlyList<BoundUnit> EntryUnitsOf(IReadOnlyList<BoundUnit> units) =>
@@ -29,7 +29,7 @@ internal static class RepositoryPublication
 
     /// <summary>Write the record of every unit the module publishes: each entry unit's (<see cref="BoundUnit.Record"/>), each
     /// class's and each interface's the module emits (<see cref="ExpansionPlacements.EmittedHere"/>), an expansion's under its
-    /// placement identity (§5.2). Returns the interfaces' records, which the bound compilation carries beside its interface
+    /// placement identity (§2023:5.2). Returns the interfaces' records, which the bound compilation carries beside its interface
     /// forests. Run only under <c>--repository-update on</c>; with it off no unit carries a record.</summary>
     public static IReadOnlyDictionary<OoInterfaceSymbol, RepositoryRecord> Publish(IReadOnlyList<BoundUnit> entryUnits,
         IReadOnlyList<OoClassUnit> classes, OoClassTable table, ExpansionPlacements expansions,

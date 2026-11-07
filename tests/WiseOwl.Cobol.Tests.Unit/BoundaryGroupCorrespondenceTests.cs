@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A FIXED-LENGTH GROUP OPPOSITE A VARIABLE-LENGTH ONE IS A PAIR QUESTION, AND THE RETURNING ITEM IS STORAGE
 /// THE ACTIVATING ELEMENT DESCRIBES (kb/Work PB965 + PB962).
-/// <para>ISO §8.5.1.12.2: "Two tables correspond if at least one of them is a dynamic-capacity table and they
+/// <para>ISO §2023:8.5.1.12.2: "Two tables correspond if at least one of them is a dynamic-capacity table and they
 /// occupy the same relative byte positions within their groups." The spans a fixed group lifts out are therefore
 /// a fact about the PAIR (<see cref="GroupCompatibility.Walk"/> over the two shapes, converted by
 /// <see cref="CobolVarGroup.Reshape"/>), never "every table of the fixed group" —
@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// compiled apart, so each side's atoms travel (<see cref="CobolArg.Atoms"/>) and the pair is decided where
 /// both are in hand: the formal's adapter, or the RETURNING delivery, which now receives the receiver as a
 /// <see cref="CobolArg"/> (carrier plus description) instead of a bare carrier.</para>
-/// <para>§14.6.5: the result "is the content of the data item referenced by that RETURNING phrase" — a content
-/// transfer under the one description a conforming pair shares (§14.8.3.3), never a re-parse of the text as a
+/// <para>§2023:14.6.5: the result "is the content of the data item referenced by that RETURNING phrase" — a content
+/// transfer under the one description a conforming pair shares (§2023:14.8.3.3), never a re-parse of the text as a
 /// number, which aborted on spaces.</para>
 /// </summary>
 public sealed class BoundaryGroupCorrespondenceTests
@@ -55,11 +55,11 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ThePairFails_WhereSection8_5_1_12Fails()
     {
-        // No table where the dynamic table stands (§8.5.1.12.1 rule 1).
+        // No table where the dynamic table stands (§2023:8.5.1.12.1 rule 1).
         Assert.NotNull(GroupCompatibility.Walk([Fx(3), new(GroupAtomKind.Table, 3, 3, 1, 1), Fx(2)], VarLGAtoms));
-        // Element byte lengths differ (§8.5.1.12.3 — "the byte length of their elements is equal").
+        // Element byte lengths differ (§2023:8.5.1.12.3 — "the byte length of their elements is equal").
         Assert.NotNull(GroupCompatibility.Walk([Fx(2), new(GroupAtomKind.Table, 6, 6, 2, 2), Fx(2)], VarLGAtoms));
-        // A dynamic-length item has no counterpart in a fixed group (§8.5.1.12.1 rule 3).
+        // A dynamic-length item has no counterpart in a fixed group (§2023:8.5.1.12.1 rule 3).
         Assert.NotNull(GroupCompatibility.Walk(FixedSGAtoms, [Fx(2), new(GroupAtomKind.DynamicLength, 0, 0)]));
         // A group with no table at all is one fixed run: long enough to reach the dynamic table's position, it
         // has no table there.
@@ -69,8 +69,8 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ADynamicTableBeyondTheShorterGroupsEnd_IsNotCarried()
     {
-        // §8.5.1.12.2's last sentence: "treated as if it corresponds to a space-filled fixed-length table" —
-        // no component, so the receiver's §14.6.9.4 space fill applies at an unaffected capacity.
+        // §2023:8.5.1.12.2's last sentence: "treated as if it corresponds to a space-filled fixed-length table" —
+        // no component, so the receiver's §2023:14.6.9.4 space fill applies at an unaffected capacity.
         GroupAtom[] shorter = [Fx(2)];
         Assert.Null(GroupCompatibility.Walk(shorter, [Fx(2), new(GroupAtomKind.DynamicTable, 1, 1, 1, 1)]));
         var v = CobolVarGroup.FromImage("AB", shorter, [Fx(2), new(GroupAtomKind.DynamicTable, 1, 1, 1, 1)]);
@@ -82,7 +82,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     // ── kb/Work PB2690: a FIXED table opposite a dynamic-capacity table of VARIABLE-LENGTH elements ────────────
     //
     // 05 H X · 05 TF OCCURS 2 { 10 DF X · 10 IF X OCCURS 2 }   against   05 H X · 05 TD OCCURS DYNAMIC { 10 DD X ·
-    // 10 ID X OCCURS DYNAMIC }. The elements correspond (§8.5.1.12.3 sentence 2: ID is a dynamic-capacity table where IF
+    // 10 ID X OCCURS DYNAMIC }. The elements correspond (§2023:8.5.1.12.3 sentence 2: ID is a dynamic-capacity table where IF
     // is a fixed one, and sentence 3 makes IF "a dynamic-capacity table whose capacity is" 2), each three bytes long.
     private static readonly GroupAtom[] ElemFixedTable = [Fx(1), new(GroupAtomKind.Table, 2, 2, 1, 1)];
     private static readonly GroupAtom[] ElemDynTable = [Fx(1), new(GroupAtomKind.DynamicTable, 1, 1, 1, 1)];
@@ -96,7 +96,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     {
         Assert.Null(GroupCompatibility.Walk(FixedOfElements, VarOfElements));
         // "h" · element 1 "a" + "bc" · element 2 "d" + "ef": each occurrence becomes a carrier of its own, the fixed
-        // IF table crossing at its two occurrences (§8.5.1.12.3 sentence 3), reshaped by §14.6.9.2's element move.
+        // IF table crossing at its two occurrences (§2023:8.5.1.12.3 sentence 3), reshaped by §2023:14.6.9.2's element move.
         var v = CobolVarGroup.FromImage("habcdef", FixedOfElements, VarOfElements);
         Assert.Equal("h", v.Fixed);
         var elements = v.ElementCarriersAt(0);
@@ -105,7 +105,7 @@ public sealed class BoundaryGroupCorrespondenceTests
         Assert.Equal(["bc"], elements[0].Dynamic);
         Assert.Equal("d", elements[1].Fixed);
         Assert.Equal(["ef"], elements[1].Dynamic);
-        // And back, fitted to the fixed extent (§14.6.9.2): the third element is not moved, and the second element's one
+        // And back, fitted to the fixed extent (§2023:14.6.9.2): the third element is not moved, and the second element's one
         // IT occurrence leaves the fixed table's second occurrence space filled.
         var grown = new CobolVarGroup("h", [""], [[new("a", ["bc"]), new("d", ["e"]), new("g", ["hi"])]]);
         Assert.Equal("habcde ", CobolVarGroup.ToImage(grown, VarOfElements, FixedOfElements, 7));
@@ -147,11 +147,11 @@ public sealed class BoundaryGroupCorrespondenceTests
         var args = new[] { new CobolArg(CobolPassMode.Reference, caller, null, FixedOfElements) };
         var formal = CobolArgAdapt.VarGroup(args, 0, VarOfElements);
         Assert.Equal(2, formal.Value!.ElementCarriersAt(0).Length);
-        // §14.2.3 GR8: the formal occupies the argument's storage — a store of element 2's IF and DF comes back, and the
+        // §2023:14.2.3 GR8: the formal occupies the argument's storage — a store of element 2's IF and DF comes back, and the
         // formal's third element has no storage in the fixed group to land in.
         formal.Value = new CobolVarGroup("H", [""], [[new("a", ["bc"]), new("D", ["EF"]), new("x", ["yz"])]]);
         Assert.Equal("HabcDEF", caller.Value);
-        // BY CONTENT (§14.2.3 GR9): the same view, detached.
+        // BY CONTENT (§2023:14.2.3 GR9): the same view, detached.
         var copy = CobolArgAdapt.VarGroupValue([new CobolArg(CobolPassMode.Content, caller, null, FixedOfElements)], 0, VarOfElements);
         copy.Value = new CobolVarGroup("z", [""], [[new("q", ["rs"])]]);
         Assert.Equal("HabcDEF", caller.Value);
@@ -164,11 +164,11 @@ public sealed class BoundaryGroupCorrespondenceTests
         var args = new[] { new CobolArg(CobolPassMode.Reference, vg, null, VarOfElements) };
         var formal = CobolArgAdapt.Text(args, 0, 7, FixedOfElements, static () => "");
         // The first element's IT holds three occurrences, the fixed IF table has two (superfluous "d" not moved); the second
-        // element has one, so the fixed table's second occurrence is spaces (§14.6.9.2).
+        // element has one, so the fixed table's second occurrence is spaces (§2023:14.6.9.2).
         Assert.Equal("habcef ", formal.Value);
         // A store reaches only the storage the formal overlays: the argument's IT keeps its three occurrences, so "d" survives.
         // The store of "G" into the second element's second IF occurrence is a receiving reference past that element's IT
-        // capacity of one, so §8.5.1.9.3 creates the occurrence (kb/Work PB2690).
+        // capacity of one, so §2023:8.5.1.9.3 creates the occurrence (kb/Work PB2690).
         formal.Value = "HABCEFG";
         var stored = vg.Value!.ElementCarriersAt(0);
         Assert.Equal("H", vg.Value.Fixed);
@@ -184,8 +184,8 @@ public sealed class BoundaryGroupCorrespondenceTests
     }
 
     /// <summary>kb/Work PB2690 — a FIXED table of the formal stored over a dynamic-capacity table of the argument, past the
-    /// argument's current capacity. §14.2.3 GR8 makes the formal occupy the argument's storage, so the store is a receiving
-    /// reference with a subscript that "exceeds the current capacity of the table" and §8.5.1.9.3 creates the element and
+    /// argument's current capacity. §2023:14.2.3 GR8 makes the formal occupy the argument's storage, so the store is a receiving
+    /// reference with a subscript that "exceeds the current capacity of the table" and §2023:8.5.1.9.3 creates the element and
     /// raises the capacity "to the value given by the subscript"; the boundary sees only the finished view, so a store is
     /// recognised by its effect (anything but the space fill the view showed).</summary>
     [Fact]
@@ -213,7 +213,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     }
 
     /// <summary>kb/Work PB2690 — the same store over the argument's STORAGE, whose carrier states the element its table
-    /// creates (<see cref="CobolVarGroup.Created"/>). §8.5.1.9.5: with INITIALIZED, "any elementary items not referenced as
+    /// creates (<see cref="CobolVarGroup.Created"/>). §2023:8.5.1.9.5: with INITIALIZED, "any elementary items not referenced as
     /// receiving operands in a statement that creates new elements in that table are first initialized" as by INITIALIZE …
     /// TO VALUE THEN TO DEFAULT, so the view shows each occurrence past the capacity as the table creates it (its NOTE: as
     /// if "physically allocated and, if specified, initialized"), and a store is whatever differs from that. The seed is
@@ -242,7 +242,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     }
 
     /// <summary>kb/Work PB2690, the last half — a store of EXACTLY the image the view showed past the capacity: ISO
-    /// §8.5.1.9.3 raises the capacity of a dynamic-capacity table "referenced as a receiving item" to the subscript,
+    /// §2023:8.5.1.9.3 raises the capacity of a dynamic-capacity table "referenced as a receiving item" to the subscript,
     /// whatever value the statement stored. The view is copied into a fresh area that records the receiving references made
     /// through it (<c>ManagedPointer.Watch</c>, <c>StorageCell.Received</c>), and the store back creates every occurrence up
     /// to the highest one referenced; with nothing referenced the same image creates nothing.</summary>
@@ -275,8 +275,8 @@ public sealed class BoundaryGroupCorrespondenceTests
     /// <summary>kb/Work PB2690 — the nested arm: a fixed table of fixed elements over a dynamic-capacity table of
     /// variable-length elements of STORAGE. A created element is the table's created element (its own inner table at its
     /// creation, with an inner creation of its own) with the formal's element stored over it, so every item and inner
-    /// occurrence the callee did not store keeps the creation (§8.5.1.9.5), and an inner store past the created element's
-    /// inner capacity creates there too (§8.5.1.9.3).</summary>
+    /// occurrence the callee did not store keeps the creation (§2023:8.5.1.9.5), and an inner store past the created element's
+    /// inner capacity creates there too (§2023:8.5.1.9.3).</summary>
     [Fact]
     public void AStorageTableOfVariableLengthElements_CreatesEachElementFromItsCreation()
     {
@@ -303,8 +303,8 @@ public sealed class BoundaryGroupCorrespondenceTests
     }
 
     /// <summary>The creation a storage carrier states is the table's own (kb/Work PB2690): the seed a receiving reference
-    /// past the capacity grows with (§8.5.1.9.3), the INITIALIZED phrase's (§8.5.1.9.5), at the occurrence's own number,
-    /// even when it composes the opening element. A table WITHOUT the phrase states none (review finding R1-1): §8.5.1.9.5
+    /// past the capacity grows with (§2023:8.5.1.9.3), the INITIALIZED phrase's (§2023:8.5.1.9.5), at the occurrence's own number,
+    /// even when it composes the opening element. A table WITHOUT the phrase states none (review finding R1-1): §2023:8.5.1.9.5
     /// leaves that content "undefined", and the view's space fill is what lets the write-back see a store of the element's
     /// VALUE at all.</summary>
     [Fact]
@@ -325,7 +325,7 @@ public sealed class BoundaryGroupCorrespondenceTests
 
     /// <summary>kb/Work PB2690 review finding R1-1 — a storage carrier whose table states NO creation (no INITIALIZED) is
     /// viewed past its capacity as the space fill, so a callee's store of the element's VALUE ("0", a PIC 9 VALUE 0
-    /// element) into occurrence 3 is a store, and §8.5.1.9.3 raises the capacity "to the value given by the subscript".</summary>
+    /// element) into occurrence 3 is a store, and §2023:8.5.1.9.3 raises the capacity "to the value given by the subscript".</summary>
     [Fact]
     public void AStorageTableWithoutInitialized_ShowsTheSpaceFill_SoAStoreOfItsValueGrowsIt()
     {
@@ -349,10 +349,10 @@ public sealed class BoundaryGroupCorrespondenceTests
         var v = formal.Value!;
         Assert.Equal("CDEF", v.Fixed);
         Assert.Equal(["TTT"], v.Dynamic);
-        // §14.2.3 GR8: the formal occupies the argument's storage — a store comes back.
+        // §2023:14.2.3 GR8: the formal occupies the argument's storage — a store comes back.
         formal.Value = new CobolVarGroup("qqEF", ["TuT"]);
         Assert.Equal("qqTuTEF", caller.Value);
-        // ⚠ The callee cannot grow the fixed table: superfluous occurrences are not moved (§14.6.9.2).
+        // ⚠ The callee cannot grow the fixed table: superfluous occurrences are not moved (§2023:14.6.9.2).
         formal.Value = new CobolVarGroup("qqEF", ["abcde"]);
         Assert.Equal("qqabcEF", caller.Value);
     }
@@ -366,10 +366,10 @@ public sealed class BoundaryGroupCorrespondenceTests
         Assert.Contains("EC-PROGRAM-ARG-MISMATCH", ex.Message);
     }
 
-    /// <summary>kb/Work PB2280 — two VARIABLE-length groups of different shapes (§14.8.2.2 2): "compatible, as described
+    /// <summary>kb/Work PB2280 — two VARIABLE-length groups of different shapes (§2023:14.8.2.2 2): "compatible, as described
     /// in 8.5.1.12", which constrains only where their variable-length items lie). The argument 05 H X(2) · 05 D X
     /// DYNAMIC LENGTH · 05 T X(5) meets the formal 05 H X(2) · 05 D X DYNAMIC LENGTH · 05 T X(2): the formal sees its own
-    /// shape, and BY REFERENCE (§14.2.3 GR8) its store reaches only the argument storage it overlays, so the argument's
+    /// shape, and BY REFERENCE (§2023:14.2.3 GR8) its store reaches only the argument storage it overlays, so the argument's
     /// tail past the formal's last character survives. Aliasing the carrier whole cut it to the formal's length.</summary>
     [Fact]
     public void AVariableLengthArgumentOfAnotherShape_IsSeenInTheFormalsShape_AndItsTailSurvives()
@@ -383,7 +383,7 @@ public sealed class BoundaryGroupCorrespondenceTests
         formal.Value = new CobolVarGroup("hhTT", ["Q"]);
         Assert.Equal("hhTTTTT", caller.Value!.Fixed);
         Assert.Equal(["Q"], caller.Value.Dynamic);
-        // BY CONTENT (§14.2.3 GR9): the same view, detached.
+        // BY CONTENT (§2023:14.2.3 GR9): the same view, detached.
         var copy = CobolArgAdapt.VarGroupValue([new CobolArg(CobolPassMode.Content, caller, null, arg)], 0, formalShape);
         Assert.Equal("hhTT", copy.Value!.Fixed);
         copy.Value = new CobolVarGroup("zzzz", ["z"]);
@@ -393,7 +393,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void AnIncompatibleVariableLengthArgument_FailsTheActivation_Loud()
     {
-        // A dynamic-length item opposite plain material (§8.5.1.12.1 rule 3) — EC-PROGRAM-ARG-MISMATCH, never an
+        // A dynamic-length item opposite plain material (§2023:8.5.1.12.1 rule 3) — EC-PROGRAM-ARG-MISMATCH, never an
         // internal error from the reshape.
         var args = new[] { new CobolArg(CobolPassMode.Reference,
             ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("HHH", ["d"])), null,
@@ -414,7 +414,7 @@ public sealed class BoundaryGroupCorrespondenceTests
         var fg = ManagedPointer<string>.Cell(new string(' ', 7));
         CobolArgAdapt.StoreReturn(new CobolArg(CobolPassMode.Reference, fg, null, FixedSGAtoms),
             new CobolVarGroup("tuyz", ["vw"]), VarLGAtoms);
-        Assert.Equal("tuvw yz", fg.Value);   // §14.6.9.2: the missing occurrence is space filled
+        Assert.Equal("tuvw yz", fg.Value);   // §2023:14.6.9.2: the missing occurrence is space filled
     }
 
     // ── The reverse pair: a VARIABLE-length argument into a FIXED-length group formal (the PB965 finisher) ────
@@ -426,11 +426,11 @@ public sealed class BoundaryGroupCorrespondenceTests
         var vg = ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("ghij", ["kl"]));
         var args = new[] { new CobolArg(CobolPassMode.Reference, vg, null, VarLGAtoms) };
         var formal = CobolArgAdapt.Text(args, 0, 7, FixedSGAtoms, static () => "");
-        // §8.5.1.12.3 sentence 3 + §14.6.9.2: the capacity-2 table fills a 3-occurrence view, the third spaces.
+        // §2023:8.5.1.12.3 sentence 3 + §2023:14.6.9.2: the capacity-2 table fills a 3-occurrence view, the third spaces.
         Assert.Equal("ghkl ij", formal.Value);
-        // §14.2.3 GR8 — the formal overlays the argument's storage: the fixed material and the occurrences the
+        // §2023:14.2.3 GR8 — the formal overlays the argument's storage: the fixed material and the occurrences the
         // argument HAS are stored, and the store into the third, which it has not, is a receiving reference past the
-        // table's capacity that §8.5.1.9.3 creates (kb/Work PB2690).
+        // table's capacity that §2023:8.5.1.9.3 creates (kb/Work PB2690).
         formal.Value = "qqmnoij";
         Assert.Equal("qqij", vg.Value!.Fixed);
         Assert.Equal(["mno"], vg.Value.Dynamic);
@@ -441,7 +441,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     {
         var vg = ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("ghij", ["klmn"]));
         var formal = CobolArgAdapt.Text([new CobolArg(CobolPassMode.Reference, vg, null, VarLGAtoms)], 0, 7, FixedSGAtoms, static () => "");
-        Assert.Equal("ghklmij", formal.Value);   // §14.6.9.2: superfluous elements are not moved
+        Assert.Equal("ghklmij", formal.Value);   // §2023:14.6.9.2: superfluous elements are not moved
         formal.Value = "ghKLMrs";
         Assert.Equal(["KLMn"], vg.Value!.Dynamic);
         Assert.Equal("ghrs", vg.Value.Fixed);
@@ -450,7 +450,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ATableLessPrefixFormal_SeesOnlyItsOwnCharacters_AndTheRestSurvives()
     {
-        // §14.8.2.2 rule 1's prefix: a 2-character group formal; VT lies past its last character (§8.5.1.12.2's
+        // §2023:14.8.2.2 rule 1's prefix: a 2-character group formal; VT lies past its last character (§2023:8.5.1.12.2's
         // last sentence), so it is no component of the pair and must come back unchanged.
         var vg = ManagedPointer<CobolVarGroup>.Cell(new CobolVarGroup("ghij", ["kl"]));
         var formal = CobolArgAdapt.Text([new CobolArg(CobolPassMode.Reference, vg, null, VarLGAtoms)], 0, 2, [], static () => "");
@@ -467,12 +467,12 @@ public sealed class BoundaryGroupCorrespondenceTests
         var cell = CobolArgAdapt.TextValue([new CobolArg(CobolPassMode.Content, vg, null, VarLGAtoms)], 0, 7, null, 0, FixedSGAtoms, static () => "");
         Assert.Equal("ghkl ij", cell.Value);
         cell.Value = "zzzzzzz";
-        Assert.Equal("ghij", vg.Value!.Fixed);   // §14.2.3 GR9 — the callee's stores never reach the argument
+        Assert.Equal("ghij", vg.Value!.Fixed);   // §2023:14.2.3 GR9 — the callee's stores never reach the argument
     }
 
     [Fact]
     public void AVariableLengthArgument_IntoANonGroupFormal_StaysLoud()
-        // §8.5.1.12.1: a variable-length group is compatible only with a GROUP — an elementary formal states no
+        // §2023:8.5.1.12.1: a variable-length group is compatible only with a GROUP — an elementary formal states no
         // layout, and the carrier it cannot read fails the activation rather than being reinterpreted.
         => Assert.Throws<CobolCallException>(() => CobolArgAdapt.Text(
             [new CobolArg(CobolPassMode.Reference, ManagedPointer<CobolVarGroup>.Cell(CobolVarGroup.Empty), null, VarLGAtoms)], 0, 7, null, static () => ""));
@@ -492,7 +492,7 @@ public sealed class BoundaryGroupCorrespondenceTests
     [Fact]
     public void ANumericResult_IsItsContent_NeverAReParse()
     {
-        // An image-carried receiver takes the content as it stands — spaces included (§14.6.5).
+        // An image-carried receiver takes the content as it stands — spaces included (§2023:14.6.5).
         var image = ManagedPointer<string>.Cell("999");
         CobolArgAdapt.StoreReturn(new CobolArg(CobolPassMode.Reference, image, U3), "   ", U3);
         Assert.Equal("   ", image.Value);

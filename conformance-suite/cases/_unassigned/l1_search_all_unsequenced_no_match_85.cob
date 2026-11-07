@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR6 b) at COBOL-85 — the edition-invariant half.
+      *> ISO §2023:14.9.37.4 GR6 b) at COBOL-85 — the edition-invariant half.
       *> Same shape as the 2023 witness: the OCCURS clause declares
       *> ASCENDING KEY IS WS-K and the program stores 09, 07, 05, 03,
       *> 01, so GR5 a) is violated and GR6 governs; no occurrence holds

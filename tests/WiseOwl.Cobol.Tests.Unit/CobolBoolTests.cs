@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The <see cref="CobolBool"/> boolean-operation semantics (Phase-4 track (a) increment 2 — the boolean
 /// OPERATORS leg; runtime half, landed ahead of the grammar/binder integration). The oracle is ISO/IEC
 /// 1989:2023 Annex A Table A.2 (Examples of boolean operations): <c>1100 B-AND 0101 = 0100</c>,
-/// <c>B-OR = 1101</c>, <c>B-XOR = 1001</c>, <c>B-NOT 1100 = 0011</c>. The length rules are §8.8.2 rule 9 (shorter
+/// <c>B-OR = 1101</c>, <c>B-XOR = 1001</c>, <c>B-NOT 1100 = 0011</c>. The length rules are §2023:8.8.2 rule 9 (shorter
 /// operand right-zero-extended, no error) / rule 10 (result length = the larger operand); equality is
-/// §8.8.4.2.8 (zero-extension, two empty operands EQUAL); a simple boolean condition is §8.8.4.3.4 GR1
-/// (true iff value 1); the COMPUTE F2 store resize is §14.9.8 GR3 / §14.6.8.6.
+/// §2023:8.8.4.2.8 (zero-extension, two empty operands EQUAL); a simple boolean condition is §2023:8.8.4.3.4 GR1
+/// (true iff value 1); the COMPUTE F2 store resize is §2023:14.9.8 GR3 / §2023:14.6.8.6.
 /// </summary>
 public sealed class CobolBoolTests
 {
@@ -60,7 +60,7 @@ public sealed class CobolBoolTests
         Assert.Equal("", CobolBool.Not(""));
     }
 
-    // ── Equality (§8.8.4.2.2 / §8.8.4.2.8) ─────────────────────────────────────────────────────────────────
+    // ── Equality (§2023:8.8.4.2.2 / §2023:8.8.4.2.8) ─────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("10", "10", true)]
@@ -72,7 +72,7 @@ public sealed class CobolBoolTests
     [InlineData("", "1", false)]
     public void Equal_ZeroExtends(string a, string b, bool eq) => Assert.Equal(eq, CobolBool.Equal(a, b));
 
-    // ── Simple boolean condition (§8.8.4.3.4 GR1) ──────────────────────────────────────────────────────────
+    // ── Simple boolean condition (§2023:8.8.4.3.4 GR1) ──────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("1", true)]
@@ -80,7 +80,7 @@ public sealed class CobolBoolTests
     [InlineData("", false)]
     public void IsTrue_TrueIffValueOne(string a, bool t) => Assert.Equal(t, CobolBool.IsTrue(a));
 
-    // ── COMPUTE F2 receiver resize (§14.9.8 GR3 / §14.6.8.6) ────────────────────────────────────────────────
+    // ── COMPUTE F2 receiver resize (§2023:14.9.8 GR3 / §2023:14.6.8.6) ────────────────────────────────────────────────
 
     [Theory]
     [InlineData("101", 5, "10100")]   // right zero-fill
@@ -90,7 +90,7 @@ public sealed class CobolBoolTests
     public void Resize_LeftAlignRightFillOrTruncate(string v, int w, string expected) =>
         Assert.Equal(expected, CobolBool.Resize(v, w));
 
-    // ── Figurative ALL "bits" operands (§8.3.3.6.4 GR2 — repeat/truncate to the concrete length) ────────────
+    // ── Figurative ALL "bits" operands (§2023:8.3.3.6.4 GR2 — repeat/truncate to the concrete length) ────────────
 
     [Fact]
     public void AndAll_PatternRepeatsToConcreteLength()
@@ -132,7 +132,7 @@ public sealed class CobolBoolTests
         Assert.True(CobolBool.Equal(null, ""));
     }
 
-    // ── §14.9.8.4 GR3 — the largest ITEM referenced, carried at run time (kb/Work PB589) ───────────────────
+    // ── §2023:14.9.8.4 GR3 — the largest ITEM referenced, carried at run time (kb/Work PB589) ───────────────────
 
     /// <summary>A literal wider than every item widens the COMBINED value (rule 10) but not the GR3 width: the
     /// 3-position item fixes it, so the 7-position literal's extra ones are dropped.</summary>
@@ -156,9 +156,9 @@ public sealed class CobolBoolTests
         Assert.Equal("0101", CobolBool.ToItemWidth(CobolBool.And(CobolBool.Literal("1111"), CobolBool.Literal("0101"))));
 
     // ── The boolean-receiver store: docs/CONFORMANCE.md D-B5 (kb/Work PB3666) ──────────────────────────────
-    // ISO §14.6.8.6 transfers the data "after any necessary conversion, into the corresponding boolean positions
-    // of the receiving data item, with zero fill or truncation to the right"; §13.18.32.4 GR1/GR2 align a
-    // JUSTIFIED receiver on the right. A boolean character is the value zero or one (§3.21), and the standard
+    // ISO §2023:14.6.8.6 transfers the data "after any necessary conversion, into the corresponding boolean positions
+    // of the receiving data item, with zero fill or truncation to the right"; §2023:13.18.32.4 GR1/GR2 align a
+    // JUSTIFIED receiver on the right. A boolean character is the value zero or one (§2023:3.21), and the standard
     // converts no other character, so the implementor's choice is: '1' is boolean one, every other character zero.
 
     [Theory]
@@ -189,7 +189,7 @@ public sealed class CobolBoolTests
         Assert.Equal("1000", CobolBool.FromCharacters("1abc"));
     }
 
-    /// <summary>An ACCEPT into a boolean item (ISO §14.9.1.4 GR1) applies the same conversion — one rule, one place.</summary>
+    /// <summary>An ACCEPT into a boolean item (ISO §2023:14.9.1.4 GR1) applies the same conversion — one rule, one place.</summary>
     [Fact]
     public void FromCharacters_IsTheRuleTheOperatorsAlreadyApply()
     {

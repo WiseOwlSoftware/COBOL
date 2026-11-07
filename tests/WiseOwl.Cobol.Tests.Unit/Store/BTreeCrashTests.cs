@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// merge leaves, an overflow value replacing an inline one and an inline value replacing an overflow one — its overflow
 /// pages, its tree pages, the FREE-tree pages its reservation changes and its ledger pages, then page 2. It runs once
 /// to count its writes, then once per write with the run unit killed before the write, killed just after it, and
-/// refused at it (§9.1.13.6 item 1's '30'). Each run is continued, as 2.2.1.16 lists: by the next writer of another
+/// refused at it (§2023:9.1.13.6 item 1's '30'). Each run is continued, as 2.2.1.16 lists: by the next writer of another
 /// live run unit, by a fresh OPEN, and by a power loss and then an OPEN; a refused run unit is also continued by its
 /// own next statement and its CLOSE. The expected file is the design's bar: the records of the last COMPLETED
 /// statement — the statement under test exactly when its page 2 was handed to the medium (killed just after its last
@@ -181,7 +181,7 @@ public sealed class BTreeCrashTests
     {
         // The statement's reads: page 2 at the coherent entry and, after B's statement, the RESIDENT ledger it adopts; the
         // tree pages each change's path fetches; the overflow chain the inline value replaces (to supersede its pages);
-        // the FREE-tree pages the reservation's batch walks. Every one refused answers '30' (§9.1.13.6 item 1) BEFORE
+        // the FREE-tree pages the reservation's batch walks. Every one refused answers '30' (§2023:9.1.13.6 item 1) BEFORE
         // anything is claimed or written (the reservation precedes the claim), and the run unit's next statement completes.
         int reads = CountReads(coherent);
         Assert.True(reads >= 10, $"the statement reads {reads} pages");
@@ -254,7 +254,7 @@ public sealed class BTreeCrashTests
     public void An_open_refused_at_every_one_of_its_reads_answers_30_and_never_rejects_the_descendant(bool writable)
     {
         // R6 step 3 rejects a descendant whose pages fail to VERIFY; a REFUSED read is no verdict on a page. So an OPEN
-        // refused at any read answers '30' (§9.1.13.6 item 1), and the next OPEN still adopts the descendant: refused
+        // refused at any read answers '30' (§2023:9.1.13.6 item 1), and the next OPEN still adopts the descendant: refused
         // before the fence wrote anything, the work slot itself (DESCENDANT, adopted); after, the fence's promotion of it.
         var (clean, expected) = DescendantScene();
         var counter = clean.Open("C");

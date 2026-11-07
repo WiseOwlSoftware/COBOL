@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.9.4 GR3 — NO OTHER makes LOCK MODE inert; GR8
+      *> ISO §2023:12.4.5.9.4 GR3 — NO OTHER makes LOCK MODE inert; GR8
       *> GR3: "If a physical file is open in the sharing with no other
       *>  mode, the LOCK MODE clause has no effect. Otherwise, the LOCK
       *>  MODE clause has the effects described in the General rules
@@ -14,21 +14,21 @@
       *>  an I-O statement."
       *> cite.py --check 12.4.5.9.4 "If a physical file is open in the
       *>   sharing with no other mode, the LOCK MODE clause has no
-      *>   effect." -> OK §12.4.5.9.4 3)
+      *>   effect." -> OK §2023:12.4.5.9.4 3)
       *> cite.py --check 12.4.5.9.4 "The setting of a record lock is
       *>   part of the operation of an I-O statement."
-      *>   -> OK §12.4.5.9.4 8)
+      *>   -> OK §2023:12.4.5.9.4 8)
       *> cite.py --check 12.4.5.9.4 "The implementor shall specify the
       *>   maximum number of record locks that may be held by a file
       *>   connector; that maximum shall be at least 15."
-      *>   -> OK §12.4.5.9.4 7)
+      *>   -> OK §2023:12.4.5.9.4 7)
       *> cite.py --check 9.1.13.8 "The input-output statement is
       *>   unsuccessful because the statement requested a record lock,
       *>   but this file connector holds the maximum number of locks
-      *>   allowed by this implementation." -> OK §9.1.13.8 4)
+      *>   allowed by this implementation." -> OK §2023:9.1.13.8 4)
       *> cite.py --check 9.1.15 "The sharing with no other mode
       *>   specifies exclusive access to a physical file."
-      *>   -> OK §9.1.15 1)
+      *>   -> OK §2023:9.1.15 1)
       *> Documented choice: docs/CONFORMANCE.md DOC-A.1-155, a file
       *> connector may hold at most 15 record locks; a statement that
       *> would obtain a 16th is unsuccessful with '54'.
@@ -42,10 +42,10 @@
       *> LEG ALL OTHER (FC): the clause has effect (GR3 "Otherwise"),
       *>   GR7 multiple record locking: reads 1..15 each obtain a lock;
       *>   the 16th would exceed the connector maximum 15 and "is
-      *>   unsuccessful" with '54' (§9.1.13.8 4)).
+      *>   unsuccessful" with '54' (§2023:9.1.13.8 4)).
       *>   GR8: because setting the lock is PART OF the READ, the lock
       *>   exists as soon as FC's first READ completes - observer FO's
-      *>   very next READ of record 1 is refused '51' (§9.1.16) - and
+      *>   very next READ of record 1 is refused '51' (§2023:9.1.16) - and
       *>   the failure to set the 16th lock is the READ statement's
       *>   OWN I-O status, not a separate step's.
       *>

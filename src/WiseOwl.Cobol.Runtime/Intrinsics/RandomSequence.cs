@@ -3,8 +3,8 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The run unit's ONE current FUNCTION RANDOM pseudo-random sequence (ISO §15.75; kb/Work PB307). An instance lives
-/// on <see cref="RunUnit"/> beside the other run-unit-lifetime stores, because §15.75.3 r4 scopes the implementor
+/// The run unit's ONE current FUNCTION RANDOM pseudo-random sequence (ISO §2023:15.75; kb/Work PB307). An instance lives
+/// on <see cref="RunUnit"/> beside the other run-unit-lifetime stores, because §2023:15.75.3 r4 scopes the implementor
 /// seed to "the first reference to this function in the run unit" — so run unit #2 in one process begins the
 /// implementor's sequence rather than CONTINUING run unit #1's (the defect when this state was a process-global
 /// <c>static</c> on <see cref="CobolIntrinsics"/>). r3 (a seeded reference starts a new sequence) and r5 (an
@@ -18,10 +18,10 @@ public sealed class RandomSequence
 {
     private Random? _current;
 
-    /// <summary>§15.75.3 r5 (r4 at the run unit's first reference): the next number of the current sequence.</summary>
+    /// <summary>§2023:15.75.3 r5 (r4 at the run unit's first reference): the next number of the current sequence.</summary>
     public double Next() => (_current ??= new Random()).NextDouble();
 
-    /// <summary>§15.75.3 r3: a seeded reference starts a NEW sequence and returns its first number. The seed is the
+    /// <summary>§2023:15.75.3 r3: a seeded reference starts a NEW sequence and returns its first number. The seed is the
     /// already-reduced generator state (<c>CobolIntrinsics.Random(Int128)</c> owns the DOC-A.1-145 reduction).</summary>
     public double Restart(int seed)
     {

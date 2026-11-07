@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 // compiler's: they are the PERSISTED FORMAT, whose values may never move, while the compiler's enums may be reordered by any
 // refactoring. Every member carries an explicit value; every enum is int-backed (a reader decodes an enum-typed argument
 // without learning an underlying type from anywhere else); PublicAPI.Shipped.txt pins each published value, so moving one is
-// a runtime-major change under scripts/abi_pin.py (§15.4). The one translation between the compiler's enums and these is
+// a runtime-major change under scripts/abi_pin.py (§2023:15.4). The one translation between the compiler's enums and these is
 // the compiler's RepositoryVocabulary, which a drift test holds total over every member of every compiler enum (§17.2).
 // The two the runtime already has are used as they are: SignEncoding, and ObjectReferenceKind (whose None replaces a null kind).
 
@@ -29,23 +29,23 @@ public enum RepositoryUnitKind
     Class = 2,
     /// <summary>An interface definition (INTERFACE-ID).</summary>
     Interface = 3,
-    /// <summary>A program prototype (PROGRAM-ID … IS PROTOTYPE, ISO §10.6.2).</summary>
+    /// <summary>A program prototype (PROGRAM-ID … IS PROTOTYPE, ISO §2023:10.6.2).</summary>
     ProgramPrototype = 4,
     /// <summary>A function prototype (FUNCTION-ID … IS PROTOTYPE).</summary>
     FunctionPrototype = 5,
-    /// <summary>A parameterized class (CLASS-ID … USING, ISO §10.6; carries a skeleton).</summary>
+    /// <summary>A parameterized class (CLASS-ID … USING, ISO §2023:10.6; carries a skeleton).</summary>
     ParameterizedClass = 6,
     /// <summary>A parameterized interface (INTERFACE-ID … USING; carries a skeleton).</summary>
     ParameterizedInterface = 7,
     /// <summary>An expansion of a parameterized definition (DESIGN-external-repository §10.5).</summary>
     Expansion = 8,
-    /// <summary>Reserved (§4.6): a CLR type a COBOL unit may name.</summary>
+    /// <summary>Reserved (§2023:4.6): a CLR type a COBOL unit may name.</summary>
     ClrType = 9,
-    /// <summary>Reserved (§4.6): a CLR method a COBOL unit may invoke.</summary>
+    /// <summary>Reserved (§2023:4.6): a CLR method a COBOL unit may invoke.</summary>
     ClrMethod = 10,
 }
 
-/// <summary>How a formal parameter receives its argument (ISO §14.2.3 8) and 9): BY REFERENCE or BY VALUE).</summary>
+/// <summary>How a formal parameter receives its argument (ISO §2023:14.2.3 8) and 9): BY REFERENCE or BY VALUE).</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum PassingMode
 {
@@ -55,7 +55,7 @@ public enum PassingMode
     Value = 1,
 }
 
-/// <summary>The data category of a described item (ISO §8.5.2), as persisted: the compiler's <c>PicCategory</c>, in its
+/// <summary>The data category of a described item (ISO §2023:8.5.2), as persisted: the compiler's <c>PicCategory</c>, in its
 /// own numbering.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryCategory
@@ -84,7 +84,7 @@ public enum RepositoryCategory
     MessageTag = 10,
 }
 
-/// <summary>The USAGE of a described item (ISO §13.18.60), as persisted: the compiler's <c>Usage</c>, in its own numbering.</summary>
+/// <summary>The USAGE of a described item (ISO §2023:13.18.60), as persisted: the compiler's <c>Usage</c>, in its own numbering.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryUsage
 {
@@ -142,7 +142,7 @@ public enum RepositoryUsage
     BinaryDouble = 25,
 }
 
-/// <summary>The GROUP-USAGE of a group item (ISO §13.18.29), as persisted.</summary>
+/// <summary>The GROUP-USAGE of a group item (ISO §2023:13.18.29), as persisted.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryGroupUsage
 {
@@ -154,7 +154,7 @@ public enum RepositoryGroupUsage
     National = 2,
 }
 
-/// <summary>The kind of one element of a PROCEDURE DIVISION header's RAISING phrase (ISO §14.2.1; §8.13 "the exceptions that
+/// <summary>The kind of one element of a PROCEDURE DIVISION header's RAISING phrase (ISO §2023:14.2.1; §2023:8.13 "the exceptions that
 /// may be raised by the runtime element"), as persisted: an exception-name, or the identity of an object class or an
 /// interface.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
@@ -168,8 +168,8 @@ public enum RepositoryRaisingKind
     Interface = 2,
 }
 
-/// <summary>Whether a method of a class or an interface is a property accessor (ISO §11.7.2: <c>METHOD-ID. {GET | SET}
-/// PROPERTY property-name-1</c>, or the accessor a PROPERTY clause implies, ISO §13.18.42), as persisted.</summary>
+/// <summary>Whether a method of a class or an interface is a property accessor (ISO §2023:11.7.2: <c>METHOD-ID. {GET | SET}
+/// PROPERTY property-name-1</c>, or the accessor a PROPERTY clause implies, ISO §2023:13.18.42), as persisted.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryAccessor
 {
@@ -181,23 +181,23 @@ public enum RepositoryAccessor
     Set = 2,
 }
 
-/// <summary>The SYNCHRONIZED clause of a described item (ISO §13.18.55.2: <c>{SYNCHRONIZED | SYNC} [LEFT | RIGHT]</c>), as
-/// persisted. The three forms are three different clauses, which §8.5.3.1 compares ("the same … SYNCHRONIZED … clauses"),
+/// <summary>The SYNCHRONIZED clause of a described item (ISO §2023:13.18.55.2: <c>{SYNCHRONIZED | SYNC} [LEFT | RIGHT]</c>), as
+/// persisted. The three forms are three different clauses, which §2023:8.5.3.1 compares ("the same … SYNCHRONIZED … clauses"),
 /// so the phrase is recorded, never collapsed to a flag (kb/Work PB538).</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositorySynchronized
 {
     /// <summary>No SYNCHRONIZED clause describes the item.</summary>
     None = 0,
-    /// <summary><c>SYNCHRONIZED</c> with neither phrase (§13.18.55.4 GR3).</summary>
+    /// <summary><c>SYNCHRONIZED</c> with neither phrase (§2023:13.18.55.4 GR3).</summary>
     Unqualified = 1,
-    /// <summary><c>SYNCHRONIZED LEFT</c> (§13.18.55.4 GR4).</summary>
+    /// <summary><c>SYNCHRONIZED LEFT</c> (§2023:13.18.55.4 GR4).</summary>
     Left = 2,
-    /// <summary><c>SYNCHRONIZED RIGHT</c> (§13.18.55.4 GR5).</summary>
+    /// <summary><c>SYNCHRONIZED RIGHT</c> (§2023:13.18.55.4 GR5).</summary>
     Right = 3,
 }
 
-/// <summary>The length field a PREFIXED dynamic-length structure puts before its data (ISO §12.3.7.4 GR18), as persisted.</summary>
+/// <summary>The length field a PREFIXED dynamic-length structure puts before its data (ISO §2023:12.3.7.4 GR18), as persisted.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryPrefix
 {
@@ -213,7 +213,7 @@ public enum RepositoryPrefix
     Signed16 = 4,
 }
 
-/// <summary>The class of a literal (ISO §8.3.5), as persisted: the class of a currency string or a locale name written as a literal.</summary>
+/// <summary>The class of a literal (ISO §2023:8.3.5), as persisted: the class of a currency string or a locale name written as a literal.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryLiteralClass
 {

@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.2.1 5) 7) — national-national and national-alphanumeric/alphabetic relations
+      *> ISO §2023:8.8.4.2.1 5) 7) — national-national and national-alphanumeric/alphabetic relations
       *>
-      *> THE RULES. §8.8.4.2.1: "Comparisons are defined for the following:"
+      *> THE RULES. §2023:8.8.4.2.1: "Comparisons are defined for the following:"
       *>   5) "Two operands of class national."
       *>   7) "Two operands of different classes where each operand is from the set of
       *>      classes alphanumeric, alphabetic, or national."
       *> and, same clause: "A national group item or a bit group item shall be treated as
       *> an elementary national data item" ... and "A class alphabetic operand shall be
       *> treated as though it were an operand of class alphanumeric."
-      *> §8.8.4.2.6: "The alphanumeric operand is treated as though it were converted and
+      *> §2023:8.8.4.2.6: "The alphanumeric operand is treated as though it were converted and
       *> moved in accordance with the rules of the MOVE statement from an alphanumeric
       *> elementary data item to a temporary elementary data item of class national with
       *> the same length in terms of character positions as the alphanumeric operand."
-      *> §8.8.4.2.10 (standard comparison; no PROGRAM COLLATING SEQUENCE is declared and
+      *> §2023:8.8.4.2.10 (standard comparison; no PROGRAM COLLATING SEQUENCE is declared and
       *> only SPACE and A-D are compared, ordered SPACE < A < B < C < D):
       *>   1) "The operand that contains the character that is positioned higher in the
       *>      national collating sequence is the greater operand."
@@ -26,13 +26,13 @@
       *>      right by sufficient national spaces".
       *>
       *> cite.py (NOTE PB1554: cite.py labels the unnumbered national-group sentence of
-      *> §8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
-      *>   OK  §8.8.4.2.1 5)  (General)
-      *>   OK  §8.8.4.2.1 7)  (General)
-      *>   OK  §8.8.4.2.1 13)  (General)  [the group/alphabetic/national-group sentence]
-      *>   OK  §8.8.4.2.6   (Comparison of alphanumeric and national operands)
-      *>   OK  §8.8.4.2.10 1)  (Standard comparison)
-      *>   OK  §8.8.4.2.10 2)  (Standard comparison)
+      *> §2023:8.8.4.2.1 as list item "13)"; it is the paragraph after item 13):
+      *>   OK  §2023:8.8.4.2.1 5)  (General)
+      *>   OK  §2023:8.8.4.2.1 7)  (General)
+      *>   OK  §2023:8.8.4.2.1 13)  (General)  [the group/alphabetic/national-group sentence]
+      *>   OK  §2023:8.8.4.2.6   (Comparison of alphanumeric and national operands)
+      *>   OK  §2023:8.8.4.2.10 1)  (Standard comparison)
+      *>   OK  §2023:8.8.4.2.10 2)  (Standard comparison)
       *>
       *> Directory 2002: class national (PIC N, N"..", GROUP-USAGE NATIONAL) enters
       *> with ISO/IEC 1989:2002.

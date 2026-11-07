@@ -7,11 +7,11 @@ namespace WiseOwl.Cobol.Runtime;
 /// One argument (or the RETURNING slot) crossing a UNIVERSAL object-reference dispatch
 /// (<see cref="CobolObject.__CobolInvoke"/>; OO deep-dive D10/D-U2). The <see cref="Description"/> is the caller's
 /// description of the operand (<see cref="ActivationDescription"/>, built by the compiler's ONE builder): the
-/// generated callee switch asks <see cref="ActivationRelations"/> whether it MATCHES the method's formal (ISO §9.3.6 —
+/// generated callee switch asks <see cref="ActivationRelations"/> whether it MATCHES the method's formal (ISO §2023:9.3.6 —
 /// resolution continues and ends in EC-OO-METHOD when it does not) and then whether the bound method CONFORMS
-/// (§14.9.23.4 GR7 c) — EC-OO-UNIVERSAL when it does not; conformance through a universal receiver is checked AT
-/// RUNTIME, §9.3.8.2.1 NOTE). <see cref="Value"/> is the argument in its canonical box form — everything crossing a
-/// universal dispatch is implicitly BY REFERENCE (§14.9.23.3 SR6), and ISO §14.2.3 GR8 makes the formal occupy "the same
+/// (§2023:14.9.23.4 GR7 c) — EC-OO-UNIVERSAL when it does not; conformance through a universal receiver is checked AT
+/// RUNTIME, §2023:9.3.8.2.1 NOTE). <see cref="Value"/> is the argument in its canonical box form — everything crossing a
+/// universal dispatch is implicitly BY REFERENCE (§2023:14.9.23.3 SR6), and ISO §2023:14.2.3 GR8 makes the formal occupy "the same
 /// storage area as the argument", so an identifier argument's box is LIVE (kb/Work PB2087): its accessors read and write
 /// the argument's own storage on every access, the callee's formal is a converting view over it, and its
 /// <see cref="Area"/> is the cell an area formal is laid over. A box built from a value (a RETURNING slot) holds it.
@@ -32,18 +32,18 @@ public sealed class CobolInvokeArg(ActivationDescription description, object? va
         Area = area;
     }
 
-    /// <summary>The storage area the argument occupies when it lives in a cell (ISO §14.2.3 GR8 — an area formal is laid
+    /// <summary>The storage area the argument occupies when it lives in a cell (ISO §2023:14.2.3 GR8 — an area formal is laid
     /// over it), else null.</summary>
     public CellPointer? Area { get; }
 
-    /// <summary>A spelled OMITTED argument (kb/Work PB757): it has no description (§14.9.23.2), and §9.3.6 match rule
+    /// <summary>A spelled OMITTED argument (kb/Work PB757): it has no description (§2023:14.9.23.2), and §2023:9.3.6 match rule
     /// 3 b) admits it only against an OPTIONAL formal, "and this parameter is considered to match exactly".</summary>
     public static CobolInvokeArg OmittedArgument() => new(ActivationDescription.Omitted, null, omitted: true);
 
-    /// <summary>A REFERENCE-MODIFIED argument: the unique data item ISO §8.4.3.3.4 GR5 creates, whose length is the
+    /// <summary>A REFERENCE-MODIFIED argument: the unique data item ISO §2023:8.4.3.3.4 GR5 creates, whose length is the
     /// EVALUATED length (GR5 c) "The evaluation of length specifies the number of bit positions or character positions
     /// of the data item"), so its description carries the evaluated slice's own positions — a non-literal reference
-    /// modifier's length is known only here, and §14.8.2.2 rule 1 compares it with the formal's.</summary>
+    /// modifier's length is known only here, and §2023:14.8.2.2 rule 1 compares it with the formal's.</summary>
     public static CobolInvokeArg ReferenceModified(ActivationDescription description, Func<object?> get, Action<object?> set,
         CellPointer? area) =>
         new(description with { Positions = ((string?)get())?.Length ?? 0 }, get, set, area);
@@ -64,24 +64,24 @@ public sealed class CobolInvokeArg(ActivationDescription description, object? va
     }
 
     /// <summary>True when the omitted-argument condition for the corresponding formal shall be true in the
-    /// invoked method (ISO §14.9.23.4 GR9; §8.8.4.8.4 GR1) — a spelled OMITTED argument, or an identifier that
+    /// invoked method (ISO §2023:14.9.23.4 GR9; §2023:8.8.4.8.4 GR1) — a spelled OMITTED argument, or an identifier that
     /// is itself a formal parameter for which that condition is true (GR1 c), whose description still conforms.</summary>
     public bool Omitted { get; } = omitted;
 }
 
 /// <summary>
 /// The callee side of a GROUP crossing a universal dispatch whose two descriptions are not the same shape — the
-/// carriers ISO §14.8.2.2 admits once <see cref="ActivationRelations"/> has decided the pair conforms (kb/Work PB480):
+/// carriers ISO §2023:14.8.2.2 admits once <see cref="ActivationRelations"/> has decided the pair conforms (kb/Work PB480):
 /// <list type="bullet">
 /// <item>rule 1's PREFIX: an alphanumeric group formal no larger than the argument sees the argument's leading
-/// character positions, and its stores reach only those (§14.2.3 GR8 — "as if the formal parameter occupies the same
+/// character positions, and its stores reach only those (§2023:14.2.3 GR8 — "as if the formal parameter occupies the same
 /// storage area as the argument"), so the write-back splices the formal's image over the argument's leading
 /// positions and keeps the tail;</item>
-/// <item>§8.5.1.12's fixed / variable-length pair: one side crosses as the variable-length carrier
+/// <item>§2023:8.5.1.12's fixed / variable-length pair: one side crosses as the variable-length carrier
 /// (<see cref="CobolVarGroup"/>), the other as a fixed record image, converted over the pair's two shapes
 /// (<see cref="CobolVarGroup.FromImage"/>, <see cref="CobolVarGroup.ToImage"/>, <see cref="CobolVarGroup.OverlayImage"/>,
 /// <see cref="CobolVarGroup.OverlaidImage"/>) exactly as the CALL boundary converts them;</item>
-/// <item>two variable-length groups of different shapes (§8.5.1.12.1 constrains only where their variable-length items
+/// <item>two variable-length groups of different shapes (§2023:8.5.1.12.1 constrains only where their variable-length items
 /// lie): the argument's carrier is rebuilt in the formal's shape (<see cref="CobolVarGroup.Reshape"/>) and the formal's
 /// stores are overlaid back onto it (<see cref="CobolVarGroup.Overlay"/>).</item>
 /// </list>
@@ -131,7 +131,7 @@ public static class UniversalGroupCarrier
 
     /// <summary>A group RETURNING value <paramref name="value"/> (the method's item, described by
     /// <paramref name="sending"/>) in the form of the invocation's receiving item (<paramref name="receiving"/>) — the
-    /// fixed / variable-length pair §14.8.3.2 admits subject to §8.5.1.12 compatibility; every other pair already has the
+    /// fixed / variable-length pair §2023:14.8.3.2 admits subject to §2023:8.5.1.12 compatibility; every other pair already has the
     /// receiving item's form.</summary>
     public static object? Deliver(object? value, ActivationDescription receiving, ActivationDescription sending) =>
         value switch

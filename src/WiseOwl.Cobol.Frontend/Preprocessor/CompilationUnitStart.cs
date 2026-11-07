@@ -7,10 +7,10 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// ⛔ THE ONE LINE-LEVEL ANSWER TO "DOES A COMPILATION UNIT START HERE?" for the text-level directive stage that must
-/// know where the first unit begins — the §7.3.10.3 SR1 COBOL-WORDS placement rule ("may be specified only before the
+/// know where the first unit begins — the §2023:7.3.10.3 SR1 COBOL-WORDS placement rule ("may be specified only before the
 /// first IDENTIFICATION DIVISION within a compilation group"), whose boundary <c>CobolWordsDirectiveProcessor</c> reads
 /// and <c>DirectiveSiteProcessor.JudgeFirstUnitPlacement</c> judges against.
-/// <para>ISO §11.2.1 prints the division header in BRACKETS — <c>[ IDENTIFICATION DIVISION. ]</c> — so a unit's
+/// <para>ISO §2023:11.2.1 prints the division header in BRACKETS — <c>[ IDENTIFICATION DIVISION. ]</c> — so a unit's
 /// identification division may begin on its PROGRAM-ID, FUNCTION-ID, CLASS-ID or INTERFACE-ID paragraph with no
 /// header line at all (kb/Work PB829). The stages each carried a private copy of this test, and they had
 /// drifted: the COBOL-WORDS copy knew only the header, so a directive AFTER a header-less <c>PROGRAM-ID.</c> line
@@ -28,7 +28,7 @@ internal static class CompilationUnitStart
         || UnitParagraphNames.Any(name => CobolKeywords.StartsWith(trimmed, name));
 
     /// <summary>The paragraphs that open a compilation unit's identification division when its header is left out
-    /// (§11.2.1 General format: program-id-paragraph, function-id-paragraph, class-id-paragraph,
+    /// (§2023:11.2.1 General format: program-id-paragraph, function-id-paragraph, class-id-paragraph,
     /// interface-id-paragraph). The one list: <see cref="DivisionCursor"/> reads it too, adding METHOD-ID, which opens a
     /// unit NESTED in a class definition.</summary>
     public static readonly IReadOnlyList<string> UnitParagraphNames = ["PROGRAM-ID", "CLASS-ID", "FUNCTION-ID", "INTERFACE-ID"];
@@ -52,7 +52,7 @@ internal static class CompilationUnitStart
 
     /// <summary>The same question asked of the line AS THE GROUP'S OWN DIRECTIVES READ IT (kb/Work PB1373): after
     /// <c>&gt;&gt;COBOL-WORDS EQUATE "IDENTIFICATION" WITH "IDENT"</c> (or SUBSTITUTE), <c>IDENT DIVISION.</c> IS the
-    /// identification division header — §7.3.10.4 GR2 lets the equated word be "used in any syntax requiring the use of"
+    /// identification division header — §2023:7.3.10.4 GR2 lets the equated word be "used in any syntax requiring the use of"
     /// the reserved word — so the first two words of the line are read through the <paramref name="words"/> synonyms
     /// before the test. Only the leading words can make the line a unit start, and only a SYNONYM can change one (a
     /// de-reserved spelling stays a unit start here: the line is then an error of its own, and the wrong answer costs

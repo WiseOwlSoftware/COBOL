@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §15.65.4 invariants of FUNCTION MODULE-NAME's returned value that no CLI-driven program can falsify (kb/Work
+/// The §2023:15.65.4 invariants of FUNCTION MODULE-NAME's returned value that no CLI-driven program can falsify (kb/Work
 /// PB63): r1 — "an alphanumeric dynamic length elementary item with no trailing spaces, except that in a COBOL main
 /// program with the ACTIVATING keyword a single space is returned"; r2 — the "does not fit" antecedent
 /// (EC-BOUND-FUNC-RET-VALUE) is structurally unreachable because there is no fixed width between the module stack
@@ -31,7 +31,7 @@ public sealed class ModuleStackInvariantTests
         foreach (int kind in new[] { Current, Activating, Nested, Stack, TopLevel })
         {
             string v = s.Name(kind);
-            Assert.False(v.Length > 1 && v.EndsWith(' ') && kind != Stack, $"kind {kind}: '{v}' has trailing spaces (§15.65.4 r1)");
+            Assert.False(v.Length > 1 && v.EndsWith(' ') && kind != Stack, $"kind {kind}: '{v}' has trailing spaces (§2023:15.65.4 r1)");
             Assert.NotEqual("", v);
         }
         Assert.Equal("RECURSE", s.Name(Current));
@@ -67,8 +67,8 @@ public sealed class ModuleStackInvariantTests
         foreach (int kind in new[] { Current, Activating, Nested, Stack, TopLevel }) Assert.Equal(" ", empty.Name(kind));
     }
 
-    /// <summary>kb/Work PB3540 — §9.1.18.7's "under the control of a recursive runtime element" is a question to the module
-    /// stack: a recursive frame (a RECURSIVE program, a function, a method; §8.6.6) is under way from its push to its
+    /// <summary>kb/Work PB3540 — §2023:9.1.18.7's "under the control of a recursive runtime element" is a question to the module
+    /// stack: a recursive frame (a RECURSIVE program, a function, a method; §2023:8.6.6) is under way from its push to its
     /// pop, whatever kind of frame sits above it, and the count balances however frames interleave.</summary>
     [Fact]
     public void AnyRecursive_HoldsFromTheRecursiveFramesPushToItsPop()

@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.CodeGen;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// ⛔ THE ONE RENDERER OF THE FORMAT-1 USE SELECTION TIERS — ISO/IEC 1989:2023 §14.9.49.4 GR3 a)/GR5 (the
+/// ⛔ THE ONE RENDERER OF THE FORMAT-1 USE SELECTION TIERS — ISO/IEC 1989:2023 §2023:14.9.49.4 GR3 a)/GR5 (the
 /// FILE-NAME scope) followed by GR3 b)/GR6 b)–e) (the OPEN-MODE scope, "for any file open in the input mode or
 /// in the process of being opened in the input mode" and its three siblings).
 /// <para><b>Why it exists.</b> That switch pair was written THREE times — <c>DispatchEmitter.__IoCheck</c>,
@@ -20,7 +20,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// <para>⛔ <b>BOTH TIERS ARE EDITION-INVARIANT, and that is a DETERMINATION, not an omission</b> (kb/Work
 /// PB344). Annex E.2 item 19 a)/b) records that an unphrased invalid key condition, and a READ exception that
 /// is neither an invalid key nor an at end condition, did not reach an open-mode declarative before this
-/// edition. It is INFORMATIVE, it speaks of exactly one prior edition (§E.1, "a list of the substantive changes
+/// edition. It is INFORMATIVE, it speaks of exactly one prior edition (§2023:E.1, "a list of the substantive changes
 /// between the previous COBOL standard and this Working Draft International Standard" — the Introduction names
 /// that standard as the 2014 one), and its own justification classes the prior state as defective TEXT rather
 /// than as a required behaviour: "The previous COBOL Standard was not clear or missing processing of some I-O
@@ -43,14 +43,14 @@ internal static class UseTierEmitter
     /// the mode tier (null = unconditional; it is never an EDITION condition — see the type remarks);
     /// <paramref name="modeTierNote"/> is the trailing generated-source comment that explains it.
     /// <paramref name="globalOnly"/> selects only <c>USE … GLOBAL</c>
-    /// declaratives (§14.9.49.4 GR4 b)'s outward walk examines the container's GLOBAL ones alone).</summary>
+    /// declaratives (§2023:14.9.49.4 GR4 b)'s outward walk examines the container's GLOBAL ones alone).</summary>
     public static void EmitScopeTiers(CodeWriter w, IReadOnlyList<BoundDeclarative> decls,
         Func<int, string> action, string? modeTierWhen = null, string? modeTierNote = null,
         bool globalOnly = false)
     {
         bool Qualifies(BoundDeclarative d) => !globalOnly || d.Global;
         if (decls.Any(d => Qualifies(d) && d.Files.Count > 0))
-            using (w.Block("switch (__f)"))   // file-name scope first (§14.9.49.4 GR3 a)/GR5)
+            using (w.Block("switch (__f)"))   // file-name scope first (§2023:14.9.49.4 GR3 a)/GR5)
             {
                 for (int i = 0; i < decls.Count; i++)
                     if (Qualifies(decls[i]))

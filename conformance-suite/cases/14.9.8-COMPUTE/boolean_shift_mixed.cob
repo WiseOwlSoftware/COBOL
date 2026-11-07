@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.2 rule 7b — a boolean SHIFT inherits the precedence of the operator preceding it (B-AND if
+      *> ISO §2023:8.8.2 rule 7b — a boolean SHIFT inherits the precedence of the operator preceding it (B-AND if
       *> none), so a shift MIXED with a binary boolean operator groups (binary-op THEN shift), left-to-right —
       *> NOT shift-first. Oracle (A=1010, B=0110): A B-AND B B-SHIFT-L 1 = (A B-AND B) shift-L1 = 0010<<1 = 0100
       *> (a shift-first mis-grouping would give A B-AND (B<<1) = 1010 B-AND 1100 = 1000); A B-OR B B-SHIFT-L 1 =

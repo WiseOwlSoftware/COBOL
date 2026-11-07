@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §4.2.2 conformance checking, the INTERFACE leg (§14.9.23.3 SR4e -> §14.8.2.3.2 rule 2): an INVOKE
+*> ISO §2023:4.2.2 conformance checking, the INTERFACE leg (§2023:14.9.23.3 SR4e -> §2023:14.8.2.3.2 rule 2): an INVOKE
 *> through an INTERFACE-typed receiver checks each BY REFERENCE argument's description against the resolved
 *> PROTOTYPE - here the argument is PIC 9(6) against the prototype's PIC 9(4) formal (digit-count mismatch),
 *> which the C# projection alone could never reject (both project to ref long - the D-I1 lossy-projection

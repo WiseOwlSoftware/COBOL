@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ WHICH SD RECORDS THE SORT STORE CARRIES WITH THEIR MANAGED SLOTS (kb/Work PB4772, review round 1). The slot-carrying
 /// path (<c>SortBinder.SortRecordCarriesSlots</c>) admits a fixed-size, single-description SD record in the INPUT/OUTPUT
 /// PROCEDURE form only. Everything else a pointer-leafed SD record can meet stays the COBOL1756 deferral, never a
-/// silent compile: a variable-length file releases a size (ISO §13.18.43.4 GR13 a) the leaf-vector path ignores, and
+/// silent compile: a variable-length file releases a size (ISO §2023:13.18.43.4 GR13 a) the leaf-vector path ignores, and
 /// USING/GIVING/MERGE move a FILE record, which has no managed-slot half. Each case names its own reason text.
 /// </summary>
 public sealed class SortSlotRecordAdmissionTests
@@ -88,7 +88,7 @@ public sealed class SortSlotRecordAdmissionTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
-    /// <summary>A RECORD VARYING SD: RELEASE sends only the released size (§13.18.43.4 GR13 a), which the leaf-vector
+    /// <summary>A RECORD VARYING SD: RELEASE sends only the released size (§2023:13.18.43.4 GR13 a), which the leaf-vector
     /// path would ignore, so the record stays the deferral.</summary>
     [Fact]
     public void VaryingSd_StaysTheDeferral() => AssertDeferred(

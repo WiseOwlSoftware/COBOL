@@ -10,9 +10,9 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
       *>   cite.py --check 8.5.1.11.2 "behaves in all respects as though it were in fact contiguous with its
-      *>     neighbors" -> OK §8.5.1.11.2
+      *>     neighbors" -> OK §2023:8.5.1.11.2
       *> A table element is the whole of its description, and GR24 places the sorted ELEMENTS: each element's
       *> dynamic-length items keep their own content and its dynamic-capacity table keeps its occurrences. An
       *> EXTERNAL record's variable-length components live apart from its fixed run (the record's storage cell),
@@ -29,8 +29,8 @@
       *>                                                image move left them empty).
       *>
       *> THE CAPACITY (kb/Work PB2849). Each element's dynamic-capacity table has a capacity register in the element
-      *> (§13.18.38.3 SR30), which SR31 forbids to subscript, so no reference names ECAP; the capacity shows in the
-      *> element's contiguous extent instead (§8.5.1.11.2; FUNCTION LENGTH counts alphanumeric positions, §15.50.4
+      *> (§2023:13.18.38.3 SR30), which SR31 forbids to subscript, so no reference names ECAP; the capacity shows in the
+      *> element's contiguous extent instead (§2023:8.5.1.11.2; FUNCTION LENGTH counts alphanumeric positions, §2023:15.50.4
       *> rule 3): 1 (EK) + the two dynamic-length items + the table's current capacity. Before the sort the elements
       *> are 9 (THREE, 3, capacity 2), 6 (ONE, 1, capacity 1) and 5 (TWO, 2, capacity 0); each moves with its own
       *> capacity (GR24), so after it they read 6, 5, 9. A capacity that stayed in its POSITION (2, 1, 0) while the
@@ -38,8 +38,8 @@
       *> 1+5+1+0 = 7, so the line would read LEN 7 6 7 (an image move that ignored the components would keep the
       *> positions' own lengths, 9 6 5):
       *>   cite.py --check 15.50.4 "the returned value is an integer equal to the length of argument-1 in
-      *>     alphanumeric character positions" -> OK §15.50.4 3)
-      *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §13.18.38.3 31)
+      *>     alphanumeric character positions" -> OK §2023:15.50.4 3)
+      *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §2023:13.18.38.3 31)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1951EV.
        DATA DIVISION.

@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.40.3 r1 - "Argument-1 shall be a national or alphanumeric
+      *> ISO §2023:15.40.3 r1 - "Argument-1 shall be a national or alphanumeric
       *> literal." BOTH admitted spellings, and the OBSERVABLE that tells
-      *> them apart: §15.40.1's type table makes the FUNCTION's type follow
+      *> them apart: §2023:15.40.1's type table makes the FUNCTION's type follow
       *> argument-1's ("Alphanumeric | Alphanumeric", "National | National"),
       *> so an alphanumeric format literal yields a result a PIC X item may
       *> receive and a national one yields a national result.
       *>
-      *> ⚠ ONLY ONE OF THE TWO MOVES BELOW DISCRIMINATES, and §14.9.25.3
+      *> ⚠ ONLY ONE OF THE TWO MOVES BELOW DISCRIMINATES, and §2023:14.9.25.3
       *> rule 10's Table 16 says which. Its Alphanumeric row gives National
       *> "Yes", so the NAT- lines would compile even if the result were
       *> mis-typed alphanumeric; its National row gives Alphanumeric "No", so
@@ -28,11 +28,11 @@
       *> l1-fdt-argument1-boolean-literal (COBOL1627, a literal that is
       *> neither national nor alphanumeric).
       *>
-      *> Derivation of the values (§15.5.2 integer date 1 = 1601-01-01, so
-      *> 143951 = 1995-02-15; §15.5.5 45296 seconds past midnight = 12:34:56;
-      *> §15.3.3.7 combined = date, T, time, basic with basic and extended
-      *> with extended; §15.3.3.1 an extended common time format carries its
-      *> two colons in the data, §15.3.1.2 an extended calendar date its two
+      *> Derivation of the values (§2023:15.5.2 integer date 1 = 1601-01-01, so
+      *> 143951 = 1995-02-15; §2023:15.5.5 45296 seconds past midnight = 12:34:56;
+      *> §2023:15.3.3.7 combined = date, T, time, basic with basic and extended
+      *> with extended; §2023:15.3.3.1 an extended common time format carries its
+      *> two colons in the data, §2023:15.3.1.2 an extended calendar date its two
       *> hyphens).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FDT02.
@@ -44,7 +44,7 @@
        01 S  PIC 9(5) VALUE 45296.
        PROCEDURE DIVISION.
        MAIN.
-      *> The ALPHANUMERIC-literal row of §15.40.1's table.
+      *> The ALPHANUMERIC-literal row of §2023:15.40.1's table.
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmss" D S) TO R
            DISPLAY "AN-BASIC=" R
       *> The NATIONAL-literal row of the same table.

@@ -5,11 +5,11 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary>
-/// ⛔ THE HELD FORM OF A table(ALL) FUNCTION ARGUMENT (ISO §8.4.3.2.4 GR2, §15.3; kb/Work PB4162): the pre-op that copies the
-/// elements <paramref name="Source"/> enumerates, in the order §15.3 gives them, into the compiler-temporary table
+/// ⛔ THE HELD FORM OF A table(ALL) FUNCTION ARGUMENT (ISO §2023:8.4.3.2.4 GR2, §2023:15.3; kb/Work PB4162): the pre-op that copies the
+/// elements <paramref name="Source"/> enumerates, in the order §2023:15.3 gives them, into the compiler-temporary table
 /// <paramref name="Held"/> ranges over, at the argument's place in the argument list.
 /// <para>GR2 evaluates a function's arguments "individually in the order specified in the list of arguments, from left to
-/// right", and §15.3 makes <c>T (ALL)</c> "as if each table element associated with that subscript position were specified"
+/// right", and §2023:15.3 makes <c>T (ALL)</c> "as if each table element associated with that subscript position were specified"
 /// - a sequence of arguments, each evaluated where it stands. A later argument's user-defined function activation is a
 /// statement-scoped pre-op that runs before the statement renders its call, so an ALL operand read where the call renders
 /// read the table AFTER the activation, and a nested call that named it could not be held (kb/Work PB4124's residual). The

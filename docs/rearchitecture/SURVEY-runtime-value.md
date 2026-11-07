@@ -39,15 +39,15 @@ The unifying invariant across all four: **typed-native only** — values travel 
 |---|---|---|---|
 | `CobolNum` (static) | Scaled-integer fixed-point kernel: `Rescale`, `Store`/`TryStore`, `Divide`/`DivideOrThrow`, `RoundDiv`, `FormatDisplay`/`ParseDisplay`/`FromAlphanumeric`, over-punch codec | 419 | **Strong, the spine.** Every store lands here; ROUNDED (8 modes), three truncation disciplines, sign conventions all one place. Two warts: the **class doc is stale** (claims `long` engine w/ Int128 "escape hatch" — the code is Int128-uniform); a **dead `long Pow10`** at :404. |
 | `NumProfile` (readonly record struct) | The compact per-item numeric profile (Digits, FractionDigits, Signed, SignKind, Truncation, StorageLength) threaded into every store | 76 | **Clean.** One canonical carrier; single signed `FractionScale`; no P-field duplication. The right seam. |
-| `CobolDec` (readonly record struct) | STANDARD-DECIMAL intermediate (SDIDI, §8.8.1.5): decimal128, exact 256-bit mul/div scratch, round-once-to-34-digits | 278 | **Strong, self-contained.** Own wide-scratch primitives (`Mul128`/`DivRem256`/`DivRem10_256`). Coherent w/ `CobolNum` via the `ToUnscaled`→`Store(CobolDec,...)` overload. Its `DivRem256` shift-subtract is O(256)/divide (documented, acceptable). |
+| `CobolDec` (readonly record struct) | STANDARD-DECIMAL intermediate (SDIDI, §2023:8.8.1.5): decimal128, exact 256-bit mul/div scratch, round-once-to-34-digits | 278 | **Strong, self-contained.** Own wide-scratch primitives (`Mul128`/`DivRem256`/`DivRem10_256`). Coherent w/ `CobolNum` via the `ToUnscaled`→`Store(CobolDec,...)` overload. Its `DivRem256` shift-subtract is O(256)/divide (documented, acceptable). |
 | `CobolFloat` (static) | IEEE↔fixed bridge (D16): `ToScaled` (double→unscaled Int128, saturating), `Display`, `InexactAtScale` | 89 | **Clean and correct** — the NaN→0 / ±Inf-saturate handling is careful; `NearestTowardZero` correctly rejects `MidpointRounding.ToZero`. Lands into the same `CobolNum.Store` funnel. |
 | `CobolEdit` (static) | Numeric-edited formatting + de-edit + alphanumeric-edited; comma-mode canonicalization; MaskScale/MaskCapacity folds | 404 | **Dense but cohesive.** The largest single-purpose value file; two-pass R-to-L / L-to-R algorithm. **Invoked at compile time** for constant VALUE folding (reuse). Watch: `MaskScale`/`MaskCapacity`/`FractionDigits` each re-scan the mask (internal repetition). |
 | `CobolRounding` (enum) | The 8 ISO ROUNDED modes | 34 | **Fine** — but its numeric values are pinned to legacy `PicRuntime.Round*` int constants "while both pipelines coexist." That coupling note is now **obsolete** (no byte pipeline). |
 | `CobolSizeError` (Exception) | Evaluation-time size-error carrier w/ EC-name | 20 | Clean, minimal. |
-| `CobolInspect` (static) | INSPECT one-shared-cycle engine (TALLY/REPLACE/CONVERT, BACKWARD) | 307 | **Strong.** Heavily spec-cited (§14.9.22 GR8–GR23); the shared-cycle model is correct and subtle. Parallel-array API (kinds/patterns/befores/afters) is verbose but deliberate. |
+| `CobolInspect` (static) | INSPECT one-shared-cycle engine (TALLY/REPLACE/CONVERT, BACKWARD) | 307 | **Strong.** Heavily spec-cited (§2023:14.9.22 GR8–GR23); the shared-cycle model is correct and subtle. Parallel-array API (kinds/patterns/befores/afters) is verbose but deliberate. |
 | `CobolStringOps` (static) | STRING/UNSTRING kernels | 128 | **Clean**, per-operand/per-receiver granularity, spec-cited; the `< 1` pointer guard the legacy engine lacked is a genuine fix. |
 | `CobolString` (static) | Char-position store/compare/ref-mod/splice, PROGRAM COLLATING compare | 114 | **Clean, central.** One substrate for alphanumeric/national/boolean via a `pad` char + optional `weights[]`. |
-| `CobolBool` (static) | B-AND/OR/XOR/NOT, equality, ALL-figurative combine, resize | 114 | Clean; well-cited (§8.8.2 rules 9/10). |
+| `CobolBool` (static) | B-AND/OR/XOR/NOT, equality, ALL-figurative combine, resize | 114 | Clean; well-cited (§2023:8.8.2 rules 9/10). |
 | `CobolClass` (static) | Class-condition predicates (NUMERIC/ALPHABETIC/zoned-sign/user-class) | 90 | Clean; the closed-Latin ALPHABETIC (not `char.IsLetter`) is correct. |
 | `CobolTable` (static) | Fixed-OCCURS `ref At<T>`, `Occ` subscript decode, `OdoExtent` | 55 | **Small but two smells:** the out-of-range **`Scratch<T>.Slot` is a process-global mutable static** returned by `ref`; and the zeroed-struct scratch policy **diverges** from `CobolDynTable`'s seeded scratch. |
 | `CobolDynTable<T>` (sealed class) | OCCURS DYNAMIC growable store: capacity, `RefSending`/`RefReceiving` (grow+seed), SET/UP/DOWN, SEARCH guard | 119 | **Well-built.** Instance state (no static), proper seed-per-occurrence, EC-BOUND-TABLE-LIMIT/EC-FLOW-SEARCH guards. Its scratch is `_seed()` (initialized) — the *right* policy `CobolTable` should share. |
@@ -68,7 +68,7 @@ The unifying invariant across all four: **typed-native only** — values travel 
 - **Three intermediate engines, selected by a discriminated `NumX`.** The compile-time carrier
   `NumX(Expr, Scale, Dec, Real)` (`EmitCore.cs:91`) routes each expression to exactly one engine
   (`NumericRenderer.Combine`, `:136`): `Real` → native `double`; `Dec`/STANDARD-DECIMAL → `CobolDec`; else scaled
-  Int128. **This tri-split is ISO-mandated** (§8.8.1: native vs standard-decimal vs floating arithmetic are
+  Int128. **This tri-split is ISO-mandated** (§2023:8.8.1: native vs standard-decimal vs floating arithmetic are
   distinct), not accidental parallelism. So "parallel value engines" is the wrong frame — it is *one coordinated
   poly-engine with a common landing*.
 - **The `long`-vs-`Int128` split is STORAGE-ONLY, and the docs get this wrong.** `PicInfo.ClrType` (`PicInfo.cs:246`)
@@ -171,13 +171,13 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
 2. **[MED, deferred-by-design] `CobolTable.At<T>` group scratch NRE.** As documented at `CobolTable.cs:18-20`, a
    group-typed out-of-range element hands back a zeroed struct with null string members; group-level use then throws.
    The fix is trivially available (`CobolDynTable`'s seed pattern) — see reorg §8.
-3. **[MED, concurrency] the `ref`-returning static scratch (§5.4)** is a data race the moment concurrent run units are
+3. **[MED, concurrency] the `ref`-returning static scratch (§2023:5.4)** is a data race the moment concurrent run units are
    enabled. Not a bug today (single run unit per process), latent under the stated roadmap direction.
 4. **[LOW] `CobolFloat.ToScaled` saturation constant `1.7014118e38` (`:39`)** is a hand-written approximation of
    `Int128.MaxValue`. Correct in spirit (guards the undefined out-of-range `(Int128)double` cast) but a magic literal;
    a named constant derived from `Int128.MaxValue` would be safer against future edits.
 5. **[INFO — CLOSED by kb/Work PB1126] `CobolInspect` identifier-fed size mismatches** now set
-   `EC-RANGE-INSPECT-SIZE` (§14.9.22.4 GR14/15/22) through `ExceptionState.RangeInspectSizeError`; the skip/clamp
+   `EC-RANGE-INSPECT-SIZE` (§2023:14.9.22.4 GR14/15/22) through `ExceptionState.RangeInspectSizeError`; the skip/clamp
    survives only as the deterministic outcome of the undefined result when checking is off.
 
 ---
@@ -194,12 +194,12 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
   `CobolFloat`) are spec-mandated and converge there." Today no doc states *why* the type set is coherent; it just
   asserts "coherent as-is."
 - **Keep the three engines** — do not attempt to fold `CobolDec`/`CobolFloat` into `CobolNum`; the tri-split is ISO
-  §8.8.1, not accidental.
+  §2023:8.8.1, not accidental.
 
 ### 8.2 One out-of-range scratch policy (singular pattern)
 Give `CobolTable.At<T>` a seed like `CobolDynTable` — either an injected `Func<T>` element initializer or a shared
 `CobolScratch` helper — so the fixed and dynamic tables share ONE benign-continuation policy and the group-NRE risk
-(§7.2) disappears. This also lets §8.3 remove the static.
+(§2023:7.2) disappears. This also lets §8.3 remove the static.
 
 ### 8.3 Kill the process-global `ref` scratch (concurrency)
 Move `CobolTable.Scratch<T>.Slot` off the process-global static (onto `RunUnit`, or thread it like `CobolDynTable`'s
@@ -232,7 +232,7 @@ adequately address the numeric-model coherence and the compile/runtime duplicati
 
 **What the plan already covers well.**
 - Pow10 dedup (all six copies, incl. `CobolNum.Pow10`/`CobolFloat.Pow10`) — `PHASE-08 §2.3` / Step 1. ✔ (This also
-  disposes of the dead `long Pow10`, smell §5.2.)
+  disposes of the dead `long Pow10`, smell §2023:5.2.)
 - The `long`/`Int128`/`string` **storage** multiplicity and the runtime overload bridge — `DESIGN-data-model.md §2.1`
   (`StorageForm`, D0–D5) owns it thoroughly; the `Occ`/`StoreDisplay`/`FormatDisplay` triplets are correctly framed as
   a bridge, not duplication. ✔

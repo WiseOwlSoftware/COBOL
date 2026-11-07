@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class SpecPinnedNistTests
 {
     /// <summary>NC236A: the golden marks SCH-TEST-F1-8 / F1-10 "TEST DELETED" — a legacy ARTIFACT: the legacy's
-    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §14.9.37.4 GR3 c) 2.) falls through to the CCVS
+    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §2023:14.9.37.4 GR3 c) 2.) falls through to the CCVS
     /// DE-LETE paragraph instead of executing the scan (verified by running the legacy directly, DEVLOG 533).
     /// Per GR3 c) 2. the scan uses the searched table's own first index and varies the other index in step — both
     /// tests then PASS: the conforming run executes 010 OF 010 with nothing deleted.</summary>
@@ -46,8 +46,8 @@ public sealed class SpecPinnedNistTests
 
     /// <summary>NC235A: the golden marks IDX-TEST-F2-9 / F2-12 "TEST DELETED" — a legacy artifact: its SEARCH ALL
     /// over an OCCURS-DEPENDING table with a CONDITION-NAME WHEN (<c>WHEN LASTA (IDX-1)</c>) fell through to the
-    /// CCVS DE-LETE paragraph. Per ISO §14.9.37 Format 2 (a WHEN condition-name over a table element keyed by the
-    /// search index) + §13.18.38 GR7 (the table's count IS data-name-1's value) both tests execute and PASS — the
+    /// CCVS DE-LETE paragraph. Per ISO §2023:14.9.37 Format 2 (a WHEN condition-name over a table element keyed by the
+    /// search index) + §2023:13.18.38 GR7 (the table's count IS data-name-1's value) both tests execute and PASS — the
     /// conforming run is 013 OF 013 with nothing deleted.</summary>
     [Fact]
     public void NC235A_SearchAllConditionNameOverOdo_ExecutesAllTests()
@@ -71,10 +71,10 @@ public sealed class SpecPinnedNistTests
 
     /// <summary>ST127A at <c>--std 2002</c> — the FREE, EXTERNALLY-AUTHORED witness for kb/Work PB704, and the
     /// one the NIST leg structurally cannot give. <c>ST127A.cob:257</c> writes <c>WITH DUPLICATES IN ORDER</c>
-    /// (ISO §14.9.40.2), the only occurrence of the phrase anywhere in the tree, and it passed for two trains
-    /// only because the NIST leg runs at <c>--std 85</c>, where §8.9 does not yet reserve ORDER: the leg is
+    /// (ISO §2023:14.9.40.2), the only occurrence of the phrase anywhere in the tree, and it passed for two trains
+    /// only because the NIST leg runs at <c>--std 85</c>, where §2023:8.9 does not yet reserve ORDER: the leg is
     /// evidence about COBOL-85 and about nothing else (feedback_measure_the_selectors_complement). While the
-    /// phrase's own word rode <c>cobolWord</c>, the §8.9 funnel — which screens IDENTIFIER occurrences
+    /// phrase's own word rode <c>cobolWord</c>, the §2023:8.9 funnel — which screens IDENTIFIER occurrences
     /// POSITION-BLIND — refused it as a user-defined word from 2002 on, so a real CCVS program was rejected at
     /// every edition a user is likely to target.
     /// <para>⚠ THE ASSERTION IS THE ABSENCE OF COBOL0901, NOT A CLEAN COMPILE, and deliberately so. ST127A is
@@ -107,7 +107,7 @@ public sealed class SpecPinnedNistTests
     /// text as <c>VI-114 6.20.4 GR10(d)1</c>, executes
     /// <c>PERFORM PFM-F4-23-PROC VARYING PFM-A1 FROM 1 BY 1 UNTIL PFM-A1 &gt; 3 AFTER PFM-B1 FROM PFM-A1 BY 1
     /// UNTIL PFM-B1 &gt; 3</c> and asserts the body ran SIX times — i.e. that PFM-A1 is augmented BEFORE PFM-B1
-    /// is reset from it (3+2+1). ISO §14.9.28.4 GR13 e) 2's true branch orders the two the other way: "a. the
+    /// is reset from it (3+2+1). ISO §2023:14.9.28.4 GR13 e) 2's true branch orders the two the other way: "a. the
     /// induction variable associated with the current condition is set to its initialization value", then "b. the
     /// condition to the left … becomes the current condition, and c. the induction variable associated with the
     /// new current condition is incremented". With GR12 re-identifying the FROM operand at every setting

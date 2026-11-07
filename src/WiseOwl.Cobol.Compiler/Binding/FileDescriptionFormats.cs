@@ -8,9 +8,9 @@ using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 
 namespace WiseOwl.Cobol.Binding;
 
-/// <summary>The three general formats of the file description entry (ISO/IEC 1989:2023 §13.4.5.2, rendered from
+/// <summary>The three general formats of the file description entry (ISO/IEC 1989:2023 §2023:13.4.5.2, rendered from
 /// the printed pages, folios 342-343) as a SET, so one table row can name every format that contains a clause.
-/// §13.4.5.3 binds each entry to exactly one of them: SR5 "Format 1 is the file description entry for a sequential
+/// §2023:13.4.5.3 binds each entry to exactly one of them: SR5 "Format 1 is the file description entry for a sequential
 /// file", SR7 "Format 2 is the file description entry for a relative file or an indexed file", SR8 "Format 3 is the
 /// file description entry for a report file".</summary>
 [Flags]
@@ -24,7 +24,7 @@ internal enum FileDescriptionFormat
     /// <summary>Format 2 (relative-or-indexed).</summary>
     RelativeOrIndexed = 2,
 
-    /// <summary>Format 3 (report) — §9.1.22: "A report file is an output file having sequential organization whose
+    /// <summary>Format 3 (report) — §2023:9.1.22: "A report file is an output file having sequential organization whose
     /// file description entry contains a REPORT clause."</summary>
     Report = 4,
 
@@ -35,20 +35,20 @@ internal enum FileDescriptionFormat
 /// says it, the formats that contain it, and — for a clause that belongs to ANOTHER entry — which one.</summary>
 /// <param name="Context">The generated context type of the alternative (the table's key).</param>
 /// <param name="Name">The clause as the standard names it ("LINAGE clause").</param>
-/// <param name="Formats">The §13.4.5.2 formats whose printed clause list contains it.</param>
+/// <param name="Formats">The §2023:13.4.5.2 formats whose printed clause list contains it.</param>
 /// <param name="HomeEntry">Null for a file description clause; otherwise the entry the clause belongs to, for a
 /// clause the grammar parses in the FD position only so it can be refused BY NAME (the file control entry's
 /// clauses: a user who writes <c>FD F ORGANIZATION IS RELATIVE</c> is told where the clause goes, not handed a
 /// token error).</param>
 /// <param name="DeletedAt2002">A COBOL-85 FD clause ISO/IEC 1989:2002 deleted (LABEL RECORDS, DATA RECORDS,
 /// VALUE OF). It stood in every '85 FD format, so it is admitted in all three here and its edition is decided by
-/// its removal gate; it is left out of the "admits only" sentence, which quotes the current §13.4.5.2.</param>
+/// its removal gate; it is left out of the "admits only" sentence, which quotes the current §2023:13.4.5.2.</param>
 internal sealed record FileDescriptionClauseRow(
     Type Context, string Name, FileDescriptionFormat Formats, string? HomeEntry = null, bool DeletedAt2002 = false);
 
 /// <summary>⛔ THE ONE PLACE THE FILE DESCRIPTION ENTRY'S FORMAT IS DECIDED AND ITS CLAUSE ADMISSIBILITY IS ASKED
 /// (kb/Work PB1238, PB1081, PB865).
-/// <para>Before it, no code decided which §13.4.5.2 format an FD was, so no rule keyed on the format existed:
+/// <para>Before it, no code decided which §2023:13.4.5.2 format an FD was, so no rule keyed on the format existed:
 /// BindFileSection bound every clause against every organization. LINAGE on a relative file bound a LINAGE page no
 /// relative connector ever drives, CODE-SET on an indexed file compiled clean, LINAGE rode a report FD, and the
 /// five file-control-entry alternatives the grammar carries in the FD position (ORGANIZATION, ACCESS MODE, RECORD
@@ -60,11 +60,11 @@ internal sealed record FileDescriptionClauseRow(
 /// </summary>
 internal static class FileDescriptionFormats
 {
-    private const string FileControlEntry = "the file control entry (ISO §12.4.5.1)";
+    private const string FileControlEntry = "the file control entry (ISO §2023:12.4.5.1)";
 
     /// <summary>Every <c>fileDescriptionClause</c> alternative except the <c>unrecognizedDataClause</c> error
-    /// production (refused by <c>ClosedFormatPass</c>, COBOL1970), in the order §13.4.5.2 prints them. The
-    /// Format columns are the rendered §13.4.5.2 lists.</summary>
+    /// production (refused by <c>ClosedFormatPass</c>, COBOL1970), in the order §2023:13.4.5.2 prints them. The
+    /// Format columns are the rendered §2023:13.4.5.2 lists.</summary>
     public static readonly IReadOnlyList<FileDescriptionClauseRow> Rows =
     [
         new(typeof(Core.FileGlobalExternalClauseContext), "IS EXTERNAL / IS GLOBAL clause", FileDescriptionFormat.All),
@@ -96,8 +96,8 @@ internal static class FileDescriptionFormats
         Rows.ToFrozenDictionary(r => r.Context);
 
     /// <summary>The format an FD is written in, decided ONCE from the file control entry's organization and
-    /// whether the entry carries a REPORT clause (ISO §13.4.5.3 SR5/SR7/SR8). A relative or indexed file is
-    /// Format 2 whatever else the FD says — §9.1.22 makes a report file sequential, so a REPORT clause on it is a
+    /// whether the entry carries a REPORT clause (ISO §2023:13.4.5.3 SR5/SR7/SR8). A relative or indexed file is
+    /// Format 2 whatever else the FD says — §2023:9.1.22 makes a report file sequential, so a REPORT clause on it is a
     /// Format 2 violation, not a Format 3 entry.</summary>
     public static FileDescriptionFormat Of(FileOrganization organization, bool hasReportClause) =>
         organization is FileOrganization.Relative or FileOrganization.Indexed ? FileDescriptionFormat.RelativeOrIndexed
@@ -109,25 +109,25 @@ internal static class FileDescriptionFormats
     public static FileDescriptionClauseRow? RowOf(Core.FileDescriptionClauseContext clause) =>
         clause.ChildCount > 0 && ByContext.TryGetValue(clause.GetChild(0).GetType(), out var row) ? row : null;
 
-    /// <summary>How a diagnostic names a format: "Format 2 (relative-or-indexed)", as §13.4.5.2 captions it.</summary>
+    /// <summary>How a diagnostic names a format: "Format 2 (relative-or-indexed)", as §2023:13.4.5.2 captions it.</summary>
     public static string Caption(FileDescriptionFormat format) => format switch
     {
         FileDescriptionFormat.Sequential => "Format 1 (sequential)",
         FileDescriptionFormat.RelativeOrIndexed => "Format 2 (relative-or-indexed)",
         FileDescriptionFormat.Report => "Format 3 (report)",
-        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a single §13.4.5.2 format"),
+        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a single §2023:13.4.5.2 format"),
     };
 
-    /// <summary>The §13.4.5.3 syntax rule that binds an entry to <paramref name="format"/>, quoted.</summary>
+    /// <summary>The §2023:13.4.5.3 syntax rule that binds an entry to <paramref name="format"/>, quoted.</summary>
     public static string BindingRule(FileDescriptionFormat format) => format switch
     {
         FileDescriptionFormat.Sequential =>
-            "ISO §13.4.5.3 SR5: \"Format 1 is the file description entry for a sequential file\"",
+            "ISO §2023:13.4.5.3 SR5: \"Format 1 is the file description entry for a sequential file\"",
         FileDescriptionFormat.RelativeOrIndexed =>
-            "ISO §13.4.5.3 SR7: \"Format 2 is the file description entry for a relative file or an indexed file\"",
+            "ISO §2023:13.4.5.3 SR7: \"Format 2 is the file description entry for a relative file or an indexed file\"",
         FileDescriptionFormat.Report =>
-            "ISO §13.4.5.3 SR8: \"Format 3 is the file description entry for a report file\"",
-        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a single §13.4.5.2 format"),
+            "ISO §2023:13.4.5.3 SR8: \"Format 3 is the file description entry for a report file\"",
+        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a single §2023:13.4.5.2 format"),
     };
 
     /// <summary>The clauses <paramref name="format"/> admits, in the printed order, for the diagnostic's "admits

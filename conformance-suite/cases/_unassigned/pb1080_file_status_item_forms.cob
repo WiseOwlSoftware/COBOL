@@ -5,11 +5,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1080 — ISO §12.4.5.8.3 SR2: the FILE STATUS item "shall reference a two-character data item
+      *> kb/Work PB1080 — ISO §2023:12.4.5.8.3 SR2: the FILE STATUS item "shall reference a two-character data item
       *> of the category alphanumeric, defined in the working-storage, local-storage, or linkage section". An
-      *> elementary PIC XX item and a two-character alphanumeric GROUP (§13.18.29.4 GR3 — a group with no
-      *> GROUP-USAGE clause is an alphanumeric group item) both qualify, and §12.4.5.8.4 GR1 updates each with the
-      *> I-O status: OPEN INPUT of an absent non-optional file is '35' (§9.1.13.6), OPEN OUTPUT '00'.
+      *> elementary PIC XX item and a two-character alphanumeric GROUP (§2023:13.18.29.4 GR3 — a group with no
+      *> GROUP-USAGE clause is an alphanumeric group item) both qualify, and §2023:12.4.5.8.4 GR1 updates each with the
+      *> I-O status: OPEN INPUT of an absent non-optional file is '35' (§2023:9.1.13.6), OPEN OUTPUT '00'.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1080FS.
        ENVIRONMENT DIVISION.

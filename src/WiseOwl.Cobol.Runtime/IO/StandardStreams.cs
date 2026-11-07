@@ -49,7 +49,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// host's <see cref="Console.Out"/> (DOC-A.1-59). Before PB3193 every <c>RunMain</c> called this, so a host that had
 /// given its console another encoding found it switched to UTF-8 by the first run unit it ran, and a host with no
 /// console found its own writers replaced by the fallback's. That is the console twin of the exit-code defect PB3163
-/// fixed the same way. ISO §14.6.1 makes a run unit "an independent entity that may be executed without communicating
+/// fixed the same way. ISO §2023:14.6.1 makes a run unit "an independent entity that may be executed without communicating
 /// with, or being coordinated with, any other run unit" (except through messages, files and switches), and a run unit
 /// that rewrote a process-wide cell would coordinate with its host through it. <c>ProcessStateOwnerDriftTests</c>
 /// holds the callers to the two process entries.
@@ -58,7 +58,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// ⛔ WHY IT IS A SHARED HELPER AND NOT AN <c>if</c> (kb/Work PB899). The rule was written down in exactly one of
 /// the two places that needed it: the run-unit entry set the encoding for a RUN program, and the
 /// <c>cobol</c> CLI's diagnostic path set nothing at all. On a default Windows console that is cp437, so the
-/// section sign in <c>(ISO §11.10.3 SR5–6)</c> left the process as the single byte <c>0x15</c> and the en dash
+/// section sign in <c>(ISO §2023:11.10.3 SR5–6)</c> left the process as the single byte <c>0x15</c> and the en dash
 /// as <c>-</c> — measured, byte-for-byte, through a redirected stream. Every ISO citation the compiler prints
 /// was corrupted in every CI log and every redirected capture, and no golden could see it because the corpus
 /// runner matches <c>.err</c> files on a pure-ASCII diagnostic CODE substring. That is

@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The ONE class-pointer storage-image codec (kb/Work PB970 arm 2; docs/CONFORMANCE.md §7 DOC-A.1-216) and its
-/// CALL-boundary consumer. ISO §14.8.2.3.3 1): a program called with no program-specifier and no NESTED phrase
+/// CALL-boundary consumer. ISO §2023:14.8.2.3.3 1): a program called with no program-specifier and no NESTED phrase
 /// requires only that "the formal parameter shall be of the same length as the corresponding argument", and
-/// §14.2.3 GR9 moves the argument "to this allocated record without conversion". The end-to-end witness is
+/// §2023:14.2.3 GR9 moves the argument "to this allocated record without conversion". The end-to-end witness is
 /// conformance:cases/14.2-Procedure-division-structure/pb970_pointer_by_content_storage_image; these pin what the golden cannot see in-process —
 /// absolute token shape, the FUNCTION-POINTER category, and the modes that must stay refused.
 /// </summary>
@@ -50,7 +50,7 @@ public sealed class PointerImageTests
 
     /// <summary>kb/Work PB2741: a program- or function-pointer's image is keyed by the SAME mapping its equality uses,
     /// the Annex C fold (<see cref="CobolNames"/>, DOC-A.1-219), never the host's case mapping — so pointers
-    /// <see cref="ProgramPointer.SameTarget"/> calls equal (§8.8.4.2.16, "The operands are equal if they reference the same
+    /// <see cref="ProgramPointer.SameTarget"/> calls equal (§2023:8.8.4.2.16, "The operands are equal if they reference the same
     /// address", cite.py OK) have one image, and pointers it calls unequal have two. The witnesses are where the host's
     /// <c>ToUpperInvariant</c> disagrees with Annex C: it raises U+017F LATIN SMALL LETTER LONG S to S, which Annex C maps
     /// nowhere, and it keeps U+1E9E LATIN CAPITAL LETTER SHARP S apart from the sharp s, which Annex C.2 pairs (1E9E,00DF).</summary>
@@ -68,7 +68,7 @@ public sealed class PointerImageTests
     public void ProgramAndFunctionPointers_AreStablePerName_AndDistinctPerCategory()
     {
         string p1 = PointerImage.Of(new ProgramPointer("PROGA"));
-        Assert.Equal(p1, PointerImage.Of(new ProgramPointer("proga")));         // §8.3.2.2 — case-insensitive identity
+        Assert.Equal(p1, PointerImage.Of(new ProgramPointer("proga")));         // §2023:8.3.2.2 — case-insensitive identity
         Assert.NotEqual(PointerImage.NullImage, p1);
         Assert.NotEqual(p1, PointerImage.Of(new FunctionPointer("PROGA")));     // same name, other category
         Assert.NotEqual(p1, PointerImage.Of(new ProgramPointer("PROGB")));
@@ -91,7 +91,7 @@ public sealed class PointerImageTests
     }
 
     // ── A pointer MEMBER of a shared storage area (kb/Work PB1071): the slot holds the value, the 8 positions hold
-    //    the SAME codec's image of it. ISO §14.9.3.4 GR9 (null initial state), §14.9.39.4 GR20 (UP BY n moves the
+    //    the SAME codec's image of it. ISO §2023:14.9.3.4 GR9 (null initial state), §2023:14.9.39.4 GR20 (UP BY n moves the
     //    address by n); the image itself is the implementor's, DOC-A.1-216. ──────────────────────────────────────────
 
     [Fact]
@@ -146,7 +146,7 @@ public sealed class PointerImageTests
     [Fact]
     public void ByReference_PointerIntoCharacterFormal_StaysRefused()
     {
-        // §14.8.2.3.2 — "If either the argument or the formal parameter is of class pointer, the corresponding
+        // §2023:14.8.2.3.2 — "If either the argument or the formal parameter is of class pointer, the corresponding
         // formal parameter or argument shall be of class pointer": no image is delivered BY REFERENCE.
         var slot = ManagedPointer<ManagedPointer>.Cell(ManagedPointer.Null);
         Assert.Throws<CobolCallException>(() =>

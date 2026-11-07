@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN OPEN OF AN OPEN FILE CONNECTOR ANSWERS '41' AND CHANGES NOTHING (kb/Work PB2748). ISO §14.9.27.4 GR2:
+/// ⛔ AN OPEN OF AN OPEN FILE CONNECTOR ANSWERS '41' AND CHANGES NOTHING (kb/Work PB2748). ISO §2023:14.9.27.4 GR2:
 /// <i>"The file connector referenced by file-name-1 shall not be open. If it is open, the execution of the OPEN
 /// statement is unsuccessful and the I-O status associated with file-name-1 is set to '41'"</i>; GR25: <i>"If the
 /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>.
@@ -117,6 +117,6 @@ public sealed class AlreadyOpenOpenDriftTests
         }
         int guard = Line("RefusedAsAlreadyOpen(name, mode)");
         foreach (string touch in new[] { "Associate(name", "ReversedRequested", "HasLinageClause", "SharedOpenAttempt(" })
-            Assert.True(Line(touch) > guard, $"OpenCore reaches '{touch}' before §14.9.27.4 GR2's already-open answer.");
+            Assert.True(Line(touch) > guard, $"OpenCore reaches '{touch}' before §2023:14.9.27.4 GR2's already-open answer.");
     }
 }

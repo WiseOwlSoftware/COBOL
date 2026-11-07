@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.15 (A.1 item 76) — which devices allow concurrent
+      *> ISO §2023:9.1.15 (A.1 item 76) — which devices allow concurrent
       *>   access: documented choice "all of them" (PRINTER and DISK
       *>   name one shareable host file)
       *> Rule: "A shared physical file shall reside on a device that
@@ -14,25 +14,25 @@
       *>   file."
       *>   cite.py --check 9.1.15 "The implementor shall specify which
       *>   devices allow concurrent access to a physical file"
-      *>   -> OK  §9.1.15   (Sharing mode)
+      *>   -> OK  §2023:9.1.15   (Sharing mode)
       *>   cite.py --check 9.1.15 "The sharing with all other mode
       *>   allows concurrent access to a physical file through other
       *>   file connectors specifying input, I-O, or extend mode"
-      *>   -> OK  §9.1.15 3)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 3)  (Sharing mode)
       *>   cite.py --check 9.1.15 "Associating this file connector with
       *>   the physical file will be unsuccessful if the physical file
       *>   is currently open through other file connectors"
-      *>   -> OK  §9.1.15 1)  (Sharing mode)
+      *>   -> OK  §2023:9.1.15 1)  (Sharing mode)
       *>   cite.py --check 9.1.13.9 "I-O status = 61"
-      *>   -> OK  §9.1.13.9 1)
+      *>   -> OK  §2023:9.1.13.9 1)
       *> Documented choice (docs/CONFORMANCE.md DOC-A.1-76): every
       *> physical file allows concurrent access; ASSIGN TO PRINTER "f"
       *> and ASSIGN TO DISK "f" are the same shareable file (DOC-A.1-71
       *> makes the class word select nothing further).
-      *> (LOCK MODE accompanies SHARING WITH ALL OTHER, as §14.9.27.3
+      *> (LOCK MODE accompanies SHARING WITH ALL OTHER, as §2023:14.9.27.3
       *> SR8 requires: cite.py --check 14.9.27.3 "the LOCK MODE clause
       *> shall be specified in the file control entry for file-name-1"
-      *> -> OK  §14.9.27.3 8)  (Syntax rules))
+      *> -> OK  §2023:14.9.27.3 8)  (Syntax rules))
       *> Derivation:
       *>   PR-OPEN=00   OPEN OUTPUT of the PRINTER-class connector.
       *>   DK-OPEN=00   OPEN EXTEND of the DISK-class connector while

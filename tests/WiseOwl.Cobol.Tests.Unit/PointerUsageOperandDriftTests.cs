@@ -22,8 +22,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DRIFT GUARD FOR THE TO-LESS POINTER OPERAND (kb/Work PB848, PB4235).
 ///
-/// <para>ISO/IEC 1989:2023 §13.18.60.2 (rendered, folio 503) underlines POINTER / FUNCTION-POINTER /
-/// PROGRAM-POINTER and never TO, so by §5.2.3 TO is an optional word and the operand may follow the keyword
+/// <para>ISO/IEC 1989:2023 §2023:13.18.60.2 (rendered, folio 503) underlines POINTER / FUNCTION-POINTER /
+/// PROGRAM-POINTER and never TO, so by §2023:5.2.3 TO is an optional word and the operand may follow the keyword
 /// directly. The TO-less operand is a bare <c>cobolWord</c> at the END of a clause, so the grammar guards it with
 /// <c>pointerOperandHere()</c>: the word is the operand unless it is the KEYWORD of what follows the usage in the
 /// entry being parsed. <c>cobolWord</c>'s reservation gate is NOT enough on its own — it exempts the §15 function
@@ -32,8 +32,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// let <c>USAGE POINTER HIGH-ORDER-RIGHT</c> bind the endianness phrase as a type-name.</para>
 /// <para>WHAT FOLLOWS IS PER ENTRY (kb/Work PB4235). The usage clause is a clause of THREE entries — the data
 /// description entry, the report group description entry and the screen description entry — and the guard once
-/// excluded the context-free FOLLOW(usageKeyword), the union of all three, so the §8.10 screen words (AUTO, BELL,
-/// SECURE …: context-sensitive in the "screen description entry", user-defined words elsewhere by §8.3.2.1 3)) were
+/// excluded the context-free FOLLOW(usageKeyword), the union of all three, so the §2023:8.10 screen words (AUTO, BELL,
+/// SECURE …: context-sensitive in the "screen description entry", user-defined words elsewhere by §2023:8.3.2.1 3)) were
 /// refused as a data entry's type-name. So the oracle here is each entry's OWN follow, read off the generated ATN
 /// along that entry's chain of rules, independently of the parser's live-context walk, and the per-word fact is an
 /// IFF over EVERY word <c>cobolWord</c> can match: the word is the TO-less operand exactly when it does not follow
@@ -145,7 +145,7 @@ public sealed class PointerUsageOperandDriftTests
             .Where(t => t != CobolParserCore.IDENTIFIER).ToList();
     }
 
-    /// <summary>The §8.10 words whose construct is the screen description entry (the PB4235 repro set).</summary>
+    /// <summary>The §2023:8.10 words whose construct is the screen description entry (the PB4235 repro set).</summary>
     private static readonly string[] ScreenWords =
     [
         "AUTO", "BACKGROUND-COLOR", "BELL", "BLINK", "ERASE", "FOREGROUND-COLOR", "FULL", "HIGHLIGHT", "LOWLIGHT",
@@ -205,7 +205,7 @@ public sealed class PointerUsageOperandDriftTests
                         + "the usage in this entry, so it begins its clause — it was bound as the TO-less operand");
                 else
                     Assert.True(operand?.GetText() == w, $"{entry.Name}, USAGE {usage} {w} at --std {edition}: {w} "
-                        + "cannot follow the usage in this entry, so it is the TO-less operand (§13.18.60.2, §8.3.2.1 3)) "
+                        + "cannot follow the usage in this entry, so it is the TO-less operand (§2023:13.18.60.2, §2023:8.3.2.1 3)) "
                         + $"— got '{operand?.GetText()}': "
                         + string.Join("; ", diags.Diagnostics.Select(d => d.ToString())));
             }

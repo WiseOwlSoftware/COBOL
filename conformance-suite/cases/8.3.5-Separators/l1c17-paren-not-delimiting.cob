@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.5 4) — parentheses around a DISPLAY operand
+      *> ISO §2023:8.3.5 4) — parentheses around a DISPLAY operand
       *> "Except in pseudo-text, parentheses may appear only in
       *>  balanced pairs of left and right parentheses delimiting
       *>  subscripts, a list of function or method arguments, a
@@ -14,7 +14,7 @@
       *>   appear only in balanced pairs of left and right parentheses
       *>   delimiting subscripts, a list of function or method
       *>   arguments, a reference modifier, arithmetic or boolean
-      *>   expressions, or conditions." -> OK §8.3.5 4)
+      *>   expressions, or conditions." -> OK §2023:8.3.5 4)
       *> (W-S) as a DISPLAY operand is balanced but delimits none of
       *> the listed constructs (no subscript, argument list, reference
       *> modifier, expression or condition).  Pure-syntax rule, so the

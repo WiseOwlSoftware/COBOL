@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO/IEC 1989:2023 §13.4.5.3 syntax rule 3 c): "When no record description entries
+*> ISO/IEC 1989:2023 §2023:13.4.5.3 syntax rule 3 c): "When no record description entries
 *> are specified: ... c) an INTO phrase shall be specified on all READ statements
 *> associated with the file." FIN has no record description entry, so its record area is
-*> §14.9.30.4 GR6's implied entry, which has no record-name: "The execution of a READ
+*> §2023:14.9.30.4 GR6's implied entry, which has no record-name: "The execution of a READ
 *> statement with the INTO phrase when there are no record description entries
 *> subordinate to the file description entry proceeds as though there were one record
 *> description entry describing an alphanumeric group item of the maximum size

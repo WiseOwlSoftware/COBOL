@@ -9,20 +9,20 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE MIGRATION MODE IS NOT A BLANKET EXEMPTION FROM THE §8.9 RESERVATION GATE (kb/Work PB792).
+/// ⛔ THE MIGRATION MODE IS NOT A BLANKET EXEMPTION FROM THE §2023:8.9 RESERVATION GATE (kb/Work PB792).
 /// <para><c>--permissive</c> "accepts constructs the targeted edition REMOVED, warning instead of rejecting", so
-/// it restores the pre-removal reading of a spelling ISO §8.9 TOOK AWAY (<c>ConstructAvailability.Removed</c> —
+/// it restores the pre-removal reading of a spelling ISO §2023:8.9 TOOK AWAY (<c>ConstructAvailability.Removed</c> —
 /// an existing program legitimately contains the word as a name). A spelling reserved at the compile edition AND
 /// at every OLDER edition this compiler targets was never a user-defined word anywhere, so migration mode has
-/// nothing to restore; §8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names")
+/// nothing to restore; §2023:8.3.2.1 rule 1 ("Reserved words shall not be used as user-defined words or system-names")
 /// held then as it holds now, and the verdict is <c>NotYetIntroduced</c> — an error on BOTH axes.</para>
 /// <para>The gate was written as <c>Edition.Permissive || !reservedHere(w)</c>, which granted the migration
 /// exemption to all 59 gated words including the ones no edition ever left free. The measured cost: at
 /// <c>--std 2023 --permissive</c> the NIST report-writer program RW104A's card 024500 —
-/// <c>03 VALUE "DETAIL LINE " COLUMN 20 PIC X(12).</c>, legal because §13.15.3 SR2 says "All other clauses may be
-/// written in any order" — had COLUMN and 20 absorbed into the VALUE operand list, lost its §13.18.14 COLUMN
+/// <c>03 VALUE "DETAIL LINE " COLUMN 20 PIC X(12).</c>, legal because §2023:13.15.3 SR2 says "All other clauses may be
+/// written in any order" — had COLUMN and 20 absorbed into the VALUE operand list, lost its §2023:13.18.14 COLUMN
 /// clause, and printed the detail field at column 1 instead of column 20 with no diagnostic at all.</para>
-/// <para>Both tests are DERIVED from <c>tests/version-matrix/reserved-words.json</c>, so the next word §8.9
+/// <para>Both tests are DERIVED from <c>tests/version-matrix/reserved-words.json</c>, so the next word §2023:8.9
 /// reserves at every edition is covered by construction and needs no edit here (CLAUDE.md rule 5 — never a
 /// hand-maintained list where a structure belongs).</para>
 /// </summary>
@@ -30,7 +30,7 @@ public sealed class ReservedWordMigrationGateDriftTests
 {
     private static readonly int[] Editions = [85, 2002, 2014, 2023];
 
-    /// <summary>⛔ THE RULE, over every row of the §8.9 table and every edition and both severity axes.
+    /// <summary>⛔ THE RULE, over every row of the §2023:8.9 table and every edition and both severity axes.
     /// <see cref="ReservedWordSet.AdmitsAsUserWord"/> is the ONE decision the parser's <c>cobolWord</c> gate
     /// (<c>CobolParserCoreBase.userWordHere</c>) makes, and it must equal: the word is not reserved here, OR the
     /// row may not reject at all (the conservative confidence policy — the funnel would report nothing, so the
@@ -52,7 +52,7 @@ public sealed class ReservedWordMigrationGateDriftTests
             for (int i = 0; i < Editions.Length; i++)
                 foreach (bool permissive in (bool[])[false, true])
                 {
-                    // Removed = §8.9 took the spelling away at some point at or before this edition.
+                    // Removed = §2023:8.9 took the spelling away at some point at or before this edition.
                     bool removed = flags[..i].Contains(false);
                     bool expected = !flags[i] || !mayReject || (permissive && removed);
                     bool actual = ReservedWordSet.Default.AdmitsAsUserWord(word, EditionInfo.Of(Editions[i], permissive));
@@ -67,7 +67,7 @@ public sealed class ReservedWordMigrationGateDriftTests
         }
 
         Assert.True(failed == 0,
-            $"§8.9 user-word admission drift: {failed} of {checkedPairs} (word, edition, axis) triples "
+            $"§2023:8.9 user-word admission drift: {failed} of {checkedPairs} (word, edition, axis) triples "
             + $"disagree with the rule; first {failures.Count}: " + string.Join(" | ", failures));
         // The population assertion (feedback_verdict_evidence_invariant): a rule that granted — or refused —
         // EVERY permissive exemption would satisfy the loop above vacuously if the expectation were derived the
@@ -79,15 +79,15 @@ public sealed class ReservedWordMigrationGateDriftTests
     // ── The behavioural half: a greedy operand list must not absorb the word under --permissive ──────────────
 
     /// <summary>A report group description entry whose VALUE clause is followed by <c>{0}</c>. It carries a COLUMN
-    /// clause because §13.15.3 SR13 requires one in every elementary entry with a VALUE clause (kb/Work PB853 made
+    /// clause because §2023:13.15.3 SR13 requires one in every elementary entry with a VALUE clause (kb/Work PB853 made
     /// that rule live, and the COLUMN-less control stopped compiling). The VALUE operand
-    /// list (<c>valueItem</c>, ISO §13.18.63.2 format 4 — <c>{VALUE IS|VALUES ARE} {literal-1} …</c>, one or MORE
+    /// list (<c>valueItem</c>, ISO §2023:13.18.63.2 format 4 — <c>{VALUE IS|VALUES ARE} {literal-1} …</c>, one or MORE
     /// literals, so the list is deliberately greedy and must NOT be narrowed) bottoms out at <c>cobolWord</c>,
-    /// which is the user-defined-word slot §8.3.2.1 rule 1 governs. When the gate admits an always-reserved word
+    /// which is the user-defined-word slot §2023:8.3.2.1 rule 1 governs. When the gate admits an always-reserved word
     /// the loop swallows it and the clause it begins vanishes; when the gate holds, the word has no reading here
     /// and the entry is refused — identically on both severity axes, because the migration mode has nothing to
     /// restore for such a word.
-    /// <para>The entry writes COLUMN because §13.15.3 SR13 requires it of every elementary report entry with a VALUE
+    /// <para>The entry writes COLUMN because §2023:13.15.3 SR13 requires it of every elementary report entry with a VALUE
     /// clause — the control used to omit it, and became non-conforming source the day kb/Work PB853 enforced SR13
     /// (COBOL2247).</para></summary>
     private const string ProbeTemplate = """
@@ -125,7 +125,7 @@ public sealed class ReservedWordMigrationGateDriftTests
     }
 
     /// <summary>⛔ THE REGRESSION THAT LET RW104A PRINT IN THE WRONG PLACE. For every reservation-gated word and
-    /// every edition at which §8.9 reserves it AND reserved it at every older edition, the greedy VALUE operand
+    /// every edition at which §2023:8.9 reserves it AND reserved it at every older edition, the greedy VALUE operand
     /// list must reach the SAME verdict strict and permissive — and must refuse the word, because it is not a
     /// user-defined word at any edition this compiler targets. MEASURED against the blanket bypass restored: the
     /// permissive arm accepted 15 of the 31 such (word, edition) pairs, silently — the other 16 survive only
@@ -173,7 +173,7 @@ public sealed class ReservedWordMigrationGateDriftTests
             Assert.True(pairs > 0, "no always-reserved gated word found — the derivation broke, not the gate");
             Assert.True(failed == 0,
                 $"the VALUE operand list absorbed an always-reserved word ({failed} of {pairs} "
-                + $"(word, edition) pairs; §8.3.2.1 rule 1, kb/Work PB792); first {failures.Count}: "
+                + $"(word, edition) pairs; §2023:8.3.2.1 rule 1, kb/Work PB792); first {failures.Count}: "
                 + string.Join(" | ", failures));
         }
         finally

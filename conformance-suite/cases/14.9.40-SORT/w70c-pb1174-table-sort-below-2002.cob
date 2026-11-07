@@ -6,8 +6,8 @@
 *>---
       *> kb/Work PB1174 — THE EDITION FLOOR OF THE FORMAT-2 TABLE SORT over an OCCURS DEPENDING table.
       *>   cite.py --check 14.9.40.4 "The number of occurrences of table elements referenced by data-name-2 is
-      *>     determined by the rules in the OCCURS clause" -> OK §14.9.40.4 20)
-      *> SORT data-name-2 (§14.9.40 Format 2) is a COBOL-2002 introduction: COBOL-85's SORT has only the
+      *>     determined by the rules in the OCCURS clause" -> OK §2023:14.9.40.4 20)
+      *> SORT data-name-2 (§2023:14.9.40 Format 2) is a COBOL-2002 introduction: COBOL-85's SORT has only the
       *> file format, so at --std 85 the statement is refused. The data description (an OCCURS DEPENDING table)
       *> is legal COBOL-85; the SORT of it is the one 2002+ construct here. The positive half is
       *> 2002/w70c_pb1174_table_sort_odo_count.

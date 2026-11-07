@@ -5,24 +5,24 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.36.4 r1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
+      *> ISO §2023:15.36.4 r1 — the same three lettered arms of FACTORIAL's equivalent arithmetic
       *> expression under NATIVE arithmetic, at the EARLIEST edition that has the function.
       *>
       *> --check validated:
       *>   cite.py --check 15.36.4 "The equivalent arithmetic expression is as follows"
-      *>     -> OK §15.36.4 1)   a) 0 or 1 -> (1)   b) 2 -> (2)   c) n -> (n * (n-1) * ... * 1)
-      *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §15.36.1
+      *>     -> OK §2023:15.36.4 1)   a) 0 or 1 -> (1)   b) 2 -> (2)   c) n -> (n * (n-1) * ... * 1)
+      *>   cite.py --check 15.36.1 "The type of this function is integer." -> OK §2023:15.36.1
       *>   cite.py --check 15.36.3 "Argument-1 shall be an integer greater than or equal to zero."
-      *>     -> OK §15.36.3 1)
+      *>     -> OK §2023:15.36.3 1)
       *>   cite.py --check 11.9.5.2 "it is as if the ARITHMETIC clause were specified with the
-      *>     NATIVE phrase" -> OK §11.9.5.2 4) - which is what an absent OPTIONS paragraph selects
+      *>     NATIVE phrase" -> OK §2023:11.9.5.2 4) - which is what an absent OPTIONS paragraph selects
       *>     and is the ONLY mode reachable at COBOL-85, the OPTIONS paragraph being later.
-      *>   §15.2 item 5: "Integer functions. These are of the class and category numeric. An
+      *>   §2023:15.2 item 5: "Integer functions. These are of the class and category numeric. An
       *>     integer function has an operational sign and no digits to the right of the decimal
       *>     point." - so the returned value carries no fraction in this mode either.
       *>
       *> ⛔ WHY THE ASSERTIONS ARE RELATIONS AND NOT PRINTED DIGITS. Under native arithmetic
-      *> §15.4.1 gives only "the value returned is an implementor-defined approximation of the
+      *> §2023:15.4.1 gives only "the value returned is an implementor-defined approximation of the
       *> value of that expression" (--check OK), so a pinned digit string would be a
       *> determination of this implementation dressed as a rule. Every line below instead relates
       *> TWO evaluations of the rule's OWN expressions, which r1 fixes with respect to each other
@@ -80,7 +80,7 @@
                DISPLAY "C-RATIO5=NO"
            END-IF.
       *> ...and again at the boundary between r1c and r1b, from an arithmetic-expression
-      *> argument (§15.3 type 6 admits one that always results in an integer): 3! / 2! = 3.
+      *> argument (§2023:15.3 type 6 admits one that always results in an integer): 3! / 2! = 3.
            COMPUTE W-R = FUNCTION FACTORIAL ( W-N - 2 )
                        / FUNCTION FACTORIAL ( W-N - 3 ).
            IF W-R = 3

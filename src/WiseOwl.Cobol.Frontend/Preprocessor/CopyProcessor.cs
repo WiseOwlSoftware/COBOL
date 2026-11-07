@@ -19,7 +19,7 @@ public sealed class CopyProcessor(
     bool permissive = false,
     CompilationInputs? inputs = null,
     bool ccvsIndicators = false,   // the --nist column-7 conventions for library text too (kb/Work PB1494)
-    ImplicitFormatOps? implicitFormatOps = null,   // §14.9.28.4 GR14's implicit PUSH/POP ALL written in library text (kb/Work PB1066)
+    ImplicitFormatOps? implicitFormatOps = null,   // §2023:14.9.28.4 GR14's implicit PUSH/POP ALL written in library text (kb/Work PB1066)
     ReferenceFormatDiagnostics? referenceFormatGates = null,   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
     CommentEntryPins? commentEntryPins = null)   // the comment-entry candidates a previous run of the text stages proved to be program text (kb/Work PB4281)
 {
@@ -77,13 +77,13 @@ public sealed class CopyProcessor(
 
     /// <summary>Record the reference format <paramref name="file"/> was read in — the normalizer's
     /// <see cref="ReferenceFormatMap"/> for the compilation group — so library text copied from it starts in the format
-    /// in effect for its COPY statement (§7.3.24.3 3)). A text with no registered map (a caller that normalized
+    /// in effect for its COPY statement (§2023:7.3.24.3 3)). A text with no registered map (a caller that normalized
     /// without one) has its library text's initial format detected, as the compilation group's is.</summary>
     public void RegisterReferenceFormat(string file, ReferenceFormatMap formats) => _referenceFormats[file] = formats;
 
     /// <summary>The reference format map of EVERY text read so far — the compilation group's and each library text's —
     /// by file: where each text's written format directives are (<see cref="ReferenceFormatMap.DirectiveLines"/>), which
-    /// decides whether a §14.9.28.4 GR14 implicit PUSH ALL / POP ALL bracket can change the format at all
+    /// decides whether a §2023:14.9.28.4 GR14 implicit PUSH ALL / POP ALL bracket can change the format at all
     /// (<see cref="ImplicitFormatOps.Place"/>; kb/Work PB1066).</summary>
     public IReadOnlyDictionary<string, ReferenceFormatMap> ReferenceFormats => _referenceFormats;
 
@@ -93,18 +93,18 @@ public sealed class CopyProcessor(
         => _diagnostics?.Report(descriptor, at, TextSpan.Empty, args);
 
     /// <summary>
-    /// Step 3 of text manipulation (§7.2.1): the REPLACE statements of the conditionally-processed compilation group
-    /// are applied in order, over its §7.2.2.5 text-words. A REPLACE statement is recognized wherever the character-
-    /// string REPLACE stands as a text-word (§7.2.4.3 SR1 "A REPLACE statement may be specified anywhere in source text
+    /// Step 3 of text manipulation (§2023:7.2.1): the REPLACE statements of the conditionally-processed compilation group
+    /// are applied in order, over its §2023:7.2.2.5 text-words. A REPLACE statement is recognized wherever the character-
+    /// string REPLACE stands as a text-word (§2023:7.2.4.3 SR1 "A REPLACE statement may be specified anywhere in source text
     /// or in library text that a character-string or a separator, other than the closing delimiter of a literal, may
-    /// appear"; kb/Work PB1358 — never only as the first word of a line), parsed in its §7.2.4.2 general format
+    /// appear"; kb/Work PB1358 — never only as the first word of a line), parsed in its §2023:7.2.4.2 general format
     /// (format 1 <c>REPLACE [ALSO] operands… .</c>, format 2 <c>REPLACE [LAST] OFF .</c>), and fed to the
-    /// <see cref="ReplaceStates"/> machine of §7.2.4.4 GR4–GR7 (kb/Work PB1357). The text between two REPLACE statements
+    /// <see cref="ReplaceStates"/> machine of §2023:7.2.4.4 GR4–GR7 (kb/Work PB1357). The text between two REPLACE statements
     /// is replaced by the operands of the statement ACTIVE there (GR8 "begins with the text immediately following the
     /// REPLACE statement"). MAPPED (kb/Work PB82): a REPLACE statement's own text vanishes from the resultant text, the
     /// kept text keeps its origins, and a replacement's lines take the origin of the line its match started on.
     /// <para>A non-pseudo-text operand (kb/Work R39) draws COBOL1641: REPLACE's operands were never literals in any
-    /// ISO edition (§7.2.4.2; §7.2.4.3 SR7). <paramref name="edition"/> (null: no edition gate — the line-map replay)
+    /// ISO edition (§2023:7.2.4.2; §2023:7.2.4.3 SR7). <paramref name="edition"/> (null: no edition gate — the line-map replay)
     /// gates the ALSO and LAST phrases at their introducing edition (constructs row replace-also-last-2002).</para>
     /// </summary>
     internal static MappedText ApplyReplaceStatements(MappedText mapped, DiagnosticBag? diagnostics = null,
@@ -120,7 +120,7 @@ public sealed class CopyProcessor(
             int replaceIdx = FindStatementKeyword(text, pos, "REPLACE", glued => diagnostics?.ReportError(
                 Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
                 "REPLACE is glued to the character-string before it (no space follows the period, comma or semicolon), "
-                + "so it forms no REPLACE statement — §7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space "
+                + "so it forms no REPLACE statement — §2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space "
                 + "except when it is the first statement in a compilation group\"", mapped.LocateAt(glued), default));
             if (replaceIdx < 0)
             {
@@ -130,14 +130,14 @@ public sealed class CopyProcessor(
 
             w.AppendMapped(ApplyReplacements(mapped.Slice(pos, replaceIdx - pos), states.Active, ReplaceResultRule, diagnostics));
 
-            // The statement is parsed over text-words (§7.2.4.2 general format) through its separator period — a
+            // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
-            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§7.2.4.2");
-            // §7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
+            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§2023:7.2.4.2");
+            // §2023:7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
                 statement.Error(replaceIdx, $"REPLACE is not preceded by a space (it follows '{text[replaceIdx - 1]}') — "
-                    + "§7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first "
+                    + "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first "
                     + "statement in a compilation group\"");
 
             void Gate(in TextWord phrase)
@@ -181,7 +181,7 @@ public sealed class CopyProcessor(
                         Editions.Diagnostics.DiagnosticCatalog.ReplaceOperandNotPseudoText.Code,
                         "a REPLACE statement operand is not pseudo-text — REPLACE admits ==pseudo-text== "
                         + "(and ==partial-word== under LEADING/TRAILING) operands only, in every ISO edition "
-                        + "(§7.2.4.2; §7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
+                        + "(§2023:7.2.4.2; §2023:7.2.4.3 SR7 bars literals as partial-words). Write ==operand== "
                         + "(empty ==== deletes)",
                         mapped.LocateAt(p), default);
                 });
@@ -194,7 +194,7 @@ public sealed class CopyProcessor(
         return w.Finish();
     }
 
-    /// <summary>The states of the REPLACE statements met so far (§7.2.4.4 GR4): the ACTIVE statement's operands (null
+    /// <summary>The states of the REPLACE statements met so far (§2023:7.2.4.4 GR4): the ACTIVE statement's operands (null
     /// when none is active) and the last-in first-out queue of INACTIVE ones; a canceled statement is simply gone.
     /// kb/Work PB1357 — before, one flat operand list was cleared by every REPLACE, and ALSO / LAST could not be
     /// represented.</summary>
@@ -268,34 +268,34 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>COPY/REPLACE replacement scope: a whole text-word sequence, or the LEADING/TRAILING characters of
-    /// a single text-word (ISO §7.2.3.4 GR 9 b / §7.2.4.4 GR 8 b).</summary>
+    /// a single text-word (ISO §2023:7.2.3.4 GR 9 b / §2023:7.2.4.4 GR 8 b).</summary>
     private enum ReplaceKind { Whole, Leading, Trailing }
 
-    /// <summary>One REPLACING-phrase operand pair of a COPY (§7.2.3) or REPLACE (§7.2.4) statement: pseudo-text-1 or
+    /// <summary>One REPLACING-phrase operand pair of a COPY (§2023:7.2.3) or REPLACE (§2023:7.2.4) statement: pseudo-text-1 or
     /// partial-word-1 as the text-words it is compared by, the replacement text exactly as written, and — for a whole
     /// pseudo-text-2 — what its replacing action would introduce that its statement's rule forbids
     /// (<see cref="Introduces"/>; null when nothing).</summary>
     private readonly record struct Replacement(IReadOnlyList<TextWord> From, string To, ReplaceKind Kind,
         string? Introduces = null);
 
-    /// <summary>The rule on the text a replacing action produces (kb/Work PB1356) — §7.2.3.4 GR13 for COPY, §7.2.4.4
+    /// <summary>The rule on the text a replacing action produces (kb/Work PB1356) — §2023:7.2.3.4 GR13 for COPY, §2023:7.2.4.4
     /// GR9 for REPLACE, which differ only in that a COPY replacing action MAY produce a REPLACE statement (REPLACE
     /// statements "shall be syntactically correct after the action of the replacing phrase of the COPY statement",
-    /// §7.2.1).</summary>
+    /// §2023:7.2.1).</summary>
     private sealed record ResultRule(string Statement, bool ForbidsReplaceStatement, string Rule, string Quoted);
 
-    private static readonly ResultRule CopyResultRule = new("COPY", false, "§7.2.3.4 GR13",
+    private static readonly ResultRule CopyResultRule = new("COPY", false, "§2023:7.2.3.4 GR13",
         "The replacing action of a COPY statement shall not introduce a COPY statement, a SOURCE FORMAT directive, a "
         + "comment, or a blank line.");
 
-    private static readonly ResultRule ReplaceResultRule = new("REPLACE", true, "§7.2.4.4 GR9",
+    private static readonly ResultRule ReplaceResultRule = new("REPLACE", true, "§2023:7.2.4.4 GR9",
         "The text produced as a result of processing a REPLACE statement shall not contain a COPY statement, a REPLACE "
         + "statement, a SOURCE FORMAT directive, a comment, or a blank line.");
 
     /// <summary>What <paramref name="produced"/> — text a replacing action places into the resultant text — holds that
     /// <paramref name="rule"/> forbids: a COPY statement, a REPLACE statement (REPLACE's rule only), a SOURCE FORMAT
     /// directive or a comment; null when nothing. Comments and blank lines were removed from pseudo-text before text
-    /// manipulation began — §6.5 2) "If the line is a comment line or a blank line, that line is logically discarded"
+    /// manipulation began — §2023:6.5 2) "If the line is a comment line or a blank line, that line is logically discarded"
     /// — so a comment can arrive only as the <c>*&gt;</c> a partial-word result spells (<c>LEADING ==Q== BY ==*==</c>
     /// on <c>Q&gt;1</c>), which is asked of the TEXT: the text-word scanner skips a comment, so no word ever starts with
     /// its indicator. A blank line cannot arrive at all: an empty line inside a written pseudo-text-2 (NIST SM208A) is
@@ -319,7 +319,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>
-    /// Apply COPY REPLACING / REPLACE substitutions (ISO §7.2.3.4 GR 9 / §7.2.4.4 GR 8) over the §7.2.2.5 text-words
+    /// Apply COPY REPLACING / REPLACE substitutions (ISO §2023:7.2.3.4 GR 9 / §2023:7.2.4.4 GR 8) over the §2023:7.2.2.5 text-words
     /// of the text: at each leftmost text-word the operands are tried in the order written and the first match wins
     /// (d)); an unmatched word is copied (e)); after a match the word following the rightmost matched word is the new
     /// leftmost, so inserted text is never rescanned (f)). Two text-words compare by
@@ -327,7 +327,7 @@ public sealed class CopyProcessor(
     /// replacement text, so white space and line breaks between the matched words vanish with them; the unmatched
     /// text keeps its origins (kb/Work PB82) and a replacement takes the origin of the line its match started on.
     /// </summary>
-    /// <para><paramref name="rule"/> screens what each replacing action produces (§7.2.3.4 GR13 / §7.2.4.4 GR9, kb/Work
+    /// <para><paramref name="rule"/> screens what each replacing action produces (§2023:7.2.3.4 GR13 / §2023:7.2.4.4 GR9, kb/Work
     /// PB1356): a forbidden result is reported (COBOL2574, once per operand pair per call) and still produced, so the
     /// downstream parse stays coherent — the diagnostic is the verdict.</para>
     private static MappedText ApplyReplacements(MappedText mapped, IReadOnlyList<Replacement> replacements,
@@ -347,7 +347,7 @@ public sealed class CopyProcessor(
         string text = mapped.Text;
         // The words compared, and — apart — the compiler directive lines: each is "a single space" for matching
         // (c) 5.), so a match runs across it, but "A compiler directive line is not affected by the replacing action"
-        // (§7.3.4 1)), so one lying inside a matched span is written back, on its own line, after the replacement.
+        // (§2023:7.3.4 1)), so one lying inside a matched span is written back, on its own line, after the replacement.
         var words = new List<TextWord>();
         var directives = new List<TextWord>();
         foreach (var t in TextWordScanner.Scan(text))
@@ -397,7 +397,7 @@ public sealed class CopyProcessor(
 
                 // LEADING / TRAILING (b)): partial-word-1 is equal "character for character" to the leftmost /
                 // rightmost characters of ONE source text-word. The comparison is case-insensitive (c) 3.) without
-                // exception: partial-word-1 is not a literal (§7.2.3.3 SR13 / §7.2.4.3 SR7), so it holds no quotation
+                // exception: partial-word-1 is not a literal (§2023:7.2.3.3 SR13 / §2023:7.2.4.3 SR7), so it holds no quotation
                 // symbol and can never reach the case-significant CONTENT of a literal text-word — a literal both
                 // begins (after an optional prefix) and ends with its quotation symbol.
                 var part = from[0].Span;
@@ -444,12 +444,12 @@ public sealed class CopyProcessor(
         string text = mapped.Text;
         var at = mapped.LocateAt(copyIdx);   // the COPY statement's SOURCE position (kb/Work PB82, PB1801)
 
-        // §7.2.3.3 SR2: "A COPY statement shall be preceded by a space except when it is the first statement in a
+        // §2023:7.2.3.3 SR2: "A COPY statement shall be preceded by a space except when it is the first statement in a
         // compilation group" — a COPY word directly after a parenthesis, a colon, a literal's closing delimiter or a
         // pseudo-text delimiter. (A COPY glued behind a period, comma or semicolon is not even a text-word of its
         // own — see FindStatementKeyword.)
         if (copyIdx > 0 && !CobolSpace.IsSeparator(text[copyIdx - 1]))
-            ReportPlacement(at, $"COPY is not preceded by a space (it follows '{text[copyIdx - 1]}') — §7.2.3.3 SR2: "
+            ReportPlacement(at, $"COPY is not preceded by a space (it follows '{text[copyIdx - 1]}') — §2023:7.2.3.3 SR2: "
                 + "\"A COPY statement shall be preceded by a space except when it is the first statement in a "
                 + "compilation group\"");
 
@@ -458,12 +458,12 @@ public sealed class CopyProcessor(
         if (statement.TextName is null)
             return new OneCopyResult(CopyOutcome.NotFound, "*> COPY statement not processed — see its diagnostic", null);
         string libraryName = statement.TextName;
-        // §7.2.3.4 GR12: "If the REPLACING phrase is not specified, the library text may contain a COPY statement that
+        // §2023:7.2.3.4 GR12: "If the REPLACING phrase is not specified, the library text may contain a COPY statement that
         // does not include a REPLACING phrase" — so a COPY met INSIDE library text shall not have one (kb/Work PB1356;
         // GR10, the outer-REPLACING arm of the same rule, is checked below once the library text is read).
         if (inLibraryText && statement.ReplacingSpecified)
             _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingNestedCopy.Code,
-                $"COPY {libraryName} REPLACING is written inside library text — ISO §7.2.3.4 GR12: \"If the REPLACING "
+                $"COPY {libraryName} REPLACING is written inside library text — ISO §2023:7.2.3.4 GR12: \"If the REPLACING "
                 + "phrase is not specified, the library text may contain a COPY statement that does not include a "
                 + "REPLACING phrase\". Move the REPLACING phrase to the outermost COPY, or flatten the copybook.",
                 at, default);
@@ -471,7 +471,7 @@ public sealed class CopyProcessor(
         string? copybookPath = FindCopybook(libraryName, statement.LibraryName);
         if (copybookPath == null)
         {
-            // §7.2.3.4 GR1 "Text-name-1 or literal-1 identifies the library text to be processed by the COPY
+            // §2023:7.2.3.4 GR1 "Text-name-1 or literal-1 identifies the library text to be processed by the COPY
             // statement" and GR2 "Library-name-1 names a resource that shall be available to the compiler and shall
             // provide access to the library text": text that cannot be located is an error at every edition and on
             // every path — never a silently omitted COPY (kb/Work PB1355).
@@ -481,15 +481,15 @@ public sealed class CopyProcessor(
         }
         if (!alreadyIncluded.Add(copybookPath))
         {
-            // ISO §7.2.3.4 GR12: "The library text being copied shall not cause the processing of a COPY statement
+            // ISO §2023:7.2.3.4 GR12: "The library text being copied shall not cause the processing of a COPY statement
             // that directly or indirectly copies itself."
             Report(DiagnosticDescriptors.CBL3621, at, libraryName);
             return new OneCopyResult(CopyOutcome.Circular, $"*> COPY {libraryName} — circular include skipped", null);
         }
 
-        // Library text goes through the same §6.5 logical conversion as the source text, starting in the format in
-        // effect for this COPY statement (§7.3.24.3 3)) — its own >>SOURCE FORMAT directives switch it from there, and
-        // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§7.2.3.4 9)).
+        // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
+        // effect for this COPY statement (§2023:7.3.24.3 3)) — its own >>SOURCE FORMAT directives switch it from there, and
+        // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§2023:7.2.3.4 9)).
         var copyLine = mapped.PointAt(copyIdx).Origin;   // the file and physical line the COPY word stands on
         bool? copyFixed = _referenceFormats.TryGetValue(copyLine.File, out var copyFormats) ? copyFormats.LibraryTextDefaultAt(copyLine.Line) : null;
         // The library text's bytes become characters in SourceTextDecoder (A.1 items 25 and 26, kb/Work PB1397): a marked
@@ -502,7 +502,7 @@ public sealed class CopyProcessor(
 
         var normalizedMapped = NormalizeCopybookMapped(libraryText, copybookPath, copyFixed, standsInIdentificationDivision);
         string normalized = normalizedMapped.Text;
-        // §7.2.3.3 SR9: "The length of a text-word within pseudo-text and within library text shall be from 1 through
+        // §2023:7.2.3.3 SR9: "The length of a text-word within pseudo-text and within library text shall be from 1 through
         // 65,535 character positions" — the library-text half (the pseudo-text half is ScreenOperandPair's).
         for (int scan = 0; TextWordScanner.TryNext(normalized, ref scan, out var libraryWord);)
             if (libraryWord.Kind != TextWordKind.DirectiveLine && libraryWord.End - libraryWord.Start > MaxTextWordLength)
@@ -513,7 +513,7 @@ public sealed class CopyProcessor(
                     + $"{libraryName}; the limit is 65,535");
                 break;
             }
-        // §7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
+        // §2023:7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
         // contain a COPY statement" — GR12 permits nesting only WITHOUT replacing. Before this check the
         // caller recursed into the spliced text OUTSIDE the replacement scope, so the illegal combination
         // produced arbitrary partial text and a misleading downstream undefined-reference on whatever name
@@ -523,7 +523,7 @@ public sealed class CopyProcessor(
         // report — the diagnostic is the verdict; the splice keeps the downstream parse coherent.
         if (statement.ReplacingSpecified && FindStatementKeyword(normalized, 0, "COPY") >= 0)
             _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyReplacingNestedCopy.Code,
-                $"COPY {libraryName} REPLACING: the library text contains a COPY statement — ISO §7.2.3.4 "
+                $"COPY {libraryName} REPLACING: the library text contains a COPY statement — ISO §2023:7.2.3.4 "
                 + "GR10 forbids the combination (\"If the REPLACING phrase is specified, the library text "
                 + "shall not contain a COPY statement\"); nesting is permitted only without REPLACING "
                 + "(GR12). Flatten the copybook, or drop the REPLACING phrase.",
@@ -534,14 +534,14 @@ public sealed class CopyProcessor(
 
     /// <summary>A parsed COPY statement: text-name-1 or the value of literal-1 (null when the statement names no
     /// usable library text — its diagnostic is already reported), library-name-1 or the value of literal-2, whether
-    /// the REPLACING phrase was written (§7.2.3.4 GR10 turns on that, not on how many operands parsed), its operands,
+    /// the REPLACING phrase was written (§2023:7.2.3.4 GR10 turns on that, not on how many operands parsed), its operands,
     /// and the position just past the statement's separator period.</summary>
     private readonly record struct CopyStatement(string? TextName, string? LibraryName, bool ReplacingSpecified,
         List<Replacement> Replacements, int End);
 
-    /// <summary>Parse the COPY statement at <paramref name="copyIdx"/> in its §7.2.3.2 general-format order, over
-    /// §7.2.2.5 text-words: <c>COPY {text-name-1 | literal-1} [{OF | IN} {library-name-1 | literal-2}]
-    /// [SUPPRESS [PRINTING]] [REPLACING operands…] .</c> — the statement ends at its separator period (§7.2.3.4 GR6
+    /// <summary>Parse the COPY statement at <paramref name="copyIdx"/> in its §2023:7.2.3.2 general-format order, over
+    /// §2023:7.2.2.5 text-words: <c>COPY {text-name-1 | literal-1} [{OF | IN} {library-name-1 | literal-2}]
+    /// [SUPPRESS [PRINTING]] [REPLACING operands…] .</c> — the statement ends at its separator period (§2023:7.2.3.4 GR6
     /// "beginning with the reserved word COPY and ending with the separator period, inclusive"), so a period inside
     /// pseudo-text or a literal no longer ends it. A word out of that order is COBOL2449; SUPPRESS has no effect on
     /// the resultant text (GR4 governs only a listing, which this compiler does not produce). kb/Work PB1354. The literal forms
@@ -549,7 +549,7 @@ public sealed class CopyProcessor(
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
-        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§7.2.3.2");
+        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§2023:7.2.3.2");
 
         string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1");
         string? libraryName = null;
@@ -576,13 +576,13 @@ public sealed class CopyProcessor(
                 new OperandScreen(CopyOperandRules, _diagnostics, mapped, EditionInfo.Of(dialectLevel, permissive)),
                 nonPseudoText: p => OnNonPseudoTextOperand(mapped, p),
                 nestedCopy: p => ReportPlacement(mapped.LocateAt(p), "a COPY statement is written inside the "
-                    + "REPLACING phrase of another COPY statement — §7.2.3.3 SR1: \"a COPY statement shall not "
+                    + "REPLACING phrase of another COPY statement — §2023:7.2.3.3 SR1: \"a COPY statement shall not "
                     + "appear within a COPY statement\""));
         }
         if (!c.HasError && c.TryPeek(out w) && w.IsWord("COPY"))
         {
             ReportPlacement(mapped.LocateAt(w.Start), "a COPY statement begins inside another COPY statement — "
-                + "§7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
+                + "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
             c.MarkError();
         }
         c.ExpectSeparatorPeriod();
@@ -590,7 +590,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOL0900 below the
-    /// row's edition, an error under <c>--permissive</c> too) of a phrase of the §7.2.3.2 general format that COBOL-85's
+    /// row's edition, an error under <c>--permissive</c> too) of a phrase of the §2023:7.2.3.2 general format that COBOL-85's
     /// <c>COPY text-name-1 [{OF | IN} library-name-1] [REPLACING …]</c> did not have: the literal forms of
     /// text-name-1 / library-name-1 (<see cref="Constructs.CopyLiteralName2002"/>) and the SUPPRESS phrase
     /// (<see cref="Constructs.CopySuppress2002"/>). The one place the statement's phrases are edition-gated (the REPLACING
@@ -603,9 +603,9 @@ public sealed class CopyProcessor(
             construct, what);
     }
 
-    /// <summary>⛔ TEXT-NAME-1 AND LIBRARY-NAME-1 ARE COBOL WORDS (kb/Work PB4279): each is a system-name (§8.3.2.3.1 lists
-    /// text-name and library-name) and §8.3.2.1 makes a system-name a COBOL word, so its characters and its length obey
-    /// §8.3.2.1 as every other word's do. The lexer never reads the COPY statement, so the token walk that asks the rule
+    /// <summary>⛔ TEXT-NAME-1 AND LIBRARY-NAME-1 ARE COBOL WORDS (kb/Work PB4279): each is a system-name (§2023:8.3.2.3.1 lists
+    /// text-name and library-name) and §2023:8.3.2.1 makes a system-name a COBOL word, so its characters and its length obey
+    /// §2023:8.3.2.1 as every other word's do. The lexer never reads the COPY statement, so the token walk that asks the rule
     /// of every other word (<see cref="Parsing.WordCharacterScreen"/>) cannot see these two; they are asked of the SAME
     /// rule here (<see cref="Parsing.WordCharacterScreen.CheckWord"/> and <see cref="CobolWordRule.LengthViolation"/>),
     /// at the word's SOURCE position. A name written as a literal is no word, and its value is the library's business.</summary>
@@ -617,17 +617,17 @@ public sealed class CopyProcessor(
         if (CobolWordRule.LengthViolation(word, dialectLevel) is { } length)
             sink.Report(new EditionDiagnostic(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code,
                 EditionSeverity.Error, Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Id, length, "",
-                "ISO §8.3.2.1"));
+                "ISO §2023:8.3.2.1"));
     }
 
     /// <summary>The reserved words of the COPY statement's own general format — never a text-name or library-name
-    /// where they stand (COPY itself is §7.2.3.3 SR1's business).</summary>
+    /// where they stand (COPY itself is §2023:7.2.3.3 SR1's business).</summary>
     private static bool IsCopyPhraseWord(in TextWord w)
         => w.IsWord("OF") || w.IsWord("IN") || w.IsWord("SUPPRESS") || w.IsWord("PRINTING") || w.IsWord("REPLACING");
 
-    /// <summary>The figurative-constant words (§8.3.3.6.2 formats 1–6; a format-7 symbolic-character is a
+    /// <summary>The figurative-constant words (§2023:8.3.3.6.2 formats 1–6; a format-7 symbolic-character is a
     /// user-defined word, which as text-name-1 is simply a text-name), barred as literal-1 / literal-2 by
-    /// §7.2.3.3 SR4.</summary>
+    /// §2023:7.2.3.3 SR4.</summary>
     private static readonly HashSet<string> FigurativeConstantWords = new(CobolKeywords.Comparer)
     {
         "ZERO", "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "HIGH-VALUES", "LOW-VALUE", "LOW-VALUES",
@@ -636,7 +636,7 @@ public sealed class CopyProcessor(
 
     /// <summary>Read text-name-1 / literal-1 (or library-name-1 / literal-2) and return the name it gives — a word as
     /// written, or the VALUE of an alphanumeric literal (a doubled quotation symbol collapsed; a hexadecimal literal
-    /// decoded). §7.2.3.3 SR4 (no concatenation expression, no figurative constant) and SR5 ("Literal-1 and
+    /// decoded). §2023:7.2.3.3 SR4 (no concatenation expression, no figurative constant) and SR5 ("Literal-1 and
     /// literal-2 shall be alphanumeric literals") are checked here, each as COBOL2450; null when no usable name
     /// was written.</summary>
     private string? ReadCopyName(MappedText mapped, StatementCursor c, string operand)
@@ -653,7 +653,7 @@ public sealed class CopyProcessor(
         if (w.IsWord("COPY"))
         {
             ReportPlacement(mapped.LocateAt(w.Start), "a COPY statement begins inside another COPY statement — "
-                + "§7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
+                + "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
             c.MarkError();
             return null;
         }
@@ -676,13 +676,13 @@ public sealed class CopyProcessor(
             // An open literal was named as it was consumed (COBOL5563, StatementCursor.Advance): it is no literal of any
             // category, so SR5's category is not its fault.
             if (name is null && literal.Terminated)
-                LiteralForm(w.Start, $"{w.Value} is not an alphanumeric literal — §7.2.3.3 SR5: \"Literal-1 and "
+                LiteralForm(w.Start, $"{w.Value} is not an alphanumeric literal — §2023:7.2.3.3 SR5: \"Literal-1 and "
                     + "literal-2 shall be alphanumeric literals\"");
         }
         else if (FigurativeConstantWords.Contains(w.Value))
         {
             LiteralForm(w.Start, $"the figurative constant {w.Value.ToUpperInvariant()} names no library text — "
-                + "§7.2.3.3 SR4: \"A concatenation expression or figurative constant shall not be specified for "
+                + "§2023:7.2.3.3 SR4: \"A concatenation expression or figurative constant shall not be specified for "
                 + "literal-1, or literal-2\"");
             if (w.IsWord("ALL") && c.TryPeek(out var allLiteral) && allLiteral.Kind == TextWordKind.Literal)
                 c.Advance(allLiteral);
@@ -696,7 +696,7 @@ public sealed class CopyProcessor(
 
         if (c.TryPeek(out var amp) && amp.IsWord("&"))
         {
-            LiteralForm(amp.Start, "a concatenation expression names no library text — §7.2.3.3 SR4: \"A "
+            LiteralForm(amp.Start, "a concatenation expression names no library text — §2023:7.2.3.3 SR4: \"A "
                 + "concatenation expression or figurative constant shall not be specified for literal-1, or literal-2\"");
             while (c.TryPeek(out amp) && amp.IsWord("&"))
             {
@@ -710,7 +710,7 @@ public sealed class CopyProcessor(
         return name;
     }
 
-    /// <summary>Report a §7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
+    /// <summary>Report a §2023:7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
     private void ReportPlacement(SourceLocation at, string message)
         => _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.CopyStatementPlacement.Code,
             message, at, default);
@@ -719,7 +719,7 @@ public sealed class CopyProcessor(
     /// for each found copybook, its resolved text is handed to <paramref name="expandCopybook"/> (the merged
     /// CC+COPY driver, which processes the copybook's own directives AND its nested COPY), and the result is
     /// spliced between two framing newlines. This is the COPY half of the interleaved text-manipulation driver
-    /// (ISO §7.2.1) — the CC half drives, calling this only on emitting-branch text so an omitted-branch COPY is
+    /// (ISO §2023:7.2.1) — the CC half drives, calling this only on emitting-branch text so an omitted-branch COPY is
     /// never expanded (design SSOT <c>DESIGN-cc-in-copy.md</c>).
     /// <para>MAPPED (kb/Work PB82): the text before a COPY keeps its origins, the
     /// incorporated copybook's lines carry the copybook's, and the framing newlines belong to the COPY statement's
@@ -752,7 +752,7 @@ public sealed class CopyProcessor(
         {
             int copyIdx = FindStatementKeyword(text, pos, "COPY", glued => ReportPlacement(mapped.LocateAt(glued),
                 "COPY is glued to the character-string before it (no space follows the period, comma or semicolon), "
-                + "so it forms no COPY statement — §7.2.3.3 SR2: \"A COPY statement shall be preceded by a space "
+                + "so it forms no COPY statement — §2023:7.2.3.3 SR2: \"A COPY statement shall be preceded by a space "
                 + "except when it is the first statement in a compilation group\""));
             if (copyIdx < 0)
             {
@@ -785,15 +785,15 @@ public sealed class CopyProcessor(
         return w.Finish();
     }
 
-    /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §6.5 walker the
+    /// <summary>Normalize library text to logical free form (kb/Work PB82 / PB1067) through the ONE §2023:6.5 walker the
     /// source text uses — <see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int)"/>
-    /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§7.3.24.3 3); null
+    /// — starting in <paramref name="copyFixed"/>, the format in effect for the COPY statement (§2023:7.3.24.3 3); null
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
     /// library text in the format in effect THERE. Per line: the copybook's path and physical line.</summary>
     private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool? inIdentificationDivision)
     {
-        // Library text is read by the same §6.5 walker WITH the compilation's reference-format diagnostics (§6.5: the rules
+        // Library text is read by the same §2023:6.5 walker WITH the compilation's reference-format diagnostics (§2023:6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
         // line, so a rule broken in a copybook is reported as it is in the main source (kb/Work PB1640).
         var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(text, referenceFormatGates,
@@ -808,14 +808,14 @@ public sealed class CopyProcessor(
 
     /// <summary>
     /// Find the next COPY or REPLACE statement (<paramref name="keyword"/>) from <paramref name="startPos"/> (a
-    /// position between statements): the next text-word that is that character-string (§7.2.2.3 "A character-string is
-    /// either a text-word or the word 'COPY'"). Both statements may appear anywhere a character-string may (§7.2.3.3 SR1
-    /// / §7.2.4.3 SR1) — after a level number (77 COPY K1W03.), after a data-name (01 TST-TEST COPY K101A.), inside a
+    /// position between statements): the next text-word that is that character-string (§2023:7.2.2.3 "A character-string is
+    /// either a text-word or the word 'COPY'"). Both statements may appear anywhere a character-string may (§2023:7.2.3.3 SR1
+    /// / §2023:7.2.4.3 SR1) — after a level number (77 COPY K1W03.), after a data-name (01 TST-TEST COPY K101A.), inside a
     /// statement (ADD COPY K1P01. TO …), after another statement on the same line (DISPLAY X. REPLACE …) — and because
     /// the search walks <see cref="TextWordScanner"/> words it can never match inside a literal, a comment, a compiler
     /// directive line, or a longer word (COPYSECT-1, REPLACE-FLAG).
     /// <para>A keyword glued behind a period, comma or semicolon (<c>PIC X.COPY BK.</c>) is not a text-word at all —
-    /// those characters separate only when a space follows (§8.3.5 2) / 3)) — so it is not a statement; it is the
+    /// those characters separate only when a space follows (§2023:8.3.5 2) / 3)) — so it is not a statement; it is the
     /// SR2 mistake ("shall be preceded by a space"), and <paramref name="onGlued"/> is told where it is so the caller
     /// can name the rule instead of leaving the downstream parser to trip over the word.</para>
     /// </summary>
@@ -834,13 +834,13 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>The COPY or REPLACE statement that <paramref name="text"/> ENDS INSIDE — its keyword and its position —
-    /// or null when every statement the text starts is finished. A statement ends at its separator period (§7.2.3.4 GR6,
-    /// the REPLACE general formats of §7.2.4.2 both end with their period), and a period inside pseudo-text is a text-word of the operand and ends nothing (kb/Work PB1354), so
+    /// or null when every statement the text starts is finished. A statement ends at its separator period (§2023:7.2.3.4 GR6,
+    /// the REPLACE general formats of §2023:7.2.4.2 both end with their period), and a period inside pseudo-text is a text-word of the operand and ends nothing (kb/Work PB1354), so
     /// the walk is the statements' own: the same <see cref="TextWordScanner"/> words, a statement opened by the keyword
     /// <see cref="FindStatementKeyword"/> finds, the pseudo-text delimiters toggling. The merged driver asks it of the
-    /// text before each compiler directive line (§7.3.3 SR8 b): "within a source text manipulation statement",
+    /// text before each compiler directive line (§2023:7.3.3 SR8 b): "within a source text manipulation statement",
     /// kb/Work PB1384), so the question has ONE answer for COPY and REPLACE alike. <c>InPseudoText</c> says the text ends
-    /// between a pair of pseudo-text delimiters — the place §7.2.3.3 SR10 / §7.2.4.3 SR10 bar a directive line from
+    /// between a pair of pseudo-text delimiters — the place §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10 bar a directive line from
     /// (kb/Work PB1353).</summary>
     internal static (string Keyword, int Start, bool InPseudoText)? OpenStatementAt(string text)
     {
@@ -862,19 +862,19 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>Whether the blank line at <paramref name="at"/> is where logical conversion DISCARDED a
-    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§6.5 1): "the SOURCE FORMAT directive line is logically discarded"). That
+    /// <c>&gt;&gt;SOURCE FORMAT</c> line (§2023:6.5 1): "the SOURCE FORMAT directive line is logically discarded"). That
     /// stage runs before this one and leaves only the blank, so the merged driver cannot see the directive in the text
     /// it walks; it asks the registered map of the text the line was read from (kb/Work PB1353 — the directive inside a
-    /// COPY or REPLACE statement, §7.3.3 SR8 b) and inside pseudo-text, §7.2.3.3 SR10 / §7.2.4.3 SR10).</summary>
+    /// COPY or REPLACE statement, §2023:7.3.3 SR8 b) and inside pseudo-text, §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10).</summary>
     internal bool IsDiscardedFormatDirective(SourceOrigin at)
         => _referenceFormats.TryGetValue(at.File, out var map) && map.HoldsDirectiveAt(at.Line);
 
     /// <summary>A cursor over the text-words of ONE COPY or REPLACE statement — the parser of their general formats
-    /// (§7.2.3.2 / §7.2.4.2) reads through it. Separator commas and semicolons "may be used anywhere the separator
-    /// space is used" (§8.3.5 2)), so <see cref="TryPeek"/> steps over them. Only a statement's FIRST syntax error is
+    /// (§2023:7.2.3.2 / §2023:7.2.4.2) reads through it. Separator commas and semicolons "may be used anywhere the separator
+    /// space is used" (§2023:8.3.5 2)), so <see cref="TryPeek"/> steps over them. Only a statement's FIRST syntax error is
     /// reported; recovery (<see cref="ExpectSeparatorPeriod"/>) skips to the statement's separator period.
     /// <para>⛔ A LITERAL ITS LINE ENDS INSIDE IS NAMED WHERE IT IS CONSUMED (kb/Work PB4176). The text-word scanner makes
-    /// an open literal run to the end of its line, as the lexer does (ISO §6.3.5 1) and §6.4.2 let a literal stay open at
+    /// an open literal run to the end of its line, as the lexer does (ISO §2023:6.3.5 1) and §2023:6.4.2 let a literal stay open at
     /// a line's end only where a continuation line continues it, and the reference-format stage has joined every one that
     /// was), so a COPY or REPLACE statement holding one has lost the rest of its line: <c>COPY "ABC</c> drew COBOL2450 "not
     /// an alphanumeric literal" and then COBOL2449 at the next line's first word. Every text-word the statement consumes
@@ -955,19 +955,19 @@ public sealed class CopyProcessor(
         }
     }
 
-    /// <summary>The syntax rules on the CONTENT of REPLACING operands. They are written word for word twice — §7.2.3.3
-    /// (COPY) and §7.2.4.3 (REPLACE), numbered differently — and checked by ONE screen,
+    /// <summary>The syntax rules on the CONTENT of REPLACING operands. They are written word for word twice — §2023:7.2.3.3
+    /// (COPY) and §2023:7.2.4.3 (REPLACE), numbered differently — and checked by ONE screen,
     /// <see cref="ScreenOperandPair"/> (kb/Work PB1353); a row holds one statement's rule numbers.</summary>
     private sealed record OperandRules(string Statement, string Clause, int PseudoText1, int PartialWord1,
         int PartialWord2, int Literal, int Length, int DirectiveLines, ResultRule Result);
 
-    /// <summary>§7.2.3.3 SR6, SR11, SR12, SR13, SR9, SR10.</summary>
-    private static readonly OperandRules CopyOperandRules = new("COPY", "§7.2.3.3", 6, 11, 12, 13, 9, 10, CopyResultRule);
+    /// <summary>§2023:7.2.3.3 SR6, SR11, SR12, SR13, SR9, SR10.</summary>
+    private static readonly OperandRules CopyOperandRules = new("COPY", "§2023:7.2.3.3", 6, 11, 12, 13, 9, 10, CopyResultRule);
 
-    /// <summary>§7.2.4.3 SR3, SR5, SR6, SR7, SR9, SR10.</summary>
-    private static readonly OperandRules ReplaceOperandRules = new("REPLACE", "§7.2.4.3", 3, 5, 6, 7, 9, 10, ReplaceResultRule);
+    /// <summary>§2023:7.2.4.3 SR3, SR5, SR6, SR7, SR9, SR10.</summary>
+    private static readonly OperandRules ReplaceOperandRules = new("REPLACE", "§2023:7.2.4.3", 3, 5, 6, 7, 9, 10, ReplaceResultRule);
 
-    /// <summary>The longest text-word pseudo-text (and COPY library text) may hold (§7.2.3.3 SR9 / §7.2.4.3 SR9).</summary>
+    /// <summary>The longest text-word pseudo-text (and COPY library text) may hold (§2023:7.2.3.3 SR9 / §2023:7.2.4.3 SR9).</summary>
     private const int MaxTextWordLength = 65_535;
 
     /// <summary>Where a REPLACING phrase reports: its statement's operand rules and the statement's diagnostics, at
@@ -982,7 +982,7 @@ public sealed class CopyProcessor(
         public OperandRules Rules { get; } = rules;
 
         /// <summary>The introduction gate of the partial-word phrases — <c>LEADING</c> / <c>TRAILING</c> partial-word-1
-        /// BY partial-word-2 of §7.2.3.2 and §7.2.4.2 — at the edition constructs row
+        /// BY partial-word-2 of §2023:7.2.3.2 and §2023:7.2.4.2 — at the edition constructs row
         /// <see cref="Constructs.ReplacingPartialWord2002"/> names (COBOL0900 below it; kb/Work PB1670). COPY and
         /// REPLACE share the one parser of their operands, so this is the ONE place the gate is asked.</summary>
         public void PartialWord(in TextWord phrase)
@@ -999,10 +999,10 @@ public sealed class CopyProcessor(
                 $"{Rules.Statement} statement: {what} — {Rules.Clause} SR{rule}: \"{quoted}\"",
                 mapped.LocateAt(at), default);
 
-        /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §8.3.5 6) requires.</summary>
+        /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 6) requires.</summary>
         public void Delimiter(int at, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.PseudoTextDelimiterPlacement.Code,
-                $"{Rules.Statement} statement: {what} — §8.3.5 6): \"An opening pseudo-text delimiter shall be "
+                $"{Rules.Statement} statement: {what} — §2023:8.3.5 6): \"An opening pseudo-text delimiter shall be "
                 + "immediately preceded by a space; a closing pseudo-text delimiter shall be immediately followed by one "
                 + "of the separators space, comma, semicolon, or period\"", mapped.LocateAt(at), default);
     }
@@ -1047,12 +1047,12 @@ public sealed class CopyProcessor(
                     + "specified as partial-word-1 or partial-word-2", $"the literal {literal.Value} is a partial-word");
     }
 
-    /// <summary>Parse the operands of a REPLACING phrase (COPY, §7.2.3.2) or a format-1 REPLACE statement
-    /// (§7.2.4.2) into <paramref name="into"/>: one or more <c>[LEADING | TRAILING] operand BY operand</c> pairs, up
+    /// <summary>Parse the operands of a REPLACING phrase (COPY, §2023:7.2.3.2) or a format-1 REPLACE statement
+    /// (§2023:7.2.4.2) into <paramref name="into"/>: one or more <c>[LEADING | TRAILING] operand BY operand</c> pairs, up
     /// to (not including) the separator period, each pair screened by <see cref="ScreenOperandPair"/>.
     /// <paramref name="nonPseudoText"/> is told of each operand that is not <c>==pseudo-text==</c> (COPY: the Annex
     /// E.2 removal gate; REPLACE: COBOL1641); <paramref name="nestedCopy"/> (COPY only) of each COPY word inside
-    /// pseudo-text (§7.2.3.3 SR1).</summary>
+    /// pseudo-text (§2023:7.2.3.3 SR1).</summary>
     private static void ParseReplacingOperands(StatementCursor c, List<Replacement> into, OperandScreen screen,
         Action<int>? nonPseudoText, Action<int>? nestedCopy)
     {
@@ -1087,14 +1087,14 @@ public sealed class CopyProcessor(
     /// compiler directive line).</summary>
     private readonly record struct Operand(string Text, List<TextWord> Elements, int Start, bool IsPseudoText)
     {
-        /// <summary>The text-words compared (§7.2.3.4 9) c) / §7.2.4.4 8) c): no separator comma or semicolon and no
+        /// <summary>The text-words compared (§2023:7.2.3.4 9) c) / §2023:7.2.4.4 8) c): no separator comma or semicolon and no
         /// compiler directive line — each is a single space).</summary>
         public List<TextWord> MatchWords => Elements.FindAll(e => !e.IsSpaceForMatching);
     }
 
     /// <summary>Read one REPLACING operand (see <see cref="Operand"/>): the content of a <c>==pseudo-text==</c>
     /// (bounded by the pseudo-text-delimiter TEXT-WORDS, so an <c>==</c> inside a literal does not end it; each
-    /// delimiter's separation checked against §8.3.5 6)), or — the COBOL-85 / 2002 / 2014 COPY forms (removed by ISO
+    /// delimiter's separation checked against §2023:8.3.5 6)), or — the COBOL-85 / 2002 / 2014 COPY forms (removed by ISO
     /// 2023, Annex E.2 item 1) — a literal, or an identifier / word: a word with optional OF/IN qualifiers and one
     /// balanced subscript group. Null (and a syntax error) when no operand is there.</summary>
     private static Operand? ReadOperand(StatementCursor c, OperandScreen screen, Action<int>? nonPseudoText,
@@ -1174,7 +1174,7 @@ public sealed class CopyProcessor(
     }
 
     /// <summary>The places searched for library text, in order — THE default COBOL library of the DOC-A.1-40
-    /// determination (§7.2.3.4 GR3 "The implementor defines the mechanism for identifying the default COBOL
+    /// determination (§2023:7.2.3.4 GR3 "The implementor defines the mechanism for identifying the default COBOL
     /// library"; GnuCOBOL's order, CLAUDE.md rule 1): the compiler process's current working directory, then each
     /// configured search path (<c>--copy DIR</c> in command-line order, then the <c>--nist</c> copylib) — and nothing
     /// else, so the source file's own directory is searched only when it is one of these.</summary>
@@ -1187,7 +1187,7 @@ public sealed class CopyProcessor(
     /// <summary>The library text <paramref name="textName"/> names in the directory <paramref name="library"/>: the
     /// name as spelled, then — unless its FILE NAME (the part after the last directory separator) already contains a
     /// period — with each of <see cref="CopybookSuffixes"/> in order; the FIRST regular file that exists IS the
-    /// library text, so a text-name names exactly one text in a library (§7.2.3.3 SR3 "Within one COBOL library,
+    /// library text, so a text-name names exactly one text in a library (§2023:7.2.3.3 SR3 "Within one COBOL library,
     /// each text-name shall be unique"). A period in a directory part (<c>"../lib/BOOK"</c>) is not an extension, so
     /// that name still takes the suffixes. The returned path names the file as its directory entry spells it
     /// (<see cref="CompilationInputs.LocateFile"/>), not as it was probed: on a case-insensitive file system the
@@ -1203,7 +1203,7 @@ public sealed class CopyProcessor(
         return null;
     }
 
-    /// <summary>Locate the library text a COPY statement names (§7.2.3.4 GR1–GR3; the DOC-A.1-40 determination in
+    /// <summary>Locate the library text a COPY statement names (§2023:7.2.3.4 GR1–GR3; the DOC-A.1-40 determination in
     /// docs/CONFORMANCE.md §7). Without OF/IN each place of <see cref="LibraryPlaces"/> is a candidate library, tried
     /// in order. With OF/IN, library-name-1 (or literal-2's value) names a subdirectory: the FIRST place holding a
     /// subdirectory of that name IS the library, and the text is located in it alone — GR2 "Library-name-1 names a

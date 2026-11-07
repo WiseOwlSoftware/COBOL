@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.69.2 general format — "FUNCTION NUMVAL-F ( argument-1 )". Both FUNCTION and NUMVAL-F are
+      *> ISO §2023:15.69.2 general format — "FUNCTION NUMVAL-F ( argument-1 )". Both FUNCTION and NUMVAL-F are
       *> underlined (required words) and the format has exactly ONE argument position: no repetition brace,
-      *> no bracketed second position, no keyword phrase. §15.3 opens with "The definition of a function
-      *> specifies the number of arguments required, which may be zero, one, or more", and §15.69.2 is that
+      *> no bracketed second position, no keyword phrase. §2023:15.3 opens with "The definition of a function
+      *> specifies the number of arguments required, which may be zero, one, or more", and §2023:15.69.2 is that
       *> definition — so a two-argument reference is not a NUMVAL-F reference at all. COBOL1504.
       *>
-      *> The ADMIT side — the one-argument reference written exactly as §15.69.2 prints it, with values
-      *> derived from §15.69.3 r1/r4 and §15.69.4 r1 — is
+      *> The ADMIT side — the one-argument reference written exactly as §2023:15.69.2 prints it, with values
+      *> derived from §2023:15.69.3 r1/r4 and §2023:15.69.4 r1 — is
       *> conformance:cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces. The pair is what pins the format: that one shows
       *> the printed shape is accepted and evaluated, this one shows the arity in the format is a bound and
       *> not decoration.

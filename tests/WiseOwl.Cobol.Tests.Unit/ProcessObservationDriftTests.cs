@@ -265,7 +265,7 @@ public sealed class ProcessObservationDriftTests
     // function of host load (kb/Work PB1590, PB3022). The first attempt here does what a killed COBOL program leaves
     // behind (writes into the run directory, then reports TimedOut); the second reports the run directory it found.
     // That is NIST IX216A's failure in miniature: its OPEN EXTEND of an absent OPTIONAL file answered 00 on the retry,
-    // because the killed attempt had created the file (ISO/IEC 1989:2023 §14.9.27.4 GR17: an absent OPTIONAL file is
+    // because the killed attempt had created the file (ISO/IEC 1989:2023 §2023:14.9.27.4 GR17: an absent OPTIONAL file is
     // created and the status is 05). The process-level wiring (Observe over a real child) is covered by the
     // never-finishes tests above; the three call sites that run a program are pinned by the drift test below.
 

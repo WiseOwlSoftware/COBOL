@@ -12,7 +12,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ EVERY <c>ADDRESS OF identifier-1</c> OPERAND PASSES THROUGH THE ONE §8.4.3.11.3 SCREEN (kb/Work PB1407, PB1062).
+/// ⛔ EVERY <c>ADDRESS OF identifier-1</c> OPERAND PASSES THROUGH THE ONE §2023:8.4.3.11.3 SCREEN (kb/Work PB1407, PB1062).
 /// The operand rules of a data-address-identifier (an object reference, a leaf of a strongly-typed group, a CONSTANT
 /// RECORD item, a bit item's alignment, a dynamic-capacity shape, object data) are asked by
 /// <c>AddressOfOperandScreen.Admit</c>, which <c>PtrBinder.PtrBindAddressOf</c> calls for EVERY surface that takes the
@@ -42,7 +42,7 @@ public sealed class AddressOfOperandScreenDriftTests
             .SelectMany(s => Enumerable.Repeat(s.File, Regex.Matches(s.Src, @"\bnew\s+BoundAddressOf\s*\(").Count))
             .ToList();
         Assert.True(sites.Count == 1 && sites[0] == Owner,
-            $"'new BoundAddressOf' belongs at exactly one site — {Owner}#PtrBindAddressOf, after the §8.4.3.11.3 screen. "
+            $"'new BoundAddressOf' belongs at exactly one site — {Owner}#PtrBindAddressOf, after the §2023:8.4.3.11.3 screen. "
             + $"Found {sites.Count}: {string.Join(", ", sites.Distinct().OrderBy(s => s, StringComparer.Ordinal))}");
     }
 

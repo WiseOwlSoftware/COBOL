@@ -6,8 +6,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB1154 (branch review round 1, R1-1) — the expression-formation refusals (COBOL1719, ISO §8.8.1.2
-/// Table 3 and §8.8.2 Table 4) are reported AT THE OFFENDING SYMBOL, in the same (line, column) convention every other
+/// kb/Work PB1154 (branch review round 1, R1-1) — the expression-formation refusals (COBOL1719, ISO §2023:8.8.1.2
+/// Table 3 and §2023:8.8.2 Table 4) are reported AT THE OFFENDING SYMBOL, in the same (line, column) convention every other
 /// diagnostic prints. The diagnostic cursor already holds an ANTLR token's 0-based column; the pass added one more, so
 /// the second sign, the second B-NOT and the shift count each printed one column to the right of the symbol. The
 /// sibling cursors fixed in the same change (COBOL2927, COBOL2158) had the same defect. Each of the three arms
@@ -35,8 +35,8 @@ public sealed class ExpressionFormationPositionTests
     /// <summary>Each row: the statement, then the text of the offending token's neighborhood located INSIDE the
     /// statement — <paramref name="before"/> is the statement text up to (not including) the offending token.</summary>
     [Theory]
-    [InlineData("COMPUTE X = - - 2.", "COMPUTE X = - ")]                  // §8.8.1.2 Table 3: (unary sign, unary sign) = '—'; the second sign
-    [InlineData("COMPUTE BR = B-NOT B-NOT BX.", "COMPUTE BR = B-NOT ")]    // §8.8.2 Table 4: (B-NOT, B-NOT) = '—'; the second B-NOT
+    [InlineData("COMPUTE X = - - 2.", "COMPUTE X = - ")]                  // §2023:8.8.1.2 Table 3: (unary sign, unary sign) = '—'; the second sign
+    [InlineData("COMPUTE BR = B-NOT B-NOT BX.", "COMPUTE BR = B-NOT ")]    // §2023:8.8.2 Table 4: (B-NOT, B-NOT) = '—'; the second B-NOT
     [InlineData("COMPUTE BR = BX B-SHIFT-L 1 + 1.", "COMPUTE BR = BX B-SHIFT-L ")]   // Table 4 shift row: the count is one symbol; its first token
     public void StackedOperatorOrCompoundShiftCount_IsReportedAtTheOffendingToken(string statement, string before)
     {

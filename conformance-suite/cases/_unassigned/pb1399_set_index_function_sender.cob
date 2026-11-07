@@ -6,18 +6,18 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1399 — SET Format 1's sending operand identifier-2 is "a data item of class index"
-      *> (ISO/IEC 1989:2023 §14.9.39.3 SR2), and ISO §8.4.3.1.3 SR1 lets an identifier be ANY of the identifier
+      *> (ISO/IEC 1989:2023 §2023:14.9.39.3 SR2), and ISO §2023:8.4.3.1.3 SR1 lets an identifier be ANY of the identifier
       *> formats, so a function-identifier of class index is identifier-2 exactly as an index data item is.
-      *>   §15.2 item 6      "Index functions. These are of the class and category index." MAX and MIN over index
-      *>                     arguments are index functions (§15.59.1 / §15.63.1: the Index result row).
-      *>   §8.4.3.2.1        "A function-identifier references the unique data item that results from the
-      *>                     evaluation of a function" — that item is a data item of class index (§8.5.2.8 item 2).
-      *>   §14.9.39.3 SR3    "If identifier-1 references a data item of class index, arithmetic-expression-1 shall
+      *>   §2023:15.2 item 6      "Index functions. These are of the class and category index." MAX and MIN over index
+      *>                     arguments are index functions (§2023:15.59.1 / §2023:15.63.1: the Index result row).
+      *>   §2023:8.4.3.2.1        "A function-identifier references the unique data item that results from the
+      *>                     evaluation of a function" — that item is a data item of class index (§2023:8.5.2.8 item 2).
+      *>   §2023:14.9.39.3 SR3    "If identifier-1 references a data item of class index, arithmetic-expression-1 shall
       *>                     not be specified" — so an index data item RECEIVES an index function only as identifier-2.
-      *>   §14.9.39.4 GR2    the receiver takes the occurrence number the sender's value corresponds to: an index-name
+      *>   §2023:14.9.39.4 GR2    the receiver takes the occurrence number the sender's value corresponds to: an index-name
       *>                     (TX) is positioned at it (a), an index data item (IC, IE) takes the value unchanged (b).
       *> The classifier used to take only a BARE data reference as identifier-2 and send every function down the
-      *> arithmetic-expression-1 lane, where the §8.8.1.1 numeric screen refused it (COBOL0844) and §14.9.39.3
+      *> arithmetic-expression-1 lane, where the §2023:8.8.1.1 numeric screen refused it (COBOL0844) and §2023:14.9.39.3
       *> SR3 refused an index data item receiver (COBOL2326).
       *> EXPECTED OUTPUT, derived line by line (T holds "ABCDEFGHI", so occurrence n is the n-th letter):
       *>   A  IA = 3, IB = 7 (set through TX); MAX(IA IB) = 7 positions TX at occurrence 7  -> G

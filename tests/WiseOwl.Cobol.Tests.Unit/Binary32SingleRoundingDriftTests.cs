@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ A BINARY32 RECEIVER NEVER TAKES A VALUE THAT HAS ALREADY BEEN ROUNDED TO BINARY64 (kb/Work PB1110).
-/// ISO §14.6.8.3 rule 2 converts the algebraic value "in a manner consistent with the specifications of ISO/IEC
+/// ISO §2023:14.6.8.3 rule 2 converts the algebraic value "in a manner consistent with the specifications of ISO/IEC
 /// 60559:2020" — one correctly rounded conversion. A <c>(float)</c> cast of a value that a binary64 conversion
 /// produced is a SECOND rounding: a decimal a hair above a binary32 midpoint lands ON the midpoint in binary64 and
 /// the cast ties to even, storing the lower neighbour. The conversions that exist for the job are
@@ -47,7 +47,7 @@ public sealed class Binary32SingleRoundingDriftTests
         var hits = Hits(NarrowedDecimalConversion).ToList();
         Assert.True(hits.Count == 0,
             "convert a decimal/fixed/text value to binary32 through CobolFloat.ScaledToSingle / CobolDec.ToSingle / "
-            + "CobolIntrinsics.NumvalFSingle, never a (float) cast of its binary64 (ISO §14.6.8.3 rule 2):\n"
+            + "CobolIntrinsics.NumvalFSingle, never a (float) cast of its binary64 (ISO §2023:14.6.8.3 rule 2):\n"
             + string.Join("\n", hits.Select(h => $"{h.File}:{h.Line}: {h.Text}")));
     }
 

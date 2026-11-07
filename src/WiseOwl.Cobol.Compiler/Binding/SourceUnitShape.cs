@@ -8,12 +8,12 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 
-/// <summary>The four unit kinds ISO §10.6.1 gives a general format of their own (the class and interface
+/// <summary>The four unit kinds ISO §2023:10.6.1 gives a general format of their own (the class and interface
 /// definitions are screened by the OO binder).</summary>
 internal enum SourceUnitKind { ProgramDefinition, ProgramPrototype, FunctionDefinition, FunctionPrototype }
 
 /// <summary>
-/// ⛔ THE ONE SCREEN OF A SOURCE UNIT'S SHAPE — ISO §10.6.1 (kb/Work PB894 for the prototype kinds, PB1507 for the
+/// ⛔ THE ONE SCREEN OF A SOURCE UNIT'S SHAPE — ISO §2023:10.6.1 (kb/Work PB894 for the prototype kinds, PB1507 for the
 /// rest). The grammar parses every PROGRAM-ID / FUNCTION-ID unit with ONE superset rule (<c>programUnit</c> /
 /// <c>nestedProgram</c>: any division, <c>nestedProgram*</c>, an optional end marker of either keyword), because
 /// ANTLR cannot make the four formats differ by the kind of the paragraph that opens them. What the formats say is
@@ -26,7 +26,7 @@ internal enum SourceUnitKind { ProgramDefinition, ProgramPrototype, FunctionDefi
 /// or one column of THAT table.</para></summary>
 internal static class SourceUnitShape
 {
-    /// <summary>One row of §10.6.1: <paramref name="Noun"/> names the kind in a message;
+    /// <summary>One row of §2023:10.6.1: <paramref name="Noun"/> names the kind in a message;
     /// <paramref name="MayBeContained"/> — the kind is a <c>program-definition</c> and so fits another program
     /// definition's contained slot; <paramref name="MayContain"/> — the format prints that slot;
     /// <paramref name="EndsWithProgram"/> — the end marker is <c>END PROGRAM</c> (else <c>END FUNCTION</c>);
@@ -43,7 +43,7 @@ internal static class SourceUnitShape
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
-    /// <summary>The §10.6.1 kind of a unit, from the two facts the binder reads off its identification paragraph.</summary>
+    /// <summary>The §2023:10.6.1 kind of a unit, from the two facts the binder reads off its identification paragraph.</summary>
     internal static SourceUnitKind KindOf(bool isFunction, bool isPrototype) =>
         (isFunction, isPrototype) switch
         {
@@ -64,7 +64,7 @@ internal static class SourceUnitShape
         void Refuse(ParserRuleContext at, string requirement)
         {
             using var _ = edition.At(at);
-            edition.Error(DiagnosticCatalog.SourceUnitFormat, $"{what}: {requirement} (ISO §10.6.1)");
+            edition.Error(DiagnosticCatalog.SourceUnitFormat, $"{what}: {requirement} (ISO §2023:10.6.1)");
         }
 
         // Positioned on the identification division: a CONTAINED unit's context is the synthetic programUnit

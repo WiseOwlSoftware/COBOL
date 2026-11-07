@@ -6,11 +6,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The SPARSE national-collation math (P10 Step 4; ISO §12.3.7 GR7 k over the native NATIONAL set — the
+/// The SPARSE national-collation math (P10 Step 4; ISO §2023:12.3.7 GR7 k over the native NATIONAL set — the
 /// 65,536 UTF-16 code units, D-N1): specified characters take their tabulated positions; every UNSPECIFIED
 /// code unit takes a DISTINCT ascending position above the highest specified one, in native relative order
 /// (k3), computed arithmetically by <see cref="NationalCollation.Weight"/>; <see cref="NationalCollation.CharAt"/>
-/// is its exact inverse (the §15.16.4 CHAR-NATIONAL contract, incl. the rule-2 first-character-defined
+/// is its exact inverse (the §2023:15.16.4 CHAR-NATIONAL contract, incl. the rule-2 first-character-defined
 /// representative for an ALSO-shared position).
 /// </summary>
 public sealed class NationalCollationTests
@@ -50,21 +50,21 @@ public sealed class NationalCollationTests
     public void CharAt_IsTheExactInverseOfWeight()
     {
         var nat = Reversed();
-        // The specified block (§15.16.4 r1/r2).
+        // The specified block (§2023:15.16.4 r1/r2).
         Assert.Equal('C', (char)nat.CharAt(0));
         Assert.Equal('B', (char)nat.CharAt(1));
         Assert.Equal('A', (char)nat.CharAt(2));
         // Unspecified positions round-trip: CharAt(Weight(c)) == c for a sample spread.
         foreach (char c in new[] { '\u0000', ' ', '@', 'D', 'z', '\u0100', '\u4e16', '\ufffe', '\uffff' })
             Assert.Equal(c, (char)nat.CharAt(nat.Weight(c)));
-        // The sequence bounds (§15.16.3 r2 — outside → no character).
+        // The sequence bounds (§2023:15.16.3 r2 — outside → no character).
         Assert.Equal(0x10000, nat.PositionCount);          // 3 specified + 65,533 unspecified
         Assert.Equal(-1, nat.CharAt(-1));
         Assert.Equal(-1, nat.CharAt(0x10000));
     }
 
     /// <summary>An ALSO group shares ONE position (GR7 k6); CharAt returns the FIRST character defined for it
-    /// (§15.16.4 r2). Sequence: X ALSO Y (position 0), then Z (position 1) — NextFree = 2.</summary>
+    /// (§2023:15.16.4 r2). Sequence: X ALSO Y (position 0), then Z (position 1) — NextFree = 2.</summary>
     [Fact]
     public void AlsoGroup_SharesOnePosition_CharAtReturnsTheFirstDefined()
     {
@@ -81,7 +81,7 @@ public sealed class NationalCollationTests
         // CobolString.Compare rides the same weights: X == Y under the sequence, both below Z.
         Assert.Equal(0, CobolString.Compare("X", "Y", nat));
         Assert.True(CobolString.Compare("Z", "Y", nat) > 0);
-        // The shorter operand extends with the national space, which weighs through the sequence (§8.8.4.2.1).
+        // The shorter operand extends with the national space, which weighs through the sequence (§2023:8.8.4.2.1).
         Assert.Equal(0, CobolString.Compare("X", "X ", nat));
     }
 }

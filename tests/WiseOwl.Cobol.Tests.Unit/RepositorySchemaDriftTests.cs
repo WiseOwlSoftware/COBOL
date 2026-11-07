@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>System.Type</c> (ECMA-335 §II.23.3; a reader decodes it from metadata without loading the assembly, §6);</item>
 /// <item>every settable property of every attribute is written by <c>RepositoryAttributeRenderer</c> and read by its reader
 /// (<c>RepositoryReader</c>, or <see cref="RepositoryIndex"/> for the assembly record) — a property only one half names is a
-/// fact one side drops (§6.2 "the ONE place attribute syntax is written … and the reader (the ONE decoder) are their two
+/// fact one side drops (§2023:6.2 "the ONE place attribute syntax is written … and the reader (the ONE decoder) are their two
 /// halves");</item>
 /// <item>repository metadata is read only through the two halves of §7.4: no source file but <c>RepositoryIndex.cs</c> and
 /// <c>RepositoryReader.cs</c> names <c>PEReader</c> or <c>MetadataReader</c> (read as Roslyn tokens, so a comment is not a

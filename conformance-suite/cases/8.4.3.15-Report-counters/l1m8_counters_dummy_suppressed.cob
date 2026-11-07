@@ -5,36 +5,36 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.15.4 5) — PAGE-COUNTER/LINE-COUNTER unaffected by a
+      *> ISO §2023:8.4.3.15.4 5) — PAGE-COUNTER/LINE-COUNTER unaffected by a
       *> dummy report group and by a SUPPRESSed report group
       *> GR5: "The values of PAGE-COUNTER and LINE-COUNTER are not
       *>   affected by the processing of a dummy report group, nor by the
       *>   processing of a report group whose printing is suppressed by
       *>   means of the SUPPRESS statement."
-      *>   cite.py: OK  §8.4.3.15.4 5)  (General rules)
+      *>   cite.py: OK  §2023:8.4.3.15.4 5)  (General rules)
       *> DUMMY. The standard uses the term (8.4.3.15.4 5); 13.18.37.4
       *>   4) a) "just before any other non-dummy body group is printed"
-      *>   -> OK §13.18.37.4 4) a)) without a glossary entry. A body group
+      *>   -> OK §2023:13.18.37.4 4) a)) without a glossary entry. A body group
       *>   with no LINE clause is one: "Each report group is divided
-      *>   vertically into zero, one, or more lines" (OK §13.8.6.2.2),
-      *>   "the set of report lines, if any" (OK §13.18.35.3 6)), and
+      *>   vertically into zero, one, or more lines" (OK §2023:13.8.6.2.2),
+      *>   "the set of report lines, if any" (OK §2023:13.18.35.3 6)), and
       *>   "Each LINE clause in a given report group description defines
-      *>   a report line" (OK §13.18.35.4 1)). DUM below has no LINE
+      *>   a report line" (OK §2023:13.18.35.4 1)). DUM below has no LINE
       *>   clause and one unprintable SOURCE item, so it has zero lines.
       *> SUPPRESS. The declarative runs "Before any page fit processing"
-      *>   (OK §14.9.49.4 9) c)); SUPPRESS then inhibits "Any page
-      *>   advance associated with the report group" (OK §14.9.45.4 3)
+      *>   (OK §2023:14.9.49.4 9) c)); SUPPRESS then inhibits "Any page
+      *>   advance associated with the report group" (OK §2023:14.9.45.4 3)
       *>   b)), "The processing of any NEXT GROUP clause" (OK 3) c)) and
       *>   "Any changes to LINE-COUNTER" (OK 3) d)).
       *> Layout rules (all OK under cite.py --check):
-      *>   INITIATE: PC 1 (OK §8.4.3.15.4 2)), LC 0 (OK §8.4.3.15.4 3)).
-      *>   DE lower limit = LAST DETAIL 7 (OK §13.18.57.4 8) e)).
+      *>   INITIATE: PC 1 (OK §2023:8.4.3.15.4 2)), LC 0 (OK §2023:8.4.3.15.4 3)).
+      *>   DE lower limit = LAST DETAIL 7 (OK §2023:13.18.57.4 8) e)).
       *>   Relative group fit: trial = LC + 1, success iff <= 7
-      *>     (OK §13.18.35.4 4)); line = FIRST DETAIL 2 if first body
-      *>     group on the page (OK §13.18.35.4 5) b) 3.), else LC + 1.
-      *>   Page advance: PC + 1 (OK §14.9.16.4 6) d)), LC 0 (6) e)).
+      *>     (OK §2023:13.18.35.4 4)); line = FIRST DETAIL 2 if first body
+      *>     group on the page (OK §2023:13.18.35.4 5) b) 3.), else LC + 1.
+      *>   Page advance: PC + 1 (OK §2023:14.9.16.4 6) d)), LC 0 (6) e)).
       *>   NEXT GROUP PLUS 9: LC + 9 if < FOOTING 9, else LC := 9
-      *>     (§13.18.37.4 4) b); cite.py labels it "4) a) 3." - the
+      *>     (§2023:13.18.37.4 4) b); cite.py labels it "4) a) 3." - the
       *>     PB1554 labelling slip).
       *> DERIVATION (C = what an unsuppressed / printed group would do):
       *>   S0  after INITIATE                      LC=00 PC=01

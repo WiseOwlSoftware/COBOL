@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 
 /// <summary>
 /// ⛔ THE BACKEND CONTRACT (docs/rearchitecture/DESIGN-backend-abstraction.md §6; kb/Work PB4266): the bound tree a
-/// second code-generation backend (direct CIL, §3.2) would consume carries no C#. The backend input is measured, not
+/// second code-generation backend (direct CIL, §2023:3.2) would consume carries no C#. The backend input is measured, not
 /// listed (<see cref="BackendInput"/>: every type of the neutral layers and every type reachable from one by field or by
 /// return inside them, so a new node, a new model function's result and a new static table are checked the day they
 /// appear), and every member of it that carries or returns TEXT must be
@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Architecture;
 /// kb/Work PB2398). That walk sees product types only, so this fixture refuses the one parse-tree reference it cannot see, a
 /// member of an ANTLR runtime type (<see cref="TheBackendInput_HoldsNoParseTree"/>), unless an L6 leak row tolerates it
 /// (the binder <c>StatementBinder</c> still declared in the bound layer, kb/Work PB2347). Assertion 3, two backends producing
-/// byte-identical output, lands with the CIL seam proof (§6, §3.3); until then
+/// byte-identical output, lands with the CIL seam proof (§6, §2023:3.3); until then
 /// <see cref="TheSeam_HasNoBackendTheContractDoesNotProve"/> fails the day a second backend appears without it.
 /// </para>
 /// </remarks>

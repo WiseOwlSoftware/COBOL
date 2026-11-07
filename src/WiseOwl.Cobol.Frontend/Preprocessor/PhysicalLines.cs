@@ -8,16 +8,16 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// THE LINE-ENTRY STAGE of the reference-format pipeline (kb/Work PB1800): the one place where decoded source or
-/// library text becomes LINES, so that the four determinations ISO §6.1 leaves to the implementor are each written
+/// library text becomes LINES, so that the four determinations ISO §2023:6.1 leaves to the implementor are each written
 /// exactly once and every later stage (the Auto format detector, the directive scan, the fixed-form and free-form
 /// converters) reads the same lines.
 /// <list type="number">
-/// <item><b>Terminators</b> (docs/CONFORMANCE.md DOC-A.1-156; §6.1 3) b) "The implementor shall specify any control
+/// <item><b>Terminators</b> (docs/CONFORMANCE.md DOC-A.1-156; §2023:6.1 3) b) "The implementor shall specify any control
 /// characters that terminate a free-form line"): a LINE FEED ends a line, and a CARRIAGE RETURN immediately before it
 /// is part of that terminator. A lone CR — one not followed by a LINE FEED — is an ordinary character of the line (the
 /// GnuCOBOL reader's rule, <c>ppinput</c>; rule-1 precedence). The end of the text ends its last line, so a text with
 /// <c>n</c> LINE FEEDs has <c>n</c> + 1 lines.</item>
-/// <item><b>Tabs</b> (DOC-A.1-157; §6.1 1) c) "The implementor shall specify the meaning of lines and character
+/// <item><b>Tabs</b> (DOC-A.1-157; §2023:6.1 1) c) "The implementor shall specify the meaning of lines and character
 /// positions"): a horizontal tab U+0009 advances to the next tab stop — positions 1, 9, 17, 25, …, a position being one
 /// CHARACTER and not one UTF-16 unit (<see cref="CharacterPositions"/>, kb/Work PB1966) — and is replaced by
 /// the one to eight spaces that fill the gap, EVERYWHERE, an alphanumeric literal included (owner decision, kb/Work
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// word must be diagnosed, not discarded. A marker becomes an EMPTY line, so the line numbering is untouched.</item>
 /// </list>
 /// Nothing outside this type splits raw text on line ends, trims a CR, or looks for a tab
-/// (<c>PhysicalLinesDriftTests</c>). The free-form 255-position limit (§6.1 3) a)) is asked where a line is read as
+/// (<c>PhysicalLinesDriftTests</c>). The free-form 255-position limit (§2023:6.1 3) a)) is asked where a line is read as
 /// free form, on the expanded <see cref="PhysicalLine.Text"/> (an expanded tab counts the positions it fills), because a
 /// fixed-form line may run past margin R and only its program-text area counts.
 /// </summary>

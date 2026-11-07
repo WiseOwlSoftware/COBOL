@@ -6,8 +6,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB2465 (train 1047 review): a constant's length phrase completes its operand's description
-      *> AHEAD of the pipeline (ISO §13.10.4: BYTE-LENGTH OF E is E's completed size, 6 under GROUP-USAGE
-      *> NATIONAL), but a SAME AS clause naming that entry still copies it as WRITTEN (§13.18.49.4 GR1;
+      *> AHEAD of the pipeline (ISO §2023:13.10.4: BYTE-LENGTH OF E is E's completed size, 6 under GROUP-USAGE
+      *> NATIONAL), but a SAME AS clause naming that entry still copies it as WRITTEN (§2023:13.18.49.4 GR1;
       *> GR3 transfers a USAGE only from a group to which the SUBJECT is subordinate), so S is PIC 9(3)
       *> DISPLAY, 3 bytes, whichever entry the constant measured first.
        IDENTIFICATION DIVISION.

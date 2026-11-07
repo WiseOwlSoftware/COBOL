@@ -9,9 +9,9 @@
       *> compiles with the COBOL1580 facility warning and nothing else - a group, a qualified elementary item, a
       *> subscripted table element - and the statement is inert (docs/CONFORMANCE.md section 4 item 3): control
       *> passes through it and no item changes. The .out pins INERTNESS ONLY; the warning is the decline half
-      *> (DocumentedNonSupportWitnessTests). ISO §14.9.50.3 SR1 admits a data item described in the working-storage
+      *> (DocumentedNonSupportWitnessTests). ISO §2023:14.9.50.3 SR1 admits a data item described in the working-storage
       *> section, referenced without reference modification.
-      *>   cite.py: OK  §14.9.50.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.50.3 1)  (Syntax rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3568OK.
        DATA DIVISION.

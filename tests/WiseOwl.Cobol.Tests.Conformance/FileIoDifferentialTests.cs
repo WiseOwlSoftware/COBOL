@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Sequential file I/O (ISO/IEC 1989:2023 §14.9; DESIGN §8): OPEN/CLOSE/WRITE/READ/REWRITE over a typed-native
+/// Sequential file I/O (ISO/IEC 1989:2023 §2023:14.9; DESIGN §8): OPEN/CLOSE/WRITE/READ/REWRITE over a typed-native
 /// connector. Each test round-trips through the file (WRITE then READ back, or query FILE STATUS) and DISPLAYs the
 /// result, so the existing stdout differential harness pins WiseOwl COBOL to the committed golden (364-NIST-green) — the
 /// file content itself is verified indirectly, through the program's own read-back. The printer WRITE … ADVANCING path
@@ -110,8 +110,8 @@ public sealed class FileIoDifferentialTests
 
     [Fact]
     public void OptionalAbsent_OpenInput_IsAtEnd()
-        // SELECT OPTIONAL precedes the file-name (ISO §12.4.5.2); an OPTIONAL file absent at OPEN INPUT opens with
-        // status 05 and the first READ raises AT END (ISO §9.1.13.2).
+        // SELECT OPTIONAL precedes the file-name (ISO §2023:12.4.5.2); an OPTIONAL file absent at OPEN INPUT opens with
+        // status 05 and the first READ raises AT END (ISO §2023:9.1.13.2).
         => AssertMatchesGolden("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. FIOOPT.
@@ -135,7 +135,7 @@ public sealed class FileIoDifferentialTests
 
     [Fact]
     public void MultipleRecordsUnderOneFd_ShareTheArea()
-        // ISO §9.1.2: two 01s under one FD occupy the same record area — MOVE into one, WRITE the other writes the
+        // ISO §2023:9.1.2: two 01s under one FD occupy the same record area — MOVE into one, WRITE the other writes the
         // same bytes (the NC101A PRINT-REC / DUMMY-RECORD pattern).
         => AssertMatchesGolden(Program("ASSIGN TO \"FIO-RT5\"", "01 REC-A PIC X(6).\n01 REC-B PIC X(6).", "",
             """
@@ -151,7 +151,7 @@ public sealed class FileIoDifferentialTests
     [Fact]
     public void MultipleRecordsUnderOneFd_TierBSharedArea()
         // Two 01s under one FD with DIFFERENT layouts (a group + an elementary X) share the area as a synthesized
-        // Tier-B redefines (ISO §9.1.2; DESIGN §4.2): the first record (a group) is a view over the ONE
+        // Tier-B redefines (ISO §2023:9.1.2; DESIGN §4.2): the first record (a group) is a view over the ONE
         // backing, so WRITE writes the backing window and a READ distributes the image INTO the backing (not a struct
         // FromImage) — the EmitImageInto view path. The leaves then read it back.
         => AssertMatchesGolden(Program("ASSIGN TO \"FIO-RT7\"",
@@ -171,7 +171,7 @@ public sealed class FileIoDifferentialTests
     public void WriteAfterAdvancing_LineSequentialReadBack()
         // A printer-style WRITE … AFTER ADVANCING stream read back line-by-line (LINE SEQUENTIAL): the advancing
         // newline structure (a leading blank line per AFTER) is observable as the read records.
-        // kb/Work PB688: ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 introduction (ISO §12.4.5.10.3 GR2),
+        // kb/Work PB688: ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 introduction (ISO §2023:12.4.5.10.3 GR2),
         // so this case compiles at 2023 rather than the class default 85; the golden carries an explicit NAME
         // because the default one hashes the EDITION into the file name.
         => DifferentialGolden.Assert(Program("ASSIGN TO \"FIO-RT6\" ORGANIZATION IS LINE SEQUENTIAL", "01 F-REC PIC X(5).", "",
@@ -190,21 +190,21 @@ public sealed class FileIoDifferentialTests
             """), edition: 2023,
             goldenName: "write_after_advancing_line_sequential_read_back");
 
-    /// <summary>§14.9.51.4 GR25d — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
+    /// <summary>§2023:14.9.51.4 GR25d — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
     /// for the associated feature; the feature-name CSP's rule (docs/CONFORMANCE.md §7 item 190, kb/Work PB862 —
     /// the rule the SQ207M golden encodes) is a ZERO-line advance, which is ADVANCING 0's overprint written as a
     /// carriage return (owner decision kb/Work R54, PB1667) — a BEFORE-mnemonic write returns to the start of its
     /// line, so the NEXT write overprints it. (The entry used to name PRT-CHAN, which was never a feature-name: any
     /// word was accepted.)
-    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.51.4 GR12 — the WRITE
+    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§2023:14.9.51.4 GR12 — the WRITE
     /// transfers the record regardless of positioning): the legacy DROPS an AFTER-mnemonic write entirely, a
     /// non-conformance its goldens fossilize (SQ207M is swept-only pending re-baseline). The last WRITE also
-    /// pins §8.4.2.2 FILE-NAME qualification of a record name (<c>WRITE P-REC IN P-OUT</c> — SQ207M's shape).</summary>
+    /// pins §2023:8.4.2.2 FILE-NAME qualification of a record name (<c>WRITE P-REC IN P-OUT</c> — SQ207M's shape).</summary>
     [Fact]
     public void WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased()
     {
         // kb/Work PB688: the read-back SELECT is ORGANIZATION LINE SEQUENTIAL, a COBOL-2023 introduction
-        // (ISO §12.4.5.10.3 GR2) — the positioning rule under test is edition-invariant, the OBSERVATION is not.
+        // (ISO §2023:12.4.5.10.3 GR2) — the positioning rule under test is edition-invariant, the OBSERVATION is not.
         var (cok, cout, cdetail) = WiseOwlCobol2023.CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. FIOMNADV1.
@@ -245,22 +245,22 @@ public sealed class FileIoDifferentialTests
             """);
         Assert.True(cok, $"WiseOwl COBOL failed: {cdetail}");
         // Two lines and no third: the last WRITE is BEFORE ADVANCING 1 LINE, whose own advance terminates the line,
-        // and nothing in §14.9.51.4 adds a terminator at CLOSE. This expectation used to carry a third, empty record
+        // and nothing in §2023:14.9.51.4 adds a terminator at CLOSE. This expectation used to carry a third, empty record
         // ("\nL=") - the spurious CLOSE-time line terminator kb/Work PB864 removed (its sibling
         // LinageConformanceTests.Bytes_OverflowWithBeforePhrase_PresentsThenRepositions pinned the same defect).
         // The first record is "AAAA" CR "BBBB": BEFORE ADVANCING CSP presents AAAA and then writes the zero advance's
-        // carriage return (§14.9.51.4 GR25 c) — an overprint; docs/CONFORMANCE.md "ADVANCING 0"), a lone CR is DATA
+        // carriage return (§2023:14.9.51.4 GR25 c) — an overprint; docs/CONFORMANCE.md "ADVANCING 0"), a lone CR is DATA
         // to a line sequential read (kb/Work PB1540), and the harness's normalization shows it as a line break.
         // The second record, "CCCC" then "DDDD": AFTER ADVANCING CSP finds no open line (BBBB's own advance ended
         // it), so there is nothing to overprint and nothing is written, and CCCC is presented on a fresh line.
-        // DDDD is a BEFORE write presented while CCCC's line is open (§14.9.51.4 GR25 e): no advance lies
+        // DDDD is a BEFORE write presented while CCCC's line is open (§2023:14.9.51.4 GR25 e): no advance lies
         // between the two lines), so it is at the SAME vertical position - an overprint from column 1, a
         // carriage return that the read-back also shows as a line break (kb/Work PB1840).
         Assert.Equal("L=AAAA\nBBBB\nL=CCCC\nDDDD", cout);
     }
 
     /// <summary>The feature-name <c>C01</c> (docs/CONFORMANCE.md §7, Annex A.1 items 190 and 222 — kb/Work PB862):
-    /// "skip to channel 1", the top of the next page — WiseOwl COBOL's §14.9.51.4 GR25 d rule for it is EXACTLY the
+    /// "skip to channel 1", the top of the next page — WiseOwl COBOL's §2023:14.9.51.4 GR25 d rule for it is EXACTLY the
     /// <c>ADVANCING PAGE</c> advance in the same position. So the same records written once through a C01 mnemonic
     /// and once through PAGE must read back identically, BEFORE and AFTER alike. Spec-derived from the determination,
     /// not measured: the assertion is the equality, never a captured byte stream.</summary>
@@ -331,9 +331,9 @@ public sealed class FileIoDifferentialTests
         Assert.Equal(viaPage, viaC01);
     }
 
-    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§9.1.13.7 item 7 / §14.9.30 GR2),
-    /// the statement is unsuccessful, and AT END does NOT fire ('47' is not the at-end family, §9.1.13.4).
-    /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§14.9.30 GR18
+    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§2023:9.1.13.7 item 7 / §2023:14.9.30 GR2),
+    /// the statement is unsuccessful, and AT END does NOT fire ('47' is not the at-end family, §2023:9.1.13.4).
+    /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§2023:14.9.30 GR18
     /// "unless otherwise specified…"); WiseOwl COBOL's documented refinement is that the area is UNCHANGED —
     /// extending the spec's own rule for every other unsuccessful I-O verb (REWRITE GR14 / WRITE GR15 /
     /// DELETE GR8 / START GR2: "unaffected"). The legacy LOW-VALUE-filled it (a byte-engine artifact — the

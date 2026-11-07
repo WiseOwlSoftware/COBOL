@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A CONSTANT-NAME STANDS WHEREVER A FORMAT SPECIFIES A LITERAL, AND THE GRAMMAR PROVES IT POSITION BY POSITION
-/// (kb/Work PB780). ISO §13.10.3 SR2: "Except in a compiler directive, constant-name-1 may be used anywhere that a
+/// (kb/Work PB780). ISO §2023:13.10.3 SR2: "Except in a compiler directive, constant-name-1 may be used anywhere that a
 /// format specifies a literal of the class and category of constant-name-1." Its subject is every literal position of
 /// every general format, so no sample of programs can show it holds; fourteen positions refused a constant-name while
 /// the literal control passed (the w1033 adjudication), in two kinds: a grammar slot written as the bare literal rule
@@ -64,7 +64,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
     /// not written there.</summary>
     internal static readonly IReadOnlyDictionary<string, string> NotAConstantPosition = new Dictionary<string, string>
     {
-        ["levelNumber"] = "a level-number is a user-defined word written as digits (ISO §8.3.2.2.13), never a literal",
+        ["levelNumber"] = "a level-number is a user-defined word written as digits (ISO §2023:8.3.2.2.13), never a literal",
         ["stopStatement"] = "STOP literal is the X3.23-1985 Format 2 (stop-literal-removed-2002): " + Removed2002,
         ["entryStatement"] = "ISO/IEC 1989 defines no ENTRY statement; StatementBinder refuses it whole, so no operand binds",
         ["residueOpening"] = ErrorProduction,
@@ -82,9 +82,9 @@ public sealed class ConstantNameLiteralPositionDriftTests
     /// <summary>The word-admitting literal slots no enabled golden can witness, each with its reason.</summary>
     internal static readonly IReadOnlyDictionary<string, string> Unwitnessed = new Dictionary<string, string>
     {
-        ["compileTimeOperand"] = "a compiler directive's operand (>>DEFINE, >>IF), which ISO §13.10.3 SR2 excepts: \"Except in "
+        ["compileTimeOperand"] = "a compiler directive's operand (>>DEFINE, >>IF), which ISO §2023:13.10.3 SR2 excepts: \"Except in "
             + "a compiler directive\"",
-        ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §8.3.2.2), never a "
+        ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §2023:8.3.2.2), never a "
             + "literal",
         ["valueOfClause"] = "the VALUE OF clause of the file description entry, " + Removed2002,
         ["communicationKeyPhrase"] = "the KEY phrase of ENABLE and DISABLE, " + Removed2002 + " and constant entries begin at 2002 (kb/Work PB4677)",
@@ -114,7 +114,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
         var unargued = bare.Where(r => !NotAConstantPosition.ContainsKey(r)).Order(StringComparer.Ordinal).ToArray();
         Assert.True(unargued.Length == 0,
             "grammar rule(s) write a literal position with no word alternative, so a constant-name cannot be written there "
-            + "(ISO §13.10.3 SR2): spell the slot `literal | cobolWord` (or its dataReference twin) and bind the word through "
+            + "(ISO §2023:13.10.3 SR2): spell the slot `literal | cobolWord` (or its dataReference twin) and bind the word through "
             + "ExpressionBinder.LiteralAliasOf, or argue it in NotAConstantPosition: " + string.Join(", ", unargued));
         var stale = NotAConstantPosition.Keys.Where(r => !bare.Contains(r)).Order(StringComparer.Ordinal).ToArray();
         Assert.True(stale.Length == 0, "NotAConstantPosition names rule(s) with no bare literal position: " + string.Join(", ", stale));
@@ -131,7 +131,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
         var missing = slotRules.Where(r => !witnesses.ContainsKey(r) && !Unwitnessed.ContainsKey(r))
             .Order(StringComparer.Ordinal).ToArray();
         Assert.True(missing.Length == 0,
-            "literal slot(s) that admit a word but no enabled golden writes a constant-name there (ISO §13.10.3 SR2): add a "
+            "literal slot(s) that admit a word but no enabled golden writes a constant-name there (ISO §2023:13.10.3 SR2): add a "
             + "golden that does, or argue the slot in Unwitnessed: " + string.Join(", ", missing));
 
         var nowWitnessed = Unwitnessed.Keys.Where(witnesses.ContainsKey)

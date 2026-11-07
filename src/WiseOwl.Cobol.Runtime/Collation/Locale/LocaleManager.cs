@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Runtime.Collation.Locale;
 /// <see cref="CldrTailoringBuilder"/>), then the site's numeric <c>.tailor</c> rules on top — and make the engine
 /// collate by it, for the run unit that is current.
 /// <para><b>Where the state lives.</b> There is exactly ONE current-locale state in WiseOwl COBOL: the run unit's
-/// <see cref="LocaleState"/> (<c>RunUnit.Current.Locale</c>, ISO/IEC 1989:2023 §8.2.1 / §14.6.6 — DESIGN-locale-facility
-/// §4.3). <see cref="SetLocale"/> writes it (every category, the <c>SET LOCALE LC_ALL</c> shape) and
+/// <see cref="LocaleState"/> (<c>RunUnit.Current.Locale</c>, ISO/IEC 1989:2023 §2023:8.2.1 / §2023:14.6.6 — DESIGN-locale-facility
+/// §2023:4.3). <see cref="SetLocale"/> writes it (every category, the <c>SET LOCALE LC_ALL</c> shape) and
 /// <see cref="CurrentLocale"/> reads its LC_COLLATE category; the LOCALE-based collating sequence
 /// (<see cref="LocaleCollation.Current"/> — an <c>ALPHABET … IS LOCALE</c> program collating sequence, a SORT/MERGE or file
 /// key sequence) resolves that same state at each use, so a selection made here is what a running COBOL program's

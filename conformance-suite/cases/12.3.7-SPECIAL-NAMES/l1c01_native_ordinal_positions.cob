@@ -5,30 +5,30 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.4 r6 (SPECIAL-NAMES) — native ordinal positions
+      *> ISO §2023:12.3.7.4 r6 (SPECIAL-NAMES) — native ordinal positions
       *> THE RULE (A.1 item 8; documented choice: docs/CONFORMANCE.md
       *> row DOC-A.1-8, "ordinal = UTF-16 code unit + 1"):
       *>   cite.py --check 12.3.7.4 "The implementor shall define the
       *>     order of characters within the native alphanumeric coded
       *>     character set and the native national coded character set,
       *>     associating each character with an ordinal position"
-      *>     -> OK §12.3.7.4 6)
+      *>     -> OK §2023:12.3.7.4 6)
       *>   cite.py --check 12.3.6.4 "When the PROGRAM COLLATING SEQUENCE
       *>     clause is not specified and the source unit is not
       *>     contained within a source unit for which a PROGRAM
       *>     COLLATING SEQUENCE clause is specified, the initial program
       *>     collating sequences are the native alphanumeric collating
-      *>     sequence" -> OK §12.3.6.4 10)
+      *>     sequence" -> OK §2023:12.3.6.4 10)
       *>   cite.py --check 15.70.1 "The ORD function returns an integer
       *>     value that is the ordinal position of argument-1 in the
       *>     program collating sequence. The lowest ordinal position is
-      *>     1." -> OK §15.70.1
+      *>     1." -> OK §2023:15.70.1
       *>   cite.py --check 15.15.4 "The returned value shall be the
       *>     character in the alphanumeric program collating sequence
       *>     having the ordinal position specified by argument-1"
-      *>     -> OK §15.15.4 1)
+      *>     -> OK §2023:15.15.4 1)
       *> No PROGRAM COLLATING SEQUENCE is written, so ORD and CHAR see
-      *> the native order directly (§12.3.6.4 10).
+      *> the native order directly (§2023:12.3.6.4 10).
       *> DERIVATION of every .out line:
       *>   ORD(" ")  U+0020 = 32  -> 32 + 1   -> ORD-SPACE=00033
       *>   ORD("0")  U+0030 = 48              -> ORD-ZERO=00049

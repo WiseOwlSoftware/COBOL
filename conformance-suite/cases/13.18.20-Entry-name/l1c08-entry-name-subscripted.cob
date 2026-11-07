@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.20.3 SR1 — the entry-name data-name-1 is subscripted
+      *> ISO §2023:13.18.20.3 SR1 — the entry-name data-name-1 is subscripted
       *> SR1: "Data-name-1 shall not be qualified or subscripted."
       *> cite.py:
-      *>   OK  §13.18.20.3 1)  (Syntax rules)
+      *>   OK  §2023:13.18.20.3 1)  (Syntax rules)
       *> `05 A(1)` names the item being described with a subscripted
       *> data-name; the rest of the program is valid (the same entry
       *> spelled `05 A` compiles), so SR1 is the only reason to reject.

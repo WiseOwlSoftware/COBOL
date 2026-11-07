@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.16.3 SR20 data description entry — "The PRESENT WHEN
+      *> ISO §2023:13.16.3 SR20 data description entry — "The PRESENT WHEN
       *> clause shall not be specified in a data description entry that
       *> has a level number of 1 or 77."
       *>   python scripts/spec/cite.py --check 13.16.3 "The PRESENT
       *>   WHEN clause shall not be specified in a data description
       *>   entry that has a level number of 1 or 77."
-      *>   -> OK  §13.16.3 20)  (Syntax rules)
+      *>   -> OK  §2023:13.16.3 20)  (Syntax rules)
       *>
       *> ⛔ THIS FIXTURE WRITES THE RULE'S OWN FORBIDDEN CONSTRUCT — a
       *> LEVEL 1 entry carrying PRESENT WHEN — and that is the whole
@@ -22,9 +22,9 @@
       *> negative/l1-present-when-level-77.cob.
       *>
       *> WHY THE ROW IS CONFORMS AND WHY A NEGATIVE IS ITS WITNESS.
-      *> §13.16.2 Format 1's `[ validation-clauses ]` group is the only
+      *> §2023:13.16.2 Format 1's `[ validation-clauses ]` group is the only
       *> place a data description entry can carry PRESENT WHEN, and
-      *> that clause (§13.18.41 format 2) is item 5 of Annex A.4.14
+      *> that clause (§2023:13.18.41 format 2) is item 5 of Annex A.4.14
       *> (VALIDATE), an optional element whose support this
       *> implementation does not claim (docs/CONFORMANCE.md §5). Annex
       *> A.4.1 admits the syntax of an optional element only when
@@ -50,7 +50,7 @@
       *>
       *> POSITIVE CONTROL, WHICH MUST KEEP COMPILING:
       *> conformance-suite/cases/_unassigned/declined_rw_present_varying_control.cob
-      *> — report-writer PRESENT WHEN (§13.18.41 format 1, Annex A.4.11
+      *> — report-writer PRESENT WHEN (§2023:13.18.41 format 1, Annex A.4.11
       *> item 14) is a DIFFERENT clause with the same spelling, it IS
       *> supported, and SR20 does not govern it.
        IDENTIFICATION DIVISION.

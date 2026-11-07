@@ -141,7 +141,7 @@ public sealed class FrameIndexTests
     [Fact]
     public void FramesAppendedAfterTheWalk_AreFoundWhenATargetReachesThem()
     {
-        // §14.9.51.4 sharing: a sibling's appends lie past every walked frame; the walk resumes where it stopped.
+        // §2023:14.9.51.4 sharing: a sibling's appends lie past every walked frame; the walk resumes where it stopped.
         var (bytes, _) = MixedFile(10);
         using var fs = new MemoryStream();
         fs.Write(bytes);
@@ -215,7 +215,7 @@ public sealed class FrameIndexTests
     {
         // kb/Work PB3350 review R1-1. A host read that throws while the window is rebuilt for another span must not leave the
         // old span's window claimed with slots holding the new span's starts: the next ask for the old span would then answer
-        // another record's start, with status 00. §14.9.30.4 GR21 c): the position names the record before the current one.
+        // another record's start, with status 00. §2023:14.9.30.4 GR21 c): the position names the record before the current one.
         const int Stride = 4;
         var (bytes, starts) = MixedFile(20);
         using var fs = new FailingStream(bytes);

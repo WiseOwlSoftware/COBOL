@@ -34,7 +34,7 @@ frontend physically cannot see it. Every duplication below is a symptom of that 
 |---|---------|----------|
 | P1 | **Registry invisible to the frontend** → the parse-layer re-encodes the same edition metadata. `EditionGateHints` (Frontend, `namespace legacy-root.Parsing`) hand-copies `(Display, IntroducedIn, Citation, RowId)` for ~30 constructs into `Gate` records that already exist as `ConstructDialectStatus` rows. | `src/WiseOwl.Cobol.Frontend/Parsing/EditionGateHints.cs:35-63`; the same rows in `Validation/ConstructDialectStatus.cs:60-168` |
 | P2 | **Severity policy reimplemented twice more in the frontend.** `ReferenceFormatProcessor.EditionGates` and `CopyProcessor` each inline `if (permissive) ReportWarning else ReportError` instead of the one `EditionContext.Removed` seam. | `ReferenceFormatProcessor.cs:120-148`; `CopyProcessor` (COPY REPLACING gate) |
-| P3 | **`EditionGateHints` reverse-engineers what the `{isXXXX()}?` gate already knew.** ~30 signatures pattern-match `(offending token, rule-stack, lookahead windows)` to recover the construct identity that the failing predicate discarded. Brittle (empirically derived), and a documented residue of un-mappable cases (`SET…TO objref`). The inline method invocation LEFT that residue with kb/Work PB428: it is no longer predicate-gated at all — it parses at every edition and the `VersionConformancePass` names 2002 on RECOGNITION, which the §8.7.4 `::` token makes unambiguous. | `EditionGateHints.cs:72-175` |
+| P3 | **`EditionGateHints` reverse-engineers what the `{isXXXX()}?` gate already knew.** ~30 signatures pattern-match `(offending token, rule-stack, lookahead windows)` to recover the construct identity that the failing predicate discarded. Brittle (empirically derived), and a documented residue of un-mappable cases (`SET…TO objref`). The inline method invocation LEFT that residue with kb/Work PB428: it is no longer predicate-gated at all — it parses at every edition and the `VersionConformancePass` names 2002 on RECOGNITION, which the §2023:8.7.4 `::` token makes unambiguous. | `EditionGateHints.cs:72-175` |
 | P4 | **Two parallel mechanisms for removed / introduction gating** (singular-pattern violation). Most gates route through `ConstructRegistry.Check`, but a handful stay inline with pinned codes: `0816` END-ACCEPT (intro), `0803` ROUNDED MODE (intro), `0810` ALTER / `0811` bare GO TO / `0882` CALL ON OVERFLOW (removed). None are registry rows, so **none enter the version matrix**. | `StatementBinder.Accept.cs:45`, `StatementBinder.cs:1229`, `StatementBinder.AlterSwitches.cs:119,137`, `StatementBinder.Call.cs:176` |
 | P5 | **`DialectLevel` is double-sourced.** `CobolParserCoreBase.DialectLevel` (Frontend, `{ get; set; } = 85`), `Frontend.DialectLevel` (init = 85), and `EditionContext.DialectLevel` (Compiler) are three independent stores set from `Options.DialectLevel` by hand; a fourth default (`Options` = 2023, CLI `--std` = 2023-or-85). Four defaults that must be kept equal by convention. | `CobolParserCoreBase.cs:17`, `Frontend.cs:45`, `EditionContext.cs:29`, `CompilerDriver.cs:38` |
 | P6 | **`EditionContext` is an overloaded "edition" object that is really `EditionInfo + DiagnosticSink`.** It carries the immutable edition facts (DialectLevel/Permissive/MaxDigits) *and* two `public List<string>` accumulators (`Diagnostics`, `Warnings`) that are stringly-typed (`$"error {code}: {message}"`) and mutable-exposed. 290 call sites. The "edition" name mislabels a diagnostic sink. | `EditionContext.cs:37-56` |
@@ -87,7 +87,7 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     public static readonly EditionInfo Latest = new(2023);
     public static EditionInfo Of(int year, bool permissive = false) => new(Validate(year), permissive);
 
-    /// Fixed-point digit capacity: 18 at '85, 31 at 2002+ (ISO §8.3.3.3.2 / §14.7 / §13.18.40).
+    /// Fixed-point digit capacity: 18 at '85, 31 at 2002+ (ISO §2023:8.3.3.3.2 / §2023:14.7 / §2023:13.18.40).
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
     public bool Has(int introducedIn) => Year >= introducedIn;
@@ -217,7 +217,7 @@ it *parses*, and the construct is diagnosed by the ONE `VersionConformancePass` 
   token-window heuristic, and it is recorded only on a COMMITTED match — never inside speculative
   prediction.
 - The only surviving predicates are the two **load-bearing forward-detects**, where a construct's
-  token is a legal §8.9 user-defined word below its edition and ungating would change tokenization:
+  token is a legal §2023:8.9 user-defined word below its edition and ungating would change tokenization:
   the OPEN clause's `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based
   boolean-condition ENTRY. They resolve lexical ambiguity only; the edition diagnostic still comes
   from the pass. Fail-safe: a missed detect degrades to a neutral parse error, never a wrong edition
@@ -242,10 +242,10 @@ edition-AGNOSTIC (zero `Check` calls save the UDF exception; the §1.1 ledger is
 
 ### 2.9 `EditionValidator` is absorbed by the `VersionConformancePass` (P9)
 
-The raw-parse-tree removal gate + §8.9 reserved-word funnel live in the ONE `VersionConformancePass`,
+The raw-parse-tree removal gate + §2023:8.9 reserved-word funnel live in the ONE `VersionConformancePass`,
 which absorbs and replaces `EditionValidator`:
 
-- The §8.9 reserved-word funnel moves into the pass; `CheckedTokenTypes` and
+- The §2023:8.9 reserved-word funnel moves into the pass; `CheckedTokenTypes` and
   `IsProvableUserWordPosition` remain grammar-coupled (legitimate for a syntax-facing check) but
   report through the pass's shared sink.
 - The `_reservedWords`/`ReservedWordSet` seam is unchanged (already correct for the future
@@ -268,10 +268,10 @@ which absorbs and replaces `EditionValidator`:
   difference per edition, asserted by a new `VersionBehaviorMatrixTests` running the program under
   each `--std` and diffing stdout. This is the currently-weakest leg of "four compilers in one".
 
-### 2.11 The nonstandard-extension register (ISO §4.2.10; kb/Work PB1525)
+### 2.11 The nonstandard-extension register (ISO §2023:4.2.10; kb/Work PB1525)
 
 `ConstructRegistry` answers "at which EDITION does an ISO construct exist". A nonstandard extension is the other
-question — a construct ISO does not define at any edition — and §4.2.10 owes the user an answer in three parts:
+question — a construct ISO does not define at any edition — and §2023:4.2.10 owes the user an answer in three parts:
 documentation that identifies the extensions for which support is claimed (and the reserved words added for them), a
 user-invocable compile-time warning mechanism, and that mechanism flagging only syntactically distinguishable
 extensions. All three are read from ONE table, `NonstandardExtensionRegister` (`WiseOwl.Cobol.Editions`,
@@ -304,7 +304,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 | refactor | `Frontend/Parsing/CobolParserCoreBase.cs` | add `EditionInfo Edition`; `is85/2002/2014/2023` delegate to `Edition.Has` (used only by the two load-bearing forward-detects) | Single DialectLevel source (P5). |
 | refactor | `Frontend/Preprocessor/ReferenceFormatProcessor.cs` (`EditionGates` inner class) & `CopyProcessor` | consume `EditionSeverityPolicy` + `ConstructRegistry.Check` over a shared sink; delete the inline `if(permissive)` | One severity policy (P2). |
 | refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs.json` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
-| absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
+| absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §2023:8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
 | rename | generated ns `legacy-root.Generated` (in assembly `WiseOwl.Cobol.Frontend`) | `WiseOwl.Cobol.Frontend.Generated` (the Frontend csproj's one `<AntlrNamespace>` property, passed to `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
 | create | — | `scripts/doc_audits.py` (`docchecks/vcr.py`) + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
 | update | `docs/VERSION_CHANGE_REFERENCE.md` | generated output; `docs/DOC_INDEX.md` row | Ledger can no longer go stale (P7/P8). |
@@ -376,7 +376,7 @@ behavior.
   introduction-gating moved to BIND time construct by construct — first every HARD-reserved
   construct (ALLOCATE, INVOKE, CLASS-ID, DELETE FILE, GOBACK RETURNING, LOCK MODE, the record-lock
   phrases, … — 24 constructs / 11 clusters), then the **reservation-word residue** (XOR/EXCLUSIVE-OR,
-  the boolean operators, SHARING/RETRY/UNLOCK, PROPERTY — tokens that are legal §8.9 user-defined
+  the boolean operators, SHARING/RETRY/UNLOCK, PROPERTY — tokens that are legal §2023:8.9 user-defined
   words below their edition) — each gated at its recognition point through the ONE
   `ConstructRegistry.Check` funnel, removing both the parse predicates and the reverse signatures.
   Only the two load-bearing forward-detects (`retryPhraseAhead()` on the OPEN clause,
@@ -412,7 +412,7 @@ behavior.
 2. **Q2 — Delete `EditionGateHints` outright, or keep a registry-driven thin recognizer? ✅ RESOLVED:
    deleted — the recognizer does not exist in the end state.** Forward predicate stamping was disproved
    (R1); the bind-time gating migration then folds EVERY gated construct — including the
-   reservation-word residue whose tokens double as §8.9 user words (the lexical ambiguity is resolved by
+   reservation-word residue whose tokens double as §2023:8.9 user words (the lexical ambiguity is resolved by
    the two load-bearing forward-detects `retryPhraseAhead()`/`boolExprAhead()`) — into bind-time
    `ConstructRegistry.Check` funnelled through the ONE `VersionConformancePass`. The transitional
    `ReservedWordEditionHints` recognizer (metadata registry-driven) covered the residue only until its

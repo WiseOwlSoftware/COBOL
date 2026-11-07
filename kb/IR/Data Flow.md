@@ -43,7 +43,7 @@ flattened 1-D — subscripts are 1-based COBOL, emitted `[expr-1]`. `OCCURS DYNA
 `ReferenceResolver.Resolve(dataReference) → Place` is the single operand entry point, in two phases:
 - **(A) syntactic flatten** — walk `cobolWord dataReferenceSuffix*` into base name + OF/IN qualifiers + the raw
   SUBSCRIPT-mode token group (a `(…)` group is a ref-mod iff it contains `SUB_COLON`, else a subscript list).
-- **(B) semantic resolve** — resolve the qualified name to a `DataItem` (right-to-left narrowing, ISO §8.4.2.2),
+- **(B) semantic resolve** — resolve the qualified name to a `DataItem` (right-to-left narrowing, ISO §2023:8.4.2.2),
   interpret subscripts to index expressions, attach each to its OCCURS level (outer→inner), wrap in a ref-mod
   decorator if present.
 

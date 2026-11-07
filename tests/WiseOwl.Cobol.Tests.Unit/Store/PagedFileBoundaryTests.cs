@@ -10,13 +10,13 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// <summary>
 /// ⛔ THE BOUNDARY OF A RELATIVE OR INDEXED FILE IS THE FORMAT'S 2^32 PAGES AND THE HOST'S MAXIMUM FILE SIZE, AND A
 /// STATEMENT THAT MEETS IT LEAVES THE FILE UNCHANGED (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.3 decision 6,
-/// 2.2.1.9; kb/Work PB3331). §9.1.13.5 item 4: <i>"I-O status = 24. An attempt is made to write outside the
+/// 2.2.1.9; kb/Work PB3331). §2023:9.1.13.5 item 4: <i>"I-O status = 24. An attempt is made to write outside the
 /// externally-defined boundaries of a physical relative or indexed file. The implementor specifies the manner in which
 /// these boundaries are defined."</i> The page layer answers <see cref="StoreStatus.Boundary"/> — never an escaping
 /// exception, never '30' — from the changing statement's reservation (the format) and from a write the host refuses
 /// because the file cannot grow further (<c>EFBIG</c>, <c>ERROR_FILE_TOO_LARGE</c>); a full medium is '30'. The
 /// statement it refuses claims nothing or leaves its pages unreachable (R1), so the file is the previous statement's and
-/// the same run unit's next statement that fits succeeds (§9.1.14, <i>"the file is not affected"</i>).
+/// the same run unit's next statement that fits succeeds (§2023:9.1.14, <i>"the file is not affected"</i>).
 /// </summary>
 public sealed class PagedFileBoundaryTests
 {

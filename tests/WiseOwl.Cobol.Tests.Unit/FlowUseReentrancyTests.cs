@@ -7,24 +7,24 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §14.9.49.4 GR2 — THE USE-PROCEDURE RE-ENTRANCY CONDITION, EVERY ARM (kb/Work PB368).
+/// ⛔ ISO §2023:14.9.49.4 GR2 — THE USE-PROCEDURE RE-ENTRANCY CONDITION, EVERY ARM (kb/Work PB368).
 ///
 /// <para>GR2 reads "During the execution of a USE procedure, if a statement raises an exception condition that
 /// would cause the execution of a USE procedure that had previously been activated and had not yet returned
 /// control to the activating entity, the EC-FLOW-USE exception condition is set to exist." The compiler had the
 /// consequence and not the condition: the generated <c>__RunUse</c> returned quietly on its re-entrancy guard
 /// and EC-FLOW-USE appeared nowhere outside <c>ExceptionCatalog</c>, so a program could not detect its own
-/// declarative recursion and the §14.6.13.1.6 Table 13 Fatal default could never fire.</para>
+/// declarative recursion and the §2023:14.6.13.1.6 Table 13 Fatal default could never fire.</para>
 ///
 /// <para><b>Why a test class and not one golden.</b> The fix lives at the ONE place that knows the guard fired,
 /// and SIX generated selection paths reach it — <c>__IoCheck</c> (format-1, I-O-status driven), <c>__IoCheckEc</c>
 /// (the EC-model I-O bridge), <c>__EcDispatch</c> (format 3), <c>__EcObjDispatch</c> (format 4),
-/// <c>__RunGlobalUse</c> (the §14.9.49.4 GR4 b outward GLOBAL walk) and the report engine's BEFORE REPORTING
+/// <c>__RunGlobalUse</c> (the §2023:14.9.49.4 GR4 b outward GLOBAL walk) and the report engine's BEFORE REPORTING
 /// hook. This repo's most reproducible defect is a dispatch with two arms and one of them fixed, so the arms
 /// that are separately GENERATED are separately pinned here, together with the two outcomes a positive golden
-/// cannot carry (the §14.6.13.1.3 #7 abnormal termination, and the checking-off zero-scaffolding invariant) and
+/// cannot carry (the §2023:14.6.13.1.3 #7 abnormal termination, and the checking-off zero-scaffolding invariant) and
 /// the ONE id distinction the raise site has to make: the exception-checking PERFORM's imp-2/3/4 handler ranges
-/// share <c>__RunUse</c> and its guard array but are NOT USE procedures (§14.9.28.4 GR17, not §14.9.49.4 GR3),
+/// share <c>__RunUse</c> and its guard array but are NOT USE procedures (§2023:14.9.28.4 GR17, not §2023:14.9.49.4 GR3),
 /// so GR2 does not reach them.</para>
 ///
 /// <para>The end-to-end counterpart is <c>conformance:cases/14.9.49-USE/pb368_flow_use_reentrancy</c> (the handled arm with
@@ -77,10 +77,10 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
 
             """;
 
-    /// <summary>§14.6.13.1.3 #5 — "there is an applicable USE statement in the source unit that specifies the
+    /// <summary>§2023:14.6.13.1.3 #5 — "there is an applicable USE statement in the source unit that specifies the
     /// exception-name associated with the exception condition … the associated declarative is executed", reached
     /// through the plain <c>__IoCheck</c> selector (EC-I-O checking is OFF here, so the format-1 declarative is
-    /// selected by I-O status alone — §14.6.13.1.1 NOTE 1 — and EC-FLOW-USE is the only enabled condition).</summary>
+    /// selected by I-O status alone — §2023:14.6.13.1.1 NOTE 1 — and EC-FLOW-USE is the only enabled condition).</summary>
     [Fact]
     public void ReenteredDeclarative_WithAnEcFlowUseDeclarative_RaisesAndDispatches()
     {
@@ -91,7 +91,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
             stdout.Split("\r\n").Select(l => l.TrimEnd()).ToArray());
     }
 
-    /// <summary>§14.6.13.1.3 #7 — with checking enabled and NO applicable declarative, "execution of the run
+    /// <summary>§2023:14.6.13.1.3 #7 — with checking enabled and NO applicable declarative, "execution of the run
     /// unit is terminated abnormally". The outcome a positive golden cannot carry, and the whole reason the
     /// condition has to EXIST: before this fix the run completed normally and the recursion was invisible.</summary>
     [Fact]
@@ -99,13 +99,13 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
     {
         var (ok, stdout, detail) = CompileAndRun(
             Recursive(">>TURN EC-FLOW-USE CHECKING ON\n", ""), dialectLevel: 2002);
-        Assert.False(ok, "§14.6.13.1.3 #7 requires abnormal termination, but the run unit completed: " + stdout);
+        Assert.False(ok, "§2023:14.6.13.1.3 #7 requires abnormal termination, but the run unit completed: " + stdout);
         Assert.Contains("EC-FLOW-USE", detail, StringComparison.Ordinal);
         Assert.Equal("D1-ENTER", stdout.TrimEnd());   // the inner OPEN never returns to D1-EXIT
     }
 
-    /// <summary>§14.6.13.1.1 — "if checking for an exception that occurs is not enabled, no exception condition
-    /// is raised", and §14.6.13.1.3 #8 leaves what happens instead to the implementor: this implementation
+    /// <summary>§2023:14.6.13.1.1 — "if checking for an exception that occurs is not enabled, no exception condition
+    /// is raised", and §2023:14.6.13.1.3 #8 leaves what happens instead to the implementor: this implementation
     /// declines to re-enter the active procedure and continues. The ZERO-SCAFFOLDING half is asserted too — an
     /// EC-free program's generated source must not gain a word of this machinery.</summary>
     [Fact]
@@ -119,7 +119,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
     }
 
     /// <summary>⛔ THE ID DISTINCTION. An exception-checking PERFORM's imp-2/3/4 handlers are appended pc-ranges
-    /// run by the SAME <c>__RunUse</c> over the SAME <c>__useActive</c> array (§14.9.28.4 GR17), and they are not
+    /// run by the SAME <c>__RunUse</c> over the SAME <c>__useActive</c> array (§2023:14.9.28.4 GR17), and they are not
     /// USE procedures — GR2 does not reach them. The emitted guard must therefore raise only for ids below the
     /// declarative count, and must still raise for the declaratives in the very same program.</summary>
     [Fact]
@@ -142,7 +142,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
         Assert.Contains("if (__id < 2) ExceptionState.FlowUseError(", Generated(src, 2023), StringComparison.Ordinal);
     }
 
-    /// <summary>§14.9.49.4 GR4 b — the declarative is reached by the OUTWARD walk into a containing program's
+    /// <summary>§2023:14.9.49.4 GR4 b — the declarative is reached by the OUTWARD walk into a containing program's
     /// USE GLOBAL section (a SEPARATE generated method, <c>__RunGlobalUse</c>, on the container). The condition
     /// is raised in the DECLARING program, whose own re-entrancy array is the one that says the procedure is
     /// still active, and with no EC-FLOW-USE declarative there #7's abnormal termination is the outcome.</summary>
@@ -193,7 +193,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
 
             """;
         var (ok, stdout, detail) = CompileAndRun(src, dialectLevel: 2002);
-        Assert.False(ok, "§14.6.13.1.3 #7 requires abnormal termination, but the run unit completed: " + stdout);
+        Assert.False(ok, "§2023:14.6.13.1.3 #7 requires abnormal termination, but the run unit completed: " + stdout);
         Assert.Contains("EC-FLOW-USE", detail, StringComparison.Ordinal);
         Assert.Equal("DG-ENTER", stdout.TrimEnd());
     }
@@ -245,7 +245,7 @@ public sealed class FlowUseReentrancyTests : WiseOwlCobolTestBase
             """;
         var (ok, stdout, detail) = CompileAndRun(src, dialectLevel: 2002);
         Assert.False(ok, "the outer EC-I-O-PERMANENT-ERROR is fatal and its declarative completed normally "
-            + "(§14.6.13.1.3 #5), so the run unit must terminate abnormally: " + stdout);
+            + "(§2023:14.6.13.1.3 #5), so the run unit must terminate abnormally: " + stdout);
         Assert.Contains("EC-I-O-PERMANENT-ERROR", detail, StringComparison.Ordinal);
         Assert.Equal(["D1-ENTER", "FLOW-USE EC-FLOW-USE", "D1-EXIT"],
             stdout.Split("\r\n").Select(l => l.TrimEnd()).ToArray());

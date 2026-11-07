@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.4.3 SR4: "The data item referenced in the RETURNING phrase
+      *> ISO §2023:8.4.3.4.3 SR4: "The data item referenced in the RETURNING phrase
       *> of the invoked method's procedure division header shall not be
       *> described with the ANY LENGTH clause or with the ACTIVE-CLASS
-      *> phrase."  Both arms would leave §8.4.3.4.4 GR1 b)'s "same
+      *> phrase."  Both arms would leave §2023:8.4.3.4.4 GR1 b)'s "same
       *> description, class, and category" temporary undescribable at the
       *> point of reference — an ANY LENGTH item has no length until the
       *> activation and an ACTIVE-CLASS reference has no class until the

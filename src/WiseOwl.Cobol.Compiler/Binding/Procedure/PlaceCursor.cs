@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// was resolved to, never by re-resolving each member (which would lose the group's own subscripts).
 /// <see cref="Child"/> returns null for a storage form not wired here (the caller decides what that means for its
 /// statement).
-/// <para>Two statements walk a group this way: INITIALIZE (§14.9.20.4 GR5 — "a series of implicit MOVE or SET
+/// <para>Two statements walk a group this way: INITIALIZE (§2023:14.9.20.4 GR5 — "a series of implicit MOVE or SET
 /// statements, each of which has an elementary data item as its receiving operand") and the comparison of two
-/// strongly-typed group items (§8.8.4.2.12 — "each elementary item of the first operand is compared with the
+/// strongly-typed group items (§2023:8.8.4.2.12 — "each elementary item of the first operand is compared with the
 /// corresponding elementary item of the second operand"). It was INITIALIZE's private record until kb/Work PB1469
 /// needed the same walk; a second copy of the three storage-form arms would have been two readings of one layout
 /// law, which is how the BIT unit went missing from three window builders at once (kb/Work PB203).</para></summary>
@@ -37,7 +37,7 @@ internal abstract record PlaceCursor(DataItem Item)
     public virtual AccessPath? StoragePath => null;
 
     /// <summary>The cursor at one occurrence of the dynamic-capacity table at this cursor, entered through its
-    /// direction-specific accessor (§8.5.1.9.2 / §8.5.1.9.3) — a typed element of the table's
+    /// direction-specific accessor (§2023:8.5.1.9.2 / §2023:8.5.1.9.3) — a typed element of the table's
     /// <c>CobolDynTable</c> on its <see cref="StoragePath"/>, or, in a cell-backed area, the occurrence's element cell
     /// (<see cref="ViewCursor"/>; kb/Work PB1042). Null when the position has no table path.</summary>
     public virtual PlaceCursor? DynamicElement(Position oneBasedIndex) =>
@@ -45,7 +45,7 @@ internal abstract record PlaceCursor(DataItem Item)
 
     /// <summary>The cursor over a resolved group place, or null for a storage form no cursor is built over.
     /// ⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS <see cref="Place.Undecorated"/> (kb/Work PB393): an
-    /// <c>OdoGroupPlace</c> answers §13.18.38.4 GR8 about the group's EXTENT and a bit/national group's image
+    /// <c>OdoGroupPlace</c> answers §2023:13.18.38.4 GR8 about the group's EXTENT and a bit/national group's image
     /// view about how it is READ as one item — neither changes where its members live.</summary>
     public static PlaceCursor? Over(Place place) => place.Undecorated switch
     {
@@ -60,7 +60,7 @@ internal abstract record PlaceCursor(DataItem Item)
 
 /// <summary>A plain member-access cursor, mirroring <c>PlaceBuilder.BuildTablePath</c>: <c>ClrName</c> segments
 /// chained with <c>.</c>, each OCCURS level routed through the ref-returning <c>CobolTable.At</c> (benign
-/// subscripting, ISO §8.4.2.3.4 GR2). Entering a Tier-B (string-canonical) REDEFINES class — whose ONE stored
+/// subscripting, ISO §2023:8.4.2.3.4 GR2). Entering a Tier-B (string-canonical) REDEFINES class — whose ONE stored
 /// string backing lives in the containing struct (DESIGN §4.2) — switches to a <see cref="ViewCursor"/>;
 /// an unwired Tier-C / Rejected class yields null.</summary>
 internal sealed record MemberCursor(AccessPath Path, DataItem Item) : PlaceCursor(Item)
@@ -116,7 +116,7 @@ internal sealed record DynElementCursor(AccessPath Path, DataItem Item) : PlaceC
 /// <summary>A cursor inside a Tier-B REDEFINES class: every member is a (offset, width) character window over
 /// the class's ONE string backing. The window offset = the entry place's offset (<paramref name="Base"/>) + (this
 /// item's in-class offset − the entry item's, <paramref name="BaseOffset"/>) + Σ (index − 1) × per-occurrence storage
-/// width for each OCCURS level crossed (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one
+/// width for each OCCURS level crossed (ISO §2023:13.18.44 — a redefined table lays its occurrences end-to-end in the one
 /// backing; the same <see cref="PositionOffset"/> law as <c>PlaceBuilder.WindowScopeOf</c>).</summary>
 /// <param name="Cell">The backing <c>StorageCell</c> path of the cursor's SCOPE, for the three cell-backed surfaces
 /// — what a pointer-class member's managed slot and a variable-length component's slot address (kb/Work PB231,
@@ -128,7 +128,7 @@ internal sealed record ViewCursor(
     /// <summary>The byte displacement terms of the OCCURS levels crossed since the entry.</summary>
     public IReadOnlyList<OffsetTerm> OccursTerms { get; init; } = [];
 
-    /// <summary>The same displacement in bits (§13.18.1.4 GR2's stride), for a USAGE BIT member.</summary>
+    /// <summary>The same displacement in bits (§2023:13.18.1.4 GR2's stride), for a USAGE BIT member.</summary>
     public IReadOnlyList<OffsetTerm> OccursBitTerms { get; init; } = [];
 
     /// <summary>The entry place's run-time component ordinal and its item's static one (kb/Work PB1042) — the cursor's
@@ -167,9 +167,9 @@ internal sealed record ViewCursor(
         ReferenceEquals(child.Class, Item.Class) ? this with { Item = child } : null;
 
     // The byte stride and its BIT twin, accumulated together so a USAGE BIT member's occurrences are displaced
-    // by §8.5.1.6.3's "next bit position" rather than by its byte ceiling (kb/Work PB203). The byte stride is the
+    // by §2023:8.5.1.6.3's "next bit position" rather than by its byte ceiling (kb/Work PB203). The byte stride is the
     // level's STORAGE extent (ByteWidth), never its character-position count: a NATIONAL element occupies two bytes
-    // per position (§13.18.60.4 GR8 / D-N1, kb/Work PB231), the stride the resolver's window walk uses.
+    // per position (§2023:13.18.60.4 GR8 / D-N1, kb/Work PB231), the stride the resolver's window walk uses.
     /// <inheritdoc/>
     public override PlaceCursor Indexed(Position oneBasedIndex) =>
         Item.IsDynamicTable && Cell is { } cell
@@ -186,7 +186,7 @@ internal sealed record ViewCursor(
             : this with
             {
                 OccursTerms = [.. OccursTerms, new OffsetTerm(oneBasedIndex, Item.ByteWidth)],
-                OccursBitTerms = [.. OccursBitTerms, new OffsetTerm(oneBasedIndex, BitLayout.StrideBits(Item))],   // §13.18.1.4 GR2
+                OccursBitTerms = [.. OccursBitTerms, new OffsetTerm(oneBasedIndex, BitLayout.StrideBits(Item))],   // §2023:13.18.1.4 GR2
                 OrdinalTerms = Cell is null ? OrdinalTerms : [.. OrdinalTerms, new OffsetTerm(oneBasedIndex, CellComponents.PerOccurrence(Item))],
             };
 

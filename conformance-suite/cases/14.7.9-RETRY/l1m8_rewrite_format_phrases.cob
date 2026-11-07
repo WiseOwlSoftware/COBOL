@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.35.2 REWRITE general format — every optional phrase of
+      *> ISO §2023:14.9.35.2 REWRITE general format — every optional phrase of
       *> the record-name-1 form, alone and combined, in the printed order
       *> Format: REWRITE {record-name-1 | FILE file-name-1} [RECORD]
       *>   [FROM {identifier-1 | literal-1}] [retry-phrase]
@@ -13,31 +13,31 @@
       *>   [ |INVALID KEY imperative-1| |NOT INVALID KEY imperative-2| ]
       *>   [END-REWRITE]
       *>   cite.py --check 14.9.35.2 "retry-phrase is described in
-      *>     14.7.9" -> OK §14.9.35.2 (General format)
+      *>     14.7.9" -> OK §2023:14.9.35.2 (General format)
       *> RECORD and WITH are not underlined (optional words); LOCK / NO
       *>   LOCK are one-of-two; the INVALID KEY bracket carries CHOICE
-      *>   INDICATORS (§5.2.6.4): either phrase alone, both in EITHER
-      *>   order, or neither. RETRY (§14.7.9.2): "arithmetic-expression-1
+      *>   INDICATORS (§2023:5.2.6.4): either phrase alone, both in EITHER
+      *>   order, or neither. RETRY (§2023:14.7.9.2): "arithmetic-expression-1
       *>   TIMES | FOR arithmetic-expression-2 SECONDS | FOREVER", FOR
       *>   optional. The FILE file-name-1 arm is declined (Annex A.4.13)
       *>   and witnessed by conformance:negative/a413-rewrite-file-
       *>   declined; this program covers the record-name-1 arm.
-      *> LOCK MODE IS MANUAL so the LOCK phrases are legal (§14.9.35.3
+      *> LOCK MODE IS MANUAL so the LOCK phrases are legal (§2023:14.9.35.3
       *>   SR4 bars them only under automatic locking, OK 4)).
       *> Semantics each leg pins (INDEXED, ACCESS DYNAMIC, keys K1..K5):
       *>   FROM: "equivalent to ... MOVE identifier-1 TO record-name-1
       *>     ... MOVE literal-1 TO record-name-1 ... b) The same REWRITE
-      *>     statement without the FROM phrase" (OK §14.9.35.4 7)).
+      *>     statement without the FROM phrase" (OK §2023:14.9.35.4 7)).
       *>   Random/dynamic: the record replaced is the one whose prime key
-      *>     is in the area; none -> '23' (OK §14.9.35.4 23)).
+      *>     is in the area; none -> '23' (OK §2023:14.9.35.4 23)).
       *>   A RETRY phrase acts only after "a file sharing conflict
       *>     condition or a record operation conflict condition" (OK
-      *>     §14.7.9.3 4)); this single connector meets none, so each
+      *>     §2023:14.7.9.3 4)); this single connector meets none, so each
       *>     RETRY leg succeeds on its first attempt.
       *>   Branch: INVALID KEY runs on the invalid key condition (OK
-      *>     §9.1.14 2)); NOT INVALID KEY on success (OK §9.1.14 2),
+      *>     §2023:9.1.14 2)); NOT INVALID KEY on success (OK §2023:9.1.14 2),
       *>     second list). W-BR = "-" means neither ran.
-      *>   '00' = successful completion (§9.1.13.2 1)).
+      *>   '00' = successful completion (§2023:9.1.13.2 1)).
       *> Legs:
       *>   R1 RECORD FROM literal RETRY 3 TIMES WITH NO LOCK, NOT INVALID
       *>      KEY written BEFORE INVALID KEY, END-REWRITE  -> 00 N

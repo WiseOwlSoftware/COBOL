@@ -5,24 +5,24 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.6 item 4 b) - I-O status '34' for a READ of a record made variable by OCCURS DEPENDING ON,
+      *> ISO 1989:2023 §2023:9.1.13.6 item 4 b) - I-O status '34' for a READ of a record made variable by OCCURS DEPENDING ON,
       *> when the file description carries an EXPLICIT RECORD clause. The rule names "the value specified or implied by the
       *> file description entry": "A READ statement is unsuccessfully executed because the records are variable in length
       *> because of an OCCURS DEPENDING ON clause in the record in the associated record description entry and the
       *> associated DEPENDING ON item contains a value that makes the number of bytes in the record exceed the value
       *> specified or implied by the file description entry." The sibling golden pb1513_read_odo_record_exceeds_maximum
-      *> covers the IMPLIED value (no RECORD clause: the largest description, §13.18.43.4 GR5); this one covers the
-      *> SPECIFIED value, which a record clause can set ABOVE the largest description (§13.18.43.3 SR3 forbids only a
+      *> covers the IMPLIED value (no RECORD clause: the largest description, §2023:13.18.43.4 GR5); this one covers the
+      *> SPECIFIED value, which a record clause can set ABOVE the largest description (§2023:13.18.43.3 SR3 forbids only a
       *> description larger than integer-1). The record's size at a count N is the fixed part plus N occurrences
-      *> (§13.18.43.4 GR13 c); docs/CONFORMANCE.md D-ODO2), so the READ is unsuccessful exactly when 2 + N exceeds the specified value.
-      *>   OC  RECORD CONTAINS 14 CHARACTERS (Format 1, §13.18.43.4 GR6), table 1 TO 12: the specified value 14 equals the
+      *> (§2023:13.18.43.4 GR13 c); docs/CONFORMANCE.md D-ODO2), so the READ is unsuccessful exactly when 2 + N exceeds the specified value.
+      *>   OC  RECORD CONTAINS 14 CHARACTERS (Format 1, §2023:13.18.43.4 GR6), table 1 TO 12: the specified value 14 equals the
       *>       description's own maximum. N = 12 is 14 bytes - not more than 14 - so '00'; N = 13 is 15 bytes: '34'.
       *>   OE  RECORD CONTAINS 16 CHARACTERS over the same 14-byte description: the specified value is 16, not the implied
       *>       14. N = 14 is 16 bytes, which does not exceed 16, so '00' (a READ that took the implied value would answer
       *>       '34'); N = 15 is 17 bytes: '34'.
-      *>   OV  RECORD IS VARYING IN SIZE FROM 2 TO 16 CHARACTERS (Format 2, §13.18.43.4 GR7: integer-3 "specifies the maximum number of bytes in any record of the file"): the specified value is the
+      *>   OV  RECORD IS VARYING IN SIZE FROM 2 TO 16 CHARACTERS (Format 2, §2023:13.18.43.4 GR7: integer-3 "specifies the maximum number of bytes in any record of the file"): the specified value is the
       *>       range's upper bound, 16 - the same two counts, the same two answers, on a variable-length file.
-      *> An unsuccessful READ runs no NOT AT END phrase (§9.1.13.1: for a fatal condition "Any NOT AT END or NOT INVALID KEY
+      *> An unsuccessful READ runs no NOT AT END phrase (§2023:9.1.13.1: for a fatal condition "Any NOT AT END or NOT INVALID KEY
       *> phrase specified for that statement is ignored"), and sets FILE STATUS to '34'.
       *> WHY EACH LEG CAN FAIL: the writer FD (PIC X on the same physical file) gives every record any count, and a leg that
       *> ignored the explicit value would answer '34' at OE's N = 14 and OV's N = 14; a leg that ignored the rule altogether

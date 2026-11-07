@@ -5,26 +5,26 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.10.2 FMT + §13.18.10.4 GR1/GR2 — every BLOCK
+      *> ISO §2023:13.18.10.2 FMT + §2023:13.18.10.4 GR1/GR2 — every BLOCK
       *> CONTAINS arm, and an FD that omits the clause.
       *> Format: BLOCK [CONTAINS] [integer-1 TO] integer-2
       *>         {CHARACTERS | RECORDS}   (CONTAINS and CHARACTERS are
       *> optional words; BLOCK, TO, RECORDS required).
       *> cite.py OK lines:
-      *>  OK §13.18.10.2 (General format)
-      *>  OK §13.18.10.1 The BLOCK CONTAINS clause specifies the size
+      *>  OK §2023:13.18.10.2 (General format)
+      *>  OK §2023:13.18.10.1 The BLOCK CONTAINS clause specifies the size
       *>     of a physical record.
-      *>  OK §13.18.10.3 1) If integer-1 is specified, integer-2 shall
+      *>  OK §2023:13.18.10.3 1) If integer-1 is specified, integer-2 shall
       *>     be greater than integer-1.  (10<100, 10<20 below)
-      *>  OK §13.18.10.4 1) This clause is required except when one or
+      *>  OK §2023:13.18.10.4 1) This clause is required except when one or
       *>     more of the following conditions exist
-      *>  OK §13.18.10.4 1) a) A physical record contains one and only
+      *>  OK §2023:13.18.10.4 1) a) A physical record contains one and only
       *>     one complete logical record.
-      *>  OK §13.18.10.4 2) The size of a physical record may be stated
+      *>  OK §2023:13.18.10.4 2) The size of a physical record may be stated
       *>     in terms of records unless one or more of the following
       *>     situations exists, in which case the RECORDS phrase shall
       *>     not be used
-      *>  OK §A.3 5) The BLOCK CONTAINS clause has no effect if the
+      *>  OK §2023:A.3 5) The BLOCK CONTAINS clause has no effect if the
       *>     operating environment does not support the required
       *>     features  (docs/CONFORMANCE.md A.3 row 5: Claimed (inert)
       *>     "Accepted; no effect on the managed I-O model").

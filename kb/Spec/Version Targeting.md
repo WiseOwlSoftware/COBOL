@@ -25,12 +25,12 @@ accept with the V behavior, or reject with an edition-appropriate diagnostic.
 ## Edition gating
 
 A single `VersionConformancePass` (the sole edition gate) enforces this with two arms — a **parse-tree arm**
-(syntactic introduction/removal/phrase gates + the §8.9 per-edition reserved-word funnel) and a **bound-tree arm**
+(syntactic introduction/removal/phrase gates + the §2023:8.9 per-edition reserved-word funnel) and a **bound-tree arm**
 (semantic statement-level gates). `DialectLevel` threads bind-side only, so the future CIL backend inherits gating
 for free. See [[kb/Semantics/Passes]]. Diagnostics band **COBOL0900–0903**:
 
 - `0900` construct requires COBOL-YYYY (introduction gating)
-- `0901` word reserved in COBOL-YYYY used as a user word (§8.9)
+- `0901` word reserved in COBOL-YYYY used as a user word (§2023:8.9)
 - `0902` construct removed in COBOL-YYYY (error strict / warning permissive)
 - `0903` obsolete/archaic-element flag (warning)
 

@@ -7,8 +7,8 @@ namespace WiseOwl.Cobol.Editions;
 /// THE parse of a compiler-directive LINE — the compiler-directive indicator, the compiler-directive word that
 /// heads it, and the operand text that follows (kb/Work PB794).
 ///
-/// <para>ISO/IEC 1989:2023 §7.3.2 gives ONE general format for every directive — <c>&gt;&gt;compiler-instruction</c>
-/// — and §7.3.3 says what surrounds it: SR2, a directive is preceded only by spaces; SR5, the indicator is
+/// <para>ISO/IEC 1989:2023 §2023:7.3.2 gives ONE general format for every directive — <c>&gt;&gt;compiler-instruction</c>
+/// — and §2023:7.3.3 says what surrounds it: SR2, a directive is preceded only by spaces; SR5, the indicator is
 /// "optionally followed by the COBOL character space … The compiler directive indicator shall be treated as
 /// though it were followed by a space if no space is specified after the indicator"; SR3/SR4, a directive "may be
 /// followed only by space characters and an optional inline comment". That is one fact about every directive
@@ -25,14 +25,14 @@ namespace WiseOwl.Cobol.Editions;
 /// the period reaches <see cref="CompilerDirectiveCatalog.CheckOperand"/> as part of the operand and is
 /// diagnosed there.</para>
 /// </summary>
-/// <param name="Word">The compiler-directive word as written with its basic letters upper-cased (§7.3.3 SR6 / §8.12;
+/// <param name="Word">The compiler-directive word as written with its basic letters upper-cased (§2023:7.3.3 SR6 / §2023:8.12;
 /// <see cref="CobolKeywords.Spelling"/>): a directive word is a keyword, matched on the basic letters alone, so a word
 /// written with an extended letter is no directive word (kb/Work PB4240).</param>
-/// <param name="Operand">The compiler-instruction's remainder — trimmed, with the §7.3.3 SR3/SR4 inline comment
+/// <param name="Operand">The compiler-instruction's remainder — trimmed, with the §2023:7.3.3 SR3/SR4 inline comment
 /// removed. Empty when the directive word stands alone.</param>
 public readonly record struct CompilerDirectiveLine(string Word, string Operand)
 {
-    /// <summary>The compiler-directive indicator (§6.2.3.1).</summary>
+    /// <summary>The compiler-directive indicator (§2023:6.2.3.1).</summary>
     public const string Indicator = ">>";
 
     /// <summary>
@@ -40,8 +40,8 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     /// which is the common case, so the cheap tests come first and nothing is allocated on the way out.
     /// </summary>
     /// <param name="line">The PROGRAM-TEXT AREA of one line — the whole line in free form, character positions 8 to
-    /// margin R in fixed form (§7.3.3 SR3), which the reference-format stage extracts in the format in effect before
-    /// asking (kb/Work PB1361) and every later stage already holds. Only spaces may precede the indicator (§7.3.3
+    /// margin R in fixed form (§2023:7.3.3 SR3), which the reference-format stage extracts in the format in effect before
+    /// asking (kb/Work PB1361) and every later stage already holds. Only spaces may precede the indicator (§2023:7.3.3
     /// SR2). The line is one the line-entry stage produced, so it holds no tab and no CR LF terminator; a lone
     /// carriage return is an ORDINARY character of it (docs/CONFORMANCE.md DOC-A.1-156) and stays in the operand, where
     /// the directive's operand check refuses it as it refuses it on a source line (kb/Work PB4310).</param>
@@ -62,7 +62,7 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
         if (i == wordStart) return false;                            // ">>" with no word heads no directive
 
         string word = CobolKeywords.Spelling(s[wordStart..i].ToString());   // a keyword: the basic letters alone (PB4240)
-        // §7.3.3 SR3/SR4: the directive may be followed by an inline comment. The scan that finds it honours
+        // §2023:7.3.3 SR3/SR4: the directive may be followed by an inline comment. The scan that finds it honours
         // character-strings, so the *> inside >>DISPLAY "a *> b" is data (CobolSourceText, kb/Work PB2621).
         var rest = s[i..];
         string operand = SeparatorsAsSpaces(rest[..CobolSourceText.InlineCommentAt(rest)].ToString().TrimSpaces()).TrimSpaces();
@@ -71,15 +71,15 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
     }
 
     /// <summary>Whether <paramref name="s"/> (an operand, or the rest of one) begins with <paramref name="word"/> as a WORD: the
-    /// word, then the end of the text or a separator (§8.3.5), so <c>OTHER</c> and <c>OTHER x</c> begin with the word OTHER and
+    /// word, then the end of the text or a separator (§2023:8.3.5), so <c>OTHER</c> and <c>OTHER x</c> begin with the word OTHER and
     /// <c>OTHERV</c> does not. The one answer for every stage that reads a directive's phrase word — <c>&gt;&gt;WHEN OTHER</c>
-    /// (§7.3.13.3 SR5/SR6) in the conditional-compilation stage and in the converter's division cursor alike (kb/Work PB4241).</summary>
+    /// (§2023:7.3.13.3 SR5/SR6) in the conditional-compilation stage and in the converter's division cursor alike (kb/Work PB4241).</summary>
     public static bool StartsWithWord(string s, string word) =>
         CobolKeywords.StartsWith(s, word)
         && (s.Length == word.Length || CobolSpace.IsSeparator(s[word.Length]));
 
     /// <summary>The index in <paramref name="line"/> where its compiler-directive indicator stands — after the spaces
-    /// that alone may precede it (§7.3.3 SR2) — the column a diagnostic about the directive line names (kb/Work
+    /// that alone may precede it (§2023:7.3.3 SR2) — the column a diagnostic about the directive line names (kb/Work
     /// PB1801).</summary>
     public static int IndicatorIndex(ReadOnlySpan<char> line)
     {
@@ -90,14 +90,14 @@ public readonly record struct CompilerDirectiveLine(string Word, string Operand)
 
     /// <summary>
     /// Read the separator comma and semicolon of an operand as the separator space they stand for (kb/Work PB1373,
-    /// PB2003). ISO §8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators
+    /// PB2003). ISO §2023:8.3.5 2): "The COBOL characters comma and semicolon, immediately followed by a space, are separators
     /// that may be used anywhere the separator space is used" — so <c>&gt;&gt;COBOL-WORDS EQUATE "DISPLAY", WITH
     /// "SHOW"</c> and <c>&gt;&gt;TURN EC-SIZE; CHECKING ON</c> write the operands their space-only spellings write. That is
     /// one fact about every directive operand, so it is read ONCE, here, beside the indicator and the inline comment, and
     /// not by each operand tokenizer (every one of which split on the space alone and rejected the legal spelling).
     /// <para>Only a comma or semicolon that is followed by a space is a separator (a comma inside a numeric literal
-    /// <c>1,5</c> or glued to a word is not), the characters of a character-string are untouched (§8.3.3.2.3 3): a doubled
-    /// quotation symbol stays inside), and a comma or semicolon that ends the operand stays where it is — §7.3.3 3)
+    /// <c>1,5</c> or glued to a word is not), the characters of a character-string are untouched (§2023:8.3.3.2.3 3): a doubled
+    /// quotation symbol stays inside), and a comma or semicolon that ends the operand stays where it is — §2023:7.3.3 3)
     /// allows "only space characters and an optional inline comment" after the directive, and the operand is
     /// trimmed, so one that ends it has nothing after it to separate from. The replacement is one character for one, so
     /// no column of the operand moves.</para>

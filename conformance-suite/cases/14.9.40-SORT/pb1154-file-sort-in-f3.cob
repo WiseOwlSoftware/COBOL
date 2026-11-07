@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.40.3 SR3 — "A SORT statement shall not appear in
+      *> ISO §2023:14.9.40.3 SR3 — "A SORT statement shall not appear in
       *> imperative-statement-1 of an exception-checking PERFORM statement, in an
       *> input or output procedure, or in a declarative procedure." Printed under
       *> the FORMAT 1 (file) SORT heading; this is the file format.
-      *>   cite.py: OK  §14.9.40.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.40.3 3)  (Syntax rules)
       *> The statement is the only violation; the program is otherwise legal.
       *> Expected: COBOL1617, positioned at the offending statement (kb/Work PB1154).
       *> ONLY 2023 is named: the exception-checking PERFORM is new in

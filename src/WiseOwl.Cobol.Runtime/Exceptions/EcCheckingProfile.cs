@@ -6,14 +6,14 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 
 /// <summary>
 /// ONE runtime element's <c>&gt;&gt;TURN</c> checking state AT ONE STATEMENT, in a form that can be asked about a
-/// name not known until run time (ISO/IEC 1989:2023 §7.3.25.4 GR6/GR8 — a directive enables/disables checking
+/// name not known until run time (ISO/IEC 1989:2023 §2023:7.3.25.4 GR6/GR8 — a directive enables/disables checking
 /// "for the procedure division statements … that follow in the compilation group", so the state is a property of
-/// a (source element, line), and §14.6.13.1.1 — "if checking for an exception that occurs is not enabled, no
+/// a (source element, line), and §2023:14.6.13.1.1 — "if checking for an exception that occurs is not enabled, no
 /// exception condition is raised").
 ///
 /// <para><b>Why a runtime object at all, when <see cref="ExceptionState"/>'s other gates are compile-time.</b>
 /// Every ordinary raise site knows its exception-name at COMPILE time, so the binder folds the TURN state there
-/// and the emitter simply does not write the guard when checking is off. §14.9.18.4 GR1 b) asks the same question
+/// and the emitter simply does not write the guard when checking is off. §2023:14.9.18.4 GR1 b) asks the same question
 /// about a name that is NOT known at compile time: a callee's <c>GOBACK … RAISING LAST EXCEPTION</c> decides the
 /// name at run time, and the rule localises the raise in the ACTIVATING runtime element — "an exception condition
 /// is raised in the activating runtime element if checking for that exception condition is enabled in the
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// <para><b>The encoding is the directive stream, not the answer set.</b> A profile is the ordered
 /// <c>(exception-name, on)</c> prefix of the element's TURN directives that governs the statement — exactly what
 /// <c>TurnState.Fold</c> walks — so <see cref="Enabled"/> reproduces the compile-time fold for ANY name: last
-/// matching event wins, with §7.3.25.4 GR2/GR3/GR4's hierarchy expansion supplied by
+/// matching event wins, with §2023:7.3.25.4 GR2/GR3/GR4's hierarchy expansion supplied by
 /// <see cref="ExceptionCatalog.DirectiveCovers"/>, the ONE place that rule is written. Encoding the ANSWER set
 /// instead would mean naming every level-3 name the catalog holds at every activating statement.</para>
 ///
@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Runtime.Exceptions;
 /// </summary>
 public sealed class EcCheckingProfile
 {
-    /// <summary>No directive governs the site — every query is disabled (the §7.3.25.4 GR1 default).</summary>
+    /// <summary>No directive governs the site — every query is disabled (the §2023:7.3.25.4 GR1 default).</summary>
     public static readonly EcCheckingProfile None = new("", []);
 
     private static readonly ConcurrentDictionary<string, EcCheckingProfile> Cache = new(StringComparer.Ordinal);
@@ -78,7 +78,7 @@ public sealed class EcCheckingProfile
     }
 
     /// <summary>Is checking for level-3 <paramref name="level3"/> enabled at the statement this profile
-    /// describes? The LAST directive covering the name wins (§7.3.25.4 GR6/GR8 — enabled/disabled "until" the
+    /// describes? The LAST directive covering the name wins (§2023:7.3.25.4 GR6/GR8 — enabled/disabled "until" the
     /// next toggle); no covering directive is the GR1 default, disabled.</summary>
     public bool Enabled(string? level3)
     {

@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE <c>&lt;&gt;</c> INTRODUCTION GATE IS ONE BODY, ASKED BY TWO LANES (kb/Work PB3604). ISO §8.7.5.2 SR11 makes
+/// ⛔ THE <c>&lt;&gt;</c> INTRODUCTION GATE IS ONE BODY, ASKED BY TWO LANES (kb/Work PB3604). ISO §2023:8.7.5.2 SR11 makes
 /// the symbol "an abbreviation for NOT EQUAL" and Annex D.3 item 16 of the 2009 committee draft introduces it at 2014;
 /// the construct row is <c>not-equal-operator-2014</c>. A relation is written in two places the compilation-unit walk
 /// does not both reach — a statement's condition (the walk) and a <c>&gt;&gt;IF</c> / <c>&gt;&gt;EVALUATE</c> constant-

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.12.3 SR2 — the RESULT OF IMPLIED INSERTION in an
+      *> ISO §2023:8.8.4.12.3 SR2 — the RESULT OF IMPLIED INSERTION in an
       *> abbreviated combined relation condition shall comply with
       *> Table 5; an abbreviation whose expansion yields 'NOT NOT' is
       *> refused.

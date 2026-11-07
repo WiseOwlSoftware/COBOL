@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// characters a position, <c>CobolBits.NatBytes</c>), so the runtime's two image-side rules that were stated in characters
 /// are stated in positions of the component's own unit: the layout code that carries the unit
 /// (<see cref="CobolDynStructure.PlainCode"/>), the space a fixed-length file pads a member with and trims from it
-/// (<see cref="CobolVarGroup.SpacesFor"/>, ISO §13.18.43.4 GR6 fixed-length records; the national space is the pair 00 20,
-/// never the byte 0x20 twice, which is U+2020), and the space an excess-part table element is filled with (§14.6.9.4).
+/// (<see cref="CobolVarGroup.SpacesFor"/>, ISO §2023:13.18.43.4 GR6 fixed-length records; the national space is the pair 00 20,
+/// never the byte 0x20 twice, which is U+2020), and the space an excess-part table element is filled with (§2023:14.6.9.4).
 /// </summary>
 public sealed class NationalDynamicComponentImageTests
 {
@@ -69,7 +69,7 @@ public sealed class NationalDynamicComponentImageTests
     [Fact]
     public void AStructuredNationalMemberOfAGroup_CountsItsLengthFieldInPositions_AndTakesItBack()
     {
-        // ISO §12.3.7.4 GR18: SHORT PREFIXED is a two-byte length field in CHARACTER POSITIONS (DOC-A.1-205: most
+        // ISO §2023:12.3.7.4 GR18: SHORT PREFIXED is a two-byte length field in CHARACTER POSITIONS (DOC-A.1-205: most
         // significant byte first), so N"AB" - two positions, four bytes - is framed 00 02 | 00 41 00 42 (kb/Work PB3441).
         var shortPrefixed = new CobolDynStructure(2, delimited: false, unit: 2);
         var layout = new CobolContiguousLayout(2, [2], [2], [5L], [shortPrefixed.Code]);
@@ -83,7 +83,7 @@ public sealed class NationalDynamicComponentImageTests
     [Fact]
     public void ATableOfNationalElementsInAnAreaTheCarrierLacks_IsSpaceFilledWithTheNationalSpace()
     {
-        // §14.6.9.4: the capacity is unaffected and each element is space-filled - the national space (00 20) for a national
+        // §2023:14.6.9.4: the capacity is unaffected and each element is space-filled - the national space (00 20) for a national
         // element, which the cell cannot tell from the width alone: its layout code (the unit) says so.
         var cell = new StorageCell { Ref = "" };
         var table = cell.DynTableAt(0, 0, 4);

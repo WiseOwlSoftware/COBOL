@@ -9,26 +9,26 @@
       *> exponent's `n`. Two ISO sentences pull in opposite directions and they give DIFFERENT answers, so
       *> this fixture exists to pin the one WiseOwl COBOL took (docs/CONFORMANCE.md §3).
       *>
-      *> ⛔ THE RULES ARE THE NUMVAL-F FUNCTION'S. §15.95.1 says TEST-NUMVAL-F "verifies that the contents of
-      *> argument-1 conform to the specification for argument-1 of the NUMVAL-F function", and §15.95.4 r1 a)
-      *> imports §15.69.3 whole, so every citation below is to the NUMVAL-F clause and reaches this function
+      *> ⛔ THE RULES ARE THE NUMVAL-F FUNCTION'S. §2023:15.95.1 says TEST-NUMVAL-F "verifies that the contents of
+      *> argument-1 conform to the specification for argument-1 of the NUMVAL-F function", and §2023:15.95.4 r1 a)
+      *> imports §2023:15.69.3 whole, so every citation below is to the NUMVAL-F clause and reaches this function
       *> through that import.
       *>
-      *> §15.69.3 r5 (NUMVAL-F argument rules) — "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in
+      *> §2023:15.69.3 r5 (NUMVAL-F argument rules) — "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in
       *> argument-1 are ignored EXCEPT between the first numeric digit and the last digit that precedes a
       *> letter 'E'" (cite.py --check 15.69.3 -> OK, rule 5). Its except-clause names only the SIGNIFICAND.
       *> Read as "elide the space and JOIN the runs on either side", an exponent written with an interior
       *> space would be one number: "1E+1 234" would have the four-digit exponent 1234 and CONFORM (0), and
-      *> "1E+1 2345" would have the five-digit exponent 12345, whose fifth digit §15.95.4 r1 b) 5 puts at
+      *> "1E+1 2345" would have the five-digit exponent 12345, whose fifth digit §2023:15.95.4 r1 b) 5 puts at
       *> position 9. WiseOwl COBOL answers 0 to NEITHER and 9 to neither — see EIN4/EIN5 below.
       *>
       *> THE OTHER READING WINS, on two independent grounds:
-      *>  (a) §15.69.3 r1's format figure — verified on the PRINTED page 898, not only in the transcription
+      *>  (a) §2023:15.69.3 r1's format figure — verified on the PRINTED page 898, not only in the transcription
       *>      — draws `n` as ONE contiguous metavariable ("n is one, two, three, or four digits representing
       *>      the exponent"; cite.py --check 15.69.3 -> OK, rule 1) with [ space-string ] only BEFORE and
       *>      AFTER it. So the space in "1E+1 2345" is the legal TRAILING space-string and the '2' after it
       *>      is simply outside the format.
-      *>  (b) §15.95.4 r1 b) 1 governs the case directly and is UNQUALIFIED as to which digit run: "if one
+      *>  (b) §2023:15.95.4 r1 b) 1 governs the case directly and is UNQUALIFIED as to which digit run: "if one
       *>      or more spaces are embedded within a string of numeric characters, the returned value is the
       *>      position of the first non-space character following the spaces" (cite.py --check 15.95.4 ->
       *>      OK, 1) b) 1.) — while sub-notes 2, 3 and 4 of that same list each say "of the significand"
@@ -36,7 +36,7 @@
       *> "ignored" therefore means the space CONTRIBUTES NOTHING where the figure admits one, never that the
       *> runs on either side join.
       *>
-      *> Hand-derived, under NATIVE arithmetic at --std 2023 (§15.95.4 r1 b) 5's own precondition names the
+      *> Hand-derived, under NATIVE arithmetic at --std 2023 (§2023:15.95.4 r1 b) 5's own precondition names the
       *> standard modes; under native the same positions fall out of leg b) generic, because r1's where-
       *> clause caps `n` at four digits with no arithmetic-mode qualification — the standard-decimal side is
       *> conformance:cases/15.93.4-Returned-value-rule/pb256_test_numval_standard_decimal):
@@ -46,7 +46,7 @@
       *>   EFIVE "1E+12345"    -> 8   CONTIGUOUS five-digit exponent: r1 b) 5's own shape, fifth digit at 8
       *>   EBEF  "1E+ 1234"    -> 0   the figure's [ space-string ] BETWEEN the exponent sign and n
       *>   EAFT  "1E+1234 "    -> 0   the figure's TRAILING [ space-string ] after n
-      *>   SIG1  "0 1E+2"      -> 3   §15.95.4 r1 b) 1's VERBATIM example (the significand's own space)
+      *>   SIG1  "0 1E+2"      -> 3   §2023:15.95.4 r1 b) 1's VERBATIM example (the significand's own space)
       *>   SIG2  "1 2E+3"      -> 3   the same rule one position along
       *>   ALLSP " + 1.5E + 1 " -> 0  every space in a figure-licensed slot
        IDENTIFICATION DIVISION.

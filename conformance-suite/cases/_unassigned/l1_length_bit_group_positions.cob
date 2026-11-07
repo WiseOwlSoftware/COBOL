@@ -5,45 +5,45 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.50.4 r5 + r3 — FUNCTION LENGTH OF A BIT-BEARING GROUP THAT IS NOT A RECORD, with §15.50.4 r1 as
+      *> ISO §2023:15.50.4 r5 + r3 — FUNCTION LENGTH OF A BIT-BEARING GROUP THAT IS NOT A RECORD, with §2023:15.50.4 r1 as
       *> the control that names which rule is speaking. A BIT-LAYOUT REGRESSION GOLDEN: it closes no inventory
       *> row, and the paragraph below records WHY, so the claim it once carried is not inherited again.
       *> r5: "The returned length shall include the number of implicit FILLER positions, if any, in argument-1."
       *>   python scripts/spec/cite.py --check 15.50.4 "The returned length shall include the number of implicit
-      *>   FILLER positions, if any, in argument-1."  ->  OK  §15.50.4 5)  (Returned value rules)
+      *>   FILLER positions, if any, in argument-1."  ->  OK  §2023:15.50.4 5)  (Returned value rules)
       *> r3: "If argument-1 is other than category boolean or usage national, the returned value is an integer
-      *>   equal to the length of argument-1 in alphanumeric character positions."  ->  OK  §15.50.4 3)
+      *>   equal to the length of argument-1 in alphanumeric character positions."  ->  OK  §2023:15.50.4 3)
       *> r1: "If argument-1 is a bit group item, an elementary boolean data item, a boolean literal, or a type
       *>   declaration for a boolean item, the returned value is an integer equal to the length of argument-1 in
-      *>   boolean positions."  ->  OK  §15.50.4 1)
+      *>   boolean positions."  ->  OK  §2023:15.50.4 1)
       *>
-      *> ⛔ THIS FILE DOES NOT EXERCISE §15.50.4 r9, AND THE FIRST DRAFT'S CLAIM THAT IT DID WAS WRONG.
-      *> That draft argued that §8.5.1.6.3's boundary-advance filler — "implicitly described as a filler
+      *> ⛔ THIS FILE DOES NOT EXERCISE §2023:15.50.4 r9, AND THE FIRST DRAFT'S CLAIM THAT IT DID WAS WRONG.
+      *> That draft argued that §2023:8.5.1.6.3's boundary-advance filler — "implicitly described as a filler
       *> elementary bit data item of the necessary number of bits and of the same level number as the next item
       *> within that group", level 05 here — is a SIBLING of the 05 group and therefore outside it, leaving
       *> L1R-AG at a non-integral 11 bits that only r9 could round. The standard's own worked example refutes
-      *> that inference. §D.10 2): "The generated filler is not part of the preceding data, but is part of any
+      *> that inference. §2023:D.10 2): "The generated filler is not part of the preceding data, but is part of any
       *> groups that contain the item. For example, the filler generated after item-6 is included in group-2 and
       *> group-1, but not in item-6." In that example the filler is annotated at LEVEL 02 while item-6 sits at
       *> level 03 inside group-2 (level 02), and the standard still puts the filler INSIDE group-2 — so a
       *> filler's LEVEL NUMBER and its CONTAINMENT are different questions. (Annex D is INFORMATIVE; it is cited
-      *> here as the standard's own reading of §8.5.1.6.3, which assigns the filler a level number and says
+      *> here as the standard's own reading of §2023:8.5.1.6.3, which assigns the filler a level number and says
       *> nothing at all about which groups contain it.)
       *>   python scripts/spec/cite.py --check D.10 "The generated filler is not part of the preceding data, but
-      *>   is part of any groups that contain the item."  ->  OK  §D.10 2)
+      *>   is part of any groups that contain the item."  ->  OK  §2023:D.10 2)
       *> L1R-AG therefore occupies 11 + 5 = 16 bits = EXACTLY 2 alphanumeric character positions; r9's antecedent
       *> ("argument-1 does not occupy an integral number of positions") is FALSE; and AG=2 is r5 counting the
       *> implicit filler, the same rule 2023/pb43_usage_bit_occupies_bits measures as SPLIT=3. Between
-      *> §8.5.1.6.3's boundary-advance bullet and its record-end bullet, every alphanumeric group carrying bit
+      *> §2023:8.5.1.6.3's boundary-advance bullet and its record-end bullet, every alphanumeric group carrying bit
       *> data ends byte-integral, so NO FUNCTION LENGTH golden can make r9's antecedent true: RV-15.50.4-9 stays
-      *> test-needed and wants an owner adjudication recorded per §4.2.16 (r9 vacuous under WiseOwl COBOL's 8-bit
+      *> test-needed and wants an owner adjudication recorded per §2023:4.2.16 (r9 vacuous under WiseOwl COBOL's 8-bit
       *> determination plus the filler rules), not a fixture.
       *>
-      *> WHAT THIS FILE DOES PIN. §13.18.29.4 GR3 — "If a GROUP-USAGE clause is not specified or implied for a
+      *> WHAT THIS FILE DOES PIN. §2023:13.18.29.4 GR3 — "If a GROUP-USAGE clause is not specified or implied for a
       *> group item that is not strongly typed and is not a variable-length group, that group item is an
       *> alphanumeric group item" — makes each group below alphanumeric (no GROUP-USAGE, no TYPE, no
-      *> dynamic-length or dynamic-capacity subordinate, §8.5.1.12.1), so r3 measures it in alphanumeric
-      *> character positions rather than r1 measuring it in boolean ones. §8.1.2 item 3 leaves the number of bits
+      *> dynamic-length or dynamic-capacity subordinate, §2023:8.5.1.12.1), so r3 measures it in alphanumeric
+      *> character positions rather than r1 measuring it in boolean ones. §2023:8.1.2 item 3 leaves the number of bits
       *> in a byte to the implementor; WiseOwl COBOL specifies 8 (docs/CONFORMANCE.md).
       *>   AG  11 bits + 5 implicit filler = 16 = 2  — a bit run that does NOT end on a byte boundary
       *>   BG  16 bits, no filler needed   = 16 = 2  — the exactly-integral control; a blanket +1 byte answers 3

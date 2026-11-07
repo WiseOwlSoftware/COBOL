@@ -7,7 +7,7 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB690RPT.
-      *> ISO/IEC 1989:2023 §13.4.5 FD entry GR4 (the report writer
+      *> ISO/IEC 1989:2023 §2023:13.4.5 FD entry GR4 (the report writer
       *> logical record structure, Annex A.1 item 159) with the file
       *> coded character set of Annex A.1 item 31 (owner decision
       *> kb/Work R47; kb/Work PB690).
@@ -18,10 +18,10 @@
       *> value, and a print line holding a character above U+00FF is
       *> NOT written — the write the report writer performs is
       *> unsuccessful with I-O status '91' in the report file's
-      *> connector (§9.1.13.11 item 1). GENERATE is not among the
-      *> statements §9.1.13.1 lists as setting an I-O status, so the
+      *> connector (§2023:9.1.13.11 item 1). GENERATE is not among the
+      *> statements §2023:9.1.13.1 lists as setting an I-O status, so the
       *> FILE STATUS item is not stored by it; what the program can
-      *> observe is the report file itself. §14.9.51.4 GR15: an
+      *> observe is the report file itself. §2023:14.9.51.4 GR15: an
       *> unsuccessful write "does not take place", its advance
       *> included — so the device stays where it was and the NEXT
       *> line's advance covers the refused line's slot: the refused

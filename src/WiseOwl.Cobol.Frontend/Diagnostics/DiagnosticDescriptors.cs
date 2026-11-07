@@ -29,7 +29,7 @@ public static class DiagnosticDescriptors
     // COBOL0100: Parser — a misplaced OCCURS KEY phrase
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0100 = new("COBOL0100", DiagnosticSeverity.Warning,
-        "ASCENDING/DESCENDING KEY is out of place: in an OCCURS clause the KEY phrases are written before INDEXED BY (ISO §13.18.38.2).");
+        "ASCENDING/DESCENDING KEY is out of place: in an OCCURS clause the KEY phrases are written before INDEXED BY (ISO §2023:13.18.38.2).");
     // COBOL0101-0107 were "may not be supported" / "not yet supported" hints keyed on a word's spelling, each
     // claiming a limitation the compiler does not have: 0104 (OCCURS DEPENDING ON), 0105 (INSPECT CONVERTING) and
     // 0106 (INITIALIZE REPLACING) were removed by DEVLOG 232; 0101 (BLANK WHEN ZERO), 0102 (SET), 0103 (SEARCH) and
@@ -87,7 +87,7 @@ public static class DiagnosticDescriptors
 
     // ══════════════════════════════════════
     // COBOL2172/2173: a written shape NO general format of its clause prints (kb/Work PB412, PB421) — the
-    // GO TO complement (§14.9.17.2) and a CORRESPONDING phrase after a MOVE sending operand (§14.9.25.2).
+    // GO TO complement (§2023:14.9.17.2) and a CORRESPONDING phrase after a MOVE sending operand (§2023:14.9.25.2).
     // Same single-sourcing as 2072/2073 above: the CODE comes from the catalogue descriptor, the message is
     // composed at the CobolErrorStrategy site from the format's own cardinalities.
     // ══════════════════════════════════════
@@ -100,7 +100,7 @@ public static class DiagnosticDescriptors
 
     // ══════════════════════════════════════
     // COBOL2418/2419: the parse-layer twins of the figurative-spelling keyword refusal (kb/Work PB510) and the
-    // §13.18.40.3 SR7 PICTURE separator-period rule (kb/Work PB569). Same single-sourcing as 2072/2073.
+    // §2023:13.18.40.3 SR7 PICTURE separator-period rule (kb/Work PB569). Same single-sourcing as 2072/2073.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2418 = new(
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.FigurativeSpellingNotTheKeyword.Code,
@@ -146,8 +146,8 @@ public static class DiagnosticDescriptors
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
-    // CBL3620–3622: COPY preprocessing (ISO §7.2.3). All three are unconditional errors: CBL3620 is library
-    // text that cannot be located (§7.2.3.4 GR1/GR2 — at every edition and on every path since kb/Work PB1355;
+    // CBL3620–3622: COPY preprocessing (ISO §2023:7.2.3). All three are unconditional errors: CBL3620 is library
+    // text that cannot be located (§2023:7.2.3.4 GR1/GR2 — at every edition and on every path since kb/Work PB1355;
     // the search is the DOC-A.1-40 determination); CBL3621 a circular include; CBL3622 over-deep nesting.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3620 = new("CBL3620", DiagnosticSeverity.Error,

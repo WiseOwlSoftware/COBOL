@@ -16,11 +16,11 @@ using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The boolean-expression / boolean-operator binder (Phase-4 track (a) increment 2; ISO §8.8.2 the operators
-/// B-AND/B-OR/B-XOR/B-NOT, §14.9.8 Format-2 boolean COMPUTE, §8.8.4.2.2 the boolean relation, §8.8.4.3 the
+/// The boolean-expression / boolean-operator binder (Phase-4 track (a) increment 2; ISO §2023:8.8.2 the operators
+/// B-AND/B-OR/B-XOR/B-NOT, §2023:14.9.8 Format-2 boolean COMPUTE, §2023:8.8.4.2.2 the boolean relation, §2023:8.8.4.3 the
 /// simple boolean condition). A boolean expression binds into the <see cref="BoundBoolExpr"/> value channel
 /// (a '0'/'1' string world, D-B1) — never the numeric or DISPLAY operand channels. Operand SHAPES are validated
-/// here (the COBOL1511 constraint band); the {is2002()}?-gated grammar tiers enforce the §8.8.2 formation
+/// here (the COBOL1511 constraint band); the {is2002()}?-gated grammar tiers enforce the §2023:8.8.2 formation
 /// rules structurally, and the operators are unreachable below 2002 (so no binder-side introduction gate — the
 /// XOR precedent: the grammar predicate + the parse-layer hint ARE the gate).
 /// P7 Step 10o: the WHOLE condition/relation/boolean channel as ONE collaborator over
@@ -37,13 +37,13 @@ using WiseOwl.Cobol.Runtime;
 /// the VersionConformancePass duplicate this remark once called deliberate is gone).</summary>
 internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind a <c>booleanExpression</c> (ISO §8.8.2) to a bound boolean tree via the ONE shared
+    /// <summary>Bind a <c>booleanExpression</c> (ISO §2023:8.8.2) to a bound boolean tree via the ONE shared
     /// <see cref="BooleanExpressionResolver"/> (the same mechanism the compile-time expression evaluator uses).
     /// Precedence and grouping are resolved there — B-NOT &gt; B-AND &gt; B-XOR &gt; B-OR (rule 7b), left-to-right at
     /// equal precedence (rule 7c), and the context-inherited SHIFT precedence a context-free grammar cannot express
     /// (a shift takes the precedence of the operator before it, B-AND if none). So the mixed shift-with-binary form
     /// is ACCEPTED and grouped per the standard rather than refused. The combine operations build the bound nodes:
-    /// a leaf operand via <see cref="BindBoolOperandValue"/>; B-NOT with the ALL-fold (§8.3.3.6.4 — ALL is
+    /// a leaf operand via <see cref="BindBoolOperandValue"/>; B-NOT with the ALL-fold (§2023:8.3.3.6.4 — ALL is
     /// positionless, so flip the pattern); a binary op via <see cref="MakeBoolBinary"/> (rule 4 — not both operands
     /// ALL); and a shift via <see cref="BindBoolShiftSuffix"/> (rule 5).</summary>
     internal BoundBoolExpr BindBoolExpr(Core.BooleanExpressionContext ctx) =>
@@ -57,11 +57,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             shift: BindBoolShiftSuffix);
 
     /// <summary>Apply one boolean shift suffix (<c>(B-SHIFT-L|R|LC|RC) integer</c>) to <paramref name="operand"/>
-    /// (ISO §8.8.2 rule 8, COBOL-2023). Rule 5 has two halves: the first operand shall not be the figurative ALL
+    /// (ISO §2023:8.8.2 rule 8, COBOL-2023). Rule 5 has two halves: the first operand shall not be the figurative ALL
     /// literal (COBOL1511, the boolean-constraint band), and "The second operand shall be an integer operand"
     /// (COBOL2513, kb/Work PB1413) — asked through the ONE integer classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundExpr)"/>:
-    /// §5.5 2)'s integer literal, integer data item, or integer-type function; a numeric function is refused even
-    /// when its value is integral, §8.4.3.2.3 SR11). The count's SHAPE — Table 4's single identifier or literal —
+    /// §2023:5.5 2)'s integer literal, integer data item, or integer-type function; a numeric function is refused even
+    /// when its value is integral, §2023:8.4.3.2.3 SR11). The count's SHAPE — Table 4's single identifier or literal —
     /// is <see cref="ArithmeticFormationRules.ShiftCountNotSoleOperand"/>'s, reported by ExpressionFormationPass
     /// (COBOL1719); a malformed count is not asked the integer question too, so it draws one diagnostic. The 2023
     /// introduction is gated in the VersionConformancePass parse arm, so there is no binder-side edition gate here.</summary>
@@ -71,39 +71,39 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                  : suf.B_SHIFT_RC() is not null ? BoolShiftKind.RightCircular
                  : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
                  : BoolShiftKind.Right;
-        if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §8.8.2 operand (kb/Work PB157)
+        if (operand is BoundBoolAll { IsAllLiteral: true })   // NOT figurative ZERO — a disjoint §2023:8.8.2 operand (kb/Work PB157)
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "the first operand of a boolean shift operation shall not be the "
-                + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
+                + "figurative constant ALL literal (ISO §2023:8.8.2 rule 5)");
         var count = host.Expr.BindExpr(suf.arithmeticExpression());
         if (count is not BoundExprError && ArithmeticFormationRules.ShiftCountNotSoleOperand(suf) is null
             && !IntrinsicResultType.IsIntegerOperand(count))
             ctx.Edition.Error(DiagnosticCatalog.BooleanShiftCountNotInteger, $"the second operand of a boolean shift operation shall be an integer "
-                + $"operand (ISO §8.8.2 rule 5) — '{DataBinder.WrittenText(suf.arithmeticExpression())}' is not: an integer operand "
-                + "is an integer literal (no decimal point, §8.3.3.3.2), an integer data item, or an integer-type "
-                + "function (ISO §5.5 2); a numeric function is not one even when its value is integral, "
-                + "§8.4.3.2.3 SR11)");
+                + $"operand (ISO §2023:8.8.2 rule 5) — '{DataBinder.WrittenText(suf.arithmeticExpression())}' is not: an integer operand "
+                + "is an integer literal (no decimal point, §2023:8.3.3.3.2), an integer data item, or an integer-type "
+                + "function (ISO §2023:5.5 2); a numeric function is not one even when its value is integral, "
+                + "§2023:8.4.3.2.3 SR11)");
         return new BoundBoolShift(operand, kind, count);
     }
 
-    /// <summary>Rule 4 (§8.8.2 :9364): both operands of a binary boolean op shall not both be ALL "literal".</summary>
+    /// <summary>Rule 4 (§2023:8.8.2 :9364): both operands of a binary boolean op shall not both be ALL "literal".</summary>
     private BoundBoolExpr MakeBoolBinary(BoundBoolExpr left, char op, BoundBoolExpr right)
     {
         if (left is BoundBoolAll { IsAllLiteral: true } && right is BoundBoolAll { IsAllLiteral: true })
             // Rule 4 restricts the Format-6 ALL literal, not figurative ZERO — `ZERO B-AND ALL B"1"` has ONE
             // ALL-literal operand and is legal (kb/Work PB157).
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean operator shall not be ALL literals "
-                + "(ISO §8.8.2 rule 4)");
+                + "(ISO §2023:8.8.2 rule 4)");
         return new BoundBoolBinary(left, op, right);
     }
 
-    /// <summary>Resolve a boolean-expression leaf operand (ISO §8.8.2 operand list): a boolean literal, the
+    /// <summary>Resolve a boolean-expression leaf operand (ISO §2023:8.8.2 operand list): a boolean literal, the
     /// figurative ZERO / <c>ALL B"…"</c>, or a category-boolean data item. Anything else — a non-boolean item,
     /// a plain string, an arithmetic expression, another figurative — is COBOL1511.</summary>
     private BoundBoolExpr BindBoolOperandValue(Core.ValueOperandContext vo)
     {
         var nn = vo.nonNumericLiteral();
-        // A boolean concatenation expression (B"01" & B"10", ISO §8.8.3) folds to its equivalent single
-        // boolean literal at compile time (§8.8.3.3 GR3) — the §8.8.2 operand list admits a boolean literal,
+        // A boolean concatenation expression (B"01" & B"10", ISO §2023:8.8.3) folds to its equivalent single
+        // boolean literal at compile time (§2023:8.8.3.3 GR3) — the §2023:8.8.2 operand list admits a boolean literal,
         // and the folded result IS one. A non-boolean concat is not a boolean operand (1511, below).
         if (nn?.concatenationExpression() is { } ce && ConcatFolder.ClassOf(ce, ctx.Data.LiteralEnv) is PicCategory.Boolean)
             return new BoundBoolLiteral(ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value);
@@ -111,39 +111,39 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
             // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
             return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
-        // The predefined NULL is no boolean operand and a boolean expression is no §8.4.3.10.3 SR1 context: the ONE
+        // The predefined NULL is no boolean operand and a boolean expression is no §2023:8.4.3.10.3 SR1 context: the ONE
         // SR1 refusal (COBOL2576), through the literal mapping that owns it (kb/Work PB1427).
         if (nn?.predefinedNull() is not null && host.Expr.NonNumericLiteralOperand(nn) is BoundOperandError nullErr)
             return BoundBoolError.Carry(nullErr.Feature, nullErr.IsUnbuilt);
         if (nn?.figurativeConstant() is { } fig)
         {
-            if (fig.zeroWord() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
+            if (fig.zeroWord() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§2023:8.3.3.6.4 GR4)
             // ALL literal-1 of class boolean (a concatenated or constant-name literal-1 folds through the ONE Format 6
-            // reader, classed by §8.8.3.3 GR1 — kb/Work PB71, PB1627). The routing predicate IsBooleanValueOperand
+            // reader, classed by §2023:8.8.3.3 GR1 — kb/Work PB71, PB1627). The routing predicate IsBooleanValueOperand
             // asked the SAME fold diagnostic-free, so the route and the reported class cannot disagree.
             if (ConcatFolder.FoldAllLiteral(fig, ctx.Data.LiteralEnv, ctx.Edition) is { Category: PicCategory.Boolean } literal1)
                 return new BoundBoolAll(literal1.Value, IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
             // kb/Work PB1029 — this refusal carried no diagnostic (`COMPUTE B = B B-AND SPACE` compiled clean and
-            // aborted the run unit); it is the §8.8.2 operand list's figurative half, reported as its siblings are.
+            // aborted the run unit); it is the §2023:8.8.2 operand list's figurative half, reported as its siblings are.
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{ConcatFolder.Spelling(fig)}' is not a valid boolean operand — the only figurative "
                 + "constants a boolean expression admits are ZERO (ZEROS, ZEROES) and ALL literal where the literal is a "
-                + "boolean literal (ISO §8.8.2)");
+                + "boolean literal (ISO §2023:8.8.2)");
             return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a boolean expression "
-                + "(ISO §8.8.2)");
+                + "(ISO §2023:8.8.2)");
         }
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
-        // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
+        // predicate IsBooleanValueOperand reads it (§2023:8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
         ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
-            + "(ISO §8.8.2)");
+            + "(ISO §2023:8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{DataBinder.WrittenText(vo)}'");
     }
 
     /// <summary>The ONE binding of a boolean operand that is a SOLE identifier — a data reference to a
     /// category-boolean item, a boolean constant-name, or a function-identifier whose result is class boolean —
     /// through the parentheses that enclose the whole of it ("a boolean expression enclosed in parentheses" is a
-    /// boolean expression, ISO §8.8.2; <see cref="SoleOperand.Unparenthesized"/>), or null when the expression is
+    /// boolean expression, ISO §2023:8.8.2; <see cref="SoleOperand.Unparenthesized"/>), or null when the expression is
     /// neither (a literal, a figurative and an operator-bearing expression are the caller's). Its two callers are
     /// <see cref="BindBoolOperandValue"/>, the leaf of every boolean expression, and COMPUTE's Format 1 to Format 2
     /// reroute (<c>ArithmeticBinder.BindCompute</c>), whose sole right-hand operand parses as an arithmetic
@@ -158,10 +158,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (SoleDataRef(expr) is { } dref)
         {
             // A constant-name is NOT a data item: "the effect of specifying constant-name-1 … is as if literal-1 … were
-            // written where constant-name-1 is written" (§13.10.4 GR1), and it "may be used anywhere that a format
-            // specifies a literal of the class and category of constant-name-1" (§13.10.3 SR2). A boolean constant IS
-            // the boolean literal of §8.8.2's operand list; any other alias (a numeric or string constant, a
-            // symbolic-character) is a literal §8.8.2 does not list, named for what it is below (kb/Work PB3191).
+            // written where constant-name-1 is written" (§2023:13.10.4 GR1), and it "may be used anywhere that a format
+            // specifies a literal of the class and category of constant-name-1" (§2023:13.10.3 SR2). A boolean constant IS
+            // the boolean literal of §2023:8.8.2's operand list; any other alias (a numeric or string constant, a
+            // symbolic-character) is a literal §2023:8.8.2 does not list, named for what it is below (kb/Work PB3191).
             var alias = host.Expr.LiteralAliasOf(dref);
             if (alias?.Constant is { Category: PicCategory.Boolean } boolConstant) return new BoundBoolLiteral(boolConstant.Text);
             if (alias is null)
@@ -170,32 +170,32 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // which told a user whose name was undefined (already COBOL1639) that it was "not a boolean operand".
                 if (host.Expr.ResolveSending(dref) is var r && r.Place is not { } p) return r.BoolError(ctx.Edition);
                 // THE ONE category reader (D20/PB79): a ref-mod view's category (GR6), else the item's own picture or a
-                // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
+                // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§2023:13.18.29.4 GR1a).
                 var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
                 if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             }
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is "
                 + (alias is null ? "not a boolean data item" : $"{alias.Described}, not a boolean literal")
-                + " (ISO §8.8.2 — boolean operands only)");
+                + " (ISO §2023:8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, alias is null ? $"non-boolean operand '{DataBinder.WrittenText(dref)}'"
                 : $"non-boolean literal alias '{DataBinder.WrittenText(dref)}'");
         }
-        // A sole FUNCTION reference whose result is class boolean — §8.8.2's "an identifier referencing a boolean
-        // data item": a function-identifier IS an identifier (§8.4.3.1.2) referencing a temporary data item
-        // (§8.4.3.2.4 GR1) whose category is the function's type (§15.13.1 BOOLEAN-OF-INTEGER; kb/Work PB68 — it
+        // A sole FUNCTION reference whose result is class boolean — §2023:8.8.2's "an identifier referencing a boolean
+        // data item": a function-identifier IS an identifier (§2023:8.4.3.1.2) referencing a temporary data item
+        // (§2023:8.4.3.2.4 GR1) whose category is the function's type (§2023:15.13.1 BOOLEAN-OF-INTEGER; kb/Work PB68 — it
         // fell to the 1511 default below, "not a valid boolean operand", on legal source).
         if (SoleFunctionCall(expr) is { } fc)
         {
             var bound = host.Intrinsic.BindIntrinsic(fc);
             if (bound is BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } bic) return new BoundBoolCall(bic);
-            // A USER-DEFINED function is the same identifier: §8.4.3.2.4 GR1 gives its temporary the description,
+            // A USER-DEFINED function is the same identifier: §2023:8.4.3.2.4 GR1 gives its temporary the description,
             // class and category of the RETURNING item, so a boolean RETURNING item is a boolean data item here
             // exactly as a declared one is (kb/Work PB1419 — the refusal that kept this channel from half-wiring).
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
-                + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
+                + "boolean function — its result is not class boolean (ISO §2023:8.8.2 — boolean operands only)");
             return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{DataBinder.WrittenText(fc)}'");
         }
         return null;
@@ -205,7 +205,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// boolean expression (B-op tier) OR a sole category-boolean item / boolean literal — so the relation
     /// binder routes it through the boolean channel. (A bare category-boolean item parses as a valueOperand,
     /// not booleanExpression, so this inspects both.)</summary>
-    /// <para>⚠ Also read by EVALUATE's Table-15 screen, which DECLINES to classify a boolean operand: §14.9.13.3
+    /// <para>⚠ Also read by EVALUATE's Table-15 screen, which DECLINES to classify a boolean operand: §2023:14.9.13.3
     /// SR6 reclassifies one by the SUBJECT and by whether it "results in one boolean character", and guessing
     /// wrong there rejects legal source (fix-queue PB47 — it did, and the gate caught it).</para>
     public bool IsBooleanValueOperand(Core.ValueOperandContext vo)
@@ -214,7 +214,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.BOOLLIT() is not null) return true;
         if (nn?.figurativeConstant() is { } fig
             && ConcatFolder.FoldAllLiteral(fig, ctx.Data.LiteralEnv, report: null) is { Category: PicCategory.Boolean }) return true;   // ALL B"…" (kb/Work PB71, PB1627)
-        // A concatenation expression whose class is boolean (§8.8.3.3 GR1) routes through the boolean channel
+        // A concatenation expression whose class is boolean (§2023:8.8.3.3 GR1) routes through the boolean channel
         // like the equivalent single B"…" literal it folds to (GR3). ClassOf is diagnostic-free — the fold
         // (and its SR diagnostics) happens exactly once, on the bind path this predicate selects.
         if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce, ctx.Data.LiteralEnv) is PicCategory.Boolean;
@@ -227,18 +227,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     internal bool IsSoleBooleanOperand(Core.ArithmeticExpressionContext? whole)
     {
         // Through the enclosing parentheses: "a boolean expression enclosed in parentheses" is a boolean expression
-        // (§8.8.2) — `(BW)` is the boolean item BW (kb/Work PB1464; ConditionOperandExpression).
-        // A BOOLEAN constant-name is the boolean literal it substitutes (§13.10.4 GR1; kb/Work PB3191): asked BEFORE
+        // (§2023:8.8.2) — `(BW)` is the boolean item BW (kb/Work PB1464; ConditionOperandExpression).
+        // A BOOLEAN constant-name is the boolean literal it substitutes (§2023:13.10.4 GR1; kb/Work PB3191): asked BEFORE
         // the probe, as the operand binder (ExpressionBinder.FieldOperand) asks its alias before the resolution.
         // The alias question is the ONE literal-alias resolution (LiteralAliasResolutionDriftTests): it records at most
-        // the §8.3.2.2 use the bind of the same word records again, so asking it here stays diagnostic-free.
+        // the §2023:8.3.2.2 use the bind of the same word records again, so asking it here stays diagnostic-free.
         if (SoleOperand.Unparenthesized(whole) is not { } sole) return false;
         if (SoleDataRef(sole) is { } kref && host.Expr.LiteralAliasOf(kref) is { } kalias)
             return kalias.Constant is { Category: PicCategory.Boolean };
         if (SoleDataRef(sole) is { } dref
             && ctx.Refs.Probe(dref) is { } p)   // Probe — a predicate is diagnostic-free (R30)
             // ProbeResult.OperandCategory IS the one category reader for a probed reference (kb/Work PB157 +
-            // PB221): §8.4.3.3.4 GR6 for a ref-modified reference, else DataItem.OperandPic, so a bit group
+            // PB221): §2023:8.4.3.3.4 GR6 for a ref-modified reference, else DataItem.OperandPic, so a bit group
             // routes boolean like the bind path at line ~106 already does. kb/Work PB173 REMOVED the
             // `is not { IsGroup: true }` exclusion that kept a bit-group ref-mod on the general channel: that
             // channel compared the PACKED byte image at bit offsets (a silent wrong answer, e.g.
@@ -246,15 +246,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // BitImagePlace in boolean positions, so GR6's unique item really does keep usage bit / boolean.
             return p.OperandCategory is PicCategory.Boolean;
         // A sole FUNCTION-keyword reference whose result is boolean, through the enclosing parentheses like the arms
-        // above (§8.8.2: "a boolean expression enclosed in parentheses" — kb/Work PB1928).
+        // above (§2023:8.8.2: "a boolean expression enclosed in parentheses" — kb/Work PB1928).
         return SoleFunctionCall(sole) is { } sfc && IsBooleanFunction(sfc);
     }
 
     /// <summary>True when a function-identifier's result is boolean, asked diagnostic-free in the bind path's own
-    /// dispatch order (<c>IntrinsicBinder.BindFunctionResult</c>, §12.3.8.4 GR12: a REPOSITORY-declared user function
-    /// or the containing function first): a USER-DEFINED function whose RETURNING item is category boolean (§8.4.3.2.4
+    /// dispatch order (<c>IntrinsicBinder.BindFunctionResult</c>, §2023:12.3.8.4 GR12: a REPOSITORY-declared user function
+    /// or the containing function first): a USER-DEFINED function whose RETURNING item is category boolean (§2023:8.4.3.2.4
     /// GR1: the temporary's category IS the RETURNING item's; kb/Work PB1419), else a catalogued BOOLEAN-typed
-    /// intrinsic (§15.2 type 2, today BOOLEAN-OF-INTEGER; kb/Work PB68).
+    /// intrinsic (§2023:15.2 type 2, today BOOLEAN-OF-INTEGER; kb/Work PB68).
     /// <para>⛔ THE NAME IS THE ONE <see cref="FunctionWord"/> READING OF THE TOKEN (kb/Work PB1928, PB1372). This used to
     /// re-resolve the WRITTEN text through <c>CobolWords.Resolve</c>, which reads a word the <c>&gt;&gt;COBOL-WORDS</c>
     /// directive removed as null, so a boolean user function named by an UNDEFINE'd word bound as a function but was
@@ -273,7 +273,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="SolePrimary"/> descent.
     /// <para>⛔ IT ALREADY EXISTED, AND THAT IS THE POINT (kb/Work PB172). PB68 wrote it for the BOOLEAN operand
     /// path — "a function-identifier IS an identifier referencing a temporary data item whose category is the
-    /// function's type" — which is the identical §15.2 argument the RELATION path needed. The comparand binder
+    /// function's type" — which is the identical §2023:15.2 argument the RELATION path needed. The comparand binder
     /// simply never called it, so a sole function comparand went down the expression spine into
     /// <c>BindPrimary</c>'s arithmetic screen. The missing thing was never the helper; it was the fourth member
     /// of <see cref="ComparisonOperandOf"/>'s short-circuit family.</para></summary>
@@ -281,17 +281,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         SolePrimary(expr)?.functionCall();
 
     // ⚠ THREE LENGTH QUESTIONS RIDE THIS NODE SHAPE, AND THEY ARE THREE DIFFERENT RULES — do not fold them.
-    // §14.9.8.4 GR3's COMPUTE store width counts ITEMS only and is a RUN-TIME quantity, so it is not answered
+    // §2023:14.9.8.4 GR3's COMPUTE store width counts ITEMS only and is a RUN-TIME quantity, so it is not answered
     // here at all: BooleanRenderer.RenderAtItemWidth carries it beside the value (kb/Work PB589 deleted the
     // bind-time Gr3Width, which counted a run-time-length slice at its inner item's FULL length).
-    // BoolResultLength is §8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§14.9.13.3
-    // SR6's "results in one boolean character" turns on it). BoolExprAllLengthOne is §8.8.4.3.3 SR1's "shall
+    // BoolResultLength is §2023:8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§2023:14.9.13.3
+    // SR6's "results in one boolean character" turns on it). BoolExprAllLengthOne is §2023:8.8.4.3.3 SR1's "shall
     // reference only boolean items of length 1", a property of EVERY referenced item rather than of the result.
     // The two static ones read an operand's length through ONE reader, StaticBoolRefLength.
 
-    /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§15.13.4
+    /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§2023:15.13.4
     /// r1 "a boolean item of length argument-2") when it is a numeric literal; null when the length is a runtime
-    /// value (the §8.8.4.3 SR1 length-1 test and the §14.9.13.3 SR6 test then fail OPEN — no false rejection).</summary>
+    /// value (the §2023:8.8.4.3 SR1 length-1 test and the §2023:14.9.13.3 SR6 test then fail OPEN — no false rejection).</summary>
     private static int? StaticBoolCallWidth(BoundBoolCall c) =>
         c.Call.Sig.Name == "BOOLEAN-OF-INTEGER" && c.Call.Args.Count == 2
         && c.Call.Args[1] is BoundNumericLiteral { Text: { } t }
@@ -300,7 +300,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(t, out int w) ? w : null;
 
     /// <summary>The COMPILE-TIME length of a boolean item operand, or null when it is a run-time quantity. A
-    /// reference-modified operand is the §8.4.3.3.4 GR5 unique data item of the SLICE's positions
+    /// reference-modified operand is the §2023:8.4.3.3.4 GR5 unique data item of the SLICE's positions
     /// (<see cref="RefModPlace.StaticLength"/>) — never its inner item's full length, which is what the deleted
     /// <c>RefModLen</c> substituted for an unknown slice (kb/Work PB589: `IF B(1:N)` over a PIC 1(8) item was
     /// rejected by SR1 as an 8-position operand). OperandPic — a bit group's as-if 1(m) (kb/Work PB157).</summary>
@@ -314,18 +314,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return new string(arr);
     }
 
-    /// <summary>Bind a SIMPLE boolean condition (ISO §8.8.4.3): a bare boolean expression used as a condition,
+    /// <summary>Bind a SIMPLE boolean condition (ISO §2023:8.8.4.3): a bare boolean expression used as a condition,
     /// true iff its value is boolean 1 (GR1). SR1 (:9810) — every referenced boolean item AND literal shall be
     /// of length 1; a wider operand is COBOL1511. Called from the sole-operand comparison path.</summary>
     private BoundCondition BindSimpleBooleanCondition(BoundBoolExpr expr)
     {
         if (!BoolExprAllLengthOne(expr))
             ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a simple boolean condition shall reference only boolean items "
-                + "and literals of length 1 (ISO §8.8.4.3.3 SR1)");
+                + "and literals of length 1 (ISO §2023:8.8.4.3.3 SR1)");
         return new BoundBooleanCondition(expr);
     }
 
-    /// <summary>SR1 check: every ITEM and LITERAL in the boolean expression has length 1 (§8.8.4.3 SR1). ALL
+    /// <summary>SR1 check: every ITEM and LITERAL in the boolean expression has length 1 (§2023:8.8.4.3 SR1). ALL
     /// figuratives are positionless (they materialize to length 1 against a length-1 sibling) — they pass.</summary>
     private static bool BoolExprAllLengthOne(BoundBoolExpr e) => e switch
     {
@@ -341,8 +341,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         _ => true,              // error nodes already reported
     };
 
-    /// <summary>Bind the boolExprAhead()-gated <c>primaryCondition</c> boolean alternative (ISO §8.8.4.2.2
-    /// relation / §8.8.4.3 simple condition): <c>booleanExpression (comparisonOperator booleanExpression)?</c>.
+    /// <summary>Bind the boolExprAhead()-gated <c>primaryCondition</c> boolean alternative (ISO §2023:8.8.4.2.2
+    /// relation / §2023:8.8.4.3 simple condition): <c>booleanExpression (comparisonOperator booleanExpression)?</c>.
     /// Only an expression that ACTUALLY contains a B-operator uses the boolean channel — the predicate
     /// guarantees at least one B-op somewhere, but an INDIVIDUAL relation operand may still be B-op-free (e.g.
     /// the RHS literal in `(a B-AND b) = c`), so each side unwraps to a normal operand when it has no B-op.</summary>
@@ -357,23 +357,23 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             BoundOperand left = BindBoolOrValueOperand(be[0]);
             string op = MapOperator(opCtx.GetText());
             BoundOperand right = BindBoolOrValueOperand(be[1]);
-            // A relation of boolean expressions is a boolean relation (§8.8.4.2.2 Format 2): no abbreviation follows
-            // it (§8.8.4.12.3 SR1; kb/Work PB1391). The carry holds no subject — the relation is not one an
+            // A relation of boolean expressions is a boolean relation (§2023:8.8.4.2.2 Format 2): no abbreviation follows
+            // it (§2023:8.8.4.12.3 SR1; kb/Work PB1391). The carry holds no subject — the relation is not one an
             // abbreviation may insert from — and says why, so the refusal names the rule.
             carry.BooleanRelation = true;
-            // A boolean relation (§8.8.4.2.2 Format 2): equality-only, both operands boolean-valued.
+            // A boolean relation (§2023:8.8.4.2.2 Format 2): equality-only, both operands boolean-valued.
             if (left is BoundBoolOperand || right is BoundBoolOperand)
             {
                 if (op is not ("==" or "!="))
                     ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
-                        + "(ISO §8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
+                        + "(ISO §2023:8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
                 else if (!BoolValued(left) || !BoolValued(right))
                     ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, "both operands of a boolean relation shall be "
-                        + "boolean-valued (ISO §8.8.4.2.2)");
+                        + "boolean-valued (ISO §2023:8.8.4.2.2)");
             }
             return WrittenRelational(left, op, right);
         }
-        // A bare boolean expression ⇒ a simple boolean condition (§8.8.4.3).
+        // A bare boolean expression ⇒ a simple boolean condition (§2023:8.8.4.3).
         if (HasBoolOp(be[0])) return BindSimpleBooleanCondition(BindBoolExpr(be[0]));
         // Defensive: a B-op-free bare operand (the predicate should have excluded it) unwraps to the normal
         // sole-operand resolution.
@@ -388,24 +388,24 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         HasBoolOp(ctx) ? new BoundBoolOperand(BindBoolExpr(ctx)) : ComparisonOperandOf(UnwrapBareBool(ctx));
 
     /// <summary>True when a bound relation operand is of CLASS boolean — <see cref="BoolValued"/> without figurative
-    /// ZERO, which is boolean only BY CONTEXT (§8.3.3.6.4 GR4: <c>N = ZERO</c> over a numeric item is a general
-    /// relation, <c>B = ZERO</c> a boolean one). §8.8.4.2.1 calls a relation "involving operands of class boolean" a
+    /// ZERO, which is boolean only BY CONTEXT (§2023:8.3.3.6.4 GR4: <c>N = ZERO</c> over a numeric item is a general
+    /// relation, <c>B = ZERO</c> a boolean one). §2023:8.8.4.2.1 calls a relation "involving operands of class boolean" a
     /// boolean relation condition, so this is the question that seeds <see cref="AbbrevCarry.BooleanRelation"/>.</summary>
     private static bool IsBooleanClassOperand(BoundOperand o) => BoolValued(o) && o is not BoundFigurative;
 
     /// <summary>True when a bound relation operand is BOOLEAN-VALUED (a boolean expression, a category-boolean
-    /// item incl. ref-mod, a boolean literal, or figurative ZERO — boolean by context, §8.3.3.6.4 GR4).</summary>
+    /// item incl. ref-mod, a boolean literal, or figurative ZERO — boolean by context, §2023:8.3.3.6.4 GR4).</summary>
     private static bool BoolValued(BoundOperand o) => o switch
     {
         BoundBoolOperand => true,
         BoundStringLiteral { Category: PicCategory.Boolean } => true,
         BoundFigurative { Kind: 'Z' } => true,
         // OperandPic / rm.Category — THE ONE category reader (kb/Work PB157): a GROUP-USAGE BIT item is
-        // boolean-valued in a relation too (§13.18.29.4 GR1a/b). kb/Work PB173 REMOVED the
+        // boolean-valued in a relation too (§2023:13.18.29.4 GR1a/b). kb/Work PB173 REMOVED the
         // `is not { IsGroup: true }` exclusion (the twin of the one in the bind-path predicate above): the
         // "both sides byte-image, consistent" justification described the CHANNEL, not the ANSWER — the
         // general channel sliced the PACKED image at bit offsets and compared the wrong characters. With the
-        // slice in boolean positions (BitImagePlace, §8.4.3.3.4 GR5a) the boolean channel is simply correct.
+        // slice in boolean positions (BitImagePlace, §2023:8.4.3.3.4 GR5a) the boolean channel is simply correct.
         BoundFieldOperand { Place: RefModPlace rm } => rm.Category is PicCategory.Boolean,
         BoundFieldOperand f => f.Place.Item.OperandPic?.Category is PicCategory.Boolean,
         _ => false,
@@ -432,7 +432,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <param name="Arith">The arithmetic operand, the one an operator-free boolean node held bare included. Its sole shapes
     /// (a function-identifier, an OO identifier, a keyword-omitted function) are GR8's identifiers.</param>
     /// <param name="Grouped">The CONTENT of the grouping parentheses an operator-free boolean node held an arithmetic
-    /// operand in, else null. The argument is "an arithmetic expression enclosed in parentheses" (§8.8.1.1), so it does
+    /// operand in, else null. The argument is "an arithmetic expression enclosed in parentheses" (§2023:8.8.1.1), so it does
     /// not consist merely of a single identifier or literal: no sole shape is read of it, and every lane binds it as the
     /// computed operand it is (<see cref="CompoundOperand"/>), never as the literal or identifier it encloses. The
     /// boolean node holds no context for the parenthesized expression itself, which is why it is a field of its own and
@@ -442,7 +442,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool, Core.ArithmeticExpressionContext? Arith,
         Core.ArithmeticExpressionContext? Grouped);
 
-    /// <summary>⛔ THE ONE PARSE-TREE REDUCTION OF AN ACTIVATION ARGUMENT, ISO §14.9.4.4 GR8 (CALL) and §14.9.23.4 GR4
+    /// <summary>⛔ THE ONE PARSE-TREE REDUCTION OF AN ACTIVATION ARGUMENT, ISO §2023:14.9.4.4 GR8 (CALL) and §2023:14.9.23.4 GR4
     /// (INVOKE), the same sentence: "An argument that consists merely of a single identifier or literal is regarded as
     /// an identifier or literal rather than an arithmetic or boolean expression". Every CALL spelling (BY CONTENT, BY
     /// VALUE, keyword-less) and every INVOKE argument asks it (kb/Work PB613, PB3101).
@@ -459,14 +459,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// PB3760): the expression binder drops grouping parentheses, so a literal "recovered" from a bound expression took
     /// <c>(3)</c> for the literal 3. Each lane binds the <see cref="ArgumentOperand.SoleNumericLiteral"/> this answers as the
     /// literal operand (<c>-1.5E-3</c>, which the expression binder takes as a negation, included).</para>
-    /// <para>⛔ THE REDUCTION NEVER CROSSES A GROUPING PARENTHESIS. A condition may unwrap one (§8.8.4.2.1: parentheses
+    /// <para>⛔ THE REDUCTION NEVER CROSSES A GROUPING PARENTHESIS. A condition may unwrap one (§2023:8.8.4.2.1: parentheses
     /// around a simple condition change nothing, which is <see cref="UnwrapBareBool"/>'s job); an argument may not, because
     /// GR8's test is what the argument CONSISTS of. <c>(3)</c> and <c>(N)</c> held in the boolean node's
     /// <c>( booleanExpression )</c> factor are the arithmetic expression <see cref="ArgumentOperand.Grouped"/> names, as they
     /// are when no later B-operator steers them there; unwrapped, <c>(3)</c> was the literal 3 into a plain-group formal and
     /// <c>(N)</c> crossed BY REFERENCE, so the callee's store reached N (kb/Work PB3760 review R1-1). A parenthesized
     /// NONNUMERIC operand stays the boolean expression it is written as: <c>(B"1")</c> is "a boolean expression enclosed in
-    /// parentheses" (§8.8.2), never literal-2.</para></summary>
+    /// parentheses" (§2023:8.8.2), never literal-2.</para></summary>
     internal static ArgumentOperand ReduceArgument(Core.LiteralContext? literal, Core.DataReferenceContext? reference,
         Core.BooleanExpressionContext? boolExpr, Core.ArithmeticExpressionContext? arith)
     {
@@ -520,7 +520,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return shift[0].booleanFactor();
     }
 
-    /// <summary>The carried subject + relational operator for ABBREVIATED COMBINED RELATION CONDITIONS (ISO §8.8.4.12).
+    /// <summary>The carried subject + relational operator for ABBREVIATED COMBINED RELATION CONDITIONS (ISO §2023:8.8.4.12).
     /// In a paren-free sequence of relations joined by AND/OR/XOR, a succeeding relation may omit the subject (operator
     /// stated, e.g. the <c>&lt; C</c> in <c>A &gt; B OR &lt; C</c>) or the subject AND operator (a bare operand, e.g.
     /// <c>A = B AND C</c> ≡ <c>A = C</c>). GR1 inserts the last STATED subject and the last STATED operator.
@@ -531,18 +531,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         public BoundOperand? Subject;
         public string? Op;
-        /// <summary>ISO §14.9.13.3 SR8 — the EVALUATE SELECTION SUBJECT that the leftmost, elided portion of a
+        /// <summary>ISO §2023:14.9.13.3 SR8 — the EVALUATE SELECTION SUBJECT that the leftmost, elided portion of a
         /// partial-expression is spliced from ("condition-2 is the conditional expression that results from
         /// preceding partial-expression-1 by the selection subject"). Null in every ordinary condition context,
         /// and consumed — set back to null — by the ONE leading <c>partialComparison</c> that reads it, because
-        /// SR5 elides the LEFTMOST portion only: everything after it is an ordinary §8.8.4.12 tail already
+        /// SR5 elides the LEFTMOST portion only: everything after it is an ordinary §2023:8.8.4.12 tail already
         /// served by <see cref="Subject"/>. Deliberately NOT cleared by <see cref="Reset"/>, which models the
         /// abbreviation terminating mid-sequence — a thing that cannot have happened before the leading
         /// portion is bound.</summary>
         public PartialSubjectOperand? PartialSubject;
-        /// <summary>⛔ ISO §8.8.4.12.3 SR1 — "Relation-condition-1 shall not be a boolean relation condition": the
-        /// relation the sequence's abbreviations would inherit from (the last STATED relation, §8.8.4.12.4 GR1) involves
-        /// operands of class boolean (§8.8.4.2.1 — "A relation condition involving operands of class boolean is a
+        /// <summary>⛔ ISO §2023:8.8.4.12.3 SR1 — "Relation-condition-1 shall not be a boolean relation condition": the
+        /// relation the sequence's abbreviations would inherit from (the last STATED relation, §2023:8.8.4.12.4 GR1) involves
+        /// operands of class boolean (§2023:8.8.4.2.1 — "A relation condition involving operands of class boolean is a
         /// boolean relation condition"), so no succeeding relation may be abbreviated after it. It is a property of
         /// the relation's CATEGORY, set where the carry is seeded — never a by-product of which parse path bound the
         /// relation (kb/Work PB1391: <c>B1 = B2 OR &lt;&gt; B3</c> rides the ordinary comparison arm and was silently
@@ -554,10 +554,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     public BoundCondition BindCondition(IParseTree node) => BindCondition(node, new AbbrevCarry());
 
-    /// <summary>⛔ ISO §14.9.13.3 SR8 — THE partial-expression rewrite, and the only place it happens: "If a
+    /// <summary>⛔ ISO §2023:14.9.13.3 SR8 — THE partial-expression rewrite, and the only place it happens: "If a
     /// selection object is specified by partial-expression-1, that selection object is treated as though it were
     /// specified as condition-2, where condition-2 is the conditional expression that results from preceding
-    /// partial-expression-1 by the selection subject." §14.9.13.4 GR4 a) 2. then evaluates that expression and
+    /// partial-expression-1 by the selection subject." §2023:14.9.13.4 GR4 a) 2. then evaluates that expression and
     /// makes its truth value the result of the pair's analysis, and SR8's second sentence ("the corresponding
     /// selection subject is treated as though it were specified by the word TRUE") is what makes the pair's term
     /// the condition ITSELF rather than a comparison against the subject — so the caller returns this unchanged.
@@ -565,11 +565,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// well-formedness test — "were it preceded by the corresponding selection subject, a conditional expression
     /// would result") and GR4 a) 2. (the semantics) are not three checks: splice the subject in and either an
     /// ordinary condition results or the ordinary condition binder refuses it, with the ordinary diagnostic. The
-    /// splice IS §8.8.4.12's subject insertion — the leading relational operator's missing operand is carried in
+    /// splice IS §2023:8.8.4.12's subject insertion — the leading relational operator's missing operand is carried in
     /// exactly the field a later abbreviated relation reads — which is why <c>WHEN &gt; 5 AND &lt; 10</c> works
-    /// with no code of its own: SR7 d) licenses it and §8.8.4.12.4 GR1 already knew how.</para></summary>
+    /// with no code of its own: SR7 d) licenses it and §2023:8.8.4.12.4 GR1 already knew how.</para></summary>
     /// <param name="pe">The partial-expression parse node.</param>
-    /// <param name="subject">The corresponding selection subject (§14.9.13.3 SR7 — "the selection subject having
+    /// <param name="subject">The corresponding selection subject (§2023:14.9.13.3 SR7 — "the selection subject having
     /// the same ordinal position"), ALREADY BOUND by the caller — see <see cref="PartialSubjectOperand"/>.</param>
     /// <remarks><paramref name="pe"/> is a <c>partialExpression</c>, or a <c>condition</c> whose leftmost leaf is a
     /// bare class-name (<see cref="LeadingBareClassWord"/>) — the same rewrite over the other parse of SR5's
@@ -577,7 +577,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public BoundCondition BindPartialExpression(ParserRuleContext pe, PartialSubjectOperand subject) =>
         BindCondition(pe, new AbbrevCarry { PartialSubject = subject });
 
-    /// <summary>The selection subject SR8 splices into a partial-expression, as the ONE value §14.9.13.4 GR3
+    /// <summary>The selection subject SR8 splices into a partial-expression, as the ONE value §2023:14.9.13.4 GR3
     /// assigned it "at the beginning of the execution of the EVALUATE statement" — never re-bound from its parse
     /// node (kb/Work PB912's sibling). The rewrite used to take the NODE and bind it again inside every
     /// partial-expression object, so a subject was evaluated once more PER WHEN on top of the statement's own
@@ -587,25 +587,25 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// per-evaluation attachment had already drained the activations it counted.
     /// <para><paramref name="Value"/> is the subject's assigned value (its intermediate result item when the
     /// statement reads it more than once) and serves the relation and sign shapes. <paramref name="Content"/>
-    /// serves the CLASS shape, which tests CHARACTER CONTENT (§8.8.4.4): a data item is read in place, because
+    /// serves the CLASS shape, which tests CHARACTER CONTENT (§2023:8.8.4.4): a data item is read in place, because
     /// its numeric intermediate would normalize the very content <c>IS NUMERIC</c> exists to find invalid; a
     /// computed subject is read from its one materialization. <paramref name="Node"/> remains only for the
-    /// syntactic facts a bound operand no longer carries (§8.8.4.7.3 Format 2's "bare standard floating-point
+    /// syntactic facts a bound operand no longer carries (§2023:8.8.4.7.3 Format 2's "bare standard floating-point
     /// data-name") and for the SR1 diagnostic path of a sign test on a non-numeric subject.</para></summary>
     public readonly record struct PartialSubjectOperand(Core.ValueOperandContext? Node, BoundOperand Value, BoundOperand Content);
 
     /// <summary>⛔ A partial-expression's OWN OPERANDS, bound with no selection subject — the half of the object that
-    /// stays the program's own when Table 15 (§14.9.13.3 SR10) has refused its PAIR, and that a surplus object of an
+    /// stays the program's own when Table 15 (§2023:14.9.13.3 SR10) has refused its PAIR, and that a surplus object of an
     /// SR2 breach never had a pair for (kb/Work PB4446). SR8's rewrite needs the subject, and a refused pair has
     /// none to splice, so the relation checkpoint (SR7 a) and the shapes that read the subject's content stay
-    /// out; what this reports is each operand's reference and expression faults (§8.4.2.1, §8.4.2.3.3 SR2,
-    /// §8.8.1.1 …) and the faults of the written CONDITION (§8.8.4.2.1, §8.8.4.12), which violate the general
-    /// formats and syntax rules whatever the pair is (ISO §4.2.2). It walks the same spine
+    /// out; what this reports is each operand's reference and expression faults (§2023:8.4.2.1, §2023:8.4.2.3.3 SR2,
+    /// §2023:8.8.1.1 …) and the faults of the written CONDITION (§2023:8.8.4.2.1, §2023:8.8.4.12), which violate the general
+    /// formats and syntax rules whatever the pair is (ISO §2023:4.2.2). It walks the same spine
     /// <see cref="BindCondition(IParseTree, AbbrevCarry)"/> does, so a tier the grammar adds is reached through its
     /// parent: a relational operator's object, an abbreviated relation's object in a succeeding position, and every
     /// complete condition a connective joins (bound as written, in a fresh abbreviation scope). A class or sign
     /// shape without its identifier has no operand.
-    /// <para>⛔ THE INSERTION OF §8.8.4.12.4 GR1 IS TRACKED THROUGH THE WALK (<see cref="StandaloneInsertion"/>, kb/Work
+    /// <para>⛔ THE INSERTION OF §2023:8.8.4.12.4 GR1 IS TRACKED THROUGH THE WALK (<see cref="StandaloneInsertion"/>, kb/Work
     /// PB4627): the leading relational shape starts it, a stated relation restarts it, and a complete simple
     /// condition that is not a relation ends it, so a succeeding abbreviated relation or bare operand is judged as
     /// <see cref="BindCondition(IParseTree, AbbrevCarry)"/> judges it: an object of the carried relation while the
@@ -615,18 +615,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public void BindPartialOperandsStandalone(ParserRuleContext pe) =>
         BindPartialOperandsStandalone(pe, new StandaloneInsertion { ClassWordMayLead = pe is Core.ConditionContext });
 
-    /// <summary>The state of §8.8.4.12.4 GR1's insertion along <see cref="BindPartialOperandsStandalone"/>'s walk — the
+    /// <summary>The state of §2023:8.8.4.12.4 GR1's insertion along <see cref="BindPartialOperandsStandalone"/>'s walk — the
     /// part of <see cref="AbbrevCarry"/> a walk that builds no relation can keep. There is no subject OPERAND to carry
     /// (a refused pair has none), so what is tracked is whether one WOULD be carried: <see cref="Active"/> is
-    /// <c>AbbrevCarry.Subject is not null</c>, <see cref="BooleanRelation"/> is its §8.8.4.12.3 SR1 flag.</summary>
+    /// <c>AbbrevCarry.Subject is not null</c>, <see cref="BooleanRelation"/> is its §2023:8.8.4.12.3 SR1 flag.</summary>
     private sealed class StandaloneInsertion
     {
         /// <summary>A subject (and relational operator) is inserted into a succeeding abbreviated relation.</summary>
         public bool Active;
-        /// <summary>The relation the insertion inherits from is a boolean relation (§8.8.4.12.3 SR1).</summary>
+        /// <summary>The relation the insertion inherits from is a boolean relation (§2023:8.8.4.12.3 SR1).</summary>
         public bool BooleanRelation;
         /// <summary>The walk has not met its first simple condition yet and the object is a <c>condition</c> whose
-        /// leftmost leaf may be the bare class-name of §14.9.13.3 SR5's "class condition without the identifier".</summary>
+        /// leftmost leaf may be the bare class-name of §2023:14.9.13.3 SR5's "class condition without the identifier".</summary>
         public bool ClassWordMayLead;
         public void End() { Active = false; BooleanRelation = false; }
     }
@@ -636,7 +636,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         switch (pe)
         {
             case Core.PartialComparisonContext pc:
-                // The LEADING shape (§14.9.13.3 SR5): a relational one starts the insertion (SR8: the spliced
+                // The LEADING shape (§2023:14.9.13.3 SR5): a relational one starts the insertion (SR8: the spliced
                 // relation IS relation-condition-1), a class or sign one is a complete simple condition.
                 if (pc.abbreviatedRelation() is { } leading)
                 {
@@ -688,14 +688,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <c>WHEN &gt; 1 AND UNDEFX</c> (kb/Work PB4606) — judged as <see cref="BindComparison"/> and
     /// <see cref="BindSoleOperandCondition"/> judge it, minus what needs the subject. It is classified first, by the
     /// ONE bare-operand analysis, because a level-88 condition-name, a switch-status condition-name and a boolean
-    /// operand are complete simple conditions that end the insertion (§8.8.4.12.4 GR1) and that the analysis has
+    /// operand are complete simple conditions that end the insertion (§2023:8.8.4.12.4 GR1) and that the analysis has
     /// already bound, and a bare class-name is the identifier-less class condition of the leading position or, anywhere
     /// else, no condition. Only a plain VALUE (or an address-identifier) is an operand, and what it is turns on
     /// <see cref="BareObjectRoleOf(bool, bool)"/>, the ONE decision the bound condition asks too: after a BOOLEAN relation it is an
-    /// abbreviation §8.8.4.12.3 SR1 refuses (COBOL2723); WHILE THE INSERTION LASTS it is the object of the carried relation
-    /// (§8.8.4.12.4 GR1), where its reference faults (§8.4.2.1, §8.4.2.3.3 SR2 and SR5, §8.8.1.1) are reported; after a
+    /// abbreviation §2023:8.8.4.12.3 SR1 refuses (COBOL2723); WHILE THE INSERTION LASTS it is the object of the carried relation
+    /// (§2023:8.8.4.12.4 GR1), where its reference faults (§2023:8.4.2.1, §2023:8.4.2.3.3 SR2 and SR5, §2023:8.8.1.1) are reported; after a
     /// complete simple condition it is no object and no condition either, and is refused as every written condition's bare
-    /// operand is (COBOL2318, §8.8.4.2.1; kb/Work PB4627). A boolean operand is a §8.8.4.3 simple boolean condition and
+    /// operand is (COBOL2318, §2023:8.8.4.2.1; kb/Work PB4627). A boolean operand is a §2023:8.8.4.3 simple boolean condition and
     /// draws SR1's length-1 screen (<see cref="AsCondition"/>, kb/Work PB4707). The relation itself is not built: it needs
     /// the subject.</summary>
     private void BindBareOperandStandalone(Core.ComparisonOperandContext operand, StandaloneInsertion ins)
@@ -723,7 +723,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         switch (analysis.Form)
         {
             case BareOperandForm.ClassName when ins.ClassWordMayLead:
-                ins.End();   // the leading class condition without its identifier (§14.9.13.3 SR5), a complete simple condition
+                ins.End();   // the leading class condition without its identifier (§2023:14.9.13.3 SR5), a complete simple condition
                 return;
             // A class-name is no operand, but as the object of a carried relation it is read as one, as
             // BindSoleOperandCondition reads it: the operand binder refuses the word (COBOL1639).
@@ -743,7 +743,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 return;
             default:
                 // A condition-name or a switch-status condition-name (bound by the analysis) or a boolean operand: a
-                // complete simple condition, which ends the insertion. A boolean operand is a §8.8.4.3 simple boolean
+                // complete simple condition, which ends the insertion. A boolean operand is a §2023:8.8.4.3 simple boolean
                 // condition ONLY through the wrapper, which is where SR1's length-1 screen is written
                 // (BindSimpleBooleanCondition), and AnalyzeBareOperand binds it unwrapped (kb/Work PB4707).
                 _ = AsCondition(analysis);
@@ -759,11 +759,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private enum BareObjectRole
     {
         /// <summary>The relation the insertion would inherit from is a boolean relation, and the operand is an abbreviated
-        /// relation after it: refused by §8.8.4.12.3 SR1 (COBOL2723). A stated boolean relation outranks the insertion.</summary>
+        /// relation after it: refused by §2023:8.8.4.12.3 SR1 (COBOL2723). A stated boolean relation outranks the insertion.</summary>
         AbbreviationAfterBooleanRelation,
-        /// <summary>A subject and operator are inserted (§8.8.4.12.4 GR1): the operand is the object of the carried relation.</summary>
+        /// <summary>A subject and operator are inserted (§2023:8.8.4.12.4 GR1): the operand is the object of the carried relation.</summary>
         ObjectOfRelation,
-        /// <summary>No insertion is in flight: the operand is no condition (COBOL2318, §8.8.4.2.1).</summary>
+        /// <summary>No insertion is in flight: the operand is no condition (COBOL2318, §2023:8.8.4.2.1).</summary>
         NotACondition,
     }
 
@@ -783,9 +783,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
         Core.ConditionContext c => BindCondition(c.GetChild(0), carry),
-        // The condition tiers (§8.8.4.9; NOT > AND > XOR > OR, §8.8.4.11.3), in their LEADING spelling (the first
+        // The condition tiers (§2023:8.8.4.9; NOT > AND > XOR > OR, §2023:8.8.4.11.3), in their LEADING spelling (the first
         // simple condition, never abbreviated) and their SUCCEEDING spelling (every connective's operand, whose
-        // leftmost element may be §8.8.4.12's abbreviated relation — kb/Work PB1390). Both fold with the ONE
+        // leftmost element may be §2023:8.8.4.12's abbreviated relation — kb/Work PB1390). Both fold with the ONE
         // sequence binder, which threads the abbreviation carry through the whole sequence in source order.
         Core.LogicalOrExpressionContext orExpr => BindFlatSequence(orExpr, "||", carry),
         Core.LogicalXorExpressionContext xorExpr => BindFlatSequence(xorExpr, "^", carry),
@@ -793,7 +793,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.SucceedingXorExpressionContext sXor => BindFlatSequence(sXor, "^", carry),
         Core.SucceedingAndExpressionContext sAnd => BindFlatSequence(sAnd, "&&", carry),
         Core.SucceedingConditionContext sc => BindCondition(sc.GetChild(0), carry),
-        // §14.9.13.3 SR5's spine — the SAME three logical tiers with only the leading element elided, so they
+        // §2023:14.9.13.3 SR5's spine — the SAME three logical tiers with only the leading element elided, so they
         // fold with the SAME sequence binder and inherit its short-circuit / user-function cardinality rules.
         Core.PartialExpressionContext pOr => BindFlatSequence(pOr, "||", carry),
         Core.PartialXorExpressionContext pXor => BindFlatSequence(pXor, "^", carry),
@@ -806,12 +806,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         _ => Refused("unsupported condition form"),
     };
 
-    /// <summary>The LEFTMOST, elided portion of a partial-expression (ISO §14.9.13.3 SR5): the selection subject
+    /// <summary>The LEFTMOST, elided portion of a partial-expression (ISO §2023:14.9.13.3 SR5): the selection subject
     /// is supplied as the operand the written form omits, and the result is the ordinary condition that rule's
     /// three shapes name — a relation, a class condition, or a sign condition. Each shape is bound by the SAME
     /// body the fully-written form uses (<see cref="BindClassConditionOn"/> / <see cref="BindSignConditionOn"/> /
-    /// <see cref="BindAbbreviatedRelation"/>), so no rule attached to any of them — §8.8.4.4.3's boolean-operand
-    /// guard, §8.8.4.7.3 SR1's operand closure, the LOCALE-alphabet refusal, the §8.8.4.2 relation band — has a
+    /// <see cref="BindAbbreviatedRelation"/>), so no rule attached to any of them — §2023:8.8.4.4.3's boolean-operand
+    /// guard, §2023:8.8.4.7.3 SR1's operand closure, the LOCALE-alphabet refusal, the §2023:8.8.4.2 relation band — has a
     /// second copy that could drift from the written one.</summary>
     private BoundCondition BindPartialComparison(Core.PartialComparisonContext pc, AbbrevCarry carry)
     {
@@ -824,19 +824,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             char kind = pc.POSITIVE() is not null ? 'P' : pc.NEGATIVE() is not null ? 'N' : 'Z';
             // A numeric subject value is the sign test's operand as it stands; anything else is refused by the
-            // ONE sign body's §8.8.4.7.3 SR1 diagnostic, over the written node (a failing compile — no second
+            // ONE sign body's §2023:8.8.4.7.3 SR1 diagnostic, over the written node (a failing compile — no second
             // activation can run).
             if (SignOperandOf(subj.Value) is not { } signExpr)
             {
                 // A boolean-expression selection subject (kb/Work PB1412) has no operand node: it is a boolean
-                // value, never the numeric operand §8.8.4.7.3 SR1 admits, so the sign shape is refused by name.
+                // value, never the numeric operand §2023:8.8.4.7.3 SR1 admits, so the sign shape is refused by name.
                 if (subj.Node is null)
                 {
                     carry.Reset();
                     ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
                         "the selection subject is a boolean expression, and a sign condition's operand shall be \"any "
                         + "single numeric data item described with a usage other than a standard floating-point usage, "
-                        + "or any form of arithmetic expression\" (ISO §8.8.4.7.3 SR1; §14.9.13.3 SR8 splices the "
+                        + "or any form of arithmetic expression\" (ISO §2023:8.8.4.7.3 SR1; §2023:14.9.13.3 SR8 splices the "
                         + "subject into the partial-expression)");
                     return Refused("sign condition over a boolean-expression selection subject");
                 }
@@ -845,14 +845,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             carry.Reset();
             return new BoundSignCondition(signExpr, kind, not, IsFormat2FloatSign(subj.Node));
         }
-        // The relational shape. SR8's splice and §8.8.4.12.4 GR1's subject insertion are the SAME operation, so
+        // The relational shape. SR8's splice and §2023:8.8.4.12.4 GR1's subject insertion are the SAME operation, so
         // the subject is seeded as the carried subject and the ordinary abbreviated-relation arm does the rest —
         // which is also what carries it on to a following `AND < 10`.
         carry.Subject = subj.Value;
         var spliced = BindAbbreviatedRelation(pc.abbreviatedRelation(), carry, out var statedObject);
         // The spliced relation IS relation-condition-1 (SR8: the subject precedes the partial-expression), so it is
-        // the NEXT abbreviation that §8.8.4.12.3 SR1 refuses after a boolean one — set after this one is bound, and
-        // asked of the subject OR the object as BindComparison asks it of a written relation (§8.8.4.2.1).
+        // the NEXT abbreviation that §2023:8.8.4.12.3 SR1 refuses after a boolean one — set after this one is bound, and
+        // asked of the subject OR the object as BindComparison asks it of a written relation (§2023:8.8.4.2.1).
         carry.BooleanRelation = IsBooleanClassOperand(subj.Value) || statedObject is { } o && IsBooleanClassOperand(o);
         return spliced;
     }
@@ -861,12 +861,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
     /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).
     /// A user-function reference in a NON-FIRST operand of an AND/OR chain is CONDITIONALLY evaluated
-    /// (§8.8.4.13 r1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
+    /// (§2023:8.8.4.13 r1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
     /// are evaluated "if and when the conditions containing them are evaluated"), so that operand's activations
     /// attach to the operand itself (<c>UdfAttachPerEvaluation</c>) and run only when C#'s matching
     /// short-circuit reaches it. The FIRST operand always evaluates — its activations stay statement-hoisted
     /// (exact) unless an ENCLOSING repeated window drains them. XOR is exempt: both operands are always
-    /// required (§8.8.4.9), so a hoist is exact for every XOR operand.</summary>
+    /// required (§2023:8.8.4.9), so a hoist is exact for every XOR operand.</summary>
     private BoundCondition BindFlatSequence(IParseTree ctx, string op, AbbrevCarry carry)
     {
         var parts = new List<BoundCondition>();
@@ -886,20 +886,20 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition BindPrimary(Core.PrimaryConditionContext p, AbbrevCarry carry)
     {
         // COBOL-2002 boolean forms (the boolExprAhead()-gated primaryCondition alt) — a boolean relation
-        // (§8.8.4.2.2) or a simple boolean condition (§8.8.4.3).
+        // (§2023:8.8.4.2.2) or a simple boolean condition (§2023:8.8.4.3).
         if (p.booleanExpression() is { Length: > 0 } be) return BindPrimaryBoolean(be, p.comparisonOperator(), carry);
         if (p.comparisonExpression() is { } cmp) return BindComparison(cmp, carry);
         if (p.condition() is { } inner)
         {
             // A parenthesized condition is a complete simple condition: a FRESH abbreviation scope inside, and the
-            // insertion terminates for the enclosing sequence (ISO §8.8.4.12.4 GR1).
+            // insertion terminates for the enclosing sequence (ISO §2023:8.8.4.12.4 GR1).
             var bound = BindCondition(inner, new AbbrevCarry());
             carry.Reset();
             return bound;
         }
         // The one alternative left is `booleanLiteral`: the WORDS TRUE and FALSE. They are no condition —
-        // §8.8.4.2.1's list of the simple conditions has no member that is a bare truth word — and they are
-        // written only as an EVALUATE selection subject or selection object (§14.9.13.3 SR7 b); GR3 f), GR4 a) 4.).
+        // §2023:8.8.4.2.1's list of the simple conditions has no member that is a bare truth word — and they are
+        // written only as an EVALUATE selection subject or selection object (§2023:14.9.13.3 SR7 b); GR3 f), GR4 a) 4.).
         // EVALUATE decides its own TRUE/FALSE pairs by Table 15 and never binds one as a condition
         // (EvaluateBinder.BindWhenItem), so a word that reaches here is in an IF, a PERFORM UNTIL, a SEARCH WHEN or
         // an operand of NOT / AND / OR / XOR, where the standard has no meaning for it (kb/Work PB1668).
@@ -913,12 +913,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         var truthWord = literal.GetText().ToUpperInvariant();
         ReportNotACondition(truthWord, $"the word {truthWord}, which is written only as an EVALUATE selection subject or "
-            + "selection object (ISO §14.9.13.3 SR7 b)");
+            + "selection object (ISO §2023:14.9.13.3 SR7 b)");
         return truthWord;
     }
 
     /// <summary>An abbreviated relation with the subject omitted (<c>comparisonOperator comparisonOperand</c>): the
-    /// carried subject is inserted and the newly-stated operator becomes the carried operator (ISO §8.8.4.12.4 GR1).
+    /// carried subject is inserted and the newly-stated operator becomes the carried operator (ISO §2023:8.8.4.12.4 GR1).
     /// With no carried subject — GR1's insertion "terminates once a complete simple condition is encountered", and a
     /// parenthesized group opens a fresh scope — the relation has nothing to insert: COBOL2552 (kb/Work PB1390;
     /// it used to be refused unreported, which the COBOL2319 internal-error net caught).</summary>
@@ -927,7 +927,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <param name="statedObject">The relation's own object as bound, or null when the relation was refused before it was
     /// bound as a relation: the leading partial-expression asks it (<see cref="BindPartialComparison"/>), because the relation
-    /// it splices is a boolean relation when its subject OR its object is of class boolean (§8.8.4.2.1).</param>
+    /// it splices is a boolean relation when its subject OR its object is of class boolean (§2023:8.8.4.2.1).</param>
     private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry, out BoundOperand? statedObject)
     {
         statedObject = null;
@@ -952,25 +952,25 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationWithoutSubject,
             $"'{DataBinder.WrittenText(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
             + "insertion of an omitted subject terminates at a complete simple condition that is not a relation, and "
-            + "does not cross a parenthesis (ISO §8.8.4.12.1; §8.8.4.12.4 GR1)");
+            + "does not cross a parenthesis (ISO §2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1)");
 
-    /// <summary>⛔ ISO §8.8.4.12.3 SR1 — a succeeding relation that omits its subject (or its subject and operator)
+    /// <summary>⛔ ISO §2023:8.8.4.12.3 SR1 — a succeeding relation that omits its subject (or its subject and operator)
     /// after a BOOLEAN relation condition (<see cref="AbbrevCarry.BooleanRelation"/>). Both consumers of the carry —
     /// <see cref="BindAbbreviatedRelation"/> and the bare object of <see cref="BindSoleOperandCondition"/> — ask it
     /// here, so the rule is reported once, in one wording (kb/Work PB1391). The abbreviation's object is still a reference
-    /// the program wrote, so <paramref name="bindObject"/> binds it first and its own faults (§8.4.2.1, §8.4.2.3.3 SR2 …)
+    /// the program wrote, so <paramref name="bindObject"/> binds it first and its own faults (§2023:8.4.2.1, §2023:8.4.2.3.3 SR2 …)
     /// are indicated beside the refusal rather than hidden behind it (kb/Work PB4446, PB4707).</summary>
     private BoundCondition RefuseAbbreviationAfterBooleanRelation(string written, System.Func<BoundOperand> bindObject)
     {
         _ = bindObject();
         ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationAfterBooleanRelation,
             $"'{written}' abbreviates a relation after a boolean relation condition, and the first relation condition of "
-            + "an abbreviated combined relation condition shall not be a boolean relation condition (ISO §8.8.4.12.3 SR1; "
-            + "a relation involving operands of class boolean is a boolean relation, §8.8.4.2.1)");
+            + "an abbreviated combined relation condition shall not be a boolean relation condition (ISO §2023:8.8.4.12.3 SR1; "
+            + "a relation involving operands of class boolean is a boolean relation, §2023:8.8.4.2.1)");
         return Refused($"abbreviated relation '{written}' after a boolean relation");
     }
 
-    /// <summary>⛔ THE ONE ISO §8.8.4.4.3 OPERAND SCREEN for a class condition — SR1, which names EVERY
+    /// <summary>⛔ THE ONE ISO §2023:8.8.4.4.3 OPERAND SCREEN for a class condition — SR1, which names EVERY
     /// alternative, and then the rules that name THIS alternative, read off
     /// <see cref="ClassConditionModel"/>'s table in its own order (category rules before usage rules, so an
     /// operand breaking both is reported against the rule that speaks about its category). The FIRST broken
@@ -980,62 +980,62 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// asked of ANY operand, and <c>IF IX IS NUMERIC</c> over a USAGE INDEX item compiled clean and printed
     /// TRUE. An index data item's storage profile carries category NUMERIC (the occurrence number is a number),
     /// which is exactly why the class question may not be answered from the storage category:
-    /// §13.18.60.4 GR10, "The class and category of an index data item are index". SR3 and SR5 had no arm at
+    /// §2023:13.18.60.4 GR10, "The class and category of an index data item are index". SR3 and SR5 had no arm at
     /// all, and SR4's arm tested one of the three categories the rule names.</para></summary>
     public void CheckClassConditionOperand(BoundOperand op, char kind)
     {
-        // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
+        // §2023:8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
         // This arm keeps the COBOL1533 strong-typing family's own code; SR1's other two arms are COBOL2200.
         if (op is BoundFieldOperand fg && StrongTypeModel.IsStrongGroup(fg.Place.Item))
         {
             ctx.Edition.Error(DiagnosticCatalog.StrongClassCondition, "a strongly-typed group item may not appear in a class condition — "
-                + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
+                + "it has its own unique class and category (ISO §2023:8.8.4.4.3 SR1)");
             return;
         }
-        // §8.8.4.4.2 prints identifier-1: an operand written as an arithmetic expression — an operator, a sign or
+        // §2023:8.8.4.4.2 prints identifier-1: an operand written as an arithmetic expression — an operator, a sign or
         // enclosing parentheses: `(N) IS NUMERIC`, `(FUNCTION ABS(N)) IS NUMERIC`, `(LINAGE-COUNTER) IS NUMERIC`
         // (kb/Work PB1935 binds each as the expression it is) — would answer from its decoded value instead of the
         // item's characters. ⛔ ASKED OF THE BINDER'S STATEMENT, NEVER THE TREE'S SHAPE (kb/Work PB4763, PB4712): the
         // expression binder drops grouping parentheses, so the tree of `(FUNCTION ABS(N))` is the function-identifier's
         // own. A function-identifier (also one folded at bind time, BoundNumericLiteral { FunctionValue: true }) and a counter register written SOLE are identifiers whose value is computed
-        // (§8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted. A literal or figurative constant is no identifier either
+        // (§2023:8.5.2.12 items 3-7; kb/Work PB1401) and stay admitted. A literal or figurative constant is no identifier either
         // (review R1-2: `IF 5 IS NUMERIC` compiled and aborted at run time), and a boolean operand enclosed in parentheses is
-        // an expression too (§8.8.2; EnclosedBooleanOperand).
+        // an expression too (§2023:8.8.2; EnclosedBooleanOperand).
         if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral { FunctionValue: false } or BoundFigurative or BoundAllLiteral)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionSubjectNotIdentifier,
-                "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §8.8.4.4.2)");
+                "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §2023:8.8.4.4.2)");
             return;
         }
         if (ClassConditionModel.Sr1Refusal(op) is { } why)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionOperandClass,
-                $"a class condition's identifier-1 shall not reference {why} (ISO §8.8.4.4.3 SR1)");
+                $"a class condition's identifier-1 shall not reference {why} (ISO §2023:8.8.4.4.3 SR1)");
             return;
         }
         if (ClassConditionModel.For(kind) is not { } alt) return;
         // The operand's CATEGORY through THE ONE operand-category reader, and its USAGE off its item's OperandPic.
         // Both are the OPERAND's, never a raw Pic: a GROUP-USAGE BIT operand IS category boolean with as-if usage
-        // bit (§13.18.29.4 GR1a/b — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while the elementary
+        // bit (§2023:13.18.29.4 GR1a/b — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while the elementary
         // twin was rejected, kb/Work PB157's sweep), and a reference-modified slice has its ITEM's usage but the
-        // category §8.4.3.3.4 GR6 c) gives it — alphanumeric (national when the usage is national) — so
+        // category §2023:8.4.3.3.4 GR6 c) gives it — alphanumeric (national when the usage is national) — so
         // `IF NUM (1:2) IS ALPHABETIC` is not an SR4 violation and `IF NUM (1:2) IS NEAREST-TO-ZERO` IS an SR6
         // one (kb/Work PB823, whose renderer half reads the same reader).
-        // ⛔ EVERY OPERAND SHAPE IS CLASSIFIED, NOT ONLY A DATA-ITEM REFERENCE (kb/Work PB1401). §8.5.2.12 items
+        // ⛔ EVERY OPERAND SHAPE IS CLASSIFIED, NOT ONLY A DATA-ITEM REFERENCE (kb/Work PB1401). §2023:8.5.2.12 items
         // 3–7 make LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER and every numeric / integer function a category-numeric
         // data item, and they bind as COMPUTED operands; the screen used to hand them a null category, so SR4–SR6
         // failed open over them and `IF FUNCTION UPPER-CASE(A) IS NEAREST-TO-ZERO` reached a renderer that has no
-        // numeric description to test. The one reader already answers them (numeric for a register, the §15.2
+        // numeric description to test. The one reader already answers them (numeric for a register, the §2023:15.2
         // type for a function), and the renderer asks the same reader, so the two halves cannot disagree.
         PicCategory? category = IntrinsicResultType.OperandCategory(op);
         Usage? usage = op switch
         {
             BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.OperandPic?.Usage,
             BoundFieldOperand f => f.Place.Item.OperandPic?.Usage,
-            // §15.2 items 1–3: an alphanumeric function has "an implicit usage display", a boolean function "an
+            // §2023:15.2 items 1–3: an alphanumeric function has "an implicit usage display", a boolean function "an
             // implicit usage bit", a national function "an implicit usage national"; items 4–5 give a numeric or
-            // integer function none, and SR3's function sentence covers it by type below. The §15.2 usage by type is
+            // integer function none, and SR3's function sentence covers it by type below. The §2023:15.2 usage by type is
             // the ONE IntrinsicSig.ImplicitUsageOf (kb/Work PB3665), asked here as STRING SR1 and INSPECT SR2 ask it.
             BoundComputedOperand { Expr: BoundIntrinsicCall ic } => IntrinsicSig.ImplicitUsageOf(ic.ResultCategory),
             _ => null,
@@ -1051,17 +1051,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The operand's COBOL spelling for a class-condition diagnostic, or a neutral phrase for an
-    /// operand that is not a data-item reference (a function result — §8.8.4.4.3 SR3's second sentence).</summary>
+    /// operand that is not a data-item reference (a function result — §2023:8.8.4.4.3 SR3's second sentence).</summary>
     private static string OperandName(BoundOperand op) =>
         op is BoundFieldOperand f ? f.Place.Item.CobolName ?? "identifier-1" : "identifier-1";
 
-    /// <summary>⛔ THE ONE class-condition body (ISO §8.8.4.4), over an operand the CALLER names. THREE callers
+    /// <summary>⛔ THE ONE class-condition body (ISO §2023:8.8.4.4), over an operand the CALLER names. THREE callers
     /// ask the same question about different spellings of the same condition: <see cref="BindComparison"/> for
     /// the written form <c>identifier-1 IS [NOT] class</c>, <see cref="BindPartialComparison"/> for
-    /// §14.9.13.3 SR5's "class condition without the identifier", and <see cref="BindClassCondition"/> for the
+    /// §2023:14.9.13.3 SR5's "class condition without the identifier", and <see cref="BindClassCondition"/> for the
     /// EVALUATE selection subject's own class test. Extracted rather than copied because FIVE rules live in
-    /// it — the §8.8.4.4.3 operand screen, the SR2 LOCALE-alphabet refusal, the §12.3.7 user-class membership
-    /// and the §8.8.4.4.4 GR3 a) coded-set class — and a second copy is five chances for the spellings to
+    /// it — the §2023:8.8.4.4.3 operand screen, the SR2 LOCALE-alphabet refusal, the §2023:12.3.7 user-class membership
+    /// and the §2023:8.8.4.4.4 GR3 a) coded-set class — and a second copy is five chances for the spellings to
     /// diverge. It WAS copied: <c>EvaluateBinder.SubjectAsCondition</c> carried its own kind decode over its
     /// own grammar rule, so the EVALUATE subject had no BOOLEAN, no class-name and no alphabet-name arm and
     /// offered an ALPHANUMERIC one the general format does not print (kb/Work PB590).
@@ -1075,8 +1075,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         System.Func<BoundOperand> operand, AbbrevCarry carry)
     {
         carry.Reset();   // a class condition is a complete simple condition — terminates the abbreviation
-        // The §8.8.4.4.2 alternatives this compiler offers, tagged by ClassConditionModel's own kind constants —
-        // the table that also carries each alternative's §8.8.4.4.3 operand rules, so a new alternative cannot
+        // The §2023:8.8.4.4.2 alternatives this compiler offers, tagged by ClassConditionModel's own kind constants —
+        // the table that also carries each alternative's §2023:8.8.4.4.3 operand rules, so a new alternative cannot
         // arrive here without arriving there.
         char? kind = cls.NUMERIC() is not null ? ClassConditionModel.Numeric
             : cls.ALPHABETIC() is not null ? ClassConditionModel.Alphabetic
@@ -1093,12 +1093,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : cls.IN_ARITHMETIC_RANGE() is not null ? ClassConditionModel.InArithmeticRange
             : cls.NEAREST_TO_ZERO() is not null ? ClassConditionModel.NearestToZero
             : null;
-        // ⛔ A KEYWORD ALTERNATIVE IS ITS KEYWORD ONLY WHERE §8.9 RESERVES THE WORD (kb/Work PB655). BOOLEAN (2002)
+        // ⛔ A KEYWORD ALTERNATIVE IS ITS KEYWORD ONLY WHERE §2023:8.9 RESERVES THE WORD (kb/Work PB655). BOOLEAN (2002)
         // and the seven 2014 words used to be unreachable here below their edition because the reservation gate
         // was a cobolWord PREDICATE and cobolWord comes first; the gate is token-level now, so a DECLARED class of
         // that spelling arrives as an IDENTIFIER, and a keyword token that still reaches this rule at an edition
-        // where §8.9 leaves the word free is an UNDECLARED class-name-1 / alphabet-name-1 reference — §8.8.4.4.2
-        // offers no other reading there. It falls to the name arms below and draws their §8.4.2.1 COBOL1639
+        // where §2023:8.9 leaves the word free is an UNDECLARED class-name-1 / alphabet-name-1 reference — §2023:8.8.4.4.2
+        // offers no other reading there. It falls to the name arms below and draws their §2023:8.4.2.1 COBOL1639
         // (`IF X IS BOOLEAN` at 85 used to compile clean for a moment on this branch — measured).
         string? userWord = cls.cobolWord()?.GetText();
         if (kind is not null && CobolNames.UpperFold(cls.Start.Text) is var kw
@@ -1117,7 +1117,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return BindUserWordClassCondition(cls, userWord ?? cls.GetText(), not, operand);
     }
 
-    /// <summary>§14.9.13.3 SR5's "class condition without the identifier" written as a BARE user-defined word
+    /// <summary>§2023:14.9.13.3 SR5's "class condition without the identifier" written as a BARE user-defined word
     /// (<c>EVALUATE WS-X WHEN MY-CLASS</c>) — the spelling the grammar cannot tell from identifier-2, because
     /// <c>evaluateWhenItem</c>'s <c>valueOperand</c> and <c>partialComparison</c>'s <c>classConditionName</c> both match
     /// one word. <see cref="AnalyzeBareOperand"/> has already resolved the word to a class-name or alphabet-name
@@ -1126,33 +1126,33 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public BoundCondition BindPartialClassName(Antlr4.Runtime.ParserRuleContext at, string word, PartialSubjectOperand subject) =>
         BindUserWordClassCondition(at, word, not: false, () => subject.Content);
 
-    /// <summary>The §8.8.4.4.2 alternatives that are USER-DEFINED WORDS — alphabet-name-1 and class-name-1 — over
+    /// <summary>The §2023:8.8.4.4.2 alternatives that are USER-DEFINED WORDS — alphabet-name-1 and class-name-1 — over
     /// an operand the caller names. One body for the written <c>classConditionName</c> spelling and the bare EVALUATE
     /// object (kb/Work PB843), so the LOCALE refusal, the operand screens and the undeclared-name diagnostic
     /// cannot drift between them. <paramref name="at"/> is where the word is written: the class-name or alphabet-name
-    /// it resolves to is a §8.3.2.2 use in that source element (kb/Work PB3153).</summary>
+    /// it resolves to is a §2023:8.3.2.2 use in that source element (kb/Work PB3153).</summary>
     private BoundCondition BindUserWordClassCondition(Antlr4.Runtime.ParserRuleContext at, string word, bool not,
         System.Func<BoundOperand> operand)
     {
-        // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
+        // §2023:8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
-        // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
+        // class condition could test membership of (kb/Work PB64 T5; the same rule family as §2023:12.3.7.3 SR16g/SR17d
         // — SpecialNamesBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
         if (ctx.Data.SpecialNames.IsLocaleAlphabet(word))
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
-                + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
-                + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
+                + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §2023:8.8.4.4.3 SR2) — "
+                + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§2023:12.3.7.4 GR7 Table 6)");
             return Refused($"class condition '{word}'");
         }
-        // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
+        // A SPECIAL-NAMES user-defined class (§2023:12.3.7): membership over the expanded character set.
         if (ctx.Data.State.Configuration.UserClasses.TryUse(at, word, out var userClass))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
             return new BoundUserClassCondition(opnd, userClass.Members, not);
         }
-        // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
+        // An ALPHABET-NAME class (§2023:8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
         // loud staged BoundConditionError.
         if ((ctx.Data.State.Configuration.Alphabets.TryUse(at, word, out var aDef) && aDef.CodedSet is { } aSet
@@ -1179,9 +1179,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             };
             return new BoundCodedSetClassCondition(opnd, setKind, not);
         }
-        // ⛔ A NAME THAT DECLARES NOTHING IS A BIND ERROR, NOT A RUN-TIME ONE. §8.8.4.4.2 offers exactly two
+        // ⛔ A NAME THAT DECLARES NOTHING IS A BIND ERROR, NOT A RUN-TIME ONE. §2023:8.8.4.4.2 offers exactly two
         // user-defined words here — alphabet-name-1 and class-name-1 — and both arms above have refused this
-        // spelling, so it identifies no resource: ISO §8.4.2.1, "In order to use a resource, a statement shall
+        // spelling, so it identifies no resource: ISO §2023:8.4.2.1, "In order to use a resource, a statement shall
         // contain a reference that uniquely identifies that resource". That is COBOL1639's OWN rule, and
         // this is one more site of it rather than a new code.
         // ⛔ IT USED TO FALL TO BoundConditionError, which is the SILENT-COMPILE / LOUD-RUNTIME staging:
@@ -1191,26 +1191,26 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // below 2002) at 85.
         ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{word}': the word names "
             + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
-            + "condition's only user-defined-word alternatives (ISO §8.8.4.4.2; §8.4.2.1 — \"In order to use a "
+            + "condition's only user-defined-word alternatives (ISO §2023:8.8.4.4.2; §2023:8.4.2.1 — \"In order to use a "
             + "resource, a statement shall contain a reference that uniquely identifies that resource\")");
         return Refused($"class condition '{word}'");
     }
 
-    /// <summary>⛔ THE ONE sign-condition body (ISO §8.8.4.7), over an operand node the CALLER names — the written
-    /// form's own <c>comparisonOperand</c>, or (§14.9.13.3 SR5's "sign condition without the identifier, or a sign
+    /// <summary>⛔ THE ONE sign-condition body (ISO §2023:8.8.4.7), over an operand node the CALLER names — the written
+    /// form's own <c>comparisonOperand</c>, or (§2023:14.9.13.3 SR5's "sign condition without the identifier, or a sign
     /// condition without the arithmetic expression") the EVALUATE selection subject. Both of SR5's phrasings name
-    /// the SAME elided position — §8.8.4.7.2's format offers identifier-1 or arithmetic-expression-1 there — so
+    /// the SAME elided position — §2023:8.8.4.7.2's format offers identifier-1 or arithmetic-expression-1 there — so
     /// they are one alternative here, not two.</summary>
     private BoundCondition BindSignConditionOn(char kind, bool not, Core.ValueOperandContext? operand, AbbrevCarry carry)
     {
         carry.Reset();
-        // ISO §8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
+        // ISO §2023:8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
         // than a standard floating-point usage, or any form of arithmetic expression" — named here so a
-        // non-numeric operand is sent to the rule it broke, not to §8.8.1.1 alone (kb/Work PB171).
+        // non-numeric operand is sent to the rule it broke, not to §2023:8.8.1.1 alone (kb/Work PB171).
         if (operand is null) return Refused("sign condition with no operand");
         return new BoundSignCondition(
             host.Expr.BindOperandExpr(operand,
-                "ISO §8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
+                "ISO §2023:8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
                 + "sign-condition operand"),
             kind, not, IsFormat2FloatSign(operand));
     }
@@ -1226,9 +1226,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (cmp.OMITTED() is not null)
         {
             carry.Reset();
-            // §8.8.4.8 (kb/Work PB133 wave C; the method arm kb/Work PB757): "data-name-1 IS [NOT] OMITTED" —
+            // §2023:8.8.4.8 (kb/Work PB133 wave C; the method arm kb/Work PB757): "data-name-1 IS [NOT] OMITTED" —
             // SR1: data-name-1 shall be a formal parameter defined in the source element in which this condition
-            // is specified. Inside a METHOD that element is the method (§14.9.23.4 GR9 — the condition "shall
+            // is specified. Inside a METHOD that element is the method (§2023:14.9.23.4 GR9 — the condition "shall
             // be true in the invoked method"), so its own formals are the ones searched, never the containing
             // unit's; elsewhere the program/function formals are. Either way the test renders the formal's ONE
             // presence fact (OmittedProbe): spelled, trailing and GR1c-transitive omission all arrive there.
@@ -1246,7 +1246,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,
                     $"omitted-argument condition '{fname} IS OMITTED': data-name-1 shall be a formal parameter "
-                    + "defined in the source element in which this condition is specified (ISO §8.8.4.8.3 SR1)");
+                    + "defined in the source element in which this condition is specified (ISO §2023:8.8.4.8.3 SR1)");
                 return Refused($"omitted-argument condition '{fname}'");
             }
             return new BoundOmittedCondition(formal, not);
@@ -1254,16 +1254,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
         {
-            // An address-identifier is class pointer (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1), never the "single
-            // numeric data item … or any form of arithmetic expression" §8.8.4.7.3 SR1 admits (kb/Work PB1021).
+            // An address-identifier is class pointer (§2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1), never the "single
+            // numeric data item … or any form of arithmetic expression" §2023:8.8.4.7.3 SR1 admits (kb/Work PB1021).
             if (operands[0].addressIdentifier() is { } signAddr)
             {
                 carry.Reset();
                 ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
                     $"'{DataBinder.WrittenText(signAddr)}' is an address-identifier — a data item of class pointer "
-                    + "(ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1) — and a sign condition's operand shall be \"any single "
+                    + "(ISO §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1) — and a sign condition's operand shall be \"any single "
                     + "numeric data item described with a usage other than a standard floating-point usage, or any "
-                    + "form of arithmetic expression\" (ISO §8.8.4.7.3 SR1)");
+                    + "form of arithmetic expression\" (ISO §2023:8.8.4.7.3 SR1)");
                 return Refused($"sign condition over '{DataBinder.WrittenText(signAddr)}'");
             }
             return BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
@@ -1274,19 +1274,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
         {
             // A fully-stated relation establishes the subject + operator for any following abbreviated relation in the
-            // sequence (ISO §8.8.4.12.4 GR1 — "the last preceding stated subject … and the last stated operator").
+            // sequence (ISO §2023:8.8.4.12.4 GR1 — "the last preceding stated subject … and the last stated operator").
             BoundOperand subject = ComparisonOperand(operands[0]);
             string op = MapOperator(opCtx.GetText());
             carry.Subject = subject;
             carry.Op = op;
             BoundOperand right = ComparisonOperand(operands[1]);
-            // §8.8.4.12.3 SR1 is decided HERE, on the relation's operand class, where the carry is seeded (PB1391).
+            // §2023:8.8.4.12.3 SR1 is decided HERE, on the relation's operand class, where the carry is seeded (PB1391).
             carry.BooleanRelation = IsBooleanClassOperand(subject) || IsBooleanClassOperand(right);
-            // ⛔ THE OBJECT-REFERENCE (§8.8.4.2.2 Format 3 / §8.8.4.2.3 SR5) AND DATA-POINTER (§8.8.4.2.16) BANDS USED TO BE
+            // ⛔ THE OBJECT-REFERENCE (§2023:8.8.4.2.2 Format 3 / §2023:8.8.4.2.3 SR5) AND DATA-POINTER (§2023:8.8.4.2.16) BANDS USED TO BE
             // WRITTEN HERE, in the relation arm, ABOVE the checkpoint (kb/Work PB399). They are now in
             // StatementValidation.CheckRelationalOperands, beside the class-boolean and strongly-typed-group
-            // rules of the same §8.8.4.2 band, because a rule about what may be COMPARED belongs to the ONE
-            // BoundRelational construction site and not to one of its callers: §14.9.13.3 SR7 a) makes an EVALUATE
+            // rules of the same §2023:8.8.4.2 band, because a rule about what may be COMPARED belongs to the ONE
+            // BoundRelational construction site and not to one of its callers: §2023:14.9.13.3 SR7 a) makes an EVALUATE
             // pair's objects "valid operands for comparison … in accordance with 8.8.4.2", and
             // written here the bands screened `IF P >= Q` and said nothing about `EVALUATE P WHEN Q THRU R` or
             // `EVALUATE P WHEN X` — the second of which reached the BACKEND and failed as a raw C# CS1503.
@@ -1299,9 +1299,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A bare single operand — resolve as a sole-operand condition (88 / switch / simple-boolean / abbreviated).
         if (operands.Length == 1)
         {
-            // A bare address-identifier is the OBJECT of an abbreviated relation (§8.8.4.12) when a subject and
-            // operator are carried, an abbreviation §8.8.4.12.3 SR1 refuses after a boolean relation, and otherwise no
-            // condition at all (§8.8.4.2.1) — kb/Work PB1021, PB4707.
+            // A bare address-identifier is the OBJECT of an abbreviated relation (§2023:8.8.4.12) when a subject and
+            // operator are carried, an abbreviation §2023:8.8.4.12.3 SR1 refuses after a boolean relation, and otherwise no
+            // condition at all (§2023:8.8.4.2.1) — kb/Work PB1021, PB4707.
             if (operands[0].addressIdentifier() is { } bareAddr)
             {
                 switch (BareObjectRoleOf(carry))
@@ -1325,16 +1325,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// (kb/Work PB4627).</summary>
     private void ReportAddressIdentifierAsCondition(Core.AddressIdentifierContext address) =>
         ReportNotACondition(DataBinder.WrittenText(address), "an address-identifier — a data item of class "
-            + "pointer (ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1)");
+            + "pointer (ISO §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1)");
 
     /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
-    /// terminates the abbreviation), a switch-status condition-name (§8.8.4.6), a SIMPLE BOOLEAN CONDITION over
-    /// a length-1 boolean item/literal (§8.8.4.3), or — within an abbreviated sequence — a relation with BOTH
-    /// subject and operator omitted (§8.8.4.12; the trailing C in `A = B AND C` ≡ `A = C`). A condition-name
+    /// terminates the abbreviation), a switch-status condition-name (§2023:8.8.4.6), a SIMPLE BOOLEAN CONDITION over
+    /// a length-1 boolean item/literal (§2023:8.8.4.3), or — within an abbreviated sequence — a relation with BOTH
+    /// subject and operator omitted (§2023:8.8.4.12; the trailing C in `A = B AND C` ≡ `A = C`). A condition-name
     /// takes precedence. Shared by the generic path and the boolean-alt unwrap (a B-op-free bare operand).</summary>
     private BoundCondition BindSoleOperandCondition(Core.ValueOperandContext? vo, System.Func<BoundOperand> bindOperand, AbbrevCarry carry)
     {
-        // §14.9.13.3 SR5/SR8 — under a partial-expression rewrite the LEFTMOST leaf may be the bare class-name /
+        // §2023:14.9.13.3 SR5/SR8 — under a partial-expression rewrite the LEFTMOST leaf may be the bare class-name /
         // alphabet-name of "a class condition without the identifier" (LeadingBareClassWord); the selection
         // subject is spliced in as its identifier, exactly as partialComparison's `IS? NOT? classConditionName` does.
         if (carry.PartialSubject is { } ps && BareClassWord(vo) is { } classWord)
@@ -1348,7 +1348,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             carry.Reset();
             return sole;
         }
-        // A bare object after a boolean relation would be an abbreviation (§8.8.4.12.1 2), which SR1 forbids.
+        // A bare object after a boolean relation would be an abbreviation (§2023:8.8.4.12.1 2), which SR1 forbids.
         return BareObjectRoleOf(carry) switch
         {
             BareObjectRole.AbbreviationAfterBooleanRelation =>
@@ -1359,12 +1359,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>⛔ A BARE OPERAND THAT IS NONE OF THE CONDITIONS IS A COMPILE-TIME ERROR (kb/Work PB982). ISO
-    /// §8.8.4.2.1: "The simple conditions are the relation, boolean, class, condition-name, switch-status, sign,
-    /// and omitted-argument conditions", and a complex condition is built only from them (§8.8.4.1 — "There are
+    /// §2023:8.8.4.2.1: "The simple conditions are the relation, boolean, class, condition-name, switch-status, sign,
+    /// and omitted-argument conditions", and a complex condition is built only from them (§2023:8.8.4.1 — "There are
     /// two categories of conditions associated with conditional expressions: simple conditions and complex
     /// conditions"). By the time this runs the operand has been refused as a condition-name, a switch-status
     /// condition-name and a simple boolean condition (<see cref="AnalyzeBareOperand"/>), and no abbreviated
-    /// relation is in progress to make it an object (§8.8.4.12) — so `IF WS-X` over a PIC X item, a bare
+    /// relation is in progress to make it an object (§2023:8.8.4.12) — so `IF WS-X` over a PIC X item, a bare
     /// class-name outside an EVALUATE selection object, a switch's mnemonic-name, a literal, a figurative or an
     /// arithmetic expression is simply not a conditional expression. It used to return a diagnostic-less
     /// <see cref="BoundConditionError"/>: the program compiled clean and aborted the run unit with
@@ -1375,21 +1375,21 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         string text = vo is null ? "operand" : DataBinder.WrittenText(vo);
         var dref = ConditionOperandExpression(vo) is { } expr ? SoleDataRef(expr) : null;   // `(X)` names X (kb/Work PB1464)
         string? what = null;
-        // A constant-name is the literal it substitutes (§13.10.4 GR1), and a symbolic-character a figurative constant
-        // (§12.3.7.4 GR11 a)): neither is a data item, and neither is a condition — a boolean constant never gets
-        // here, it is the §8.8.4.3 simple boolean condition AnalyzeBareOperand routed it as (kb/Work PB3191).
+        // A constant-name is the literal it substitutes (§2023:13.10.4 GR1), and a symbolic-character a figurative constant
+        // (§2023:12.3.7.4 GR11 a)): neither is a data item, and neither is a condition — a boolean constant never gets
+        // here, it is the §2023:8.8.4.3 simple boolean condition AnalyzeBareOperand routed it as (kb/Work PB3191).
         if (dref is { } ad && ad.dataReferenceSuffix().Length == 0 && host.Expr.LiteralAliasOf(ad) is { } alias)
             what = $"{alias.Described}, which is none of the conditions";
         else if (BareClassWord(vo) is { } classWord)
             what = ctx.Data.SpecialNames.IsAlphabetName(classWord)
                 ? $"alphabet-name '{classWord}', which forms a class condition only after the identifier it tests — "
-                  + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §8.8.4.4.2)"
+                  + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §2023:8.8.4.4.2)"
                 : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
-                  + "\"identifier-1 IS [NOT] class-name-1\" (ISO §8.8.4.4.2)";
+                  + "\"identifier-1 IS [NOT] class-name-1\" (ISO §2023:8.8.4.4.2)";
         else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
                  && ctx.Mnemonics.TryPeek(word, out var mnemonicRow) && mnemonicRow.Kind == SystemNameKind.Switch)
             what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
-                + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §8.8.4.6.1; the §8.8.4.6.2 format is condition-name-1)";
+                + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §2023:8.8.4.6.1; the §2023:8.8.4.6.2 format is condition-name-1)";
         else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)
             what = $"data item '{probe.Item.CobolName ?? text}'"
                 + (probe.OperandCategory is { } cat ? $" of category {cat.ToString().ToLowerInvariant()}" : "");
@@ -1405,12 +1405,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE WORDING OF "THIS OPERAND IS WRITTEN WHERE A CONDITION IS REQUIRED" (COBOL2318). Every
     /// arm that finds a bare operand, an address-identifier or a truth word in a condition position names what it
-    /// IS and the rule it breaks through here, so the §8.8.4.2.1 list of the simple conditions is written once.</summary>
+    /// IS and the rule it breaks through here, so the §2023:8.8.4.2.1 list of the simple conditions is written once.</summary>
     private void ReportNotACondition(string text, string what) =>
         ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
             $"'{text}' is used as a condition, but it is {what}: a conditional expression is a relation, boolean, class, "
             + "condition-name, switch-status, sign or omitted-argument condition, or a combination of them "
-            + "(ISO §8.8.4.2.1; §8.8.4.1)");
+            + "(ISO §2023:8.8.4.2.1; §2023:8.8.4.1)");
 
     /// <summary>⛔ THE ONE CONSTRUCTION SITE OF <see cref="BoundConditionError"/> (kb/Work PB982). An error node in a
     /// condition position is lowered by the emitter to a run-time <c>NotImplemented</c> throw, so a refusal that
@@ -1442,74 +1442,74 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE ANALYSIS OF A BARE OPERAND — which of the three shapes it is, resolved ONCE
     /// (kb/Work PB400). A caller that must first CLASSIFY the operand and only then BIND it — EVALUATE's
-    /// Table-15 screen, whose §14.9.13.3 SR6 decides a boolean operand's kind from the OTHER side of the pair —
-    /// would otherwise resolve the same symbol twice, doubling <see cref="ConditionOf"/>'s §8.4.2.2 ambiguity
-    /// diagnostic and binding the boolean operand as a simple boolean condition (with its §8.8.4.3 SR1
+    /// Table-15 screen, whose §2023:14.9.13.3 SR6 decides a boolean operand's kind from the OTHER side of the pair —
+    /// would otherwise resolve the same symbol twice, doubling <see cref="ConditionOf"/>'s §2023:8.4.2.2 ambiguity
+    /// diagnostic and binding the boolean operand as a simple boolean condition (with its §2023:8.8.4.3 SR1
     /// length-1 screen) before knowing whether it IS one.
     /// <para>⛔ AND IT IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is
     /// equally a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the
     /// <c>valueOperand</c> arm; only the resolved symbol says which it is.</para></summary>
     public BareOperandAnalysis AnalyzeBareOperand(Core.ValueOperandContext? vo)
     {
-        // ⛔ PARENTHESES AROUND A SIMPLE CONDITION CHANGE NOTHING (§8.8.4.2.1; kb/Work PB1464). The grammar takes
+        // ⛔ PARENTHESES AROUND A SIMPLE CONDITION CHANGE NOTHING (§2023:8.8.4.2.1; kb/Work PB1464). The grammar takes
         // `(X1)` as a parenthesized arithmetic operand (primaryCondition tries comparisonExpression first, and
         // reordering it is what the DEVLOG-621 regression forbids), so the seam that classifies the operand looks
         // THROUGH its enclosing parentheses: `(X1)`, `NOT (S1-OFF)` and `(BW)` are the level-88, the switch-status
         // condition-name and the boolean item they enclose.
         var inner = ConditionOperandExpression(vo);
         if (inner is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
-            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
-            // Capture EC-RANGE-INVALID checking (§14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
+            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§2023:8.4.2.3 Format 2).
+            // Capture EC-RANGE-INVALID checking (§2023:14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 ctx.Refs.ResolveForItem(dref, cond.Parent) is var parentAnswer && parentAnswer.Place is { } parent
                     ? new BoundCondition88(parent, cond,
                         ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                     : Unresolved(parentAnswer, $"condition-name '{cond.Name}' (unresolvable conditional variable)"));
         // A switch-status condition-name — asked AFTER level-88 because a level-88 of the spelling in a nearer element is
-        // the §8.4.6.1 own item that a CONTAINER's switch name yields to; a switch declared in the SAME element as a
-        // level-88 of the spelling never gets here, ConditionOf having refused the pair as non-unique (§8.4.2.2.1;
+        // the §2023:8.4.6.1 own item that a CONTAINER's switch name yields to; a switch declared in the SAME element as a
+        // level-88 of the spelling never gets here, ConditionOf having refused the pair as non-unique (§2023:8.4.2.2.1;
         // kb/Work PB3347). BEFORE the abbreviated-carry fallback.
         if (inner is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
             return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
-        // ⛔ §13.16.3 SR23's NEGATIVE side (kb/Work PB567): a declared level-88 written under qualifiers its
+        // ⛔ §2023:13.16.3 SR23's NEGATIVE side (kb/Work PB567): a declared level-88 written under qualifiers its
         // conditional variable is not subordinate to — and that no DATA-name under those qualifiers answers
         // either — is a condition-name reference that identifies nothing. It is classified as the CONDITION-NAME
         // it was written as (so EVALUATE's Table-15 screen does not re-read it as an identifier and report a
         // pairing error about the wrong thing) and reported ONCE, through the one wording.
-        // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §8.4.6.2.1 3) a)):
+        // A data item of a NEARER source element that hides the level-88 is NOT this arm's reference (ISO §2023:8.4.6.2.1 3) a)):
         // a bare operand admits a data item, so the reference is the data item's and the value arm reports whatever is
-        // wrong with it, such as a subscript on a scalar (§8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433). A constant-name,
+        // wrong with it, such as a subscript on a scalar (§2023:8.4.2.3.3 SR2, COBOL2096; kb/Work PB4433). A constant-name,
         // index-name, CAPACITY register or file-name of a NEARER source element is the referenced item the same way
         // (kb/Work PB4432 review R1-1), and the value arm refuses it as the operand it is.
         if (inner is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
             && !NamesHidingDataItem(mqr) && HidingClassPhrase(mqr) is null && ReportMisqualifiedCondition(mqr))
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
-        // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
-        // reference-modified (neither name is a data-name, so neither takes a qualifier or a subscript). §8.3.2.2
+        // A class-name-1 / alphabet-name-1 (§2023:8.8.4.4.2) written bare — a word, never qualified, subscripted or
+        // reference-modified (neither name is a data-name, so neither takes a qualifier or a subscript). §2023:8.3.2.2
         // makes the name classes disjoint ("a given user-defined word may be used as only one type of user-defined
         // word"), so the resolved SYMBOL decides it; the Probe keeps a word that ALSO resolves as a data item (an
         // already non-conforming program) on the value reading it always had (kb/Work PB843).
         if (BareClassWord(vo) is { } classWord) return BareOperandAnalysis.OfClassName(classWord);
-        // A BOOLEAN operand (§8.8.2). Whether it is a §8.8.4.3 simple boolean CONDITION is the CALLER's
+        // A BOOLEAN operand (§2023:8.8.2). Whether it is a §2023:8.8.4.3 simple boolean CONDITION is the CALLER's
         // question in EVALUATE (SR6) and settled here everywhere else, so the expression is carried bound but
-        // unwrapped, with its §8.8.2 rules 9/10 result length.
+        // unwrapped, with its §2023:8.8.2 rules 9/10 result length.
         if (vo is not null && IsBooleanValueOperand(vo)) return BooleanAnalysis(BindBoolOperandValue(vo));
         return default;   // BareOperandForm.Value
     }
 
     /// <summary>The <see cref="BareOperandForm.Boolean"/> analysis of an already-bound boolean expression, carrying
-    /// its §8.8.2 rules 9/10 result length — the ONE construction, shared by a bare boolean operand
+    /// its §2023:8.8.2 rules 9/10 result length — the ONE construction, shared by a bare boolean operand
     /// (<see cref="AnalyzeBareOperand"/>) and an operator-bearing boolean expression
-    /// (<see cref="AnalyzeBooleanExpression"/>), so §14.9.13.3 SR6's "results in one boolean character" is asked of
+    /// (<see cref="AnalyzeBooleanExpression"/>), so §2023:14.9.13.3 SR6's "results in one boolean character" is asked of
     /// both through the same number.</summary>
     private static BareOperandAnalysis BooleanAnalysis(BoundBoolExpr b) =>
         new(BareOperandForm.Boolean, null, b, BoolResultLength(b));
 
     /// <summary>⛔ THE ONE ANALYSIS OF A <c>booleanExpression</c> WRITTEN AS A SELECTION OPERAND (kb/Work PB1412) —
-    /// the EVALUATE subject <c>boolean-expression-1</c> and object <c>boolean-expression-2</c> of ISO §14.9.13.2.
+    /// the EVALUATE subject <c>boolean-expression-1</c> and object <c>boolean-expression-2</c> of ISO §2023:14.9.13.2.
     /// An expression that carries a boolean operator is a <see cref="BareOperandForm.Boolean"/> operand whose bound
-    /// tree and result length are held for Table 15 and §14.9.13.3 SR6, exactly as a bare boolean item's are; the
+    /// tree and result length are held for Table 15 and §2023:14.9.13.3 SR6, exactly as a bare boolean item's are; the
     /// grammar's <c>{boolExprAhead()}?</c> gate can also take an OPERATOR-FREE one (<c>(B"1")</c>), which reduces to
     /// its bare operand and is analysed as that operand — the relation channel's own reading
     /// (<see cref="BindBoolOrValueOperand"/>).</summary>
@@ -1528,17 +1528,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         be is not null && !HasBoolOp(be) ? UnwrapBareBool(be) : null;
 
     /// <summary>The expression a bare operand denotes AS A CONDITION OPERAND: its arithmetic expression with the
-    /// parentheses that enclose the whole of it removed, because §8.8.4.2.1 says parentheses around a simple
+    /// parentheses that enclose the whole of it removed, because §2023:8.8.4.2.1 says parentheses around a simple
     /// condition change nothing (kb/Work PB1464). The ONE read of that fact for the bare-operand classifier, the
     /// boolean-operand predicate and the not-a-condition report. A class-name stays parenthesis-opaque
     /// (<see cref="BareClassWord"/>): "(MY-CLASS)" is no class condition, which needs its identifier.</summary>
     public static Core.ArithmeticExpressionContext? ConditionOperandExpression(Core.ValueOperandContext? vo) =>
         SoleOperand.Unparenthesized(vo?.arithmeticExpression());
 
-    /// <summary>The class-name-1 / alphabet-name-1 (ISO §8.8.4.4.2) a bare operand names, or null — the ONE symbol
+    /// <summary>The class-name-1 / alphabet-name-1 (ISO §2023:8.8.4.4.2) a bare operand names, or null — the ONE symbol
     /// test behind <see cref="BareOperandForm.ClassName"/>. A word only: neither name is a data-name, so neither
     /// takes a qualifier, a subscript or a reference modifier. A class-name a CONTAINING element declares yields to
-    /// the referring element's own data item or constant-name of that spelling (§8.4.6.1; kb/Work PB3153): an
+    /// the referring element's own data item or constant-name of that spelling (§2023:8.4.6.1; kb/Work PB3153): an
     /// EVALUATE object <c>WHEN KW</c> with <c>01 KW CONSTANT AS "AB"</c> is a literal comparison object. PURE
     /// (dictionary lookups and the diagnostic-free <see cref="ReferenceResolver.DescribesOwnItem"/>), so a
     /// classifier may ask it before anything is bound.</summary>
@@ -1547,12 +1547,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             && dref.cobolWord() is { } word && ctx.Data.SpecialNames.IsClassConditionWord(word.GetText()) && !ctx.Refs.DescribesOwnItem(dref)
             ? word.GetText() : null;
 
-    /// <summary>§14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
+    /// <summary>§2023:14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
     /// class-name / alphabet-name its LEFTMOST simple condition is written as, bare, or null. <c>WHEN MY-CLASS AND
     /// WS-F = "Y"</c> is a partial-expression — its leftmost portion is "a class condition without the
     /// identifier" — but the bare word is also a complete comparison operand, so the grammar's <c>condition</c>
     /// alternative claims the object before <c>partialExpression</c> is tried. The descent follows exactly the
-    /// leftmost path SR5 names: through the logical tiers and a leading <c>NOT</c> (§8.8.4.4.2's own
+    /// leftmost path SR5 names: through the logical tiers and a leading <c>NOT</c> (§2023:8.8.4.4.2's own
     /// <c>[ NOT ]</c>), never into a parenthesis (a parenthesised leftmost portion is not a class condition).</summary>
     public string? LeadingBareClassWord(Core.ConditionContext cond)
     {
@@ -1580,10 +1580,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
-    /// condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
-    /// a length-1 boolean item/literal (§8.8.4.3) — or <c>null</c> when the operand is a plain VALUE. The
+    /// condition-name (§2023:8.8.4.2.7 r2), a switch-status condition-name (§2023:8.8.4.6), or a simple boolean condition over
+    /// a length-1 boolean item/literal (§2023:8.8.4.3) — or <c>null</c> when the operand is a plain VALUE. The
     /// resolution is <see cref="AnalyzeBareOperand"/>'s; this is the arm that WRAPS a boolean expression as the
-    /// §8.8.4.3 condition, which is where that clause's SR1 length screen belongs.</summary>
+    /// §2023:8.8.4.3 condition, which is where that clause's SR1 length screen belongs.</summary>
     public BoundCondition? BareOperandAsCondition(Core.ValueOperandContext? vo) =>
         AsCondition(AnalyzeBareOperand(vo));
 
@@ -1595,13 +1595,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
-    /// <summary>ISO §8.8.2 rules 9 and 10 — the number of boolean positions the RESULT of a boolean expression
+    /// <summary>ISO §2023:8.8.2 rules 9 and 10 — the number of boolean positions the RESULT of a boolean expression
     /// occupies: r10 "a boolean value whose length shall be the number of boolean positions of the larger item
     /// referenced in that operation", r9 the shift's "the number of boolean positions of the first item
     /// referenced". <see langword="null"/> when the length is POSITIONLESS (figurative ZERO / <c>ALL B"…"</c>,
-    /// which materialize to the sibling's length — §8.3.3.6.4 GR4) or is not statically known (a boolean
+    /// which materialize to the sibling's length — §2023:8.3.3.6.4 GR4) or is not statically known (a boolean
     /// function whose length argument is a run-time value).
-    /// <para>This is the length §14.9.13.3 SR6 turns on ("a boolean expression that results in one boolean
+    /// <para>This is the length §2023:14.9.13.3 SR6 turns on ("a boolean expression that results in one boolean
     /// character"). It is a SIBLING of <see cref="Gr3Width"/>, not the same function: GR3's COMPUTE store width
     /// counts ITEMS only and gives a literal 0, while a boolean literal's own length is exactly what SR6 needs
     /// (<c>EVALUATE TRUE WHEN B"1"</c> vs <c>WHEN B"01"</c> differ on it, and the difference is a Table-15
@@ -1614,7 +1614,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolShift s => BoolResultLength(s.Operand),      // r9 — the FIRST item's positions
         BoundBoolBinary b => LargerOf(BoolResultLength(b.Left), BoolResultLength(b.Right)),   // r10
         BoundBoolCall c => StaticBoolCallWidth(c),
-        BoundBoolAll => null,                                  // positionless (§8.3.3.6.4 GR4)
+        BoundBoolAll => null,                                  // positionless (§2023:8.3.3.6.4 GR4)
         _ => null,                                             // error nodes already reported
     };
 
@@ -1622,33 +1622,33 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private static int? LargerOf(int? a, int? b) => a is null ? b : b is null ? a : System.Math.Max(a.Value, b.Value);
 
     /// <summary>A relation CONDITION as the program wrote it — IF, PERFORM UNTIL, SEARCH WHEN, a boolean relation, an
-    /// abbreviated relation's inserted subject, an EVALUATE partial-expression's spliced subject (§14.9.13.3 SR8). Asks
-    /// the one rule that is about a written condition and not about a compared pair — ISO §8.8.4.2.1's "at least one
+    /// abbreviated relation's inserted subject, an EVALUATE partial-expression's spliced subject (§2023:14.9.13.3 SR8). Asks
+    /// the one rule that is about a written condition and not about a compared pair — ISO §2023:8.8.4.2.1's "at least one
     /// reference to an operand that is not a literal" (<see cref="StatementValidation.CheckRelationHasNonLiteralOperand"/>,
     /// kb/Work PB1470), of the operands as WRITTEN (an EVALUATE subject's intermediate reads through to the operand it
     /// holds) — then builds the node through <see cref="CheckedRelational"/>. EVALUATE's subject/object pairs and
-    /// ranges reach <see cref="CheckedRelational"/> directly: §14.9.13.3 SR10's Table 15 governs them.</summary>
+    /// ranges reach <see cref="CheckedRelational"/> directly: §2023:14.9.13.3 SR10's Table 15 governs them.</summary>
     private BoundCondition WrittenRelational(BoundOperand left, string op, BoundOperand right)
     {
         ctx.Validation.CheckRelationHasNonLiteralOperand(Written(left), Written(right));
         return CheckedRelational(left, op, right);
     }
 
-    /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean
+    /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §2023:8.8.4.2.2 boolean
     /// relation rules ride every site (IF / EVALUATE pairing + ranges / PERFORM UNTIL / SEARCH): a boolean
-    /// operand compares only with another boolean operand (§8.8.4.2.3 SR2/SR3, Format 1, exclude class boolean from
+    /// operand compares only with another boolean operand (§2023:8.8.4.2.3 SR2/SR3, Format 1, exclude class boolean from
     /// the general relation — a class mix is 0844) and only for [in]equality (Format 2 — an ordering operator
     /// on boolean operands is 0844; an EVALUATE THRU range over a boolean subject trips the same check,
-    /// §14.9.13.3 SR4). Figurative ZERO is boolean zeros by context (§8.3.3.6.4 GR4); every other figurative
+    /// §2023:14.9.13.3 SR4). Figurative ZERO is boolean zeros by context (§2023:8.3.3.6.4 GR4); every other figurative
     /// against a boolean operand is non-boolean.</summary>
     public BoundCondition CheckedRelational(BoundOperand left, string op, BoundOperand right)
     {
-        // The edition-invariant §8.8.4.2.2 / §8.8.4.2.3 SR band (class-boolean comparability + the
+        // The edition-invariant §2023:8.8.4.2.2 / §2023:8.8.4.2.3 SR band (class-boolean comparability + the
         // strongly-typed-group rules) is the ONE StatementValidation home (10t/3 — the 10o deviation-(b)
         // pure-lift discharged); the node is always built (a PURE emission check, no verdict).
         ctx.Validation.CheckRelationalOperands(Written(left), op, Written(right));
         // ⛔ WHICH COMPARISON THE PAIR IS, asked of the ONE classifier the screens above also ask (kb/Work PB1469):
-        // two same-type strongly-typed groups compare ELEMENT BY ELEMENT (ISO §8.8.4.2.12), which is lowered here
+        // two same-type strongly-typed groups compare ELEMENT BY ELEMENT (ISO §2023:8.8.4.2.12), which is lowered here
         // to the relations between their elementary items — never the whole-group image a Flat pair compares.
         if (RelationPair.Classify(left, right) is RelationPairShape.StrongElementOrder
             && left is BoundFieldOperand { Place: var lp } && right is BoundFieldOperand { Place: var rp })
@@ -1656,7 +1656,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (_strongGroups.Lower(lp, rp, op, out string? unbuilt) is { } elementOrder) return elementOrder;
             ctx.Edition.Error(DiagnosticCatalog.StrongGroupComparisonMember, $"the comparison of the strongly-typed "
                 + $"groups '{lp.Item.CobolName}' and '{rp.Item.CobolName}' reaches {unbuilt}, which this "
-                + "implementation cannot yet compare element by element (ISO §8.8.4.2.12)");
+                + "implementation cannot yet compare element by element (ISO §2023:8.8.4.2.12)");
             return Refused($"strongly-typed group comparison over {unbuilt}");
         }
         return new BoundRelational(left, op, right);
@@ -1665,8 +1665,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The OTHER comparison node's construction, through the SAME checkpoint (kb/Work PB1468). An EVALUATE
     /// THROUGH range lowers to <see cref="BoundRangeMembership"/> instead of the inclusive
     /// <see cref="CheckedRelational"/> pair when it carries an IN alphabet-name or EC-RANGE-INVALID checking — but it
-    /// is still §14.9.13.4 GR4 a) 5.'s "selection-subject &gt;= left-part AND selection-subject &lt;= right-part", so
-    /// every §8.8.4.2 operand rule is owed to both of those relations. Built anywhere else, the node skipped the
+    /// is still §2023:14.9.13.4 GR4 a) 5.'s "selection-subject &gt;= left-part AND selection-subject &lt;= right-part", so
+    /// every §2023:8.8.4.2 operand rule is owed to both of those relations. Built anywhere else, the node skipped the
     /// checkpoint: `EVALUATE NB WHEN "0001" THRU "0020" IN AL` (NB COMP) and `EVALUATE I1 WHEN "1" THRU "5" IN AL`
     /// (I1 an index-name) compiled clean while the identical ranges without the phrase were refused.</summary>
     public BoundCondition CheckedRangeMembership(BoundOperand subject, BoundOperand lo, BoundOperand hi, bool checkInvalid,
@@ -1677,12 +1677,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return new BoundRangeMembership(subject, lo, hi, CheckInvalid: checkInvalid, Alphabet: alphabet);
     }
 
-    /// <summary>The operand each implementor's intermediate result item stands for (§14.9.13.4 GR3's EVALUATE subject
+    /// <summary>The operand each implementor's intermediate result item stands for (§2023:14.9.13.4 GR3's EVALUATE subject
     /// value — <c>EvaluateBinder.BindSubjectValue</c>), keyed by the intermediate operand INSTANCE the statement's
-    /// pairs all share. ⛔ THE §8.8.4.2 OPERAND RULES ARE ABOUT THE OPERAND THE PROGRAMMER WROTE, the principle
+    /// pairs all share. ⛔ THE §2023:8.8.4.2 OPERAND RULES ARE ABOUT THE OPERAND THE PROGRAMMER WROTE, the principle
     /// <c>SendingValueTemp.Materialize</c> states for its own store: re-running them against the intermediate judges a
     /// description the implementor chose. An index-name subject's intermediate is a numeric item, so without this
-    /// `EVALUATE I1 WHEN I2 WHEN IDA` — two §8.8.4.2.13 pairs — was refused as numeric-against-index (kb/Work
+    /// `EVALUATE I1 WHEN I2 WHEN IDA` — two §2023:8.8.4.2.13 pairs — was refused as numeric-against-index (kb/Work
     /// PB1468). The EMITTED node keeps the intermediate; only the checkpoint reads through.</summary>
     private readonly Dictionary<BoundOperand, BoundOperand> _writtenOperand = new(ReferenceEqualityComparer.Instance);
 
@@ -1692,16 +1692,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The operand as written: <paramref name="o"/> itself unless it is a recorded intermediate.</summary>
     private BoundOperand Written(BoundOperand o) => _writtenOperand.TryGetValue(o, out var w) ? w : o;
 
-    /// <summary>The §8.8.4.2.12 element-order lowering (kb/Work PB1469) — per unit, stateless beyond the context.</summary>
+    /// <summary>The §2023:8.8.4.2.12 element-order lowering (kb/Work PB1469) — per unit, stateless beyond the context.</summary>
     private readonly StrongGroupComparison _strongGroups = new(ctx);
 
-    /// <summary>ISO §8.8.4.7.3 SR2 — a sign condition is Format 2 (the IEEE sign-bit test, §8.8.4.7.4 GR2) iff
+    /// <summary>ISO §2023:8.8.4.7.3 SR2 — a sign condition is Format 2 (the IEEE sign-bit test, §2023:8.8.4.7.4 GR2) iff
     /// data-name-1 is a single data item of a standard floating-point usage that is NOT enclosed in parentheses.
     /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
     /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
     /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
     /// <summary>The numeric expression an already-bound selection-subject VALUE supplies as a sign-condition
-    /// operand (§8.8.4.7.3 SR1 — "any single numeric data item … or any form of arithmetic expression"), or null
+    /// operand (§2023:8.8.4.7.3 SR1 — "any single numeric data item … or any form of arithmetic expression"), or null
     /// when the value is not numeric (the caller then takes the SR1 diagnostic path).</summary>
     private static BoundExpr? SignOperandOf(BoundOperand value) => value switch
     {
@@ -1714,7 +1714,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private bool IsFormat2FloatSign(Core.ValueOperandContext? operand) =>
         SoleDataReference(operand?.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is { Item.Pic: { } pic }      // Probe — a routing predicate is diagnostic-free (R30)
-        // ⛔ STANDARD float (§3.166 / §3.167), never PicInfo.IsFloat: FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED and
+        // ⛔ STANDARD float (§2023:3.166 / §2023:3.167), never PicInfo.IsFloat: FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED and
         // COMP-1 / COMP-2 are floating-point but NOT standard, so SR1 makes a bare one arithmetic-expression-1 and
         // GR1's ALGEBRAIC test answers (a FLOAT-LONG zero IS POSITIVE is false — kb/Work PB1471).
         && UsageFamilies.IsStandardFloat(pic.Usage);
@@ -1723,7 +1723,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// any operator, a unary sign, or enclosing parentheses (the list patterns fail for ≥2 sub-terms, and
     /// <c>primaryExpression().dataReference()</c> is null for the unary-sign and <c>LPAREN … RPAREN</c> primaries —
     /// GROUPING-PAREN-ONLY: a <c>primaryExpression</c> parenthesis is always the arithmetic grouping one, never
-    /// the §8.4.3.2.3 SR6 argument-list twin, which belongs to <c>functionCall</c>)
+    /// the §2023:8.4.3.2.3 SR6 argument-list twin, which belongs to <c>functionCall</c>)
     /// — the SR2 "single data item … not enclosed in parentheses" reduction, mirroring
     /// <see cref="IntrinsicBinder"/>.SoleDataReference. Subscript/ref-mod parens inside the dataReference are fine.
     /// <para>⚠ NULL-TOLERANT WRAPPER over the ONE <see cref="SolePrimary"/> descent. It used to be a second,
@@ -1734,10 +1734,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         SolePrimary(arith)?.dataReference();
 
     /// <summary>The FOURTH member of the sole-operand family — an expression that is nothing but an INLINE
-    /// METHOD INVOCATION (ISO §8.4.3.1.2 Format 4; kb/Work PB428). Same reason as its three siblings: the
+    /// METHOD INVOCATION (ISO §2023:8.4.3.1.2 Format 4; kb/Work PB428). Same reason as its three siblings: the
     /// construct is an IDENTIFIER, <c>arithmeticExpression</c> subsumes it, and a caller that reads the parse
     /// node instead of the meaning applies an expression rule to an identifier — which is precisely how an
-    /// alphanumeric-returning invocation came to be refused as a method ARGUMENT (§14.8.2.3.3 rule 2a's
+    /// alphanumeric-returning invocation came to be refused as a method ARGUMENT (§2023:14.8.2.3.3 rule 2a's
     /// COMPUTE lane instead of rule 2d's MOVE lane). Over the ONE <see cref="SolePrimary"/> descent, never a
     /// second walk.
     /// <para>⛔ AND ITS TWO OO SIBLINGS RIDE WITH IT (kb/Work PB1425): an object-view (Format 5) and SELF / SUPER
@@ -1751,16 +1751,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
               ?? (Antlr4.Runtime.ParserRuleContext?)p.objectView() ?? p.selfAndSuper()
             : null;
 
-    /// <summary>An expression that is nothing but SELF or [object-class-name-1 OF] SUPER (§8.4.3.1.2 Format 6) — for
-    /// the positions whose rules name SELF itself (§14.9.39.3's SELF sender, §14.8.2.3.3's SET-rule argument).</summary>
+    /// <summary>An expression that is nothing but SELF or [object-class-name-1 OF] SUPER (§2023:8.4.3.1.2 Format 6) — for
+    /// the positions whose rules name SELF itself (§2023:14.9.39.3's SELF sender, §2023:14.8.2.3.3's SET-rule argument).</summary>
     internal static Core.SelfAndSuperContext? SolePredefinedObject(Core.ArithmeticExpressionContext? arith) =>
         SolePrimary(arith)?.selfAndSuper();
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
-    /// <para>⛔ AN ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021): §8.8.4.2.2 Format 3 prints
-    /// identifier-3 / identifier-4, §8.4.3.1.2 identifier FORMAT 9 is an identifier, and §8.4.3.11.4 GR1 /
-    /// §8.4.3.13.4 GR1 make it "a unique data item of class pointer" — so it binds through the ONE
-    /// address-identifier binder into a <see cref="BoundAddressOperand"/>, and the §8.8.4.2.3 SR5 band
+    /// <para>⛔ AN ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021): §2023:8.8.4.2.2 Format 3 prints
+    /// identifier-3 / identifier-4, §2023:8.4.3.1.2 identifier FORMAT 9 is an identifier, and §2023:8.4.3.11.4 GR1 /
+    /// §2023:8.4.3.13.4 GR1 make it "a unique data item of class pointer" — so it binds through the ONE
+    /// address-identifier binder into a <see cref="BoundAddressOperand"/>, and the §2023:8.8.4.2.3 SR5 band
     /// (<c>StatementValidation.CheckRelationalOperands</c>) screens its class and category like any pointer
     /// operand. A refused operand has been reported by that binder.</para>
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
@@ -1769,11 +1769,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : ComparisonOperandOf(operand.valueOperand());
 
     /// <summary>⛔ A BOOLEAN OPERAND ENCLOSED IN PARENTHESES, as a relation or EVALUATE operand (kb/Work PB1464):
-    /// §8.8.2 lists "a boolean expression enclosed in parentheses" as a boolean expression, so <c>(BW)</c> — or a
-    /// parenthesized boolean function — IS the boolean operand it encloses, in the boolean relation of §8.8.4.2.2
+    /// §2023:8.8.2 lists "a boolean expression enclosed in parentheses" as a boolean expression, so <c>(BW)</c> — or a
+    /// parenthesized boolean function — IS the boolean operand it encloses, in the boolean relation of §2023:8.8.4.2.2
     /// Format 2. It used to be read as the arithmetic expression the grammar's parenthesized primary spells, and
     /// `IF (BW) = BZ` drew COBOL0844 "not a numeric operand". An enclosed NON-boolean
-    /// operand stays an arithmetic expression (§8.8.1.1), and null says so. The ONE reading both operand binders
+    /// operand stays an arithmetic expression (§2023:8.8.1.1), and null says so. The ONE reading both operand binders
     /// ask (ComparisonOperandOf and EVALUATE's BindValueOperand answer one question, kb/Work PB224).</summary>
     internal BoundOperand? EnclosedBooleanOperand(Core.ValueOperandContext? vo)
     {
@@ -1787,48 +1787,48 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand: the ONE body of <see cref="ComparisonOperand"/>,
     /// the boolean-alt unwrap path, and EVALUATE's subject and object operands (<c>EvaluateBinder.BindValueOperand</c>,
-    /// whose pair §14.9.13.4 GR4 a) 6. "is considered to be a conditional expression" of the form
+    /// whose pair §2023:14.9.13.4 GR4 a) 6. "is considered to be a conditional expression" of the form
     /// <c>selection-subject = selection-object</c>). The EVALUATE binder used to keep an
     /// arm-for-arm copy of this dispatch (kb/Work PB224 aligned its order by hand); kb/Work PB1935 found both copies
     /// mapping a parenthesized operand to the item it encloses, and the copy is now this call. <paramref name="role"/>
     /// names the operand in the refusal of a shape no arm reads.</summary>
     internal BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo, string role = "comparison operand")
     {
-        // §8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.
+        // §2023:8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.
         // Through the ONE literal mapping. ⛔ THIS was the copy that lacked the hexadecimal arm, so
-        // `IF A = X"6162"` — conforming source, since §8.8.4.2.1 bars only a relation whose operands are BOTH
+        // `IF A = X"6162"` — conforming source, since §2023:8.8.4.2.1 bars only a relation whose operands are BOTH
         // literals (the "§8.8.4.1.1" this used to cite is a phantom clause — kb/Work PB182; the rule is the
         // clause's UNNUMBERED closing sentence, so the citation is bare — never "r13", which is "Two compatible
         // variable-length groups" and which cite.py's rule_path nonetheless prints, kb/Work PB222) and
-        // §8.3.3.2 Format 2 makes X"…" an alphanumeric literal — fell past every arm here and staged loud as
+        // §2023:8.3.3.2 Format 2 makes X"…" an alphanumeric literal — fell past every arm here and staged loud as
         // "comparison operand" at run time, while the SAME literal worked in a MOVE (DA3).
-        // §8.4.3.10.3 SR1: a relation condition is a context NULL may occupy — the checkpoint's §8.8.4.2.3 SR5
+        // §2023:8.4.3.10.3 SR1: a relation condition is a context NULL may occupy — the checkpoint's §2023:8.8.4.2.3 SR5
         // band then decides it against the other operand (pointer / object / message-tag only, COBOL0869).
         if (host.Expr.NullAdmittingOperand(vo?.nonNumericLiteral()) is { } litOp) return litOp;
         if (EnclosedBooleanOperand(vo) is { } enclosedBoolean) return enclosedBoolean;
         if (vo?.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
                 // ⛔ THE SOLE-FUNCTION SHORT-CIRCUIT (kb/Work PB172), the fourth member of the family above and
-                // the one whose absence made the §8.8.1.1 intrinsic screen unwidenable. §15.2 gives a function
+                // the one whose absence made the §2023:8.8.1.1 intrinsic screen unwidenable. §2023:15.2 gives a function
                 // "the class and category" of its result and says it "may be used anywhere a sending data item
                 // of that class and category may be specified", so a SOLE alphanumeric function is a legal
-                // §8.8.4.2.1 relation operand — `IF FUNCTION LOWER-CASE(X) = Y`, six NIST IF-suite programs.
+                // §2023:8.8.4.2.1 relation operand — `IF FUNCTION LOWER-CASE(X) = Y`, six NIST IF-suite programs.
                 // Reaching it through the expression spine instead handed it to BindPrimary's arithmetic screen,
                 // which is why PB155's widening had to be reverted. A PARENTHESIZED form is deliberately NOT
                 // short-circuited: `(FUNCTION LOWER-CASE(X))` is "an arithmetic expression enclosed in
-                // parentheses" (§8.8.1.1) and the single-child descent gives that for free.
+                // parentheses" (§2023:8.8.1.1) and the single-child descent gives that for free.
                 : SoleFunctionCall(expr) is { } sfc
                     ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(sfc), functionValue: true)
-                // Its §8.4.3.1.2 Format-4 twin (kb/Work PB1142): a SOLE inline method invocation "references a
+                // Its §2023:8.4.3.1.2 Format-4 twin (kb/Work PB1142): a SOLE inline method invocation "references a
                 // temporary data item with the same class, category, and content as the temp-identifier" (ISO
-                // §8.4.3.4.4 GR1), so an alphanumeric-returning one is a legal relation operand exactly as a sole
-                // alphanumeric function is. The expression spine's §8.8.1.1 screen now reads an invocation's class
+                // §2023:8.4.3.4.4 GR1), so an alphanumeric-returning one is a legal relation operand exactly as a sole
+                // alphanumeric function is. The expression spine's §2023:8.8.1.1 screen now reads an invocation's class
                 // too, so the sole form must be short-circuited here for the same reason PB172 gave the function.
-                // An object-view and SELF ride the same reduction (kb/Work PB1425): §8.8.4.2.15, "An operand of class
+                // An object-view and SELF ride the same reduction (kb/Work PB1425): §2023:8.8.4.2.15, "An operand of class
                 // object may be compared with another operand of class object" — `IF O = SELF`, `IF U AS C = D`.
                 : SoleOoIdentifier(expr) is { } soi ? host.Oo.OoIdentifierOperand(soi)
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
-                // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1), which a
+                // participates as its WRITTEN character form, leading zeros intact (ISO §2023:8.8.4.2.1), which a
                 // computed wrapper would lose.
                 : SoleNumLiteral(expr) is { } lit ? host.Expr.NumericLiteralOperand(lit)
                 : CompoundOperand(expr);
@@ -1838,17 +1838,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ A COMPOUND RELATION OR EVALUATE OPERAND IS AN ARITHMETIC EXPRESSION, NEVER THE ITEM OR LITERAL IT
     /// ENCLOSES (kb/Work PB1935). Every sole shape — a data reference, a function-identifier, an OO identifier, a
     /// numeric literal — has its own arm above; what reaches here carries an operator, a unary sign or enclosing
-    /// parentheses, so it is an arithmetic expression (§8.8.1.1, "an arithmetic expression enclosed in
-    /// parentheses"), and §8.8.1.2 GR1 makes a parenthesized value "a single operand", not the data item. The bound
+    /// parentheses, so it is an arithmetic expression (§2023:8.8.1.1, "an arithmetic expression enclosed in
+    /// parentheses"), and §2023:8.8.1.2 GR1 makes a parenthesized value "a single operand", not the data item. The bound
     /// expression drops the grouping parentheses, so <c>(C)</c> binds to the same <see cref="BoundNumRef"/> as
     /// <c>C</c> and <c>(3)</c> to the same <see cref="BoundNumLiteral"/> as <c>3</c>; the former mapping here
-    /// (<see cref="IntrinsicBinder.OperandOf"/>) then handed back a field or literal operand, and the §8.8.4.2.5
+    /// (<see cref="IntrinsicBinder.OperandOf"/>) then handed back a field or literal operand, and the §2023:8.8.4.2.5
     /// screen admitted <c>A = (C)</c>, <c>A = B OR (C)</c> and <c>A = (3)</c> over an alphanumeric A as if the bare
     /// item or literal had been written ("The numeric integer operand shall be an integer literal or an integer
     /// numeric data item of usage display or national"), while it refused <c>A = (C + 0)</c>. Wrapping every shape
     /// as the computed operand it is makes the screen see an arithmetic expression for all of them; against a
     /// numeric operand the comparison is numeric either way, so no conforming value changes. The bind keeps the
-    /// §8.8.1.1 operand screen, so no index-name or index data item is inside it (kb/Work PB2018).</summary>
+    /// §2023:8.8.1.1 operand screen, so no index-name or index data item is inside it (kb/Work PB2018).</summary>
     internal BoundOperand CompoundOperand(Core.ArithmeticExpressionContext expr) =>
         host.Expr.BindExpr(expr) switch
         {
@@ -1862,41 +1862,41 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The condition-name references already reported as reference-modified (kb/Work PB2468).</summary>
     private readonly HashSet<Core.DataReferenceContext> _refModCondDiagnosed = [];
 
-    /// <summary>The condition-name references already reported as §13.7.3 SR4 e) violations.</summary>
+    /// <summary>The condition-name references already reported as §2023:13.7.3 SR4 e) violations.</summary>
     private readonly HashSet<Core.DataReferenceContext> _linkageCondDiagnosed = [];
 
-    /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §8.4.2.2 Format 2: a
+    /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §2023:8.4.2.2 Format 2: a
     /// condition-name qualifies by its conditional variable and/or the variable's containing groups, innermost
     /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
     public Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        // §11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
+        // §2023:11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
         // scope-aware SymbolTable (P7 Step 10a, the DEVLOG-773 pickup), no longer duplicated inline here.
-        // §8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
+        // §2023:8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
         // reference must identify EXACTLY ONE level-88. The candidate set is DataBinder.QualifiedConditionCandidates,
         // the ONE resolution this and FlagConformancePass read (kb/Work PB3288): one namespace tier, narrowed by the
-        // written qualifiers, then by §8.4.6.2.1 3) after qualification (a condition-name of this source element hides
+        // written qualifiers, then by §2023:8.4.6.2.1 3) after qualification (a condition-name of this source element hides
         // a container's global one, a nearer container's a farther one, kb/Work PB1047), and EMPTY for a lapsed
-        // type-declaration condition-name alone (§8.4.2.2.1 rule 4 — it only COUNTS against a condition-name the
+        // type-declaration condition-name alone (§2023:8.4.2.2.1 rule 4 — it only COUNTS against a condition-name the
         // reference also reaches). A plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching
         // more than one — is genuine ambiguity, previously resolved silently to the first declaration. Strict: report
         // and bind the first anyway (the compile already fails; no caller fallback runs a different reading).
         // --permissive: the traditional first match, warned.
         var matches = ctx.Data.QualifiedConditionCandidates(name, QualifiersOf(dref), ctx.ActiveScope);
-        // The NEGATIVE side of §13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
+        // The NEGATIVE side of §2023:13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
         // the written qualifiers, so this reference names no condition-name. It is not reported HERE because the
         // same word may still be a DATA-name those qualifiers do reach; the caller falls through to the data
         // resolution, whose one unidentified-reference report (NameResolution.ReportUnidentified) words the
         // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
         // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
-        // A named CAPACITY register of a NEARER source element is the referenced item, not the level-88 (ISO §8.4.6.2.1 3) a);
+        // A named CAPACITY register of a NEARER source element is the referenced item, not the level-88 (ISO §2023:8.4.6.2.1 3) a);
         // kb/Work PB4432 review R1-1). The register has ONE lookup, which judges the written reference
         // (ReferenceResolver.CapacityRegisterFor, already weighed against a nearer condition-name), so it is asked here.
         if (CapacityRegisterHides(dref, matches)) return null;
-        // ⛔ A CONDITION-NAME TAKES NO REFERENCE MODIFIER (kb/Work PB2468). §8.4.4.2 prints condition-name-1,
-        // qualified and subscripted (§8.4.2.3.2 Format 2), and §8.8.4.5.2 condition-name-1 alone; §8.4.3.3.3 SR5 admits
+        // ⛔ A CONDITION-NAME TAKES NO REFERENCE MODIFIER (kb/Work PB2468). §2023:8.4.4.2 prints condition-name-1,
+        // qualified and subscripted (§2023:8.4.2.3.2 Format 2), and §2023:8.8.4.5.2 condition-name-1 alone; §2023:8.4.3.3.3 SR5 admits
         // reference modification only where "an identifier referencing a data item of class alphanumeric, boolean,
         // or national is permitted", and a condition-name is no data item. `IF CN(1:2)` and SEARCH ALL
         // `WHEN CN(IX)(1:2)` used to bind the level-88 and silently drop the (1:2). Every condition-name position
@@ -1909,20 +1909,20 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
                 $"the condition-name '{DataBinder.WrittenText(dref)}' is written with a reference modifier; a "
                 + "condition-name reference is condition-name-1, qualified and subscripted, with no reference "
-                + "modifier (ISO §8.4.4.2; §8.8.4.5.2), and §8.4.3.3.3 SR5 allows reference modification only on an "
+                + "modifier (ISO §2023:8.4.4.2; §2023:8.8.4.5.2), and §2023:8.4.3.3.3 SR5 allows reference modification only on an "
                 + "identifier referencing a data item");
         }
         // ONE report per SOURCE reference (the ReferenceResolver.Diagnosed discipline, kb/Work PB70/PB443): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
-        // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
+        // WHEN operand names BEFORE the condition binds it (§2023:14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
         // ⛔ A SWITCH CONDITION-NAME DECLARED IN THE 88'S OWN SOURCE ELEMENT IS ONE MORE CANDIDATE (kb/Work PB3347): it is
-        // the same type of user-defined word as a level-88 (§8.3.2.2.4) and takes no qualifier, so an unqualified
-        // reference to a spelling both declare is non-unique (§8.4.2.2.1 1, §8.4.2.2.3 SR1) — the 88 used to win silently
+        // the same type of user-defined word as a level-88 (§2023:8.3.2.2.4) and takes no qualifier, so an unqualified
+        // reference to a spelling both declare is non-unique (§2023:8.4.2.2.1 1, §2023:8.4.2.2.3 SR1) — the 88 used to win silently
         // ("NC211A regression guard"), so `IF S-ON` read the level-88 for an OFF switch. A qualified reference names the
         // 88 alone (SR5). "The same element" is a TIER (a container's switch beside a container's GLOBAL 88 is the same
-        // pair, kb/Work PB3347 review R1-1), and an 88 of a NEARER element is the item the reference names (§8.4.6.2.1 3 a,
-        // §8.4.6.1): both in the one predicate.
+        // pair, kb/Work PB3347 review R1-1), and an 88 of a NEARER element is the item the reference names (§2023:8.4.6.2.1 3 a,
+        // §2023:8.4.6.1): both in the one predicate.
         bool switchCompetes = ctx.Data.SwitchConditionCompetes(dref, matches);
         int candidates = matches.Count + (switchCompetes ? 1 : 0);
         if (candidates > 1 && _condDiagnosed.Add(dref))
@@ -1931,16 +1931,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations{others} "
-                    + "(ISO §8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
+                    + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
                     + "the first declaration");
             else
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
-                    + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §8.8.4.6.2)" : "")}"
-                    + " (ISO §8.4.2.2 Format 2 — qualification shall establish uniqueness). Qualify by the conditional "
+                    + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §2023:8.8.4.6.2)" : "")}"
+                    + " (ISO §2023:8.4.2.2 Format 2 — qualification shall establish uniqueness). Qualify by the conditional "
                     + "variable or its containing groups");
         }
-        // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
+        // §2023:13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (NameResolution.ScreenLinkageReference), once per reference.
         if (ctx.Data.Linkage.UnreferenceableLinkageRecord(matches[0].Parent) is { } record && _linkageCondDiagnosed.Add(dref))
             ctx.Refs.Names.ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
@@ -1952,7 +1952,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// none under the written qualifiers, report that through the ONE wording
     /// (<see cref="NameResolution.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
     /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567). The word's level-88s
-    /// may also be HIDDEN rather than misqualified (ISO §8.4.6.2.1 3) a)): by a nearer data item or a nearer report
+    /// may also be HIDDEN rather than misqualified (ISO §2023:8.4.6.2.1 3) a)): by a nearer data item or a nearer report
     /// entry, and the report then names THAT item.</summary>
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
@@ -1961,7 +1961,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (!_condDiagnosed.Add(dref)) return true;
         var qualifiers = QualifiersOf(dref);
         string text = DataBinder.WrittenText(dref);
-        // A data item of a NEARER source element than the condition-name is the referenced item (ISO §8.4.6.2.1 3) a),
+        // A data item of a NEARER source element than the condition-name is the referenced item (ISO §2023:8.4.6.2.1 3) a),
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
@@ -1979,7 +1979,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>True when the written word of <paramref name="dref"/> is a level-88 that a data item of a NEARER source
-    /// element hides, so the reference names that data item (ISO §8.4.6.2.1 3) a); kb/Work PB4219 review R1-1). It is a
+    /// element hides, so the reference names that data item (ISO §2023:8.4.6.2.1 3) a); kb/Work PB4219 review R1-1). It is a
     /// fact about the reference; what to do with it is the POSITION's: a condition-only position refuses the data item
     /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
     private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
@@ -1987,7 +1987,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>What hides the level-88 <paramref name="dref"/> names, when it is a declaration of another name class than
     /// a data item — a constant-name, index-name or file-name (<see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>)
-    /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §8.4.6.2.1 3) a); kb/Work
+    /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §2023:8.4.6.2.1 3) a); kb/Work
     /// PB4432 review R1-1) — as the noun phrase the refusal says, else null. The class twin of
     /// <see cref="NamesHidingDataItem"/>.</summary>
     private string? HidingClassPhrase(Core.DataReferenceContext dref)
@@ -2001,11 +2001,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Does <paramref name="dref"/> name a CAPACITY register declared in a source element NEARER than the level-88s
-    /// <paramref name="tier"/> (ISO §8.4.6.2.1 3) a); kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
+    /// <paramref name="tier"/> (ISO §2023:8.4.6.2.1 3) a); kb/Work PB4432 review R1-1)? A tie is not "nearer": the condition-name
     /// keeps the reference at one depth, as it always has. ⛔ Only a register the WRITTEN QUALIFIERS REACH hides
     /// (<c>CapacityRef.Reached</c> non-empty): <c>CapacityRegisterFor</c> also answers the nearest register with
     /// <c>CapacityRefFault.Qualifiers</c> so the qualifier fault can be stated about it, but a reference those qualifiers
-    /// do not take to that register names only the level-88 (§8.4.6.2.1 2): rule 1 applies qualification over the whole
+    /// do not take to that register names only the level-88 (§2023:8.4.6.2.1 2): rule 1 applies qualification over the whole
     /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
         tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
@@ -2020,7 +2020,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────
 
     /// <summary>Fold a written relational operator to its canonical comparison. The operator SET is the grammar's
-    /// <c>comparisonOperator</c>, which is §8.8.4.2.2 Format 1's printed alternatives and nothing else (kb/Work
+    /// <c>comparisonOperator</c>, which is §2023:8.8.4.2.2 Format 1's printed alternatives and nothing else (kb/Work
     /// PB1034), so every spelling that reaches here is one the standard prints and the fold is total.</summary>
     public static string MapOperator(string raw)
     {
@@ -2041,17 +2041,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The raw text of an arithmetic expression that CONSISTS OF a sole numeric literal — sign
     /// included — else null. Figurative ZERO in an arithmetic context is that literal's <c>"0"</c>
-    /// (§8.3.3.6.4 GR1).
+    /// (§2023:8.3.3.6.4 GR1).
     /// <para>⛔ THIS MEMBER DOES NOT RIDE <see cref="SolePrimary"/>, AND THAT IS THE RULE, NOT AN EXCEPTION
-    /// (kb/Work PB400). Its siblings answer §8.8.4.7.3 SR2's "a single data item … not enclosed in
+    /// (kb/Work PB400). Its siblings answer §2023:8.8.4.7.3 SR2's "a single data item … not enclosed in
     /// parentheses", for which a leading sign makes the operand compound; this one answers "consists of a
-    /// single literal", and §8.3.3.3.2 rule 2 puts an ADJACENT sign INSIDE the literal. Sharing the
+    /// single literal", and §2023:8.3.3.3.2 rule 2 puts an ADJACENT sign INSIDE the literal. Sharing the
     /// primary-only descent answered the second question with the first one's answer, so
     /// <c>EVALUATE -5 WHEN 6</c> classified as an arithmetic expression (Table 15 accepted a blank cell) and
     /// <c>EVALUATE WS-X WHEN -5</c> over a <c>PIC X</c> item bound the object as a COMPUTED expression instead
-    /// of the literal §8.8.4.2.1 makes participate as its written character form — a run-time fault on
+    /// of the literal §2023:8.8.4.2.1 makes participate as its written character form — a run-time fault on
     /// conforming source, in EVALUATE and in the plain relation alike. The contiguity test itself is
-    /// <see cref="SoleOperand.NumericLiteral"/>, shared with the §7.3.11.4 GR5 / §13.10.3 SR1 arms.</para></summary>
+    /// <see cref="SoleOperand.NumericLiteral"/>, shared with the §2023:7.3.11.4 GR5 / §2023:13.10.3 SR1 arms.</para></summary>
     public static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr) =>
         SoleOperand.NumericLiteral(expr)
         ?? (SolePrimary(expr)?.ZERO_ARITH() is not null ? "0" : null);
@@ -2059,8 +2059,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE "is this expression a single unparenthesized primary" DESCENT — the shared body of
     /// <see cref="SoleDataRef"/>, <see cref="SoleNumLiteral"/>, <see cref="SoleFunctionCall"/> and
     /// <see cref="SoleDataReference"/>. Any operator, unary sign, or enclosing parenthesis gives the node more
-    /// than one child and stops the descent, which IS the §8.8.4.7.3 SR2 "single data item … not enclosed in
-    /// parentheses" reduction and the §8.8.1.1 sole-vs-compound boundary at once.
+    /// than one child and stops the descent, which IS the §2023:8.8.4.7.3 SR2 "single data item … not enclosed in
+    /// parentheses" reduction and the §2023:8.8.1.1 sole-vs-compound boundary at once.
     /// <para>⚠ IT REPLACES FOUR COPIES OF ITSELF, not the two the cluster analysis predicted — the fourth,
     /// <see cref="SoleFunctionCall"/>, was found only because adding a fifth collided with it at compile time
     /// (kb/Work PB172). Three were this single-child descent written out again; the former

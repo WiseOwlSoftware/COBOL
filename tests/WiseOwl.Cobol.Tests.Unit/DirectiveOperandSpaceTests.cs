@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1660 — a directive operand is split into words on the COBOL character space and nothing else (ISO §8.3.5
+/// kb/Work PB1660 — a directive operand is split into words on the COBOL character space and nothing else (ISO §2023:8.3.5
 /// 1): "The COBOL character space is a separator"; <c>cite.py --check 8.3.5 "The COBOL character space is a
 /// separator"</c> → OK 1)). The no-break space U+00A0 only LOOKS like one, so a directive written with it between two
 /// words has ONE operand word that is no word of the directive's format, and the stage says so — it used to read two
@@ -42,7 +42,7 @@ public sealed class DirectiveOperandSpaceTests
         Assert.DoesNotContain("MOVE", map.DeReserved);
     }
 
-    [Fact] // The line classifier of the format detector: a line of U+00A0 alone is program text, not a blank line (§6.3.6).
+    [Fact] // The line classifier of the format detector: a line of U+00A0 alone is program text, not a blank line (§2023:6.3.6).
     public void BlankLine_IsOnlyCobolSpaces()
     {
         Assert.True(WiseOwl.Cobol.Editions.CobolSpace.IsBlank("     "));

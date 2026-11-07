@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.Runtime;
 /// variadic entries take arguments ALREADY ALIGNED by the emitter to one common scale, and the unary ones take the
 /// argument's own scale.
 /// <para>WHY THEY EXIST. Under native arithmetic the method of evaluating "all integer and numeric functions" is the
-/// implementor's (ISO/IEC 1989:2023 §8.8.1.3), and so, by §15.4.1, are "the characteristics and representation of the
+/// implementor's (ISO/IEC 1989:2023 §2023:8.8.1.3), and so, by §2023:15.4.1, are "the characteristics and representation of the
 /// returned value". For that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and GnuCOBOL evaluates a function's argument
 /// expression into an arbitrary-precision temporary, so <c>FUNCTION ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items is
 /// every digit of the 39-digit product. The argument used to reach these functions lowered to the 34-digit SDIDI by
 /// round-to-odd, and the function answered from that image: ABS showed <c>…100000</c> for <c>…000999</c> and
 /// <c>MOD (BIG * BIG * K3, 1000)</c> was 0 for 999.</para>
-/// <para>Every constructive step is <see cref="CobolWide"/>'s own, which raises EC-SIZE-OVERFLOW rather than wrap (§14.7.5
+/// <para>Every constructive step is <see cref="CobolWide"/>'s own, which raises EC-SIZE-OVERFLOW rather than wrap (§2023:14.7.5
 /// case 5, A.1 item 179); the compiler routes a call here only when the arguments' digit bounds prove the work fits
 /// <see cref="CobolWide.MaxDigits"/> (<c>IntrinsicCarrierRules.WideLaneDigitBound</c>), so that raise is never reached on a
 /// value the SDIDI would have carried.</para>
@@ -38,7 +38,7 @@ public static partial class CobolIntrinsics
         return CobolWide.DivRem(v, CobolWide.PowerOfTen(scale), out fraction);
     }
 
-    /// <summary>§15.3 type 6 on the exact wide carrier: the argument's integer at scale 0, behind the same integrality test every
+    /// <summary>§2023:15.3 type 6 on the exact wide carrier: the argument's integer at scale 0, behind the same integrality test every
     /// carrier's intake applies (<see cref="RequireIntegral"/>; with checking off the fraction truncates toward zero,
     /// DOC-A.1-124). The integer stays wide, so MOD and REM see every digit of a 39-digit dividend.</summary>
     public static CobolWide IntegerArgWide(CobolWide v, int scale)
@@ -48,7 +48,7 @@ public static partial class CobolIntrinsics
         return integer;
     }
 
-    /// <summary>§15.3 type 6 on an exact value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575): the
+    /// <summary>§2023:15.3 type 6 on an exact value whose scale only the run time knows (<see cref="CobolExact"/>, kb/Work PB4575): the
     /// wide arm of <see cref="IntegerArgWide"/> for a value on the wide form, <see cref="IntegerArgUnboundedDec"/> for one the SDIDI
     /// carries, so the integer keeps every digit the value has and the one integrality test applies to both.</summary>
     /// <remarks>A value at a scale of 0 or less is an integer already and is its own integer, even where its digits written out pass
@@ -60,7 +60,7 @@ public static partial class CobolIntrinsics
             : v.IsBig ? BigIntegerArg(v)
             : CobolExact.FromDec(IntegerArgUnboundedDec(v.Image), 0);
 
-    /// <summary>§15.3 type 6 on a value past the wide form (kb/Work PB4592): its integer on the arbitrary-precision form behind the same
+    /// <summary>§2023:15.3 type 6 on a value past the wide form (kb/Work PB4592): its integer on the arbitrary-precision form behind the same
     /// integrality test, so <c>MOD (P * P + 1, 1000)</c> of a 39-digit P sees all 78 digits of its dividend.</summary>
     private static CobolExact BigIntegerArg(CobolExact v)
     {
@@ -76,19 +76,19 @@ public static partial class CobolIntrinsics
     // fails at a positive scale only for an SDIDI value). Before them the argument entered as its 34-digit round-to-odd image, and
     // INTEGER (P + 0.0E0) - P of a 39-digit P was the image's residue once the subtraction kept P exact.
 
-    /// <summary>ABS (§15.7.4) of an exact value: its magnitude, the same precision.</summary>
+    /// <summary>ABS (§2023:15.7.4) of an exact value: its magnitude, the same precision.</summary>
     public static CobolExact AbsExact(CobolExact v) => v.Sign < 0 ? CobolExact.Negate(v) : v;
 
-    /// <summary>SIGN (§15.81.4) of an exact value: −1, 0 or +1.</summary>
+    /// <summary>SIGN (§2023:15.81.4) of an exact value: −1, 0 or +1.</summary>
     public static long SignExact(CobolExact v) => v.Sign;
 
-    /// <summary>INTEGER (§15.44.4) of an exact value: the greatest integer not greater than it, held at precision 0.</summary>
+    /// <summary>INTEGER (§2023:15.44.4) of an exact value: the greatest integer not greater than it, held at precision 0.</summary>
     public static CobolExact FloorExact(CobolExact v) => IntegerOfExact(v, floor: true);
 
-    /// <summary>INTEGER-PART (§15.49.4) of an exact value: its integer part (truncation toward zero), held at precision 0.</summary>
+    /// <summary>INTEGER-PART (§2023:15.49.4) of an exact value: its integer part (truncation toward zero), held at precision 0.</summary>
     public static CobolExact TruncateExact(CobolExact v) => IntegerOfExact(v, floor: false);
 
-    /// <summary>FRACTION-PART (§15.42.4) of an exact value: <c>argument − FUNCTION INTEGER-PART (argument)</c>, at its own scale.</summary>
+    /// <summary>FRACTION-PART (§2023:15.42.4) of an exact value: <c>argument − FUNCTION INTEGER-PART (argument)</c>, at its own scale.</summary>
     public static CobolExact FractionPartExact(CobolRounding mode, CobolExact v) =>
         v.Scale <= 0 ? CobolExact.From(0, 0)
         : v.TryWide(out CobolWide wide, out int scale) ? CobolExact.FromWide(FractionPartWide(wide, scale), scale)
@@ -102,24 +102,24 @@ public static partial class CobolIntrinsics
             : v.IsBig ? v.IntegerPartBig(floor, out _)
             : CobolExact.FromDec(floor ? FloorDec(v.Image) : TruncDec(v.Image), 0);
 
-    /// <summary>ABS (§15.7.4): the magnitude, at the argument's own scale. Unlike the <see cref="Int128"/> body there is no
+    /// <summary>ABS (§2023:15.7.4): the magnitude, at the argument's own scale. Unlike the <see cref="Int128"/> body there is no
     /// unrepresentable magnitude: the wide form is sign and magnitude.</summary>
     public static CobolWide AbsWide(CobolWide v) => CobolWide.Abs(v);
 
-    /// <summary>SIGN (§15.81.4): −1, 0 or +1.</summary>
+    /// <summary>SIGN (§2023:15.81.4): −1, 0 or +1.</summary>
     public static long SignWide(CobolWide v) => v.Sign;
 
-    /// <summary>INTEGER (§15.44.4): the greatest integer less than or equal to the argument, at scale 0.</summary>
+    /// <summary>INTEGER (§2023:15.44.4): the greatest integer less than or equal to the argument, at scale 0.</summary>
     public static CobolWide FloorWide(CobolWide v, int scale)
     {
         CobolWide integer = IntegerPart(v, scale, out CobolWide fraction);
         return fraction.Sign < 0 ? CobolWide.Sub(integer, CobolWide.From(1)) : integer;
     }
 
-    /// <summary>INTEGER-PART (§15.49.4): the integer part of the argument (truncation toward zero), at scale 0.</summary>
+    /// <summary>INTEGER-PART (§2023:15.49.4): the integer part of the argument (truncation toward zero), at scale 0.</summary>
     public static CobolWide TruncateWide(CobolWide v, int scale) => IntegerPart(v, scale, out _);
 
-    /// <summary>FRACTION-PART (§15.42.4): <c>argument − FUNCTION INTEGER-PART (argument)</c>, at the argument's own scale.</summary>
+    /// <summary>FRACTION-PART (§2023:15.42.4): <c>argument − FUNCTION INTEGER-PART (argument)</c>, at the argument's own scale.</summary>
     public static CobolWide FractionPartWide(CobolWide v, int scale)
     {
         if (scale <= 0) return default;
@@ -127,8 +127,8 @@ public static partial class CobolIntrinsics
         return fraction;
     }
 
-    /// <summary>MOD (§15.64.4): <c>a − b × FUNCTION INTEGER (a / b)</c>, the floored modulus, over aligned values. A zero divisor
-    /// is §15.64.3 r2's one raise site (<see cref="ModZeroDivisor"/>), shared with every other carrier's body.</summary>
+    /// <summary>MOD (§2023:15.64.4): <c>a − b × FUNCTION INTEGER (a / b)</c>, the floored modulus, over aligned values. A zero divisor
+    /// is §2023:15.64.3 r2's one raise site (<see cref="ModZeroDivisor"/>), shared with every other carrier's body.</summary>
     public static CobolWide ModWide(CobolWide a, CobolWide b)
     {
         if (b.Sign == 0) return CobolWide.From(ModZeroDivisor());
@@ -137,7 +137,7 @@ public static partial class CobolIntrinsics
         return remainder.Sign != 0 && remainder.Sign != b.Sign ? CobolWide.Add(remainder, b) : remainder;
     }
 
-    /// <summary>REM (§15.77.4): <c>a − b × FUNCTION INTEGER-PART (a / b)</c>, the truncated remainder, over aligned values.</summary>
+    /// <summary>REM (§2023:15.77.4): <c>a − b × FUNCTION INTEGER-PART (a / b)</c>, the truncated remainder, over aligned values.</summary>
     public static CobolWide RemWide(CobolWide a, CobolWide b)
     {
         if (b.Sign == 0) return CobolWide.From(RemZeroDivisor());
@@ -146,7 +146,7 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>The position of the greatest (<paramref name="greatest"/>) or least aligned value; the leftmost of equal values
-    /// (§15.59.4 r2, §15.63.4 r2, §15.71.4, §15.72.4).</summary>
+    /// (§2023:15.59.4 r2, §2023:15.63.4 r2, §2023:15.71.4, §2023:15.72.4).</summary>
     private static int SelectWide(CobolWide[] xs, bool greatest, string function)
     {
         RequireArguments(xs.Length, function);
@@ -156,19 +156,19 @@ public static partial class CobolIntrinsics
         return at;
     }
 
-    /// <summary>MAX (§15.59.4): the content of the argument having the greatest value, at the common scale.</summary>
+    /// <summary>MAX (§2023:15.59.4): the content of the argument having the greatest value, at the common scale.</summary>
     public static CobolWide MaxWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: true, "MAX")];
 
-    /// <summary>MIN (§15.63.4): the content of the argument having the least value, at the common scale.</summary>
+    /// <summary>MIN (§2023:15.63.4): the content of the argument having the least value, at the common scale.</summary>
     public static CobolWide MinWide(params CobolWide[] xs) => xs[SelectWide(xs, greatest: false, "MIN")];
 
-    /// <summary>ORD-MAX (§15.71.4): the ordinal position of the argument having the greatest value.</summary>
+    /// <summary>ORD-MAX (§2023:15.71.4): the ordinal position of the argument having the greatest value.</summary>
     public static long OrdMaxWide(params CobolWide[] xs) => SelectWide(xs, greatest: true, "ORD-MAX") + 1;
 
-    /// <summary>ORD-MIN (§15.72.4): the ordinal position of the argument having the least value.</summary>
+    /// <summary>ORD-MIN (§2023:15.72.4): the ordinal position of the argument having the least value.</summary>
     public static long OrdMinWide(params CobolWide[] xs) => SelectWide(xs, greatest: false, "ORD-MIN") + 1;
 
-    /// <summary>SUM (§15.88.4): the sum of the aligned arguments, left to right.</summary>
+    /// <summary>SUM (§2023:15.88.4): the sum of the aligned arguments, left to right.</summary>
     public static CobolWide SumWide(params CobolWide[] xs)
     {
         RequireArguments(xs.Length, "SUM");
@@ -177,17 +177,17 @@ public static partial class CobolIntrinsics
         return sum;
     }
 
-    /// <summary>RANGE (§15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale.</summary>
+    /// <summary>RANGE (§2023:15.76.4): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale.</summary>
     public static CobolWide RangeWide(params CobolWide[] xs)
     {
         RequireArguments(xs.Length, "RANGE");
         return CobolWide.Sub(MaxWide(xs), MinWide(xs));
     }
 
-    /// <summary>⛔ MEAN (§15.60.4 r1) OVER THE EXACT WIDE SUM, ONE SDIDI QUOTIENT (kb/Work PB4075, PB3860): the arguments' exact sum
+    /// <summary>⛔ MEAN (§2023:15.60.4 r1) OVER THE EXACT WIDE SUM, ONE SDIDI QUOTIENT (kb/Work PB4075, PB3860): the arguments' exact sum
     /// divided by their count and rounded ONCE to the SDIDI's 34 digits (<see cref="CobolWide.QuotientDec"/>) in
     /// <paramref name="mode"/> — the value <see cref="MeanDec"/> forms for an SDIDI list, and the value every receiver then
-    /// rounds once (§14.7.4.3). The arguments arrive ALREADY ALIGNED by the emitter to the common <paramref name="scale"/>. Lowering
+    /// rounds once (§2023:14.7.4.3). The arguments arrive ALREADY ALIGNED by the emitter to the common <paramref name="scale"/>. Lowering
     /// each argument to its round-to-odd image first and dividing that sum rounded twice: MEAN (BIG * BIG * K3, 1) of 18-, 18- and
     /// 3-digit items showed …000000000000100000 where one rounding of the exact …000500 is …000000000000000000.</summary>
     public static CobolDec MeanWide(CobolRounding mode, int scale, params CobolWide[] xs)
@@ -196,7 +196,7 @@ public static partial class CobolIntrinsics
         return SumWide(xs).QuotientDec(scale, xs.Length, mode);
     }
 
-    /// <summary>MEDIAN (§15.61.4): the middle of the sorted arguments for an odd count, the mean of the two middles for an even
+    /// <summary>MEDIAN (§2023:15.61.4): the middle of the sorted arguments for an odd count, the mean of the two middles for an even
     /// one — returned at the common scale PLUS ONE, so the halving is exact in both branches (odd: × 10; even: the sum × 5), as
     /// <see cref="MedianScaled"/> does.</summary>
     public static CobolWide MedianWide(params CobolWide[] xs)
@@ -210,7 +210,7 @@ public static partial class CobolIntrinsics
             : CobolWide.Mul(CobolWide.Add(sorted[mid - 1], sorted[mid]), CobolWide.From(5));
     }
 
-    /// <summary>MIDRANGE (§15.62.4): <c>(MAX + MIN) / 2</c>, returned at the common scale plus one ((max + min) × 5, exact).</summary>
+    /// <summary>MIDRANGE (§2023:15.62.4): <c>(MAX + MIN) / 2</c>, returned at the common scale plus one ((max + min) × 5, exact).</summary>
     public static CobolWide MidrangeWide(params CobolWide[] xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");

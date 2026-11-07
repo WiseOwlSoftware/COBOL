@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> A NEXT PAGE PHRASE ON A LATER LINE CLAUSE OF THE GROUP (kb/Work PB1001). ISO/IEC 1989:2023 §13.18.35.3
+*> A NEXT PAGE PHRASE ON A LATER LINE CLAUSE OF THE GROUP (kb/Work PB1001). ISO/IEC 1989:2023 §2023:13.18.35.3
 *> SR7: "Within a given report group description, a NEXT PAGE phrase, if present, shall be specified only in
-*> the first LINE clause." The phrase acts before any line is printed (§13.18.35.4 GR4a: the page fit is
+*> the first LINE clause." The phrase acts before any line is printed (§2023:13.18.35.4 GR4a: the page fit is
 *> declared unsuccessful), so on a second line it would split the group across two pages, which GR2 forbids.
 *> A rule of every edition: `LINE integer-1 ON NEXT PAGE` is COBOL-85 syntax.
        IDENTIFICATION DIVISION.

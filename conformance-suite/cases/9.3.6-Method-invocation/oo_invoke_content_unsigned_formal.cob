@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.8.2.3.3 rule 2a: "If the formal parameter is numeric, the conformance rules are the same as
+      *> ISO §2023:14.8.2.3.3 rule 2a: "If the formal parameter is numeric, the conformance rules are the same as
       *> for a COMPUTE statement with the argument as the sending operand and the corresponding formal
-      *> parameter as the receiving operand." COMPUTE's store is the MOVE statement's §14.9.25.4 GR6d2b: "When an unsigned numeric
+      *> parameter as the receiving operand." COMPUTE's store is the MOVE statement's §2023:14.9.25.4 GR6d2b: "When an unsigned numeric
       *> item is the receiving item, the ABSOLUTE VALUE of the sending value is used, and no operational sign
       *> is generated for the receiving item."
       *> So BY CONTENT of a signed −7 into an UNSIGNED PIC 9(4) COMP formal delivers 7, not −7. The argument

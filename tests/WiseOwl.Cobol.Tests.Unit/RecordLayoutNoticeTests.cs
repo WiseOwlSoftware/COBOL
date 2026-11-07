@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// its record length is PROVABLY inconsistent with the description about to read it, and the user is told at
 /// OPEN rather than left to compute on misaligned records.
 /// <para>
-/// Why the standard's own detection is not enough: §14.9.30.4 GR14 makes a record whose byte count falls outside
+/// Why the standard's own detection is not enough: §2023:14.9.30.4 GR14 makes a record whose byte count falls outside
 /// the description's min/max a SUCCESSFUL read with I-O status '04' — which fires only on the trailing partial
 /// record, only when the total is not a multiple, and only if the program inspects FILE STATUS. A layout
 /// migration needs the arithmetic fact stated up front. The notice therefore does NOT change the I-O status:
@@ -80,7 +80,7 @@ public sealed class RecordLayoutNoticeTests : IDisposable
     }
 
     /// <summary>LINE SEQUENTIAL is excluded by construction: its records are DELIMITED, so the physical length
-    /// has no arithmetic relationship to the record width at all (§9.1.13.2).</summary>
+    /// has no arithmetic relationship to the record width at all (§2023:9.1.13.2).</summary>
     [Fact]
     public void LineSequential_IsNeverReported()
     {
@@ -92,7 +92,7 @@ public sealed class RecordLayoutNoticeTests : IDisposable
     }
 
     /// <summary>RECORD IS VARYING is excluded too: every record carries its own length prefix, so a disagreement
-    /// is detected per record by the §14.9.30.4 GR14 '04' path rather than by file arithmetic.</summary>
+    /// is detected per record by the §2023:14.9.30.4 GR14 '04' path rather than by file arithmetic.</summary>
     [Fact]
     public void VaryingRecords_AreNeverReported()
     {

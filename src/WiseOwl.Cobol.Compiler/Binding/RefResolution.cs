@@ -12,8 +12,8 @@ public enum RefOutcome
     /// <summary>The reference denotes storage: <see cref="RefResolution.Place"/> is set.</summary>
     Place,
     /// <summary>The SOURCE is wrong and the resolver has REPORTED the rule it breaks — an undefined name
-    /// (§8.4.2.1), a subscript on a non-table item (§8.4.2.3.3 SR2), something in a subscript position that is not
-    /// a subscript (§8.4.2.3.2), a reference to a declaration that was itself refused, …. A caller binds a refusal
+    /// (§2023:8.4.2.1), a subscript on a non-table item (§2023:8.4.2.3.3 SR2), something in a subscript position that is not
+    /// a subscript (§2023:8.4.2.3.2), a reference to a declaration that was itself refused, …. A caller binds a refusal
     /// node; the statement funnel's refusal ledger fails the compile (COBOL2362) if the claim was false.</summary>
     Reported,
     /// <summary>A LEGAL reference in a shape WiseOwl COBOL has not built. The resolver has already put it on the
@@ -31,7 +31,7 @@ public static class DeferredShapes
     public static string Describe(DeferredShape shape) => shape switch
     {
         DeferredShape.UnroutedSpecialRegister =>
-            "a special register in a position that does not yet read it (ISO §8.4.3.14 / §8.4.3.15)",
+            "a special register in a position that does not yet read it (ISO §2023:8.4.3.14 / §2023:8.4.3.15)",
         DeferredShape.DynamicWholeTable =>
             "a whole OCCURS DYNAMIC table in this position (data-model D9)",
         DeferredShape.NestedClassBacking =>

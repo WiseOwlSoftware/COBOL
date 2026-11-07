@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.83 SMALLEST-ALGEBRAIC — the smallest positive value that may increment argument-1 (P11 Step 7
+      *> ISO §2023:15.83 SMALLEST-ALGEBRAIC — the smallest positive value that may increment argument-1 (P11 Step 7
       *> golden; the function itself was already a compile-time PICTURE fold via BindAlgebraicFold). Values from
-      *> the §15.83.4 RVR2 NOTE table (docs/rearchitecture/PHASE-11-scout-notes.md spec:concat-smallest):
+      *> the §2023:15.83.4 RVR2 NOTE table (docs/rearchitecture/PHASE-11-scout-notes.md spec:concat-smallest):
       *> S999 -> +1 (scale 0 => 10^0); 99V9(3) -> 0.001 (scale 3 => 10^-3); S9PP -> +100 (P-scaling, scale -2
       *> => 10^2); BINARY-CHAR UNSIGNED -> +1 (integer). NEW-IN-2023 (Annex E.3 item 29 "has been added").
        IDENTIFICATION DIVISION.

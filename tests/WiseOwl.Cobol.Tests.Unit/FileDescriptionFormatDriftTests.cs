@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ EVERY FILE DESCRIPTION CLAUSE THE GRAMMAR PARSES HAS DECIDED WHICH §13.4.5.2 FORMATS CONTAIN IT (kb/Work PB1238).
+/// ⛔ EVERY FILE DESCRIPTION CLAUSE THE GRAMMAR PARSES HAS DECIDED WHICH §2023:13.4.5.2 FORMATS CONTAIN IT (kb/Work PB1238).
 ///
-/// <para><b>Why it exists.</b> Until PB1238 no code decided which of ISO §13.4.5.2's three formats an FD was, so
+/// <para><b>Why it exists.</b> Until PB1238 no code decided which of ISO §2023:13.4.5.2's three formats an FD was, so
 /// every clause bound against every organization: LINAGE on a relative file, CODE-SET on an indexed one and LINAGE
 /// on a report FD compiled clean, and the five file-control-entry alternatives the grammar carries in the FD
 /// position had no binder arm at all — parsed and silently DROPPED. The admissibility table
@@ -47,7 +47,7 @@ public sealed class FileDescriptionFormatDriftTests
             + "and the obligations below would hold vacuously");
         var missing = alternatives.Where(t => !FileDescriptionFormats.ByContext.ContainsKey(t)).Select(t => t.Name).ToList();
         Assert.True(missing.Count == 0, "fileDescriptionClause alternative(s) with no FileDescriptionFormats row, so no "
-            + "§13.4.5.2 format decides them: " + string.Join(", ", missing));
+            + "§2023:13.4.5.2 format decides them: " + string.Join(", ", missing));
         var stale = FileDescriptionFormats.ByContext.Keys.Except(alternatives).Select(t => t.Name).ToList();
         Assert.True(stale.Count == 0, "FileDescriptionFormats row(s) naming no fileDescriptionClause alternative: "
             + string.Join(", ", stale));
@@ -64,8 +64,8 @@ public sealed class FileDescriptionFormatDriftTests
                 $"{row.Name}: Formats={row.Formats}, HomeEntry={row.HomeEntry ?? "null"}");
     }
 
-    /// <summary>The format is decided from the file control entry first: §9.1.22 makes a report file SEQUENTIAL,
-    /// so a relative or indexed file is Format 2 even when its FD writes a REPORT clause (§13.4.5.3 SR7).</summary>
+    /// <summary>The format is decided from the file control entry first: §2023:9.1.22 makes a report file SEQUENTIAL,
+    /// so a relative or indexed file is Format 2 even when its FD writes a REPORT clause (§2023:13.4.5.3 SR7).</summary>
     [Theory]
     [InlineData(FileOrganization.Sequential, false, "Sequential")]
     [InlineData(FileOrganization.LineSequential, false, "Sequential")]
@@ -78,7 +78,7 @@ public sealed class FileDescriptionFormatDriftTests
         Assert.Equal(Enum.Parse<FileDescriptionFormat>(expected), FileDescriptionFormats.Of(organization, hasReport));
 
     /// <summary>⛔ THE LINAGE CLAIM IS HELD TO THE TABLE (kb/Work PB2503). Annex A.4.11 item 10 lists the LINAGE clause
-    /// (§13.18.34) among the optional Report Writer elements, and A.4.1 lets an implementation accept it "only when
+    /// (§2023:13.18.34) among the optional Report Writer elements, and A.4.1 lets an implementation accept it "only when
     /// support for that language element is claimed". <c>docs/CONFORMANCE.md</c> §5's A.4.11 row says the clause is
     /// CLAIMED and that it is a Format 1 clause only; this reads that row and the table, so neither can change alone:
     /// a LINAGE row that admits a second format, or a row that stops saying "CLAIMED", is red.</summary>

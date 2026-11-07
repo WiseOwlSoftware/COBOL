@@ -21,18 +21,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///   EVERY write of a WRITE, a REWRITE (which moves an alternate entry), a DELETE and a CLOSE. The bar: the next OPEN reads
 ///   the file as the last COMPLETED statement left it — by the prime key AND by the alternate key, so no tree ever holds
 ///   half of a statement.</item>
-///   <item>2.2.1.16, "Every statement REFUSED part-way": a host refusal at every write — the statement's '30' (§9.1.13.6
-///   item 1), §9.1.13.1's permanent error replayed, the CLOSE ending it (DOC-A.1-105), the previous statement's file.</item>
+///   <item>2.2.1.16, "Every statement REFUSED part-way": a host refusal at every write — the statement's '30' (§2023:9.1.13.6
+///   item 1), §2023:9.1.13.1's permanent error replayed, the CLOSE ending it (DOC-A.1-105), the previous statement's file.</item>
 ///   <item>2.2.1.16's OPEN and CLOSE rows (review finding R1-3): a refusal at every write AND sync of the CLOSE's
 ///   promotion after a completed WRITE, and of the OPEN I-O / EXTEND fence and the OPEN OUTPUT creation — '30', the
 ///   connector left closed, the file the table's row names — and a death after every write of each OPEN.</item>
 ///   <item>2.2.1.7's exclusive-entry rule through the shared lifecycle (review finding R1-2): an INPUT connector beside
 ///   its writable sibling enters under a SHARED hold and writes nothing.</item>
-///   <item>2.2.1.17 through the INDEXED connector: two run units' statements, §14.9.30.4
+///   <item>2.2.1.17 through the INDEXED connector: two run units' statements, §2023:14.9.30.4
 ///   GR26's duplicate order kept across run units, the '02' look-ahead (GR27), the READ ONLY writer beside the INPUT reader
 ///   (finding R2-6), and a reader walking an alternate key's duplicates through a tree another run unit splits.</item>
 ///   <item>The tree's COBOL surface (2.2.1.12): START with each relational operator, a
-///   full key and a partial key, found and not found (§14.9.41.4 GR17); §14.9.35.4 GR24 a)'s untouched duplicate order of
+///   full key and a partial key, found and not found (§2023:14.9.41.4 GR17); §2023:14.9.35.4 GR24 a)'s untouched duplicate order of
 ///   the keys a REWRITE does not change; the <c>WISEOWL_COBOL_KEYCHECK</c> opt-out's trees (DOC-A.1-129); the format's key
 ///   bounds ('39'); the whole-store formats ('39').</item>
 /// </list>
@@ -47,7 +47,7 @@ public sealed class IndexedEngineTests
 
     /// <summary>Every record of the file, read by the next run unit's OPEN INPUT: by the prime key (READ NEXT from the
     /// OPEN) and by the alternate key (START at its lowest value, then READ NEXT), each walk ending at end ('10', never
-    /// '30': the file is not torn). A file with no records answers that START '23', §14.9.41.4 GR17 e) 2.'s invalid key
+    /// '30': the file is not torn). A file with no records answers that START '23', §2023:14.9.41.4 GR17 e) 2.'s invalid key
     /// condition (no record satisfies the comparison).</summary>
     private static (List<string> ByPrime, List<string> ByAlternate) Records(string host)
     {
@@ -66,7 +66,7 @@ public sealed class IndexedEngineTests
             var all = new List<string>();
             string status;
             while ((status = FileHarness.ReadNext(reader, "R", out string image)) is "00" or "02") all.Add(image);
-            Assert.Equal("10", status);   // §14.9.30.4 GR24's at end
+            Assert.Equal("10", status);   // §2023:14.9.30.4 GR24's at end
             return all;
         }
     }
@@ -74,7 +74,7 @@ public sealed class IndexedEngineTests
     public enum Change { Write, Rewrite, Delete }
 
     /// <summary>Each change touches BOTH trees: the WRITE releases a duplicate of AAAA, the REWRITE moves record 2's
-    /// alternate entry from BBBB to the end of AAAA's duplicates (§14.9.35.4 GR24 b)), the DELETE removes record 1's two
+    /// alternate entry from BBBB to the end of AAAA's duplicates (§2023:14.9.35.4 GR24 b)), the DELETE removes record 1's two
     /// entries.</summary>
     private static string Run(FileRegistry reg, Change change) => change switch
     {
@@ -200,8 +200,8 @@ public sealed class IndexedEngineTests
     }
 
     /// <summary>2.2.1.16's refused statements through the INDEXED connector: a host refusal of write <c>i</c> answers THAT
-    /// statement '30' (§9.1.13.6 item 1: <i>"A permanent error exists and no further information is available"</i>), the
-    /// same connector's next statement replays it and touches nothing (§9.1.13.1: <i>"The permanent error condition remains
+    /// statement '30' (§2023:9.1.13.6 item 1: <i>"A permanent error exists and no further information is available"</i>), the
+    /// same connector's next statement replays it and touches nothing (§2023:9.1.13.1: <i>"The permanent error condition remains
     /// in effect for all subsequent input-output operations on the file"</i>), its CLOSE ends it ('00', DOC-A.1-105), and the
     /// next OPEN reads the previous statement's file in both trees. Another run unit's next WRITE succeeds (2.2.1.17, "A's
     /// statement is refused mid-way").</summary>
@@ -262,7 +262,7 @@ public sealed class IndexedEngineTests
 
     /// <summary>2.2.1.17, "A's statement ∥ B's statement", through the INDEXED connector: each run unit's statement starts
     /// from the file as the other's last statement left it — the invalid key conditions are the file's ('22' for a prime key
-    /// the other wrote, '22' for a no-duplicates alternate it holds, '23' for a record the other deleted), and §14.9.30.4
+    /// the other wrote, '22' for a no-duplicates alternate it holds, '23' for a record the other deleted), and §2023:14.9.30.4
     /// GR26's duplicate order is the FILE'S release order whichever run unit released the duplicates: the release mint is
     /// the meta page's, so B's WRITE after A's lands after it. A reader walking the duplicates of one value through
     /// another run unit's releases sees them in release order, '02' on every record but the last of the set (GR27 a)).</summary>
@@ -282,9 +282,9 @@ public sealed class IndexedEngineTests
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("02", Write(a, "A", FileOrg.Indexed, 4, "AAAA"));       // released second under AAAA
             Assert.Equal("02", Write(b, "B", FileOrg.Indexed, 3, "AAAA"));       // released third — B's mint follows A's
-            Assert.Equal("22", Write(b, "B", FileOrg.Indexed, 4, "ZZZZ"));       // §14.9.51.4 GR42 b): the prime key A wrote exists
+            Assert.Equal("22", Write(b, "B", FileOrg.Indexed, 4, "ZZZZ"));       // §2023:14.9.51.4 GR42 b): the prime key A wrote exists
             Assert.Equal("00", Delete(b, "B", FileOrg.Indexed, 2));
-            Assert.Equal("23", ReadKey(a, "A", -1, Rec(2, "    "), out _));   // §9.1.13.5 3 a): B deleted it
+            Assert.Equal("23", ReadKey(a, "A", -1, Rec(2, "    "), out _));   // §2023:9.1.13.5 3 a): B deleted it
             Assert.Equal("00", ReadKey(a, "A", 0, Rec(0, "AAAA"), out string first));   // GR32: the FIRST released
             Assert.Equal("0001AAAA", first);
             // A's walk of AAAA's duplicates, with B releasing one more between A's reads.
@@ -307,7 +307,7 @@ public sealed class IndexedEngineTests
     }
 
     /// <summary>⛔ FINDING R2-6 FOR THE INDEXED CONNECTOR (2.2.1.7): a <c>SHARING WITH READ ONLY</c> writer beside the
-    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§9.1.15 2)) runs under the store mutex, so every READ of
+    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 2)) runs under the store mutex, so every READ of
     /// the reader on another thread — by the prime key and by the alternate key — answers '00', '02', '10' or '23', never
     /// '30', the half-written path, while each WRITE changes two trees. Counted, not timed: the writer releases a fixed
     /// number of records and the reader reads until it has seen the last.</summary>
@@ -451,12 +451,12 @@ public sealed class IndexedEngineTests
         }
     }
 
-    /// <summary>§14.9.41.4 GR17 over the trees, each relational operator with a FULL key and a PARTIAL one (GR17 b)'s length
+    /// <summary>§2023:14.9.41.4 GR17 over the trees, each relational operator with a FULL key and a PARTIAL one (GR17 b)'s length
     /// below the key's): the first record satisfying the comparison (for the LESS relations the LAST — the file searched in
-    /// reverse order, GR17 d)) becomes the position, '00', and the next READ NEXT delivers it (§14.9.30.4 GR21 d) 1., the
+    /// reverse order, GR17 d)) becomes the position, '00', and the next READ NEXT delivers it (§2023:14.9.30.4 GR21 d) 1., the
     /// key value alone); none satisfies it: '23', the invalid key condition, with the file position indicator invalidated
     /// (GR7; the next sequential READ is '46'). Under an alternate key a START into a set of duplicates enters it at the end
-    /// §14.9.30.4 GR26 names for the READ's direction: NEXT from the first released, PREVIOUS from the last.</summary>
+    /// §2023:14.9.30.4 GR26 names for the READ's direction: NEXT from the first released, PREVIOUS from the last.</summary>
     [Fact]
     public void Start_with_each_operator_full_and_partial_keys_found_and_not_found()
     {
@@ -483,7 +483,7 @@ public sealed class IndexedEngineTests
                 string started = r.Start(-1, op, key.PadRight(8), StartKeyLength.OfWidth(length));
                 Assert.Equal(first is null ? "23" : "00", started);
                 string next = r.ReadNext(out string image);
-                if (first is null) Assert.Equal("46", next);   // §9.1.13.7 6 a): no valid next record
+                if (first is null) Assert.Equal("46", next);   // §2023:9.1.13.7 6 a): no valid next record
                 else Assert.Equal(first, image[..4]);
             }
             // Duplicates of DDDD were released AB20, AA10, AB10: NEXT enters at the first released, PREVIOUS at the last.
@@ -511,7 +511,7 @@ public sealed class IndexedEngineTests
         }
     }
 
-    /// <summary>⛔ §14.9.35.4 GR24 a) BY CONSTRUCTION: <i>"When the value of a specific alternate record key is not changed,
+    /// <summary>⛔ §2023:14.9.35.4 GR24 a) BY CONSTRUCTION: <i>"When the value of a specific alternate record key is not changed,
     /// the order of retrieval when that key is the key of reference remains unchanged"</i>. A REWRITE that changes alternate
     /// key 2 of 3 — away, and then back to its old value — leaves the trees of keys 1 and 3 byte-identical (nothing touched
     /// them), and puts the record LAST among key 2's duplicates (GR24 b), a fresh ordinal).</summary>
@@ -532,7 +532,7 @@ public sealed class IndexedEngineTests
 
             Assert.Equal("00", c.Open(FileOpenMode.IO));
             Assert.Equal("00", c.Rewrite("0001AAAAXXXXCCCC"));
-            Assert.Equal("02", c.Rewrite("0001AAAABBBBCCCC"));   // §9.1.13.2 2 c): the change CREATED a duplicate
+            Assert.Equal("02", c.Rewrite("0001AAAABBBBCCCC"));   // §2023:9.1.13.2 2 c): the change CREATED a duplicate
             Assert.Equal("00", c.Close());
             var after = Trees(host);
 
@@ -612,7 +612,7 @@ public sealed class IndexedEngineTests
     }
 
     /// <summary>A file of the whole-store format — version 5, its magic at offset 0 (kb/Work PB1099), and version 4 (kb/Work
-    /// PB2693) — is not a paged store: the INDEXED OPEN answers §14.9.27.4 GR10's '39' and leaves the file as it was (GR25,
+    /// PB2693) — is not a paged store: the INDEXED OPEN answers §2023:14.9.27.4 GR10's '39' and leaves the file as it was (GR25,
     /// <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; 2.2.1.3 decision 1: there
     /// is no reader of the whole-store format).</summary>
     [Theory]
@@ -638,7 +638,7 @@ public sealed class IndexedEngineTests
     /// <summary>⛔ THE FORMAT BOUNDS A KEY BY ITS LEAF (2.2.1.4; DOC-A.1-129): a tree key holds at most
     /// <see cref="BTree.MaxKeyBytes"/> (1 016) bytes, one per character position — the prime key's whole, an alternate key's
     /// with its 8-byte release ordinal — so a declaration with a longer key is a fixed attribute the physical format cannot
-    /// hold: §14.9.27.4 GR10's '39' at the OPEN, in every mode (OUTPUT included: the format is refused, not merely
+    /// hold: §2023:14.9.27.4 GR10's '39' at the OPEN, in every mode (OUTPUT included: the format is refused, not merely
     /// compared), and no file is touched (GR25). At the bound the keys work.</summary>
     [Theory]
     [InlineData(1017, 4, false)]
@@ -671,7 +671,7 @@ public sealed class IndexedEngineTests
     }
 
     /// <summary>The tree's COBOL surface for an INDEXED record statement whose tree read meets a TORN page (2.2.1.6 R3):
-    /// '30' (§9.1.13.6 item 1) with the file unchanged, §9.1.13.1's permanent error replayed by every later statement,
+    /// '30' (§2023:9.1.13.6 item 1) with the file unchanged, §2023:9.1.13.1's permanent error replayed by every later statement,
     /// the CLOSE ending it (DOC-A.1-105).</summary>
     [Fact]
     public void A_torn_tree_page_is_30_at_the_statement_and_in_effect_until_the_close()
@@ -734,7 +734,7 @@ public sealed class IndexedEngineTests
 
     /// <summary>2.2.1.16's refused table, "A promotion (CLOSE ...)" before and after the slot write, through the INDEXED
     /// connector: a host refusal of EVERY write and sync of the CLOSE that follows a completed WRITE — its claim, its slot
-    /// write, its retirement and their syncs — answers the CLOSE '30' (§9.1.13.6 item 1: <i>"A permanent error exists and
+    /// write, its retirement and their syncs — answers the CLOSE '30' (§2023:9.1.13.6 item 1: <i>"A permanent error exists and
     /// no further information is available concerning the input-output operation"</i>) and leaves the connector closed: its
     /// next OPEN succeeds ('00'). The WRITE's record is in the file under the prime key AND the alternate key, since page 2
     /// already named both trees (2.2.1.6). Under ALL OTHER another run unit open beside it runs its next WRITE ('00'), whose
@@ -803,7 +803,7 @@ public sealed class IndexedEngineTests
         }
     }
 
-    /// <summary>An OPEN of the seeded file in <paramref name="mode"/>: EXTEND is sequential access's (§14.9.27.3 SR2).</summary>
+    /// <summary>An OPEN of the seeded file in <paramref name="mode"/>: EXTEND is sequential access's (§2023:14.9.27.3 SR2).</summary>
     private static void Open(FileRegistry reg, string name, string host, FileOpenMode mode, FileSharing sharing)
     {
         Register(reg, name, host, FileOrg.Indexed, sharing, access: AccessFor(mode), alternateKey: true);
@@ -848,9 +848,9 @@ public sealed class IndexedEngineTests
     private static (string[] ByPrime, string[] ByAlternate) NoRecordsOr(bool none) => none ? ([], []) : Before;
 
     /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and the two <c>OPEN OUTPUT</c> rows, through
-    /// the INDEXED connector: a host refusal of EVERY write and sync of the OPEN answers the OPEN '30' (§9.1.13.6 item 1)
+    /// the INDEXED connector: a host refusal of EVERY write and sync of the OPEN answers the OPEN '30' (§2023:9.1.13.6 item 1)
     /// and leaves the connector closed (<see cref="FileConnector.AbandonOpen"/>), so the SAME connector's next OPEN
-    /// succeeds; another run unit's OPEN succeeds too. A fence changes no record; a refused creation is §14.9.27.4 GR25's
+    /// succeeds; another run unit's OPEN succeeds too. A fence changes no record; a refused creation is §2023:14.9.27.4 GR25's
     /// unsuccessful OPEN, <i>"the file is not affected"</i>, so the seeded records survive in both trees — only a refused
     /// FINAL sync, after the truncation and nothing left to undo, leaves the created store, which holds no records.</summary>
     [Theory]

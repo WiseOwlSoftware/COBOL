@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO §14.9.16.3 SR2 (cite.py OK): "Report-name-1 may be used only if the referenced report description entry
+*> ISO §2023:14.9.16.3 SR2 (cite.py OK): "Report-name-1 may be used only if the referenced report description entry
 *> contains a CONTROL clause." RD L1GNR has NO CONTROL clause, so the report-name form GENERATE L1GNR (summary
-*> reporting, §14.9.16.4) is a syntax-rule violation and must be rejected at compile time. The data-name form
+*> reporting, §2023:14.9.16.4) is a syntax-rule violation and must be rejected at compile time. The data-name form
 *> GENERATE L1GNR-D on the same report is legal (SR1) and is included so the ONLY violation is SR2's.
 *> Report Writer and both GENERATE forms exist in every edition, so every edition rejects.
 *> The .err pins the clause citation the diagnostic carries, not its code: the code is COBOL0899 today and

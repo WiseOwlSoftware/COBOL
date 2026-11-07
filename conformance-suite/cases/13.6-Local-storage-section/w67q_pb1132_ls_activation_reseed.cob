@@ -7,16 +7,16 @@
 *>---
       *> kb/Work PB1132 - a program that is neither INITIAL nor RECURSIVE
       *> keeps ONE instance across CALLs, but its LOCAL-STORAGE is
-      *> automatic data: §8.6.4 "Their storage is allocated and set to
+      *> automatic data: §2023:8.6.4 "Their storage is allocated and set to
       *> initial state each time the runtime element containing them is
-      *> activated", and §14.6.2.3.2 action 5 "The address of each based
+      *> activated", and §2023:14.6.2.3.2 action 5 "The address of each based
       *> item is set to null". So every CALL of W67QLSS sees LB NULL, and
       *> LA (whose ADDRESS OF is taken) back at its VALUE "INIT" - never
       *> the previous activation's address or "MUT!". The linkage-section
-      *> based entry KB is not a formal: §8.6.5 ends its association "at
+      *> based entry KB is not a formal: §2023:8.6.5 ends its association "at
       *> the end of the execution of the runtime element", so each CALL
       *> starts with no association (NULL). The WORKING-STORAGE based entry
-      *> WB is STATIC data (§8.6.4) and keeps its last-used address: NULL
+      *> WB is STATIC data (§2023:8.6.4) and keeps its last-used address: NULL
       *> on the first CALL, held on the second.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W67QLSM.

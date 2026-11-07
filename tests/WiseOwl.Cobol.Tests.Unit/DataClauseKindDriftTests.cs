@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 /// <see cref="DataClauseKind"/> — checked against the alternatives the GENERATED PARSER actually offers, not
 /// against a list somebody remembered.
 ///
-/// <para><b>Why this test exists (kb/Work PB487).</b> ISO §13.16.3 states FIVE rules over a data description
+/// <para><b>Why this test exists (kb/Work PB487).</b> ISO §2023:13.16.3 states FIVE rules over a data description
 /// entry's WHOLE clause list — SR12 (SAME AS), SR13 (CONSTANT RECORD), SR14 (TYPE), SR17 (ANY LENGTH) and SR18
 /// (DYNAMIC LENGTH); SR17 and SR18 literally read "the only other clauses permitted are …". Each was implemented
 /// as an <c>||</c> chain over whichever local decode flags the author happened to remember, and each was
@@ -53,7 +53,7 @@ public sealed class DataClauseKindDriftTests : WiseOwlCobolTestBase
         var missing = alts.Where(t => !DataClauseKinds.ByContextType.ContainsKey(t)).Select(t => t.Name).ToList();
         Assert.True(missing.Count == 0,
             "dataDescriptionClause grew an alternative with no DataClauseKind, so it is invisible to the "
-            + "ISO §13.16.3 SR12/SR13/SR14/SR17/SR18 permitted-set rules: "
+            + "ISO §2023:13.16.3 SR12/SR13/SR14/SR17/SR18 permitted-set rules: "
             + string.Join(", ", missing)
             + ". Add a member to DataClauseKind, a row to DataClauseKinds.ByContextType, and DECIDE whether the "
             + "new clause belongs in SameAsCoPermitted / ConstantRecordExcluded / LengthClauseCoPermitted.");
@@ -83,7 +83,7 @@ public sealed class DataClauseKindDriftTests : WiseOwlCobolTestBase
             "DataClauseKind declares a member no grammar alternative maps to: " + string.Join(", ", unmapped));
     }
 
-    /// <summary>The §13.16.3 permitted-set constants are TRANSCRIPTIONS of the rules' own sentences; this pins
+    /// <summary>The §2023:13.16.3 permitted-set constants are TRANSCRIPTIONS of the rules' own sentences; this pins
     /// each against the words, so a future edit that widens one has to change the assertion too.</summary>
     [Fact]
     public void PermittedSets_MatchTheRuleSentences()

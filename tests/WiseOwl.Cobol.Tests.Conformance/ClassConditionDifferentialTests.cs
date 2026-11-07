@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Class conditions (ISO §8.8.4.4): <c>IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER | ALPHABETIC-LOWER}</c>.
+/// Class conditions (ISO §2023:8.8.4.4): <c>IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER | ALPHABETIC-LOWER}</c>.
 /// ALPHABETIC is the closed Latin set {A–Z, a–z, space} (not <c>char.IsLetter</c>); a typed-numeric field IS NUMERIC
 /// folds to true. Pinned to the committed differential goldens.
 /// </summary>
@@ -37,7 +37,7 @@ public sealed class ClassConditionDifferentialTests
     [InlineData("01 N PIC 9(3) VALUE 42.", "    IF N IS NUMERIC DISPLAY \"NU\" ELSE DISPLAY \"NO\" END-IF.")]
     // ⛔ REMOVED — `IF N IS ALPHABETIC` over `01 N PIC 9(3)` is NOT CONFORMING SOURCE, and this row pinned the
     // compiler to the committed golden's acceptance of it (its comment read "digits not alphabetic", i.e. it was
-    // asserting a RUN-TIME answer to a question §8.8.4.4.3 SR4 forbids asking). SR4: "ALPHABETIC,
+    // asserting a RUN-TIME answer to a question §2023:8.8.4.4.3 SR4 forbids asking). SR4: "ALPHABETIC,
     // ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the category of the data
     // item referenced by identifier-1 is boolean, numeric, or numeric-edited" — three categories, of which only
     // BOOLEAN was screened until kb/Work PB571. The former legacy engine is a regression NET, never authority
@@ -53,7 +53,7 @@ public sealed class ClassConditionDifferentialTests
     public void ClassConditions(string ws, string proc) => AssertMatchesGolden(Program(ws, proc));
 
     [Theory]
-    // SPEC-ANCHORED — ISO §8.8.4.4.4 GR3 n)2: IS NUMERIC over an alphanumeric (non-numeric category) operand is true
+    // SPEC-ANCHORED — ISO §2023:8.8.4.4.4 GR3 n)2: IS NUMERIC over an alphanumeric (non-numeric category) operand is true
     // ONLY if the content consists ENTIRELY of the digits 0–9; an operational sign is NOT a valid character. So
     // "+1234" / "12-" are NOT NUMERIC (the NC211A GF-48 CLASS-1 case). Result derived from the spec.
     [InlineData("01 X PIC X(5) VALUE \"+1234\".", "    IF X IS NUMERIC DISPLAY \"NU\" ELSE DISPLAY \"NO\" END-IF.", "NO")]
@@ -65,6 +65,6 @@ public sealed class ClassConditionDifferentialTests
         string want = CutRunner.Normalize(expected);
         var (cok, cout, cdetail) = WiseOwlCobol.CompileAndRun(source);
         Assert.True(cok, $"WiseOwl COBOL failed: {cdetail}");
-        Assert.Equal(want, cout);                       // ISO §8.8.4.4.4 GR3 n)2
+        Assert.Equal(want, cout);                       // ISO §2023:8.8.4.4.4 GR3 n)2
     }
 }

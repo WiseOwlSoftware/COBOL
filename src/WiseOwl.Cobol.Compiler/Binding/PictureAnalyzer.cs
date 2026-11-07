@@ -9,15 +9,15 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>One DECODED PICTURE EDITING literal — its content AND the literal CLASS the source wrote it in.
-/// <para>⛔ The class is carried, not dropped, because ISO §13.18.40.3 SR9 is a rule ABOUT it: "If USAGE IS
+/// <para>⛔ The class is carried, not dropped, because ISO §2023:13.18.40.3 SR9 is a rule ABOUT it: "If USAGE IS
 /// NATIONAL is specified for the subject of the entry or if character-string-1 contains the symbol 'N',
 /// literal-1, literal-2, and literal-3 shall be national literals. Otherwise, literal1, literal-2, and literal-3
 /// shall be alphanumeric literals." Only the decoded TEXT used to reach the analyzer, so neither half of that
 /// sentence could be asked and both were unenforced — `PIC NNTNN EDITING "T" IS ":"` and
 /// `PIC XXTXX EDITING "T" IS N":"` both bound silently (kb/Work PB492).</para>
-/// <para>A literal position admits more than a written literal (kb/Work PB778): a constant-name (§13.10.3 SR2)
+/// <para>A literal position admits more than a written literal (kb/Work PB778): a constant-name (§2023:13.10.3 SR2)
 /// and a symbolic-character arrive here AS the literal they stand for, and a keyword figurative constant
-/// (§8.3.3.6.3 SR1) arrives as <see cref="EditLiteralClass.Figurative"/> — ONE character (§8.3.3.6.4 GR3b)
+/// (§2023:8.3.3.6.3 SR1) arrives as <see cref="EditLiteralClass.Figurative"/> — ONE character (§2023:8.3.3.6.4 GR3b)
 /// whose class is the context's (GR1), carried in both representations because only the analyzer knows
 /// whether the subject is national.</para></summary>
 /// <param name="Text">The literal's decoded content (quotes stripped, doubled quotes folded, hex decoded); for
@@ -28,7 +28,7 @@ namespace WiseOwl.Cobol.Binding;
 /// sequence); null for every other class.</param>
 public readonly record struct EditLiteral(string Text, EditLiteralClass Class, string? NationalText = null)
 {
-    /// <summary>The literal as the subject uses it: a figurative takes the subject's class (§8.3.3.6.4 GR1).</summary>
+    /// <summary>The literal as the subject uses it: a figurative takes the subject's class (§2023:8.3.3.6.4 GR1).</summary>
     public EditLiteral InContext(bool nationalSubject) =>
         Class is EditLiteralClass.Figurative
             ? new EditLiteral(nationalSubject ? NationalText ?? Text : Text,
@@ -36,20 +36,20 @@ public readonly record struct EditLiteral(string Text, EditLiteralClass Class, s
             : this;
 }
 
-/// <summary>The class of a PICTURE EDITING literal operand, as §13.18.40.3 SR9 asks it.</summary>
+/// <summary>The class of a PICTURE EDITING literal operand, as §2023:13.18.40.3 SR9 asks it.</summary>
 public enum EditLiteralClass
 {
-    /// <summary>An alphanumeric literal (incl. the X"…" hexadecimal format, §8.3.3.2).</summary>
+    /// <summary>An alphanumeric literal (incl. the X"…" hexadecimal format, §2023:8.3.3.2).</summary>
     Alphanumeric,
     /// <summary>A national literal (N"…" / NX"…").</summary>
     National,
-    /// <summary>A keyword figurative constant — class from context (§8.3.3.6.4 GR1).</summary>
+    /// <summary>A keyword figurative constant — class from context (§2023:8.3.3.6.4 GR1).</summary>
     Figurative,
     /// <summary>Any other literal — numeric, boolean, or the NULL figurative: never a literal SR9 admits.</summary>
     NotAlphanumericOrNational,
 }
 
-/// <summary>A parsed PICTURE EDITING phrase (ISO §13.18.40.2 Format 1, COBOL-2023) handed to
+/// <summary>A parsed PICTURE EDITING phrase (ISO §2023:13.18.40.2 Format 1, COBOL-2023) handed to
 /// <see cref="PictureAnalyzer.Analyze"/>: the DECODED editing character-1 text and its DECODED literal(s).
 /// <see cref="IsForForm"/> distinguishes the sign-control FOR form (<see cref="Neg"/>/<see cref="Pos"/>, either
 /// side null when unspecified per SR12c) from the simple-insertion IS form (<see cref="Simple"/>).</summary>
@@ -57,7 +57,7 @@ public sealed record EditingPhraseSpec(string Char1Text, EditLiteral? Simple, Ed
     bool IsForForm);
 
 /// <summary>
-/// The PICTURE character-string scanner and the USAGE-keyword mapper (ISO/IEC 1989:2023 §13.18.40 / §13.18.60) —
+/// The PICTURE character-string scanner and the USAGE-keyword mapper (ISO/IEC 1989:2023 §2023:13.18.40 / §2023:13.18.60) —
 /// the ANALYSIS half split off <see cref="PicInfo"/> (P5.11c, DESIGN-data-model §2.7): <see cref="PicInfo"/> is
 /// now a pure value record (the analyzed FACTS + the representation projections); the scanning, the SR2 symbol
 /// whitelist, the category classification, and every entry-time diagnostic live here.
@@ -67,22 +67,22 @@ public static class PictureAnalyzer
     /// <summary>
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
-    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currencies"/> is the
-    /// unit's CURRENCY SIGN SET (ISO §12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
-    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§13.18.40.3 r24/r28):
+    /// via the binder's post-build inheritance pass, ISO §2023:13.18.52 GR1–3). <paramref name="currencies"/> is the
+    /// unit's CURRENCY SIGN SET (ISO §2023:12.3.7 — symbol → currency string; <c>SpecialNamesBinder.CurrencySigns</c>, the
+    /// r25-implied <c>'$' → "$"</c> included), of which a PICTURE uses at most ONE symbol (§2023:13.18.40.3 r24/r28):
     /// a non-default symbol (e.g. NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c> — its
-    /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4) — and
+    /// mask positions are fixed/floating currency insertion, making the item NUMERIC-EDITED (§2023:13.18.40.4) — and
     /// the emitted <see cref="PicInfo.EditMask"/> carries it CANONICALIZED to <c>$</c> with the string it stands
     /// for on <see cref="PicInfo.CurrencyString"/>; a multi-character string widens the item by its extra length
-    /// (§13.18.40.4 GR14 — "the first occurrence of the currency symbol adds the number of characters in the
+    /// (§2023:13.18.40.4 GR14 — "the first occurrence of the currency symbol adds the number of characters in the
     /// currency string to the size of the item"; kb/Work PB60 / AR-15.68.3-3). <paramref name="currency"/> is the
     /// legacy single-symbol form (tests / report items) — ignored when <paramref name="currencies"/> is given.
     /// <paramref name="edition"/>
-    /// + <paramref name="where"/> carry the W2 loud-guard diagnostics: the symbol whitelist (§13.18.40.3 SR2) —
+    /// + <paramref name="where"/> carry the W2 loud-guard diagnostics: the symbol whitelist (§2023:13.18.40.3 SR2) —
     /// a symbol outside the legal set is a COBOL0808 error, and the legal-but-unimplemented 2002+ symbols
     /// <c>N</c>/<c>1</c>/<c>E</c> route their introduction gates + a not-implemented error (never the historical
     /// silent fall-through to "pure numeric, zero digits"). Analyze sees the RAW picture — DECIMAL-POINT IS COMMA
-    /// (ISO §13.18.40.3 SR13) swaps the ROLES of <c>,</c> and <c>.</c> at edit time (<c>CobolEdit.MaskScale</c>'s
+    /// (ISO §2023:13.18.40.3 SR13) swaps the ROLES of <c>,</c> and <c>.</c> at edit time (<c>CobolEdit.MaskScale</c>'s
     /// flag), not the symbols themselves, and both are whitelisted regardless; <paramref name="decimalPointIsComma"/>
     /// carries that same switch into the COMPOSITION validator (<see cref="PictureComposition"/>), where SR13's
     /// "the rules for the symbol period apply to the symbol comma, and the rules for the symbol comma apply to the
@@ -111,7 +111,7 @@ public static class PictureAnalyzer
         LocaleEditSpec? localeFormat2, bool decimalPointIsComma, out PictureClauseIdentity? clause)
     {
         clause = null;
-        // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
+        // A TRAILING ';' is the clause SEPARATOR (ISO §2023:8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
         // (DEVLOG 596; VCR Table 7 row 7.14): PIC_STRING trims a trailing ','/';' when LA(1) is whitespace —
         // the separator shape — so a legal SR7 trailing-',' mask (NC125A's `…9,.`) keeps its comma. This
@@ -122,11 +122,11 @@ public static class PictureAnalyzer
         if (picture.Length == 0)
         {
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE character-string — {where} "
-                + "(ISO §13.18.40.3 SR2: empty after separating the trailing ';' separator)");
+                + "(ISO §2023:13.18.40.3 SR2: empty after separating the trailing ';' separator)");
             return PicInfo.Recovery();
         }
 
-        // ── ISO §13.18.40.3 SR4 ── "The maximum number of characters allowed in character-string-1 is 63."
+        // ── ISO §2023:13.18.40.3 SR4 ── "The maximum number of characters allowed in character-string-1 is 63."
         // That is the 2023 text's bound; the edition's own is MaxStringLength (50 at COBOL-2002, 30 at COBOL-85 —
         // the 2002 text's 13.16.38.2 SR4 and its Annex F.2 item 94; kb/Work PB4304), a length error below the edition that
         // relaxed it, so also under --permissive.
@@ -143,17 +143,17 @@ public static class PictureAnalyzer
         {
             edition.Error(DiagnosticCatalog.PictureStringTooLong, $"{where}: character-string-1 is {written} "
                 + $"characters long — the maximum is {maxLength}{BoundProvenance(edition.DialectLevel)} "
-                + "(ISO §13.18.40.3 SR4; the count is over character-string-1 as WRITTEN, so a repetition factor "
+                + "(ISO §2023:13.18.40.3 SR4; the count is over character-string-1 as WRITTEN, so a repetition factor "
                 + "counts as its own digits, not as the symbols it expands to)");
             return PicInfo.Recovery();
         }
 
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99". Every
-        // repetition factor is VALIDATED here (§13.18.40.3 SR6) and the expansion is bounded, so no unchecked
+        // repetition factor is VALIDATED here (§2023:13.18.40.3 SR6) and the expansion is bounded, so no unchecked
         // count reaches StringBuilder.Append (kb/Work PB531).
         if (!TryExpandRepeats(picture, edition, where, out string expanded)) return PicInfo.Recovery();
 
-        // The picture's currency symbol — the ONE member of the unit's CURRENCY SIGN SET it uses (§13.18.40.3
+        // The picture's currency symbol — the ONE member of the unit's CURRENCY SIGN SET it uses (§2023:13.18.40.3
         // r24 fixed / r28 floating: a picture carries one currency symbol kind), or the legacy single symbol.
         // Two DIFFERENT set members in one picture are an invalid PICTURE (0808). The mask is canonicalized to
         // '$' below and the symbol's STRING travels on PicInfo.CurrencyString.
@@ -169,11 +169,11 @@ public static class PictureAnalyzer
             if (cs == up) continue;
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE character-string {picture} — {where}: it uses two "
                 + $"different currency symbols ('{cs}' and '{up}'); a PICTURE character-string may contain one "
-                + "currency symbol kind (ISO §13.18.40.3 r24 / r28)");
+                + "currency symbol kind (ISO §2023:13.18.40.3 r24 / r28)");
             return PicInfo.Recovery();
         }
         string currencyString = cs == '\0' ? "$" : currencySet[cs].Text;
-        // §12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
+        // §2023:12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
         // none (the default below is only what the whitelist/editing checks see, not a symbol the picture wrote).
         // A symbol whose clause was refused for its string has no known class (kb/Work PB1920): SR28 is not asked.
         LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
@@ -182,32 +182,32 @@ public static class PictureAnalyzer
         int currencyExtra = expanded.Any(c => char.ToUpperInvariant(c) == cs) ? currencyString.Length - 1 : 0;
         clause = PictureClauseIdentity.Of(expanded, cs, currencyString, decimalPointIsComma);
 
-        // ── PICTURE format 2 (the LOCALE phrase, §13.18.40.2; kb/Work PB64 T6): its own analysis — the format-1
+        // ── PICTURE format 2 (the LOCALE phrase, §2023:13.18.40.2; kb/Work PB64 T6): its own analysis — the format-1
         // walker below reads none of its rules (Table 11 replaces Table 10; the item's size is the SIZE integer,
         // not the mask's width; the emitted separators/currency/sign are the locale's). The currency-symbol
-        // classification above still applies: the picture's cs is the program's currency symbol (§12.3.7.3 SR22
+        // classification above still applies: the picture's cs is the program's currency symbol (§2023:12.3.7.3 SR22
         // — a CURRENCY SIGN clause's symbol classifies exactly like '$'), canonicalized to '$' below.
         if (localeFormat2 is { } locale2)
             return AnalyzeLocaleEdited(picture, expanded, cs, usage, explicitUsage, edition, where, blankWhenZero, locale2,
                 hasEditingPhrase: editing is { Count: > 0 });
 
-        // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
+        // ── PICTURE EDITING phrases (ISO §2023:13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // render rules. char1Set lets the SR2 whitelist admit the declared editing characters (else char-1
         // letters like 'L'/'T'/'G' would trip COBOL0808); char1Extended is the FOR-phrase subset, which
-        // §13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
+        // §2023:13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
         // VersionConformancePass.ParseArm.VisitPictureClause.
         var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, decimalPointIsComma,
             out var char1Set, out var char1Extended, out var char1Declared);
-        // §13.18.40.4 GR14 'es' — the character-1 positions' size beyond the one position each occupies in
+        // §2023:13.18.40.4 GR14 'es' — the character-1 positions' size beyond the one position each occupies in
         // character-string-1 (kb/Work PB491). Computed once here, beside the currency widening, and added at
         // every category arm a character-1 can reach.
         int editingExtra = EditingPositions(expanded, editRules);
         clause = clause with { Editing = PictureClauseIdentity.EditingText(editRules) };
 
-        // ── The §13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
-        // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§13.18.40.4 GR14;
-        // ExpandRepeats has already uppercased, so the §8.1.3 GR3 case equivalence is folded). 'N' (national,
-        // §8.5.2.10), '1' (boolean, §8.5.2.5) and 'E' (external float, §13.18.40.4 GR13b) are LEGAL 2002+
+        // ── The §2023:13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
+        // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§2023:13.18.40.4 GR14;
+        // ExpandRepeats has already uppercased, so the §2023:8.1.3 GR3 case equivalence is folded). 'N' (national,
+        // §2023:8.5.2.10), '1' (boolean, §2023:8.5.2.5) and 'E' (external float, §2023:13.18.40.4 GR13b) are LEGAL 2002+
         // symbols with no implementation yet: each fires its ConstructRegistry introduction gate (0900 below
         // 2002) plus the not-implemented error at 2002+. Anything else is an invalid PICTURE. ──
         bool hasN = false, has1 = false, hasE = false;
@@ -215,11 +215,11 @@ public static class PictureAnalyzer
         for (int i = 0; i < expanded.Length; i++)
         {
             char c = expanded[i];
-            if (char1Declared.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §13.18.40.3 SR8) — not an invalid symbol
+            if (char1Declared.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §2023:13.18.40.3 SR8) — not an invalid symbol
             switch (c)
             {
                 // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
-                // §12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
+                // §2023:12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
                 // literal-7 or literal-8, so `PIC $$,$$9.99` stays legal beside a declared '#' (kb/Work PB60 /
                 // AR-15.68.3-3 measured it as COBOL0808 under the former single-symbol model — a legal-source
                 // rejection); only a clause that TAKES '$' for another string retires it as a symbol.
@@ -230,17 +230,17 @@ public static class PictureAnalyzer
                     break;
                 case 'C' when i + 1 < expanded.Length && expanded[i + 1] == 'R':
                 case 'D' when i + 1 < expanded.Length && expanded[i + 1] == 'B':
-                    i++; break;   // CR / DB — each two-character pair is ONE symbol (§13.18.40.3 SR12 NOTE 2)
+                    i++; break;   // CR / DB — each two-character pair is ONE symbol (§2023:13.18.40.3 SR12 NOTE 2)
                 case 'N': hasN = true; break;
                 case '1': has1 = true; break;
                 case 'E': hasE = true; break;
                 default:
-                    if (c == cs) break;   // the program's currency symbol (ISO §12.3.7 GR13)
+                    if (c == cs) break;   // the program's currency symbol (ISO §2023:12.3.7 GR13)
                     invalid ??= c;        // 'C'/'D' not opening CR/DB land here too — no legal lone use
                     break;
             }
         }
-        // ── The FLOATING-POINT numeric-edited form (§13.18.40.4 GR13 b — data-model design D21, kb/Work PB66): the
+        // ── The FLOATING-POINT numeric-edited form (§2023:13.18.40.4 GR13 b — data-model design D21, kb/Work PB66): the
         //    whole string is validated as significand 'E' exponent and returned as a numeric-edited PicInfo whose
         //    IsFloatEdited flag drives every store / read dispatch. The COBOL-2002 introduction gate keys on that flag
         //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
@@ -250,17 +250,17 @@ public static class PictureAnalyzer
         if (invalid is { } bad)
         {
             // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
-            // OTHER obligation — the §13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
+            // OTHER obligation — the §2023:13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
             // (`PIC 99.99.99`, `PIC 9ZZ`, `PIC N9`, `PIC NE`) — is PictureComposition, just below, and reports
             // COBOL1934 / COBOL1935 (kb/Work PB528; data-model design D24).
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
-                + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
+                + "(ISO §2023:13.18.40.3 SR2: not an allowable picture symbol)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
             return PicInfo.Recovery(expanded.Length);
         }
 
-        // ── The §13.18.40.3 COMPOSITION rules + the §13.18.40.6 Table 10 precedence (kb/Work PB528; data-model
+        // ── The §2023:13.18.40.3 COMPOSITION rules + the §2023:13.18.40.6 Table 10 precedence (kb/Work PB528; data-model
         // design D24). SR2 has TWO obligations and the loop above answered only the first: the symbols shall be
         // picture symbols, AND they shall form "an allowable combination", whose allowable combinations "are
         // specified in 13.18.40.6, Precedence rules". PictureComposition is that second half plus every
@@ -292,15 +292,15 @@ public static class PictureAnalyzer
             decimalPointIsComma);
         editingExtra = EditingPositions(expanded, editRules);
 
-        // ── Category national (§8.5.2.10) / national-edited (§8.5.2.11) / boolean (§8.5.2.5) — LIVE. The
+        // ── Category national (§2023:8.5.2.10) / national-edited (§2023:8.5.2.11) / boolean (§2023:8.5.2.5) — LIVE. The
         // introduction gate stays at every entry point (COBOL0900 below 2002; the registry rows are silent at
-        // 2002+), exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §13.18.60.4: SR13a — PIC N with
+        // 2002+), exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §2023:13.18.60.4: SR13a — PIC N with
         // no USAGE clause implies NATIONAL; SR20 — PIC N admits ONLY usage NATIONAL; SR13b — PIC 1 with no usage
         // is DISPLAY; SR5 — usage BIT requires a boolean picture; SR12 national-form boolean (PIC 1 USAGE
         // NATIONAL) is spec-legal but STAGED (0899). ──
         if (hasN)
         {
-            // §13.18.40.4 GR9 — "To define an item as national, character-string-1 shall contain only one or more
+            // §2023:13.18.40.4 GR9 — "To define an item as national, character-string-1 shall contain only one or more
             // occurrences of the symbol 'N'" — and GR10 — "To define an item as national-edited, character-string-1
             // shall include — at least one symbol 'N', and — at least one instance of character-1 or one of the
             // symbols from the set 'B', '0', '/'". The GR10 insertion set is CobolEdit's ONE definition of it, the
@@ -326,7 +326,7 @@ public static class PictureAnalyzer
             // stands as the loud assertion of that agreement: a picture that reaches here holds an 'N' and some
             // symbol no category-defining rule admits, so it defines NO category and must never fall through to
             // the numeric geometry below.
-            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR9/GR10: a "
+            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §2023:13.18.40.4 GR9/GR10: a "
                 + "character-string containing the symbol 'N' defines an item only when it is all 'N' (national) "
                 + "or 'N' with the insertion symbols character-1 / B 0 / (national-edited))");
             return PicInfo.Recovery(expanded.Length);
@@ -344,13 +344,13 @@ public static class PictureAnalyzer
                 return new PicInfo(PicCategory.Boolean, usage,
                     Length: CharacterPositions(expanded), Digits: 0, Scale: 0, Signed: false);
             }
-            // REACHABLE, and the citation is the one that governs: §13.18.40.4 GR8 admits ONLY the symbol '1',
+            // REACHABLE, and the citation is the one that governs: §2023:13.18.40.4 GR8 admits ONLY the symbol '1',
             // while Table 10 is transparent to a declared EDITING character-1 — so `PIC 11T EDITING "T" IS ":"`
             // passes the matrix and still defines no category. There is no boolean-edited category (Table 7 gives
             // category boolean "None").
-            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR8: to define "
+            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §2023:13.18.40.4 GR8: to define "
                 + "an item as boolean, character-string-1 shall contain only occurrences of the symbol '1'; "
-                + "§13.18.40.5 Table 7 gives category boolean no editing)");
+                + "§2023:13.18.40.5 Table 7 gives category boolean no editing)");
             return PicInfo.Recovery(expanded.Length);
         }
 
@@ -359,7 +359,7 @@ public static class PictureAnalyzer
         int digits = expanded.Count(c => c is '9');
         int afterV = hasV ? expanded[(expanded.IndexOf('V') + 1)..].Count(c => c is '9') : 0;
 
-        // PICTURE 'P' scaling positions (ISO §13.18.40): each P holds no digit and no storage but shifts the implied
+        // PICTURE 'P' scaling positions (ISO §2023:13.18.40): each P holds no digit and no storage but shifts the implied
         // decimal point. TRAILING P (e.g. 99P) scales the stored digits UP → a NEGATIVE fraction scale (the value is
         // a multiple of 10^P). LEADING P (e.g. P(4)9) puts the point left of every digit → scale = leadingP + the
         // digit count (all 9s are fractional). The net SIGNED scale flows through the whole numeric pipeline; the
@@ -367,10 +367,10 @@ public static class PictureAnalyzer
         // P positions classify against the DIGIT POSITIONS — 9, the suppression symbols Z/* (an EDITED
         // P-scaled mask like ZZZPP has no '9' at all, NC124A PICTURE-TEST-30), AND a FLOATING string's
         // occurrences (kb/Work PB155: `PIC $$$$PP` has no 9/Z/* at all, so its rightmost P run classified as
-        // LEADING and the scale came out +2 where the value is a multiple of 10^2, scale −2; §13.18.40.6
+        // LEADING and the scale came out +2 where the value is a multiple of 10^2, scale −2; §2023:13.18.40.6
         // Table 10 places left-of-point P beside the floating symbols). The floating symbol is determined
-        // FIRST so the anchors can include it; §13.18.40.5 allows at most one floating string per picture.
-        // ⛔ ONE floating-string detector, shared with the composition validator (kb/Work PB528). §13.18.40.5
+        // FIRST so the anchors can include it; §2023:13.18.40.5 allows at most one floating string per picture.
+        // ⛔ ONE floating-string detector, shared with the composition validator (kb/Work PB528). §2023:13.18.40.5
         // rule 6 defines a floating string as "a string of at least two IDENTICAL floating insertion editing
         // symbols" with the simple insertion symbols (and, by rule 6 b, the decimal point) embedded — an
         // ADJACENCY property, never a bare occurrence count. The count this once read made `PIC +999+` and
@@ -389,8 +389,8 @@ public static class PictureAnalyzer
         int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions + floatingExtra : afterV;
 
-        // §13.18.40.3 SR14 DIGIT-POSITION count for the 1–31 capacity cap: the 9/Z/* positions, every P (counted in the
-        // maximum digit positions though it stores no digit, §13.18.40.4), and the floating '+'/'-'/currency digit
+        // §2023:13.18.40.3 SR14 DIGIT-POSITION count for the 1–31 capacity cap: the 9/Z/* positions, every P (counted in the
+        // maximum digit positions though it stores no digit, §2023:13.18.40.4), and the floating '+'/'-'/currency digit
         // positions — a floating string of a symbol appearing k≥2 times contributes k−1 (the leftmost is the
         // sign/currency, not a digit). Counting SYMBOL occurrences (not run length) naturally excludes embedded simple
         // insertions ($$,$$9 → 4 '$' → 3 digit positions). For a pure-numeric picture (no Z/*, no floating) this equals
@@ -398,16 +398,16 @@ public static class PictureAnalyzer
         int digitPos = digitPositions + leadingP + trailingP + floatingExtra;   // floatingExtra hoisted above the P split
 
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
-        // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
+        // CR / DB are fixed-insertion editing symbols too (ISO §2023:13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
         // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
-        // §12.3.7 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
+        // §2023:12.3.7 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
         // "pure numeric, zero digits".
         bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
             || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
-            || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §13.18.40.5 Table 7)
+            || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §2023:13.18.40.5 Table 7)
 
-        // ── THE §13.18.60.3 USAGE × PICTURE SCREEN over the picture's resolved CATEGORY (SR3 / SR5 / SR12) —
-        // the SAME call the national and boolean early returns above make, and the same call the §13.18.60.4 GR1
+        // ── THE §2023:13.18.60.3 USAGE × PICTURE SCREEN over the picture's resolved CATEGORY (SR3 / SR5 / SR12) —
+        // the SAME call the national and boolean early returns above make, and the same call the §2023:13.18.60.4 GR1
         // inheritance pass makes for a usage an elementary item acquires from its group. The category-national
         // and category-boolean pictures never reach here (both returned above), so what remains is
         // alphabetic/alphanumeric (anyAlpha), numeric-edited (anyEdit) and pure numeric.
@@ -417,7 +417,7 @@ public static class PictureAnalyzer
 
         if (anyAlpha)
         {
-            // ALPHANUMERIC-EDITED (ISO §13.18.40.4 GR7 — "at least one symbol 'A' or one symbol 'X', and at least
+            // ALPHANUMERIC-EDITED (ISO §2023:13.18.40.4 GR7 — "at least one symbol 'A' or one symbol 'X', and at least
             // one instance of character-1 or one of the symbols from the set 'B', '0', '/'"): every position counts
             // in the length, and the mask drives MOVE editing. A plain alphanumeric has no insertion symbols and no
             // editing character-1. ⛔ The insertion SET is CobolEdit's one definition of it — the SAME predicate
@@ -433,7 +433,7 @@ public static class PictureAnalyzer
             // silently SHORT alphanumeric items for as long as no rule read symbol COMBINATION.
             if (!expanded.All(c => c is 'A' or 'X' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
             {
-                edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR6/GR7: a "
+                edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §2023:13.18.40.4 GR6/GR7: a "
                     + "character-string containing the symbol 'A' or 'X' defines an item only when its symbols "
                     + "come from the set 'A', 'X', '9' (alphanumeric), optionally with character-1 or the "
                     + "insertion symbols B 0 / (alphanumeric-edited))");
@@ -452,8 +452,8 @@ public static class PictureAnalyzer
 
         string signKind = PicInfo.SignKindFor(usage, signed, sign);
 
-        // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §13.18.8.4 GR2;
-        // §13.18.8.3 SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK
+        // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §2023:13.18.8.4 GR2;
+        // §2023:13.18.8.3 SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK
         // ZERO` holds SPACES after a zero store and compares as an alphanumeric item.
         // ⛔ BOTH USAGES SR2 NAMES, not just display (kb/Work PB646, PB508). GR2 is written about the PICTURE
         // CHARACTER-STRING ("If the subject of the entry is described by its picture character-string as
@@ -466,7 +466,7 @@ public static class PictureAnalyzer
         if (anyEdit || (blankWhenZero && digits > 0 && !signed && UsageFamilies.IsDisplayOrNational(usage)))
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
-            // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
+            // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: CharacterPositions(expanded, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: signed)
             { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
@@ -476,15 +476,15 @@ public static class PictureAnalyzer
         // reached by exhaustion, by everything that is not national, boolean, alphabetic/alphanumeric or edited —
         // and for as long as no rule read symbol COMBINATION it had no precondition at all, so `PIC S`,
         // `PIC PPP`, `PIC SV` and `PIC SPPP` each bound a ZERO-LENGTH category-numeric item at every edition,
-        // silently. §13.18.40.4 GR11: "To define an item as fixed-point numeric, character-string-1 — shall
+        // silently. §2023:13.18.40.4 GR11: "To define an item as fixed-point numeric, character-string-1 — shall
         // include at least one symbol '9', and — may contain a combination of symbols from the set 'P', 'S',
-        // and 'V'." §13.18.40.3 SR12 a says the same thing from the other side and PictureComposition now
+        // and 'V'." §2023:13.18.40.3 SR12 a says the same thing from the other side and PictureComposition now
         // rejects all four above, so this is the loud assertion of that agreement rather than a second gate —
         // the same shape the national and boolean arms carry. A character-string that defines NO category must
         // never reach a PicInfo.
         if (digits == 0)
         {
-            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR11: to "
+            edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE {picture} — {where} (ISO §2023:13.18.40.4 GR11: to "
                 + "define an item as fixed-point numeric, character-string-1 shall include at least one symbol "
                 + "'9'; a character-string of 'S', 'V' and 'P' alone defines none of GR3's eight categories)");
             return PicInfo.Recovery(expanded.Length);
@@ -498,11 +498,11 @@ public static class PictureAnalyzer
     }
 
     /// <summary>
-    /// ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN — SR3, SR5, SR12 and SR20 — asked ONCE, of an elementary item's
+    /// ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN — SR3, SR5, SR12 and SR20 — asked ONCE, of an elementary item's
     /// EFFECTIVE usage, for BOTH ways the standard lets an item acquire one:
     /// <list type="number">
     ///   <item>the item's OWN USAGE clause — <see cref="Analyze"/>, at entry bind; and</item>
-    ///   <item>§13.18.60.4 GR1 GROUP INHERITANCE — "If the USAGE clause is specified or implied at a group level,
+    ///   <item>§2023:13.18.60.4 GR1 GROUP INHERITANCE — "If the USAGE clause is specified or implied at a group level,
     ///     it applies only to each elementary item in the group" — <c>UsageInheritancePass</c>, once
     ///     the forest is complete.</item>
     /// </list>
@@ -514,9 +514,9 @@ public static class PictureAnalyzer
     /// them reaches the inherited spelling — and before kb/Work PB495 not one of them did, because this screen
     /// was reachable only from the written-clause path.</para>
     ///
-    /// <para><paramref name="category"/> is what the PICTURE CHARACTER-STRING DESCRIBES (§13.18.40.6 Table 10 /
-    /// §8.5.2 Table 2), which is what all four rules key on — not the item's final category, which a BLANK WHEN
-    /// ZERO clause can move (§13.18.8 GR2) without changing the string.</para>
+    /// <para><paramref name="category"/> is what the PICTURE CHARACTER-STRING DESCRIBES (§2023:13.18.40.6 Table 10 /
+    /// §2023:8.5.2 Table 2), which is what all four rules key on — not the item's final category, which a BLANK WHEN
+    /// ZERO clause can move (§2023:13.18.8 GR2) without changing the string.</para>
     ///
     /// <para>Returns the usage the item BINDS with: the screened one, or <see cref="Usage.Display"/> where a
     /// violation has been reported — the recovery discipline, since the compile has already failed and the value
@@ -525,13 +525,13 @@ public static class PictureAnalyzer
     internal static Usage ScreenUsageAgainstPicture(PicCategory category, Usage usage, bool explicitUsage,
         string picture, EditionContext edition, string where, LiteralClass? currencyClass = null)
     {
-        // ── §12.3.7.3 SR28 ── "If literal-7 is of class alphanumeric, the associated currency symbol may be used
+        // ── §2023:12.3.7.3 SR28 ── "If literal-7 is of class alphanumeric, the associated currency symbol may be used
         // only to define a numeric-edited item with usage display. If literal-7 is of class national, the associated
         // currency symbol may be used only to define a numeric-edited item with usage national." The two classes pair
         // with the two usages crosswise-forbidden, so one comparison asks both sentences (kb/Work PB1089).
         // currencyClass is the class of the literal-7 behind the symbol the PICTURE uses, null when it uses none.
         // Asked HERE — the one USAGE × PICTURE screen — so the written clause and a usage acquired from the group
-        // (§13.18.60.4 GR1) are screened by the same call; a usage other than display/national is SR3's.
+        // (§2023:13.18.60.4 GR1) are screened by the same call; a usage other than display/national is SR3's.
         if (currencyClass is { } literal7Class && category is PicCategory.NumericEdited
             && UsageFamilies.IsDisplayOrNational(usage)
             && (literal7Class is LiteralClass.National) != (usage is Usage.National))
@@ -539,16 +539,16 @@ public static class PictureAnalyzer
                 + $"is defined by a{(literal7Class is LiteralClass.National ? " national" : "n alphanumeric")} literal-7 "
                 + "of a CURRENCY SIGN clause (the clause SR25 implies for '$' is alphanumeric), so it may be used only to "
                 + $"define a numeric-edited item with usage {(literal7Class is LiteralClass.National ? "national" : "display")}"
-                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} (ISO §12.3.7.3 SR28)");
+                + $", not one with USAGE {UsageFamilies.UsageWord(usage)} (ISO §2023:12.3.7.3 SR28)");
 
-        // ── §13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
+        // ── §2023:13.18.60.3 SR20 ── "Only the NATIONAL phrase may be specified in a USAGE clause associated with an
         // elementary data item whose explicit or implicit picture character-string contains the symbol 'N'."
         // With no clause associated at all, SR13a supplies NATIONAL — so the rule bites only on a written one.
         if (category is PicCategory.National)
         {
             if (explicitUsage && usage is not Usage.National)
                 edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a national PICTURE (symbol N) admits only USAGE "
-                    + $"NATIONAL, not {UsageFamilies.UsageWord(usage)} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL "
+                    + $"NATIONAL, not {UsageFamilies.UsageWord(usage)} (ISO §2023:13.18.60.3 SR20; SR13a implies NATIONAL "
                     + "when no USAGE clause is specified)");
             return Usage.National;
         }
@@ -560,7 +560,7 @@ public static class PictureAnalyzer
                 case Usage.Display or Usage.Bit or Usage.National:
                     // display-form (SR13b), bit-form (SR5) and NATIONAL-form (SR12) — one D-B1 '0'/'1'
                     // character per boolean position in every one of them. What usage NATIONAL changes is the
-                    // STORAGE representation, not the carrier: §13.18.60.4 GR8 puts the item in "a national
+                    // STORAGE representation, not the carrier: §2023:13.18.60.4 GR8 puts the item in "a national
                     // coded character set", so each of those characters occupies a national character position
                     // (two bytes under D-N1) — applied once, by the one national byte transform, at every byte
                     // boundary (D-N7; kb/Work PB646).
@@ -568,51 +568,51 @@ public static class PictureAnalyzer
                 default:
                     edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
                         + $"DISPLAY, BIT, or NATIONAL, not {UsageFamilies.UsageWord(usage)} "
-                        + "(ISO §13.18.60.3 SR5/SR12/SR13b)");
+                        + "(ISO §2023:13.18.60.3 SR5/SR12/SR13b)");
                     return Usage.Display;
             }
 
-        // ── §13.18.60.3 SR5 ── "An elementary data item with usage bit shall be specified only with a picture
+        // ── §2023:13.18.60.3 SR5 ── "An elementary data item with usage bit shall be specified only with a picture
         // character-string that describes a boolean data item" — and this one describes none.
         if (usage is Usage.Bit)
         {
             edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
-                + $"PICTURE {picture} is not boolean (ISO §13.18.60.3 SR5)");
+                + $"PICTURE {picture} is not boolean (ISO §2023:13.18.60.3 SR5)");
             return Usage.Display;
         }
 
-        // ── §13.18.60.3 SR12 ── usage national "shall be described with a picture character-string that
+        // ── §2023:13.18.60.3 SR12 ── usage national "shall be described with a picture character-string that
         // describes a boolean, national, national-edited, numeric, or numeric-edited data item". FIVE shapes,
         // and all five are LIVE (kb/Work PB646): the two category-national forms returned above, the boolean
         // form in the switch above, and the NUMERIC / NUMERIC-EDITED forms here. The ONLY picture SR12 refuses
-        // is an alphabetic/alphanumeric one, which §13.18.40.3 SR30 refuses from the other side as well.
+        // is an alphabetic/alphanumeric one, which §2023:13.18.40.3 SR30 refuses from the other side as well.
         if (usage is Usage.National)
         {
             if (category is PicCategory.Alphanumeric)
             {
                 edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE NATIONAL may not be specified with an "
                     + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
-                    + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
-                    + "§13.18.40.3 SR30)");
+                    + "national-edited, numeric, and numeric-edited pictures only (ISO §2023:13.18.60.3 SR12; "
+                    + "§2023:13.18.40.3 SR30)");
                 return Usage.Display;
             }
-            // A national-form NUMERIC or NUMERIC-EDITED item. §13.18.40.4 GR1 — "When the usage of the subject
+            // A national-form NUMERIC or NUMERIC-EDITED item. §2023:13.18.40.4 GR1 — "When the usage of the subject
             // of the entry is national, each symbol representing a character position defines a national
             // character position" — so its digits, its sign and its insertion characters are NATIONAL
-            // characters; §13.18.60.4 GR8 pins their storage size (two bytes, D-N1). Its VALUE is the same
+            // characters; §2023:13.18.60.4 GR8 pins their storage size (two bytes, D-N1). Its VALUE is the same
             // number its DISPLAY twin holds and its CHARACTER IMAGE is the same digit run, so the carrier and
             // the numeric pipeline are shared verbatim and only the BYTE serialization differs — design D-N7.
             return Usage.National;
         }
 
-        // ── §13.18.60.3 SR3 ── BINARY / COMPUTATIONAL / PACKED-DECIMAL "shall be specified only with a picture
-        // character-string that describes a NUMERIC item". §8.5.2 Table 2 puts category numeric alone in class
+        // ── §2023:13.18.60.3 SR3 ── BINARY / COMPUTATIONAL / PACKED-DECIMAL "shall be specified only with a picture
+        // character-string that describes a NUMERIC item". §2023:8.5.2 Table 2 puts category numeric alone in class
         // numeric — numeric-EDITED is class alphanumeric (usage display) or national — so an edited mask is as
         // nonconforming here as an alphanumeric one, and silently accepting it produced an item whose declared
         // width disagreed with its own character image (`PIC ZZ9 USAGE COMP` measured 1 byte against a 3-character
         // image; kb/Work PB540). Without the screen a `PIC XX COMP` bound as category Alphanumeric with the
         // numeric usage DROPPED. The picture-LESS BINARY-CHAR/-SHORT/-LONG/-DOUBLE usages take no PICTURE at all
-        // — that is §13.16.3 SR8, screened in DataBinder against UsageFamilies.IsPictureless.
+        // — that is §2023:13.16.3 SR8, screened in DataBinder against UsageFamilies.IsPictureless.
         if (usage is Usage.Binary or Usage.Comp5 or Usage.Packed && category is not PicCategory.Numeric)
         {
             // ⛔ UsageFamilies.UsageWord is THE spelling table (it has the drift test) — this site used to carry its
@@ -620,7 +620,7 @@ public static class PictureAnalyzer
             edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {UsageFamilies.UsageWord(usage)} requires a PICTURE that describes a numeric "
                 + $"item — PICTURE {picture} is "
                 + (category is PicCategory.NumericEdited ? "numeric-edited" : "alphabetic/alphanumeric")
-                + " (ISO §13.18.60.3 SR3)");
+                + " (ISO §2023:13.18.60.3 SR3)");
             return Usage.Display;
         }
 
@@ -640,7 +640,7 @@ public static class PictureAnalyzer
     }
 
     /// <summary>
-    /// ⛔ ISO §13.18.40.4 GR4 — THE SIZE OF A PICTURE-DESCRIBED ELEMENTARY ITEM, WRITTEN ONCE (kb/Work PB535).
+    /// ⛔ ISO §2023:13.18.40.4 GR4 — THE SIZE OF A PICTURE-DESCRIBED ELEMENTARY ITEM, WRITTEN ONCE (kb/Work PB535).
     /// "The size in boolean positions or character positions of an elementary data item that has been defined
     /// with a PICTURE clause is determined by the number of symbols in character-string-1 that represent either
     /// boolean positions or character positions."
@@ -672,7 +672,7 @@ public static class PictureAnalyzer
     internal static int CharacterPositions(string expanded, int currencyExtra = 0, int editingExtra = 0)
         => expanded.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra + editingExtra;
 
-    /// <summary>⛔ ISO §13.18.40.4 GR14's 'es' entry — the PICTURE EDITING character-1's contribution to the
+    /// <summary>⛔ ISO §2023:13.18.40.4 GR14's 'es' entry — the PICTURE EDITING character-1's contribution to the
     /// item's SIZE, which is the literal's width and not the one character position the symbol occupies in
     /// character-string-1. <see cref="CharacterPositions"/> has already counted each occurrence once, so this is
     /// the REMAINDER, exactly as <c>currencyExtra</c> is for the currency string:
@@ -718,7 +718,7 @@ public static class PictureAnalyzer
     /// <summary>⛔ ONE EDITING RULE IS ONE KIND OF INSERTION (kb/Work PB3220). SR24 counts "extended editing sign
     /// control symbols" as OCCURRENCES — a FLOATING string of one character-1 is a single symbol (rule 6) and each
     /// FIXED occurrence another — so <c>PIC LL9L EDITING L FOR NEGATIVE IS "DB "</c> holds a floating string and a
-    /// fixed insertion of the SAME letter, which §13.18.40.6 allows (the extended symbol's order against another
+    /// fixed insertion of the SAME letter, which §2023:13.18.40.6 allows (the extended symbol's order against another
     /// currency-like symbol is SR25's, and the floating string stays outside Table 10), and GR14's 'es' sizes
     /// them differently: "one occurrence of literal-2 or literal-3 is counted in the size of the item plus one
     /// character for each repetition" for the floating string, "each occurrence of the character(s) specified in
@@ -759,7 +759,7 @@ public static class PictureAnalyzer
         return (new string(mask!), [.. rules, .. twins]);
     }
 
-    /// <summary>ISO §13.18.40.3 SR4 — "The maximum number of characters allowed in character-string-1 is 63." The
+    /// <summary>ISO §2023:13.18.40.3 SR4 — "The maximum number of characters allowed in character-string-1 is 63." The
     /// 2023 text's bound, in force from COBOL-2014; measured on character-string-1 AS WRITTEN (kb/Work PB532); see
     /// <see cref="Analyze"/>'s prologue.</summary>
     internal const int MaxPictureStringLength = 63;
@@ -796,7 +796,7 @@ public static class PictureAnalyzer
             : $" at COBOL-{dialectLevel} ({MaxPictureStringLength} from COBOL-{ConstructRegistry.Find(Constructs.PictureString632014)!.IntroducedIn})";
 
     /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in one elementary item. The
-    /// standard sets none: §13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only a numeric
+    /// standard sets none: §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only a numeric
     /// or fixed-point numeric-edited item's DIGIT positions (1 through 31), and Annex A.1 carries no
     /// maximum-item-size item, so an alphanumeric, alphabetic, national or boolean string is unbounded by the
     /// standard. 2^27 is the largest power of two whose UTF-16 image — two bytes per character position, for
@@ -806,7 +806,7 @@ public static class PictureAnalyzer
 
     /// <summary>
     /// Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased), VALIDATING every factor
-    /// against ISO §13.18.40.3 SR6 — "An unsigned nonzero integer that is enclosed in parentheses indicates the
+    /// against ISO §2023:13.18.40.3 SR6 — "An unsigned nonzero integer that is enclosed in parentheses indicates the
     /// number of consecutive occurrences of the symbol that immediately precedes the left parenthesis. The
     /// integer may be specified by a constant-name, in which case the length of the integer, not the length of
     /// the constant-name, is counted toward the maximum number of characters in character-string-1."
@@ -822,7 +822,7 @@ public static class PictureAnalyzer
     /// <c>ArgumentOutOfRangeException</c> and <c>PIC X(2000000000)</c> as an <c>OutOfMemoryException</c> — a
     /// compiler crash with no diagnostic and no source location, by either arm.</para>
     /// <para>A '(' can never be anything BUT a repetition factor's left parenthesis: it is not a picture symbol
-    /// (SR2), and §12.3.7.3 SR27 c) excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
+    /// (SR2), and §2023:12.3.7.3 SR27 c) excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
     /// a currency symbol either. That is what lets an unclosed or unparsable factor be reported as the SR6
     /// violation it is instead of being handed on as ordinary text.</para>
     /// </summary>
@@ -846,7 +846,7 @@ public static class PictureAnalyzer
                 {
                     edition.Error(DiagnosticCatalog.PictureRepetitionFactor, $"{where}: the repetition factor "
                         + $"'({factor}{(close > 0 ? ")" : "")}' after the symbol '{c}' in PICTURE {picture} is not "
-                        + "an unsigned nonzero integer (ISO §13.18.40.3 SR6)");
+                        + "an unsigned nonzero integer (ISO §2023:13.18.40.3 SR6)");
                     return false;
                 }
                 if ((long)sb.Length + n > MaxCharacterPositions)
@@ -888,11 +888,11 @@ public static class PictureAnalyzer
         return true;
     }
 
-    /// <summary>⛔ THE ONE "one instance of the picture symbol" PREDICATE (kb/Work PB1210) — asked by §13.18.2.3 SR1
-    /// (ANY LENGTH: "shall be one instance of the picture symbol 'N', 'X', or '1'") and §13.18.19.3 SR1 (DYNAMIC
+    /// <summary>⛔ THE ONE "one instance of the picture symbol" PREDICATE (kb/Work PB1210) — asked by §2023:13.18.2.3 SR1
+    /// (ANY LENGTH: "shall be one instance of the picture symbol 'N', 'X', or '1'") and §2023:13.18.19.3 SR1 (DYNAMIC
     /// LENGTH: 'N' or 'X'); the symbol set is the caller's, the COUNT rule is here. A character-string is one
     /// instance when it is a single symbol of <paramref name="symbols"/>, bare or followed by a repetition factor
-    /// whose value is 1 — SR6 of §13.18.40.3: the parenthesized integer "indicates the number of consecutive
+    /// whose value is 1 — SR6 of §2023:13.18.40.3: the parenthesized integer "indicates the number of consecutive
     /// occurrences of the symbol", so <c>X</c>, <c>X(1)</c>, <c>X(01)</c> and <c>N(001)</c> all denote one. The
     /// factor is read by <see cref="TryRepetitionFactor"/>, the ONE reader of a factor, so a constant-name factor
     /// (rewritten to its integer by <c>ConstantEntryBinder.ExpandPicConstants</c> before any caller asks) is covered too.
@@ -914,13 +914,13 @@ public static class PictureAnalyzer
         => edition.Error(DiagnosticCatalog.PictureItemTooLarge, $"{where}: PICTURE {picture} describes "
             + $"{(positions > MaxCharacterPositions ? "more than " : "")}{Math.Min(positions, (long)MaxCharacterPositions)} "
             + $"character positions — WiseOwl COBOL's maximum for one elementary item is {MaxCharacterPositions} "
-            + "(⚠ implementor-defined: ISO §13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
+            + "(⚠ implementor-defined: ISO §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
             + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item)");
 
-    /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the render
+    /// <summary>Validate the PICTURE EDITING phrases (ISO §2023:13.18.40.3 SR8–SR12; COBOL-2023) and build the render
     /// rules. Emits the SR diagnostics (COBOL1591–1596, COBOL1955). Every legal shape produces a rule: a
     /// literal of any width (SR9 allows 50 characters) and a floating character-1 (the same character-1 appearing
-    /// ≥2 times under a FOR phrase, §13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
+    /// ≥2 times under a FOR phrase, §2023:13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
     /// materialization, not staged (kb/Work PB491). <paramref name="char1Set"/> (uppercased) collects every
     /// accepted character-1 so the SR2 whitelist admits them; <paramref name="char1Extended"/> is the subset
     /// declared with the FOR phrase, which SR12 makes EXTENDED editing sign control symbols and rule 6 therefore
@@ -940,10 +940,10 @@ public static class PictureAnalyzer
         char1Declared = [];
         if (editing is null || editing.Count == 0) return null;
 
-        // ── ISO §13.18.40.3 SR9, first sentence — the LITERAL CLASS the phrase's literals shall be written in.
+        // ── ISO §2023:13.18.40.3 SR9, first sentence — the LITERAL CLASS the phrase's literals shall be written in.
         // Both halves bind: a national subject takes national literals, any other subject takes alphanumeric
         // ones. The subject is national when the entry says USAGE IS NATIONAL or the character-string holds an
-        // 'N' — which is also exactly the pair of ways §13.18.40.4 GR9/GR10 make a category-national item, so the
+        // 'N' — which is also exactly the pair of ways §2023:13.18.40.4 GR9/GR10 make a category-national item, so the
         // condition needs no category and can be asked here, before the category is decided.
         bool nationalSubject = usage is Usage.National || expanded.Contains('N');
 
@@ -968,29 +968,29 @@ public static class PictureAnalyzer
 
         foreach (var ph in editing)
         {
-            // character-1 (§13.18.40.3 SR8): a single basic letter, not a CURRENCY-SIGN letter and not one of
-            // A B C D E N P R S V X Z. "Basic" is §8.1.3.1 Table 1's row — the Latin letters A-Z and a-z — and an
+            // character-1 (§2023:13.18.40.3 SR8): a single basic letter, not a CURRENCY-SIGN letter and not one of
+            // A B C D E N P R S V X Z. "Basic" is §2023:8.1.3.1 Table 1's row — the Latin letters A-Z and a-z — and an
             // extended letter (Annex B) is a DIFFERENT row, so the question is CobolCharacterRepertoire.IsBasicLetter,
             // never char.IsLetter, which admits every Unicode letter (kb/Work PB533).
             string c1 = ph.Char1Text ?? "";
             if (c1.Length != 1 || !CobolCharacterRepertoire.IsBasicLetter(c1[0]))
             {
                 edition.Error(DiagnosticCatalog.PictureEditingCharacterInvalid, $"{where}: PICTURE EDITING character-1 must be a single basic letter "
-                    + $"(A-Z or a-z; an extended letter is not one — ISO §13.18.40.3 SR8; ISO §8.1.3.1 Table 1; got \"{c1}\")");
+                    + $"(A-Z or a-z; an extended letter is not one — ISO §2023:13.18.40.3 SR8; ISO §2023:8.1.3.1 Table 1; got \"{c1}\")");
                 error = true; continue;
             }
             char char1 = char.ToUpperInvariant(c1[0]);
             if (char1 == cs || "ABCDENPRSVXZ".IndexOf(char1) >= 0)
             {
                 edition.Error(DiagnosticCatalog.PictureEditingCharacterInvalid, $"{where}: PICTURE EDITING character-1 '{c1}' must be a basic letter "
-                    + "other than A B C D E N P R S V X Z or a CURRENCY-SIGN letter (ISO §13.18.40.3 SR8)");
+                    + "other than A B C D E N P R S V X Z or a CURRENCY-SIGN letter (ISO §2023:13.18.40.3 SR8)");
                 error = true; continue;
             }
             // SR11: distinct character-1 across phrases.
             if (!char1Set.Add(char1))
             {
                 edition.Error(DiagnosticCatalog.PictureEditingCharacterRepeated, $"{where}: PICTURE EDITING character-1 '{c1}' is specified in more than "
-                    + "one EDITING phrase (ISO §13.18.40.3 SR11 — each character-1 shall be distinct)");
+                    + "one EDITING phrase (ISO §2023:13.18.40.3 SR11 — each character-1 shall be distinct)");
                 error = true; continue;
             }
             // SR10: character-1 shall appear at least once in the character-string.
@@ -1000,7 +1000,7 @@ public static class PictureAnalyzer
             if (occ == 0)
             {
                 edition.Error(DiagnosticCatalog.PictureEditingCharacterAbsent, $"{where}: PICTURE EDITING character-1 '{c1}' does not appear in the "
-                    + "PICTURE character-string (ISO §13.18.40.3 SR10)");
+                    + "PICTURE character-string (ISO §2023:13.18.40.3 SR10)");
                 error = true; continue;
             }
             // SR9, second sentence: "The total number of characters in literal-1, literal-2, or literal-3 shall
@@ -1010,7 +1010,7 @@ public static class PictureAnalyzer
             // halves were unenforced while national-edited could not be defined at all (kb/Work PB492): the
             // decoded literal reached here as a bare string with its class discarded, so `PIC NNTNN EDITING "T"
             // IS ":"` and `PIC XXTXX EDITING "T" IS N":"` each bound silently.
-            // A figurative operand takes the subject's class here (§8.3.3.6.4 GR1), before either sentence is asked.
+            // A figurative operand takes the subject's class here (§2023:8.3.3.6.4 GR1), before either sentence is asked.
             EditLiteral? simpleLit = ph.Simple?.InContext(nationalSubject);
             EditLiteral? negLitSpec = ph.Neg?.InContext(nationalSubject);
             EditLiteral? posLitSpec = ph.Pos?.InContext(nationalSubject);
@@ -1022,14 +1022,14 @@ public static class PictureAnalyzer
                     edition.Error(DiagnosticCatalog.PictureEditingLiteralClass, $"{where}: the PICTURE EDITING "
                         + $"{name} '{l.Text}' is not an alphanumeric or a national literal — "
                         + $"{(nationalSubject ? "USAGE IS NATIONAL is specified or character-string-1 contains the symbol 'N', so literal-1, literal-2 and literal-3 shall be national literals" : "literal-1, literal-2 and literal-3 shall be alphanumeric literals")} "
-                        + "(ISO §13.18.40.3 SR9)");
+                        + "(ISO §2023:13.18.40.3 SR9)");
                     error = true;
                     continue;
                 }
                 if (l.Text.Length > 50)
                 {
                     edition.Error(DiagnosticCatalog.PictureEditingLiteralTooLong, $"{where}: a PICTURE EDITING literal exceeds 50 characters "
-                        + "(ISO §13.18.40.3 SR9)");
+                        + "(ISO §2023:13.18.40.3 SR9)");
                     error = true;
                 }
                 bool national = l.Class is EditLiteralClass.National;
@@ -1039,7 +1039,7 @@ public static class PictureAnalyzer
                         + $"{name} is {(national ? "a national literal (N\"…\")" : "an alphanumeric literal")} but the "
                         + $"subject of the entry is {(nationalSubject ? "national" : "not national")} — "
                         + $"{(nationalSubject ? "USAGE IS NATIONAL is specified or character-string-1 contains the symbol 'N', so literal-1, literal-2 and literal-3 shall be national literals" : "literal-1, literal-2 and literal-3 shall be alphanumeric literals")} "
-                        + "(ISO §13.18.40.3 SR9)");
+                        + "(ISO §2023:13.18.40.3 SR9)");
                     error = true;
                 }
             }
@@ -1061,14 +1061,14 @@ public static class PictureAnalyzer
                     if (allChar1.Contains(mu) || mu is '9' or 'P' or 'V' or 'Z' || mu == pointSymbol || mu == cs) continue;
                     edition.Error(DiagnosticCatalog.PictureEditingForSymbols, $"{where}: with a FOR (extended editing sign control) EDITING "
                         + $"phrase the PICTURE character-string may contain only character-1 and 9 {pointSymbol} {cs} P V Z "
-                        + $"(ISO §13.18.40.3 SR12b{(decimalPointIsComma ? "; SR13 — DECIMAL-POINT IS COMMA makes the comma the decimal point" : "")}; found '{mc}')");
+                        + $"(ISO §2023:13.18.40.3 SR12b{(decimalPointIsComma ? "; SR13 — DECIMAL-POINT IS COMMA makes the comma the decimal point" : "")}; found '{mc}')");
                     error = true; break;
                 }
                 // SR12a: the NEGATIVE and POSITIVE literals (when both present) occupy the same number of positions.
                 if (negLitSpec is { } n2 && posLitSpec is { } p3 && n2.Text.Length != p3.Text.Length)
                 {
                     edition.Error(DiagnosticCatalog.PictureEditingSignLiteralsDiffer, $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
-                        + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
+                        + "phrase shall occupy the same number of character positions (ISO §2023:13.18.40.3 SR12a)");
                     error = true; continue;
                 }
                 // SR12c: "If only POSITIVE is specified, the default character for the unspecified phrase is the
@@ -1086,14 +1086,14 @@ public static class PictureAnalyzer
                 // WHOLE character-string and the full set of character-1 (an IS-form letter embedded in the string is
                 // part of it), so the flag is decided AFTER this loop, by the one floating-string detector
                 // (PictureComposition.HasFloatingString). A literal wider than one character is no longer a GAP
-                // either: §13.18.40.4 GR14's 'es' entry gives the item the literal's width and CobolEdit
+                // either: §2023:13.18.40.4 GR14's 'es' entry gives the item the literal's width and CobolEdit
                 // materializes it (kb/Work PB491; Annex D.24 demonstrates both shapes, so both were legal source
                 // the compiler refused).
                 rules.Add(new CobolEdit.EditRule(char1, negLit, posLit, SimpleInsertion: false, Floating: false));
             }
             else
             {
-                // IS (simple insertion) form — sign-independent (ISO §13.18.40.5 editing rule 3): character-1
+                // IS (simple insertion) form — sign-independent (ISO §2023:13.18.40.5 editing rule 3): character-1
                 // inserts literal-1 at every occurrence, immune to sign, at literal-1's own width (GR14 'es').
                 string lit = simpleLit?.Text ?? "";
                 // IS = SIMPLE insertion (rule 3), so this character-1 joins any zero-suppression or floating
@@ -1111,7 +1111,7 @@ public static class PictureAnalyzer
                         decimalPointIsComma, rules[k].Char1),
                 };
 
-        // ── SR25's SECOND sentence over the EXTENDED editing sign control symbols as a SET (ISO §13.18.40.3). It is
+        // ── SR25's SECOND sentence over the EXTENDED editing sign control symbols as a SET (ISO §2023:13.18.40.3). It is
         // not askable inside the phrase loop: it is stated over the WHOLE phrase list. (SR24's second sentence, the
         // bound of one or two symbols, is asked over the PICTURE by PictureComposition.Validate: a count of EDITING
         // phrases misses a repeated fixed occurrence, kb/Work PB855.)
@@ -1120,7 +1120,7 @@ public static class PictureAnalyzer
         // be for the rightmost symbol in character-string-1."
         // ⛔ DETERMINATION (kb/Work PB855, replacing PB530's): the sentence is read AS WRITTEN — the first phrase's
         // character-1 IS character-string-1's leftmost symbol and the second's IS its rightmost. PB530 read "the
-        // leftmost symbol" as the leftmost OF THE TWO and constrained only the phrase ORDER, because §13.18.40.6's
+        // leftmost symbol" as the leftmost OF THE TWO and constrained only the phrase ORDER, because §2023:13.18.40.6's
         // sentence giving 'es' the precedence of 'cs' "cannot be applied literally": Table 10's blank
         // leading-currency-before-trailing-currency cell would refuse Annex D.24's `PIC IS L9999.99F`. That premise
         // is true of the cell and false of the reading — PictureComposition.Precedence applies the sentence to
@@ -1134,7 +1134,7 @@ public static class PictureAnalyzer
                 + "control symbols the FIRST EDITING phrase shall be for the LEFTMOST symbol of character-string-1 "
                 + $"and the SECOND for the RIGHTMOST, but the first phrase is for '{extended[0]}' and the "
                 + $"second for '{extended[1]}', while the string begins with '{expanded[0]}' and ends with "
-                + $"'{expanded[^1]}' (ISO §13.18.40.3 SR25)");
+                + $"'{expanded[^1]}' (ISO §2023:13.18.40.3 SR25)");
             error = true;
         }
 
@@ -1148,7 +1148,7 @@ public static class PictureAnalyzer
 
     /// <summary>
     /// Map a COBOL usage keyword (e.g. <c>COMP-3</c>) to a <see cref="Usage"/>. EVERY grammar-accepted keyword
-    /// (the ISO §13.18.60 inventory in <c>CobolData.g4 usageClause/usageKeyword</c>) is recognized EXPLICITLY —
+    /// (the ISO §2023:13.18.60 inventory in <c>CobolData.g4 usageClause/usageKeyword</c>) is recognized EXPLICITLY —
     /// the historical silent catch-all mapped the whole 2002 inventory (NATIONAL, BIT, POINTER, OBJECT
     /// REFERENCE, the FLOAT-x and BINARY-x families) to <see cref="Usage.Display"/>, a wrong-answer misbind (the
     /// W2 loud-guard sweep). An unrecognized keyword is a LOUD internal error — never Display. (The former
@@ -1158,7 +1158,7 @@ public static class PictureAnalyzer
     public static Usage ParseUsage(string? keyword, EditionContext edition, string where)
     {
         // ⛔ THE ONE PLACE A USAGE SPELLING IS RECOGNIZED, so it is also the one place a NONSTANDARD one is named
-        // (ISO §4.2.10; kb/Work PB1525): COMP-1 … COMP-5 and their COMPUTATIONAL-n long spellings are vendor
+        // (ISO §2023:4.2.10; kb/Work PB1525): COMP-1 … COMP-5 and their COMPUTATIONAL-n long spellings are vendor
         // spellings of usages ISO defines under other words (FLOAT-SHORT, FLOAT-LONG, PACKED-DECIMAL, BINARY, …).
         // The register row carries the spellings, so a new vendor usage word is flagged by adding it to its row.
         if (keyword is not null && NonstandardExtensionRegister.ForUsageSpelling(keyword) is { } extension)
@@ -1176,7 +1176,7 @@ public static class PictureAnalyzer
             // below 2002; the registry rows are silent at 2002+), the POINTER/BINARY-CHAR pattern. Picture
             // conformance (SR5/SR12/SR13/SR20) is Analyze's job; a picture-LESS elementary entry is caught at
             // the group-fixup pass (DataBinder.UsageInheritanceWalk — a group header legally sheds the usage to
-            // its subordinates per §13.18.60.4 GR1).
+            // its subordinates per §2023:13.18.60.4 GR1).
             case "NATIONAL":
                 return Usage.National;
             case "BIT":
@@ -1199,20 +1199,20 @@ public static class PictureAnalyzer
             // specified" AND a COBOL0844 calling the item "of category alphanumeric" on top of the stage.
             case "FUNCTION-POINTER":
                 return Usage.FunctionPointer;
-            // USAGE MESSAGE-TAG (§13.18.60.4 GR9; kb/Work PB4740) — the data half of the asynchronous messaging
-            // facility (Annex A.3 item 4). It exists from 2023 only (§8.9 reserves the word then; Annex E.2 item
+            // USAGE MESSAGE-TAG (§2023:13.18.60.4 GR9; kb/Work PB4740) — the data half of the asynchronous messaging
+            // facility (Annex A.3 item 4). It exists from 2023 only (§2023:8.9 reserves the word then; Annex E.2 item
             // 25); below that the VersionConformancePass answers with COBOL0900 (usage-message-tag-2023). The
             // caller binds PicInfo.MessageTagItem, the message-tag carrier.
             case "MESSAGE-TAG":
                 return Usage.MessageTag;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
-            // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).
+            // declared class name (PICTURE-less per §2023:13.18.60.4, the IndexItem pattern).
             case "OBJECT REFERENCE":
                 return Usage.ObjectReference;
             // The fixed-width binary usages — LIVE (Phase 4 M2-DATA-1): only the introduction gate remains
             // (0900 below 2002; the registry row is silent at 2002+, like POINTER / OBJECT REFERENCE). The
-            // caller synthesizes PicInfo.BinaryItem (PICTURE-less per §13.16.3 SR8; the IndexItem pattern).
+            // caller synthesizes PicInfo.BinaryItem (PICTURE-less per §2023:13.16.3 SR8; the IndexItem pattern).
             case "BINARY-CHAR":
                 return Usage.BinaryChar;
             case "BINARY-SHORT":
@@ -1221,7 +1221,7 @@ public static class PictureAnalyzer
                 return Usage.BinaryLong;
             case "BINARY-DOUBLE":
                 return Usage.BinaryDouble;
-            case "FLOAT-SHORT":   // the implementor-defined float trio (§13.18.60.4 GR13) — LIVE (Phase 6a, D16)
+            case "FLOAT-SHORT":   // the implementor-defined float trio (§2023:13.18.60.4 GR13) — LIVE (Phase 6a, D16)
                 return Usage.FloatShort;
             case "FLOAT-LONG":
                 return Usage.FloatLong;
@@ -1241,26 +1241,26 @@ public static class PictureAnalyzer
             // representation). The member flows through so the 2014 introduction gate still fires below 2014.
             case "FLOAT-BINARY-128":
                 edition.Error(DiagnosticCatalog.FloatUsageUnsupported, $"{where}: USAGE FLOAT-BINARY-128 (ISO/IEC 60559:2020 binary128, "
-                    + "ISO §13.18.60.4 GR16) is a processor-dependent language element not supported by WiseOwl COBOL "
+                    + "ISO §2023:13.18.60.4 GR16) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 17): .NET provides no IEEE 754 binary128 type, and GR16 pins the format so a "
                     + "double-backed approximation would be non-conforming");
                 return Usage.FloatBinary128;
             case "FLOAT-DECIMAL-16":
                 edition.Error(DiagnosticCatalog.FloatUsageUnsupported, $"{where}: USAGE FLOAT-DECIMAL-16 (ISO/IEC 60559:2020 decimal64, "
-                    + "ISO §13.18.60.4 GR17) is a processor-dependent language element not supported by WiseOwl COBOL "
+                    + "ISO §2023:13.18.60.4 GR17) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal64 type (System.Decimal is a different "
                     + "format)");
                 return Usage.FloatDecimal16;
             case "FLOAT-DECIMAL-34":
                 edition.Error(DiagnosticCatalog.FloatUsageUnsupported, $"{where}: USAGE FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 decimal128, "
-                    + "ISO §13.18.60.4 GR18) is a processor-dependent language element not supported by WiseOwl COBOL "
+                    + "ISO §2023:13.18.60.4 GR18) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal128 type");
                 return Usage.FloatDecimal34;
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
                 // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.
                 edition.Error(DiagnosticCatalog.UsageKeywordUnmappedInternal,
-                    $"internal: unrecognized USAGE keyword '{other}' — {where} (ISO §13.18.60; every "
+                    $"internal: unrecognized USAGE keyword '{other}' — {where} (ISO §2023:13.18.60; every "
                     + "grammar-accepted usage keyword must have an explicit ParseUsage mapping)");
                 return Usage.Display;
         }
@@ -1273,8 +1273,8 @@ public static class PictureAnalyzer
     /// post-bind <c>VersionConformancePass</c> GateData enumerator over <c>PicInfo.SkeletonGate</c> (Step 14g.5 — the
     /// category is recovered to Alphanumeric, erasing the parse identity, so the flag carries the gate forward). Either
     /// way the compile FAILS below its edition (the 0900) or above (the 0899) — never a silent misbind.</summary>
-    /// <summary>The floating-point numeric-edited PICTURE (ISO §13.18.40.4 GR13 b; data-model design D21 / kb/Work PB66):
-    /// <c>significand E exponent</c>. Validated per string (§13.18.40.6 — Table 10 applies to the two strings
+    /// <summary>The floating-point numeric-edited PICTURE (ISO §2023:13.18.40.4 GR13 b; data-model design D21 / kb/Work PB66):
+    /// <c>significand E exponent</c>. Validated per string (§2023:13.18.40.6 — Table 10 applies to the two strings
     /// separately): the exponent is exactly <c>+9</c>…<c>+9999</c>; the significand an optional leading fixed
     /// sign (SR23 + NOTE 3 sanction the significand's <c>−</c> beside the exponent's <c>+</c>) and then only the
     /// symbols Table 10 row E admits before E — <c>9 B 0 /</c>, the grouping separator and the decimal point (<c>, .</c>, or
@@ -1297,32 +1297,32 @@ public static class PictureAnalyzer
         void Bad(string why) => edition.Error(DiagnosticCatalog.PictureFloatEdited,
             $"invalid floating-point numeric-edited PICTURE {picture} — {where}: {why}");
         int eCount = expanded.Count(c => c == 'E');
-        if (eCount > 1) { Bad("the symbol E may appear only once (ISO §13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
-        // ⛔ §13.18.40.3 SR12 bars only the FOR form here: "Extended editing sign control symbols shall not be
+        if (eCount > 1) { Bad("the symbol E may appear only once (ISO §2023:13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
+        // ⛔ §2023:13.18.40.3 SR12 bars only the FOR form here: "Extended editing sign control symbols shall not be
         // specified for a floating-point edited item" is a rule of SR12's FOR-phrase list (printed as that list's
         // SECOND 'a)', after 'c)' — the standard's own lettering, p.442; kb/Work PB866). An IS-form character-1 is
-        // a SIMPLE INSERTION symbol (§13.18.40.5 rule 3), and Table 7 gives this category "Simple insertion, special
+        // a SIMPLE INSERTION symbol (§2023:13.18.40.5 rule 3), and Table 7 gives this category "Simple insertion, special
         // insertion, and fixed insertion for the significand part" — so it is admitted in the significand below.
         if (char1Extended.Count > 0)
         {
             Bad($"EDITING {char1Extended.First()} FOR … makes character-1 an extended editing sign control symbol, and "
                 + "extended editing sign control symbols shall not be specified for a floating-point edited item (ISO "
-                + "§13.18.40.3 SR12, the FOR-phrase rules; an IS-form EDITING phrase is permitted)");
+                + "§2023:13.18.40.3 SR12, the FOR-phrase rules; an IS-form EDITING phrase is permitted)");
             return PicInfo.Recovery(expanded.Length);
         }
         bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
-        // the exponent: '+' then 1..4 '9's, nothing else (§13.18.40.4 GR13 b)
+        // the exponent: '+' then 1..4 '9's, nothing else (§2023:13.18.40.4 GR13 b)
         if (exp.Any(IsChar1))
         {
             Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
-                + "editing (ISO §13.18.40.5 Table 7: \"None for the exponent part\")");
+                + "editing (ISO §2023:13.18.40.5 Table 7: \"None for the exponent part\")");
             return PicInfo.Recovery(expanded.Length);
         }
         if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
         {
-            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §13.18.40.4 GR13 b)");
+            Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §2023:13.18.40.4 GR13 b)");
             return PicInfo.Recovery(expanded.Length);
         }
         // the significand: an optional leading fixed sign, then Table 10 row E's symbols only
@@ -1338,32 +1338,32 @@ public static class PictureAnalyzer
                 case var p when p == point: points++; break;
                 case 'B': case '0': case '/': break;
                 case var g when g == grouping: break;   // simple insertion (rule 3): the comma, or the period under DECIMAL-POINT IS COMMA
-                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§13.18.40.5 rule 3)
+                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§2023:13.18.40.5 rule 3)
                 case '+': case '-':
-                    Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §13.18.40.6 Table 10 row E; SR25 applies per string)");
+                    Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §2023:13.18.40.6 Table 10 row E; SR25 applies per string)");
                     return PicInfo.Recovery(expanded.Length);
                 case 'Z': case '*':
-                    Bad($"the symbol '{c}' — zero suppression with replacement shall not be specified for the significand (ISO §13.18.40.4 GR13 b)");
+                    Bad($"the symbol '{c}' — zero suppression with replacement shall not be specified for the significand (ISO §2023:13.18.40.4 GR13 b)");
                     return PicInfo.Recovery(expanded.Length);
                 case 'V': case 'P': case 'S':
-                    Bad($"the symbol '{c}' may not appear in the significand — its point is the real '{point}' (ISO §13.18.40.6 Table 10 row E; SR17/SR18/SR20)");
+                    Bad($"the symbol '{c}' may not appear in the significand — its point is the real '{point}' (ISO §2023:13.18.40.6 Table 10 row E; SR17/SR18/SR20)");
                     return PicInfo.Recovery(expanded.Length);
                 case 'C': case 'D':
-                    Bad("CR / DB may not appear in the significand of a floating-point edited item (ISO §13.18.40.6 Table 10 row E; SR23)");
+                    Bad("CR / DB may not appear in the significand of a floating-point edited item (ISO §2023:13.18.40.6 Table 10 row E; SR23)");
                     return PicInfo.Recovery(expanded.Length);
                 default:
-                    Bad($"the symbol '{c}' may not appear in the significand — a currency symbol or floating insertion is not permitted (ISO §13.18.40.4 GR13 b; §13.18.40.6 Table 10 row E)");
+                    Bad($"the symbol '{c}' may not appear in the significand — a currency symbol or floating insertion is not permitted (ISO §2023:13.18.40.4 GR13 b; §2023:13.18.40.6 Table 10 row E)");
                     return PicInfo.Recovery(expanded.Length);
             }
         }
         if (points > 1)
         {
-            Bad($"the decimal point '{point}' may appear only once (ISO §13.18.40.3 SR12 b"
+            Bad($"the decimal point '{point}' may appear only once (ISO §2023:13.18.40.3 SR12 b"
                 + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
             return PicInfo.Recovery(expanded.Length);
         }
-        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
-        // ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
+        if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §2023:13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
+        // ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
         // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
         // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.
         usage = ScreenUsageAgainstPicture(PicCategory.NumericEdited, usage, explicitUsage, picture, edition, where);
@@ -1376,17 +1376,17 @@ public static class PictureAnalyzer
         { EditMask = expanded, EditingRules = editRules, DigitPositions = 0, IsFloatEdited = true };
     }
 
-    /// <summary>The format-2 (LOCALE) PICTURE analysis (ISO §13.18.40.3 SR33–SR36 + §13.18.40.6 Table 11;
-    /// kb/Work PB64 T6). The symbol alphabet is EXACTLY <c>{ '+', cs, 'Z', '9', '.' }</c> (§13.18.40.4 GR18
+    /// <summary>The format-2 (LOCALE) PICTURE analysis (ISO §2023:13.18.40.3 SR33–SR36 + §2023:13.18.40.6 Table 11;
+    /// kb/Work PB64 T6). The symbol alphabet is EXACTLY <c>{ '+', cs, 'Z', '9', '.' }</c> (§2023:13.18.40.4 GR18
     /// defines meanings for exactly those five) and Table 11's non-adjacent precedence closes to the shape
     /// <c>[+] [cs] Z{a} 9{b} [ '.' Z{c} 9{d} ]</c> with fraction Z's only when no 9 precedes (row Z's 9 column is
     /// BLANK: no '9' may precede ANY 'Z', so all Z's form one leading run over the digit sequence). ⛔ DECIMAL-POINT
-    /// IS COMMA IS INERT HERE — §12.3.7.4 GR14: "The DECIMAL-POINT IS COMMA clause has no effect on the editing or
+    /// IS COMMA IS INERT HERE — §2023:12.3.7.4 GR14: "The DECIMAL-POINT IS COMMA clause has no effect on the editing or
     /// de-editing of a data item described with the locale format of the PICTURE clause" (its NOTE 3: the character
     /// written for the decimal separator "is always the period"); SR13's swap is printed under FORMAT 1. ',' is not
     /// a format-2 symbol under any setting. ⛔ NO compile-time relation between integer-1 and the digit count is
     /// checked — the hypothetical item's width is a RUNTIME quantity (the currency string's length is the locale's,
-    /// §13.18.40.5 r9) and §13.18.40.5 r14 reconciles the two at each edit. Violations are COBOL1673 with the
+    /// §2023:13.18.40.5 r9) and §2023:13.18.40.5 r14 reconciles the two at each edit. Violations are COBOL1673 with the
     /// sub-rule named; the item recovers at the SIZE length (the compile has failed). The returned PicInfo: category
     /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
     /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>
@@ -1402,9 +1402,9 @@ public static class PictureAnalyzer
         }
         if (hasEditingPhrase)
             return Bad("an EDITING phrase is specified beside the LOCALE phrase; format 2 has no EDITING phrase "
-                + "(ISO §13.18.40.2 — the EDITING phrase belongs to format 1)");
+                + "(ISO §2023:13.18.40.2 — the EDITING phrase belongs to format 1)");
         // The SAME implementor maximum the format-1 expansion obeys, asked at the ONE place the limit lives
-        // (kb/Work PB531's sibling sweep): §13.18.40.4 GR17 — "The number of character positions in the item is
+        // (kb/Work PB531's sibling sweep): §2023:13.18.40.4 GR17 — "The number of character positions in the item is
         // specified by integer-1" — so format 2's SIZE is a character-position count exactly like format 1's
         // expansion, and `SIZE IS 2000000000` used to bind an item whose emitted initializer allocates two
         // billion characters at run time.
@@ -1425,19 +1425,19 @@ public static class PictureAnalyzer
             {
                 case '+':
                     plus++;
-                    if (i != 0) return Bad("the symbol '+' shall be the first symbol (ISO §13.18.40.6 Table 11 — no symbol may precede it)");
+                    if (i != 0) return Bad("the symbol '+' shall be the first symbol (ISO §2023:13.18.40.6 Table 11 — no symbol may precede it)");
                     break;
                 case '$':
                     csCount++;
                     if (i > (canonical[0] == '+' ? 1 : 0))
-                        return Bad("the currency symbol may follow only a leading '+' (ISO §13.18.40.6 Table 11)");
+                        return Bad("the currency symbol may follow only a leading '+' (ISO §2023:13.18.40.6 Table 11)");
                     break;
                 case '.':
                     dots++;
                     sawDot = true;
                     break;
                 case 'Z':
-                    if (!zOpen) return Bad("a 'Z' follows a '9' — no '9' may precede any 'Z', so every 'Z' precedes every '9' (ISO §13.18.40.6 Table 11, row Z)");
+                    if (!zOpen) return Bad("a 'Z' follows a '9' — no '9' may precede any 'Z', so every 'Z' precedes every '9' (ISO §2023:13.18.40.6 Table 11, row Z)");
                     zRun++;
                     if (sawDot) digitsRight++; else digitsLeft++;
                     break;
@@ -1447,20 +1447,20 @@ public static class PictureAnalyzer
                     break;
                 default:
                     return Bad($"the symbol '{c}' is not a format-2 picture symbol — character-string-1 may contain "
-                        + "only '+', the currency symbol, 'Z', '9' and '.' (ISO §13.18.40.4 GR18 defines exactly those; "
-                        + "§13.18.40.6 Table 11)");
+                        + "only '+', the currency symbol, 'Z', '9' and '.' (ISO §2023:13.18.40.4 GR18 defines exactly those; "
+                        + "§2023:13.18.40.6 Table 11)");
             }
-            // §13.18.40.3 SR36 (cs and '+' only left of the decimal point position) is subsumed by the Table 11
+            // §2023:13.18.40.3 SR36 (cs and '+' only left of the decimal point position) is subsumed by the Table 11
             // position checks above — a cs or '+' past position 0/1 is rejected there, dot or no dot.
         }
         if (plus > 1 || dots > 1 || csCount > 1)
-            return Bad("each of the symbols '+', '.', the currency symbol may appear only once in character-string-1 (ISO §13.18.40.3 SR34)");
+            return Bad("each of the symbols '+', '.', the currency symbol may appear only once in character-string-1 (ISO §2023:13.18.40.3 SR34)");
         int digits = digitsLeft + digitsRight;
         if (digits == 0)
-            return Bad("character-string-1 shall contain at least one of the symbols 'Z' or '9' (ISO §13.18.40.3 SR33)");
+            return Bad("character-string-1 shall contain at least one of the symbols 'Z' or '9' (ISO §2023:13.18.40.3 SR33)");
         if (digits > 31)
-            return Bad($"character-string-1 describes {digits} digit positions — the number shall range from 1 through 31 (ISO §13.18.40.3 SR35)");
-        // ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646) — §13.18.40.4
+            return Bad($"character-string-1 describes {digits} digit positions — the number shall range from 1 through 31 (ISO §2023:13.18.40.3 SR35)");
+        // ⛔ THE §2023:13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646) — §2023:13.18.40.4
         // GR1 admits USAGE NATIONAL for format 2 (each position a national character position) and SR12 admits a
         // numeric-edited picture, so there is ONE national posture, never a locale-specific fork. This arm too
         // used to carry only a hand-written SR12 staging, leaving SR3 unasked of a format-2 picture.

@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.17.2 prints "FUNCTION COMBINED-DATETIME ( argument-1 argument-2 )". The parenthesised part is
+      *> ISO §2023:15.17.2 prints "FUNCTION COMBINED-DATETIME ( argument-1 argument-2 )". The parenthesised part is
       *> NOT bracketed and carries no ellipsis, so the format states exactly two arguments and neither is
-      *> optional — §15.17.3 then gives each its own rule (r1 integer date form, r2 standard numeric time form),
+      *> optional — §2023:15.17.3 then gives each its own rule (r1 integer date form, r2 standard numeric time form),
       *> which a one-argument reference leaves with no argument-2 to govern. A reference that supplies one
       *> argument does not match the general format and shall be rejected.
        IDENTIFICATION DIVISION.

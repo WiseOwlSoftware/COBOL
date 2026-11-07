@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The emitter declares its own members in the <c>__</c> space (<c>__N</c> the paragraph count, <c>__pc</c>,
 /// <c>__V</c>, <c>__NEW</c>, …). A method formal's parameter was once <c>"__" + WORD</c> — an EMPTY tag — so a
 /// LINKAGE formal named N became <c>__N</c> and shadowed the paragraph-count constant (Roslyn CS1628 on a legal
-/// method). A user word never sanitizes to a leading <c>__</c> (§8.3.2.1: a hyphen or underscore is never the
+/// method). A user word never sanitizes to a leading <c>__</c> (§2023:8.3.2.1: a hyphen or underscore is never the
 /// first character), so a TAGGED family can only meet another <c>__</c> name that starts with its tag; this class
 /// proves no fixed name does, that the families are mutually prefix-free, and that no site outside the naming
 /// authority re-derives a <c>__</c> name from a word.

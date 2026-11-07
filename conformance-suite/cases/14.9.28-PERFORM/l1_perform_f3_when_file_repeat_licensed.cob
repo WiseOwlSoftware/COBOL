@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR14 — "If file-name-1 or file-name-2 is
+      *> ISO §2023:14.9.28.3 SR14 — "If file-name-1 or file-name-2 is
       *> specified in a WHEN phrase, it shall not be specified more
       *> than once in any of the WHEN phrases within the scope of a
       *> format 3 PERFORM statement UNLESS all such instances are
@@ -27,8 +27,8 @@
       *> raised by imperative-statement-1, so the program's output does
       *> not depend on any file ever being opened: F1 is SELECTed and
       *> never touched, which is what keeps the run deterministic.
-      *> §14.6.13.1.1 makes every user-defined exception nonfatal, so
-      *> §14.9.28.4 GR20 returns execution to the end of the PERFORM
+      *> §2023:14.6.13.1.1 makes every user-defined exception nonfatal, so
+      *> §2023:14.9.28.4 GR20 returns execution to the end of the PERFORM
       *> and SR14-AFTER is reached.
       *>
       *> EDITION: the exception-checking PERFORM is new in COBOL-2023

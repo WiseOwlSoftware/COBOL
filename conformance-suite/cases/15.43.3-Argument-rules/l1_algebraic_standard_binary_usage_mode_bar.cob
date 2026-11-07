@@ -5,34 +5,34 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.43.3 r2 — the ADMIT arm of HIGHEST-ALGEBRAIC's standard-binary usage bar.
+      *> ISO §2023:15.43.3 r2 — the ADMIT arm of HIGHEST-ALGEBRAIC's standard-binary usage bar.
       *> "If standard-decimal arithmetic is in effect, argument-1 shall not be a data item whose data
       *> description entry specifies a standard binary floating-point usage."
       *> (cite.py --check 15.43.3 "If standard-decimal arithmetic is in effect, argument-1 shall not be a
       *> data item whose data description entry specifies a standard binary floating-point usage" -> OK,
-      *> §15.43.3 rule 2.)
+      *> §2023:15.43.3 rule 2.)
       *>
       *> ⛔ THE RULE IS CONDITIONAL ON THE ARITHMETIC MODE, AND THIS IS THE ARM THAT PROVES IT. NATIVE
-      *> arithmetic is in effect here — there is no ARITHMETIC clause, and §11.9.5.2 GR4 says "If the
+      *> arithmetic is in effect here — there is no ARITHMETIC clause, and §2023:11.9.5.2 GR4 says "If the
       *> ARITHMETIC clause is not specified in this source element or a containing source element, it is as
       *> if the ARITHMETIC clause were specified with the NATIVE phrase" — so r2's antecedent is FALSE and a
-      *> standard binary floating-point usage is a perfectly legal argument-1. §3.166 names that family
+      *> standard binary floating-point usage is a perfectly legal argument-1. §2023:3.166 names that family
       *> ("usages float-binary-32, float-binary-64, and float-binary-128"), i.e. exactly the USAGE
       *> FLOAT-BINARY-32 / -64 items below (FLOAT-BINARY-128 is Annex A.3 item 17 documented non-support:
       *> .NET has no IEEE 754 binary128 type, so it cannot appear in a corpus program).
       *>
       *> WHY THE ADMIT ARM NEEDS ITS OWN FIXTURE. The guard this row is about was once a BLANKET refusal of
       *> every float for all three algebraic functions, and its own diagnostic asserted that COMP-1/COMP-2
-      *> are "barred by rule 2 under STANDARD-DECIMAL" — false twice over, since neither is a §3.166 usage
+      *> are "barred by rule 2 under STANDARD-DECIMAL" — false twice over, since neither is a §2023:3.166 usage
       *> and the mode was never consulted. A screen that rejected here would be indistinguishable, from the
       *> reject fixture alone, from one that reads the mode correctly. The pair is the measurement:
       *> conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-standard-binary-usage writes the SAME USAGE under
       *> ARITHMETIC IS STANDARD-DECIMAL and requires COBOL1516; this program writes it under native and
       *> requires a value. conformance:cases/15.43.3-Argument-rules/pb122_smallest_algebraic_float holds the third cell of the same
-      *> table — a NON-§3.166 float (COMP-1 / COMP-2) under STANDARD-DECIMAL, which r2 also admits.
+      *> table — a NON-§2023:3.166 float (COMP-1 / COMP-2) under STANDARD-DECIMAL, which r2 also admits.
       *>
-      *> The bounds are derived from §15.43.4 r2 ("The value returned is equal to the positive algebraic
-      *> value of greatest finite magnitude that may be represented in argument-1") with §13.18.60.4 GR14
+      *> The bounds are derived from §2023:15.43.4 r2 ("The value returned is equal to the positive algebraic
+      *> value of greatest finite magnitude that may be represented in argument-1") with §2023:13.18.60.4 GR14
       *> and GR15 pinning the two usages: GR14 makes FLOAT-BINARY-32 "a floating-point data item in 32-bit
       *> basic binary interchange format (binary32) as specified in ISO/IEC 60559:2020, 3.4" and GR15 says
       *> the same of FLOAT-BINARY-64 and binary64 — these are the usages the STANDARD pins, unlike
@@ -46,7 +46,7 @@
       *>   N64  binary64's is 1.7976931348623157E+308. The upper bound is stated on a DIVIDED value
       *>        (x / 1.0E+300 < 1.7976932E+8) because writing 1.7976932E+308 as a literal names a number
       *>        binary64 cannot hold — a property of the probe, not of the answer.
-      *>   L32  §15.58.4 r2 — "The value returned is equal to the lowest finite algebraic value that may be
+      *>   L32  §2023:15.58.4 r2 — "The value returned is equal to the lowest finite algebraic value that may be
       *>        represented in argument-1" — which for a signed binary format is the negation. The sibling is
       *>        here because all three functions share ONE mode-aware path, so a mode misread moves this
       *>        line too.

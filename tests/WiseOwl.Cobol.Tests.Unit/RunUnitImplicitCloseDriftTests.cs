@@ -10,14 +10,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ RUN-UNIT TERMINATION'S IMPLICIT CLOSE IS THE CLOSE STATEMENT WITHOUT ANY PHRASES, EXECUTED FOR EVERY OPEN FILE
-/// AND ONLY FOR THE OPEN ONES, EVEN WHEN ONE OF THEM FAILS (kb/Work PB603). ISO §14.6.11 2): <i>"An implicit CLOSE
+/// AND ONLY FOR THE OPEN ONES, EVEN WHEN ONE OF THEM FAILS (kb/Work PB603). ISO §2023:14.6.11 2): <i>"An implicit CLOSE
 /// statement without any phrases is executed for each file that is in the open mode. These implicit close statements
 /// shall be executed for all open files in the run unit, even when an error occurs during the execution of one or
 /// more of the CLOSE statements."</i>
 /// <para>So <see cref="FileRegistry.CloseAll"/> reaches each connector through the ONE CLOSE dispatch
 /// (<c>FileRegistry.CloseByFormat</c>, Table 14's plain CLOSE row): no member of <see cref="FileRegistry"/> but that
 /// dispatch calls a connector's own <c>Close()</c>, so the implicit CLOSE cannot drift from the explicit one in its
-/// not-open guard, its §9.1.15 file-lock removal or its §9.1.16 record-lock release. A connector that is not open is
+/// not-open guard, its §2023:9.1.15 file-lock removal or its §2023:9.1.16 record-lock release. A connector that is not open is
 /// not touched (the "sequential connectors close unconditionally" behavior stamped '42' on every closed sequential
 /// file at termination), and one close that throws neither stops the others nor is swallowed.</para>
 /// <para>A second <see cref="FileRegistry"/> IS a second run unit here (<see cref="RunUnitFileLockDriftTests"/>): it
@@ -53,7 +53,7 @@ public sealed class RunUnitImplicitCloseDriftTests
         return all;
     }
 
-    /// <summary>§14.6.11 2)'s "even when an error occurs": the FIRST open file's close fails with an exception no
+    /// <summary>§2023:14.6.11 2)'s "even when an error occurs": the FIRST open file's close fails with an exception no
     /// I-O status describes (an injected held-line drain, the report writer's hook on every close path), and every
     /// later open file is still closed — its records persisted, its file lock given back to the next run unit — while
     /// the failure itself still reaches the caller rather than being swallowed. The failing connector's own closing
@@ -83,7 +83,7 @@ public sealed class RunUnitImplicitCloseDriftTests
 
             foreach (string name in new[] { "F", "I", "S" })
                 Assert.True(runUnit.OpenModeIfOpen(name) is null,
-                    $"'{name}' is still open after the run unit's implicit CLOSE — §14.6.11 2) closes ALL open files "
+                    $"'{name}' is still open after the run unit's implicit CLOSE — §2023:14.6.11 2) closes ALL open files "
                     + "even when an error occurs during one of the CLOSE statements.");
             Assert.Equal(["0001IDX1"], Records(indexed, indexed: true));
             Assert.Equal(["SEQREC01"], Records(sequential, indexed: false));
@@ -93,15 +93,15 @@ public sealed class RunUnitImplicitCloseDriftTests
             next.OpenStatic("N", FileOpenMode.Output);
             Assert.True(next.Status("N") == "00",
                 $"The next run unit's OPEN OUTPUT of the failed file answered '{next.Status("N")}': its closing "
-                + "operations did not run, so its handle and §9.1.15 file lock outlived the run unit.");
+                + "operations did not run, so its handle and §2023:9.1.15 file lock outlived the run unit.");
             next.Close("N");
         }
         finally { foreach (string h in new[] { failing, indexed, sequential }) FileHarness.TryDelete(h); }
     }
 
-    /// <summary>§14.6.11 2) closes each file "that is in the open mode" — and nothing else. A connector that was never
+    /// <summary>§2023:14.6.11 2) closes each file "that is in the open mode" — and nothing else. A connector that was never
     /// opened, and one the program already CLOSEd, keep the I-O status they had: the implicit CLOSE of the run unit
-    /// is not a CLOSE of a not-open file, which would be §14.9.6.4 GR1's unsuccessful '42'.</summary>
+    /// is not a CLOSE of a not-open file, which would be §2023:14.9.6.4 GR1's unsuccessful '42'.</summary>
     [Fact]
     public void TheImplicitClose_LeavesAConnectorThatIsNotOpenUntouched()
     {
@@ -124,7 +124,7 @@ public sealed class RunUnitImplicitCloseDriftTests
         finally { foreach (string h in new[] { closed, never }) FileHarness.TryDelete(h); }
     }
 
-    /// <summary>§9.1.16: <i>"all record locks established for a file are released by the execution of an explicit or
+    /// <summary>§2023:9.1.16: <i>"all record locks established for a file are released by the execution of an explicit or
     /// implicit CLOSE statement for the file"</i>. A record another run unit holds answers '51'; once that run unit
     /// terminates — its implicit CLOSE, never an explicit one — the record is available.</summary>
     [Fact]
@@ -179,6 +179,6 @@ public sealed class RunUnitImplicitCloseDriftTests
         Assert.True(callers.All(m => m == "CloseByFormat"),
             "A connector's Close() is called outside the ONE CLOSE dispatch, from: "
             + string.Join(", ", callers.Where(m => m != "CloseByFormat").Distinct())
-            + " — route it through Close(name) / CloseIfOpen(name) (§14.6.11 2), kb/Work PB603).");
+            + " — route it through Close(name) / CloseIfOpen(name) (§2023:14.6.11 2), kb/Work PB603).");
     }
 }

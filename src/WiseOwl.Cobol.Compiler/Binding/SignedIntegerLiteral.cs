@@ -13,7 +13,7 @@ using Core = CobolParserCore;
 /// <para>The grammar rule is <c>(PLUS | MINUS)? INTEGERLIT</c> — the sign is a SEPARATE token, because a
 /// DEFAULT-mode <c>(</c> after FROM/TO opens no signed-literal lexer region and the sign-adjacent
 /// <c>SIGNED_INTEGERLIT</c> token therefore never reaches these slots. That is superset-parse: it also admits
-/// <c>( + 1 )</c>, which the standard does not. ISO §8.3.3.3.2 2) is the rule — <i>"A literal shall not contain
+/// <c>( + 1 )</c>, which the standard does not. ISO §2023:8.3.3.3.2 2) is the rule — <i>"A literal shall not contain
 /// more than one sign character. If a sign is used, it shall appear as the leftmost character of the
 /// literal."</i> — and a literal is ONE character-string, so a space between the sign and its digits makes the
 /// two things two things. The violation is REPORTED once, for this rule and <c>signedNumericLiteral</c> alike, by

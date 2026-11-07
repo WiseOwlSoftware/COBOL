@@ -6,10 +6,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The runtime message-tag carrier (ISO §13.18.60.4 GR9; docs/CONFORMANCE.md §7 DOC-A.1-212; kb/Work PB4740). The
+/// The runtime message-tag carrier (ISO §2023:13.18.60.4 GR9; docs/CONFORMANCE.md §7 DOC-A.1-212; kb/Work PB4740). The
 /// conformance goldens can only build NULL tags, because only the message control system makes any other, so the
-/// non-null half of §8.8.4.2.14's equality is pinned here, on the one function the relation condition renders.
-/// ISO §8.8.4.2.14: "The operands are equal if they reference the same message requestor or message server of the
+/// non-null half of §2023:8.8.4.2.14's equality is pinned here, on the one function the relation condition renders.
+/// ISO §2023:8.8.4.2.14: "The operands are equal if they reference the same message requestor or message server of the
 /// same name or one is NULL and the other is NULL." (cite.py --check 8.8.4.2.14 OK.)
 /// </summary>
 public sealed class MessageTagTests

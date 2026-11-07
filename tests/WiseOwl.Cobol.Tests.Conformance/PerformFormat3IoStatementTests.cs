@@ -11,13 +11,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (COBOL1605-1617: a multi-operand CLOSE / DELETE FILE / OPEN, a file SORT, a MERGE in imperative-statement-1) are
 /// pinned by <c>PerformFormat3Tests</c> and, for their positions, <c>ExceptionPerformBanPositionTests</c>; this class
 /// pins the LEGAL single-operand statement beside each ban, because the ban exists to make the WHEN phrase's answer to
-/// "which implicit statement failed" unambiguous (§14.9.6.3 SR3, §14.9.10.3 SR4, §14.9.27.3 SR3), and that answer is
+/// "which implicit statement failed" unambiguous (§2023:14.9.6.3 SR3, §2023:14.9.10.3 SR4, §2023:14.9.27.3 SR3), and that answer is
 /// only worth having if the single-operand form delivers it for every I-O status the statement can answer.
-/// <para>Expected statuses are the standard's: OPEN INPUT on an absent non-OPTIONAL file is '35' (§9.1.13.6 item 5, an
-/// EC-I-O-PERMANENT-ERROR), CLOSE of a file that is not open is '42' (§14.9.6.4 GR1 and §9.1.13.7 item 2, an
-/// EC-I-O-LOGIC-ERROR), OPEN or DELETE FILE of a file already in an open mode is '41' (§9.1.13.7 item 1, an
-/// EC-I-O-LOGIC-ERROR), and DELETE FILE of a file that is not available is a SUCCESSFUL '05' (§9.1.13.2 item 4 b —
-/// §14.9.10.4 GR20: "no action takes place if the mass storage file does not exist").</para>
+/// <para>Expected statuses are the standard's: OPEN INPUT on an absent non-OPTIONAL file is '35' (§2023:9.1.13.6 item 5, an
+/// EC-I-O-PERMANENT-ERROR), CLOSE of a file that is not open is '42' (§2023:14.9.6.4 GR1 and §2023:9.1.13.7 item 2, an
+/// EC-I-O-LOGIC-ERROR), OPEN or DELETE FILE of a file already in an open mode is '41' (§2023:9.1.13.7 item 1, an
+/// EC-I-O-LOGIC-ERROR), and DELETE FILE of a file that is not available is a SUCCESSFUL '05' (§2023:9.1.13.2 item 4 b —
+/// §2023:14.9.10.4 GR20: "no action takes place if the mass storage file does not exist").</para>
 /// <para>The statuses this class does not reach — lock contention '61' / '62' under RETRY, '37', '39', an OPTIONAL
 /// file's '05', AT END, INVALID KEY, and the SORT / MERGE statements around the PERFORM — are in the sibling
 /// <c>PerformFormat3IoConflictAndSortTests</c> (branch review round 1, kb/Work PB1154).</para>
@@ -34,7 +34,7 @@ public sealed class PerformFormat3IoStatementTests
     {
         string path = FileHarness.Tmp(name);
         string status = fileStatus ? " FILE STATUS FS" : "";
-        string mainSection = useBody is null ? "" : "MAIN-SECTION SECTION.";   // §14.4.1: declaratives admit only sections
+        string mainSection = useBody is null ? "" : "MAIN-SECTION SECTION.";   // §2023:14.4.1: declaratives admit only sections
         string declaratives = useBody is null ? "" : $"""
             DECLARATIVES.
             IO-SECTION SECTION.
@@ -96,7 +96,7 @@ public sealed class PerformFormat3IoStatementTests
             DISPLAY FS
         """, fileStatus: true), "00\nDONE");
 
-    // ── OPEN INPUT of an absent file: '35', EC-I-O-PERMANENT-ERROR (§9.1.13.6 item 5) ─────────────────────────
+    // ── OPEN INPUT of an absent file: '35', EC-I-O-PERMANENT-ERROR (§2023:9.1.13.6 item 5) ─────────────────────────
 
     [Fact]   // a WHEN naming the level-3 exception-name is selected, sees the status, and RESUME NEXT STATEMENT continues
     public void OpenInputAbsentFile_WhenExceptionName_RunsHandler_WithStatus35() => AssertRuns(Prog("F3IO35N", """
@@ -120,7 +120,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true), "BY-FILE 35\nAFTER\nDONE");
 
-    [Fact]   // §14.9.28.2 Format 3: exception-name-2 FILE file-name-2 (SR16: an EC-I-O name) pairs the name with the file
+    [Fact]   // §2023:14.9.28.2 Format 3: exception-name-2 FILE file-name-2 (SR16: an EC-I-O name) pairs the name with the file
     public void OpenInputAbsentFile_WhenExceptionFile_PairedName_RunsHandler() => AssertRuns(Prog("F3IO35P", """
             PERFORM
                 OPEN INPUT F
@@ -142,7 +142,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: false), "HANDLER\nAFTER\nDONE");
 
-    [Fact]   // checking ON, no WHEN matches, no FILE STATUS and no USE: EC-I-O-PERMANENT-ERROR is fatal (§14.6.13.1)
+    [Fact]   // checking ON, no WHEN matches, no FILE STATUS and no USE: EC-I-O-PERMANENT-ERROR is fatal (§2023:14.6.13.1)
     public void OpenInputAbsentFile_NoMatchingWhen_NoStatus_NoUse_IsFatal() => AssertFatal(Prog("F3IO35X", """
             PERFORM
                 OPEN INPUT F
@@ -152,8 +152,8 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: false), "EC-I-O-PERMANENT-ERROR", "");
 
-    [Fact]   // checking OFF for EC-I-O: no exception condition is raised (§14.6.13.1.1); the status is simply set and
-             // the program goes on. The WHEN phrase names an UNRELATED condition, so §14.9.28.4 GR14's implicit TURN
+    [Fact]   // checking OFF for EC-I-O: no exception condition is raised (§2023:14.6.13.1.1); the status is simply set and
+             // the program goes on. The WHEN phrase names an UNRELATED condition, so §2023:14.9.28.4 GR14's implicit TURN
              // (the next test) enables nothing for the OPEN.
     public void OpenInputAbsentFile_CheckingOff_SetsStatusOnly() => AssertRuns(Prog("F3IO35Z", """
             PERFORM
@@ -164,7 +164,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, checking: ""), "AFTER 35\nDONE");
 
-    [Fact]   // §14.9.28.4 GR14: a WHEN-named condition that no TURN enabled is enabled over imperative-statement-1, so
+    [Fact]   // §2023:14.9.28.4 GR14: a WHEN-named condition that no TURN enabled is enabled over imperative-statement-1, so
              // the SAME program with WHEN EC-I-O runs its handler although the program never turned checking on.
     public void OpenInputAbsentFile_CheckingOff_WhenNamesEcIo_Gr14EnablesIt() => AssertRuns(Prog("F3IO35G", """
             PERFORM
@@ -176,7 +176,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, checking: ""), "HANDLER 35\nAFTER\nDONE");
 
-    [Fact]   // §14.9.49.4 GR6: a condition no WHEN phrase matches reaches the USE declarative for the file
+    [Fact]   // §2023:14.9.49.4 GR6: a condition no WHEN phrase matches reaches the USE declarative for the file
     public void OpenInputAbsentFile_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(Prog("F3IO35U", """
             PERFORM
                 OPEN INPUT F
@@ -186,8 +186,8 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, useBody: "DISPLAY \"USE \" FS RESUME NEXT STATEMENT."), "USE 35\nAFTER\nDONE");
 
-    [Fact]   // §14.9.49.4 GR7 c: a FATAL EC-I-O whose declarative ends without RESUME is the implementor's action
-             // (§9.1.13); WiseOwl COBOL terminates the run unit abnormally (§14.6.12), after the declarative has run.
+    [Fact]   // §2023:14.9.49.4 GR7 c: a FATAL EC-I-O whose declarative ends without RESUME is the implementor's action
+             // (§2023:9.1.13); WiseOwl COBOL terminates the run unit abnormally (§2023:14.6.12), after the declarative has run.
     public void OpenInputAbsentFile_UnmatchedWhen_UseWithoutResume_FatalConditionTerminates() => AssertFatal(Prog("F3IO35T", """
             PERFORM
                 OPEN INPUT F
@@ -208,7 +208,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, useBody: "DISPLAY \"USE\" RESUME NEXT STATEMENT."), "WHEN\nAFTER\nDONE");
 
-    // ── CLOSE of a file that is not open: '42', EC-I-O-LOGIC-ERROR (§14.9.6.4 GR1) ──────────────────────────
+    // ── CLOSE of a file that is not open: '42', EC-I-O-LOGIC-ERROR (§2023:14.9.6.4 GR1) ──────────────────────────
 
     [Fact]
     public void CloseUnopenedFile_WhenLogicError_RunsHandler_WithStatus42() => AssertRuns(Prog("F3IO42N", """
@@ -241,7 +241,7 @@ public sealed class PerformFormat3IoStatementTests
             END-PERFORM
         """, fileStatus: true, checking: ""), "AFTER 42\nDONE");
 
-    // ── OPEN / DELETE FILE of a file already open: '41', EC-I-O-LOGIC-ERROR (§9.1.13.7 item 1) ───────────────
+    // ── OPEN / DELETE FILE of a file already open: '41', EC-I-O-LOGIC-ERROR (§2023:9.1.13.7 item 1) ───────────────
 
     [Fact]
     public void OpenAlreadyOpenFile_WhenLogicError_RunsHandler_WithStatus41() => AssertRuns(Prog("F3IO41O", """

@@ -42,13 +42,13 @@ Repo path: `docs/rearchitecture/DESIGN-locale-facility.md`; registered in `docs/
 `docs/DOC_INDEX.md` (CLAUDE.md rule 6).
 
 Scope: the **whole** locale facility the standard defines — Annex A.4.9 items 1–13 plus the rules the module
-reaches into: the SPECIAL-NAMES `LOCALE` clause and the `ALPHABET … IS LOCALE` phrase (§12.3.7), the
-OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (§12.3.6), the `SET` set-locale/save-locale formats
-(§14.9.39 formats 11/12), locale-based comparison (§8.8.4.2.7 / §8.8.4.2.9 / §8.8.4.2.11), the locale-edited
-`PICTURE` format 2 (§13.18.40), the four locale intrinsic functions (§15.51–§15.54), the `LOCALE` phrase of
-`LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` (§15.57 / §15.97 / §15.68 / §15.94), `STANDARD-COMPARE`
-plus the `ORDER TABLE` clause (§15.85, A.4.9 item 11 + A.3 item 25), the six `EC-LOCALE-*` conditions and
-`EC-ORDER-NOT-SUPPORTED` (§14.6.13.1.6), and the locale-identification state machine (§14.6.6).
+reaches into: the SPECIAL-NAMES `LOCALE` clause and the `ALPHABET … IS LOCALE` phrase (§2023:12.3.7), the
+OBJECT-COMPUTER `CHARACTER CLASSIFICATION` clause (§2023:12.3.6), the `SET` set-locale/save-locale formats
+(§2023:14.9.39 formats 11/12), locale-based comparison (§2023:8.8.4.2.7 / §2023:8.8.4.2.9 / §2023:8.8.4.2.11), the locale-edited
+`PICTURE` format 2 (§2023:13.18.40), the four locale intrinsic functions (§2023:15.51–§2023:15.54), the `LOCALE` phrase of
+`LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` (§2023:15.57 / §2023:15.97 / §2023:15.68 / §2023:15.94), `STANDARD-COMPARE`
+plus the `ORDER TABLE` clause (§2023:15.85, A.4.9 item 11 + A.3 item 25), the six `EC-LOCALE-*` conditions and
+`EC-ORDER-NOT-SUPPORTED` (§2023:14.6.13.1.6), and the locale-identification state machine (§2023:14.6.6).
 
 Companion docs — this one defers to them, never duplicates them:
 `DESIGN-frontend-grammar.md` (superset parse / construct-id annotation), `DESIGN-version-conformance-pipeline.md`
@@ -60,9 +60,9 @@ Companion docs — this one defers to them, never duplicates them:
 > **Every semantic claim below carries a clause validated with `python scripts/spec/cite.py --check`.** About
 > 130 `--check` runs were made while drafting, in six batches; every citation that survives into this document
 > passed. Two failures are recorded so they are not re-inherited: (a) six PICTURE locale rules the first pass
-> wrote as **§13.18.40.4** FAILED and are in fact **§13.18.40.5 (Editing rules)** — the PICTURE clause has a
+> wrote as **§2023:13.18.40.4** FAILED and are in fact **§2023:13.18.40.5 (Editing rules)** — the PICTURE clause has a
 > separate *Editing rules* subclause and the locale rules live there, not in *General rules*; (b) the
-> figurative-constant locale rules are **§8.3.3.6.4**, not §8.3.3.6. Both are the one-level-short shape this
+> figurative-constant locale rules are **§2023:8.3.3.6.4**, not §2023:8.3.3.6. Both are the one-level-short shape this
 > project keeps paying for.
 > ⚠ The printed **index** disagrees with the body on several locale entries (it points EC-LOCALE-SIZE at
 > "13.18.36", which is the LOWLIGHT clause, and EC-LOCALE-INVALID-PTR at "14.9.35.4", which is REWRITE). The
@@ -74,11 +74,11 @@ Companion docs — this one defers to them, never duplicates them:
 ## 0. Hard invariants this design upholds
 
 1. **Typed-native only.** A locale never introduces a byte substrate. Every locale-touching value is a .NET
-   `string` (UTF-16, the D-N1 native repertoire) or a scaled integer. The saved-locale "pointer" of §14.9.39
+   `string` (UTF-16, the D-N1 native repertoire) or a scaled integer. The saved-locale "pointer" of §2023:14.9.39
    format 12 is a **managed handle**, never an address into a byte image (§4.3 below).
 2. **Spec-first.** Every rule cites ISO/IEC 1989:2023 and every citation is `--check`ed. Where the standard
    leaves a choice to the implementor, this document makes the choice **explicitly, in one place**, marks it
-   `⚖ DETERMINATION`, and names the §4.2.7 documentation duty it discharges.
+   `⚖ DETERMINATION`, and names the §2023:4.2.7 documentation duty it discharges.
 3. **One mechanism per job.** There is exactly ONE current-locale state (on `RunUnit`), ONE collation
    abstraction (§4.4), ONE LC_MONETARY field model shared by PICTURE editing *and* NUMVAL-C parsing (§4.6),
    ONE locale-resolution path shared by every reference form.
@@ -105,17 +105,17 @@ Every row below is a run of the prebuilt `E:/COBOL/src/WiseOwl.Cobol.Cli/bin/Deb
 | 1 | The four locale functions + STANDARD-COMPARE (items 2–5, 11) | `PB64FN11` | **Correct named reject.** Five `error COBOL1518` lines, one per function; STANDARD-COMPARE's also cites `A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation)`. `EXIT=70` |
 | 2 | `UPPER-CASE`'s LOCALE phrase (item 13) | `PB64UC09` | **Correct named reject.** `error COBOL1518: the LOCALE phrase of FUNCTION UPPER-CASE is in the optional locale module …` |
 | 3 | SPECIAL-NAMES `LOCALE` clause (item 10) | `PB64SN01` | **Correct named reject** (PB25 landed since the PB64 triage): `error COBOL1518: the SPECIAL-NAMES LOCALE clause is in the optional locale module (… A.4.9 item 10) …` |
-| 4 | `ALPHABET a IS LOCALE`, alphanumeric branch (item 10) | `PB64AL06` | **Wrong diagnostic.** `error COBOL0901: 'LOCALE' is a reserved word in COBOL-2023 and cannot be used as a user-defined word (ISO 8.9)` — but `LOCALE` there is a *required word of the ALPHABET clause* (§12.3.7.2), not a user-defined word. |
-| 5 | `ALPHABET a FOR NATIONAL IS LOCALE` (item 10) | `PB64NA07` | **Two wrong diagnostics.** `COBOL0898: … not a supported code-name … (ISO 12.3.7.3 SR15 …)` — but Table 6 (§12.3.7.4 GR7) lists `LOCALE` as a *collating sequence*, not a code-name — plus the same spurious `COBOL0901`. |
-| 6 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` (item 7) | `PB64CC02` | ⛔ **SILENTLY ACCEPTED and IGNORED.** Compiles clean, `CC-LOWER=[abcd]`, `EXIT=0`. The clause asks for LC_CTYPE case mapping (§12.3.6.4 GR7a) and the program silently gets the invariant fold. |
+| 4 | `ALPHABET a IS LOCALE`, alphanumeric branch (item 10) | `PB64AL06` | **Wrong diagnostic.** `error COBOL0901: 'LOCALE' is a reserved word in COBOL-2023 and cannot be used as a user-defined word (ISO 8.9)` — but `LOCALE` there is a *required word of the ALPHABET clause* (§2023:12.3.7.2), not a user-defined word. |
+| 5 | `ALPHABET a FOR NATIONAL IS LOCALE` (item 10) | `PB64NA07` | **Two wrong diagnostics.** `COBOL0898: … not a supported code-name … (ISO 12.3.7.3 SR15 …)` — but Table 6 (§2023:12.3.7.4 GR7) lists `LOCALE` as a *collating sequence*, not a code-name — plus the same spurious `COBOL0901`. |
+| 6 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` (item 7) | `PB64CC02` | ⛔ **SILENTLY ACCEPTED and IGNORED.** Compiles clean, `CC-LOWER=[abcd]`, `EXIT=0`. The clause asks for LC_CTYPE case mapping (§2023:12.3.6.4 GR7a) and the program silently gets the invariant fold. |
 | 7 | Same, `--std 85` | `PB64CC02` at `--std 85` | ⛔ **Also silent** (`CC-LOWER=[abcd]`, `EXIT=0`) — the clause is COBOL-2002+, so the edition gate is missing too. |
-| 8 | `CHARACTER CLASSIFICATION` *after* `PROGRAM COLLATING SEQUENCE` | `PB64OR03` | ⛔ **Rejects legal source.** `error COBOL0307: unexpected 'CHARACTER'. A period may be missing …` ×2. §12.3.6.2's outer bracket carries **choice indicators**, and §5.2.6.4 says the alternatives "may be specified in any order". |
+| 8 | `CHARACTER CLASSIFICATION` *after* `PROGRAM COLLATING SEQUENCE` | `PB64OR03` | ⛔ **Rejects legal source.** `error COBOL0307: unexpected 'CHARACTER'. A period may be missing …` ×2. §2023:12.3.6.2's outer bracket carries **choice indicators**, and §2023:5.2.6.4 says the alternatives "may be specified in any order". |
 | 9 | `SET LOCALE LC_TIME TO USER-DEFAULT` (item 9, format 11) | `PB64ST04` | ⛔ **Three misleading diagnostics**, none naming A.4.9: `COBOL1639: 'LOCALE' is not defined …`, `COBOL0901` on `LOCALE`, `COBOL0901` on `USER-DEFAULT`. |
 | 10 | `SET W-P TO LOCALE LC_ALL` (item 9, format 12) | `PB64SV08` | ⛔ **Raw parse error**: `error COBOL0001: unexpected '.'` |
 | 11 | `PICTURE +$9.9 LOCALE SIZE IS 10` (item 8) | `PB64PC05` | ⛔ **Raw, misdirecting parse error**: `error COBOL0307: unexpected 'SIZE'. A period may be missing at the end of the previous sentence.` |
 | 12 | `EC-LOCALE-MISSING` in RAISE + USE (item 1) | `PB64EC12` | ✅ **Already conforming.** `abnormal run-unit termination: EC-LOCALE-MISSING (fatal): raised by RAISE with checking not enabled (ISO 14.6.13.1.3 #8 …)` |
 | 13 | Same with `>>TURN EC-LOCALE-MISSING CHECKING ON` | `PB64EC13` | ✅ `IN-DECL` then `abnormal run-unit termination: EC-LOCALE-MISSING (fatal): raised by RAISE and not resumed` — the declarative runs. |
-| 14 | `OBJECT-COMPUTER.` with computer-name-1 **omitted** (found while designing G3; not a locale construct) | `PB64OC14` | ⛔ **Rejects legal source.** `error COBOL0001: unexpected 'PROGRAM'` for `OBJECT-COMPUTER. PROGRAM COLLATING SEQUENCE IS AL2.` — but §12.3.6.2 brackets `[ computer-name-1 ]`, §12.3.6.4 GR3 provides for its absence ("*When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor*", `--check` OK) and §12.3.6.3 SR4 presumes clauses may appear without it (`--check` OK). The grammar has `computerName computerAttributes?` — name **mandatory**. |
+| 14 | `OBJECT-COMPUTER.` with computer-name-1 **omitted** (found while designing G3; not a locale construct) | `PB64OC14` | ⛔ **Rejects legal source.** `error COBOL0001: unexpected 'PROGRAM'` for `OBJECT-COMPUTER. PROGRAM COLLATING SEQUENCE IS AL2.` — but §2023:12.3.6.2 brackets `[ computer-name-1 ]`, §2023:12.3.6.4 GR3 provides for its absence ("*When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor*", `--check` OK) and §2023:12.3.6.3 SR4 presumes clauses may appear without it (`--check` OK). The grammar has `computerName computerAttributes?` — name **mandatory**. |
 
 **What this measurement changes versus the PB64 triage record.** Rows 3 (now a named 1518) and 4/5 (now loud,
 not "silently accepted and silently wrong") have moved since triage; the triage text for those rows is stale
@@ -131,15 +131,15 @@ the functionality for an optional element only when support for that language el
 implementor*" (`--check` OK) — makes row 6/7 a conformance failure *under the current non-support posture too*:
 the syntax is accepted, no functionality is provided, and nothing is diagnosed. Rows 8–11 are worse than
 un-named: they are **misdirecting** — row 8 rejects legal source outright, rows 9/11 name a remedy that does
-not exist. §4.2.7 requires the implementor to "*identify in user documentation the optional language elements
+not exist. §2023:4.2.7 requires the implementor to "*identify in user documentation the optional language elements
 for which that implementor claims support*" (`--check` OK); `docs/CONFORMANCE.md` §4 item 5 does that, but it
 is now **stale**: it still records the SPECIAL-NAMES `LOCALE` clause as a parse error, which row 3 refutes.
 
 **Also present, and load-bearing for the plan:** the compiler already carries the *names* of all six locale
 conditions — `ExceptionCatalog.cs` registers `EC-LOCALE-IMP` (Imp) and `EC-LOCALE-INCOMPATIBLE`,
 `EC-LOCALE-INVALID`, `EC-LOCALE-INVALID-PTR`, `EC-LOCALE-MISSING`, `EC-LOCALE-SIZE` (all Fatal). Those
-fatalities match §14.6.13.1.6's table exactly (five rows `--check`ed). **Zero raise sites exist**, which is
-conforming today under §14.6.13.1.1 — "*The implementor is not required to raise any exception conditions for
+fatalities match §2023:14.6.13.1.6's table exactly (five rows `--check`ed). **Zero raise sites exist**, which is
+conforming today under §2023:14.6.13.1.1 — "*The implementor is not required to raise any exception conditions for
 level-3 exception-names that are associated with optional language elements … that the implementor has not
 implemented*" (`--check` OK) — and stops being conforming the moment support is claimed.
 
@@ -151,31 +151,31 @@ A.4.9 is thirteen items (all `--check`ed). This table is the design's work break
 
 | A.4.9 | Element | Clause | Design § | State |
 |---|---|---|---|---|
-| 1 | `EC-LOCALE` / `EC-ORDER-NOT-SUPPORTED` in RAISING / USE / PERFORM WHEN / RAISE / `>>TURN` | §14.6.13 | §4.10 | ✅ done (row 12/13); the names legal again since T1 (PB100's refusal reverted), MISSING / INVALID-PTR / INCOMPATIBLE raised and observed |
-| 2 | `LOCALE-COMPARE` | §15.51 | §4.8 | ✅ **T4 (2026-08-19)** |
-| 3 | `LOCALE-DATE` | §15.52 | §4.7 | ✅ **T4** |
-| 4 | `LOCALE-TIME` | §15.53 | §4.7 | ✅ **T4** |
-| 5 | `LOCALE-TIME-FROM-SECONDS` | §15.54 | §4.7 | ✅ **T4** |
-| 6 | `LOWER-CASE` LOCALE keyword | §15.57 | §4.5 | ✅ **T5 (2026-08-19)** |
-| 7 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` | §12.3.6 | §4.5 | ✅ **T5** |
-| 8 | `PICTURE` format 2 (locale) | §13.18.40 | §4.6 | ⛔ parse error |
-| 9 | `SET` formats 11 (set-locale) / 12 (save-locale) | §14.9.39 | §4.3 | ✅ **T1 (2026-08-19)** |
-| 10 | SPECIAL-NAMES `LOCALE` clause + `LOCALE` phrases of `ALPHABET` | §12.3.7 | §4.1 / §4.4 | ✅ **T1 (clause; named alphabet) + PB101 (bare alphabet)** |
-| 11 | `STANDARD-COMPARE` | §15.85 | §4.9 | ✅ PB101 T7 (also A.3 item 25) |
-| 12 | `TEST-NUMVAL-C` LOCALE keyword + locale-name-1 | §15.94 | §4.6 | ✗ |
-| 13 | `UPPER-CASE` LOCALE keyword | §15.97 | §4.5 | ✅ **T5** |
+| 1 | `EC-LOCALE` / `EC-ORDER-NOT-SUPPORTED` in RAISING / USE / PERFORM WHEN / RAISE / `>>TURN` | §2023:14.6.13 | §4.10 | ✅ done (row 12/13); the names legal again since T1 (PB100's refusal reverted), MISSING / INVALID-PTR / INCOMPATIBLE raised and observed |
+| 2 | `LOCALE-COMPARE` | §2023:15.51 | §4.8 | ✅ **T4 (2026-08-19)** |
+| 3 | `LOCALE-DATE` | §2023:15.52 | §4.7 | ✅ **T4** |
+| 4 | `LOCALE-TIME` | §2023:15.53 | §4.7 | ✅ **T4** |
+| 5 | `LOCALE-TIME-FROM-SECONDS` | §2023:15.54 | §4.7 | ✅ **T4** |
+| 6 | `LOWER-CASE` LOCALE keyword | §2023:15.57 | §4.5 | ✅ **T5 (2026-08-19)** |
+| 7 | OBJECT-COMPUTER `CHARACTER CLASSIFICATION` | §2023:12.3.6 | §4.5 | ✅ **T5** |
+| 8 | `PICTURE` format 2 (locale) | §2023:13.18.40 | §4.6 | ⛔ parse error |
+| 9 | `SET` formats 11 (set-locale) / 12 (save-locale) | §2023:14.9.39 | §4.3 | ✅ **T1 (2026-08-19)** |
+| 10 | SPECIAL-NAMES `LOCALE` clause + `LOCALE` phrases of `ALPHABET` | §2023:12.3.7 | §4.1 / §4.4 | ✅ **T1 (clause; named alphabet) + PB101 (bare alphabet)** |
+| 11 | `STANDARD-COMPARE` | §2023:15.85 | §4.9 | ✅ PB101 T7 (also A.3 item 25) |
+| 12 | `TEST-NUMVAL-C` LOCALE keyword + locale-name-1 | §2023:15.94 | §4.6 | ✗ |
+| 13 | `UPPER-CASE` LOCALE keyword | §2023:15.97 | §4.5 | ✅ **T5** |
 
 Two rules outside A.4.9 that the module *reaches into* and that no A.4.9 item names — they are part of the
 feature and are designed here:
 
-- **Figurative HIGH-VALUE / LOW-VALUE under a locale-based program collating sequence.** §8.3.3.6.4 GR6:
+- **Figurative HIGH-VALUE / LOW-VALUE under a locale-based program collating sequence.** §2023:8.3.3.6.4 GR6:
   "*When locale category LC_COLLATE is in effect for the program collating sequence, HIGH-VALUES is the
   character, or multiple-character combination, that has the highest ordinal position in the collating
   sequence specified by the locale in effect*" (`--check` OK; GR7 is the LOW-VALUES twin). Today
   `CollatingTable.HighValue`/`LowValue` are **compile-time** constants; under a locale they become run-time
   values. §4.4.4.
-- **`CHAR` / `ORD` over a locale-based program collating sequence.** §15.15.4 r1 and §15.70.4 r1 define both
-  over "*the alphanumeric program collating sequence*" (both `--check` OK), and §15.15.3 r2 bounds the CHAR
+- **`CHAR` / `ORD` over a locale-based program collating sequence.** §2023:15.15.4 r1 and §2023:15.70.4 r1 define both
+  over "*the alphanumeric program collating sequence*" (both `--check` OK), and §2023:15.15.3 r2 bounds the CHAR
   argument by "*the number of positions in the alphanumeric program collating sequence*" (`--check` OK).
   §4.4.5.
 
@@ -204,10 +204,10 @@ FUNCTION LOWER-CASE(x LOCALE fr) ────► BoundIntrinsicCall(+LocaleRef) 
 The **five seams**, each singular:
 
 - **S1 · `LocaleSymbol` (compile time).** One symbol table entry per SPECIAL-NAMES `LOCALE` clause, holding the
-  *external identification* only. Nothing about the locale is resolved at compile time — §8.1.5: "*When a
+  *external identification* only. Nothing about the locale is resolved at compile time — §2023:8.1.5: "*When a
   locale is specified, the associated ordering is determined at runtime*" (`--check` OK).
 - **S2 · `LocaleRef` (bound tree).** The single "which locale" operand used by every consumer: `Named(symbol)`
-  or `Current`. Every rule in §14.6.6 that says "*if a locale-name is specified … otherwise the current
+  or `Current`. Every rule in §2023:14.6.6 that says "*if a locale-name is specified … otherwise the current
   locale*" is this one type; there is no second spelling.
 - **S3 · `LocaleState` (run unit).** The current locale, per category, plus the two defaults and the saved-locale
   table. Owned by `RunUnit` alongside `Exceptions`, `External`, `Switches`, `Files`, `Clock`.
@@ -223,24 +223,24 @@ The **five seams**, each singular:
 
 ### 4.1 The SPECIAL-NAMES `LOCALE` clause and the locale-name (A.4.9 item 10)
 
-**Format** (§12.3.7.2, `--check` OK on `LOCALE locale-name-1 IS`):
+**Format** (§2023:12.3.7.2, `--check` OK on `LOCALE locale-name-1 IS`):
 `LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 }`, repeatable.
 
-- `locale-name-1` is a **user-defined word** — §8.3.2.2 lists `— locale-name` among the user-defined word types
-  (`--check` OK) — and §8.3.2.3.7 makes `external-locale-name` a **system-name**: "*An external-locale-name
+- `locale-name-1` is a **user-defined word** — §2023:8.3.2.2 lists `— locale-name` among the user-defined word types
+  (`--check` OK) — and §2023:8.3.2.3.7 makes `external-locale-name` a **system-name**: "*An external-locale-name
   identifies a locale that specifies a set of cultural elements. This locale is provided in the operating
   environment*" (`--check` OK).
-- `literal-4` "*shall be alphanumeric or national*" (§12.3.7.3 SR10, `--check` OK) and shall be neither a
+- `literal-4` "*shall be alphanumeric or national*" (§2023:12.3.7.3 SR10, `--check` OK) and shall be neither a
   symbolic-character figurative constant nor a zero-length literal (SR11).
-- Scope: §12.3.7.4 GR1 — "*All clauses specified in the SPECIAL-NAMES paragraph of a source unit that contains
+- Scope: §2023:12.3.7.4 GR1 — "*All clauses specified in the SPECIAL-NAMES paragraph of a source unit that contains
   other source units apply to each directly or indirectly contained source unit*" and locale-names "*may be
   referenced from any directly or indirectly contained source unit*" (`--check` OK). The existing SPECIAL-NAMES
   symbol inheritance carries this; locale-names join it as one more name kind.
-- §12.3.7.3 SR3: in an **interface definition** the ALPHABET, CURRENCY, DECIMAL-POINT and LOCALE clauses are
+- §2023:12.3.7.3 SR3: in an **interface definition** the ALPHABET, CURRENCY, DECIMAL-POINT and LOCALE clauses are
   the only permitted clauses (`--check` OK) — so the interface-definition SPECIAL-NAMES filter must *admit*
   the LOCALE clause. (Today the whole clause is refused, so this rule is unreachable; it becomes live.)
 
-**⚖ DETERMINATION L1 — what an external identification means.** §12.3.7.4 GR5: "*When the LOCALE clause is
+**⚖ DETERMINATION L1 — what an external identification means.** §2023:12.3.7.4 GR5: "*When the LOCALE clause is
 specified, locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4.
 The implementor specifies the allowable external-locale-names and the allowable content of literal-4*"
 (`--check` OK). §1 (Scope) confirms this document "*does not specify … The mechanism by which locales are
@@ -252,17 +252,17 @@ defined and made available on a processor*" (`--check` OK). WiseOwl COBOL's spec
    suffix is *ignored* (the runtime repertoire is UTF-16 by the D-N1 invariant, so a codeset suffix cannot
    change it) and a `@modifier` is passed through as a BCP-47 `-u-` extension when it is one of the CLDR
    collation modifiers, else it makes the locale *unavailable*. `fr_FR`, `fr_FR.UTF-8` and `fr-FR` therefore
-   all identify the same locale — which matters because `fr_FR` is a legal COBOL word (§8.3.2.1 admits the
+   all identify the same locale — which matters because `fr_FR` is a legal COBOL word (§2023:8.3.2.1 admits the
    underscore) and so appears in the `external-locale-name-1` branch, while `"fr_FR.UTF-8"` appears in the
    `literal-4` branch.
-3. Both branches produce the same normalized key, so §8.5.3.1 rule 2's "*same external identification*"
+3. Both branches produce the same normalized key, so §2023:8.5.3.1 rule 2's "*same external identification*"
    equivalence test (`--check` OK) is a comparison of normalized keys, not of source spellings.
 4. **Availability is a run-time property, not a compile-time one.** The compiler never calls
    `GetCultureInfo` — a locale absent at compile time may be present at run time and vice versa. An
    unavailable locale raises `EC-LOCALE-MISSING` at the point of use (§4.10).
 
 *Rejected alternative:* validating the culture name at bind and erroring. It would make compilation depend on
-the build machine's installed ICU data, and §8.1.5 puts the resolution at run time.
+the build machine's installed ICU data, and §2023:8.1.5 puts the resolution at run time.
 
 **Grammar.** `localeClause` already exists (`CobolSpecialNames.g4:47`) as
 `{localeClauseAhead()}? cobolWord cobolWord IS? (cobolWord | literal)`, parsed *so it can be diagnosed*. It
@@ -280,42 +280,42 @@ public readonly record struct LocaleRef(LocaleSymbol? Named)
 }
 ```
 
-Every consumer takes a `LocaleRef` and the *category* it needs. §14.6.6 states the selection rule six times,
+Every consumer takes a `LocaleRef` and the *category* it needs. §2023:14.6.6 states the selection rule six times,
 once per consumer, and every one is "named else current" (all `--check` OK):
 
-| Consumer | Category | §14.6.6 rule |
+| Consumer | Category | §2023:14.6.6 rule |
 |---|---|---|
 | `PICTURE` format 2 editing / de-editing | LC_MONETARY | r6 |
 | `LOCALE-COMPARE` | LC_COLLATE | r7 |
 | `LOCALE-DATE` / `LOCALE-TIME` | LC_TIME | r8 |
-| `ALPHABET … IS LOCALE` as PCS | LC_COLLATE | r4 (+ §12.3.6.4 GR12) |
+| `ALPHABET … IS LOCALE` as PCS | LC_COLLATE | r4 (+ §2023:12.3.6.4 GR12) |
 | SORT/MERGE `COLLATING SEQUENCE` naming a locale alphabet | LC_COLLATE | r5 |
 | `CHARACTER CLASSIFICATION` | LC_CTYPE | r2 |
 
-`LOCALE-TIME-FROM-SECONDS` is not named in r8; its own §15.54.4 r1/r2 supply the same rule and the `t_fmt`
+`LOCALE-TIME-FROM-SECONDS` is not named in r8; its own §2023:15.54.4 r1/r2 supply the same rule and the `t_fmt`
 field (`--check` OK), so it routes identically. `NUMVAL-C`/`TEST-NUMVAL-C` take LC_MONETARY from their own
-§15.68.3 r5a (`--check` OK); `LOWER-CASE`/`UPPER-CASE` take LC_CTYPE from §15.57.4 r2 / §15.97.4 r2
+§2023:15.68.3 r5a (`--check` OK); `LOWER-CASE`/`UPPER-CASE` take LC_CTYPE from §2023:15.57.4 r2 / §2023:15.97.4 r2
 (`--check` OK).
 
 ### 4.3 `LocaleState` — the run-unit carrier, and `SET` formats 11/12 (A.4.9 item 9)
 
-**The state model** is fixed by §8.2.1 and §14.6.6:
+**The state model** is fixed by §2023:8.2.1 and §2023:14.6.6:
 
 - "*At the time a run unit is activated, the current runtime locale is set to the user default locale and
-  remains in effect for the run unit until another runtime locale is established*" (§8.2.1, `--check` OK);
-  §14.6.6 r1 repeats it per category.
+  remains in effect for the run unit until another runtime locale is established*" (§2023:8.2.1, `--check` OK);
+  §2023:14.6.6 r1 repeats it per category.
 - A `SET` switches only the named categories: "*the new locale becomes the current locale for the run unit for
   the switched categories; the current locale remains unchanged for categories that are not switched*"
-  (§14.6.6 r3, `--check` OK), and "*Each locale category specified remains in effect for the duration of the
-  run unit or until another SET statement specifying that category is processed*" (§14.9.39.4 GR25,
+  (§2023:14.6.6 r3, `--check` OK), and "*Each locale category specified remains in effect for the duration of the
+  run unit or until another SET statement specifying that category is processed*" (§2023:14.9.39.4 GR25,
   `--check` OK).
-- ⚠ **A callee's switch is NOT unwound.** §14.6.6 r9: "*Upon return of control from another COBOL runtime
+- ⚠ **A callee's switch is NOT unwound.** §2023:14.6.6 r9: "*Upon return of control from another COBOL runtime
   element, the locale in effect for each locale category at the time of exit from the returning runtime
   element becomes the current locale for that category*" (`--check` OK). So there is no save/restore on CALL —
-  the state is genuinely run-unit-scoped, and the responsibility to restore is the callee's (§14.6.6 NOTE).
+  the state is genuinely run-unit-scoped, and the responsibility to restore is the callee's (§2023:14.6.6 NOTE).
   This is why `LocaleState` hangs off `RunUnit` and **not** off the module/activation stack.
 - "*While there is always a current locale for the entire run unit, it has effect only for compilation units
-  using language features that reference a locale*" (§8.2.1, `--check` OK) — so a program with no locale
+  using language features that reference a locale*" (§2023:8.2.1, `--check` OK) — so a program with no locale
   feature pays nothing; `LocaleState` is lazily materialized.
 
 ```csharp
@@ -324,8 +324,8 @@ public sealed record LocaleValue(string Collate, string Ctype, string Messages, 
 [Flags] public enum LocaleCategorySet { None, Collate = 1, Ctype = 2, Messages = 4, Monetary = 8, Numeric = 16, Time = 32, All = 63 }
 public sealed class LocaleState
 {
-    public LocaleValue UserDefault { get; private set; }   // §8.2.1 — set only by SET LOCALE USER-DEFAULT TO … (GR22)
-    public LocaleValue SystemDefault { get; }              // §8.2.1 — read-only from COBOL
+    public LocaleValue UserDefault { get; private set; }   // §2023:8.2.1 — set only by SET LOCALE USER-DEFAULT TO … (GR22)
+    public LocaleValue SystemDefault { get; }              // §2023:8.2.1 — read-only from COBOL
     public LocaleValue CurrentLocale { get; }              // per category; a COPY of the user default at activation (r1)
     public void SetFromLocale(LocaleCategorySet cats, string external);   // GR23a / GR24 EC-LOCALE-MISSING
     public void SetFromSaved(LocaleCategorySet cats, ManagedPointer? p);  // GR23a / GR21 EC-LOCALE-INVALID-PTR
@@ -340,7 +340,7 @@ The saved-locale handle is a typed `ManagedPointer` subclass carrying its owner 
 for validity (type + owner decide; handles are numbered monotonically and never reused), which keeps L4's guarantees
 with less state.
 
-**⚖ DETERMINATION L2 — the two defaults.** §8.2.1 requires: "*The implementor shall specify the manner in which
+**⚖ DETERMINATION L2 — the two defaults.** §2023:8.2.1 requires: "*The implementor shall specify the manner in which
 the user default locale is defined and shall provide at least one user default locale…*" and the same sentence
 for the system default (both `--check` OK), and "*The capability of setting the system default locale from
 COBOL is not provided*" (`--check` OK). WiseOwl COBOL:
@@ -348,9 +348,9 @@ COBOL is not provided*" (`--check` OK). WiseOwl COBOL:
 | Concept | Source, in precedence order | Rationale |
 |---|---|---|
 | user default | `COBOL_USER_LOCALE` env var → `CultureInfo.CurrentCulture.Name` at run-unit activation → `INVARIANT` | .NET already derives `CurrentCulture` from the user's regional settings (Windows) or `LC_ALL`/`LC_CTYPE`/`LANG` (POSIX), which is exactly ISO 9945's user default. The env override exists so a **golden test is reproducible on any host** (§10). |
-| system default | `COBOL_SYSTEM_LOCALE` env var → `CultureInfo.InstalledUICulture.Name` → `INVARIANT` | The OS-installed culture is the machine-wide value; COBOL cannot set it, matching the §8.2.1 prohibition. |
+| system default | `COBOL_SYSTEM_LOCALE` env var → `CultureInfo.InstalledUICulture.Name` → `INVARIANT` | The OS-installed culture is the machine-wide value; COBOL cannot set it, matching the §2023:8.2.1 prohibition. |
 
-§8.2.1 also fixes the non-COBOL interaction: a default switched by a non-COBOL module "*is not utilized by
+§2023:8.2.1 also fixes the non-COBOL interaction: a default switched by a non-COBOL module "*is not utilized by
 COBOL unless a SET statement is executed to make it the current runtime locale*", and it is implementor-defined
 "*whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is
 utilized by COBOL*" (both `--check` OK). **⚖ DETERMINATION L3:** WiseOwl COBOL *never* observes a foreign switch —
@@ -358,14 +358,14 @@ utilized by COBOL*" (both `--check` OK). **⚖ DETERMINATION L3:** WiseOwl COBOL
 `Thread.CurrentThread.CurrentCulture = …` by a hosting .NET application has no effect on COBOL semantics. This
 is the only choice compatible with `RunUnit`'s `AsyncLocal` ambient model and with reproducible goldens.
 
-**SET format 11 (set-locale)** — §14.9.39.2 general format (`--check` OK on the format 12 line;
+**SET format 11 (set-locale)** — §2023:14.9.39.2 general format (`--check` OK on the format 12 line;
 format 11's figure sits immediately above it). Two syntax rules bind (both `--check` OK): SR25 "*If
 USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO
 phrase*"; SR26 "*Locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph*"; SR27
 "*Identifier-10 shall reference an elementary data item of category data-pointer*".
 
 ⚠ **The category brace carries CHOICE INDICATORS.** The transcription's figure note records the pair of `|`
-bars inside the inner LC_ brace, and §5.2.6.4 (`--check` OK on "*in any order*") makes that "one or more of
+bars inside the inner LC_ brace, and §2023:5.2.6.4 (`--check` OK on "*in any order*") makes that "one or more of
 the alternatives … but any single alternative shall be specified only once … The alternatives may be specified
 in any order". So `SET LOCALE LC_NUMERIC LC_TIME TO fr` is legal and the grammar must accept a **set** of
 categories, in any order, each at most once. Modelling this as a scalar category would reject legal source —
@@ -376,13 +376,13 @@ General rules (all `--check` OK): GR22 — `LOCALE USER-DEFAULT TO x` sets the *
 a category list sets the current locale for those categories from locale-name-1, identifier-10 (a saved
 locale), USER-DEFAULT, or SYSTEM-DEFAULT; GR24 — an unavailable locale-name-1 sets `EC-LOCALE-MISSING`; GR25 —
 run-unit duration. `LC_ALL` names every category, including "*any other categories included in the locale*"
-(§8.2.1 table, `--check` OK on the `LC_COLLATE | Collating sequence` row) — for WiseOwl COBOL the set is exactly
+(§2023:8.2.1 table, `--check` OK on the `LC_COLLATE | Collating sequence` row) — for WiseOwl COBOL the set is exactly
 the six named categories, since a `CultureInfo` exposes no others.
 
-**SET format 12 (save-locale).** §14.9.39.4 GR26 (`--check` OK): "*If LC_ALL is specified, the current locale
+**SET format 12 (save-locale).** §2023:14.9.39.4 GR26 (`--check` OK): "*If LC_ALL is specified, the current locale
 is saved and a reference to the saved locale is placed into the pointer data item referenced by
-identifier-11*"; GR27 is the USER-DEFAULT twin. §14.9.39.3 SR28: identifier-11 is category **data-pointer**.
-§14.9.39.4 GR21 (`--check` OK): a pointer that does not "*reference saved locale information*" sets
+identifier-11*"; GR27 is the USER-DEFAULT twin. §2023:14.9.39.3 SR28: identifier-11 is category **data-pointer**.
+§2023:14.9.39.4 GR21 (`--check` OK): a pointer that does not "*reference saved locale information*" sets
 `EC-LOCALE-INVALID-PTR` and the SET is unsuccessful; GR21's second paragraph defines "saved locale" as *a
 locale and its category information as established with a set-locale format of the SET statement*.
 
@@ -410,9 +410,9 @@ localeCategory : LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC
 splits them **at bind** (a locale-name resolves in the locale symbol table; anything else must be a
 data-pointer per SR27). This is the parse-wide/bind-narrow doctrine; writing two grammar alternatives would
 need unbounded lookahead. The `localeCategory+` repetition is licensed by the figure's choice indicators
-(§5.2.6.4) — the binder enforces "each at most once" and reports a duplicate, because the *grammar* cannot.
+(§2023:5.2.6.4) — the binder enforces "each at most once" and reports a duplicate, because the *grammar* cannot.
 
-⚠ **The seven LC_ words are CONTEXT-SENSITIVE, not reserved** — §8.9's context-sensitive word table lists
+⚠ **The seven LC_ words are CONTEXT-SENSITIVE, not reserved** — §2023:8.9's context-sensitive word table lists
 `LC_ALL … LC_TIME` each against the construct "SET statement", so `LC_TIME` must remain usable as a
 user-defined word elsewhere. They therefore arrive as ordinary `cobolWord`s and are recognized **by text**
 inside `setLocaleStatement`, exactly as the grammar already does for `UCS-4`/`UTF-8`/`UTF-16` in the ALPHABET
@@ -420,14 +420,14 @@ clause. They must **not** be added to `reserved-words.json` (where they are corr
 `>>COBOL-WORDS` handling comes free from the existing context-sensitive machinery. `LOCALE`,
 `USER-DEFAULT` and `SYSTEM-DEFAULT` *are* reserved from 2002 and are already in `reserved-words.json`.
 
-### 4.4 Collation — the one abstraction (A.4.9 item 10; §8.8.4.2.7/.9/.11)
+### 4.4 Collation — the one abstraction (A.4.9 item 10; §2023:8.8.4.2.7/.9/.11)
 
 #### 4.4.1 Why the carrier must change
 
-§8.8.4.2.7 (`--check` OK): "*Two kinds of comparison are defined: standard comparison and locale-based
+§2023:8.8.4.2.7 (`--check` OK): "*Two kinds of comparison are defined: standard comparison and locale-based
 comparison. Locale-based comparison is used when the alphanumeric program collating sequence in effect is
-locale based; otherwise, standard comparison is used*"; §8.8.4.2.9 is the national twin (`--check` OK).
-§8.8.4.2.11 then defines the locale kind (all three sentences `--check` OK):
+locale based; otherwise, standard comparison is used*"; §2023:8.8.4.2.9 is the national twin (`--check` OK).
+§2023:8.8.4.2.11 then defines the locale kind (all three sentences `--check` OK):
 
 1. "*When local-based comparisons are specified for purposes of comparison, trailing spaces are truncated from
    the operands except that an operand consisting of all spaces is truncated to a single space.*" — **no space
@@ -463,12 +463,12 @@ asserts the overload set stays collapsed and no public runtime surface takes a r
 public abstract class CobolCollation
 {
     public abstract int  Compare(string? left, string? right);   // each arm applies ITS operand rule (pad / trim)
-    public bool ThruMember(string? read, string? lo, string? hi); // §14.7.8, ONE implementation, on the base
+    public bool ThruMember(string? read, string? lo, string? hi); // §2023:14.7.8, ONE implementation, on the base
     public abstract int  Weight(char c);        // ORD; the locale arm materializes (§4.4.5)
     public abstract int  PositionCount { get; }
     public abstract int  CharAt(long position);
-    public abstract char HighValue { get; }     // §8.3.3.6.4 GR6
-    public abstract char LowValue  { get; }     // §8.3.3.6.4 GR7
+    public abstract char HighValue { get; }     // §2023:8.3.3.6.4 GR6
+    public abstract char LowValue  { get; }     // §2023:8.3.3.6.4 GR7
 }
 sealed class AlphanumericCollation : CobolCollation { … }   // the ALPHABET literal-phrase table (256-entry + GR7 1.3 tail)
 sealed class NationalCollation     : CobolCollation { … }   // its FOR NATIONAL twin (sparse)
@@ -488,30 +488,30 @@ silently dropped — it is the standing justification for the fast path.
 
 #### 4.4.2 Where a locale collating sequence comes from
 
-`ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS LOCALE [locale-name-2]` (§12.3.7.2 figure) and the
+`ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS LOCALE [locale-name-2]` (§2023:12.3.7.2 figure) and the
 `FOR NATIONAL` twin. Rules:
 
-- Table 6 (§12.3.7.4 GR7) row `LOCALE` has a **`Y` in the collating-sequence column and a blank in the coded
+- Table 6 (§2023:12.3.7.4 GR7) row `LOCALE` has a **`Y` in the collating-sequence column and a blank in the coded
   character set column** (`--check` OK on the table row `| LOCALE |  | Y |`). A locale alphabet is therefore
   **not** a coded character set: naming it in `CODE-SET`, in `SYMBOLIC CHARACTERS … IN`, or in `CLASS … IN` is
-  a syntax-rule violation. §12.3.7.3 SR16g and SR17d say so explicitly — "*Alphabet-name-3 shall not reference
+  a syntax-rule violation. §2023:12.3.7.3 SR16g and SR17d say so explicitly — "*Alphabet-name-3 shall not reference
   an alphabet specified with the LOCALE phrase*" and the SR17d twin for alphabet-name-4 (both `--check` OK).
   This is exactly the `HasCollatingSequence` flag the existing `NationalAlphabetDef` already carries for
   UTF-8/UTF-16 — **inverted** (LOCALE has a collating sequence but no character set), so the record needs a
   second boolean, `HasCodedCharacterSet`, and the two SR checks read it. One flag pair, two SRs, no new
   mechanism.
-- §12.3.7.3 SR24 (`--check` OK): "*Locale-name-2 shall be a locale-name defined by the LOCALE clause*".
-  ⛔ **locale-name-2 is a FORWARD reference in every conforming program**: the §12.3.7.2 format prints
-  alphabet-name-clause BEFORE the LOCALE clause, and §5.2.1 (`--check` OK) requires "*the sequence given in the
+- §2023:12.3.7.3 SR24 (`--check` OK): "*Locale-name-2 shall be a locale-name defined by the LOCALE clause*".
+  ⛔ **locale-name-2 is a FORWARD reference in every conforming program**: the §2023:12.3.7.2 format prints
+  alphabet-name-clause BEFORE the LOCALE clause, and §2023:5.2.1 (`--check` OK) requires "*the sequence given in the
   general format*". So the SPECIAL-NAMES binder resolves it in DEPENDENCY order, not source order: the walk binds
   every clause that references no paragraph name (LOCALE among them), then every ALPHABET clause, then CLASS /
   SYMBOLIC CHARACTERS and the OBJECT-COMPUTER clauses (`SpecialNamesBinder.BindSpecialNames`; kb/Work PB1558 —
   it used to bind ALPHABET in source order and refuse the format order with COBOL1664).
-- §12.3.7.4 GR7e (`--check` OK): "*When the LOCALE phrase is specified, the collating sequence identified is
+- §2023:12.3.7.4 GR7e (`--check` OK): "*When the LOCALE phrase is specified, the collating sequence identified is
   defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current at
   the time the collating sequence is used at runtime*" — i.e. the alphabet holds a `LocaleRef`, and a
   `LocaleRef.Current` alphabet is re-resolved **at each use**, not once.
-- §12.3.6.4 GR11 (`--check` OK): "*When alphabet-name-1 or alphabet-name-2, or both, is associated with a
+- §2023:12.3.6.4 GR11 (`--check` OK): "*When alphabet-name-1 or alphabet-name-2, or both, is associated with a
   locale, locale category LC_COLLATE is used to carry out these comparisons*"; GR12 repeats the
   "specific-locale-else-current-at-use" rule (`--check` OK).
 
@@ -523,14 +523,14 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
                                  bool HasCollatingSequence, bool HasCodedCharacterSet, string Phrase);
 ```
 
-**⚖ DETERMINATION L5 — one sequence serves both classes.** §8.8.4.2.7 (`--check` OK): "*If the locale does not
+**⚖ DETERMINATION L5 — one sequence serves both classes.** §2023:8.8.4.2.7 (`--check` OK): "*If the locale does not
 specify a distinct alphanumeric collating sequence, class alphanumeric and alphabetic operands are mapped to
 their corresponding representation in the national character set for purposes of comparison; the correspondence
-between alphanumeric characters and national characters is defined by the implementor*", and §8.2.1 requires
+between alphanumeric characters and national characters is defined by the implementor*", and §2023:8.2.1 requires
 such a locale to define a national sequence covering every display character (`--check` OK). On the D-N1
 substrate the alphanumeric and national repertoires are the *same* 65,536 UTF-16 code units, so the
 implementor correspondence is the **identity**, and a `CultureInfo.CompareInfo` is a single sequence serving
-both classes. This is recorded as the implementor-defined correspondence §8.8.4.2.7 asks for; nothing else in
+both classes. This is recorded as the implementor-defined correspondence §2023:8.8.4.2.7 asks for; nothing else in
 the design branches on it.
 
 #### 4.4.3 The comparison itself
@@ -544,7 +544,7 @@ sealed class LocaleCollation(string? localeTag) : CobolCollation     // null = t
         CollationEngine.ForLocale(localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Collate));
     public override int Compare(string? l, string? r2)
     {
-        string a = TrimForLocale(l), b = TrimForLocale(r2);            // §8.8.4.2.11 sentence 1 — no padding
+        string a = TrimForLocale(l), b = TrimForLocale(r2);            // §2023:8.8.4.2.11 sentence 1 — no padding
         if (!Collator.IsWellFormed(a) || !Collator.IsWellFormed(b))
             ExceptionState.Set("EC-LOCALE-INCOMPATIBLE", fatal: true);   // L6, re-derived below
         return Resolve().Compare(a, b);                                   // sentence 2 — the derived CLDR/UCA engine
@@ -555,27 +555,27 @@ sealed class LocaleCollation(string? localeTag) : CobolCollation     // null = t
 `RunUnit.Locale` is a `LocaleState` (`Runtime/Control/LocaleState.cs`) — the T1 seam in its smallest form: the two
 L2 defaults read once at activation and the current locale per category (`Set` is where SET LOCALE lands).
 
-- "*Two zero-length operands are equal*" (§8.8.4.2.11 sentence 2's tail) falls out: both trim to `""`.
+- "*Two zero-length operands are equal*" (§2023:8.8.4.2.11 sentence 2's tail) falls out: both trim to `""`.
 - ⚠ Note the **all-spaces ⇒ one space** clause is not the same as `TrimEnd`: `"    "` becomes `" "`, not `""`.
   A test pins the three cases (`""`, `"   "`, `"a  "`) because this is the sentence most likely to be
   "simplified" into a plain trim.
-- **⚖ DETERMINATION L6 — `EC-LOCALE-INCOMPATIBLE` (§8.8.4.2.11 sentence 3) — RE-DERIVED over the derived table
+- **⚖ DETERMINATION L6 — `EC-LOCALE-INCOMPATIBLE` (§2023:8.8.4.2.11 sentence 3) — RE-DERIVED over the derived table
   (PB101).** The table assigns an explicit or UTS #10 Table 16 implicit weight to EVERY well-formed code point —
   assigned, unassigned and noncharacter alike (U+FFFE/U+FFFF carry CLDR's explicit minimum/maximum) — so the one
   operand "the locale does not define a collating sequence for" is ill-formed UTF-16: an **unpaired surrogate**.
   That sets the fatal EC-LOCALE-INCOMPATIBLE; the comparison still returns a deterministic order (the lone unit is
-  walked as its own code point). Documented under §4.2.7 and pinned by
+  walked as its own code point). Documented under §2023:4.2.7 and pinned by
   `CobolCollationTests.LocaleArm_UnpairedSurrogate_SetsEcLocaleIncompatible`, which fires it.
-- **⚖ DETERMINATION L11 — the algorithm "associated with LC_COLLATE" (§8.8.4.2.11 sentence 2).** The locale's
+- **⚖ DETERMINATION L11 — the algorithm "associated with LC_COLLATE" (§2023:8.8.4.2.11 sentence 2).** The locale's
   CLDR collation at its CLDR defaults: the locale's tailoring over the root table at TERTIARY strength with
   NON-IGNORABLE variables (case and accents distinguish; punctuation weighs at level 1) — what ICU/CLDR give a
   locale's default `strcoll`-style comparison. The four-level ISO/IEC 14651 default ordering (variables shifted to
-  level 4) is what STANDARD-COMPARE provides (§4.9). Documented under §4.2.7; pinned by the `pb101_alphabet_locale_pcs`
+  level 4) is what STANDARD-COMPARE provides (§4.9). Documented under §2023:4.2.7; pinned by the `pb101_alphabet_locale_pcs`
   golden and `CobolCollationTests`.
 
 #### 4.4.4 HIGH-VALUE / LOW-VALUE under a locale-based sequence
 
-§8.3.3.6.4 GR6/GR7 (both `--check` OK) make these **run-time** values under a locale-based PCS. As landed,
+§2023:8.3.3.6.4 GR6/GR7 (both `--check` OK) make these **run-time** values under a locale-based PCS. As landed,
 `LocaleCollation.HighValue`/`LowValue` are read from the materialized order vector of §4.4.5 (the highest-coded
 member of the last rank, the lowest-coded of the first) — and under EVERY CLDR/UCA table they are U+FFFF (CLDR gives
 it the maximum primary) and U+0000 (completely ignorable), which is why the compile-time twin `AlphabetDef.HighValue`
@@ -585,32 +585,32 @@ run-time call. A tailoring cannot outrank U+FFFF (a tailored primary is bounded 
 ⚠ Two honest limits, both documented:
 - The rules say "*the character, or multiple-character combination*". A multiple-character combination cannot
   be the value of a one-character figurative constant in this compiler's typed model; WiseOwl COBOL returns a
-  single character. Recorded as an implementor determination with the §4.2.7 duty.
+  single character. Recorded as an implementor determination with the §2023:4.2.7 duty.
 - Ties (characters at equal primary/secondary/tertiary weight) are broken by **code unit**, ascending, so the
-  result is stable — §15.15.4 r2 imposes exactly that stability duty on the sibling CHAR function: "*for a
+  result is stable — §2023:15.15.4 r2 imposes exactly that stability duty on the sibling CHAR function: "*for a
   given implementation, collating sequence, and ordinal position, every invocation of the CHAR function shall
   return the same character*" (`--check` OK).
 
 #### 4.4.5 `CHAR` / `ORD` over a locale-based sequence
 
-§15.15.4 r1 and §15.70.4 r1 define both over the alphanumeric **program collating sequence** (both
-`--check` OK), and §15.15.3 r2 bounds CHAR's argument by "*the number of positions*" in it (`--check` OK).
+§2023:15.15.4 r1 and §2023:15.70.4 r1 define both over the alphanumeric **program collating sequence** (both
+`--check` OK), and §2023:15.15.3 r2 bounds CHAR's argument by "*the number of positions*" in it (`--check` OK).
 A locale collation is an algorithm, not a position table — so the positions must be *materialized*.
 
 **⚖ DETERMINATION L7 — as landed.** `LocaleCollation` lazily builds, once per resolved `Collator` (process-wide
 cache), a 65,536-entry order vector: every native code unit's `CollationKey` under the collator, sorted (ties by
 code unit, per §4.4.4). `ORD` returns the rank + 1; `CHAR` inverts it; `PositionCount` is the number of **distinct**
-ranks — characters the locale collates equally share a position, which is precisely the case §15.15.4 r2
+ranks — characters the locale collates equally share a position, which is precisely the case §2023:15.15.4 r2
 anticipates, and the "first character defined" tie rule resolves to the lowest-coded member of the equal-weight
 group (the only "definition order" a locale has). ~65 k key builds + one sort, executed at most once per collator,
 and only for a program that references ORD/CHAR (or HIGH-/LOW-VALUE at run time) under a locale PCS.
 
 #### 4.4.6 The other collation consumers
 
-- **SORT / MERGE `COLLATING SEQUENCE`** naming a locale alphabet: §14.6.6 r5 (`--check` OK) — LC_COLLATE of the
+- **SORT / MERGE `COLLATING SEQUENCE`** naming a locale alphabet: §2023:14.6.6 r5 (`--check` OK) — LC_COLLATE of the
   associated locale, and "*A locale switch during execution of a SORT or MERGE statement has no effect on the
   processing of that SORT or MERGE statement*". As landed, `BoundSort`/`BoundMerge`/`BoundTableSort.Collating` carry
-  a `SortCollation` PAIR — §14.9.40.4 GR5 / §14.9.24.4 GR5 determine an ALPHANUMERIC and a NATIONAL sequence
+  a `SortCollation` PAIR — §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5 determine an ALPHANUMERIC and a NATIONAL sequence
   separately, and each KEY takes the one its class names (kb/Work PB678) — and the emitter passes the matching
   carrier (`__COLLATE` / `__COLLATE_NAT`, or an inline `LocaleCollation`/table for a statement alphabet). A key of
   class numeric or boolean takes NEITHER carrier: GR5 names no sequence for those classes. Both sequences are
@@ -620,16 +620,16 @@ and only for a program that references ORD/CHAR (or HIGH-/LOW-VALUE at run time)
   statement), so a SET LOCALE issued from an INPUT/OUTPUT PROCEDURE cannot move either sequence mid-sort; the store records
   that a snapshot was TAKEN rather than inferring it from a non-null sequence, because the native order is a
   legitimate snapshot value.
-- **Indexed-file keys.** §A.3 item 41 (`--check` OK) makes a locale-defined collating sequence for indexed
+- **Indexed-file keys.** §2023:A.3 item 41 (`--check` OK) makes a locale-defined collating sequence for indexed
   primary/alternate keys **processor-dependent**: "*The capability of specifying a collating sequence for
   primary and alternate keys of an indexed file where the alphabet specified in the COLLATING SEQUENCE clause
   is defined in the SPECIAL-NAMES paragraph with the LOCALE phrase or with literals is dependent on the
   capabilities of the processor*". ⚖ **DETERMINATION L8:** WiseOwl COBOL *does* provide it — the index is an
   in-process ordered structure keyed by `CobolCollation`, so a locale key ordering costs nothing extra — and
-  makes the order what §12.4.5.7.4 GR1 says it is (`--check` OK): "*Each collating sequence is a fixed file
+  makes the order what §2023:12.4.5.7.4 GR1 says it is (`--check` OK): "*Each collating sequence is a fixed file
   attribute*". `FileConnector.Open` calls `FreezeOpenSequences` first, and the indexed connector freezes each key's
   declared sequence with `CobolCollation.Snapshot` (bound to the locale current at the OPEN and pinned to ONE
-  collator), before §14.9.27.4 GR10 compares the declared attributes with the file's: a creating OPEN records that
+  collator), before §2023:14.9.27.4 GR10 compares the declared attributes with the file's: a creating OPEN records that
   order's fingerprint, an OPEN of an existing file while a locale of a different order is current is the attribute
   conflict '39', and a mid-file `SET LOCALE LC_COLLATE` does not re-order an open file (golden
   `pb3331_locale_key_sequence_fixed_at_open`; kb/Work PB3331, review w1123b R1-1). The keyed store engine's tree
@@ -637,18 +637,18 @@ and only for a program that references ORD/CHAR (or HIGH-/LOW-VALUE at run time)
 
 ### 4.5 Character classification (A.4.9 items 6, 7, 13)
 
-**The clause.** §12.3.6.2's `CHARACTER CLASSIFICATION` clause takes `locale-phrase-1` (alphanumeric) and
+**The clause.** §2023:12.3.6.2's `CHARACTER CLASSIFICATION` clause takes `locale-phrase-1` (alphanumeric) and
 `locale-phrase-2` (national), each one of `locale-name-n | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT`, optionally
-under `FOR ALPHANUMERIC` / `FOR NATIONAL`. §12.3.6.3 SR3 (`--check` OK): "*Locale-name-1 and locale-name-2
+under `FOR ALPHANUMERIC` / `FOR NATIONAL`. §2023:12.3.6.3 SR3 (`--check` OK): "*Locale-name-1 and locale-name-2
 shall be locale names defined in the SPECIAL-NAMES paragraph*".
 
-§12.3.6.4 GR5 gives the eight initial-classification cases (a/b `--check` OK as representatives): a named
+§2023:12.3.6.4 GR5 gives the eight initial-classification cases (a/b `--check` OK as representatives): a named
 locale, `LOCALE` (= the current locale), `SYSTEM-DEFAULT`, `USER-DEFAULT`, or absent (= the coded character
 set). GR6 (`--check` OK) supplies the inherited/absent default; GR7 names the two consumers — "*the uppercase
 and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions*" and "*the
 classification of characters for class tests ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, and for the class
 test specifying an alphabet-name that is associated with a locale…*" (both `--check` OK); GR8 (`--check` OK)
-routes it to category **LC_CTYPE**. §14.6.6 r2 (`--check` OK) restates it at runtime-element activation.
+routes it to category **LC_CTYPE**. §2023:14.6.6 r2 (`--check` OK) restates it at runtime-element activation.
 
 **⛔ Two defects to fix, both measured (§1 rows 6–8).**
 
@@ -667,11 +667,11 @@ routes it to category **LC_CTYPE**. §14.6.6 r2 (`--check` OK) restates it at ru
    sourceComputerParagraph
        : SOURCE_COMPUTER DOT (computerName? debuggingModeClause? DOT)? ;
    ```
-   The `objectComputerClause*` loop is what fixes row 8: §12.3.6.2's outer bracket **encloses choice
-   indicators**, and §5.2.6.4 (`--check` OK) makes the alternatives specifiable "*in any order*", each at most
+   The `objectComputerClause*` loop is what fixes row 8: §2023:12.3.6.2's outer bracket **encloses choice
+   indicators**, and §2023:5.2.6.4 (`--check` OK) makes the alternatives specifiable "*in any order*", each at most
    once. The binder enforces at-most-once and diagnoses a repeat; the grammar cannot, and must not try.
-   `computerName?` fixes row 14 (§12.3.6.4 GR3, `--check` OK).
-   ⚠ `CLASSIFICATION` is a §8.9 **context-sensitive** word ("OBJECT-COMPUTER paragraph"), so it stays out of
+   `computerName?` fixes row 14 (§2023:12.3.6.4 GR3, `--check` OK).
+   ⚠ `CLASSIFICATION` is a §2023:8.9 **context-sensitive** word ("OBJECT-COMPUTER paragraph"), so it stays out of
    `reserved-words.json` and is matched by text, like the LC_ words.
 2. ⛔ **Deleting the sink silently deletes three live edition gates unless they are moved first.**
    `VersionConformancePass.VisitComputerAttributes` (`:506`) is a **token-TEXT scan over the sink** and is the
@@ -687,36 +687,36 @@ routes it to category **LC_CTYPE**. §14.6.6 r2 (`--check` OK) restates it at ru
 
 **The three consumers.**
 
-- `UPPER-CASE` / `LOWER-CASE` **with** a LOCALE phrase (§15.57.4 r2 / §15.97.4 r2, both `--check` OK) → LC_CTYPE
+- `UPPER-CASE` / `LOWER-CASE` **with** a LOCALE phrase (§2023:15.57.4 r2 / §2023:15.97.4 r2, both `--check` OK) → LC_CTYPE
   of the named locale.
-- The same functions **without** one (§15.57.4 r3, `--check` OK) → LC_CTYPE of the classification locale
-  established by `CHARACTER CLASSIFICATION`, if any; else §15.57.4 r4 (`--check` OK) — "*When a locale is not
+- The same functions **without** one (§2023:15.57.4 r3, `--check` OK) → LC_CTYPE of the classification locale
+  established by `CHARACTER CLASSIFICATION`, if any; else §2023:15.57.4 r4 (`--check` OK) — "*When a locale is not
   in effect, the implementor defines the correspondence*", which is today's `ToLowerInvariant` and is already
   documented in `CONFORMANCE.md`. Closing item 7 turns that unconditional call into the **else-arm it is
   supposed to be**, which is exactly what inventory row `RV-15.57.4-4` (verdict PARTIAL) records as missing.
-- The **class tests** `ALPHABETIC`, `ALPHABETIC-LOWER`, `ALPHABETIC-UPPER` (§12.3.6.4 GR7b) become
+- The **class tests** `ALPHABETIC`, `ALPHABETIC-LOWER`, `ALPHABETIC-UPPER` (§2023:12.3.6.4 GR7b) become
   classification-aware: `char.IsLetter`/`IsUpper`/`IsLower` are Unicode-wide and locale-independent, so under a
   classification locale they route to the culture's `TextInfo` round-trip test (`c` is upper iff
   `ToLower(c) != c`), matching POSIX `isupper` semantics for the tailored letters (Turkish dotted/dotless I,
   Azeri).
 
-**⚖ DETERMINATION L9 — case mapping is SIMPLE (per-code-unit), and that is conforming.** §15.57.4 r5
+**⚖ DETERMINATION L9 — case mapping is SIMPLE (per-code-unit), and that is conforming.** §2023:15.57.4 r5
 (`--check` OK) admits a returned string "*longer or shorter than argument-1*" when the correspondence is not
 one-to-one. .NET's `TextInfo.ToUpper`/`ToLower` are **simple** maps: `ß` is unchanged, never expanded to `SS`.
-That is not a shortfall: §8.2.1 requires locale categories to be "*as specified in ISO/IEC 9945:2009, Clause
+That is not a shortfall: §2023:8.2.1 requires locale categories to be "*as specified in ISO/IEC 9945:2009, Clause
 7*" with implementations free to differ "*provided that logically-equivalent functionality is supported*"
 (`--check` OK), and ISO 9945's LC_CTYPE `toupper`/`tolower` are themselves strictly per-character maps. So
-under WiseOwl COBOL's LC_CTYPE the correspondence is always one-to-one and §15.57.4 r5's second sentence is
-vacuously satisfied — documented under §4.2.7, and pinned by a Turkish-I golden that proves the *tailoring*
+under WiseOwl COBOL's LC_CTYPE the correspondence is always one-to-one and §2023:15.57.4 r5's second sentence is
+vacuously satisfied — documented under §2023:4.2.7, and pinned by a Turkish-I golden that proves the *tailoring*
 is live (`LOWER-CASE("I" LOCALE tr)` → `ı`, U+0131, witnessed by `FUNCTION ORD`, never by the console echo).
 
 **As built — ✅ T5 (2026-08-19, kb/Work PB64).** The clause binds to a `ClassificationSpec(LocalePhrase?
 Alphanumeric, LocalePhrase? National)` on the `DataBinder` (`ResolveClassification` after the SPECIAL-NAMES walk —
 the locale-names resolve through the ONE undeclared-locale-name diagnostic, COBOL1664; inherited by contained
-units through the configuration inheritance, §12.3.6.4 GR1); `LocalePhrase(LocalePhraseKind Kind, LocaleSymbol?
+units through the configuration inheritance, §2023:12.3.6.4 GR1); `LocalePhrase(LocalePhraseKind Kind, LocaleSymbol?
 Symbol)` carries `Named | Current | SystemDefault | UserDefault` (`Runtime/Globalization/LocalePhraseKind`). **The
-classification is RESOLVED AT EACH ACTIVATION of the module** (§12.3.6.4 GR8 "effective with the initial state of
-the runtime modules"; §14.6.6 r2 "on activation of a runtime element"): the `__Activate` prologue
+classification is RESOLVED AT EACH ACTIVATION of the module** (§2023:12.3.6.4 GR8 "effective with the initial state of
+the runtime modules"; §2023:14.6.6 r2 "on activation of a runtime element"): the `__Activate` prologue
 (`DispatchEmitter`) assigns the per-module field `__CLASSIFY = CharacterClassification.Resolve(kind, tag, kind, tag)`
 (`Runtime/Globalization/CharacterClassification.cs` — a pair of `LocaleFacts?`, `None` when the unit has no clause),
 so `LOCALE` is the locale current at THAT activation and a later `SET LOCALE LC_CTYPE` does not move it (golden
@@ -726,34 +726,34 @@ so `LOCALE` is the locale current at THAT activation and a later `SET LOCALE LC_
 __CLASSIFY.For(national))` in a module with a classification (r3), and as the plain invariant
 `CobolIntrinsics.UpperCase` otherwise (r4 — unchanged generated text for every program without the clause);
 `ConditionRenderer` appends `, __CLASSIFY.For(national)` to the three class tests, whose `CobolClass.IsAlphabetic(s,
-LocaleFacts?)` overloads classify a Unicode LETTER per LC_CTYPE (POSIX `alpha` — **no space**: §8.8.4.4.4 GR3 b1 names
+LocaleFacts?)` overloads classify a Unicode LETTER per LC_CTYPE (POSIX `alpha` — **no space**: §2023:8.8.4.4.4 GR3 b1 names
 only LC_CTYPE's alphabetic characters where b2 names space explicitly; documented in CONFORMANCE.md §4 item 5) and the
-case round-trip for `-UPPER` / `-LOWER`. **The ONE §8.2.1 gate is `LocaleFacts.Require(category, operation, rule)`**
+case round-trip for `-UPPER` / `-LOWER`. **The ONE §2023:8.2.1 gate is `LocaleFacts.Require(category, operation, rule)`**
 — every consumer asks it AT USE: an UNAVAILABLE locale (a declared name no environment provides — L1 makes that a
 run-time fact) raises EC-LOCALE-MISSING and the coded character set's behavior stands when checking is off; an
 available locale without culture data raises EC-LOCALE-INVALID; the LOCALE functions (`CobolLocale.Facts`) ride the
 same gate, each citing its own rule. `EC-LOCALE-INVALID` checking therefore rides EVERY statement of a module with a
-classification (a class test is not an intrinsic-bearing statement — `EcBinder`). §8.8.4.4.3 SR2: a class condition
-naming a LOCALE alphabet of either class is COBOL1669 (`SpecialNamesBinder.IsLocaleAlphabet`, the one predicate — §12.3.7.3
-SR16g / SR17d and CODE-SET's §13.18.13.3 SR1/SR2 await those phrases binding, kb/Work PB110; the class condition
+classification (a class test is not an intrinsic-bearing statement — `EcBinder`). §2023:8.8.4.4.3 SR2: a class condition
+naming a LOCALE alphabet of either class is COBOL1669 (`SpecialNamesBinder.IsLocaleAlphabet`, the one predicate — §2023:12.3.7.3
+SR16g / SR17d and CODE-SET's §2023:13.18.13.3 SR1/SR2 await those phrases binding, kb/Work PB110; the class condition
 with a CODED-character-set alphabet-name, GR3 a, is kb/Work PB109). Goldens `2002/pb64t5_character_classification`,
 `pb64t5_case_locale_phrase` (accepted from 2014, kb/Work PB4311), `2002/pb64t5_classification_unavailable`; negatives `pb64t5-*` (four); construct
 rows `character-classification-2002` / `case-function-locale-phrase-2014`.
 
 ### 4.6 Monetary editing — `PICTURE` format 2 and the NUMVAL-C family (A.4.9 items 8, 12)
 
-**Format** (§13.18.40.2, `--check` OK):
+**Format** (§2023:13.18.40.2, `--check` OK):
 `{PICTURE|PIC} IS character-string-1 LOCALE [ IS locale-name-1 ] SIZE IS integer-1`.
 
-Syntax rules, all `--check` OK: §13.18.40.3 SR32 — not in / under a `CONSTANT RECORD` item; SR33 —
+Syntax rules, all `--check` OK: §2023:13.18.40.3 SR32 — not in / under a `CONSTANT RECORD` item; SR33 —
 character-string-1 shall contain at least one `Z` or `9`; SR34 — each of `+`, `.`, the currency symbol at most
 once; SR35 — 1..31 digit positions; SR36 — the currency symbol and `+` only left of the decimal point
 position; SR37 — "*Locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph*".
-Plus the two SIGN-clause prohibitions, one per data-description context: §13.16.3 SR19 and §13.17.3 SR9, both
+Plus the two SIGN-clause prohibitions, one per data-description context: §2023:13.16.3 SR19 and §2023:13.17.3 SR9, both
 "*If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified*"
 (both `--check` OK).
 
-Editing rules (**§13.18.40.5**, all `--check` OK — this is the subclause the first drafting pass got wrong):
+Editing rules (**§2023:13.18.40.5**, all `--check` OK — this is the subclause the first drafting pass got wrong):
 GR9 LC_MONETARY supplies the currency symbol's position/length/characters; GR10 `BLANK WHEN ZERO` takes
 precedence over locale editing; GR11 named-else-current locale; GR12 separators and group sizes from
 LC_MONETARY; GR13 `+` ⇒ the sign representation comes from the locale; GR14 the **hypothetical data item**
@@ -765,8 +765,8 @@ exist*"; GR15 `Z` suppression with space replacement.
 **Data model.** A format-2 item's **size in character positions is `integer-1`**, not the picture's width —
 "*the picture character string is not an indication of the field size needed to hold the edited item*"
 (Annex D's programmer guidance). So `DataItem` gains `LocaleEdit: (LocaleRef Locale, int Size)?`, the item's
-length is `Size`, and its category is numeric-edited. Type equivalence follows §8.5.3.1 rule 2 (`--check` OK)
-and §14.8.2.3.2 rule 2 (`--check` OK): two such items match only if they "*specify the same SIZE phrase*" and
+length is `Size`, and its category is numeric-edited. Type equivalence follows §2023:8.5.3.1 rule 2 (`--check` OK)
+and §2023:14.8.2.3.2 rule 2 (`--check` OK): two such items match only if they "*specify the same SIZE phrase*" and
 either both omit locale-name or both name the **same external identification** — i.e. the normalized key of
 DETERMINATION L1, which is why L1's normalization has to be a single function reachable from the
 type-equivalence check.
@@ -777,8 +777,8 @@ mask is a 1:1 character map, and locale editing has no fixed mask (the currency 
 and can precede or follow). One shared helper — the LC_MONETARY field snapshot — serves both this and the
 NUMVAL-C family, so the mapping table (§8) is written once.
 
-**NUMVAL-C / TEST-NUMVAL-C with LOCALE** (§15.68.3 r5, `--check` OK on r5a and on r5b.2 "*Usage national
-representation of locale fields is used for purposes of matching argument-1*"; §15.94.3 r1 imports the whole
+**NUMVAL-C / TEST-NUMVAL-C with LOCALE** (§2023:15.68.3 r5, `--check` OK on r5a and on r5b.2 "*Usage national
+representation of locale fields is used for purposes of matching argument-1*"; §2023:15.94.3 r1 imports the whole
 rule set, `--check` OK) are the **inverse** of the same table: recognize a currency string matching
 `currency_symbol` or the first three characters of `int_curr_symbol` per `p_cs_precedes`/`n_cs_precedes`;
 recognize signs per `positive_sign`/`negative_sign` and `p_sign_posn`/`n_sign_posn`; separators per
@@ -794,63 +794,63 @@ rendering for every host culture. Argument-1 is compared under DETERMINATION L12
 `LocaleFacts.NormalizeLocaleText(text, out origins)`, so a Cf character in the argument is ignorable and
 U+00A0/U+202F/U+2009 is a space wherever a space is admitted, and each position is mapped back to its ordinal in
 the original argument (kb/Work PB2766); `NumvalCLocaleScanTests.EveryHostCulture_RecognizesItsOwnFormattedCurrencyString`
-holds every host culture's own `ToString("C")` to it. §15.68.4 r3 (`--check` OK) fixes the sign of the
+holds every host culture's own `ToString("C")` to it. §2023:15.68.4 r3 (`--check` OK) fixes the sign of the
 result under the LOCALE keyword. `ANYCASE` under LOCALE folds through the **LC_CTYPE** correspondence of the
-same locale (§15.68.3 r5b.3's second paragraph), which is why §4.5's case mapping must be reachable from here
+same locale (§2023:15.68.3 r5b.3's second paragraph), which is why §4.5's case mapping must be reachable from here
 — one mechanism, two callers.
 
 ### 4.7 Locale date and time (A.4.9 items 3, 4, 5)
 
-Formats (§15.52.2 / §15.53.2 / §15.54.2, all `--check` OK): `FUNCTION LOCALE-DATE ( argument-1
+Formats (§2023:15.52.2 / §2023:15.53.2 / §2023:15.54.2, all `--check` OK): `FUNCTION LOCALE-DATE ( argument-1
 [ locale-name-1 ] )`, and the two time twins.
 
 | Rule | LOCALE-DATE | LOCALE-TIME | LOCALE-TIME-FROM-SECONDS |
 |---|---|---|---|
-| argument-1 class/length | alphanumeric or national, **8** positions (§15.52.3 r1) | alphanumeric or national, **6** positions (§15.53.3 r1) | numeric, **standard numeric time form** (§15.54.3 r1) |
-| argument-1 value | CURRENT-DATE positions 1–8, valid per that function (§15.52.3 r2) | CURRENT-DATE positions 9–14 (§15.53.3 r2) with hours **00–24** and seconds **00–99** (§15.53.3 r3a/b) | "*a numeric value representing seconds past midnight*" (§15.5.5) |
-| locale-name-1 | §15.52.3 r3 | §15.53.3 r4 | §15.54.3 r2 |
-| result | `d_fmt` (§15.52.4 r2) | `t_fmt` (§15.53.4 r2) | `t_fmt` (§15.54.4 r2) |
-| length | "*depends on the format indicated in the locale*" (§15.52.4 r3) | §15.53.4 r3 | §15.54.4 r3 |
+| argument-1 class/length | alphanumeric or national, **8** positions (§2023:15.52.3 r1) | alphanumeric or national, **6** positions (§2023:15.53.3 r1) | numeric, **standard numeric time form** (§2023:15.54.3 r1) |
+| argument-1 value | CURRENT-DATE positions 1–8, valid per that function (§2023:15.52.3 r2) | CURRENT-DATE positions 9–14 (§2023:15.53.3 r2) with hours **00–24** and seconds **00–99** (§2023:15.53.3 r3a/b) | "*a numeric value representing seconds past midnight*" (§2023:15.5.5) |
+| locale-name-1 | §2023:15.52.3 r3 | §2023:15.53.3 r4 | §2023:15.54.3 r2 |
+| result | `d_fmt` (§2023:15.52.4 r2) | `t_fmt` (§2023:15.53.4 r2) | `t_fmt` (§2023:15.54.4 r2) |
+| length | "*depends on the format indicated in the locale*" (§2023:15.52.4 r3) | §2023:15.53.4 r3 | §2023:15.54.4 r3 |
 
 (Every cell's clause `--check`ed.)
 
 Three consequences the design must carry:
 
-1. **Argument-1 of the two string functions is a STRING, not an integer.** §15.6's Table 21 row confirms
+1. **Argument-1 of the two string functions is a STRING, not an integer.** §2023:15.6's Table 21 row confirms
    (`| LOCALE-COMPARE | Alph1 or Anum1 or Nat1, … | Anum |`, `--check` OK). The catalog's `ArgKinds` for
    LOCALE-DATE/-TIME is already `"ss"` in the current tree (it was `"is"` at PB64 triage — an inherited
    Annex-D reading, since corrected). ⚠ **The existing conformance tests write integer literals**
-   (`FUNCTION LOCALE-TIME(120000)`), which §15.53.3 r1 forbids; those cases must be **rewritten**, not
+   (`FUNCTION LOCALE-TIME(120000)`), which §2023:15.53.3 r1 forbids; those cases must be **rewritten**, not
    extended, when the module is claimed.
 2. **The 00–24 / 00–99 ranges are this clause's own** — wider than CURRENT-DATE's — so a shared CURRENT-DATE
    validator cannot be reused; LOCALE-TIME needs its own range pair. The existing
-   `CobolDate.SecondsOutOfStandardForm` (an exact `Int128` comparison against 86 400, citing §7.3.17) is the
+   `CobolDate.SecondsOutOfStandardForm` (an exact `Int128` comparison against 86 400, citing §2023:7.3.17) is the
    right screen for LOCALE-TIME-FROM-SECONDS and is reused as-is.
 3. **The result length is run-time-determined.** The catalog already models result-length rules declaratively
    (`IntrinsicResultRule.Fixed | FollowsArgument1 | FollowsUniformArguments | IntegerFollowsAllArguments |
    IntegerFollowsArgument1`), so this is one new member — `RuntimeDetermined` — not a schema rewrite. The
-   receiving context governs: a MOVE truncates/pads per §14.9.25, and a reference-modification of the result
+   receiving context governs: a MOVE truncates/pads per §2023:14.9.25, and a reference-modification of the result
    is bounded at run time. This is the constraint inventory rows `RV-15.52.4-3`, `RV-15.53.4-3` and
    `RV-15.54.4-3` each recorded independently; it is satisfied once, here.
 4. **A rejected argument-1 substitutes ONE SPACE, not a zero-length value** (kb/Work PB470). The three
    functions' argument rules can fail at run time (an invalid date, a malformed or out-of-range time, a
-   value outside standard numeric time form), and §15.3 rule 14 hands the result of the reference to
+   value outside standard numeric time form), and §2023:15.3 rule 14 hands the result of the reference to
    the implementor when EC-ARGUMENT-FUNCTION checking is off. **The determination is not made here** —
    it is `docs/CONFORMANCE.md` row `DOC-A.1-90`, which settles the class by asking what determines the
    returned LENGTH. Consequence 3 above is exactly why these three are NOT in that row's zero-length
-   class: the length depends on the LOCALE (§15.52.4 / §15.53.4 / §15.54.4 r3), which the
+   class: the length depends on the LOCALE (§2023:15.52.4 / §2023:15.53.4 / §2023:15.54.4 r3), which the
    rejection of argument-1 leaves intact, so the row's general "spaces" clause governs — one space,
-   on §15.30.3 r1's answer for an alphanumeric function whose length is content-derived and whose
+   on §2023:15.30.3 r1's answer for an alphanumeric function whose length is content-derived and whose
    content is absent, since L10's culture patterns fix no width once the value is gone. The four guards
    read `CobolLocale.LocaleSubstitutePositions` and raise-and-substitute in one expression
    (`ExceptionState.ArgumentErrorSpaces`); `2014/pb470_locale_argument_substitute` and its 2002 twin are
-   the witnesses, and they read the reference DIRECTLY because §14.6.8.5 makes a MOVE unable to tell
+   the witnesses, and they read the reference DIRECTLY because §2023:14.6.8.5 makes a MOVE unable to tell
    the two answers apart — which is how the wrong one survived from T4's landing to 2026-09-04.
 
 **⚖ DETERMINATION L10 — `d_fmt` and `t_fmt`.** ISO 9945's `d_fmt` is the culture's short date and `t_fmt` its
 `%H:%M:%S` time. WiseOwl COBOL maps `d_fmt` → `CultureInfo.DateTimeFormat.ShortDatePattern` and `t_fmt` →
-`LongTimePattern` (the pattern that carries seconds; `ShortTimePattern` omits them, and §15.53.4 r2 requires
-"*hours, minutes, and seconds*"). Documented under §4.2.7. `LOCALE-TIME-FROM-SECONDS` additionally honours
+`LongTimePattern` (the pattern that carries seconds; `ShortTimePattern` omits them, and §2023:15.53.4 r2 requires
+"*hours, minutes, and seconds*"). Documented under §2023:4.2.7. `LOCALE-TIME-FROM-SECONDS` additionally honours
 D.31.4.5's NOTE that it "*recognizes and processes argument values representing precision to the nanosecond*"
 by carrying the fractional part into the formatted value when the argument's scale is nonzero — Annex D is
 informative, so this is a determination, not a rule. **L12/L13 (kb/Work PB2764):** every string the rendering emits
@@ -860,11 +860,11 @@ names, never the culture's default calendar; both are `TimeFacts`' job (CONFORMA
 
 ### 4.8 `LOCALE-COMPARE` (A.4.9 item 2)
 
-Format `FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )` (§15.51.2, `--check` OK).
+Format `FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )` (§2023:15.51.2, `--check` OK).
 Argument rules (`--check` OK): r1/r2 class alphabetic, alphanumeric or national; **r3 the two may differ**;
 r4 locale-name-1 associated with a locale in SPECIAL-NAMES. Returned-value rules (`--check` OK): r1 mixed
 classes with one national ⇒ the other is converted to national; r2 the trailing-space truncation (identical to
-§8.8.4.2.11 sentence 1); r3 named-else-current locale, `EC-LOCALE-MISSING` if unavailable; r4 cultural
+§2023:8.8.4.2.11 sentence 1); r3 named-else-current locale, `EC-LOCALE-MISSING` if unavailable; r4 cultural
 ordering; r5 the result is `'='`, `'<'` or `'>'`; r6 length 1.
 
 The whole function is therefore **`LocaleCollation.Compare` plus a sign-to-character map** — the same code
@@ -880,24 +880,24 @@ without extending that drift test would reproduce the PB1 trap, so the extension
 
 ### 4.9 `STANDARD-COMPARE` and the `ORDER TABLE` clause (A.4.9 item 11 / A.3 item 25)
 
-Format `FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )` (§15.85.2).
-This is **not** locale-driven — §15.85.3 r5 (`--check` OK): ordering-name-1 "*shall be associated with a
+Format `FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )` (§2023:15.85.2).
+This is **not** locale-driven — §2023:15.85.3 r5 (`--check` OK): ordering-name-1 "*shall be associated with a
 cultural ordering table in the ORDER TABLE clause of the SPECIAL-NAMES paragraph … If ordering-name-1 is not
 specified, the default ordering table 'ISO 14651_2020_TABLE1' described in Annex A of ISO/IEC 14651:2020 shall
-be used*". §15.85.4 r2 (`--check` OK) sets `EC-ORDER-NOT-SUPPORTED` when the table or level is unavailable.
-§A.3 item 25 (`--check` OK) makes the whole trio "*dependent upon an implementation of ISO/IEC 14651:2020*"
+be used*". §2023:15.85.4 r2 (`--check` OK) sets `EC-ORDER-NOT-SUPPORTED` when the table or level is unavailable.
+§2023:A.3 item 25 (`--check` OK) makes the whole trio "*dependent upon an implementation of ISO/IEC 14651:2020*"
 and says "*The implementor need not accept the syntax or set the EC-ORDER-NOT-SUPPORTED exception condition to
 exist when support for ISO/IEC 14651:2020 is not provided*".
 
 It shares exactly two things with the locale feature: the result-character contract (r6/r7, identical to
-§15.51.4 r5/r6) and the trailing-space truncation (r4). Everything else is a separate table facility. The
+§2023:15.51.4 r5/r6) and the trailing-space truncation (r4). Everything else is a separate table facility. The
 design is small and complete:
 
-- `ORDER TABLE ordering-name-1 IS literal-9` joins `specialNameEntry` (§12.3.7.2 figure); literal-9 is
+- `ORDER TABLE ordering-name-1 IS literal-9` joins `specialNameEntry` (§2023:12.3.7.2 figure); literal-9 is
   alphanumeric or national (SR10) and ordering-name-1 "*may be specified only in the STANDARD-COMPARE
-  intrinsic function*" (§12.3.7.3 SR9).
+  intrinsic function*" (§2023:12.3.7.3 SR9).
 - argument-4 is the ordering **level**; absent ⇒ "*the highest level defined in the ordering table*"
-  (§15.85.4 r1).
+  (§2023:15.85.4 r1).
 - **⚖ OWNER DECISION (Q4, 2026-08-18) — Unicode CLDR + UCA as the base implementation, realized (PB101, the
   owner's collation guidance) by WiseOwl COBOL's OWN derived engine.** The default ordering table `ISO 14651_2020_TABLE1`
   is `CollationEngine.Standard`: the derived root table (generated from the CLDR release-48-2 root collation, UCA
@@ -905,13 +905,13 @@ design is small and complete:
   ISO/IEC 14651 DEFAULT treatment — four levels, variable characters (space, punctuation, symbols) ignored through
   level 3 and weighted at level 4 (UTS #10 "shifted"). The ordering LEVEL (argument-4: 1 primary, 2 secondary, 3
   tertiary, 4 the full four-level ordering) is `CollationEngine.StandardAtLevel(n)` — a `Collator` at that
-  strength; absent, level 4 (§15.85.4 r1: "the highest level defined in the ordering table"); 0 or > 4 is
-  `EC-ORDER-NOT-SUPPORTED` (r2). `ORDER TABLE ordering-name-1 IS literal-9` (§12.3.7.2 — ONE clause, the last of the
-  paragraph; §12.3.7.4 GR17: "*The implementor specifies the allowable content of literal-9*") is resolved by
-  `CollationEngine.TryGetOrderingTable`: `"ISO 14651_2020_TABLE1"` in either spelling (§15.85.3 r5 writes a space,
-  §12.3.7.4 NOTE 5 an underscore — case-insensitive, the two interchangeable) → the default; as an implementor
+  strength; absent, level 4 (§2023:15.85.4 r1: "the highest level defined in the ordering table"); 0 or > 4 is
+  `EC-ORDER-NOT-SUPPORTED` (r2). `ORDER TABLE ordering-name-1 IS literal-9` (§2023:12.3.7.2 — ONE clause, the last of the
+  paragraph; §2023:12.3.7.4 GR17: "*The implementor specifies the allowable content of literal-9*") is resolved by
+  `CollationEngine.TryGetOrderingTable`: `"ISO 14651_2020_TABLE1"` in either spelling (§2023:15.85.3 r5 writes a space,
+  §2023:12.3.7.4 NOTE 5 an underscore — case-insensitive, the two interchangeable) → the default; as an implementor
   extension a CLDR locale tag → that locale's tailoring over the root table (a locale .NET recognizes but no
-  tailoring file → the root order); anything else → `EC-ORDER-NOT-SUPPORTED` at the reference (§15.85.4 r2), the
+  tailoring file → the root order); anything else → `EC-ORDER-NOT-SUPPORTED` at the reference (§2023:15.85.4 r2), the
   binder warning at compile time that the literal will never resolve. Trailing spaces truncate per r4 (the same
   `TrimForLocale` as §4.4.3); the national conversion of r3 is the identity on the D-N1 substrate; the result is
   `"<"`, `"="`, `">"` (r6/r7). Every derived table stays a Unicode-licensed derivation — never a hand-vendored ISO
@@ -920,17 +920,17 @@ design is small and complete:
 
 ### 4.10 Exceptions
 
-Six conditions, all already registered with the fatalities §14.6.13.1.6's table gives (five rows `--check`ed
-individually). This design supplies the **raise sites**, which is what turns the §14.6.13.1.1 exemption off:
+Six conditions, all already registered with the fatalities §2023:14.6.13.1.6's table gives (five rows `--check`ed
+individually). This design supplies the **raise sites**, which is what turns the §2023:14.6.13.1.1 exemption off:
 
 | Condition | Raised from | Clause |
 |---|---|---|
-| `EC-LOCALE-MISSING` | locale resolution fails, at every consumer | §8.2.1; §14.9.39.4 GR24; §15.51.4 r3; §15.52.4 r1; §15.53.4 r1; §15.54.4 r1; §15.68.3 r5a |
-| `EC-LOCALE-INVALID` | resolved culture lacks the category data the operation needs | §8.2.1 |
-| `EC-LOCALE-INVALID-PTR` | `SET LOCALE cats TO p` where p is not a live saved-locale handle | §14.9.39.4 GR21 |
-| `EC-LOCALE-INCOMPATIBLE` | locale comparison over an operand the collation does not order (DETERMINATION L6) | §8.8.4.2.11 |
-| `EC-LOCALE-SIZE` | format-2 editing truncates a significant character | §13.18.40.5 GR14b |
-| `EC-LOCALE-IMP` | reserved; no WiseOwl COBOL use — documented as such | §14.6.13.1.6 |
+| `EC-LOCALE-MISSING` | locale resolution fails, at every consumer | §2023:8.2.1; §2023:14.9.39.4 GR24; §2023:15.51.4 r3; §2023:15.52.4 r1; §2023:15.53.4 r1; §2023:15.54.4 r1; §2023:15.68.3 r5a |
+| `EC-LOCALE-INVALID` | resolved culture lacks the category data the operation needs | §2023:8.2.1 |
+| `EC-LOCALE-INVALID-PTR` | `SET LOCALE cats TO p` where p is not a live saved-locale handle | §2023:14.9.39.4 GR21 |
+| `EC-LOCALE-INCOMPATIBLE` | locale comparison over an operand the collation does not order (DETERMINATION L6) | §2023:8.8.4.2.11 |
+| `EC-LOCALE-SIZE` | format-2 editing truncates a significant character | §2023:13.18.40.5 GR14b |
+| `EC-LOCALE-IMP` | reserved; no WiseOwl COBOL use — documented as such | §2023:14.6.13.1.6 |
 
 Each is a one-line `ExceptionState.Set(name, fatal: true)` at the site, using the existing engine. Every one
 gets a golden that **observes** it (a `>>TURN … CHECKING ON` + declarative program, the shape probe
@@ -945,14 +945,14 @@ zero-fan-out result the project has been bitten by before.
 |---|---|---|
 | G1 | `Core/CobolSpecialNames.g4` | `localeClause` — no shape change; the binder arm changes. Add `orderTableClause` (§4.9). |
 | G2 | `Core/CobolSpecialNames.g4` | `alphabetDefinition` gains a `LOCALE cobolWord?` alternative (both the ALPHANUMERIC and the FOR NATIONAL branch). Removes the spurious `COBOL0901`/`COBOL0898` of §1 rows 4–5. |
-| G3 | `CobolParserCore.g4` | Delete the `computerAttributes : ~(DOT\|PROGRAM)+` sink; add `objectComputerClause*` + `characterClassificationClause` + `localePhrase`, make `computerName` optional in **both** computer paragraphs, and add `debuggingModeClause` to SOURCE-COMPUTER (§4.5). **Order-free** per §5.2.6.4. ⛔ Re-home the three sink-scanned edition gates in the same commit. |
+| G3 | `CobolParserCore.g4` | Delete the `computerAttributes : ~(DOT\|PROGRAM)+` sink; add `objectComputerClause*` + `characterClassificationClause` + `localePhrase`, make `computerName` optional in **both** computer paragraphs, and add `debuggingModeClause` to SOURCE-COMPUTER (§4.5). **Order-free** per §2023:5.2.6.4. ⛔ Re-home the three sink-scanned edition gates in the same commit. |
 | G4 | `CobolParserCore.g4` | `setLocaleStatement`, `setSaveLocaleStatement`, `localeCategory` (§4.3), listed ahead of `setToStatement`. |
 | G5 | `Core/CobolData.g4` | `pictureClause` gains the format-2 tail `LOCALE (IS? cobolWord)? SIZE IS? integerLiteral` (§4.6). ⚠ `SIZE` is already a reserved token, so the tail is unambiguous; the PICMODE lexer mode must terminate at `LOCALE`, exactly as it already does for `SYMBOL` in the CURRENCY clause. |
 
 ⚠ **Repetition arity check (the PB45 discipline).** Three loops are introduced and each points at a printed
-`…` or at choice indicators: `objectComputerClause*` ← §12.3.6.2's choice-indicator bracket; `localeCategory+`
-← §14.9.39.2 format 11's choice-indicator brace; the LOCALE clause's own repetition ← the `…` printed after
-the clause in §12.3.7.2. No loop is added for convenience.
+`…` or at choice indicators: `objectComputerClause*` ← §2023:12.3.6.2's choice-indicator bracket; `localeCategory+`
+← §2023:14.9.39.2 format 11's choice-indicator brace; the LOCALE clause's own repetition ← the `…` printed after
+the clause in §2023:12.3.7.2. No loop is added for convenience.
 
 Every version-gated rule carries its committed-match **construct-id annotation** per
 `DESIGN-frontend-grammar.md`; version numbers stay in `constructs.json`.
@@ -983,13 +983,13 @@ New `constructs.json` rows (ids follow the existing `<feature>-<edition>` conven
 
 | id | introducedIn | citation |
 |---|---|---|
-| `special-names-locale-clause-2002` | 2002 | ISO §12.3.7.2 / GR5 |
-| `alphabet-locale-phrase-2002` | 2002 | ISO §12.3.7.4 GR7 e |
-| `character-classification-2002` | 2002 | ISO §12.3.6.2 / GR5 |
-| `picture-locale-format2-2002` | 2002 | ISO §13.18.40.2 format 2 |
-| `set-locale-2002` | 2002 | ISO §14.9.39.2 format 11 |
-| `set-save-locale-2002` | 2002 | ISO §14.9.39.2 format 12 |
-| `order-table-clause-2002` | 2002 | ISO §12.3.7.2 (STANDARD-COMPARE support) |
+| `special-names-locale-clause-2002` | 2002 | ISO §2023:12.3.7.2 / GR5 |
+| `alphabet-locale-phrase-2002` | 2002 | ISO §2023:12.3.7.4 GR7 e |
+| `character-classification-2002` | 2002 | ISO §2023:12.3.6.2 / GR5 |
+| `picture-locale-format2-2002` | 2002 | ISO §2023:13.18.40.2 format 2 |
+| `set-locale-2002` | 2002 | ISO §2023:14.9.39.2 format 11 |
+| `set-save-locale-2002` | 2002 | ISO §2023:14.9.39.2 format 12 |
+| `order-table-clause-2002` | 2002 | ISO §2023:12.3.7.2 (STANDARD-COMPARE support) |
 
 ⚠ **The mandatory edition-gate sweep applies** (`feedback_edition_gate_sweep`): gating a construct breaks every
 corpus program that compiles it below that edition. Each row lands with its four-`--std` matrix case, and the
@@ -1016,15 +1016,15 @@ renumbering:
 
 | Rule | Reachable from |
 |---|---|
-| (a) locale-name not declared in a SPECIAL-NAMES LOCALE clause (§12.3.6.3 SR3 / §12.3.7.3 SR24 / §13.18.40.3 SR37 / §14.9.39.3 SR26 / §15.51.3 r4 …) — **one code, every site**, with the citing site named in the message | ✅ T1 — **COBOL1664** `locale-name-undeclared` (`SpecialNamesBinder.ResolveLocaleName`) |
+| (a) locale-name not declared in a SPECIAL-NAMES LOCALE clause (§2023:12.3.6.3 SR3 / §2023:12.3.7.3 SR24 / §2023:13.18.40.3 SR37 / §2023:14.9.39.3 SR26 / §2023:15.51.3 r4 …) — **one code, every site**, with the citing site named in the message | ✅ T1 — **COBOL1664** `locale-name-undeclared` (`SpecialNamesBinder.ResolveLocaleName`) |
 | (b) duplicate locale-name in SPECIAL-NAMES | ✅ T1 — **COBOL4250** `special-name-declared-twice` (the declaration funnel, kb/Work PB3216; was COBOL1665) |
-| (c) `SET LOCALE` names a category more than once (§5.2.6.4 "each at most once"), a non-category word, or USER-DEFAULT beside a category | ✅ T1 — **COBOL1666** `set-locale-categories` |
+| (c) `SET LOCALE` names a category more than once (§2023:5.2.6.4 "each at most once"), a non-category word, or USER-DEFAULT beside a category | ✅ T1 — **COBOL1666** `set-locale-categories` |
 | (d) `SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT`/`USER-DEFAULT` — SR25 requires identifier-10 or locale-name-1 | ✅ T1 — **COBOL1667** `set-locale-user-default-source` |
-| (e) identifier-10/-11 is not category data-pointer (§14.9.39.3 SR27/SR28) | ✅ T1 — **COBOL1668** `set-locale-pointer-category` |
+| (e) identifier-10/-11 is not category data-pointer (§2023:14.9.39.3 SR27/SR28) | ✅ T1 — **COBOL1668** `set-locale-pointer-category` |
 | — the LOCALE clause's literal-4 violating SR10/SR11 | ✅ T1 — the ONE SPECIAL-NAMES text-literal rule (COBOL5987, COBOL5988), shared with ORDER TABLE's literal-9 |
 | (f) format-2 PICTURE violates SR32–SR36 / Table 11 / EDITING-beside-LOCALE (one code, sub-rule named) | ✅ T6 — **COBOL1673** `picture-locale-format2` (`PictureAnalyzer.AnalyzeLocaleEdited`; SR32's two halves in `DataBinder`) |
-| (g) `SIGN` clause with a LOCALE PICTURE phrase (§13.16.3 SR19; §13.17.3 SR9 rides the A.4.2 SCREEN posture — the whole section is COBOL1560-recognized, so the screen twin is subsumed by that documented non-support; §13.15.3 has NO report-writer twin, a deliberate non-arm with a positive golden) | ✅ T6 — **COBOL1674** `sign-clause-with-locale-picture` |
-| (h) an alphabet defined `IS LOCALE` used where a **coded character set** is required (§8.8.4.4.3 SR2; §12.3.7.3 SR16g/SR17d; §13.18.13.3 SR1/SR2; Table 6) | ✅ T5 — **COBOL1669** `locale-alphabet-not-a-charset` at the class condition (`SpecialNamesBinder.IsLocaleAlphabet`, both alphabet classes); the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing yet — kb/Work PB110 |
+| (g) `SIGN` clause with a LOCALE PICTURE phrase (§2023:13.16.3 SR19; §2023:13.17.3 SR9 rides the A.4.2 SCREEN posture — the whole section is COBOL1560-recognized, so the screen twin is subsumed by that documented non-support; §2023:13.15.3 has NO report-writer twin, a deliberate non-arm with a positive golden) | ✅ T6 — **COBOL1674** `sign-clause-with-locale-picture` |
+| (h) an alphabet defined `IS LOCALE` used where a **coded character set** is required (§2023:8.8.4.4.3 SR2; §2023:12.3.7.3 SR16g/SR17d; §2023:13.18.13.3 SR1/SR2; Table 6) | ✅ T5 — **COBOL1669** `locale-alphabet-not-a-charset` at the class condition (`SpecialNamesBinder.IsLocaleAlphabet`, both alphabet classes); the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing yet — kb/Work PB110 |
 | (i) `CHARACTER CLASSIFICATION` / `PROGRAM COLLATING SEQUENCE` specified twice in one OBJECT-COMPUTER paragraph — ✅ landed with PB78 and, since PB3133, reported by the `ClauseCardinalities` OBJECT-COMPUTER row as COBOL2104 `choice-alternative-repeated` | done |
 
 ⚠ Under the **keep-non-support** decision (§15 Q1 answer "no"), a different, smaller set is required — one
@@ -1034,17 +1034,17 @@ answer**; see §12 track T0.
 
 ---
 
-## 8. The .NET mapping and its documented limits (§4.2.7 deliverable)
+## 8. The .NET mapping and its documented limits (§2023:4.2.7 deliverable)
 
 `LocaleFacts` is the ONE place a `CultureInfo` is read. Every row is an implementor determination and every row
 lands in `docs/CONFORMANCE.md`.
 
 | ISO 9945 category / field | COBOL use | .NET carrier | Documented limit |
 |---|---|---|---|
-| LC_COLLATE | §8.8.4.2.11, LOCALE-COMPARE, PCS, SORT/MERGE, ORD/CHAR | `CultureInfo.CompareInfo` | See the three globalization-mode limits below |
+| LC_COLLATE | §2023:8.8.4.2.11, LOCALE-COMPARE, PCS, SORT/MERGE, ORD/CHAR | `CultureInfo.CompareInfo` | See the three globalization-mode limits below |
 | LC_CTYPE | class tests, UPPER-/LOWER-CASE | `CultureInfo.TextInfo` | **Simple (1:1) mapping only** — DETERMINATION L9 — ✅ T5 (`LocaleFacts.TextInfo`; the class tests are POSIX `alpha`/`upper`/`lower` over Unicode letters, space excluded) |
 | LC_MONETARY `currency_symbol` | PICTURE fmt-2, NUMVAL-C | `NumberFormatInfo.CurrencySymbol` | — |
-| … `int_curr_symbol` | NUMVAL-C matching | `RegionInfo.ISOCurrencySymbol` | .NET has no separator character for the international form; WiseOwl COBOL uses the 3-letter code plus one space, and §15.68.3 r5b.3 only ever matches "*the first three characters*" |
+| … `int_curr_symbol` | NUMVAL-C matching | `RegionInfo.ISOCurrencySymbol` | .NET has no separator character for the international form; WiseOwl COBOL uses the 3-letter code plus one space, and §2023:15.68.3 r5b.3 only ever matches "*the first three characters*" |
 | … `mon_decimal_point` / `mon_thousands_sep` | separators | `CurrencyDecimalSeparator` / `CurrencyGroupSeparator` | — |
 | … `mon_grouping` | group sizes | `CurrencyGroupSizes` | — |
 | … `frac_digits` | fraction digits | `CurrencyDecimalDigits` | — |
@@ -1052,7 +1052,7 @@ lands in `docs/CONFORMANCE.md`.
 | … `positive_sign` / `negative_sign` | sign strings | `PositiveSign` / `NegativeSign` | — |
 | … `p_cs_precedes`, `n_cs_precedes`, `p_sign_posn`, `n_sign_posn` | placement | derived from `CurrencyPositivePattern` (4 values) and `CurrencyNegativePattern` (16 values) | A **generated** pattern→triple table, never hand-maintained (see below) |
 | LC_TIME `d_fmt` / `t_fmt` | LOCALE-DATE / -TIME | `ShortDatePattern` / `LongTimePattern` | DETERMINATIONS L10, L12, L13 — ✅ T4 + PB2764 (`TimeFacts`, the LC_TIME snapshot beside `MonetaryFacts`: `TimeFacts.FormatDate` / `FormatTime` render `d_fmt` / `t_fmt` over their tokens, since hour 24 / seconds 99 / a fraction exceed a `DateTime`, and every separator, designator, name, era and decimal point they emit has passed `LocaleFacts.NormalizeLocaleText`; the date is the Gregorian date argument-1 names) |
-| LC_MESSAGES, LC_NUMERIC | settable and queryable only | stored slots | §8.2.1: "*not used directly by COBOL; however, the ability to set and query these locale categories is provided*" (`--check` OK) |
+| LC_MESSAGES, LC_NUMERIC | settable and queryable only | stored slots | §2023:8.2.1: "*not used directly by COBOL; however, the ability to set and query these locale categories is provided*" (`--check` OK) |
 
 **The pattern→placement tables are DERIVED AT RUNTIME, not written and not build-time-generated** (a T6
 correction to this section's own draft, rule 5: a build-time source generator bakes the BUILD host's
@@ -1068,7 +1068,7 @@ The **drift test** (`MonetaryFactsTests`) asserts, for every specific culture on
 examined), that WiseOwl COBOL's format-2 edit produces the same *placement shape* as `value.ToString("C",
 culture)`, and that the derived range equals the runtime's accepted maximum — the assertion that would have
 caught pattern 16 and will catch a 17. ⚠ The test builds its picture FROM the culture's `frac_digits` so the
-two digit strings are comparable — a TEST-CONSTRUCTION choice, not a rule: §13.18.40.5 r12 hands the locale
+two digit strings are comparable — a TEST-CONSTRUCTION choice, not a rule: §2023:13.18.40.5 r12 hands the locale
 only the separators and group sizes, and NO editing rule reads `frac_digits`.
 
 **Three globalization-mode limits, all detected rather than assumed:**
@@ -1077,10 +1077,10 @@ only the separators and group sizes, and NO editing rule reads `frac_digits`.
    every culture to the invariant one. LC_COLLATE is unaffected — it is WiseOwl COBOL's own engine (PB101), never
    `CompareInfo` — but LC_CTYPE / LC_MONETARY / LC_TIME are .NET culture data: `LocaleFacts` probes for the mode
    once (`LocaleFacts.InvariantMode`) and, if set, every non-root locale's culture data is INCOMPLETE
-   (`HasCultureData` false) ⇒ **`EC-LOCALE-INVALID`** at an operation that needs it (§8.2.1 "invalid or
-   incomplete"), the invariant content standing when checking is off — the honest answer §8.2.1 provides for.
+   (`HasCultureData` false) ⇒ **`EC-LOCALE-INVALID`** at an operation that needs it (§2023:8.2.1 "invalid or
+   incomplete"), the invariant content standing when checking is off — the honest answer §2023:8.2.1 provides for.
    (As built at T4; the draft said EC-LOCALE-MISSING — availability is the ONE known-locale rule, content is
-   the culture data, and §8.2.1 names a condition for each.)
+   the culture data, and §2023:8.2.1 names a condition for each.)
 2. **NLS vs ICU on Windows** (`System.Globalization.UseNls`) changes collation results. Detected and reported
    in the compiler's `--version` banner and in `CONFORMANCE.md`; results are guaranteed reproducible only
    within one mode.
@@ -1101,10 +1101,10 @@ must be re-derived against GnuCOBOL's own documentation before it is relied on f
 
 | Latitude point | GnuCOBOL evidence | Bearing on this design |
 |---|---|---|
-| `LOCALE-COMPARE` | **[M]** Accepted (`verdict: WE_REJECT_THEY_ACCEPT`, case `run_functions:1883`) and its testsuite pins the **one-character** results: `("A","B") = "<"`, `("B","A") = ">"`, `("A","A") = "="`. | Confirms §15.51.4 r5's contract as the interoperable one. Adopt. Note the test uses **comma-separated** arguments and never the locale-name arm. |
+| `LOCALE-COMPARE` | **[M]** Accepted (`verdict: WE_REJECT_THEY_ACCEPT`, case `run_functions:1883`) and its testsuite pins the **one-character** results: `("A","B") = "<"`, `("B","A") = ">"`, `("A","A") = "="`. | Confirms §2023:15.51.4 r5's contract as the interoperable one. Adopt. Note the test uses **comma-separated** arguments and never the locale-name arm. |
 | `LOCALE-DATE` | **[M]** Accepted (`run_functions:1913`); the test asserts only `X NOT = SPACES` for `"19630302"` into `PIC X(32)`. | Argument-1 is a **string** in the interoperable reading too. No format is pinned, so GnuCOBOL supplies no evidence on `d_fmt` mapping — DETERMINATION L10 stands on its own. |
 | `LOCALE-TIME` | **[M]** Accepted (`run_functions:1939`), `"233012"`, same non-blank assertion. | Same. |
-| `LOCALE-TIME-FROM-SECONDS` | **[M]** Accepted (`run_functions:1965`), integer `33012`. | Confirms the numeric argument-1 of §15.54.3 r1. |
+| `LOCALE-TIME-FROM-SECONDS` | **[M]** Accepted (`run_functions:1965`), integer `33012`. | Confirms the numeric argument-1 of §2023:15.54.3 r1. |
 | `STANDARD-COMPARE` | **[M]** *No case exists* in the harvested corpus. | No evidence either way. Do not infer non-support from absence. |
 | SPECIAL-NAMES `LOCALE` clause | **[M]** No case in the harvested corpus (a `LOCALE` grep over `tests/external/gnucobol/` hits only `run_functions.at`). **[U]** GnuCOBOL is generally understood to accept a SPECIAL-NAMES LOCALE clause and to implement the locale intrinsics over the C library's `setlocale`/`strcoll`/`strftime`. | The **[U]** claim, if true, would make the external identification a **C library locale name** (`fr_FR.UTF-8`), which is exactly why DETERMINATION L1 normalizes the POSIX spelling. Verify against GnuCOBOL's manual before citing it as precedent. |
 | `SET LOCALE` formats 11/12 | **[M]** No case in the corpus. **[U]** unknown. | No latitude guidance; the design follows the standard alone. |
@@ -1132,21 +1132,21 @@ catch.
 - `locale_compare_ordering` — `FUNCTION LOCALE-COMPARE` over a pair whose order **differs** between the
   invariant and a tailored locale (`"côte"` vs `"coter"` under `fr-FR`); catches a stub that returns ordinal.
   Result witnessed by `FUNCTION ORD` of the returned character, never by the console echo.
-- `locale_compare_trailing_spaces` — `""`, `"   "`, `"a  "` (the three §15.51.4 r2 / §8.8.4.2.11 cases);
+- `locale_compare_trailing_spaces` — `""`, `"   "`, `"a  "` (the three §2023:15.51.4 r2 / §2023:8.8.4.2.11 cases);
   catches the plain-`TrimEnd` simplification.
 - `locale_relation_pcs` — `ALPHABET a IS LOCALE fr` + `PROGRAM COLLATING SEQUENCE IS a` + a relation whose
   truth flips versus native; catches a PCS that silently stays native.
 - `locale_pcs_current` — the same with `ALPHABET a IS LOCALE` (no locale-name) and a `SET LOCALE LC_COLLATE`
-  **between two comparisons**; catches a one-time resolution where §12.3.7.4 GR7e requires per-use.
+  **between two comparisons**; catches a one-time resolution where §2023:12.3.7.4 GR7e requires per-use.
 - ✅ `pb64t1_set_locale_categories` (+ negative `pb64t1-set-locale-duplicate-category`) — `SET LOCALE LC_NUMERIC LC_TIME TO fr` (the multi-category, order-free form) and a
   duplicate-category negative; catches a scalar-category model.
 - ✅ `pb64t1_save_restore_locale` (+ `pb64t1_ec_locale_missing`, `pb64t1_sort_locale_snapshot`) — format 12 then format 11 through the pointer, plus an `EC-LOCALE-INVALID-PTR`
   negative on a NULL and on an `ADDRESS OF` pointer.
-- `locale_picture_edit_size` — the §13.18.40.5 GR14 three cases (larger, exact, smaller-with-EC-LOCALE-SIZE)
+- `locale_picture_edit_size` — the §2023:13.18.40.5 GR14 three cases (larger, exact, smaller-with-EC-LOCALE-SIZE)
   under two locales; plus `BLANK WHEN ZERO` precedence (GR10) and a `SIGN`-clause negative (SR19/SR9).
 - `locale_date_time` — `LOCALE-DATE`/`LOCALE-TIME`/`LOCALE-TIME-FROM-SECONDS` under a pinned locale, with the
   result length witnessed by `FUNCTION LENGTH`; catches the `RuntimeDetermined` result rule collapsing to a
-  fixed length. Also the §15.53.3 r3 boundary values `24` hours and `99` seconds.
+  fixed length. Also the §2023:15.53.3 r3 boundary values `24` hours and `99` seconds.
 - ✅ `pb64t5_case_locale_phrase` (was `locale_case_turkish`) — `LOWER-CASE("I" LOCALE TR)` and `UPPER-CASE("i" LOCALE TR)`, witnessed by
   `FUNCTION ORD` (U+0131 / U+0130); catches an invariant fold wearing a locale argument — plus `CLASSIFICATION IS
   LOCALE` resolved at the container's vs the CALLed contained program's activation, and the PLAIN program's r4 arm.
@@ -1163,13 +1163,13 @@ catch.
 - `object_computer_obsolete_gates` — MEMORY SIZE / SEGMENT-LIMIT at `--std 2002` and SOURCE-COMPUTER
   `WITH DEBUGGING MODE` at `--std 85` and `2002`; these already exist in the edition matrix and must be run
   **against the rewritten grammar** as the proof that G3 re-homed all three gates rather than dropping them.
-- ✅ `pb64t5-class-condition-locale-alphabet` (negative) — `IF X IS a` where `a IS LOCALE` (either class; §8.8.4.4.3
+- ✅ `pb64t5-class-condition-locale-alphabet` (negative) — `IF X IS a` where `a IS LOCALE` (either class; §2023:8.8.4.4.3
   SR2) is COBOL1669; catches Table 6's blank coded-character-set column being ignored. The `SYMBOLIC CHARACTERS /
-  CLASS … IN a` and CODE-SET siblings (§12.3.7.3 SR16g / SR17d; §13.18.13.3 SR1/SR2) land with kb/Work PB110.
+  CLASS … IN a` and CODE-SET siblings (§2023:12.3.7.3 SR16g / SR17d; §2023:13.18.13.3 SR1/SR2) land with kb/Work PB110.
 - Six EC goldens, one per `EC-LOCALE-*`, each `>>TURN … CHECKING ON` with a declarative that observes it.
 
 **T-B · Unit tests.** `LocaleFacts` mapping (each POSIX field → its .NET carrier); the pattern→placement table
-generator; `LocaleState` category independence (setting LC_TIME leaves LC_COLLATE alone — §14.6.6 r3);
+generator; `LocaleState` category independence (setting LC_TIME leaves LC_COLLATE alone — §2023:14.6.6 r3);
 saved-locale handle lifetime; `CobolCollation` conformance across all four implementations against a shared
 behavioural test list.
 
@@ -1247,13 +1247,13 @@ Then, if Q1 is answered "implement":
 
 | # | Increment | Closes |
 |---|---|---|
-| T1 | ✅ **LANDED 2026-08-19 (PB64 T1)** — `LocaleSymbol` + `LocaleRef` (`Binding/Model/LocaleSymbol.cs`; `LocaleCollatingSpec(LocaleRef)`); `LocaleState` on `RunUnit` in its full form (`LocaleValue` per category, `LocaleCategorySet`, the saved-locale `SavedLocalePointer` handle, `SetFrom*` / `SetUserDefaultFrom*` / `Save`); `LocaleIdentification.Normalize` (L1); the SPECIAL-NAMES LOCALE clause declares (`SpecialNamesBinder.LocaleBind`, SR10/SR11 through the ONE text-literal rule shared with ORDER TABLE, COBOL4250 duplicates, §12.3.7.4 GR1 inheritance); `SET` formats 11/12 (`SetBinder.BindSetLocale` / `BindSaveLocale` → `BoundSetLocale` / `BoundSaveLocale` → `SetEmitter`); the NAMED `IS LOCALE locale-name-2` alphabet (T3's remainder); the EC-LOCALE ambient gates (MISSING / INVALID-PTR / INCOMPATIBLE — `CheckingFlags`, `ExceptionState.Locale*Error`, `EcBinder`, `EcEmitter.FatalAmbientGates`; the EC-LOCALE names legal again); the SORT/MERGE snapshot (§14.6.6 r5 — `CobolCollation.Snapshot`, `CobolSort.Init(name, keys, collation, national)` — BOTH GR5 sequences since kb/Work PB678, the key descriptors since kb/Work PB3339); COBOL1664–1668; construct rows `special-names-locale-2002` / `set-locale-2002` / `set-save-locale-2002`; goldens `tests/conformance/2002/pb64t1_*` + eight negatives; the harness pins `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` to the root (T-F). `LocaleFacts` (S5) is NOT part of T1 — it is the LC_CTYPE / LC_MONETARY / LC_TIME snapshot the T4–T6 consumers need and lands with T4. | item 9, 10 (clause half) |
+| T1 | ✅ **LANDED 2026-08-19 (PB64 T1)** — `LocaleSymbol` + `LocaleRef` (`Binding/Model/LocaleSymbol.cs`; `LocaleCollatingSpec(LocaleRef)`); `LocaleState` on `RunUnit` in its full form (`LocaleValue` per category, `LocaleCategorySet`, the saved-locale `SavedLocalePointer` handle, `SetFrom*` / `SetUserDefaultFrom*` / `Save`); `LocaleIdentification.Normalize` (L1); the SPECIAL-NAMES LOCALE clause declares (`SpecialNamesBinder.LocaleBind`, SR10/SR11 through the ONE text-literal rule shared with ORDER TABLE, COBOL4250 duplicates, §2023:12.3.7.4 GR1 inheritance); `SET` formats 11/12 (`SetBinder.BindSetLocale` / `BindSaveLocale` → `BoundSetLocale` / `BoundSaveLocale` → `SetEmitter`); the NAMED `IS LOCALE locale-name-2` alphabet (T3's remainder); the EC-LOCALE ambient gates (MISSING / INVALID-PTR / INCOMPATIBLE — `CheckingFlags`, `ExceptionState.Locale*Error`, `EcBinder`, `EcEmitter.FatalAmbientGates`; the EC-LOCALE names legal again); the SORT/MERGE snapshot (§2023:14.6.6 r5 — `CobolCollation.Snapshot`, `CobolSort.Init(name, keys, collation, national)` — BOTH GR5 sequences since kb/Work PB678, the key descriptors since kb/Work PB3339); COBOL1664–1668; construct rows `special-names-locale-2002` / `set-locale-2002` / `set-save-locale-2002`; goldens `tests/conformance/2002/pb64t1_*` + eight negatives; the harness pins `COBOL_USER_LOCALE` / `COBOL_SYSTEM_LOCALE` to the root (T-F). `LocaleFacts` (S5) is NOT part of T1 — it is the LC_CTYPE / LC_MONETARY / LC_TIME snapshot the T4–T6 consumers need and lands with T4. | item 9, 10 (clause half) |
 | T2 | ✅ **LANDED 2026-08-18 (PB101)** — `CobolCollation` collapse; corpus/unit batteries green, ordinary programs' generated text unchanged | (enables T3) |
-| T3 | ✅ **LANDED (PB101 the current-locale form; PB64 T1 the NAMED form and the SORT snapshot)** — `LocaleCollation` + `ALPHABET … IS LOCALE [locale-name-2]` + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the named form is the sequence of THAT locale (its L1-normalized tag in the carrier; EC-LOCALE-MISSING at use when unavailable); the SORT/MERGE sequence is snapshotted at statement start (§14.6.6 r5) | items 10 (alphabet half), §8.8.4.2.11 |
-| T4 | ✅ **LANDED 2026-08-19 (PB64 T4)** — `Runtime/Intrinsics/CobolLocale.cs` (`Compare` over the ONE `LocaleCollation` carrier + the sign map; `Date` / `Time` / `TimeFromSeconds` over `LocaleFacts` — `Runtime/Globalization/LocaleFacts.cs`, the ONE place a `CultureInfo` is read, L10: `d_fmt` = ShortDatePattern, `t_fmt` = LongTimePattern, rendered over the pattern's tokens so §15.53.3 r3's hour 24 / seconds 99 and a scaled argument's fraction render); the catalog rows bind Runtime with the `'l'` locale-name kind (`IntrinsicArgumentRules.NonOperandArgumentKinds['l']`, `IntrinsicBinder.BindLocaleFunction`, `BoundIntrinsicCall.Locale` — the ONE `LocaleRef`), the Verified schemas screen the operands (the 8/6-position widths); EC-LOCALE-MISSING at use, **EC-LOCALE-INVALID** (§8.2.1 — no culture data; a new ambient gate) ; `RuntimeDetermined` needed no enum member: the dynamic-length string every §15 string function already returns IS the run-time-determined length | items 2–5 |
-| T5 | ✅ **LANDED 2026-08-19 (PB64 T5)** — `ClassificationSpec` / `LocalePhrase` (`Binding/Model/LocaleSymbol.cs`; `SpecialNamesBinder.ResolveClassification`), `Runtime/Globalization/CharacterClassification.cs` (`Resolve` at each activation — the `__CLASSIFY` field, `DispatchEmitter`'s `__Activate` prologue; `LocalePhraseKind`), `CobolLocale.UpperCase / LowerCase` (the LOCALE phrase — `BindCaseFunctionWithLocale`, `BoundIntrinsicCall.Locale`; the classification — `__CLASSIFY.For(national)`), `CobolClass.IsAlphabetic* (s, LocaleFacts?)` (GR3 b1/c1/d1 — letters per LC_CTYPE, no space; the case round-trip), **`LocaleFacts.Require` — the ONE §8.2.1 gate** (MISSING / INVALID at use, the LOCALE functions moved onto it), `SpecialNamesBinder.IsLocaleAlphabet` + COBOL1669 (§8.8.4.4.3 SR2), EC-LOCALE-INVALID enabled on every statement of a module with a classification; construct rows `character-classification-2002` / `case-function-locale-phrase-2014`; goldens `2002/pb64t5_*` (three) + four negatives; `locale_keyword_a49` shrunk to the T6 functions. Registered beside it: PB109 (the GR3 a coded-character-set class condition is a loud staged value) and PB110 (the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing). | items 6, 7, 13 |
-| T6 | ✅ **LANDED 2026-08-28 (PB64 T6)** — `Runtime/Globalization/MonetaryFacts.cs` (the ONE LC_MONETARY snapshot, L12-normalized) + `MonetaryPlacement.cs` (the ONE POSIX renderer + the RUNTIME-derived pattern tables, range discovered, round-trip-proved) + `Runtime/Values/Numeric/CobolLocaleEdit.cs` (§13.18.40.5 r9–r15 editing/de-editing; **EC-LOCALE-SIZE's first raise site**, character-based per r14 b; DeEdit = the §14.6.13.2 r4 image-inverse, EC-DATA-INCOMPATIBLE) + the NUMVAL-C LOCALE scan (`CobolIntrinsics.NumvalLocale.cs` — templates from the snapshot, r4 NOT inherited, ANYCASE folds only the currency comparison via the locale's LC_CTYPE, §15.94.4 positions ordinal); `PicInfo.LocaleEdit` (`LocaleEditSpec` — Length = SIZE, EditMask NULL, the doc that licenses every mask deref REWRITTEN), `AnalyzeLocaleEdited` (SR33–36 + Table 11's closed form `[+] [cs] Z… 9… [. Z…\|9…]`, DECIMAL-POINT IS COMMA inert per §12.3.7.4 GR14), the DataBinder arms (SR32 both halves, SR19 → 1674, SR37 → 1664, ValidateNumericValue's locale legs), the REPORT-WRITER arm (PB113 — one analyzer, three callers), the emit dispatch INSIDE `RuntimeApi.EditFormatFor`/`EditTryFormatLocale`/`ReceiverScaleOf` (the ONE receiver-scale rule replacing two drifted copies) + `NumericRenderer`'s de-edit arm + the three VALUE-image producers (`LocaleEditCompose` — runtime images, no compile-time image exists) + `ConditionRenderer`'s level-88 arm + `OoConformance`'s locale-identity axis + `HIGHEST-/LOWEST-ALGEBRAIC`'s locale arm; `BindNumvalCFamily`'s r5 arm (`BoundIntrinsicCall.LocaleWritten` — bare LOCALE ≠ no phrase) + the three renderer arms (native/Test/Dec); grammar `(IS? cobolWord)?` (PB114) + the edition-free predicate (the ORDER TABLE precedent); rows `picture-locale-format2-2002` / `numval-c-locale-phrase-2002` (and `numval-c-anycase-keyword-2002` for the ANYCASE keyword, a 2002 form too, kb/Work PB4359); COBOL1673/1674; COBOL1518 + `LocaleUnsupported` + `IntrinsicBind.Unsupported` DELETED; goldens `2002/pb64t6_*` (6) + three negatives + the pb100/locale_keyword inversions; +60 Unit (the drift oracle over every host culture green first run) | items 8, 12 — **the module claim completes** |
-| T7 | ✅ **LANDED 2026-08-18 (PB101)** — `ORDER TABLE ordering-name IS literal-9` (§12.3.7.2, one clause; SR10/SR11; GR17 — a literal the engine cannot resolve warns COBOL1662 and sets EC-ORDER-NOT-SUPPORTED at every reference) + `STANDARD-COMPARE` (§15.85: `BindStandardCompare`, ArgKinds `ssoi` with `'o'` = §15.3 item 12, COBOL1663 for r5/r6 violations; runtime `CobolIntrinsics.StandardCompare` over `CollationEngine.Standard` / `StandardAtLevel`, r4 trim, r6/r7 result; EC-ORDER-NOT-SUPPORTED through the ambient-gate machinery, `"="` when checking is off) | item 11 |
+| T3 | ✅ **LANDED (PB101 the current-locale form; PB64 T1 the NAMED form and the SORT snapshot)** — `LocaleCollation` + `ALPHABET … IS LOCALE [locale-name-2]` + PCS + SORT/MERGE + indexed keys + MAX/MIN + HIGH/LOW-VALUE + ORD/CHAR; the named form is the sequence of THAT locale (its L1-normalized tag in the carrier; EC-LOCALE-MISSING at use when unavailable); the SORT/MERGE sequence is snapshotted at statement start (§2023:14.6.6 r5) | items 10 (alphabet half), §2023:8.8.4.2.11 |
+| T4 | ✅ **LANDED 2026-08-19 (PB64 T4)** — `Runtime/Intrinsics/CobolLocale.cs` (`Compare` over the ONE `LocaleCollation` carrier + the sign map; `Date` / `Time` / `TimeFromSeconds` over `LocaleFacts` — `Runtime/Globalization/LocaleFacts.cs`, the ONE place a `CultureInfo` is read, L10: `d_fmt` = ShortDatePattern, `t_fmt` = LongTimePattern, rendered over the pattern's tokens so §2023:15.53.3 r3's hour 24 / seconds 99 and a scaled argument's fraction render); the catalog rows bind Runtime with the `'l'` locale-name kind (`IntrinsicArgumentRules.NonOperandArgumentKinds['l']`, `IntrinsicBinder.BindLocaleFunction`, `BoundIntrinsicCall.Locale` — the ONE `LocaleRef`), the Verified schemas screen the operands (the 8/6-position widths); EC-LOCALE-MISSING at use, **EC-LOCALE-INVALID** (§2023:8.2.1 — no culture data; a new ambient gate) ; `RuntimeDetermined` needed no enum member: the dynamic-length string every §15 string function already returns IS the run-time-determined length | items 2–5 |
+| T5 | ✅ **LANDED 2026-08-19 (PB64 T5)** — `ClassificationSpec` / `LocalePhrase` (`Binding/Model/LocaleSymbol.cs`; `SpecialNamesBinder.ResolveClassification`), `Runtime/Globalization/CharacterClassification.cs` (`Resolve` at each activation — the `__CLASSIFY` field, `DispatchEmitter`'s `__Activate` prologue; `LocalePhraseKind`), `CobolLocale.UpperCase / LowerCase` (the LOCALE phrase — `BindCaseFunctionWithLocale`, `BoundIntrinsicCall.Locale`; the classification — `__CLASSIFY.For(national)`), `CobolClass.IsAlphabetic* (s, LocaleFacts?)` (GR3 b1/c1/d1 — letters per LC_CTYPE, no space; the case round-trip), **`LocaleFacts.Require` — the ONE §2023:8.2.1 gate** (MISSING / INVALID at use, the LOCALE functions moved onto it), `SpecialNamesBinder.IsLocaleAlphabet` + COBOL1669 (§2023:8.8.4.4.3 SR2), EC-LOCALE-INVALID enabled on every statement of a module with a classification; construct rows `character-classification-2002` / `case-function-locale-phrase-2014`; goldens `2002/pb64t5_*` (three) + four negatives; `locale_keyword_a49` shrunk to the T6 functions. Registered beside it: PB109 (the GR3 a coded-character-set class condition is a loud staged value) and PB110 (the SYMBOLIC CHARACTERS / CLASS `IN` phrases and CODE-SET bind nothing). | items 6, 7, 13 |
+| T6 | ✅ **LANDED 2026-08-28 (PB64 T6)** — `Runtime/Globalization/MonetaryFacts.cs` (the ONE LC_MONETARY snapshot, L12-normalized) + `MonetaryPlacement.cs` (the ONE POSIX renderer + the RUNTIME-derived pattern tables, range discovered, round-trip-proved) + `Runtime/Values/Numeric/CobolLocaleEdit.cs` (§2023:13.18.40.5 r9–r15 editing/de-editing; **EC-LOCALE-SIZE's first raise site**, character-based per r14 b; DeEdit = the §2023:14.6.13.2 r4 image-inverse, EC-DATA-INCOMPATIBLE) + the NUMVAL-C LOCALE scan (`CobolIntrinsics.NumvalLocale.cs` — templates from the snapshot, r4 NOT inherited, ANYCASE folds only the currency comparison via the locale's LC_CTYPE, §2023:15.94.4 positions ordinal); `PicInfo.LocaleEdit` (`LocaleEditSpec` — Length = SIZE, EditMask NULL, the doc that licenses every mask deref REWRITTEN), `AnalyzeLocaleEdited` (SR33–36 + Table 11's closed form `[+] [cs] Z… 9… [. Z…\|9…]`, DECIMAL-POINT IS COMMA inert per §2023:12.3.7.4 GR14), the DataBinder arms (SR32 both halves, SR19 → 1674, SR37 → 1664, ValidateNumericValue's locale legs), the REPORT-WRITER arm (PB113 — one analyzer, three callers), the emit dispatch INSIDE `RuntimeApi.EditFormatFor`/`EditTryFormatLocale`/`ReceiverScaleOf` (the ONE receiver-scale rule replacing two drifted copies) + `NumericRenderer`'s de-edit arm + the three VALUE-image producers (`LocaleEditCompose` — runtime images, no compile-time image exists) + `ConditionRenderer`'s level-88 arm + `OoConformance`'s locale-identity axis + `HIGHEST-/LOWEST-ALGEBRAIC`'s locale arm; `BindNumvalCFamily`'s r5 arm (`BoundIntrinsicCall.LocaleWritten` — bare LOCALE ≠ no phrase) + the three renderer arms (native/Test/Dec); grammar `(IS? cobolWord)?` (PB114) + the edition-free predicate (the ORDER TABLE precedent); rows `picture-locale-format2-2002` / `numval-c-locale-phrase-2002` (and `numval-c-anycase-keyword-2002` for the ANYCASE keyword, a 2002 form too, kb/Work PB4359); COBOL1673/1674; COBOL1518 + `LocaleUnsupported` + `IntrinsicBind.Unsupported` DELETED; goldens `2002/pb64t6_*` (6) + three negatives + the pb100/locale_keyword inversions; +60 Unit (the drift oracle over every host culture green first run) | items 8, 12 — **the module claim completes** |
+| T7 | ✅ **LANDED 2026-08-18 (PB101)** — `ORDER TABLE ordering-name IS literal-9` (§2023:12.3.7.2, one clause; SR10/SR11; GR17 — a literal the engine cannot resolve warns COBOL1662 and sets EC-ORDER-NOT-SUPPORTED at every reference) + `STANDARD-COMPARE` (§2023:15.85: `BindStandardCompare`, ArgKinds `ssoi` with `'o'` = §2023:15.3 item 12, COBOL1663 for r5/r6 violations; runtime `CobolIntrinsics.StandardCompare` over `CollationEngine.Standard` / `StandardAtLevel`, r4 trim, r6/r7 result; EC-ORDER-NOT-SUPPORTED through the ambient-gate machinery, `"="` when checking is off) | item 11 |
 
 T2 is deliberately a **behaviour-free** commit: a refactor that changes results is indistinguishable from a
 feature that breaks them.
@@ -1313,6 +1313,6 @@ under a locale (L7), indexed keys (L8), simple case mapping (L9), `d_fmt`/`t_fmt
   `PICTURE` format 2 and `CHARACTER CLASSIFICATION`. `cobc` is not installed here; the harvested corpus is
   silent on all four. These must be re-derived from GnuCOBOL's documentation (never its GPL sources) before
   any latitude decision leans on them.
-- Whether §8.3.3.6.4's "*multiple-character combination*" for HIGH-VALUE/LOW-VALUE has any realizable meaning
+- Whether §2023:8.3.3.6.4's "*multiple-character combination*" for HIGH-VALUE/LOW-VALUE has any realizable meaning
   in a typed-native model, or is (as §4.4.4 assumes) an artefact of byte-oriented implementations. A spec
   reading, not an owner decision — but it should be settled before T3 rather than after.

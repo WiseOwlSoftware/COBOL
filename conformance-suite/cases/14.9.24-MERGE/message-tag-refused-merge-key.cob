@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB4740 review R1-3 - A MERGE KEY OF CLASS MESSAGE-TAG IS REFUSED BY §14.9.24.3 SR4 c).
+      *> kb/Work PB4740 review R1-3 - A MERGE KEY OF CLASS MESSAGE-TAG IS REFUSED BY §2023:14.9.24.3 SR4 c).
       *>   cite.py --check 14.9.24.3 "Key data items shall not be of the class boolean, message-tag, object, or
-      *>     pointer." -> OK §14.9.24.3 4) c)
+      *>     pointer." -> OK §2023:14.9.24.3 4) c)
       *> The MERGE twin of message-tag-refused-sort-file-key: SMT is a level-1 USAGE MESSAGE-TAG record of the SD, 8
       *> bytes wide as a slot (DataItem.PointerByteWidth), so the USING and GIVING records are X(8).
        IDENTIFICATION DIVISION.

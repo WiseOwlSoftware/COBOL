@@ -12,18 +12,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ANSWERS '61' (kb/Work PB670, the owner's determination of 2026-10-23, option (i); docs/CONFORMANCE.md DOC-A.1-77 and
 /// DOC-A.1-131; <see cref="DialectBehavior.FileSharingFacility"/>).
 ///
-/// <para>The rule: ISO §9.1.15 — <i>"If no specification is made in either location, the implementor defines the sharing
+/// <para>The rule: ISO §2023:9.1.15 — <i>"If no specification is made in either location, the implementor defines the sharing
 /// mode in which the file is opened; the implementor-defined sharing mode may be one of the modes specified in this Working
-/// Draft International Standard or may be a mode completely specified by the implementor"</i> — and §A.4.1, which makes
+/// Draft International Standard or may be a mode completely specified by the implementor"</i> — and §2023:A.4.1, which makes
 /// <i>"any associated syntax rules, general rules, other rules, exception conditions, and I-O status values"</i> of an
 /// optional module optional with it (file sharing and record locking is Annex A.4.7). A COBOL-85 program is compiled for a
-/// processor on which the module is not in effect: the mode its connectors hold restricts nobody, Table 19 (§14.9.27.4) is
-/// not asked, and the file sharing conflict condition (§9.1.13.9 item 1) does not exist. GnuCOBOL's measured
+/// processor on which the module is not in effect: the mode its connectors hold restricts nobody, Table 19 (§2023:14.9.27.4) is
+/// not asked, and the file sharing conflict condition (§2023:9.1.13.9 item 1) does not exist. GnuCOBOL's measured
 /// <c>-std=cobol85</c> behaviour is the same: every OPEN below answers '00'.</para>
 ///
 /// <para>What each test fails on: the first on any pair of opens (every organization, every pair of open modes) that is
 /// refused at 85 or admitted by mistake at 2002; the second on a '61' where a process outside the run unit holds the file
-/// (a status 1985 does not define: the host's refusal is §9.1.13.6 item 1's '30') and on a file that a refused open
+/// (a status 1985 does not define: the host's refusal is §2023:9.1.13.6 item 1's '30') and on a file that a refused open
 /// affected; the third on a second RUN UNIT being refused by a file lock (there is none at 85); the fourth on a record a
 /// connector appended and a sibling's append losing it; the last on the CLOSE and the re-OPEN that follow a refusal.</para>
 /// </summary>
@@ -66,9 +66,9 @@ public sealed class SharingFacilityEditionTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>§9.1.15 with §A.4.1 at COBOL-85: every pair of opens of one physical file by two clause-less connectors
+    /// <summary>§2023:9.1.15 with §2023:A.4.1 at COBOL-85: every pair of opens of one physical file by two clause-less connectors
     /// of one run unit is a normal open, in every organization, whatever the two modes — OUTPUT beside a reader and I-O
-    /// beside I-O included, the cells Table 19 prints "Unsuccessful open" for (§9.1.13.9 item 1 e)).</summary>
+    /// beside I-O included, the cells Table 19 prints "Unsuccessful open" for (§2023:9.1.13.9 item 1 e)).</summary>
     [Theory]
     [MemberData(nameof(EveryPairOfOpens))]
     public void AtCobol85_EveryPairOfOpensIsANormalOpen(FileOrg org, FileOpenMode existing, FileOpenMode incoming)
@@ -118,8 +118,8 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>A process outside the run unit holds the file exclusively. Where the facility is in effect that is
-    /// §9.1.13.9 item 1's '61' (kb/Work PB860); at COBOL-85 '61' is a status the edition does not define, and the host's
-    /// refusal is §9.1.13.6 item 1's '30'. §14.9.27.4 GR25 holds at both: the unsuccessful OPEN leaves the file as it
+    /// §2023:9.1.13.9 item 1's '61' (kb/Work PB860); at COBOL-85 '61' is a status the edition does not define, and the host's
+    /// refusal is §2023:9.1.13.6 item 1's '30'. §2023:14.9.27.4 GR25 holds at both: the unsuccessful OPEN leaves the file as it
     /// was, OUTPUT's truncation included.</summary>
     [Theory]
     [MemberData(nameof(EveryOpen))]
@@ -145,8 +145,8 @@ public sealed class SharingFacilityEditionTests
                     $"{org} OPEN {mode} at {edition} against an outside process's exclusive handle answered '{status}'; "
                     + $"expected '{expected}'.");
                 reg.Close("F");
-                Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("F"));   // §9.1.13.7 item 2: nothing was opened
-                Assert.Equal(before, File.ReadAllBytes(host));               // §14.9.27.4 GR25
+                Assert.Equal(FileStatusCode.FileNotOpen, reg.Status("F"));   // §2023:9.1.13.7 item 2: nothing was opened
+                Assert.Equal(before, File.ReadAllBytes(host));               // §2023:14.9.27.4 GR25
                 // The refusal ends with the handle: the connector's next OPEN succeeds.
                 FileHarness.Open(reg, "F", mode);
                 Assert.Equal("00", reg.Status("F"));
@@ -156,7 +156,7 @@ public sealed class SharingFacilityEditionTests
         }
     }
 
-    /// <summary>The cross-run-unit half of the same fact (§9.1.15's file lock, <c>"thereby preventing other run units
+    /// <summary>The cross-run-unit half of the same fact (§2023:9.1.15's file lock, <c>"thereby preventing other run units
     /// from opening that file with incompatible sharing rules"</c>, belongs to the facility): a second run unit's OPEN of a
     /// file the first holds open I-O, or OUTPUT, is a normal open at COBOL-85 and '61' from 2002.</summary>
     [Theory]
@@ -188,7 +188,7 @@ public sealed class SharingFacilityEditionTests
         }
     }
 
-    /// <summary>§14.9.27.4 GR18 at COBOL-85, for every organization: <i>"If the OUTPUT phrase is specified, the successful
+    /// <summary>§2023:14.9.27.4 GR18 at COBOL-85, for every organization: <i>"If the OUTPUT phrase is specified, the successful
     /// execution of the OPEN statement creates the file. After the creation of the file, the file contains no records."</i>
     /// A connector that held the file open when another's OPEN OUTPUT created it finds no record at its next READ ('10',
     /// the at end condition), every statement of its answers an I-O status (an OPEN, a READ, a CLOSE: never an escaping
@@ -233,7 +233,7 @@ public sealed class SharingFacilityEditionTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>§14.9.10.4 GR5 at COBOL-85, the golden <c>pb143_shared_visibility</c> of 2002 without its SHARING clause: a record
+    /// <summary>§2023:14.9.10.4 GR5 at COBOL-85, the golden <c>pb143_shared_visibility</c> of 2002 without its SHARING clause: a record
     /// one of two clause-less I-O connectors writes or deletes is, at once, written or <i>"logically removed from the physical
     /// file"</i> for the other, because the keyed store is one per physical file whatever the sharing mode.</summary>
     [Theory]
@@ -267,7 +267,7 @@ public sealed class SharingFacilityEditionTests
 
     /// <summary>Two sequential connectors EXTENDing one physical file at COBOL-85 keep both records (the sharing writers'
     /// append of <c>SharedExtendWriteDriftTests</c> serves every connector there, whatever mode it holds), and the OUTPUT
-    /// that follows beside a reader creates the empty file §14.9.27.4 GR18 describes.</summary>
+    /// that follows beside a reader creates the empty file §2023:14.9.27.4 GR18 describes.</summary>
     [Fact]
     public void AtCobol85_TwoExtendingConnectorsKeepBothRecords_AndOutputCreatesTheEmptyFile()
     {
@@ -304,11 +304,11 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>The COST side of the determination (review R1-1 of PB670): the default mode restricts nobody, but a COBOL-85
-    /// file connector with no sibling open pays nothing for it. §14.9.51.4 GR12 releases a record to the operating environment,
+    /// file connector with no sibling open pays nothing for it. §2023:14.9.51.4 GR12 releases a record to the operating environment,
     /// not to the physical file at once (the 2002 program with no sharing clause buffers its OUTPUT the same way), so a
     /// lone writer keeps its records in its input-output areas; a sibling connector of the run unit that OPENs the file
-    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§9.1.15 3), the
-    /// reader's next READ selects it (§14.9.30.4 GR21 c)); when the sibling closes the writer buffers again. The control
+    /// later is owed what was already written, and every WRITE while it is open reaches the medium at once (§2023:9.1.15 3), the
+    /// reader's next READ selects it (§2023:14.9.30.4 GR21 c)); when the sibling closes the writer buffers again. The control
     /// arms: 2002's clause-less OUTPUT buffers (NO OTHER), and 2002's SHARING WITH ALL OTHER writes through.</summary>
     [Fact]
     public void AtCobol85_ALoneWriterBuffers_AndASiblingThatArrivesFindsWhatWasWritten()
@@ -347,7 +347,7 @@ public sealed class SharingFacilityEditionTests
     }
 
     /// <summary>A sibling OPEN OUTPUT truncates the file an open INPUT connector has read ahead of (admitted at COBOL-85, where
-    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§14.9.30.4 GR21 c), and
+    /// Table 19 is not asked): the reader's next READ selects an existing record of the physical file (§2023:14.9.30.4 GR21 c), and
     /// the truncated file holds none, so it is the at end condition ('10') whether or not the truncating connector has written
     /// anything yet. Fails on a reader serving its read-ahead of records the file no longer holds. The control arm writes first:
     /// the reader, positioned after its first record, finds the new second record, never one of the old ones.</summary>
@@ -386,7 +386,7 @@ public sealed class SharingFacilityEditionTests
 
     /// <summary>The sibling arms of <see cref="AtCobol85_ASiblingOutputThatTruncatesTheFileIsHeardByAnOpenReader"/>: a keyed
     /// store (RELATIVE, INDEXED) reads the store afresh at every statement, so an open reader's next READ meets the truncated
-    /// store's empty file the same way (§14.9.30.4 GR21, the at end condition).</summary>
+    /// store's empty file the same way (§2023:14.9.30.4 GR21, the at end condition).</summary>
     [Theory]
     [InlineData(FileOrg.Relative)]
     [InlineData(FileOrg.Indexed)]
@@ -433,7 +433,7 @@ public sealed class SharingFacilityEditionTests
 
     /// <summary>A host that refuses the earlier writer's buffered records when a sibling arrives (the OPEN asks for the release):
     /// the sibling's OPEN is not the statement that failed to store them, so it answers '00', and the refusal is the writer's
-    /// own, at its next WRITE ('30', or '34' where the medium is full; §9.1.13.6 items 1 and 3) — never an escaping
+    /// own, at its next WRITE ('30', or '34' where the medium is full; §2023:9.1.13.6 items 1 and 3) — never an escaping
     /// exception, and never lost. Windows refuses a write into a byte range another handle has LOCKED; Linux's
     /// <c>/dev/full</c> refuses every write with ENOSPC. A host with neither must be neither of them, so the test cannot pass on a
     /// CI host by not running.</summary>

@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ EVERY I-O NOT PHRASE IS RENDERED THROUGH THE ONE GATED RENDERER, GIVEN THE STATEMENT'S OWN HOOK
-/// (kb/Work PB3237, PB1120). §14.6.13.1.4 2)/3): once a WHEN phrase or a USE declarative has handled the nonfatal
+/// (kb/Work PB3237, PB1120). §2023:14.6.13.1.4 2)/3): once a WHEN phrase or a USE declarative has handled the nonfatal
 /// condition a SUCCESSFUL I-O statement raised (EC-I-O-WARNING on a '0x' status), "the imperative-statement in [the
 /// NOT] phrase is not executed". The statement's hook answers that as <c>UseHookResult.NotPhraseGate</c>, and the
 /// phrase's body is emitted only by <c>SequentialIoEmitter.EmitNotPhrase</c> (a lone NOT phrase),
@@ -59,7 +59,7 @@ public sealed class NotPhraseGateDriftTests
         }
         Assert.True(reads > 0, "the guard saw no NOT-phrase read: the property names or the emitter files moved");
         Assert.True(offenders.Count == 0,
-            "An I-O NOT phrase is rendered without the NotPhraseGate (§14.6.13.1.4 2)/3, kb/Work PB3237) — "
+            "An I-O NOT phrase is rendered without the NotPhraseGate (§2023:14.6.13.1.4 2)/3, kb/Work PB3237) — "
             + "render it through SequentialIoEmitter.EmitNotPhrase / EmitPhrasePair / EmitInvalid with the statement's hook:\n"
             + string.Join("\n", offenders));
     }
@@ -82,7 +82,7 @@ public sealed class NotPhraseGateDriftTests
         }
         Assert.True(calls >= 10, $"the guard saw only {calls} renderer calls: the renderer names or the emitter files moved");
         Assert.True(offenders.Count == 0,
-            "A NOT-phrase renderer is called without the statement's `hook` variable (§14.6.13.1.4 2)/3, kb/Work PB3237) — "
+            "A NOT-phrase renderer is called without the statement's `hook` variable (§2023:14.6.13.1.4 2)/3, kb/Work PB3237) — "
             + "pass the UseHookResult EmitUseHook returned for THIS statement:\n" + string.Join("\n", offenders));
     }
 

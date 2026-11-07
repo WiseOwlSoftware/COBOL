@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.28.3 SR10 — "The words THROUGH and THRU are
+      *> ISO §2023:14.9.28.3 SR10 — "The words THROUGH and THRU are
       *> equivalent." (FORMAT 1.)
       *>
       *> A rule that states an EQUIVALENCE is directly testable: write
@@ -19,14 +19,14 @@
       *>
       *> The paragraphs add distinct decimal weights (100 / 10 / 1), so
       *> the printed total NAMES the paragraphs that ran:
-      *>   FULL  P1 THRU P3 -> 0111 (all three; §14.9.28.4 GR5 b)
+      *>   FULL  P1 THRU P3 -> 0111 (all three; §2023:14.9.28.4 GR5 b)
       *>         returns "after the last statement of procedure-name-2")
       *>   PART  P1 THRU P2 -> 0110 (P3 must NOT run — a range that
       *>         ran to the end of the source unit would print 0111)
       *>   LOOP  Q1 THRU Q2 UNTIL K > 2 — the range combined with the
       *>         Format-1 until-phrase, so the equivalence is asserted
       *>         where the range is RE-ENTERED. Q2 bumps K, so
-      *>         §14.9.28.4 GR10 gives three passes before K > 2 holds:
+      *>         §2023:14.9.28.4 GR10 gives three passes before K > 2 holds:
       *>         3 x 110 = 0330.
       *>
       *> The rule is worded identically in COBOL-85/2002/2014/2023.

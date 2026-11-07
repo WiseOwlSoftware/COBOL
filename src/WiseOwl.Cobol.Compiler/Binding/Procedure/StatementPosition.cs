@@ -13,16 +13,16 @@ using Core = CobolParserCore;
 /// ⛔ THE SEQUENCE AXIS OF A PLACEMENT RULE — where a statement stands among the statements written beside it
 /// (kb/Work PB397). <see cref="EnclosingContext"/> answers "what is this statement INSIDE?" (source element,
 /// PERFORM, WHEN phrase, declarative); it cannot answer the question a second family of rules asks: which
-/// SEQUENCE of statements is this one in, and where? ISO states three rules over that axis — §14.9.14.3 SR1
-/// (a bare EXIT is a sentence by itself, the only sentence in its paragraph), §14.9.17.3 SR2 (a Format 1 GO TO is
-/// the last statement of its consecutive sequence of imperative statements) and §14.9.42.3 SR1 (STOP is the last
+/// SEQUENCE of statements is this one in, and where? ISO states three rules over that axis — §2023:14.9.14.3 SR1
+/// (a bare EXIT is a sentence by itself, the only sentence in its paragraph), §2023:14.9.17.3 SR2 (a Format 1 GO TO is
+/// the last statement of its consecutive sequence of imperative statements) and §2023:14.9.42.3 SR1 (STOP is the last
 /// statement of its block) — and each was accepted silently, because the binder had no place to ask.
 ///
 /// <para><b>A sequence of statements and a consecutive sequence of IMPERATIVE statements are different things</b>
-/// (kb/Work PB2610). §14.5.1: "Any statement with a conditional phrase that is not terminated by its explicit scope
+/// (kb/Work PB2610). §2023:14.5.1: "Any statement with a conditional phrase that is not terminated by its explicit scope
 /// terminator is a conditional statement", so a sentence or phrase may end in a conditional statement (an IF or an
 /// EVALUATE without its END-, an ADD with ON SIZE ERROR and no END-ADD), and that statement is not part of the
-/// imperative run before it. §14.9.17.3 SR2 is stated over the imperative run, so its predicate is
+/// imperative run before it. §2023:14.9.17.3 SR2 is stated over the imperative run, so its predicate is
 /// <see cref="EndsImperativeRun"/>, never <see cref="IsLast"/>: <c>GO TO P2 IF A = 1 DISPLAY "Y".</c> is legal.</para>
 ///
 /// <para><b>Why a view over the parse tree and not binder state.</b> The grammar makes the sequence a rule of its
@@ -34,8 +34,8 @@ using Core = CobolParserCore;
 /// <see cref="BinderContext.Enclosing"/> remains the answer for rules about CONTAINMENT.</para>
 ///
 /// <para><b>The two sequence kinds are different on purpose.</b> A <c>sentence</c>'s statements end at its period;
-/// a <c>statementBlock</c>'s end at the phrase's end (ELSE, END-IF, WHEN, ...). §14.9.17.3 SR2 and §14.9.42.3 SR1
-/// are stated over EITHER, so <see cref="EndsImperativeRun"/> is asked of both; §14.9.14.3 SR1 is stated over the
+/// a <c>statementBlock</c>'s end at the phrase's end (ELSE, END-IF, WHEN, ...). §2023:14.9.17.3 SR2 and §2023:14.9.42.3 SR1
+/// are stated over EITHER, so <see cref="EndsImperativeRun"/> is asked of both; §2023:14.9.14.3 SR1 is stated over the
 /// SENTENCE only, so <see cref="IsSentenceByItself"/> is false for an EXIT inside a phrase — the sentence it is in is the
 /// enclosing statement's.</para>
 /// </summary>
@@ -62,11 +62,11 @@ internal readonly struct StatementPosition
     /// <summary>Is the statement the last of its sequence (the sentence's or the phrase's statements)?</summary>
     public bool IsLast => Index == _siblings.Length - 1;
 
-    /// <summary>Does the statement end its CONSECUTIVE SEQUENCE OF IMPERATIVE STATEMENTS — the predicate §14.9.17.3
-    /// SR2 states as "the last statement in that sequence" (and D-SEQ reads §14.9.42.3 SR1's "discreet block of code"
+    /// <summary>Does the statement end its CONSECUTIVE SEQUENCE OF IMPERATIVE STATEMENTS — the predicate §2023:14.9.17.3
+    /// SR2 states as "the last statement in that sequence" (and D-SEQ reads §2023:14.9.42.3 SR1's "discreet block of code"
     /// as the same run)? True when nothing follows it in its sequence, or when what follows is a CONDITIONAL
-    /// statement (§14.5.1, <see cref="ConditionalStatements.IsConditional"/>), which ends the imperative run. A
-    /// conditional statement is always the last of its sequence (§14.5.3.3 3) and 4): only a separator period or
+    /// statement (§2023:14.5.1, <see cref="ConditionalStatements.IsConditional"/>), which ends the imperative run. A
+    /// conditional statement is always the last of its sequence (§2023:14.5.3.3 3) and 4): only a separator period or
     /// the end of a containing statement or phrase ends it), so the next statement is the only one to ask.</summary>
     public bool EndsImperativeRun => IsLast || ConditionalStatements.IsConditional(Following);
 
@@ -78,13 +78,13 @@ internal readonly struct StatementPosition
     /// phrase's <c>statementBlock</c> (it is then nested in another statement, never a sentence of its own).</summary>
     public Core.SentenceContext? Sentence => Sequence as Core.SentenceContext;
 
-    /// <summary>Is the statement the whole of a sentence — "in a sentence by itself" (§14.9.14.3 SR1)?</summary>
+    /// <summary>Is the statement the whole of a sentence — "in a sentence by itself" (§2023:14.9.14.3 SR1)?</summary>
     public bool IsSentenceByItself => Sentence is not null && _siblings.Length == 1;
 
     /// <summary>How many sentences the statement's sentence shares its paragraph with, itself included — the
-    /// paragraph being §14.4.3's: a paragraph-name and its sentences, or, with the name omitted, the sentences
+    /// paragraph being §2023:14.4.3's: a paragraph-name and its sentences, or, with the name omitted, the sentences
     /// after the procedure division header or a section header (so a section without paragraphs is ONE such
-    /// paragraph, the second alternative of §14.9.14.3 SR1). Zero when the statement is not a sentence's
+    /// paragraph, the second alternative of §2023:14.9.14.3 SR1). Zero when the statement is not a sentence's
     /// element.</summary>
     public int SentencesInParagraph =>
         Sentence?.Parent is ParserRuleContext paragraph ? paragraph.GetRuleContexts<Core.SentenceContext>().Length : 0;
@@ -110,7 +110,7 @@ internal readonly struct StatementPosition
 /// binder never asks it: the funnel is the one place every statement passes through, so a rule added as a row
 /// cannot be missed by a verb that forgets to ask, which is how three rules came to be enforced nowhere.
 ///
-/// <para>The next rule of this shape — §14.9.19's required consequent, an EXIT PROGRAM or GOBACK sequence rule an
+/// <para>The next rule of this shape — §2023:14.9.19's required consequent, an EXIT PROGRAM or GOBACK sequence rule an
 /// older edition states — is a row: a statement-shape probe, a descriptor, and a predicate over
 /// <see cref="StatementPosition"/>.</para>
 /// </summary>
@@ -121,9 +121,9 @@ internal static partial class PlacementRules
     private sealed record SequenceRule(
         DiagnosticDescriptor Descriptor, string Cite, string Shall, Func<StatementPosition, string?> Violation);
 
-    /// <summary>§14.9.14.3 SR1 — Format 1 only: a sentence by itself AND the only sentence of its paragraph.</summary>
+    /// <summary>§2023:14.9.14.3 SR1 — Format 1 only: a sentence by itself AND the only sentence of its paragraph.</summary>
     private static readonly SequenceRule ExitAlone = new(
-        DiagnosticCatalog.ExitNotAlone, "ISO §14.9.14.3 SR1",
+        DiagnosticCatalog.ExitNotAlone, "ISO §2023:14.9.14.3 SR1",
         "The EXIT statement shall appear in a sentence by itself that shall be the only sentence in the paragraph "
         + "or in a section without paragraphs",
         p => p.Sentence is null
@@ -134,16 +134,16 @@ internal static partial class PlacementRules
                 ? $"is one of {p.SentencesInParagraph} sentences in its paragraph"
             : null);
 
-    /// <summary>§14.9.17.3 SR2 — a Format 1 GO TO ends its consecutive sequence of imperative statements.</summary>
+    /// <summary>§2023:14.9.17.3 SR2 — a Format 1 GO TO ends its consecutive sequence of imperative statements.</summary>
     private static readonly SequenceRule GoToLast = new(
-        DiagnosticCatalog.GoToNotLast, "ISO §14.9.17.3 SR2",
+        DiagnosticCatalog.GoToNotLast, "ISO §2023:14.9.17.3 SR2",
         "A Format 1 GO TO that appears in a consecutive sequence of imperative statements shall be the last "
         + "statement in that sequence",
         FollowedByAnImperative);
 
-    /// <summary>§14.9.42.3 SR1 — STOP ends its block of code (read as the same imperative run; D-SEQ).</summary>
+    /// <summary>§2023:14.9.42.3 SR1 — STOP ends its block of code (read as the same imperative run; D-SEQ).</summary>
     private static readonly SequenceRule StopLast = new(
-        DiagnosticCatalog.StopNotLast, "ISO §14.9.42.3 SR1",
+        DiagnosticCatalog.StopNotLast, "ISO §2023:14.9.42.3 SR1",
         "The STOP statement shall be specified only as the last statement in any discreet block of code",
         FollowedByAnImperative);
 
@@ -155,9 +155,9 @@ internal static partial class PlacementRules
     /// <summary>The sequence rule that governs <paramref name="s"/>, or null for the statements that carry none
     /// (almost all of them — the probe is one type test on the statement's only child, so the funnel pays nothing
     /// for the rest). The shape tests are the printed formats the rules name: a bare EXIT is Format 1 alone
-    /// (§14.9.14.2), a GO TO is Format 1 unless it is the DEPENDING Format 2 — the 1985 target-less GO TO is
+    /// (§2023:14.9.14.2), a GO TO is Format 1 unless it is the DEPENDING Format 2 — the 1985 target-less GO TO is
     /// that edition's Format 1 (its procedure-name is optional there, and ALTER supplies it), so the rule binds
-    /// it too — and a STOP is the STOP RUN statement, the only STOP §14.9.42 has. The X3.23-1985 STOP literal
+    /// it too — and a STOP is the STOP RUN statement, the only STOP §2023:14.9.42 has. The X3.23-1985 STOP literal
     /// (deleted 2002) is not governed: it communicates to the operator and CONTINUES with the next statement
     /// (<see cref="Bound.BoundStopLiteral"/>), so a statement after it does execute and nothing makes it last.</summary>
     private static SequenceRule? SequenceRuleOf(Core.StatementContext s) => s.GetChild(0) switch
@@ -168,8 +168,8 @@ internal static partial class PlacementRules
         _ => null,
     };
 
-    /// <summary>Is <paramref name="s"/> written where the sequence rule for its verb forbids (ISO §14.9.14.3 SR1,
-    /// §14.9.17.3 SR2, §14.9.42.3 SR1)? TRUE when REFUSED — the diagnostic has been reported at the statement —
+    /// <summary>Is <paramref name="s"/> written where the sequence rule for its verb forbids (ISO §2023:14.9.14.3 SR1,
+    /// §2023:14.9.17.3 SR2, §2023:14.9.42.3 SR1)? TRUE when REFUSED — the diagnostic has been reported at the statement —
     /// so the funnel reads <c>if (PlacementRules.RefusedOutOfSequence(ctx, s)) core = BoundRejected.Reported(…);</c>.
     /// Asked of the PARSE TREE, so the verdict is the same wherever and however often the statement binds.</summary>
     public static bool RefusedOutOfSequence(BinderContext ctx, Core.StatementContext s)

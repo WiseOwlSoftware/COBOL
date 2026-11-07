@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB3253 - the BOUNDARY of ISO 1989 §13.18.43.3 SR3 ("No record description entry for the file may
+      *> kb/Work PB3253 - the BOUNDARY of ISO 1989 §2023:13.18.43.3 SR3 ("No record description entry for the file may
       *> specify a number of bytes greater than integer-1") for a record of USAGE BIT items beside a DYNAMIC LENGTH
-      *> item: the two 3-bit items share ONE byte (§8.5.1.6.3, GR4 of §13.18.43.4) and D takes at most its LIMIT 10,
+      *> item: the two 3-bit items share ONE byte (§2023:8.5.1.6.3, GR4 of §2023:13.18.43.4) and D takes at most its LIMIT 10,
       *> so the description is 1 + 10 = 11 bytes at its greatest - ONE over integer-1 = 10, and the entry is refused;
       *> the same entry under RECORD CONTAINS 11 is the positive golden
       *> conformance-suite/cases/13.18.43-RECORD/pb3253_record_contains_bits_beside_dynamic.cob. WHY IT CAN FAIL: a

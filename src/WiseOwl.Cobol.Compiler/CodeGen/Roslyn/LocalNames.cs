@@ -18,7 +18,7 @@ internal sealed record CSharpLocal(string Name) : MethodLocal
 /// ⛔ THE ONE SPELLING OF A METHOD LOCAL IN THE GENERATED C# (kb/Work PB4321; DESIGN-backend-abstraction.md §1.3 L8). The
 /// neutral tree names a local by its identity (<see cref="MethodLocal"/>); this is where the Roslyn backend turns that
 /// identity into a C# identifier, so the declaration and every read of one local spell it alike. Every name is in the
-/// <c>__</c> space no COBOL word can reach (§8.3.2.1: a hyphen or underscore is never the first character of a
+/// <c>__</c> space no COBOL word can reach (§2023:8.3.2.1: a hyphen or underscore is never the first character of a
 /// user-defined word), and each role has its own stem, so no two of the binder's locals in a unit share a name. A method's
 /// data roots and their Tier-B backings are the exception (kb/Work PB4416): each is spelled by the allocated CLR name of its
 /// storage (<see cref="DataItem.ClrName"/>, <see cref="RedefinesClass.BackingClrName"/>), unique in the class by allocation

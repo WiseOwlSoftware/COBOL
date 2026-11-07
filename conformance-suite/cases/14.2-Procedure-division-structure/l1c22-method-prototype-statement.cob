@@ -4,21 +4,21 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.2.2 SR11 — a method prototype (a method in an
+      *> ISO §2023:14.2.2 SR11 — a method prototype (a method in an
       *> interface) whose procedure division holds a statement.
       *> RULE (14.2.2 SR11): "A procedure division in a method prototype
       *> shall contain only a procedure division header."
       *> cite.py --check 14.2.2 "A procedure division in a method
       *>   prototype shall contain only a procedure division header"
-      *>   -> OK  §14.2.2 11)  (Syntax rules)
+      *>   -> OK  §2023:14.2.2 11)  (Syntax rules)
       *> cite.py --check 14.1 "The procedure division in an interface
-      *>   contains method prototypes" -> OK  §14.1   (General)
+      *>   contains method prototypes" -> OK  §2023:14.1   (General)
       *> Interface L1C22I's method SPEAK is a method prototype (14.1);
       *> its procedure division carries a paragraph and a DISPLAY
       *> statement after the header, so SR11 is violated. The same
       *> restriction is restated for every prototype kind at 10.6.2
       *> SR4 f) (cite.py --check 10.6.2 "The procedure division shall
-      *> contain only a procedure division header" -> OK  §10.6.2
+      *> contain only a procedure division header" -> OK  §2023:10.6.2
       *> 4) f)).
       *> Removing P-MAIN and its DISPLAY yields a valid program.
        IDENTIFICATION DIVISION.

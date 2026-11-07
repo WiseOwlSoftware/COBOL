@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.3 SR8 - "The same file-name shall not appear in more than one USE AFTER
+      *> ISO §2023:14.9.49.3 SR8 - "The same file-name shall not appear in more than one USE AFTER
       *> EXCEPTION statement within the same procedure division." Two Format-1 USE statements in
       *> ONE procedure division each name F1, so the file-name appears in more than one such
       *> statement and the source shall be rejected. SR8 is a FORMAT 1 rule and Format 1 exists

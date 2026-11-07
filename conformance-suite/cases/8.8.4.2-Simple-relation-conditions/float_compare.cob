@@ -7,7 +7,7 @@
 *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLTCMP.
-      *> float vs fixed-point (algebraic value, §8.8.4.2.4) and float vs integer.
+      *> float vs fixed-point (algebraic value, §2023:8.8.4.2.4) and float vs integer.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-F USAGE FLOAT-LONG.

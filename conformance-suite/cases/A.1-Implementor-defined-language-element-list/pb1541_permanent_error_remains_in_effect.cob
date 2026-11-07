@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.1 (Permanent error condition) and Annex A.1 item 105 (DOC-A.1-105, technique CLOSE).
-      *> §9.1.13.1: "Permanent error. The input-output statement was unsuccessfully executed as the result of an
+      *> ISO 1989:2023 §2023:9.1.13.1 (Permanent error condition) and Annex A.1 item 105 (DOC-A.1-105, technique CLOSE).
+      *> §2023:9.1.13.1: "Permanent error. The input-output statement was unsuccessfully executed as the result of an
       *> error that precluded further processing of the file. ... The permanent error condition remains in effect
       *> for all subsequent input-output operations on the file unless an implementor-defined technique is invoked
       *> to correct the permanent error condition." The technique this processor provides (Annex A.1 item 105, an
       *> optional item documented in docs/CONFORMANCE.md DOC-A.1-105) is CLOSE: a completed CLOSE ends the
       *> condition, so the next OPEN starts clean. Every other statement on the connector is unsuccessful, touches
       *> nothing, and sets the SAME I-O status again.
-      *> The error is produced by §14.9.51.4 GR29 b): "If the relative key data item contains a value that is less
+      *> The error is produced by §2023:14.9.51.4 GR29 b): "If the relative key data item contains a value that is less
       *> than 1 ..., the execution of the WRITE statement is unsuccessful, and the I-O status for the write file
-      *> connector is set to '34'" - a '3x' value, i.e. a permanent error (§9.1.13.6).
+      *> connector is set to '34'" - a '3x' value, i.e. a permanent error (§2023:9.1.13.6).
       *>
       *> WHY EACH LEG CAN FAIL: every statement below is one that would SUCCEED on a healthy connector - the WRITE
       *> of record 2 ('00' + a record), the READ of record 1 ('00'), the REWRITE and DELETE of the record just read,

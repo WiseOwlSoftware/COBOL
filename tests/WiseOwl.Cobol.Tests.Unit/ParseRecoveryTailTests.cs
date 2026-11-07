@@ -11,11 +11,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A FAULT FOUND AFTER ITS STATEMENTS CLOSED IS ONE DIAGNOSTIC, NOT ONE AND THE RECOVERY'S OWN (kb/Work PB3843).
-/// An explicit scope terminator is optional (ISO §14.5.3.2), so a statement ends wherever its next token is not its own
+/// An explicit scope terminator is optional (ISO §2023:14.5.3.2), so a statement ends wherever its next token is not its own
 /// and the refusal is deferred to the sentence's period. By then the IF around <c>IF c MOVE 1 TO N END-ADD MOVE 2 TO N
 /// END-IF.</c> is closed, and ANTLR's recovery parsed the rest of the sentence as new statements of a sentence the IF
 /// no longer belonged to: its END-IF met no IF, and the one stray END-ADD drew a true COBOL0306 and a false one. A
-/// phrase no statement owns (§14.5.3.3: a second <c>ON OVERFLOW</c>, an <c>ON EXCEPTION</c> on a format that prints
+/// phrase no statement owns (§2023:14.5.3.3: a second <c>ON OVERFLOW</c>, an <c>ON EXCEPTION</c> on a format that prints
 /// none) did the same with the tail of its statement (its <c>NOT ON …</c> phrase, its END-x). The recovery of such a
 /// fault now stops only at the sentence's separator period (<c>CobolErrorStrategy.ConsumeUntil</c>), so each draws
 /// exactly the diagnostic of the fault.
@@ -64,7 +64,7 @@ public sealed class ParseRecoveryTailTests
     /// <c>{0}</c> for the word: after a complete MOVE whose receiving list would take another operand, beginning a
     /// sentence after another, and beginning the paragraph's first sentence. At the start of a sentence a
     /// reservation-gated terminator could also be read as a paragraph header, which it is only where the header's
-    /// period follows (ISO §14.4.3, <c>CobolParserCoreBase.procedureHeaderHere</c>, kb/Work PB4132 review R1-1).</summary>
+    /// period follows (ISO §2023:14.4.3, <c>CobolParserCoreBase.procedureHeaderHere</c>, kb/Work PB4132 review R1-1).</summary>
     private static readonly string[] StrayPositions =
     [
         "MOVE 1 TO W-N {0} MOVE 2 TO W-K.",
@@ -73,7 +73,7 @@ public sealed class ParseRecoveryTailTests
     ];
 
     /// <summary>Every terminator at the start of a sentence, after another sentence and as the paragraph's first, at
-    /// the default edition: the terminator with no statement to end (ISO §14.5.3.2), named once at the word. The
+    /// the default edition: the terminator with no statement to end (ISO §2023:14.5.3.2), named once at the word. The
     /// position after a complete statement is the empty-opening row of <see cref="AStrayTerminator_DrawsExactlyOneDiagnostic"/>.</summary>
     public static TheoryData<string, string> EveryTerminatorBeginningASentence()
     {
@@ -91,8 +91,8 @@ public sealed class ParseRecoveryTailTests
 
     /// <summary>The editions that RESERVE each terminator that is also a reservation-gated word (<c>reservedGatedWord</c>,
     /// read from the ATN: END-ACCEPT, END-DISPLAY, END-RECEIVE and END-SEND, each a user-defined word at some edition
-    /// §8.9 leaves it free; kb/Work PB4132). There the token is its keyword, so a stray one is the misplaced terminator
-    /// every other terminator is (COBOL0306), never a user-defined word refused by §8.9 (COBOL0901) nor a paragraph
+    /// §2023:8.9 leaves it free; kb/Work PB4132). There the token is its keyword, so a stray one is the misplaced terminator
+    /// every other terminator is (COBOL0306), never a user-defined word refused by §2023:8.9 (COBOL0901) nor a paragraph
     /// header missing its period (COBOL0307 at the next word).</summary>
     private static IEnumerable<(string Word, int Edition)> GatedTerminatorReservations()
     {
@@ -161,7 +161,7 @@ public sealed class ParseRecoveryTailTests
         Assert.Contains($"{word} appears without a matching", errors[0]);
     }
 
-    /// <summary>The rows of kb/Work PB3843 and the phrases §14.5.3.3 leaves unowned: each statement's tail after the
+    /// <summary>The rows of kb/Work PB3843 and the phrases §2023:14.5.3.3 leaves unowned: each statement's tail after the
     /// refused word (its second phrase of the same family, the NOT phrase, its END-x) is not a second fault.</summary>
     [Theory]
     [InlineData("IF W-N = 0 MOVE 1 TO W-N END-ADD MOVE 2 TO W-N END-IF.", "COBOL0306", "END-ADD")]

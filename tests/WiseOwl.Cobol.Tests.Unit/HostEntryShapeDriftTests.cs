@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE HOST ENTRY IS A CALLER (DESIGN-external-repository §17.3; kb/Work PB2099). A generated host entry's <c>Call</c>
-/// is the .NET counterpart of a CALL statement, never a second activation boundary: its body is exactly the parts §4.3
+/// is the .NET counterpart of a CALL statement, never a second activation boundary: its body is exactly the parts §2023:4.3
 /// lists — <c>__CobolModule.EnsureRegistered()</c> (a definition's entry), one <c>HostLanding</c> landing per formal
 /// whose host value needs one (the door rules written once, no inline range test), one <c>CobolArg</c> per formal,
 /// exactly one <c>ProgramRegistry.CallProgram</c>, a <c>finally</c> of <c>HostLanding</c> decodes, and the RETURNING
@@ -114,7 +114,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             Assert.All(call.Body.DescendantNodes().OfType<LiteralExpressionSyntax>()
                     .Where(l => l.Token.ValueText.StartsWith("EC-", StringComparison.Ordinal)),
                 l => Assert.Equal("EC-FUNCTION-NOT-FOUND", l.Token.ValueText));
-            // Every statement is one of §4.3's parts.
+            // Every statement is one of §2023:4.3's parts.
             foreach (var s in call.Body.Statements)
             {
                 string text = s.ToString();
@@ -130,7 +130,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                     || System.Text.RegularExpressions.Regex.IsMatch(text, @"^\S+ __hres = default;$")
                     || text == "if (__hbad is not null) throw __hbad;"
                     || text == "return __hres;";
-                Assert.True(part, $"{entry.Identifier.Text}.Call has a statement that is not one of §4.3's parts: {text}");
+                Assert.True(part, $"{entry.Identifier.Text}.Call has a statement that is not one of §2023:4.3's parts: {text}");
             }
             // A finally holds only decodes: the validity decode or the storage's own value.
             foreach (var fin in call.Body.DescendantNodes().OfType<FinallyClauseSyntax>())
@@ -163,7 +163,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
         }, parameters);
         Assert.Equal("decimal", rows.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Call").ReturnType.ToString());
 
-        // A group formal or RETURNING item is its published record struct (§4.3's group rows), whose image is composed and
+        // A group formal or RETURNING item is its published record struct (§2023:4.3's group rows), whose image is composed and
         // decoded by the same door rules: every member landing in __Put is a HostLanding call (or a nested record's
         // __Put), every numeric decode in __TryGet is HostLanding.TryDecode, and no record writes an inline range test
         // (its only comparisons are the loop bounds of a table's occurrences).
@@ -173,7 +173,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
         Assert.Equal("L_R_Record", grpCall.ReturnType.ToString());
         var records = grp.DescendantNodes().OfType<RecordDeclarationSyntax>().ToList();
         Assert.Equal(["L_G_Record", "L_P_Record", "L_R_Record", "L_S_Record"], records.Select(r => r.Identifier.Text).Order().ToArray());
-        // A record holding references crosses as its cell area (§4.3's last host-type row): its storage is the record's
+        // A record holding references crosses as its cell area (§2023:4.3's last host-type row): its storage is the record's
         // __Area, its argument states that Area, and only such a record has one.
         Assert.Equal(["L_P_Record"], records.Where(r => r.Members.OfType<MethodDeclarationSyntax>().Any(m => m.Identifier.Text == "__Area"))
             .Select(r => r.Identifier.Text).ToArray());
@@ -193,7 +193,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                 i => Assert.Matches(@"^(HostLanding\.TryDecode\(|HostLanding\.TryOccurrences\(|\w+_Record\.__TryGet\()", i.Condition.ToString()));
         }
 
-        // A VARIABLE-LENGTH group (ISO §8.5.1.12) crosses as the CALL lane's variable-length carrier of its description: its
+        // A VARIABLE-LENGTH group (ISO §2023:8.5.1.12) crosses as the CALL lane's variable-length carrier of its description: its
         // storage is the record's __Var, a ManagedPointer<CobolVarGroup> cell; each SCOPE (the record, and the element of a
         // dynamic-capacity table whose element holds components) composes and decodes a carrier, every component lands
         // through HostLanding (LandVariable for a dynamic-length item, RequireCapacity for a table's array), and a
@@ -255,12 +255,12 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                """;
 
     /// <summary>⛔ A GROUP HOLDING A VARIABLE-LENGTH COMPONENT AND A REFERENCE HAS ITS ENTRY, AS THE DESCRIPTION'S OWN CELL AREA
-    /// (DESIGN-external-repository §4.3; kb/Work PB3273). ISO §14.2.3 13) obliges the implementor to STATE the restrictions
+    /// (DESIGN-external-repository §4.3; kb/Work PB3273). ISO §2023:14.2.3 13) obliges the implementor to STATE the restrictions
     /// of a non-COBOL activator, and this one once stood only because the published record composed no area: the COBOL
     /// boundary carries such a group as a cell area holding its references and its components together (kb/Work PB3139), and
     /// the activated program's formal is laid over an area only when it states the group's shape. So the record must (1)
     /// build its area from the DESCRIPTION'S fresh cell (<c>DataEmitter.FreshArea</c>, the factory the program's own area
-    /// formal takes — its tables present with their element recipe, §8.5.1.9.5 — never a second recipe written in the
+    /// formal takes — its tables present with their element recipe, §2023:8.5.1.9.5 — never a second recipe written in the
     /// record), (2) distribute the carrier its other form composes into that cell (<c>StoreVarGroupAt</c>, the store a
     /// formal's copy-in makes) and set the references on top (<c>__PutSlots</c>), (3) state the area WITH the group's atoms
     /// and first component (<c>Shape</c>, <c>DynBase</c>), and (4) read the area back by the inverse walk
@@ -303,7 +303,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
         Assert.Contains("L_B_Record.__TryGetArea(__hc0,", call);
     }
 
-    /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §14.9.4.4 3) d) —
+    /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §2023:14.9.4.4 3) d) —
     /// its storage length and its description — is rendered by the CALL lane's <c>CallEmitter.Described</c>, the renderer a
     /// CALL statement's argument is stated by, from the builders a CALL argument's facts come from
     /// (<c>CallEmitter.ArgumentLength</c>, and <c>ActivationDescriptions.Of</c>, which the binder runs for the entry unit's formals:
@@ -339,7 +339,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
 
     /// <summary>⛔ ONE HOST ENTRY PER EXTERNALIZED NAME (DESIGN-external-repository §7.2; kb/Work PB3872). A group holding a
     /// prototype and its definition publishes the definition's entry only, and the two pair by the Annex C fold
-    /// (<c>ExternalizedNames.Same</c>; ISO §8.3.2.2 2): every source element naming one externalized name refers to the same instance), so a
+    /// (<c>ExternalizedNames.Same</c>; ISO §2023:8.3.2.2 2): every source element naming one externalized name refers to the same instance), so a
     /// prototype <c>psub</c> beside a definition <c>PSUB</c> publishes ONE class — the definition's, spelled as written.</summary>
     [Fact]
     public void APrototype_BesideItsDefinition_PairsByTheAnnexCFold_AndPublishesOneEntry()
@@ -427,10 +427,10 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
     /// <summary>⛔ EVERY OUTERMOST UNIT HAS ITS ENTRY (DESIGN-external-repository §7.2, §17.3; kb/Work PB2100, PB3872). Over
     /// §17.2's corpus (<see cref="RepositoryRoundTripCorpusTests.Corpus"/>), the emitted module of each case carries exactly
     /// one <c>[CobolUnit]</c> per outermost program, function and prototype unit — except a prototype its group also defines,
-    /// which is one unit with its definition however the two names are cased (ISO §8.3.2.2 2), the Annex C fold; kb/Work
+    /// which is one unit with its definition however the two names are cased (ISO §2023:8.3.2.2 2), the Annex C fold; kb/Work
     /// PB3872) — and per class and interface, each on a type declaration (a host entry is a <c>public static class</c>), and
     /// its <c>Units</c> index lists exactly those units in the order emitted. A unit without an entry would leave the
-    /// repository silently (§7.2), so this is the Fact that no unit is withheld.</summary>
+    /// repository silently (§2023:7.2), so this is the Fact that no unit is withheld.</summary>
     [Fact]
     public void EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord()
     {
@@ -455,7 +455,7 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                     int next = i + 1;
                     while (next < lines.Length && lines[next].TrimStart().StartsWith('[')) next++;
                     var declaration = next < lines.Length ? TypeDeclaration.Match(lines[next]) : null;
-                    bool hostKind = m.Groups[1].Value is "Program" or "Function" or "ProgramPrototype" or "FunctionPrototype" or "ParameterizedClass" or "ParameterizedInterface";   // a skeleton is a static class too (§7.2)
+                    bool hostKind = m.Groups[1].Value is "Program" or "Function" or "ProgramPrototype" or "FunctionPrototype" or "ParameterizedClass" or "ParameterizedInterface";   // a skeleton is a static class too (§2023:7.2)
                     if (declaration is not { Success: true } || hostKind != (declaration.Groups[1].Value == "static class"))
                         failures.Add($"{at}: [CobolUnit({m.Groups[1].Value}, {m.Groups[2].Value})] is not on {(hostKind ? "a host-entry or skeleton class" : "its class or interface")}");
                 }

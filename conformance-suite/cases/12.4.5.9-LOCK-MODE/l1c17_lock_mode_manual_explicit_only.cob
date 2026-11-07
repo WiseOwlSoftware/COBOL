@@ -5,27 +5,27 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.5.9.4 GR5 — MANUAL: locks only on explicit LOCK
+      *> ISO §2023:12.4.5.9.4 GR5 — MANUAL: locks only on explicit LOCK
       *> "If the MANUAL phrase is specified, the lock mode is manual.
       *>  Records locks are obtained only when the LOCK phrase is
       *>  explicitly specified on an I-O statement."
       *> cite.py --check 12.4.5.9.4 "Records locks are obtained only
       *>   when the LOCK phrase is explicitly specified on an I-O
-      *>   statement." -> OK §12.4.5.9.4 5)
+      *>   statement." -> OK §2023:12.4.5.9.4 5)
       *> cite.py --check 14.9.51.4 "If record locks have an effect for
       *>   the write file connector and the WITH LOCK phrase is
       *>   specified or implied, the record lock associated with the
       *>   record written is set when the execution of the WRITE
-      *>   statement is successful." -> OK §14.9.51.4 11)
+      *>   statement is successful." -> OK §2023:14.9.51.4 11)
       *> cite.py --check 9.1.16 "While locked by a given file
       *>   connector, a record is not accessible to another file
-      *>   connector" -> OK §9.1.16
+      *>   connector" -> OK §2023:9.1.16
       *> A and B share one relative file, both SHARING WITH ALL OTHER
-      *> ("Record locks are in effect", §9.1.15 3)) and both LOCK MODE
+      *> ("Record locks are in effect", §2023:9.1.15 3)) and both LOCK MODE
       *> IS MANUAL.  B performs each I-O statement twice: once without
       *> and once with the LOCK phrase.  A then reads the record B
       *> just touched; a lock held by B makes that READ fail '51'
-      *> (§9.1.16, §9.1.13.8), no lock lets it succeed '00'.
+      *> (§2023:9.1.16, §2023:9.1.13.8), no lock lets it succeed '00'.
       *> Both halves of GR5 are exercised, for READ and for WRITE:
       *>   "only when" -> an unphrased READ / WRITE sets no lock;
       *>   "explicitly specified" -> WITH LOCK does set one.

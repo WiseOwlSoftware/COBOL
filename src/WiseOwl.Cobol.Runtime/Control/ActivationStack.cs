@@ -19,14 +19,14 @@ namespace WiseOwl.Cobol.Runtime;
 /// (<see cref="RunUnitThreadStackBytes"/>; <see cref="RunOnRunUnitThread"/>, called by
 /// <see cref="ProgramTable.RunMain"/>), never on the host's default stack (about 1 MB for a Windows main thread), where a
 /// self-CALLing program died at a depth of about 250.</item>
-/// <item>Each activation asks <see cref="IsAvailable"/> before control is transferred. ISO §14.9.4.4 GR3c: "If the
+/// <item>Each activation asks <see cref="IsAvailable"/> before control is transferred. ISO §2023:14.9.4.4 GR3c: "If the
 /// program is located but the resources necessary to execute the program are not available, the EC-PROGRAM-RESOURCES
-/// exception condition is set to exist, the program call is not successful"; §8.4.3.2.4 GR6c says the same of a
-/// function activation and §14.9.23.4 GR7b gives a method EC-OO-METHOD. "The runtime resources that are checked … are
+/// exception condition is set to exist, the program call is not successful"; §2023:8.4.3.2.4 GR6c says the same of a
+/// function activation and §2023:14.9.23.4 GR7b gives a method EC-OO-METHOD. "The runtime resources that are checked … are
 /// defined by the implementor" (Annex A.1 items 14, 89 and 102): this implementation checks exactly one, the stack
 /// headroom of the running thread. So a recursion deeper than the stack can hold ends in a DEFINED way — the
-/// activation is not successful and the condition takes its ON EXCEPTION phrase, a declarative, or the §14.6.12
-/// abnormal termination with its §14.6.11 implicit CLOSE — instead of the CLR killing the process, which no handler
+/// activation is not successful and the condition takes its ON EXCEPTION phrase, a declarative, or the §2023:14.6.12
+/// abnormal termination with its §2023:14.6.11 implicit CLOSE — instead of the CLR killing the process, which no handler
 /// can intercept.</item>
 /// </list>
 /// </summary>
@@ -82,7 +82,7 @@ public static class ActivationStack
         escaped?.Throw();
     }
 
-    /// <summary>The §14.9.4.4 GR3c / §8.4.3.2.4 GR6c / §14.9.23.4 GR7b resource check: does the running thread's stack
+    /// <summary>The §2023:14.9.4.4 GR3c / §2023:8.4.3.2.4 GR6c / §2023:14.9.23.4 GR7b resource check: does the running thread's stack
     /// have the headroom one more activation needs? Always the .NET runtime's own measure against the thread's real
     /// stack bounds ("enough stack to execute the average .NET function", <see cref="RuntimeHelpers.TryEnsureSufficientExecutionStack"/>),
     /// so the check holds on any host thread that activates COBOL directly; on the run unit's own thread also the
@@ -95,8 +95,8 @@ public static class ActivationStack
     internal const string Exhausted =
         "is not available — the run unit's activations have used the stack the implementation provides";
 
-    /// <summary>The method arm of the resource check (§14.9.23.4 GR7b), emitted at the head of every method body that
-    /// executes statements, before its §14.9.23.4 GR7d external-item check and before the method's activation frame is
+    /// <summary>The method arm of the resource check (§2023:14.9.23.4 GR7b), emitted at the head of every method body that
+    /// executes statements, before its §2023:14.9.23.4 GR7d external-item check and before the method's activation frame is
     /// pushed: "If the method is not found or the resources necessary to execute the method are not available, the
     /// EC-OO-METHOD exception condition is set to exist, the method invocation is not successful". The CALL and function
     /// arm is <see cref="ProgramTable.CallProgram"/>'s, which raises EC-PROGRAM-RESOURCES through the CALL carrier.</summary>
@@ -105,7 +105,7 @@ public static class ActivationStack
         if (!IsAvailable())
             throw new CobolFatalException("EC-OO-METHOD",
                 $"INVOKE '{method}' of class '{className}': the stack the method needs {Exhausted} "
-                + "(ISO §14.9.23.4 GR7b; docs/CONFORMANCE.md DOC-A.1-102)");
+                + "(ISO §2023:14.9.23.4 GR7b; docs/CONFORMANCE.md DOC-A.1-102)");
     }
 
     /// <summary>The address of a local of this frame — the running thread's stack position (the stack grows down on

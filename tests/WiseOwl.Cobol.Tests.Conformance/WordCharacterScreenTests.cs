@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⭐ THE CHARACTER HALF OF ISO §8.3.2.1 IS ASKED OF THE LEXER'S WORDS, NOT OF THE PARSE TREE (kb/Work PB3845).
+/// ⭐ THE CHARACTER HALF OF ISO §2023:8.3.2.1 IS ASKED OF THE LEXER'S WORDS, NOT OF THE PARSE TREE (kb/Work PB3845).
 /// <c>WordCharacterScreen</c> walks the token stream, so a word the grammar cannot place still draws the diagnostic that
 /// names its character; the refused-program goldens <c>pb3845-*</c> pin the code at each edition, and this class holds
 /// the facts a golden cannot: the screen does not read a comment-entry's text as words, a distinct word is reported once,
@@ -18,13 +18,13 @@ public sealed class WordCharacterScreenTests
 
     /// <summary>The tail that makes a statement fail to parse with a syntax error: a MOVE with no sending operand, whose TO
     /// stands where the operand is due (<see cref="ParseError"/>, kb/Work PB4301). Not <c>MOVE MOVE</c>: a reserved verb
-    /// written as an operand is the named §8.3.2.1 1) refusal (COBOL0901, kb/Work PB4208), after which the word is read as a
+    /// written as an operand is the named §2023:8.3.2.1 1) refusal (COBOL0901, kb/Work PB4208), after which the word is read as a
     /// user-defined word and the parse goes on (PB4218). Every fixture here spells its unparseable statement with this one
     /// constant, so the tail cannot drift between them.</summary>
     private const string NoSender = "MOVE TO";
 
     /// <summary>The code of the syntax error <see cref="NoSender"/> draws: the reserved TO where the sending operand of the
-    /// MOVE is due (ISO §14.9.25.2), which names the operand (kb/Work PB4301) where it was once the bare COBOL0001.</summary>
+    /// MOVE is due (ISO §2023:14.9.25.2), which names the operand (kb/Work PB4301) where it was once the bare COBOL0001.</summary>
     private const string ParseError = "COBOL5506";
 
     /// <summary>A program that DISPLAYs <paramref name="uses"/>: unless <paramref name="parses"/>, followed by
@@ -41,7 +41,7 @@ public sealed class WordCharacterScreenTests
             STOP RUN.
         """;
 
-    /// <summary>§8.3.2.1 governs a COBOL WORD; the text of a comment-entry is not one. <c>AUTHOR. JOSÉ € MY_NAME</c> is
+    /// <summary>§2023:8.3.2.1 governs a COBOL WORD; the text of a comment-entry is not one. <c>AUTHOR. JOSÉ € MY_NAME</c> is
     /// legal COBOL-85 (the paragraph itself is deleted by 2002, which the construct gate for it says).</summary>
     [Theory]
     [InlineData(85)]
@@ -171,7 +171,7 @@ public sealed class WordCharacterScreenTests
         Assert.DoesNotContain("COBOL0900", all);
     }
 
-    /// <summary>ISO §8.1.3.2 GR4 makes the extended letters Annex B's characters; a character that NO edition's Annex B holds
+    /// <summary>ISO §2023:8.1.3.2 GR4 makes the extended letters Annex B's characters; a character that NO edition's Annex B holds
     /// (U+00A0, the euro sign) is no extended letter, so at COBOL-85 it is the word-character error COBOL2773 naming it, not
     /// the 2002 introduction gate COBOL0900 (kb/Work PB4130). Both word sources run the one body, so a failed parse (the
     /// lexer's stream) and a parsed source (the tree's words) answer alike; an Annex B letter at 85 stays the gate
@@ -344,7 +344,7 @@ public sealed class WordCharacterScreenTests
     }
 
     /// <summary>The binder driver screens only a compilation whose frontend reported nothing, so a source that PARSES beside
-    /// another frontend error (here the §8.3.5 separator rule: a semicolon must be followed by a space) is screened by the
+    /// another frontend error (here the §2023:8.3.5 separator rule: a semicolon must be followed by a space) is screened by the
     /// frontend too: the underscore gate of '85 is not lost until the separator is fixed.</summary>
     [Fact]
     public void AParsedSourceWithAnotherFrontendError_IsStillScreened()
@@ -365,7 +365,7 @@ public sealed class WordCharacterScreenTests
         Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("MY_NAME"));
     }
 
-    /// <summary>⛔ A WORD THAT STARTS OR ENDS ON AN UNDERSCORE IS A WORD, ILL-FORMED (kb/Work PB4234). ISO §8.3.2.1: "The hyphen
+    /// <summary>⛔ A WORD THAT STARTS OR ENDS ON AN UNDERSCORE IS A WORD, ILL-FORMED (kb/Work PB4234). ISO §2023:8.3.2.1: "The hyphen
     /// or underscore shall not appear as the first or last character in such words." The lexer used to split <c>_NAME</c> and
     /// <c>NAME_</c> at the underscore, so the user read "unexpected '_'" and the rule was never named. The word is now one
     /// IDENTIFIER and the screen names it, in either position, at every edition, from both word sources (the lexer's stream when
@@ -388,7 +388,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains($"'{word}'") && e.Contains($"as its {position} character")
-                                     && e.Contains("§8.3.2.1"));
+                                     && e.Contains("§2023:8.3.2.1"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOL0902"));
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.Equal(edition == 85, all.Contains("COBOL0900"));
@@ -407,7 +407,7 @@ public sealed class WordCharacterScreenTests
     }
 
     /// <summary>The directive stages scan their own words (a directive is removed before the lexer runs) and ask the same
-    /// §8.3.2.1 position rule (kb/Work PB4234): a <c>&gt;&gt;DEFINE</c> name and a <c>&gt;&gt;COBOL-WORDS</c> fresh word that
+    /// §2023:8.3.2.1 position rule (kb/Work PB4234): a <c>&gt;&gt;DEFINE</c> name and a <c>&gt;&gt;COBOL-WORDS</c> fresh word that
     /// start or end on an underscore are refused AND the refusal names the rule, not only "not a COBOL word".</summary>
     [Fact]
     public void AnEdgeUnderscore_InADirectiveWord_NamesTheRule()
@@ -450,8 +450,8 @@ public sealed class WordCharacterScreenTests
         Assert.DoesNotContain(errors, e => e.Contains("'_JOSE_'"));
     }
 
-    /// <summary>⛔ A HYPHEN AT A WORD'S EDGE IS THAT WORD'S EDGE (kb/Work PB4278). ISO §8.3.1: "A character-string is delimited by
-    /// separators", and the hyphen is none, so <c>NAME-</c> and <c>-NAME</c> are each one COBOL word that §8.3.2.1 forbids ("The
+    /// <summary>⛔ A HYPHEN AT A WORD'S EDGE IS THAT WORD'S EDGE (kb/Work PB4278). ISO §2023:8.3.1: "A character-string is delimited by
+    /// separators", and the hyphen is none, so <c>NAME-</c> and <c>-NAME</c> are each one COBOL word that §2023:8.3.2.1 forbids ("The
     /// hyphen or underscore shall not appear as the first or last character in such words"). The lexer splits it (the hyphen is
     /// also the minus), so the user read only the parse error the split causes (COBOL1941 / COBOL5506) and the rule was never
     /// named; the screen joins the adjacent tokens back into the word and names it, at every edition, before the parse error,
@@ -472,7 +472,7 @@ public sealed class WordCharacterScreenTests
         var named = errors.Where(e => e.Contains("COBOL2773") && e.Contains($"'{word}'")).ToList();
         var only = Assert.Single(named);
         Assert.Contains("has the hyphen as its " + position + " character", only);
-        Assert.Contains("§8.3.2.1", only);
+        Assert.Contains("§2023:8.3.2.1", only);
         // A word token inside the joined word is judged only as part of it, so MY_NAME is never reported alone.
         Assert.DoesNotContain(errors.Concat(warnings), e => e.Contains("COBOL2773") && !e.Contains($"'{word}'"));
     }
@@ -499,9 +499,9 @@ public sealed class WordCharacterScreenTests
         Assert.Contains("(5,4)", errors[cause]);
     }
 
-    /// <summary>A hyphen the TREE made an arithmetic operator is §8.7.1's boundary ("shall be preceded by a space and followed by
+    /// <summary>A hyphen the TREE made an arithmetic operator is §2023:8.7.1's boundary ("shall be preceded by a space and followed by
     /// a space"), reported by the separator rule as COBOL2993 and never also as a word; a sign touching its digits is a
-    /// numeric literal's leftmost character (§8.3.3.3.2 2)), and a list region's <c>A -1</c> is two arguments: none of them
+    /// numeric literal's leftmost character (§2023:8.3.3.3.2 2)), and a list region's <c>A -1</c> is two arguments: none of them
     /// is a word's edge. COBOL2993 is a FRONTEND error, so the binder never runs and this is the LEXER-STREAM word source
     /// (<see cref="WordCharacterScreen.RunOnTokens"/>, its operators named by the partial tree's facts): the undefined
     /// <c>QQQ</c> draws no binder diagnostic, which proves it. A parse that also fails elsewhere reads the same stream.</summary>
@@ -531,7 +531,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
-        Assert.Equal(3, errors.Count(e => e.Contains("COBOL2993") && e.Contains("§8.7.1")));
+        Assert.Equal(3, errors.Count(e => e.Contains("COBOL2993") && e.Contains("§2023:8.7.1")));
         Assert.DoesNotContain("COBOL1639", all);   // the binder did not run: the screen read the lexer's stream
         Assert.DoesNotContain("COBOL2773", all);
     }
@@ -539,8 +539,8 @@ public sealed class WordCharacterScreenTests
     /// <summary>The PARSED word source (<see cref="WordCharacterScreen.RunOnTree"/>) asks the same operator question of the
     /// tree's own terminals. Every operator that touches a word draws COBOL2993, a frontend error that stops the compile before
     /// the binder, so the one hyphen the tree makes an <c>addOp</c> while the binder still runs is a VALUE literal slot's sign:
-    /// <c>VALUE -A</c> parses as a unary expression, which §8.7.1 does not judge in a literal slot, and the VALUE rule refuses
-    /// it as no literal (COBOL1902, §13.18.63.2). That is its one report, never a COBOL2773 word <c>-A</c> beside it; the
+    /// <c>VALUE -A</c> parses as a unary expression, which §2023:8.7.1 does not judge in a literal slot, and the VALUE rule refuses
+    /// it as no literal (COBOL1902, §2023:13.18.63.2). That is its one report, never a COBOL2773 word <c>-A</c> beside it; the
     /// undefined <c>QQQ</c> (COBOL1639) proves the binder ran. A literal's sign (<c>-1</c>, <c>VALUE -1</c>), a list region's
     /// <c>A -1</c> and a spaced minus are no word's edge on this source either.</summary>
     [Fact]
@@ -595,7 +595,7 @@ public sealed class WordCharacterScreenTests
     }
 
     /// <summary>Only a run of WORD-CHARACTER tokens joins: a hyphen touching a literal's opening delimiter (<c>-X"41"</c>) is
-    /// §8.3.5 5)'s business (COBOL2633), never a word <c>-X</c>; a comment-entry's hyphens are comment text; and a debugging
+    /// §2023:8.3.5 5)'s business (COBOL2633), never a word <c>-X</c>; a comment-entry's hyphens are comment text; and a debugging
     /// line that is a comment holds no words of the program.</summary>
     [Fact]
     public void ALiteralACommentEntryAndACommentDebuggingLine_HoldNoHyphenEdgeWord()

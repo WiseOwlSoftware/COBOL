@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A DIVIDE QUOTIENT IS FORMED BY ONE METHOD, AND THE SUBSIDIARY QUOTIENT HAS ONE ARM PER FORM OF IDENTIFIER-3
-/// (kb/Work PB2923). ISO §14.9.12.4 5) b) and 6) b) both say "The quotient is then formed as specified in General rule 1
+/// (kb/Work PB2923). ISO §2023:14.9.12.4 5) b) and 6) b) both say "The quotient is then formed as specified in General rule 1
 /// and stored in identifier-3 as specified in 14.7.7": <c>DIVIDE ... GIVING</c> and <c>DIVIDE ... GIVING ... REMAINDER</c>
 /// store the same quotient, and 6) c) only derives the subsidiary quotient FROM it. The REMAINDER arm used to form the
 /// quotient a second way, truncated at the receiver's fixed scale, so a floating-point identifier-3 (which has none) held a

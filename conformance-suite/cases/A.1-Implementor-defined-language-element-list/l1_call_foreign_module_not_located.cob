@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3 b)/g) (Annex A.1 item 16) — CALL of a
+      *> ISO §2023:14.9.4.4 GR3 b)/g) (Annex A.1 item 16) — CALL of a
       *> non-COBOL program: the documented determination is that no
       *> non-COBOL program is ever located, so the CALL takes the
       *> EC-PROGRAM-NOT-FOUND arm.

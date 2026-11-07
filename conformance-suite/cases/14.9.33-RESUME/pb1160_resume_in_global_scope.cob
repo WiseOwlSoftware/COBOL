@@ -9,21 +9,21 @@
       *> execution of a GLOBAL declarative is a CONTINUE.
       *>
       *> THE RULES.
-      *> §14.9.33.4 GR1: "If the RESUME statement is executed within the
+      *> §2023:14.9.33.4 GR1: "If the RESUME statement is executed within the
       *>   scope of execution of a global declarative, it is the
       *>   equivalent of the execution of a CONTINUE statement."
-      *>   OK  §14.9.33.4 1)  (General rules)
-      *> §14.9.49.3 SR4: "Procedure-names within a declarative section
+      *>   OK  §2023:14.9.33.4 1)  (General rules)
+      *> §2023:14.9.49.3 SR4: "Procedure-names within a declarative section
       *>   may be referenced in a different declarative section or in a
       *>   nondeclarative procedure only with a PERFORM statement." - so
       *>   the GLOBAL declarative G may PERFORM the local declarative D,
       *>   and D's RESUME is then executed within G's scope.
-      *>   OK  §14.9.49.3 4)  (Syntax rules)
-      *> §14.9.49.4 GR7 b) with c) and DOC-A.1-218 (docs/CONFORMANCE.md
+      *>   OK  §2023:14.9.49.3 4)  (Syntax rules)
+      *> §2023:14.9.49.4 GR7 b) with c) and DOC-A.1-218 (docs/CONFORMANCE.md
       *>   §7): after the USE procedure for the failed OPEN (status 35,
       *>   a fatal I-O status) completes, this implementation continues
       *>   at the end of the OPEN statement.
-      *>   OK  §14.9.49.4 7) b)  (General rules)
+      *>   OK  §2023:14.9.49.4 7) b)  (General rules)
       *>
       *> DERIVATION. Each OPEN of the absent file F fails with status 35
       *> and selects the GLOBAL declarative G (file-name tier, GR3 a)).

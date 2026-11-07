@@ -48,7 +48,7 @@ public static class NistPreprocessor
 
     /// <summary>
     /// Replace NIST XXXXX placeholders in COBOL source text. A MAPPED stage (kb/Work PB2986, DESIGN-cc-in-copy.md
-    /// §3.5): a placeholder and its substitute differ in length (<c>XXXXX058</c> is 8 characters, <c>"CONTROL"</c> 9), so
+    /// §2023:3.5): a placeholder and its substitute differ in length (<c>XXXXX058</c> is 8 characters, <c>"CONTROL"</c> 9), so
     /// every substitution is written through <see cref="OriginWriter"/> — the characters to its right keep the physical
     /// column they were written at, and a substitute takes the position of the placeholder it stands for. The line count
     /// never changes: no substitute holds a line terminator, and the <see cref="MappedText"/> constructor asserts it.
@@ -125,7 +125,7 @@ public static class NistPreprocessor
         // Region pattern: a SELECT entry runs from the SELECT keyword to its terminating period. Two
         // hazards drove the exact shape of this regex, both rooted in NormalizeToFreeForm once rewriting
         // fixed-form indicator-column lines into free-form "*> …" comment lines that survived into this text.
-        // Since kb/Work PB1491/PB1493 the §6.5 logical conversion leaves a comment line EMPTY, so both now guard
+        // Since kb/Work PB1491/PB1493 the §2023:6.5 logical conversion leaves a comment line EMPTY, so both now guard
         // only the one "*>" line that still survives — the debugging-line carrier (indicator 'D'), which can sit
         // inside a SELECT entry just as a comment line did:
         //   (1) It must NOT stop at the first literal '.', because CCVS routinely interposes "*> …" comment
@@ -178,7 +178,7 @@ public static class NistPreprocessor
         // XXXXX073: the feature-name of a WRITE ... ADVANCING mnemonic-name (SQ207M). CSP — "suppress spacing", a
         // zero-line advance — is the feature-name whose rule the SQ207M golden encodes (the record lands on the
         // current line). Substituted since kb/Work PB862: the unsubstituted placeholder used to bind as a "device"
-        // only because the SPECIAL-NAMES binder accepted any word as a system-name (§12.3.7.3 SR8 now refuses it).
+        // only because the SPECIAL-NAMES binder accepted any word as a system-name (§2023:12.3.7.3 SR8 now refuses it).
         source = Literal(source, "XXXXX073", "CSP");
 
         // ── CONFIGURATION ──
@@ -199,13 +199,13 @@ public static class NistPreprocessor
 
         // XXXXX086/087/088: the implementor's own DATA DESCRIPTION of a file/label identifier item. The card is
         // written `01 IX-FD1-ID1` / `XXXXX086.` — the whole clause list is the X-card, and the implementor
-        // supplies it. WiseOwl COBOL provides NO implementor-defined data description clause (§13.16.2 Format 1 is a
-        // closed list, kb/Work PB487), so the description it supplies is a plain alphanumeric item; §13.16.3 SR8
+        // supplies it. WiseOwl COBOL provides NO implementor-defined data description clause (§2023:13.16.2 Format 1 is a
+        // closed list, kb/Work PB487), so the description it supplies is a plain alphanumeric item; §2023:13.16.3 SR8
         // requires an elementary entry to carry a PICTURE, which is exactly what these cards exist to provide.
         // ⛔ Behaviour-preserving for the whole corpus, verified per site: IX206A declares its three
         // (IX-FD1-ID1/IX-FD1-ID2/IX-FS1-ID2) and NEVER references them; IX205A's is a `*`-indicator comment
         // card; SQ401M's `03 VKEY XXXXX086.` is the operand of the obsolete, inert `VALUE OF` FD clause. Until
-        // PB487 these cards were left unsubstituted and the §13.16.2 vendor catch-all ATE the raw token — the
+        // PB487 these cards were left unsubstituted and the §2023:13.16.2 vendor catch-all ATE the raw token — the
         // items bound with no description at all and no diagnostic, which is the silent misbind that closing the
         // clause list exists to end. Token-boundary anchored, the XXXXX063/064/065 discipline (IX106A embeds
         // these digit runs inside a baselined test-data literal).
@@ -217,10 +217,10 @@ public static class NistPreprocessor
         //   • XXXXX069 — the corpus states its own contract on the next line: "REPLACE WITH ADDITIONAL INFO
         //     (*OPT G ONLY)" (DB104A, DB202A-204A), and the card sits inside an FD clause list (ST139A:147,
         //     ST147A:170, between BLOCK CONTAINS and RECORD CONTAINS). It is an IMPLEMENTOR'S OWN FILE
-        //     DESCRIPTION CLAUSE, and ISO §13.4.5.2 is a CLOSED list (kb/Work PB829) with no slot for one.
+        //     DESCRIPTION CLAUSE, and ISO §2023:13.4.5.2 is a CLOSED list (kb/Work PB829) with no slot for one.
         //   • XXXXX053 — the whole I-O-CONTROL entry of IX302M:30 / RL302M:30 / SQ302M:29, written `XXXXX053.`
         //     with "Message expected for above statement: OBSOLETE" beneath it: the implementor's own RERUN
-        //     clause, the obsolete §12.4.6.2 entry removed at COBOL-2002. WiseOwl COBOL supplies none, and an empty
+        //     clause, the obsolete §2023:12.4.6.2 entry removed at COBOL-2002. WiseOwl COBOL supplies none, and an empty
         //     I-O-CONTROL paragraph is legal (the format brackets both of its clauses), so the card and its
         //     separator period go together — leaving the period behind would strand a clause-less DOT.
         // ⛔ Until kb/Work PB829 both cards were left unsubstituted and the vendor catch-all ATE the raw token,
@@ -269,7 +269,7 @@ public static class NistPreprocessor
             // `ASSIGN TO XXXXP021` → "TF021", then RL213A `SELECT OPTIONAL RL-FS1 ASSIGN TO XXXXX021`
             // OPENs EXTEND, appends 501–520, and re-reads all 520. Left implementor-name-qualified,
             // RL213A's RL-FS1 resolves to its own empty per-program file and every record-number check
-            // FAILs (ISO §13.18.43 OPTIONAL phrase governs only presence semantics, not the physical
+            // FAILs (ISO §2023:13.18.43 OPTIONAL phrase governs only presence semantics, not the physical
             // assignment target). The allow-list maps the OPTIONAL XXXXX### → "TF###" for exactly the
             // (test, X-card) pairs that are cross-program consumers, never touching the isolation family.
             sel = Rewrite(sel, new Regex(@"(?<=ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)"),

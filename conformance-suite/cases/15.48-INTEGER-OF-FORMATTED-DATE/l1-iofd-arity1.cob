@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
+      *> ISO §2023:15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
       *> ( argument-1 argument-2 ). Neither argument is bracketed, so BOTH are
       *> required: the format admits exactly two, and one is not enough.
       *> The accepting side is 2014/l1_iofd_two_argument_format; the over-count

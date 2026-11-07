@@ -9,7 +9,7 @@
        PROGRAM-ID. PB1093AL.
       *> kb/Work PB1093 (owner decision R52) - A SPECIAL-NAMES
       *> HIGH-VALUE IS THE HIGHEST CHARACTER OF THE NATIVE SEQUENCE,
-      *> U+FFFF (§12.3.7.4 GR10: "When specified as literals in the
+      *> U+FFFF (§2023:12.3.7.4 GR10: "When specified as literals in the
       *> SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE
       *> and LOW-VALUE are associated with those characters having the
       *> highest and lowest positions ... in the native alphanumeric

@@ -5,7 +5,7 @@ using Antlr4.Runtime;
 namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
-/// ⛔ WHICH TOKENS OF AN EXPANSION'S TEXT THE CLIENT WROTE (ISO §12.3.8.4 GR5; kb/Work PB4721): the one question every screen of a text
+/// ⛔ WHICH TOKENS OF AN EXPANSION'S TEXT THE CLIENT WROTE (ISO §2023:12.3.8.4 GR5; kb/Work PB4721): the one question every screen of a text
 /// asks before it reports a word or a literal, so one fault of the client's is one report, at the place the client wrote it, and never
 /// again at the EXPANDS entry. A token of a text the group parsed carries the answer (<see cref="ExpansionToken.ClientWritten"/>); the
 /// text of an expansion compiled in an assembly of its own is lexed again from a file, whose tokens carry none, so that compilation

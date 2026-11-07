@@ -13,21 +13,21 @@
       *>   intermediate results is now explicitly implementor defined."
       *>   and "The previous COBOL Standard required the use of an
       *>   arithmetic mode that is no longer supported." (both -> OK
-      *>   §E.2 6)); Annex E.2 21) lists "Standard Arithmetic" among the
-      *>   removed obsolete elements (-> OK §E.2 21)) - the one mode
+      *>   §2023:E.2 6)); Annex E.2 21) lists "Standard Arithmetic" among the
+      *>   removed obsolete elements (-> OK §2023:E.2 21)) - the one mode
       *>   2023 removed, so the mode 2002/2014 prescribed.
-      *>   §7.3.6.3 GR2 "The implementor shall define and document which
+      *>   §2023:7.3.6.3 GR2 "The implementor shall define and document which
       *>   mode of arithmetic is to be used when evaluating compile-time
-      *>   arithmetic." -> OK §7.3.6.3 2) (the 2023 latitude only).
-      *>   §7.3.6.3 GR3 "The final result of the arithmetic expression
+      *>   arithmetic." -> OK §2023:7.3.6.3 2) (the 2023 latitude only).
+      *>   §2023:7.3.6.3 GR3 "The final result of the arithmetic expression
       *>   shall be truncated to the integer part of the value" -> OK
-      *>   §7.3.6.3 3).
+      *>   §2023:7.3.6.3 3).
       *> WiseOwl COBOL's standard arithmetic is the standard-decimal
       *>   intermediate data item: "a maximum precision of 34 decimal
-      *>   digits" (-> OK §8.8.1.5.2); an inexact intermediate rounds
+      *>   digits" (-> OK §2023:8.8.1.5.2); an inexact intermediate rounds
       *>   NEAREST-AWAY-FROM-ZERO, "If the INTERMEDIATE ROUNDING clause
       *>   is not specified, the NEAREST-AWAY-FROM-ZERO phrase is
-      *>   implied." (-> OK §11.9.11.2 a), under GR3 standard-decimal).
+      *>   implied." (-> OK §2023:11.9.11.2 a), under GR3 standard-decimal).
       *> DERIVATION of every .out line (34 digits, away from zero, GR3):
       *>   D1=002  2/3 = 0.666...667 (34 digits); *3 = 2.000...0001,
       *>           rounded to 34 digits 2.000...000; GR3 -> 2.
@@ -42,7 +42,7 @@
       *>           fits 34 digits (2023 refuses it: beyond 7.9E28).
       *>   OV2=9999999999999999999999999999  K-OV / 10, the
       *>           constant-name operand substituting its 29-digit
-      *>           value (§13.10.3 SR2 -> OK §13.10.3 2)).
+      *>           value (§2023:13.10.3 SR2 -> OK §2023:13.10.3 2)).
       *>   TIE=10010  1000000000000000000000000000001 * 10005 is exactly
       *>           10005000000000000000000000000010005 (35 digits): the
       *>           34-digit result drops a lone final 5 - a tie - and
@@ -50,10 +50,10 @@
       *>           ...10000);
       *>           minus the exact 1E30 * 10005 leaves 10010.
       *>   IF-OV / IF-T2=7  the same mode in a >>DEFINE value and a >>IF
-      *>           constant conditional expression (§7.3.8 via §7.3.6);
+      *>           constant conditional expression (§2023:7.3.8 via §2023:7.3.6);
       *>           V-H and V-BIG are single literals, so they keep their
-      *>           values (§7.3.11.4 GR5: "treated as a literal, not as
-      *>           an arithmetic-expression" -> OK §7.3.11.4 5)), and
+      *>           values (§2023:7.3.11.4 GR5: "treated as a literal, not as
+      *>           an arithmetic-expression" -> OK §2023:7.3.11.4 5)), and
       *>           V-H / 2 * V-BIG is T2's expression: 7.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1592S.

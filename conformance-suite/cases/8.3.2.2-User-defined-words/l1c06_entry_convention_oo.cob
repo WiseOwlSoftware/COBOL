@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.9.7.4 GR2 + GR4 a) b) c) ENTRY-CONVENTION — COBOL
+      *> ISO §2023:11.9.7.4 GR2 + GR4 a) b) c) ENTRY-CONVENTION — COBOL
       *>   method-name mapping, inherited convention
       *> GR2: "When COBOL is specified, the naming convention and
       *>   mapping of method-names
@@ -16,7 +16,7 @@
       *>     convention and
       *>   mapping of method-names and program-names are as specified in
       *>     8.3.2.2"
-      *>   -> OK  §11.9.7.4 2)  (General rules)
+      *>   -> OK  §2023:11.9.7.4 2)  (General rules)
       *> GR4: "When ENTRY-CONVENTION is not specified, the entry
       *>   convention used is as
       *> follows: a) If a class definition includes the INHERITS clause,
@@ -32,32 +32,32 @@
       *>     INHERITS clause,
       *>   the entry convention is inherited from the first class
       *>     specified in the INHERITS
-      *>   clause."  -> OK  §11.9.7.4 4)  (a)
+      *>   clause."  -> OK  §2023:11.9.7.4 4)  (a)
       *>   cite.py --check 11.9.7.4 "If an interface definition includes
       *>     the INHERITS
       *>   clause, the entry convention is inherited from the first
       *>     interface specified in
-      *>   the INHERITS clause."  -> OK  §11.9.7.4 4)  (b)
+      *>   the INHERITS clause."  -> OK  §2023:11.9.7.4 4)  (b)
       *>   cite.py --check 11.9.7.4 "In all other cases, the entry
       *>     convention is COBOL."
-      *>   -> OK  §11.9.7.4 4)  (c)
+      *>   -> OK  §2023:11.9.7.4 4)  (c)
       *>   cite.py --check 11.9.7.3 "The ENTRY-CONVENTION clause may be
       *>     specified only in a
-      *>   class definition"  -> OK  §11.9.7.3 1)  (Syntax rule)
-      *> §8.3.2.2: method-names are externalized user-defined words and,
+      *>   class definition"  -> OK  §2023:11.9.7.3 1)  (Syntax rule)
+      *> §2023:8.3.2.2: method-names are externalized user-defined words and,
       *>   without an AS
       *> phrase, the implementor defines their mapping:
       *>   cite.py --check 8.3.2.2 "program-names of outermost programs,
       *>   object-class-names, function-prototype-names,
       *>     interface-names, method-names"
-      *>   -> OK  §8.3.2.2 1)  (User-defined words)
+      *>   -> OK  §2023:8.3.2.2 1)  (User-defined words)
       *>   cite.py --check 8.3.2.2 "the implementor defines the mapping
       *>     between the
       *>   user-defined word and the corresponding name"  -> OK
-      *>     §8.3.2.2 2)
+      *>     §2023:8.3.2.2 2)
       *> WiseOwl COBOL's mapping (docs/CONFORMANCE.md DOC-A.1-64):
       *>   case-insensitive, i.e. the
-      *> §8.3.2.2 equivalence of upper- and lowercase letters in a
+      *> §2023:8.3.2.2 equivalence of upper- and lowercase letters in a
       *>   user-defined word.
       *> The only entry convention WiseOwl COBOL provides is COBOL, so the
       *>   observable of "the

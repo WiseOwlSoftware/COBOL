@@ -11,8 +11,8 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// COBOL conditional compilation (ISO/IEC 1989:2023 §7.3.11 DEFINE, §7.3.16 IF, §7.3.13 EVALUATE) — a
-/// text-manipulation stage (§7.2) that selectively includes source lines based on compilation variables. It runs on
+/// COBOL conditional compilation (ISO/IEC 1989:2023 §2023:7.3.11 DEFINE, §2023:7.3.16 IF, §2023:7.3.13 EVALUATE) — a
+/// text-manipulation stage (§2023:7.2) that selectively includes source lines based on compilation variables. It runs on
 /// free-form normalized text, before COPY expansion, so an <c>&gt;&gt;IF</c> may gate COPY statements in its
 /// branches.
 ///
@@ -23,14 +23,14 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// CONDITION EVALUATION — every <c>&gt;&gt;DEFINE</c> operand, <c>&gt;&gt;IF</c> cce, and <c>&gt;&gt;EVALUATE</c>/
 /// <c>&gt;&gt;WHEN</c> operand is fragment-parsed by ANTLR (<see cref="DirectiveExpressionFragment"/>) and evaluated
 /// by the ONE shared <see cref="CompileTimeExpressionEvaluator"/> — there is no hand-rolled tokenizer or condition
-/// parser; the ANTLR grammar is the single source of truth for directive-expression syntax (§7.3.6 arithmetic,
-/// §7.3.7 boolean, §7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOL1619</b>,
+/// parser; the ANTLR grammar is the single source of truth for directive-expression syntax (§2023:7.3.6 arithmetic,
+/// §2023:7.3.7 boolean, §2023:7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOL1619</b>,
 /// never a silently mis-bound value.
 ///
-/// A THIRD job it owns for the whole §7.3 family, because this is the one place that sees every directive line:
-/// (3) THE EDITION GATE. §7.3.2 gives ONE general format for every compiler directive —
-/// <c>&gt;&gt;compiler-instruction</c> — and §7.3.3 SR6 opens compiler-instruction with a compiler-directive word
-/// (§8.12), so "may this word head a <c>&gt;&gt;</c> line at the targeted edition" is one question asked once,
+/// A THIRD job it owns for the whole §2023:7.3 family, because this is the one place that sees every directive line:
+/// (3) THE EDITION GATE. §2023:7.3.2 gives ONE general format for every compiler directive —
+/// <c>&gt;&gt;compiler-instruction</c> — and §2023:7.3.3 SR6 opens compiler-instruction with a compiler-directive word
+/// (§2023:8.12), so "may this word head a <c>&gt;&gt;</c> line at the targeted edition" is one question asked once,
 /// here, against <see cref="WiseOwl.Cobol.Editions.CompilerDirectiveCatalog"/> (the <c>directiveWords</c> column of
 /// <c>constructs.json</c>, inverted). It answers for the consumed directives, the ones a downstream stage owns,
 /// and the conditional-compilation directives alike. kb/Work PB725: the roster used to be a flat name set with no
@@ -40,7 +40,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// driver runs — same row, same COBOL0900 producer, one stage earlier.
 ///
 /// A FOURTH job, the one thing a directive does here that is not a change to the text or to a table: (4) THE DISPLAY
-/// DIRECTIVE (§7.3.12, kb/Work PB807 / PB1538 — <c>ConditionalCompilationProcessor.Display.cs</c>). Its operands are read
+/// DIRECTIVE (§2023:7.3.12, kb/Work PB807 / PB1538 — <c>ConditionalCompilationProcessor.Display.cs</c>). Its operands are read
 /// by the one directive-expression grammar and evaluated by the shared evaluator like every other directive's, and what it
 /// transfers is the compilation's compile-time output (<see cref="DiagnosticBag.CompileOutput"/>), not a diagnostic.
 ///
@@ -49,7 +49,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 public static partial class ConditionalCompilationProcessor
 {
     /// <param name="text">The free-form-normalized source text.</param>
-    /// <param name="leaveDirectives">The ISO §7.3 directive keywords whose emitting-branch lines are LEFT IN the
+    /// <param name="leaveDirectives">The ISO §2023:7.3 directive keywords whose emitting-branch lines are LEFT IN the
     /// text for a downstream dedicated stage (the WiseOwl COBOL pipeline: TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
     /// FLAG-02/FLAG-14, COBOL-WORDS, LEAP-SECOND — <c>Frontend.LeftDirectives</c>); an omitted-branch line still
     /// drops with its branch. Null/empty consumes every recognized directive here. ONE set,
@@ -62,7 +62,7 @@ public static partial class ConditionalCompilationProcessor
             .Render(text);
 
     /// <summary>
-    /// The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY expansion
+    /// The MERGED text-manipulation driver (ISO §2023:7.2.1) — conditional compilation INTERLEAVED with COPY expansion
     /// so directives INSIDE copybooks are processed. On each emitting-branch region the driver expands its COPY
     /// statements (via <paramref name="copyProcessor"/>) and feeds each incorporated copybook back through the SAME
     /// driver (shared DEFINE / IF-EVALUATE / FlagScan state across the copybook boundary); an omitted-branch COPY is
@@ -88,7 +88,7 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>The mapped driver with its DIRECTIVE ENCOUNTERS (kb/Work PB1066): the resultant text, plus — for
     /// every <c>&gt;&gt;</c> line the driver met, in encounter order — the resultant line it ended on and whether it
-    /// changed the state this driver holds. <paramref name="implicitOps"/> is the §14.9.28.4 GR14 implicit PUSH ALL /
+    /// changed the state this driver holds. <paramref name="implicitOps"/> is the §2023:14.9.28.4 GR14 implicit PUSH ALL /
     /// POP ALL program a PREVIOUS run's parse placed (<see cref="ConditionalCompilationResult.KeyImplicitOps"/>),
     /// each applied immediately before the directive encounter it is keyed to; empty on the first run.</summary>
     public static ConditionalCompilationResult Manipulate(MappedText text, CopyProcessor copyProcessor,
@@ -111,8 +111,8 @@ public static partial class ConditionalCompilationProcessor
     }
 
     /// <summary>
-    /// ONE run of the conditional-compilation state machine (ISO §7.3.11/§7.3.16 line selection), optionally
-    /// INTERLEAVED with COPY expansion (§7.2.1). All directive state — the <c>defines</c> map, the
+    /// ONE run of the conditional-compilation state machine (ISO §2023:7.3.11/§2023:7.3.16 line selection), optionally
+    /// INTERLEAVED with COPY expansion (§2023:7.2.1). All directive state — the <c>defines</c> map, the
     /// <c>&gt;&gt;IF</c>/<c>&gt;&gt;EVALUATE</c> frame stack, the <see cref="FlagScanState"/>, the shared evaluator —
     /// lives here so it is threaded through the recursive COPY expansion (a copybook <c>&gt;&gt;DEFINE</c> is visible
     /// to following source, per Step-2 encounter order). <see cref="Render"/> uses a LOCAL output/block buffer per
@@ -127,8 +127,8 @@ public static partial class ConditionalCompilationProcessor
         // instead of reporting "not a previously-defined compilation variable". Saved and restored with `_defines`.
         private readonly HashSet<string> _refusedDefines = new(CobolNames.Comparer);
         private readonly FlagScanState _flagScan = new();
-        // §7.3.20 / §7.3.22 (kb/Work PB941): THIS stage's share of the directive state a PUSH saves and a POP
-        // restores — the compilation-variable table (every instance at once, §7.3.22.4 GR3) and the running FLAG
+        // §2023:7.3.20 / §2023:7.3.22 (kb/Work PB941): THIS stage's share of the directive state a PUSH saves and a POP
+        // restores — the compilation-variable table (every instance at once, §2023:7.3.22.4 GR3) and the running FLAG
         // options — carried by the ONE DirectiveStateStack mechanism, fed in encounter order so a copybook's
         // PUSH/POP act where they are met. The unsuccessful-POP warning is not issued here: the post-COPY
         // DirectiveSiteProcessor sees every PUSH/POP of the final text and issues it once.
@@ -145,7 +145,7 @@ public static partial class ConditionalCompilationProcessor
         private readonly CopyProcessor? _copy;
         private readonly HashSet<string> _alreadyIncluded = new(CobolNames.Comparer);
         private int _depth;
-        // kb/Work PB1066 — the §14.9.28.4 GR14 implicit-op program, keyed to directive encounters, and the
+        // kb/Work PB1066 — the §2023:14.9.28.4 GR14 implicit-op program, keyed to directive encounters, and the
         // encounters themselves (Line = 0-based line in THIS run's output frame). _renderBase is the output-frame line
         // at which the Render now running begins (0 for the source; a copybook's is its splice point), and
         // _flushBase the output-frame line at which the block now being COPY-expanded begins.
@@ -166,7 +166,7 @@ public static partial class ConditionalCompilationProcessor
         /// <see cref="CompilationVariableEvent.Line"/> is the 0-based line of this run's OUTPUT frame.</summary>
         public IReadOnlyList<CompilationVariableEvent> CompilationVariables => _compilationVariables;
 
-        // The targeted edition. TWO rules read it: the §8.3.2.1 word-length ceiling for >>DEFINE names (a
+        // The targeted edition. TWO rules read it: the §2023:8.3.2.1 word-length ceiling for >>DEFINE names (a
         // compilation-variable-name never reaches the tree-walk funnel, so this stage enforces it itself —
         // CobolWordRule, kb/Work R05's sweep) and THE compiler-directive introduction/removal gate below
         // (kb/Work PB725). The severity axis rides along because a REMOVED directive is an error strict /
@@ -191,13 +191,13 @@ public static partial class ConditionalCompilationProcessor
             _diag = new DirectiveDiag(diagnostics, sourcePath, _flagScan, _edition);
             // The ONE shared compile-time expression evaluator (ledger C2). Name resolution reads the CURRENT
             // `_defines` (a directive may reference a variable an earlier directive — or a copybook — set); the
-            // frontend routes every formation diagnostic to COBOL1619; a directive operand is dot-decimal (§5.3).
+            // frontend routes every formation diagnostic to COBOL1619; a directive operand is dot-decimal (§2023:5.3).
             _evaluator = new CompileTimeExpressionEvaluator(
                 edition: _edition,
                 resolveName: w => _defines.TryGetValue(w, out var v) ? v : null,
                 isRefusedName: _refusedDefines.Contains,
                 diag: _diag,
-                vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
+                vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §2023:7.3.6.2 SR1b"),
                 decimalPointIsComma: false);
             _copy = copy;
             _directiveState
@@ -228,7 +228,7 @@ public static partial class ConditionalCompilationProcessor
         /// (kb/Work PB2739).</summary>
         public MappedText Render(MappedText input, DivisionCursor division)
         {
-            // §7.3.16.3 SR7 / §7.3.13.3 SR9 (kb/Work PB1363): every text this driver renders — the source text and
+            // §2023:7.3.16.3 SR7 / §2023:7.3.13.3 SR9 (kb/Work PB1363): every text this driver renders — the source text and
             // each incorporated copybook — is ONE library text, and the directives OPENED in it shall be closed in it.
             int textId = ++_textCounter;
             int outerText = _currentText;
@@ -238,7 +238,7 @@ public static partial class ConditionalCompilationProcessor
             var outputOrigins = new List<LineOrigin>(lines.Length);
             var block = new List<string>();
             var blockOrigins = new List<LineOrigin>();
-            string openStatementText = "";   // the text of a COPY / REPLACE statement still open at a directive line (§7.3.3 SR8 b)
+            string openStatementText = "";   // the text of a COPY / REPLACE statement still open at a directive line (§2023:7.3.3 SR8 b)
 
             // The text of the COPY / REPLACE statement a directive line would interrupt: what was carried from the last
             // directive line plus the block accumulated since.
@@ -268,8 +268,8 @@ public static partial class ConditionalCompilationProcessor
                 var at = origin.Locate(CompilerDirectiveLine.IndicatorIndex(line));
                 _diag.At = at;
 
-                // §7.3.3 SR8 b) for the one directive this stage never sees: logical conversion DISCARDED a
-                // >>SOURCE FORMAT line (§6.5 1)) and left this blank one, so the line is asked of the map of the text it
+                // §2023:7.3.3 SR8 b) for the one directive this stage never sees: logical conversion DISCARDED a
+                // >>SOURCE FORMAT line (§2023:6.5 1)) and left this blank one, so the line is asked of the map of the text it
                 // was read from (kb/Work PB1353). The block is not flushed — the discarded line takes nothing from the text —
                 // so the question is asked of the statement text WITHOUT consuming it; the next directive line asks it again.
                 if (trimmed.Length == 0 && _copy is not null && _copy.IsDiscardedFormatDirective(origin.Origin)
@@ -278,7 +278,7 @@ public static partial class ConditionalCompilationProcessor
 
                 if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
                 {
-                    // §7.3.13.2: `>> EVALUATE` is followed directly by its first `>> WHEN` — text-1 belongs to a WHEN phrase,
+                    // §2023:7.3.13.2: `>> EVALUATE` is followed directly by its first `>> WHEN` — text-1 belongs to a WHEN phrase,
                     // so program text between the two belongs to no phrase of the format (a blank line is no text, a blank debugging line included: kb/Work PB4412).
                     if (!ReferenceFormatProcessor.HoldsNoProgramText(trimmed) && _stack.Count > 0 && _stack.Peek() is { Phase: FramePhase.EvaluateBeforeWhen } before
                         && !before.TextBeforeWhenReported)
@@ -286,14 +286,14 @@ public static partial class ConditionalCompilationProcessor
                         before.TextBeforeWhenReported = true;
                         _diag.Structure($"text follows the >>EVALUATE opened at {DescribeStart(before)} before its first >>WHEN — "
                             + "text-1 belongs to a >>WHEN phrase and the general format writes no text between "
-                            + ">>EVALUATE and its first >>WHEN (ISO §7.3.13.2)");
+                            + ">>EVALUATE and its first >>WHEN (ISO §2023:7.3.13.2)");
                     }
                     if (_stack.Count == 0 || _stack.Peek().Emitting) { block.Add(line); blockOrigins.Add(origin); }   // accumulate; COPY expands at Flush
-                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }                           // omitted ordinary line (ISO §7.3.16.4 GR 3, §7.3.13.4 GR 4 and 5), marked so a diagnostic never asks of its text (kb/Work PB4412)
+                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }                           // omitted ordinary line (ISO §2023:7.3.16.4 GR 3, §2023:7.3.13.4 GR 4 and 5), marked so a diagnostic never asks of its text (kb/Work PB4412)
                     continue;
                 }
 
-                // §7.3.3 SR8 b) (kb/Work PB1384): a compiler directive is not specified "within a source text manipulation
+                // §2023:7.3.3 SR8 b) (kb/Work PB1384): a compiler directive is not specified "within a source text manipulation
                 // statement". The block flushed below ends at this line, so a COPY or REPLACE statement still open at the
                 // end of it (no separator period yet) has this directive inside it. The question is asked of the text
                 // since the statement began — carried across directive lines, so a statement split by several is
@@ -308,10 +308,10 @@ public static partial class ConditionalCompilationProcessor
 
                 // A directive ends the current emitting block (a COPY can never span a directive line). Flush FIRST
                 // so the block's copybooks' own directives (a copybook >>DEFINE / >>IF) have already run — the
-                // following directive's condition + emitting state see them (ISO §7.2.1 Step-2 encounter order).
+                // following directive's condition + emitting state see them (ISO §2023:7.2.1 Step-2 encounter order).
                 Flush();
                 _diag.At = at;   // Flush may have re-anchored _diag.At inside a copybook; restore for this line
-                // §14.9.28.4 GR14 (kb/Work PB1066): an implicit PUSH ALL / POP ALL a previous parse placed before THIS
+                // §2023:14.9.28.4 GR14 (kb/Work PB1066): an implicit PUSH ALL / POP ALL a previous parse placed before THIS
                 // directive acts on the state here first, exactly as a written >>PUSH ALL / >>POP ALL would.
                 int encounter = _encounters.Count;
                 while (_nextImplicitOp < _implicitOps.Count && _implicitOps[_nextImplicitOp].BeforeDirective <= encounter)
@@ -320,16 +320,16 @@ public static partial class ConditionalCompilationProcessor
                 bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
                 var (keyword, rest) = SplitDirective(trimmed);
                 // ── THE edition gate for EVERY compiler directive (kb/Work PB725) ────────────────────────
-                // ISO §7.3.2 gives ONE general format for all of them — `>>compiler-instruction` — and
-                // §7.3.3 SR6 opens compiler-instruction with a compiler-directive word (§8.12). So "may this
+                // ISO §2023:7.3.2 gives ONE general format for all of them — `>>compiler-instruction` — and
+                // §2023:7.3.3 SR6 opens compiler-instruction with a compiler-directive word (§2023:8.12). So "may this
                 // word head a >> line at the targeted edition" is one question with one answer per directive,
                 // asked HERE, once, for the whole family: the recognized-and-consumed directives, the ones a
                 // downstream stage owns (_leave), and the conditional-compilation directives handled by the
                 // switch below alike. It routes through the ONE ConstructRegistry funnel, so the introduction
                 // edge is COBOL0900, a removal COBOL0902 and an obsolete use COBOL0903, with the
-                // §4.2 severity decided by the ONE EditionSeverityPolicy — never a local `if (dialect < N)`.
+                // §2023:4.2 severity decided by the ONE EditionSeverityPolicy — never a local `if (dialect < N)`.
                 // A directive in an OMITTED branch is not compiled, so it is not gated (it drops with its
-                // branch, like every other omitted line). Its SYNTAX is another matter (§7.2.1, kb/Work PB1363): the
+                // branch, like every other omitted line). Its SYNTAX is another matter (§2023:7.2.1, kb/Work PB1363): the
                 // standard requires "compiler directives" to be "syntactically correct in the initial source text and
                 // library text", and the false path of an IF or EVALUATE is part of that text. So the OPERAND below is
                 // asked of every directive line whichever branch it is in, and the conditional-compilation arms parse
@@ -339,7 +339,7 @@ public static partial class ConditionalCompilationProcessor
                     var sink = new BagSink(_bag, _diag.At);
                     if (emitting) CompilerDirectiveCatalog.Check(keyword, _edition, sink);
                     // ── AND THE OPERAND, from the same row (kb/Work PB794) ───────────────────────────────
-                    // §7.3.3 SR6 composes compiler-instruction "as specified in the syntax of each directive",
+                    // §2023:7.3.3 SR6 composes compiler-instruction "as specified in the syntax of each directive",
                     // so "may this word head a >> line" and "may these words follow it" are two questions with
                     // one answer each per directive, asked at the same point. Before PB794 the second was asked
                     // by six stages in six spellings with six codes — and not at all for the seven directives
@@ -357,7 +357,7 @@ public static partial class ConditionalCompilationProcessor
                     case "IF":
                     {
                         bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
-                        if (!parentActive) CheckCceSyntax(rest, _diag, ">>IF");   // omitted branch: parsed (§7.2.1), never evaluated
+                        if (!parentActive) CheckCceSyntax(rest, _diag, ">>IF");   // omitted branch: parsed (§2023:7.2.1), never evaluated
                         bool cond = parentActive && EvaluateCceText(rest, _evaluator, _diag, ">>IF");
                         _stack.Push(new Frame { Kind = FrameKind.If, Phase = FramePhase.IfThen, TextId = _currentText,
                             ParentActive = parentActive, Emitting = cond, BranchTaken = cond, Start = at });
@@ -368,7 +368,7 @@ public static partial class ConditionalCompilationProcessor
                         {
                             if (ifFrame.Phase == FramePhase.IfElse)
                                 _diag.Structure($">>ELSE: the >>IF opened at {DescribeStart(ifFrame)} already has its >>ELSE — "
-                                    + "the general format writes at most one (ISO §7.3.16.2)");
+                                    + "the general format writes at most one (ISO §2023:7.3.16.2)");
                             else
                             {
                                 ifFrame.Phase = FramePhase.IfElse;
@@ -385,11 +385,11 @@ public static partial class ConditionalCompilationProcessor
                         bool parentActive = _stack.Count == 0 || _stack.Peek().Emitting;
                         var f = new Frame { Kind = FrameKind.Evaluate, Phase = FramePhase.EvaluateBeforeWhen, TextId = _currentText,
                             ParentActive = parentActive, Emitting = false, BranchTaken = false,
-                            Start = at, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§7.3.15.4 GR4 c)
+                            Start = at, EvaluateFlagOn = _flagScan.IsOn(FlagOption.Flag14Evaluate) };   // c anchor (§2023:7.3.15.4 GR4 c)
                         string subj = rest.TrimSpaces();
                         if (CobolKeywords.Same(subj, "TRUE")) f.TruthForm = true;
                         else if (parentActive) f.Subject = EvaluateOperandText(subj, _evaluator, _diag, ">>EVALUATE");
-                        else CheckOperandSyntax(subj, _diag, ">>EVALUATE");   // omitted branch: parsed (§7.2.1), never evaluated
+                        else CheckOperandSyntax(subj, _diag, ">>EVALUATE");   // omitted branch: parsed (§2023:7.2.1), never evaluated
                         _stack.Push(f);
                         break;
                     }
@@ -397,21 +397,21 @@ public static partial class ConditionalCompilationProcessor
                         if (PhraseFrame(FrameKind.Evaluate, "WHEN") is { } evalFrame)
                         {
                             string obj = rest.TrimSpaces();
-                            // §7.3.13.3 SR5/SR6: `>>WHEN OTHER` is specified entirely on its line — OTHER and nothing else.
+                            // §2023:7.3.13.3 SR5/SR6: `>>WHEN OTHER` is specified entirely on its line — OTHER and nothing else.
                             bool isOther = CompilerDirectiveLine.StartsWithWord(obj, "OTHER");
                             if (isOther)
                             {
                                 if (obj.Length > "OTHER".Length)
                                     _diag.Structure($">>WHEN OTHER: '{obj["OTHER".Length..].TrimSpaces()}' follows OTHER on the directive line — "
                                         + ">>WHEN OTHER shall be specified entirely on its line and text-2 shall begin on a new line "
-                                        + "(ISO §7.3.13.3 SR5, SR6)");
+                                        + "(ISO §2023:7.3.13.3 SR5, SR6)");
                                 if (evalFrame.Phase == FramePhase.EvaluateOther)
                                     _diag.Structure($">>WHEN OTHER: the >>EVALUATE opened at {DescribeStart(evalFrame)} already has its "
-                                        + ">>WHEN OTHER — the general format writes at most one, after every >>WHEN (ISO §7.3.13.2)");
+                                        + ">>WHEN OTHER — the general format writes at most one, after every >>WHEN (ISO §2023:7.3.13.2)");
                             }
                             else if (evalFrame.Phase == FramePhase.EvaluateOther)
                                 _diag.Structure($">>WHEN: follows the >>WHEN OTHER of the >>EVALUATE opened at {DescribeStart(evalFrame)} — "
-                                    + ">>WHEN OTHER is the last phrase before >>END-EVALUATE (ISO §7.3.13.2)");
+                                    + ">>WHEN OTHER is the last phrase before >>END-EVALUATE (ISO §2023:7.3.13.2)");
                             // c EVALUATE: record the syntactic presence of a >>WHEN / >>WHEN OTHER (independent of which
                             // branch emits) — GR4 c flags a directive containing BOTH.
                             if (isOther) evalFrame.SawWhenOther = true; else evalFrame.SawWhen = true;
@@ -424,8 +424,8 @@ public static partial class ConditionalCompilationProcessor
                             else
                             {
                                 if (evalFrame.Phase == FramePhase.EvaluateBeforeWhen) evalFrame.Phase = FramePhase.EvaluateWhen;
-                                // §7.3.13.3 SR3/SR11/SR12/SR14-16 are properties of EVERY >>WHEN of the directive, not of the
-                                // branch §7.3.13.4 GR4 selects (kb/Work PB1364): the operand is parsed and category-checked
+                                // §2023:7.3.13.3 SR3/SR11/SR12/SR14-16 are properties of EVERY >>WHEN of the directive, not of the
+                                // branch §2023:7.3.13.4 GR4 selects (kb/Work PB1364): the operand is parsed and category-checked
                                 // whenever the directive itself is being compiled; only the EMIT decision is gated on an earlier match.
                                 bool match;
                                 if (evalFrame.TruthForm)                                                  // Format 2: constant-conditional-expression
@@ -444,8 +444,8 @@ public static partial class ConditionalCompilationProcessor
                         {
                             if (endFrame.Phase == FramePhase.EvaluateBeforeWhen)
                                 _diag.Structure($">>END-EVALUATE: the >>EVALUATE opened at {DescribeStart(endFrame)} has no >>WHEN — "
-                                    + "the general format writes one or more (ISO §7.3.13.2)");
-                            // c EVALUATE (§7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
+                                    + "the general format writes one or more (ISO §2023:7.3.13.2)");
+                            // c EVALUATE (§2023:7.3.15.4 GR4 c; E.2 item 8) — flag the directive when it carried both a >>WHEN
                             // and a >>WHEN OTHER and FLAG-14 EVALUATE was ON at the >>EVALUATE line.
                             if (endFrame.SawWhen && endFrame.SawWhenOther && endFrame.EvaluateFlagOn)
                                 _diag.FlagWarn(FlagOption.Flag14Evaluate, endFrame.Start);
@@ -456,7 +456,7 @@ public static partial class ConditionalCompilationProcessor
                         // A DEFINE in an omitted branch has no effect. One that changed the table is an EVENT of the
                         // compilation-variable timeline, recorded at this directive's output-frame line (the encounter's,
                         // below) so the CONSTANT FROM and directive-literal uses can read the table as of their own line
-                        // (§7.3.11.4 GR1, kb/Work PB1368).
+                        // (§2023:7.3.11.4 GR1, kb/Work PB1368).
                         if (ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel, _inputs, apply: emitting) is var (defined, written, refused))
                         {
                             // The live set the evaluator reads and the timeline the later stages read record the SAME fact:
@@ -468,11 +468,11 @@ public static partial class ConditionalCompilationProcessor
                         changesState = emitting;
                         break;
                     case "DISPLAY":
-                        // §7.3.12.4 GR1: the operands are transferred when the directive is processed — in an emitting branch
+                        // §2023:7.3.12.4 GR1: the operands are transferred when the directive is processed — in an emitting branch
                         // only, like every directive (an omitted branch is not compiled). The line itself is consumed.
                         if (emitting) ApplyDisplay(rest, _evaluator, _diag, _inputs, _bag);
                         else if (rest.Length > 0)
-                            ParseDisplayFragment(rest, _diag, ">>DISPLAY", compiled: false);   // omitted branch: nothing is transferred, but the operands are still parsed (§7.2.1)
+                            ParseDisplayFragment(rest, _diag, ">>DISPLAY", compiled: false);   // omitted branch: nothing is transferred, but the operands are still parsed (§2023:7.2.1)
                         break;
                     default:
                         // A >> directive other than the conditional-compilation set handled above. Its edition
@@ -500,12 +500,12 @@ public static partial class ConditionalCompilationProcessor
                                     changesState = true;
                                 }
                             }
-                            // §7.3.10.4 GR2-GR4: the directive may respell a word the division cursor reads, and the line
+                            // §2023:7.3.10.4 GR2-GR4: the directive may respell a word the division cursor reads, and the line
                             // never reaches the blocks the COPY driver reads, so the cursor is told here (kb/Work PB4281).
                             if (keyword == "COBOL-WORDS") division.NoteCobolWordsDirective(rest);
                             emit = line;
                         }
-                        // A recognized ISO §7.3 directive with no downstream stage: CONSUME it (the program
+                        // A recognized ISO §2023:7.3 directive with no downstream stage: CONSUME it (the program
                         // compiles with the default behaviour) — the roster is the constructs.json rows, never a
                         // hand-kept name set (kb/Work PB725). An UNRECOGNIZED >> word is left in place when
                         // emitting so it surfaces downstream (catching typos like >>IFF).
@@ -519,7 +519,7 @@ public static partial class ConditionalCompilationProcessor
 
             Flush();
             // A directive OPENED in this text and still open at its end is unclosed: the source text is a compilation
-            // group's end, a copybook's end is the end of its library text (§7.3.16.3 SR7, §7.3.13.3 SR9). Pop it, so
+            // group's end, a copybook's end is the end of its library text (§2023:7.3.16.3 SR7, §2023:7.3.13.3 SR9). Pop it, so
             // the text that follows the COPY is judged against the frames it opened itself.
             while (_stack.Count > 0 && _stack.Peek().TextId == textId)
             {
@@ -528,7 +528,7 @@ public static partial class ConditionalCompilationProcessor
                 _diag.Structure($"the >>{(open.Kind == FrameKind.If ? "IF" : "EVALUATE")} opened at {DescribeStart(open)} is not closed "
                     + $"by >>{(open.Kind == FrameKind.If ? "END-IF" : "END-EVALUATE")} in the same "
                     + (textId == 1 ? "source text" : "library text")
-                    + (open.Kind == FrameKind.If ? " (ISO §7.3.16.2, §7.3.16.3 SR7)" : " (ISO §7.3.13.2, §7.3.13.3 SR9)"));
+                    + (open.Kind == FrameKind.If ? " (ISO §2023:7.3.16.2, §2023:7.3.16.3 SR7)" : " (ISO §2023:7.3.13.2, §2023:7.3.13.3 SR9)"));
             }
             _currentText = outerText;
             return new MappedText(string.Join('\n', output), outputOrigins.ToArray());
@@ -536,9 +536,9 @@ public static partial class ConditionalCompilationProcessor
 
         /// <summary>The frame a phrase directive (<c>&gt;&gt;ELSE</c>, <c>&gt;&gt;END-IF</c>, <c>&gt;&gt;WHEN</c>,
         /// <c>&gt;&gt;END-EVALUATE</c>) belongs to — the top frame when it is of <paramref name="kind"/> — or null after
-        /// reporting that there is none (§7.3.16.2 / §7.3.13.2: a phrase follows its own opening directive). A phrase
+        /// reporting that there is none (§2023:7.3.16.2 / §2023:7.3.13.2: a phrase follows its own opening directive). A phrase
         /// written in a different library text from its opening directive is reported too, but the frame is still
-        /// returned so the stack keeps the nesting the source wrote (§7.3.16.3 SR7, §7.3.13.3 SR9).</summary>
+        /// returned so the stack keeps the nesting the source wrote (§2023:7.3.16.3 SR7, §2023:7.3.13.3 SR9).</summary>
         private Frame? PhraseFrame(FrameKind kind, string word)
         {
             string opener = kind == FrameKind.If ? "IF" : "EVALUATE";
@@ -547,14 +547,14 @@ public static partial class ConditionalCompilationProcessor
                 _diag.Structure($">>{word} has no open >>{opener} directive to belong to"
                     + (_stack.Count > 0 ? $" (the innermost open directive is the >>{(_stack.Peek().Kind == FrameKind.If ? "IF" : "EVALUATE")} "
                         + $"opened at {DescribeStart(_stack.Peek())})" : "")
-                    + (kind == FrameKind.If ? " (ISO §7.3.16.2)" : " (ISO §7.3.13.2)"));
+                    + (kind == FrameKind.If ? " (ISO §2023:7.3.16.2)" : " (ISO §2023:7.3.13.2)"));
                 return null;
             }
             var f = _stack.Peek();
             if (f.TextId != _currentText)
                 _diag.Structure($">>{word} is written in a different library text from the >>{opener} opened at {DescribeStart(f)} — "
                     + "the phrases of one directive shall all be in the same library text or all in source text"
-                    + (kind == FrameKind.If ? " (ISO §7.3.16.3 SR7)" : " (ISO §7.3.13.3 SR9)"));
+                    + (kind == FrameKind.If ? " (ISO §2023:7.3.16.3 SR7)" : " (ISO §2023:7.3.13.3 SR9)"));
             return f;
         }
 
@@ -579,8 +579,8 @@ public static partial class ConditionalCompilationProcessor
 
     private enum FrameKind { If, Evaluate }
 
-    /// <summary>Where a frame is in its general format (kb/Work PB1363) — §7.3.16.2: <c>IF [ELSE] END-IF</c>;
-    /// §7.3.13.2: <c>EVALUATE WHEN… [WHEN OTHER] END-EVALUATE</c>. Every phrase directive is judged against the
+    /// <summary>Where a frame is in its general format (kb/Work PB1363) — §2023:7.3.16.2: <c>IF [ELSE] END-IF</c>;
+    /// §2023:7.3.13.2: <c>EVALUATE WHEN… [WHEN OTHER] END-EVALUATE</c>. Every phrase directive is judged against the
     /// phase of the frame it arrives at, so a second <c>&gt;&gt;ELSE</c> or a <c>&gt;&gt;WHEN</c> after
     /// <c>&gt;&gt;WHEN OTHER</c> is a phase that has no arrow out, not a special case.</summary>
     private enum FramePhase { IfThen, IfElse, EvaluateBeforeWhen, EvaluateWhen, EvaluateOther }
@@ -590,14 +590,14 @@ public static partial class ConditionalCompilationProcessor
     {
         public FrameKind Kind;
         public FramePhase Phase;
-        public int TextId;          // the library text (source text or one copybook incorporation) the directive was OPENED in — §7.3.16.3 SR7 / §7.3.13.3 SR9
+        public int TextId;          // the library text (source text or one copybook incorporation) the directive was OPENED in — §2023:7.3.16.3 SR7 / §2023:7.3.13.3 SR9
         public bool TextBeforeWhenReported;   // the one "text between EVALUATE and its first WHEN" complaint per directive
         public bool ParentActive;   // is the enclosing context emitting? (a nested directive inside an omitted branch stays omitted)
         public bool Emitting;       // is THIS branch's text currently being included?
         public bool BranchTaken;    // IF: the IF arm was taken (drives ELSE); EVALUATE: some WHEN already matched (drives later WHEN/OTHER)
         public bool TruthForm;      // EVALUATE: true for Format 2 (>>EVALUATE TRUE), where each WHEN carries a constant-conditional-expression
         public CtValue? Subject;    // EVALUATE Format 1: the selection-subject value
-        // FLAG-14 c EVALUATE (§7.3.15.4 GR4 c): flag a >>EVALUATE directive that carries BOTH a >>WHEN and a
+        // FLAG-14 c EVALUATE (§2023:7.3.15.4 GR4 c): flag a >>EVALUATE directive that carries BOTH a >>WHEN and a
         // >>WHEN OTHER — syntactic presence (independent of which branch emits). Captured at the >>EVALUATE line.
         public bool SawWhen;
         public bool SawWhenOther;
@@ -619,7 +619,7 @@ public static partial class ConditionalCompilationProcessor
         }
         public bool IsOn(FlagOption opt) => _on.TryGetValue(opt, out bool v) && v;
 
-        /// <summary>The PUSH/POP carrier of one directive's options (§7.3.22.4 GR1 / §7.3.20.4 GR1; kb/Work
+        /// <summary>The PUSH/POP carrier of one directive's options (§2023:7.3.22.4 GR1 / §2023:7.3.20.4 GR1; kb/Work
         /// PB941) — FLAG-02 and FLAG-14 are two directives, saved and restored independently.</summary>
         public IDirectiveStateCarrier CarrierFor(FlagDirective which) =>
             new DirectiveValueCarrier<Dictionary<FlagOption, bool>>(
@@ -631,7 +631,7 @@ public static partial class ConditionalCompilationProcessor
                 });
     }
 
-    // ── DEFINE (§7.3.11) ──────────────────────────────────────────────────────────────────────────────────────
+    // ── DEFINE (§2023:7.3.11) ──────────────────────────────────────────────────────────────────────────────────────
 
     private enum DefineKind { Value, Off, Parameter }
 
@@ -645,7 +645,7 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>Split a <c>&gt;&gt;DEFINE compilation-variable-name [AS] { operand | PARAMETER | OFF } [OVERRIDE]</c>
     /// directive at the DIRECTIVE-SYNTAX level (name / AS / OFF / PARAMETER / OVERRIDE are directive keywords, not
-    /// expression syntax); the OPERAND text is handed to the ANTLR fragment parse. §7.3.11.2 makes AS optional and
+    /// expression syntax); the OPERAND text is handed to the ANTLR fragment parse. §2023:7.3.11.2 makes AS optional and
     /// OVERRIDE a trailing phrase; OFF and PARAMETER are the two operand-less alternatives.</summary>
     /// <remarks><paramref name="define"/>.Name is "" until the first word is a valid
     /// compilation-variable-name, and set on EVERY return after that, a refusal included: the refused directive still names the variable (kb/Work PB3119).</remarks>
@@ -658,7 +658,7 @@ public static partial class ConditionalCompilationProcessor
         while (sp < s.Length && !CobolSpace.IsSeparator(s[sp])) sp++;
         string name = s[..sp];
         string body = sp < s.Length ? s[sp..].TrimSpaces() : "";
-        // §7.3.11.2: compilation-variable-name-1 is required, and is ONE word — not a literal, not an expression.
+        // §2023:7.3.11.2: compilation-variable-name-1 is required, and is ONE word — not a literal, not an expression.
         if (name.Length == 0) { complaint = "no compilation-variable-name-1 is written"; return false; }
         if (!IsCompilationVariableNameShape(name))
         {
@@ -668,7 +668,7 @@ public static partial class ConditionalCompilationProcessor
             return false;
         }
         define = (name, DefineKind.Value, "", false);   // the name is valid: any refusal below still names it
-        if (CompilerDirectiveLine.StartsWithWord(body, "AS")) body = body["AS".Length..].TrimSpacesStart();   // AS is not underlined: an optional word (§5.2.3)
+        if (CompilerDirectiveLine.StartsWithWord(body, "AS")) body = body["AS".Length..].TrimSpacesStart();   // AS is not underlined: an optional word (§2023:5.2.3)
 
         // { value-group [OVERRIDE] | OFF }: OFF is an alternative of the OUTER brace, so neither OVERRIDE nor any other
         // word may follow it (kb/Work PB1367 — the old trailing-OVERRIDE strip ran before the OFF test and took
@@ -698,7 +698,7 @@ public static partial class ConditionalCompilationProcessor
         return true;
     }
 
-    /// <summary>A compilation-variable-name is a COBOL user-defined word (§8.3.2.1): word characters — basic letters,
+    /// <summary>A compilation-variable-name is a COBOL user-defined word (§2023:8.3.2.1): word characters — basic letters,
     /// digits, hyphen, underscore and the extended letters (kb/Work PB1402) — neither beginning nor ending with a
     /// hyphen or underscore. Which extended characters the edition permits is <see cref="CobolWordRule"/>'s.</summary>
     private static bool IsCompilationVariableNameShape(string w) => CobolCharacterRepertoire.IsWordShape(w);
@@ -723,21 +723,21 @@ public static partial class ConditionalCompilationProcessor
             return define.Name.Length > 0 && apply ? DefineEffect.RefusalOf(define.Name) : null;
         }
         var (name, kind, operand, over) = define;
-        // §7.3.11.3 SR1 (with §7.3.3 SR7, SR9): the name shall not be a compiler-directive word — the ONE §8.12
+        // §2023:7.3.11.3 SR1 (with §2023:7.3.3 SR7, SR9): the name shall not be a compiler-directive word — the ONE §2023:8.12
         // representation, asked of the same screen the defined condition uses (kb/Work PB1366).
         if (CompilerDirectiveWords.IsReserved(name))
         {
-            diag.DirectiveWordAsName(name, "a DEFINE directive", "ISO §7.3.11.3 SR1");
+            diag.DirectiveWordAsName(name, "a DEFINE directive", "ISO §2023:7.3.11.3 SR1");
             return apply ? DefineEffect.RefusalOf(name) : null;
         }
-        // §8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
+        // §2023:8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
         // the DEFINITION site (the root: an over-long word can never become defined, so a reference-site spelling
         // is already diagnosed as an unknown variable). Report and continue, matching the funnel's posture.
         foreach (var (code, violation) in CobolWordRule.DirectiveWordViolations(name, dialectLevel)) diag.WordRule(code, violation);
         if (!apply)
         {
             // A DEFINE in an omitted branch changes nothing, but it is still a directive in the initial source text, so its
-            // general format, its name and the syntax of its operand are held to §7.3.11.2 / §7.2.1 like any other's.
+            // general format, its name and the syntax of its operand are held to §2023:7.3.11.2 / §2023:7.2.1 like any other's.
             if (kind == DefineKind.Value) CheckOperandSyntax(operand, diag, $">>DEFINE {name}");
             return null;
         }
@@ -750,7 +750,7 @@ public static partial class ConditionalCompilationProcessor
             {
                 // GR4 — the value is obtained from the operating environment by an implementor-defined method
                 // (DOC-A.1-49, docs/CONFORMANCE.md): the environment variable named by the compilation-variable-name in
-                // its canonical upper-case spelling — a COBOL word is case-insensitive (§8.3.1), so two spellings of
+                // its canonical upper-case spelling — a COBOL word is case-insensitive (§2023:8.3.1), so two spellings of
                 // one name read ONE variable (kb/Work PB1533). What the text IS — a numeric literal's spelling, one quoted
                 // literal, any other text, or no value — is DefineParameterValue's (kb/Work PB1626); a numeric or quoted value
                 // is then evaluated as the literal it spells, by the path a literal written in the directive takes, so the
@@ -783,7 +783,7 @@ public static partial class ConditionalCompilationProcessor
         }
     }
 
-    /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §7.3.11.3 SR2: without the
+    /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §2023:7.3.11.3 SR2: without the
     /// OVERRIDE phrase a compilation variable already defined (and not OFF'd) may be redefined only to the SAME
     /// value (category-aware value equality — <c>AS 1</c> / <c>AS 01</c> / <c>AS 1.0</c> are the same). A differing
     /// no-OVERRIDE redefinition is COBOL1618 (superset-continue: the new value still binds).</summary>
@@ -804,13 +804,13 @@ public static partial class ConditionalCompilationProcessor
     {
         if (ParseOperandFragment(text, diag, where, compiled: true) is not { } frag) return null;
         var operand = frag.compileTimeOperand();
-        diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — evaluated context
+        diag.FlagArithmetic(operand);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — evaluated context
         diag.GateBooleanOperators(operand);
         return evaluator.EvaluateOperand(operand, where);
     }
 
     /// <summary>Fragment-parse a compile-time operand WITHOUT evaluating it — the syntax check of a directive in an omitted
-    /// branch (ISO §7.2.1: compiler directives shall be syntactically correct in the initial source text, and the false
+    /// branch (ISO §2023:7.2.1: compiler directives shall be syntactically correct in the initial source text, and the false
     /// path of an IF or EVALUATE is part of it). A syntax error is COBOL1619, exactly as in a compiled branch;
     /// evaluation errors (undefined name, category, division) need values and belong to a compiled branch only.</summary>
     private static void CheckOperandSyntax(string text, DirectiveDiag diag, string where) =>
@@ -823,7 +823,7 @@ public static partial class ConditionalCompilationProcessor
     // ── ⭐ THE THREE DIRECTIVE-FRAGMENT PARSE FUNNELS (kb/Work PB1616) ───────────────────────────────────────────
     // A directive operand is lexed apart from the unit, so no tree walk of the unit reaches it. Every fragment this stage
     // parses comes through one of these three, and each asks the same two things of it: is it SYNTACTICALLY a fragment
-    // (COBOL1619 when not), and is every literal in it sound (the literal's own §8.3.3 rules, always; the edition gates
+    // (COBOL1619 when not), and is every literal in it sound (the literal's own §2023:8.3.3 rules, always; the edition gates
     // of its format, in a COMPILED branch). A fragment that fails either has no value and is returned as null — the
     // "already reported" result every caller keeps. A fourth parse site calls a funnel, never DirectiveExpressionFragment.
 
@@ -859,14 +859,14 @@ public static partial class ConditionalCompilationProcessor
     {
         if (ParseCceFragment(text, diag, where, compiled: true) is not { } frag) return false;
         var cce = frag.constantConditionalExpression();
-        diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§7.3.15.4 GR4 b) — evaluated context
+        diag.FlagArithmetic(cce);   // b COMPILE-TIME-ARITHMETIC-EXPRESSIONS (§2023:7.3.15.4 GR4 b) — evaluated context
         diag.GateBooleanOperators(cce);
         diag.GateLogicalOperators(cce);
         diag.GateRelationalOperators(cce);
         return evaluator.EvaluateCce(cce, where) ?? false;
     }
 
-    /// <summary>Format-1 WHEN match (§7.3.13.4 GR4): subject == object, or (with THROUGH/THRU) the subject in the
+    /// <summary>Format-1 WHEN match (§2023:7.3.13.4 GR4): subject == object, or (with THROUGH/THRU) the subject in the
     /// inclusive NUMERIC range [object, object3] (SR12 — a range requires numeric operands). Non-numeric equality
     /// is category-aware and length-sensitive (GR7).</summary>
     private static bool MatchWhen(CtValue? subject, string whenText, CompileTimeExpressionEvaluator evaluator,
@@ -876,32 +876,32 @@ public static partial class ConditionalCompilationProcessor
         if (subject is null)
         {
             // No subject value to compare with: the directive is in an omitted branch (its Subject is never evaluated
-            // there; §7.2.1 still requires it syntactically correct) or its subject was malformed (already reported).
+            // there; §2023:7.2.1 still requires it syntactically correct) or its subject was malformed (already reported).
             // The objects are parsed all the same.
             CheckOperandSyntax(loText, diag, ">>WHEN");
             if (hiText is not null) CheckOperandSyntax(hiText, diag, ">>WHEN");
             return false;
         }
         if (EvaluateOperandText(loText, evaluator, diag, ">>WHEN") is not { } lo) return false;
-        // §7.3.13.3 SR11 — all selection subjects and objects shall be of the same category.
+        // §2023:7.3.13.3 SR11 — all selection subjects and objects shall be of the same category.
         if (subject.Category != lo.Category)
         {
             diag.Report(CtDiagCode.DirectiveRule,
-                ">>WHEN: a selection object shall be of the same category as the selection subject (ISO §7.3.13.3 SR11)");
+                ">>WHEN: a selection object shall be of the same category as the selection subject (ISO §2023:7.3.13.3 SR11)");
             return false;
         }
-        if (hiText is null) return subject.RelationalEquals(lo);   // GR4a — subject == object (boolean right-extends, §8.8.4.2.8)
+        if (hiText is null) return subject.RelationalEquals(lo);   // GR4a — subject == object (boolean right-extends, §2023:8.8.4.2.8)
         if (EvaluateOperandText(hiText, evaluator, diag, ">>WHEN") is not { } hi) return false;
         // GR4b / SR12 — an inclusive NUMERIC range.
         if (subject.Category != CtCategory.Numeric || lo.Category != CtCategory.Numeric || hi.Category != CtCategory.Numeric)
         {
-            diag.Report(CtDiagCode.DirectiveRule, ">>WHEN: a THROUGH range requires numeric operands (ISO §7.3.13.3 SR12)");
+            diag.Report(CtDiagCode.DirectiveRule, ">>WHEN: a THROUGH range requires numeric operands (ISO §2023:7.3.13.3 SR12)");
             return false;
         }
         return CobolDec.Compare(subject.Number, lo.Number) >= 0 && CobolDec.Compare(subject.Number, hi.Number) <= 0;
     }
 
-    /// <summary>Split a WHEN object at a top-level <c>THROUGH</c>/<c>THRU</c> word (the §7.3.13 range separator),
+    /// <summary>Split a WHEN object at a top-level <c>THROUGH</c>/<c>THRU</c> word (the §2023:7.3.13 range separator),
     /// ignoring any occurrence inside a string literal. Returns (object, null) when no range is present.</summary>
     private static (string Lo, string? Hi) SplitRange(string text)
     {
@@ -938,7 +938,7 @@ public static partial class ConditionalCompilationProcessor
     // ── small directive-syntax helpers ────────────────────────────────────────────────────────────────────────
 
     /// <summary>The upper-cased directive keyword and its operand, through the ONE compiler-directive line parse
-    /// (<see cref="CompilerDirectiveLine"/>, kb/Work PB794) — which is also what removes a §7.3.3 SR3/SR4 trailing
+    /// (<see cref="CompilerDirectiveLine"/>, kb/Work PB794) — which is also what removes a §2023:7.3.3 SR3/SR4 trailing
     /// inline comment, so <c>&gt;&gt;IF X *&gt; why</c> reaches the evaluator as <c>X</c>. A line that is not a
     /// directive (a bare <c>&gt;&gt;</c>) yields an empty keyword and falls through to the unrecognized arm.</summary>
     private static (string keyword, string rest) SplitDirective(string trimmed) =>
@@ -950,7 +950,7 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
     /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOL1619 (the directive-expression
-    /// violation); the §7.3.11.3 SR2 redefinition is COBOL1618. <see cref="At"/> is set before each directive
+    /// violation); the §2023:7.3.11.3 SR2 redefinition is COBOL1618. <see cref="At"/> is set before each directive
     /// (kb/Work PB82: the SOURCE origin of the directive line — the copybook's own file and line when the directive
     /// is inside copied text — never an index into the text being rendered).</summary>
     private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath, FlagScanState flagScan, EditionInfo edition)
@@ -962,7 +962,7 @@ public static partial class ConditionalCompilationProcessor
         /// <summary>Where the directive being processed is: its file, physical line and column (kb/Work PB1801).</summary>
         public SourceLocation At = new SourceOrigin(sourcePath ?? "", 1).ToLocation(0);
 
-        /// <summary>FLAG-14 b (§7.3.15.4 GR4 b; E.2 item 6) — flag a compile-time arithmetic EXPRESSION (one with a
+        /// <summary>FLAG-14 b (§2023:7.3.15.4 GR4 b; E.2 item 6) — flag a compile-time arithmetic EXPRESSION (one with a
         /// real <c>addOp</c>/<c>mulOp</c>, not a bare literal) when COMPILE-TIME-ARITHMETIC-EXPRESSIONS is ON at the
         /// current directive line. Called on the already-parsed operand/cce fragment, in the evaluated context.</summary>
         public void FlagArithmetic(Antlr4.Runtime.Tree.IParseTree tree)
@@ -973,7 +973,7 @@ public static partial class ConditionalCompilationProcessor
         }
 
         /// <summary>The boolean-operator introduction gate over an evaluated directive fragment (kb/Work PB1370): a
-        /// compile-time boolean expression is "formed in accordance with 8.8.2" (ISO §7.3.7.2 SR1) OF THE TARGETED
+        /// compile-time boolean expression is "formed in accordance with 8.8.2" (ISO §2023:7.3.7.2 SR1) OF THE TARGETED
         /// EDITION, so a B-SHIFT-* below COBOL-2023 is the same COBOL0900 its runtime twin draws — asked through
         /// the ONE body the compilation-unit walk uses (<see cref="BooleanOperatorGate"/>), once per fragment.</summary>
         public void GateBooleanOperators(Antlr4.Runtime.Tree.IParseTree fragment)
@@ -982,7 +982,7 @@ public static partial class ConditionalCompilationProcessor
         }
 
         /// <summary>The logical-operator introduction gate over an evaluated constant-conditional-expression
-        /// fragment (kb/Work PB1371): a >>IF operand is "a complex condition as specified in 8.8.4.9" (ISO §7.3.8.2
+        /// fragment (kb/Work PB1371): a >>IF operand is "a complex condition as specified in 8.8.4.9" (ISO §2023:7.3.8.2
         /// SR1 d)) of the targeted edition, so an XOR / EXCLUSIVE-OR connective below COBOL-2023 is the same
         /// COBOL0900 its runtime twin draws — asked through the ONE body the compilation-unit walk uses
         /// (<see cref="LogicalOperatorGate"/>), once per fragment.</summary>
@@ -992,7 +992,7 @@ public static partial class ConditionalCompilationProcessor
         }
 
         /// <summary>The relational-operator introduction gate over an evaluated constant-conditional-expression fragment
-        /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §7.3.8.2 SR1 a)) of the
+        /// (kb/Work PB3604): a >>IF operand is "formed according to the rules in 8.8.4.2" (ISO §2023:7.3.8.2 SR1 a)) of the
         /// targeted edition, so the symbol <c>&lt;&gt;</c> below COBOL-2014 is the same COBOL0900 its runtime twin draws
         /// — asked through the ONE body the compilation-unit walk uses (<see cref="RelationalOperatorGate"/>), once per
         /// fragment.</summary>
@@ -1002,9 +1002,9 @@ public static partial class ConditionalCompilationProcessor
         }
 
         /// <summary>The syntax-level screens of a parsed directive fragment, once per fragment, at the directive's line:
-        /// the arithmetic operators' own separator context (§8.7.1, through <see cref="SeparatorRule"/> — the ONE body
+        /// the arithmetic operators' own separator context (§2023:8.7.1, through <see cref="SeparatorRule"/> — the ONE body
         /// the compilation-unit parse uses, kb/Work PB2017; it reports and leaves the value intact, as a format gate
-        /// does) and the operand's literals against their own §8.3.3 syntax rules and — in a COMPILED branch — the
+        /// does) and the operand's literals against their own §2023:8.3.3 syntax rules and — in a COMPILED branch — the
         /// edition gates of their format (kb/Work PB1616), through the ONE body the compilation-unit walk uses
         /// (<see cref="LiteralScreen"/>). True when every literal is sound; a fragment holding one that is not has no
         /// value and is never evaluated. With no bag the diagnostics have nowhere to go, but the verdict is still the
@@ -1012,7 +1012,7 @@ public static partial class ConditionalCompilationProcessor
         /// <paramref name="text"/> is the exact text the fragment was lexed from.</summary>
         public bool ScreenFragment(Antlr4.Runtime.Tree.IParseTree fragment, string text, bool compiled)
         {
-            // A literal the directive line ends inside (§6.4.2; kb/Work PB3245) has no value either.
+            // A literal the directive line ends inside (§2023:6.4.2; kb/Work PB3245) has no value either.
             bool closed = LiteralScreen.ReportUnterminated(fragment, (_, descriptor, message) => Emit(descriptor.Code, message));
             foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment)) Emit(v.Descriptor.Code, v.Message);
             return LiteralScreen.Run(fragment, edition, new BagSink(bag ?? new DiagnosticBag(), At), compiled) && closed;
@@ -1023,29 +1023,29 @@ public static partial class ConditionalCompilationProcessor
                 ? Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code
                 : Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation.Code, message);
 
-        /// <summary>COBOL2650 — a compilation-variable-name that is a §8.12 compiler-directive word (kb/Work PB1366).</summary>
+        /// <summary>COBOL2650 — a compilation-variable-name that is a §2023:8.12 compiler-directive word (kb/Work PB1366).</summary>
         public void DirectiveWordAsName(string name, string where, string rule) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWordAsName.Code,
-                $"'{name}' is a compiler-directive word (ISO §8.12) and shall not be used as a compilation-variable-name in {where} ({rule})");
+                $"'{name}' is a compiler-directive word (ISO §2023:8.12) and shall not be used as a compilation-variable-name in {where} ({rule})");
 
         /// <summary>COBOL2651 — a DEFINE directive that does not match its general format (kb/Work PB1367).</summary>
         public void DefineMalformed(string complaint) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DefineDirectiveMalformed.Code,
                 $">>DEFINE is malformed: {complaint} — the general format is "
-                + ">>DEFINE compilation-variable-name-1 [AS] { { arithmetic-expression | boolean-expression | literal | PARAMETER } [OVERRIDE] | OFF } (ISO §7.3.11.2)");
+                + ">>DEFINE compilation-variable-name-1 [AS] { { arithmetic-expression | boolean-expression | literal | PARAMETER } [OVERRIDE] | OFF } (ISO §2023:7.3.11.2)");
 
         /// <summary>COBOL2698 — a DISPLAY directive's UPON phrase names no available compile-time device, or breaks the
         /// choice-indicator discipline of its format (kb/Work PB807).</summary>
         public void DisplayUpon(string complaint) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DisplayDirectiveUpon.Code,
-                $">>DISPLAY UPON: {complaint} (ISO §7.3.12.2, §7.3.12.4 GR5)");
+                $">>DISPLAY UPON: {complaint} (ISO §2023:7.3.12.2, §2023:7.3.12.4 GR5)");
 
         /// <summary>COBOL2697 — the directive at <see cref="At"/> stands within an unfinished COPY or REPLACE
         /// statement (kb/Work PB1384).</summary>
         public void WithinStatement(string statementKeyword, bool inPseudoText) =>
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveWithinTextManipulationStatement.Code,
                 $"a compiler directive is specified within a {statementKeyword} statement — the statement has no separator "
-                + "period before this line (ISO §7.3.3 SR8 b)"
+                + "period before this line (ISO §2023:7.3.3 SR8 b)"
                 + (inPseudoText
                     ? $"; the line stands inside pseudo-text, which §{(statementKeyword == "COPY" ? "7.2.3.3" : "7.2.4.3")} SR10 "
                     + "also forbids: \"Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, "
@@ -1054,7 +1054,7 @@ public static partial class ConditionalCompilationProcessor
 
         public void Report1618(string name) => Emit(Editions.Diagnostics.DiagnosticCatalog.DefineNoOverrideRedefinition.Code,
             $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
-            + "phrase (ISO §7.3.11.3 SR2)");
+            + "phrase (ISO §2023:7.3.11.3 SR2)");
 
         /// <summary>COBOL2649 — a conditional-compilation directive breaks the structure of its general format
         /// (kb/Work PB1363).</summary>
@@ -1062,7 +1062,7 @@ public static partial class ConditionalCompilationProcessor
             Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveStructureViolation.Code, message);
 
         public void Malformed(string where, string text) => Emit(Editions.Diagnostics.DiagnosticCatalog.DirectiveExpressionViolation.Code,
-            $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
+            $"{where}: malformed compile-time expression '{text}' (ISO §2023:7.3.6 / §2023:7.3.7 / §2023:7.3.8)");
 
         /// <summary>Emit a migration-flag WARNING for a frontend-inline FLAG option (b / c) at
         /// <paramref name="at"/> — the same code/message shape as <c>FlagConformancePass</c> for the bound
@@ -1078,7 +1078,7 @@ public static partial class ConditionalCompilationProcessor
                 at, default);
         }
 
-        /// <summary>COBOL1567 / COBOL2773 — the §8.3.2.1 word length and word characters of a directive-carried
+        /// <summary>COBOL1567 / COBOL2773 — the §2023:8.3.2.1 word length and word characters of a directive-carried
         /// word, the SAME codes and text the tree-walk funnel emits (CobolWordRule owns both).</summary>
         public void WordRule(string code, string violation) => Emit(code, violation);
 

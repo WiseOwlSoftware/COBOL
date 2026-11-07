@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §9.1.13.8 3) — I-O status 53: the run unit's record-lock
+      *> ISO §2023:9.1.13.8 3) — I-O status 53: the run unit's record-lock
       *> maximum (255, CONFORMANCE.md DOC-A.1-154) is reached.
       *> "I-O status = 53. The input-output statement is unsuccessful
       *> because the statement requested a record lock, but this run
       *> unit holds the maximum number of locks allowed by this
       *> implementation."
-      *>   cite.py: OK  §9.1.13.8 3)  (Record operation conflict
+      *>   cite.py: OK  §2023:9.1.13.8 3)  (Record operation conflict
       *>   condition with unsuccessful completion)
-      *> §12.4.5.9.4 GR7 obliges the implementor to specify both the
+      *> §2023:12.4.5.9.4 GR7 obliges the implementor to specify both the
       *> per-connector and the per-run-unit maximum:
-      *>   cite.py: OK  §12.4.5.9.4 7)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.9.4 7)  (General rules)
       *> The documented choice (docs/CONFORMANCE.md DOC-A.1-154) is 255
       *> locks per run unit, counted over every file connector; the
       *> per-connector maximum (DOC-A.1-155) is 15.
@@ -23,7 +23,7 @@
       *> SHAPE.  One relative file of 256 records, eighteen connectors
       *> C01..C18 on it, all SHARING WITH ALL OTHER and LOCK MODE
       *> MANUAL WITH LOCK ON MULTIPLE RECORDS (the only mode in which a
-      *> connector can hold more than one lock, §12.4.5.9.4 GR7).
+      *> connector can hold more than one lock, §2023:12.4.5.9.4 GR7).
       *> Connector i (1..17) locks the DISTINCT records (i-1)*15+1 ..
       *> i*15, so no read meets a record locked by another connector
       *> (which would be '51', item 1) and no connector passes its own
@@ -39,9 +39,9 @@
       *>   C18-AGAIN=53: the '53' READ obtained no lock, so a repeat
       *>     meets the same count -> '53' again.
       *>   AFTER-CLOSE=00: CLOSE C01 releases its 15 record locks
-      *>     (§9.1.16: "all record locks established for a file are
+      *>     (§2023:9.1.16: "all record locks established for a file are
       *>     released by the execution of an explicit or implicit CLOSE
-      *>     statement"; cite.py: OK  §9.1.16), the run unit then holds
+      *>     statement"; cite.py: OK  §2023:9.1.16), the run unit then holds
       *>     240, and
       *>     C18's READ WITH LOCK of record 256 succeeds -> '00'.
        IDENTIFICATION DIVISION.

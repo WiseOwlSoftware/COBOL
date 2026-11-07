@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.43.3 SR9 — a DELIMITED phrase omitted immediately
+      *> ISO §2023:14.9.43.3 SR9 — a DELIMITED phrase omitted immediately
       *> preceding INTO implies DELIMITED BY SIZE for that final group.
       *> Each trailing phraseless sender holds a SPACE, the delimiter of
       *> the group before it, so a wrongly inherited delimiter (or any
       *> delimiter at all) would cut it short; SIZE moves it whole
-      *> (§14.9.43.4 GR3 c). A phraseless run BEFORE a DELIMITED phrase
+      *> (§2023:14.9.43.4 GR3 c). A phraseless run BEFORE a DELIMITED phrase
       *> is part of that phrase's group (the repeated sender group of
       *> the general format), so only the final group takes the
       *> implied SIZE.

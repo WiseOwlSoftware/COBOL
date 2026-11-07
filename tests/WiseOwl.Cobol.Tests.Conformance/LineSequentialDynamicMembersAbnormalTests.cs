@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// witness (kb/Work PB1563, docs/CONFORMANCE.md §3 D-FRA (x); campaign PB3353's requirement that file I-O is tested on
 /// its exception paths as fully as on its success paths). A golden must exit 0; the statements here are the ones that
 /// meet an I-O exception on a file with NEITHER a FILE STATUS clause NOR an applicable USE procedure, which ISO
-/// §9.1.13.1 makes fatal for a status beginning 3, 4 or 7 and §14.6.13.1.3 7) ends the run unit for. The arms that have a
+/// §2023:9.1.13.1 makes fatal for a status beginning 3, 4 or 7 and §2023:14.6.13.1.3 7) ends the run unit for. The arms that have a
 /// FILE STATUS or a USE procedure are the golden <c>pb1563_line_sequential_dynamic_members_exceptions</c>.
 /// <para>Each program stops at the failing statement: the stdout that stops, the exit code 1 and the stderr surface are
 /// what is asserted.</para>
@@ -27,13 +27,13 @@ public sealed class LineSequentialDynamicMembersAbnormalTests
     {
         var (exit, stdout, stderr) = new WiseOwlCobolCompiler(2023).CompileAndRunExit(source);
         Assert.Equal(expectedStdout, stdout.Replace("\r\n", "\n").TrimEnd('\n'));   // nothing after the failing statement runs
-        Assert.Equal(1, exit);                                                     // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, exit);                                                     // §2023:14.6.12 — the abnormal-termination exit
         Assert.Contains("abnormal run-unit termination", stderr);
         Assert.Contains($"I-O status {status}", stderr);
         Assert.Contains(statement, stderr);
     }
 
-    /// <summary>§14.9.30.4 GR21 + §9.1.13.1: a READ past the end of the file is '46' once the AT END condition has been
+    /// <summary>§2023:14.9.30.4 GR21 + §2023:9.1.13.1: a READ past the end of the file is '46' once the AT END condition has been
     /// raised, and with no FILE STATUS and no USE procedure that is fatal (the first READ delivers the record, the
     /// second is the at end condition handled by its AT END phrase, the third is '46').</summary>
     [Fact]
@@ -70,7 +70,7 @@ public sealed class LineSequentialDynamicMembersAbnormalTests
         AssertAbnormal(source, "READ-1\nEOF-2\nREAD-2", "46", "(READ)");
     }
 
-    /// <summary>§14.9.35.4 GR5 + §9.1.13.1: a REWRITE whose immediately previous statement was not a successful READ is
+    /// <summary>§2023:14.9.35.4 GR5 + §2023:9.1.13.1: a REWRITE whose immediately previous statement was not a successful READ is
     /// '43', fatal with no FILE STATUS and no USE procedure; the record area is the dynamic-member group's.</summary>
     [Fact]
     public void Rewrite_WithoutAPriorRead_NoFileStatusNoUse_TerminatesAbnormally()
@@ -103,7 +103,7 @@ public sealed class LineSequentialDynamicMembersAbnormalTests
         AssertAbnormal(source, "OPENED", "43", "(REWRITE)");
     }
 
-    /// <summary>§14.9.35.4 GR17 d) + §9.1.13.1: the REWRITE of a record whose dynamic member (past the fixed run) holds
+    /// <summary>§2023:14.9.35.4 GR17 d) + §2023:9.1.13.1: the REWRITE of a record whose dynamic member (past the fixed run) holds
     /// a character outside the line sequential character set is '71', fatal with no FILE STATUS and no USE procedure.</summary>
     [Fact]
     public void Rewrite_ControlCharacterPastTheFixedRun_NoFileStatusNoUse_TerminatesAbnormally()
@@ -140,7 +140,7 @@ public sealed class LineSequentialDynamicMembersAbnormalTests
         AssertAbnormal(source, "READ-OK", "71", "(REWRITE)");
     }
 
-    /// <summary>§14.9.40.4 GR12 + §9.1.13.1: a SORT whose USING line sequential file is not there is '35' at the implicit
+    /// <summary>§2023:14.9.40.4 GR12 + §2023:9.1.13.1: a SORT whose USING line sequential file is not there is '35' at the implicit
     /// OPEN, fatal with no FILE STATUS and no USE procedure; the run unit ends and the GIVING statement never runs.</summary>
     [Fact]
     public void Sort_UsingAnAbsentFile_NoFileStatusNoUse_TerminatesAbnormally()

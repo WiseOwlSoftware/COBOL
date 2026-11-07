@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR11 a) — "If single record locking is specified
+      *> ISO §2023:14.9.30.4 GR11 a) — "If single record locking is specified
       *> for the file connector associated with file-name-1, any prior
       *> record lock associated with that file connector is released BY
-      *> THE EXECUTION OF THE READ STATEMENT."  §12.4.5.9.4 GR6 states
+      *> THE EXECUTION OF THE READ STATEMENT."  §2023:12.4.5.9.4 GR6 states
       *> the same rule for every verb: "Execution of any I-O statement
       *> except START releases any previously locked record in that file
       *> for that file connector."
@@ -25,7 +25,7 @@
       *> sequential, relative and indexed — differing in NOTHING but the
       *> ORGANIZATION clause.  Three records; two connectors A and C on
       *> one physical file, both SHARING WITH ALL OTHER and LOCK MODE IS
-      *> MANUAL, which §12.4.5.9.4 GR6 makes SINGLE record locking (the
+      *> MANUAL, which §2023:12.4.5.9.4 GR6 makes SINGLE record locking (the
       *> LOCK ON phrase omitted).
       *>
       *> A1..A3 are three READ ... WITH LOCK.  Under single record
@@ -34,11 +34,11 @@
       *>
       *> C1..C3 walk the same file through the other connector.  C3 is
       *> the CONTROL: the third record is locked by another file
-      *> connector, so §14.9.30.4 GR9 + §9.1.13.8 item 1 make it '51'
+      *> connector, so §2023:14.9.30.4 GR9 + §2023:9.1.13.8 item 1 make it '51'
       *> and GR10 a) leaves C's file position indicator unchanged.
       *>
       *> A4 is the SUBJECT.  It is a plain READ that finds no next
-      *> record: §14.9.30.4 GR24 sets '10' and "When the at end
+      *> record: §2023:14.9.30.4 GR24 sets '10' and "When the at end
       *> condition exists, execution of the READ statement is
       *> unsuccessful."  GR11 a) fires anyway, so A's lock on the third
       *> record is gone.

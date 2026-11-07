@@ -6,10 +6,10 @@
 *> portable: unverified
 *>---
       *> A LINE SEQUENTIAL FILE KEEPS THE VARIABLE-LENGTH RECORD CLAUSE (kb/Work PB1238).
-      *> ISO/IEC 1989:2023 §13.4.5.3 SR4 bars only "the BLOCK CONTAINS clause" and "the
-      *> RECORD CONTAINS clause" (§13.18.43.2 Formats 1 and 3) from a LINE SEQUENTIAL file;
+      *> ISO/IEC 1989:2023 §2023:13.4.5.3 SR4 bars only "the BLOCK CONTAINS clause" and "the
+      *> RECORD CONTAINS clause" (§2023:13.18.43.2 Formats 1 and 3) from a LINE SEQUENTIAL file;
       *> Format 2, RECORD IS VARYING ... DEPENDING ON, is not a RECORD CONTAINS clause, and
-      *> §14.9.51.4 GR22 describes exactly this file: "For a line sequential file with a file
+      *> §2023:14.9.51.4 GR22 describes exactly this file: "For a line sequential file with a file
       *> description entry containing a RECORD clause with the DEPENDING phrase". The screen
       *> (COBOL2605) must not refuse it. The record written with LN = 3 is "ABC" (GR22:
       *> the record area is filled to the right as depending on data-name-1); read back into

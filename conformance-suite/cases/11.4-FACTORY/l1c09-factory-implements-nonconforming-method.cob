@@ -4,15 +4,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.4.3 SR2 — the factory's method for an implemented
+      *> ISO §2023:11.4.3 SR2 — the factory's method for an implemented
       *> interface's prototype does not conform to it.
       *> Rule: "Each method prototype in each implemented interface
       *> shall be such that the factory interface of this class
       *> conforms to all implemented interfaces."
-      *> cite.py: OK  §11.4.3 2)  (Syntax rules)
+      *> cite.py: OK  §2023:11.4.3 2)  (Syntax rules)
       *> The prototype SPEAK of L1C09O takes a PIC 9(4) parameter; the
       *> factory's SPEAK takes PIC 9(8). Interface conformance
-      *> (§9.3.8.2.3) requires the formal parameters to match, so the
+      *> (§2023:9.3.8.2.3) requires the formal parameters to match, so the
       *> factory interface does not conform to L1C09O. SR1 is
       *> satisfied (L1C09O is in the class REPOSITORY).
        IDENTIFICATION DIVISION.

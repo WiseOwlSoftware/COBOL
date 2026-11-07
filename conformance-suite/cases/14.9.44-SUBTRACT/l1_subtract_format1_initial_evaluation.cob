@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.4 GR1 (SUBTRACT statement, format 1) — the
+      *> ISO §2023:14.9.44.4 GR1 (SUBTRACT statement, format 1) — the
       *> initial evaluation, and what is subtracted from what.  Four
       *> output lines, one per clause of the rule; native arithmetic
-      *> is in effect (§11.9.5.2 GR4 — no ARITHMETIC clause is as if
+      *> is in effect (§2023:11.9.5.2 GR4 — no ARITHMETIC clause is as if
       *> NATIVE were written), and the standard-decimal half of the
       *> same rule is pinned by its sibling
       *> 2023/l1_subtract_format1_standard_decimal.
@@ -19,14 +19,14 @@
       *> MORE THAN ONE IS SPECIFIED, THE SUM OF SUCH OPERANDS.  The
       *> initial evaluation is subtracted from the value of the data
       *> item referenced by identifier-2".  1 + 2.5 = 3.5, formed
-      *> once; §14.7.7 rule 4b stores the one intermediate into each
+      *> once; §2023:14.7.7 rule 4b stores the one intermediate into each
       *> receiver left to right.  A = 100.00 - 3.5 = 96.50 and
       *> B = 200.00 - 3.5 = 196.50, displayed through PIC 999.99
-      *> (§14.6.8.2 rule 5 -> §13.18.40.5 rule 4, where '.' is the
+      *> (§2023:14.6.8.2 rule 5 -> §2023:13.18.40.5 rule 4, where '.' is the
       *> SPECIAL insertion editing symbol — simple insertion is the
-      *> closed set §13.18.40.5 rule 3 names, and '.' is not in it)
+      *> closed set §2023:13.18.40.5 rule 3 names, and '.' is not in it)
       *> as 096.50 and 196.50.  Composite of operands
-      *> (SR1 a): 3 integer + 2 fraction digits, far inside §14.7.7
+      *> (SR1 a): 3 integer + 2 fraction digits, far inside §2023:14.7.7
       *> rule 2 a)'s 31.
       *>
       *> LINE 2 (ONCE) is the DISCRIMINATOR for "the SUM of such
@@ -35,12 +35,12 @@
       *> there.  C is PIC 9(3) VALUE 10 and the operands are 0.4 and
       *> 0.4.  Per the rule the initial evaluation is 0.8 and C
       *> becomes 10 - 0.8 = 9.2; no ROUNDED phrase is written, so
-      *> §14.7.4.3 GR2 makes it "as if ROUNDED MODE IS TRUNCATION",
+      *> §2023:14.7.4.3 GR2 makes it "as if ROUNDED MODE IS TRUNCATION",
       *> and GR10 truncates toward zero, giving 009.  A statement that
       *> subtracted each operand in turn THROUGH THE RECEIVER would
       *> compute 10 - 0.4 = 9.6 -> 009, then 009 - 0.4 = 8.6 -> 008.
       *>
-      *> LINE 3 (OVR) is the sending/receiving OVERLAP that §14.7.7
+      *> LINE 3 (OVR) is the sending/receiving OVERLAP that §2023:14.7.7
       *> rule 4 a) and NOTE 3 fix: all item identification for the
       *> operands of the initial evaluation is done at the START of
       *> the statement, and "the results in the receiving operands are
@@ -59,7 +59,7 @@
       *> and the initial evaluation is 10, so H = 4 - 10 = -6.  Only
       *> the SIGN can distinguish this from the reversed operand order
       *> (the magnitudes are equal), so H is described SIGN IS LEADING
-      *> SEPARATE, where §13.18.52.4 GR6 makes the sign a leading
+      *> SEPARATE, where §2023:13.18.52.4 GR6 makes the sign a leading
       *> non-digit character position carrying the basic special
       *> character for negative: the four characters -006.  Reversed
       *> operands would print +006.

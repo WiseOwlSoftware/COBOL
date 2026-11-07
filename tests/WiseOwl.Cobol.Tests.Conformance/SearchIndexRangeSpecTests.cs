@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO §14.9.37.4 — WHERE THE SEARCH STATEMENT LEAVES ITS SEARCH INDEX, per FORMAT.
+/// ISO §2023:14.9.37.4 — WHERE THE SEARCH STATEMENT LEAVES ITS SEARCH INDEX, per FORMAT.
 /// <para>The standard writes the scan twice and the two texts disagree, which is the whole subject of this class
 /// (kb/Work PB447). Format 1, GR4: "the search index is incremented by one occurrence number. The process is then
 /// repeated using the new index setting <b>unless</b> the new value for the search index corresponds to a table
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class SearchIndexRangeSpecTests
 {
-    /// <summary>A program with a five-occurrence keyed table holding 1 3 5 7 9 (ASCENDING, so §14.9.37.4 GR5 a) is
+    /// <summary>A program with a five-occurrence keyed table holding 1 3 5 7 9 (ASCENDING, so §2023:14.9.37.4 GR5 a) is
     /// satisfied and GR9 — not GR6 — governs), plus an OCCURS DEPENDING twin whose current count the caller
     /// chooses. <paramref name="body"/> is the PROCEDURE DIVISION text under test.</summary>
     private static string Program(string programId, string body, string odoMin = "1") => $"""
@@ -115,7 +115,7 @@ public sealed class SearchIndexRangeSpecTests
         Assert.Contains(Tagged(lines, "READ"), new[] { 1, 3, 5, 7, 9 });
     }
 
-    [Theory]   // §13.18.38 GR7 makes an occurs-depending table's CURRENT count the last element, so GR9's bound
+    [Theory]   // §2023:13.18.38 GR7 makes an occurs-depending table's CURRENT count the last element, so GR9's bound
     [MemberData(nameof(AllEditions))]   // is 3 here even though storage for 5 exists — the case where "inside the
     // table" and "inside the storage" differ, and the one an off-by-one is likeliest to survive.
     public void SearchAll_UnsuccessfulOnAnOccursDependingTable_IsBoundedByTheCurrentCount(int edition)
@@ -235,7 +235,7 @@ public sealed class SearchIndexRangeSpecTests
     }
 
     [Fact]   // The D9 shape of the same bound: an OCCURS DYNAMIC table's last element is its CURRENT capacity
-             // (§8.5.1.9.1), so §14.9.37.4 GR9 bounds the SEARCH ALL index by that and not by the declared maximum. OCCURS
+             // (§2023:8.5.1.9.1), so §2023:14.9.37.4 GR9 bounds the SEARCH ALL index by that and not by the declared maximum. OCCURS
              // DYNAMIC is a COBOL-2023 construct, so this arm has one edition.
     public void SearchAll_UnsuccessfulOnADynamicTable_IsBoundedByTheCurrentCapacity()
     {

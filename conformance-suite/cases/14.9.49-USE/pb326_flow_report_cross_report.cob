@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.4 GR10 — THE SCOPE OF "the range of a declarative procedure".  GR10 attaches no element
-      *> qualifier to the range, where its nearest neighbour §14.9.18.4 GR6 attaches one explicitly for
+      *> ISO §2023:14.9.49.4 GR10 — THE SCOPE OF "the range of a declarative procedure".  GR10 attaches no element
+      *> qualifier to the range, where its nearest neighbour §2023:14.9.18.4 GR6 attaches one explicitly for
       *> EC-FLOW-GLOBAL-GOBACK ("… and that USE statement is specified in the same program as the GOBACK
       *> statement").  The standard says "the same program" when it means it, and it does not say "the same
       *> report" anywhere.  So a GENERATE executed inside report R-A's USE BEFORE REPORTING procedure is inside
@@ -14,9 +14,9 @@
       *> the arm that a report-scoped guard passes and a correct one does not (kb/Work PB326).
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.  Both reports are OPENed and INITIATEd.  GENERATE DET-A presents
-      *> DET-A, running BR-P first (§14.9.49.4 GR8/GR9d); BR-P PERFORMs GEN-B, whose GENERATE DET-B is inside
+      *> DET-A, running BR-P first (§2023:14.9.49.4 GR8/GR9d); BR-P PERFORMs GEN-B, whose GENERATE DET-B is inside
       *> the range: EC-FLOW-REPORT is raised (HANDLED=), the GENERATE is unsuccessful, and R-B's state is
-      *> unchanged — so R-B has still had NO successful GENERATE.  TERMINATE R-B therefore takes §14.9.46.4 GR2
+      *> unchanged — so R-B has still had NO successful GENERATE.  TERMINATE R-B therefore takes §2023:14.9.46.4 GR2
       *> ("no report group is processed at all") and R-B's file is still empty at that point.  Back in MAIN,
       *> OUTSIDE every declarative, WS-N is set to 7 and R-B is re-INITIATEd and GENERATEd normally — the proof
       *> that the range was LEFT (the guard is a bracket, not a latch).  Expected: HANDLED=EC-FLOW-REPORT,

@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 13 a): "if the data item referenced by identifier-3 is
+      *> ISO §2023:14.9.39.3 syntax rule 13 a): "if the data item referenced by identifier-3 is
       *> described with the ONLY phrase, object-class-name-1 shall be the object-class-name
       *> specified in the description of the data item referenced by identifier-3."
-      *> §13.18.60.4 GR22 d)2.a. is why: with ONLY, "the object referenced by this data item
+      *> §2023:13.18.60.4 GR22 d)2.a. is why: with ONLY, "the object referenced by this data item
       *> shall be the factory object of the specified class" — that class exactly, where
       *> d)1.a. (no ONLY) admits "or of a subclass".  The receiver here is FACTORY OF …C ONLY
       *> and the sender names …D, a subclass.  The twin WITHOUT the ONLY phrase is the

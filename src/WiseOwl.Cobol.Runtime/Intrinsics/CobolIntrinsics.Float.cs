@@ -4,38 +4,38 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// Family F1 — the floating-point math intrinsics (ISO §15; WISEOWL_COBOL_INTRINSICS deep-dive D1: these compute in
-/// <see cref="double"/> under the §15.4.1 native-arithmetic license — "the value returned is an implementor-defined
+/// <see cref="double"/> under the §2023:15.4.1 native-arithmetic license — "the value returned is an implementor-defined
 /// approximation of the value of [the equivalent arithmetic] expression"). Out-of-domain arguments produce NaN here
-/// and quantize to the EC-ARGUMENT-FUNCTION default result 0 in <see cref="CobolIntrinsics.FromDouble"/> (§15.3).
-/// <para><b>Standard arithmetic (ISO §15.4.1, P10 Step 12).</b> The trig/log/SQRT/E/PI rows stay conforming under
+/// and quantize to the EC-ARGUMENT-FUNCTION default result 0 in <see cref="CobolIntrinsics.FromDouble"/> (§2023:15.3).
+/// <para><b>Standard arithmetic (ISO §2023:15.4.1, P10 Step 12).</b> The trig/log/SQRT/E/PI rows stay conforming under
 /// ARITHMETIC IS STANDARD / STANDARD-DECIMAL: their returned-value rules are prose approximations, NOT equivalent
-/// arithmetic expressions, so the value is implementor-defined in EVERY mode (§15.4.1 last paragraph), and a
-/// double result entering a standard-decimal expression converts through the one §8.8.1.5.2 r1 operand
+/// arithmetic expressions, so the value is implementor-defined in EVERY mode (§2023:15.4.1 last paragraph), and a
+/// double result entering a standard-decimal expression converts through the one §2023:8.8.1.5.2 r1 operand
 /// conversion (<c>CobolDec.FromApproximation</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
-/// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — under the standard modes they
+/// EAEs with inexact divisions that §2023:15.4.1 r1 requires be evaluated in SDIDI form — under the standard modes they
 /// never reach this file: <c>IntrinsicRenderer.RenderDec</c> evaluates them on their <c>…Dec</c> bodies.</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
-    // ── The argument-1 VALUE domains (ISO §15.3 rule 14; kb/Work PB952) ────────────────────────────────────────
+    // ── The argument-1 VALUE domains (ISO §2023:15.3 rule 14; kb/Work PB952) ────────────────────────────────────────
 
-    /// <summary>The rational bounds a §15.x.3 "The value of argument-1 shall be …" rule states for the §15.4.1
+    /// <summary>The rational bounds a §15.x.3 "The value of argument-1 shall be …" rule states for the §2023:15.4.1
     /// binary64 family — the whole set, read off the standard (<c>IntrinsicArgumentDomainDriftTests</c> keeps the
     /// catalog's <c>Domain</c> column equal to it).</summary>
     public enum ArgumentDomain
     {
-        /// <summary>[−1, +1] — ACOS §15.8.3 rule 2, ASIN §15.10.3 rule 2.</summary>
+        /// <summary>[−1, +1] — ACOS §2023:15.8.3 rule 2, ASIN §2023:15.10.3 rule 2.</summary>
         ClosedUnit,
-        /// <summary>[0, ∞) — SQRT §15.84.3 rule 2 ("zero or positive"), ANNUITY §15.9.3 rule 2.</summary>
+        /// <summary>[0, ∞) — SQRT §2023:15.84.3 rule 2 ("zero or positive"), ANNUITY §2023:15.9.3 rule 2.</summary>
         NonNegative,
-        /// <summary>(0, ∞) — LOG §15.55.3 rule 2, LOG10 §15.56.3 rule 2 ("greater than zero").</summary>
+        /// <summary>(0, ∞) — LOG §2023:15.55.3 rule 2, LOG10 §2023:15.56.3 rule 2 ("greater than zero").</summary>
         Positive,
-        /// <summary>(−1, ∞) — PRESENT-VALUE §15.74.3 rule 2 ("greater than −1").</summary>
+        /// <summary>(−1, ∞) — PRESENT-VALUE §2023:15.74.3 rule 2 ("greater than −1").</summary>
         AboveMinusOne,
     }
 
     /// <summary>⛔ THE ONE argument-domain SCREEN of the binary64 family, and it runs on the EXACT operand, BEFORE the
-    /// binary64 conversion (kb/Work PB952). §15.3 rule 14: "If the evaluation of an argument results in an incorrect
+    /// binary64 conversion (kb/Work PB952). §2023:15.3 rule 14: "If the evaluation of an argument results in an incorrect
     /// value for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist" — a rule about the
     /// ARGUMENT'S value, and the binary64 the body computes on is not that value. The bodies used to decide it
     /// after the conversion, two ways and both partial: ACOS/ASIN by the NaN <c>Math.Acos</c> returns past ±1,
@@ -48,7 +48,7 @@ public static partial class CobolIntrinsics
     /// a float operand, whose double is its exact value (<see cref="DomainReal"/>).</summary>
     /// <returns>The binary64 the body computes on; when the argument is outside the domain, the condition is
     /// raised (fatal under checking) and NaN is returned, so the body's result is NaN and <see cref="RealResult"/>
-    /// / <see cref="FromDouble"/> hand back the §15.3 documented default exactly as for every other rejected
+    /// / <see cref="FromDouble"/> hand back the §2023:15.3 documented default exactly as for every other rejected
     /// argument.</returns>
     public static double DomainScaled(Int128 unscaled, int scale, ArgumentDomain domain, string function, string rule) =>
         Admits(domain, CompareScaled(unscaled, scale, -1), (int)Int128.Sign(unscaled),
@@ -64,9 +64,9 @@ public static partial class CobolIntrinsics
     /// that takes its argument on the SDIDI carrier UNNARROWED (kb/Work PB999; the renderer's
     /// <c>IntrinsicRenderer.WholeRangeBodies</c>). It returns the admitted value itself rather than its binary64,
     /// because the SDIDI reaches 10^±6144 and binary64 does not: <c>DomainDec</c>'s <c>ToDouble</c> turned the
-    /// LEGAL argument 10^−400 into +0.0, and LOG10 of it into −∞ where §15.56.4 r1 requires −400. A rejected
+    /// LEGAL argument 10^−400 into +0.0, and LOG10 of it into −∞ where §2023:15.56.4 r1 requires −400. A rejected
     /// argument raises exactly as <c>DomainDec</c> does and comes back <c>null</c> — the carrier's NaN — which the
-    /// body turns into the NaN every rejected argument becomes on its way to the §15.3 default.</summary>
+    /// body turns into the NaN every rejected argument becomes on its way to the §2023:15.3 default.</summary>
     public static CobolDec? DomainDecAdmitted(CobolDec value, ArgumentDomain domain, string function, string rule)
     {
         if (AdmitsDec(value, domain)) return value;
@@ -127,18 +127,18 @@ public static partial class CobolIntrinsics
     // (IntrinsicRenderer.FloatBody applies it from the catalog row's Domain column). A second test here, on the
     // double, would be the partial copy PB952 removed — and for a legal argument rounded onto a bound it would
     // raise where the rule does not.
-    public static double Acos(double x) => Math.Acos(x);     // §15.8.4 r1 — arccos in [0, π]
-    public static double Asin(double x) => Math.Asin(x);     // §15.10.4 r1 — arcsin in [−π/2, π/2]
-    public static double Atan(double x) => Math.Atan(x);     // §15.11 — arctan in (−π/2, π/2)
-    public static double Cos(double x) => Math.Cos(x);       // §15.20
-    public static double Sin(double x) => Math.Sin(x);       // §15.82
-    public static double Tan(double x) => Math.Tan(x);       // §15.89
-    /// <summary>SQRT (§15.84) on the NATIVE carrier.</summary>
-    /// <remarks><para>§15.84.3 <b>rule 2</b> ("The value of argument-1 shall be zero or positive") is decided by the
+    public static double Acos(double x) => Math.Acos(x);     // §2023:15.8.4 r1 — arccos in [0, π]
+    public static double Asin(double x) => Math.Asin(x);     // §2023:15.10.4 r1 — arcsin in [−π/2, π/2]
+    public static double Atan(double x) => Math.Atan(x);     // §2023:15.11 — arctan in (−π/2, π/2)
+    public static double Cos(double x) => Math.Cos(x);       // §2023:15.20
+    public static double Sin(double x) => Math.Sin(x);       // §2023:15.82
+    public static double Tan(double x) => Math.Tan(x);       // §2023:15.89
+    /// <summary>SQRT (§2023:15.84) on the NATIVE carrier.</summary>
+    /// <remarks><para>§2023:15.84.3 <b>rule 2</b> ("The value of argument-1 shall be zero or positive") is decided by the
     /// <see cref="DomainScaled"/> screen on the exact operand (kb/Work PB952 — the explicit <c>x &lt; 0</c> test
     /// PB246 put here was the right rule on the wrong value: an SDIDI's <c>ToDouble</c> underflows a tiny negative
     /// argument to −0.0, which it admitted).</para>
-    /// <para>⛔ §15.84.4 <b>rule 4</b> — "When native arithmetic is in effect, the returned value is the
+    /// <para>⛔ §2023:15.84.4 <b>rule 4</b> — "When native arithmetic is in effect, the returned value is the
     /// ABSOLUTE VALUE of the approximation of the square root of argument-1" (kb/Work PB246). IEC 60559 mandates
     /// <c>sqrt(−0) = −0</c> precisely so that sqrt is NOT the absolute value there, while <c>|−0.0|</c> is +0.0.
     /// −0.0 is a LEGAL argument-1 (rule 2 admits zero) that a COMP-1/COMP-2 item reaches by ordinary underflow,
@@ -146,12 +146,12 @@ public static partial class CobolIntrinsics
     /// IEEE-faithful and prints the sign. <c>Math.Abs</c> IS rule 4, and it is the only input on which it does
     /// any work.</para>
     /// <para>The APPROXIMATION half needs nothing: <c>Math.Sqrt</c> is IEC 60559 correctly-rounded.</para></remarks>
-    public static double Sqrt(double x) => Math.Abs(Math.Sqrt(x));   // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
-    public static double Log(double x) => Math.Log(x);       // §15.55 — domain: the screen (§15.55.3 r2)
-    public static double Log10(double x) => Math.Log10(x);   // §15.56 — domain: the screen (§15.56.3 r2)
+    public static double Sqrt(double x) => Math.Abs(Math.Sqrt(x));   // §2023:15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
+    public static double Log(double x) => Math.Log(x);       // §2023:15.55 — domain: the screen (§2023:15.55.3 r2)
+    public static double Log10(double x) => Math.Log10(x);   // §2023:15.56 — domain: the screen (§2023:15.56.3 r2)
 
     // ── The EXACT-INTAKE bodies: an exact argument taken UNNARROWED (kb/Work PB999, PB1041) ─────────────────────
-    // ⛔ THE RETURNED VALUE IS AN APPROXIMATION OF THE FUNCTION OF ARGUMENT-1, NOT OF ITS BINARY64. §15.4.1 licenses
+    // ⛔ THE RETURNED VALUE IS AN APPROXIMATION OF THE FUNCTION OF ARGUMENT-1, NOT OF ITS BINARY64. §2023:15.4.1 licenses
     // the approximation of the RESULT; the argument is the exact value a scaled item or an SDIDI holds, and a body
     // that narrows it first answers for a different argument wherever the function AMPLIFIES the narrowing error:
     //   · past binary64's RANGE (the SDIDI reaches 10^±6144): LOG10(10^−400) computed log10(+0.0) = −∞, SQRT(10^−400)
@@ -170,16 +170,16 @@ public static partial class CobolIntrinsics
     // a constant on the whole domain: ATAN (≤ 1) and SQRT inside binary64's range (½; SQRT takes an SDIDI only, for
     // the range). IntrinsicRenderer.WholeRangeBodies is the renderer's half of this set.
 
-    /// <summary>§15.55 LOG of an exact argument: ln(Sig·10^Exp) = ln Sig + Exp·ln 10 off the normal binary64 range
+    /// <summary>§2023:15.55 LOG of an exact argument: ln(Sig·10^Exp) = ln Sig + Exp·ln 10 off the normal binary64 range
     /// (|result| ≥ ~700 there, so the sum loses nothing to cancellation), and ln(1 + u) of the EXACT u = x − 1 near 1
-    /// (<see cref="LogOnePlus"/>), where ln is ill-conditioned. <c>null</c> = rejected by §15.55.3 r2.</summary>
+    /// (<see cref="LogOnePlus"/>), where ln is ill-conditioned. <c>null</c> = rejected by §2023:15.55.3 r2.</summary>
     public static double Log(CobolDec? x) =>
         x is not { } v ? double.NaN
         : NearOne(v, out double u) ? LogOnePlus(u)
         : v.ToDouble() is var d && double.IsNormal(d) ? Math.Log(d) : Math.Log((double)v.Sig) + v.Exp * Ln10;
 
-    /// <summary>§15.56 LOG10 of an exact argument: log10 Sig + Exp off the normal binary64 range, and log10(1 + u)
-    /// of the EXACT u = x − 1 near 1. <c>null</c> = rejected by §15.56.3 r2.</summary>
+    /// <summary>§2023:15.56 LOG10 of an exact argument: log10 Sig + Exp off the normal binary64 range, and log10(1 + u)
+    /// of the EXACT u = x − 1 near 1. <c>null</c> = rejected by §2023:15.56.3 r2.</summary>
     public static double Log10(CobolDec? x) =>
         x is not { } v ? double.NaN
         : NearOne(v, out double u) ? Log10OnePlus(u)
@@ -211,18 +211,18 @@ public static partial class CobolIntrinsics
         return w == 1 ? u * Log10E : Math.Log10(w) * (u / (w - 1));
     }
 
-    /// <summary>§15.84 SQRT of an SDIDI argument under NATIVE arithmetic (§15.84.4 r4; the standard modes take
+    /// <summary>§2023:15.84 SQRT of an SDIDI argument under NATIVE arithmetic (§2023:15.84.4 r4; the standard modes take
     /// <see cref="SqrtDec"/>). Off the normal binary64 range the root is taken on the exact carrier
     /// (<see cref="CobolDec.Sqrt"/>) and only THEN narrowed — SQRT(10^−400) is the representable 10^−200, not the
-    /// root of an underflowed +0.0. <c>null</c> = rejected by §15.84.3 r2.</summary>
+    /// root of an underflowed +0.0. <c>null</c> = rejected by §2023:15.84.3 r2.</summary>
     public static double Sqrt(CobolDec? x) =>
         x is not { } v ? double.NaN
         : v.ToDouble() is var d && (v.Sig == 0 || double.IsNormal(d)) ? Sqrt(d)
         : CobolDec.Sqrt(v, CobolRounding.NearestEven).ToDouble();
 
-    /// <summary>§15.8 ACOS of an exact argument: past |x| = ½ it is 2·asin(√((1 − |x|)/2)) (π minus that for a
+    /// <summary>§2023:15.8 ACOS of an exact argument: past |x| = ½ it is 2·asin(√((1 − |x|)/2)) (π minus that for a
     /// negative x) over the EXACT 1 − |x| — at ±1 the arccosine is ill-conditioned, and ACOS(1 − 10^−26) is
-    /// 1.414·10^−13, where the arccosine of its binary64, 1.0, is 0. <c>null</c> = rejected by §15.8.3 r2.</summary>
+    /// 1.414·10^−13, where the arccosine of its binary64, 1.0, is 0. <c>null</c> = rejected by §2023:15.8.3 r2.</summary>
     public static double Acos(CobolDec? x)
     {
         if (x is not { } v) return double.NaN;
@@ -232,8 +232,8 @@ public static partial class CobolIntrinsics
         return v.Sig > 0 ? fromOne : (PiHi - fromOne) + PiLo;
     }
 
-    /// <summary>§15.10 ASIN of an exact argument: past |x| = ½ it is ±(π/2 − arccos |x|) over the EXACT 1 − |x|
-    /// (<see cref="AcosOfMagnitude"/>). <c>null</c> = rejected by §15.10.3 r2.</summary>
+    /// <summary>§2023:15.10 ASIN of an exact argument: past |x| = ½ it is ±(π/2 − arccos |x|) over the EXACT 1 − |x|
+    /// (<see cref="AcosOfMagnitude"/>). <c>null</c> = rejected by §2023:15.10.3 r2.</summary>
     public static double Asin(CobolDec? x)
     {
         if (x is not { } v) return double.NaN;
@@ -252,7 +252,7 @@ public static partial class CobolIntrinsics
     /// gap to 1, which <paramref name="fromOne"/> carries at binary64's RELATIVE precision (formed on the exact carrier).</summary>
     private static double AcosOfGap(double fromOne) => 2 * Math.Asin(Math.Sqrt(fromOne / 2));
 
-    /// <summary>§15.82 SIN of an exact argument: sin(q·π/2 + r) by quadrant over the residue r formed EXACTLY
+    /// <summary>§2023:15.82 SIN of an exact argument: sin(q·π/2 + r) by quadrant over the residue r formed EXACTLY
     /// (<see cref="ReduceQuarterTurns"/>) — sin(10^400) is an ordinary value in [−1, +1], not sin(+∞), sin(10^40) is
     /// sin of 10^40, not of the binary64 nearest it, and sin(3.14159265358979323) is the 8.46·10^−18 its residue
     /// makes it.</summary>
@@ -271,7 +271,7 @@ public static partial class CobolIntrinsics
         return (r.Quadrant >= 2) != negative ? -v : v;                 // sin(x + π) = −sin x; sin is odd
     }
 
-    /// <summary>§15.20 COS of an exact argument (<see cref="ReduceQuarterTurns"/>).</summary>
+    /// <summary>§2023:15.20 COS of an exact argument (<see cref="ReduceQuarterTurns"/>).</summary>
     public static double Cos(CobolDec x)
     {
         double d = x.ToDouble();
@@ -288,7 +288,7 @@ public static partial class CobolIntrinsics
         _ => SinDd(r.Hi, r.Lo),
     };
 
-    /// <summary>§15.89 TAN of an exact argument: tan r in an even quadrant, −cot r in an odd one — TAN of an argument
+    /// <summary>§2023:15.89 TAN of an exact argument: tan r in an even quadrant, −cot r in an odd one — TAN of an argument
     /// just below π/2 is the reciprocal of its residue, not tan of the binary64 nearest π/2
     /// (<see cref="ReduceQuarterTurns"/>).</summary>
     public static double Tan(CobolDec x)
@@ -328,14 +328,14 @@ public static partial class CobolIntrinsics
     // ── THE RANGE OF THE RETURNED VALUE (kb/Work PB1566) ────────────────────────────────────────────────────────
     // ⛔ A RESULT PAST BINARY64 IS THE SIZE ERROR CONDITION, NEVER ±Infinity OR A FLUSHED ZERO. Under native
     // arithmetic "the characteristics and representation of the returned value are defined by the implementor"
-    // (§15.4.1), and WiseOwl COBOL's determination is that this family's returned value IS a binary64 (CONFORMANCE.md
-    // DOC-A.1-92) — so binary64's range is the range of the native intermediate the value is formed in. §14.7.5
+    // (§2023:15.4.1), and WiseOwl COBOL's determination is that this family's returned value IS a binary64 (CONFORMANCE.md
+    // DOC-A.1-92) — so binary64's range is the range of the native intermediate the value is formed in. §2023:14.7.5
     // case 5 makes a value outside that range the size error condition when "the implementor defines that the
     // range of values allowed for the intermediate data item is to be checked", which WiseOwl COBOL defines
     // (DOC-A.1-179), and the no-phrase rule 3 names the condition: "farther from zero or nearer to zero than is
     // allowed for the intermediate data item" — EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW. That is the FACTORIAL
     // precedent on the other native carrier (CobolIntrinsics.Factorial: 34! past the Int128 intermediate), and
-    // the standard modes already answer the same way past decimal128 (§8.8.1.5.2 r2, CobolDec). EXP(1000) was
+    // the standard modes already answer the same way past decimal128 (§2023:8.8.1.5.2 r2, CobolDec). EXP(1000) was
     // printed "Infinity" and EXP(−1000) stored 0 with NOT ON SIZE ERROR taken. "Nearer to zero than allowed" is a
     // nonzero value that ROUNDS to zero: a subnormal is a binary64 value (IEC 60559 gradual underflow), not an
     // underflow. A NON-FINITE argument is not an arithmetic operation leaving the range — a COMP-2 already holding
@@ -353,15 +353,15 @@ public static partial class CobolIntrinsics
     private static double NarrowResult(CobolDec v, string function) =>
         InBinary64Range(v.ToDouble(), v.Sig != 0, function);
 
-    /// <summary>§15.34 EXP of a floating argument — e^x is never zero, so a finite argument's zero is an underflow.</summary>
-    public static double Exp(double x) =>                      // §15.34 — e ** argument (COBOL-2002+)
+    /// <summary>§2023:15.34 EXP of a floating argument — e^x is never zero, so a finite argument's zero is an underflow.</summary>
+    public static double Exp(double x) =>                      // §2023:15.34 — e ** argument (COBOL-2002+)
         double.IsFinite(x) ? InBinary64Range(Math.Exp(x), nonzero: true, "EXP") : Math.Exp(x);
 
-    /// <summary>§15.35 EXP10 of a floating argument — as <see cref="Exp(double)"/>.</summary>
-    public static double Exp10(double x) =>                    // §15.35 — 10 ** argument (COBOL-2002+)
+    /// <summary>§2023:15.35 EXP10 of a floating argument — as <see cref="Exp(double)"/>.</summary>
+    public static double Exp10(double x) =>                    // §2023:15.35 — 10 ** argument (COBOL-2002+)
         double.IsFinite(x) ? InBinary64Range(Math.Pow(10, x), nonzero: true, "EXP10") : Math.Pow(10, x);
 
-    /// <summary>§15.34 EXP of an exact argument: e^i · e^f over x's integer part i and its EXACT fraction f = x − i.
+    /// <summary>§2023:15.34 EXP of an exact argument: e^i · e^f over x's integer part i and its EXACT fraction f = x − i.
     /// EXP's condition number is |x|, so the narrowed argument's error of |x|·2^−53 was a RELATIVE result error of
     /// the same size — 150 ulps at x ≈ 700 — while i is exact in binary64 and f is below 1. Below |x| = 1 nothing is
     /// amplified and the overload IS the double body; past |x| = 1000 the result is outside binary64 whatever the
@@ -375,7 +375,7 @@ public static partial class CobolIntrinsics
         return InBinary64Range(Math.Exp(i) * Math.Exp(FractionAfter(x, i)), nonzero: true, "EXP");
     }
 
-    /// <summary>§15.35 EXP10 of an exact argument: 10^i · 10^f, as <see cref="Exp(CobolDec)"/> (condition number
+    /// <summary>§2023:15.35 EXP10 of an exact argument: 10^i · 10^f, as <see cref="Exp(CobolDec)"/> (condition number
     /// |x|·ln 10).</summary>
     public static double Exp10(CobolDec x)
     {
@@ -391,37 +391,37 @@ public static partial class CobolIntrinsics
     private static double FractionAfter(CobolDec x, double integer) =>
         CobolDec.Sub(x, CobolDec.From((Int128)integer, 0), CobolRounding.NearestEven).ToDouble();
 
-    /// <summary>E (§15.27, COBOL-2002+): the value of e — 2.718281828459045235360287… approximated in double.</summary>
+    /// <summary>E (§2023:15.27, COBOL-2002+): the value of e — 2.718281828459045235360287… approximated in double.</summary>
     public static double E() => Math.E;
 
-    /// <summary>PI (§15.73, COBOL-2002+): the value of π — 3.141592653589793238462643… approximated in double.</summary>
+    /// <summary>PI (§2023:15.73, COBOL-2002+): the value of π — 3.141592653589793238462643… approximated in double.</summary>
     public static double Pi() => Math.PI;
 
-    // ── Financial (ISO §15.9 / §15.74) ─────────────────────────────────────────────────────────────────────────
+    // ── Financial (ISO §2023:15.9 / §2023:15.74) ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The ONE §15.9.3 r2/r3 raise site (both carriers funnel here — the PB32 one-site-per-rule
+    /// <summary>The ONE §2023:15.9.3 r2/r3 raise site (both carriers funnel here — the PB32 one-site-per-rule
     /// discipline): a negative rate or a non-positive period count is an incorrect argument VALUE, so
-    /// EC-ARGUMENT-FUNCTION per §15.3 (documented default 0). Fix-queue PB65 — the guards were absent while
+    /// EC-ARGUMENT-FUNCTION per §2023:15.3 (documented default 0). Fix-queue PB65 — the guards were absent while
     /// the same file's Log/Log10 carried theirs, and ANNUITY(-0.5 3) returned +0.0714 silently.</summary>
     internal static long AnnuityDomain(double rate, double periods) =>
         rate < 0
-            ? Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-1 {rate} is not greater than or equal to zero (§15.9.3 r2)")
-            : Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-2 {periods} is not a positive integer (§15.9.3 r3)");
+            ? Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-1 {rate} is not greater than or equal to zero (§2023:15.9.3 r2)")
+            : Exceptions.ExceptionState.ArgumentError($"ANNUITY argument-2 {periods} is not a positive integer (§2023:15.9.3 r3)");
 
-    /// <summary>The ONE §15.74.3 r2 raise site (both carriers).</summary>
+    /// <summary>The ONE §2023:15.74.3 r2 raise site (both carriers).</summary>
     internal static long PresentValueDomain(double rate) =>
-        Exceptions.ExceptionState.ArgumentError($"PRESENT-VALUE argument-1 {rate} is not greater than -1 (§15.74.3 r2)");
+        Exceptions.ExceptionState.ArgumentError($"PRESENT-VALUE argument-1 {rate} is not greater than -1 (§2023:15.74.3 r2)");
 
-    /// <summary>ANNUITY (§15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
-    /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §15.9.3 r2 (rate ≥ 0) and r3
-    /// (periods a positive integer — integrality is the §15.3 type-6 position intake's, <c>IntrinsicRenderer.RawArg</c>;
+    /// <summary>ANNUITY (§2023:15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
+    /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §2023:15.9.3 r2 (rate ≥ 0) and r3
+    /// (periods a positive integer — integrality is the §2023:15.3 type-6 position intake's, <c>IntrinsicRenderer.RawArg</c>;
     /// positivity is checked here; the magnitude is unconstrained, so a count past <c>long</c> reaches this body as a
     /// binary64 and the SDIDI twin <see cref="AnnuityDec"/> takes it as the SDIDI integer itself — kb/Work PB637).</summary>
     /// <remarks>⛔ THE DENOMINATOR IS −expm1(−periods · ln(1 + rate)), NEVER 1 − Math.Pow(1 + rate, −periods)
     /// (kb/Work PB1310). The two are the same number, but the second forms 1 + rate in binary64 FIRST, which is
     /// exactly 1.0 for every rate below 2^−53: ANNUITY(1E−17, 12) divided by 0 and stored 0 where the value is
     /// 1/12 + 13/24·rate. <see cref="LogOnePlus"/> and <see cref="ExpMinusOne"/> carry the rate at its own relative
-    /// precision, so the result is the ordinary §15.4.1 approximation for every legal rate.</remarks>
+    /// precision, so the result is the ordinary §2023:15.4.1 approximation for every legal rate.</remarks>
     public static double Annuity(double rate, double periods) =>
         periods <= 0 ? AnnuityDomain(rate, periods)          // r2 (rate ≥ 0) is the screen's (kb/Work PB952)
         : rate == 0 ? 1d / periods : rate / -ExpMinusOne(-periods * LogOnePlus(rate));
@@ -436,19 +436,19 @@ public static partial class CobolIntrinsics
         return um1 == -1 || double.IsPositiveInfinity(u) ? um1 : um1 * y / Math.Log(u);
     }
 
-    /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n, over the DISCOUNT BASE
+    /// <summary>PRESENT-VALUE (§2023:15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n, over the DISCOUNT BASE
     /// <c>1 + rate</c> — which the caller forms on the rate's exact carrier (<see cref="PresentValueBase(CobolDec?)"/>)
-    /// or its binary64 (<see cref="PresentValueBase(double)"/>). Domain: §15.74.3 r2 (rate &gt; −1) — a rate at or
+    /// or its binary64 (<see cref="PresentValueBase(double)"/>). Domain: §2023:15.74.3 r2 (rate &gt; −1) — a rate at or
     /// below −1 zeroes or inverts the base and the sum is undefined.</summary>
     /// <remarks>⛔ THE BODY TAKES THE BASE, NOT THE RATE (kb/Work PB1000). <c>1 + rate</c> cancels exactly where a
     /// rate is legal and close to its bound: the binary64 of −0.99999999999999999999 is −1.0, so a body forming the
-    /// base from a NARROWED rate divided by 0 and answered ±∞ (then EC-ARGUMENT-FUNCTION) for a rate §15.74.3 r2
+    /// base from a NARROWED rate divided by 0 and answered ±∞ (then EC-ARGUMENT-FUNCTION) for a rate §2023:15.74.3 r2
     /// admits, where the base is 10^−20 and the value 100 · 10^20. Formed on the exact carrier and only then
-    /// narrowed, the base keeps binary64's RELATIVE error, which is the §15.4.1 native approximation.</remarks>
+    /// narrowed, the base keeps binary64's RELATIVE error, which is the §2023:15.4.1 native approximation.</remarks>
     public static double PresentValue(double discountBase, params double[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
-        // §15.74.3 r2 (rate > −1) is the argument-domain screen's (DomainScaled / DomainDecAdmitted, kb/Work
+        // §2023:15.74.3 r2 (rate > −1) is the argument-domain screen's (DomainScaled / DomainDecAdmitted, kb/Work
         // PB952): a legal rate just above −1 converts to −1.0, and a test here would raise on it.
         double pv = 0;
         for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(discountBase, i + 1);
@@ -466,12 +466,12 @@ public static partial class CobolIntrinsics
     /// value (exact by Sterbenz's lemma for every rate in [−1, −½], where the cancellation lives).</summary>
     public static double PresentValueBase(double rate) => 1 + rate;
 
-    // ── Statistics over doubles (ISO §15.86 / §15.98) ─────────────────────────────────────────────────────────
+    // ── Statistics over doubles (ISO §2023:15.86 / §2023:15.98) ─────────────────────────────────────────────────────────
 
-    /// <summary>VARIANCE (§15.98.4): the mean of the squared deviations from the arguments' arithmetic mean.</summary>
+    /// <summary>VARIANCE (§2023:15.98.4): the mean of the squared deviations from the arguments' arithmetic mean.</summary>
     public static double Variance(params double[] xs)
     {
-        RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
+        RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         double mean = 0;
         foreach (double x in xs) mean += x;
         mean /= xs.Length;
@@ -490,10 +490,10 @@ public static partial class CobolIntrinsics
         return true;
     }
 
-    /// <summary>STANDARD-DEVIATION (§15.86.4 r1): the equivalent arithmetic expression is literally
+    /// <summary>STANDARD-DEVIATION (§2023:15.86.4 r1): the equivalent arithmetic expression is literally
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so it is written here as the two FUNCTION
-    /// bodies composed — <see cref="Sqrt"/>, not a bare <c>Math.Sqrt</c>, so §15.84.3 r2's domain guard and
-    /// §15.84.4 r4's absolute value are inherited from the ONE SQRT body rather than re-decided (kb/Work
+    /// bodies composed — <see cref="Sqrt"/>, not a bare <c>Math.Sqrt</c>, so §2023:15.84.3 r2's domain guard and
+    /// §2023:15.84.4 r4's absolute value are inherited from the ONE SQRT body rather than re-decided (kb/Work
     /// PB246/PB257).</summary>
     public static double StandardDeviation(params double[] xs)
     {
@@ -503,9 +503,9 @@ public static partial class CobolIntrinsics
 
     // ── The VARIADIC exact-intake bodies (kb/Work PB1565, PB4111) ──────────────────────────────────────────────
     // ⛔ THE ARGUMENT LIST IS NOT NARROWED BEFORE IT CANCELS, AND NOT ROUNDED EITHER. The exact-intake rule above holds for
-    // a LIST too: §15.4.1 licenses an approximation of the RETURNED value of the equivalent arithmetic expression, not of
-    // each argument, and these three EAEs subtract arguments from one another — §15.98.4's deviations
-    // argument-1ᵢ − FUNCTION MEAN (argument-list), §15.86.4's SQRT over them, §15.74.4's Σ of signed amounts — so
+    // a LIST too: §2023:15.4.1 licenses an approximation of the RETURNED value of the equivalent arithmetic expression, not of
+    // each argument, and these three EAEs subtract arguments from one another — §2023:15.98.4's deviations
+    // argument-1ᵢ − FUNCTION MEAN (argument-list), §2023:15.86.4's SQRT over them, §2023:15.74.4's Σ of signed amounts — so
     // narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001
     // 100000000000000002) answered 0 where the value is 0.25, STANDARD-DEVIATION 0 where it is 0.5, and
     // PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 where it is 1 (kb/Work PB1565). The 34-digit SDIDI
@@ -517,14 +517,14 @@ public static partial class CobolIntrinsics
     // narrowed, once, range-checked (NarrowResult). The binary64 bodies above stay for a list with a FLOATING argument,
     // whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92b, the exact family's determination for the same case).
 
-    /// <summary>§15.98 VARIANCE of an all-exact argument list: §15.98.4's EAE on the exact values, then narrowed.</summary>
+    /// <summary>§2023:15.98 VARIANCE of an all-exact argument list: §2023:15.98.4's EAE on the exact values, then narrowed.</summary>
     public static double Variance(CobolRounding mode, params CobolExact[] xs)
     {
-        RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
+        RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
         return NarrowResult(VarianceExact(mode, xs), "VARIANCE");
     }
 
-    /// <summary>§15.86 STANDARD-DEVIATION of an all-exact argument list: §15.86.4 r1's
+    /// <summary>§2023:15.86 STANDARD-DEVIATION of an all-exact argument list: §2023:15.86.4 r1's
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c> on the exact values (<see cref="StdDevExact"/>), then
     /// narrowed.</summary>
     public static double StandardDeviation(CobolRounding mode, params CobolExact[] xs)
@@ -533,10 +533,10 @@ public static partial class CobolIntrinsics
         return NarrowResult(StdDevExact(mode, xs), "STANDARD-DEVIATION");
     }
 
-    /// <summary>§15.74 PRESENT-VALUE of an all-exact argument list: §15.74.4's Σ amountᵢ / (1 + rate)^i on the exact values
-    /// (<see cref="PresentValueExact"/>), then narrowed. §15.74.3 r2 is decided where every native evaluation of this function
+    /// <summary>§2023:15.74 PRESENT-VALUE of an all-exact argument list: §2023:15.74.4's Σ amountᵢ / (1 + rate)^i on the exact values
+    /// (<see cref="PresentValueExact"/>), then narrowed. §2023:15.74.3 r2 is decided where every native evaluation of this function
     /// on exact arguments decides it — <see cref="PresentValueExact"/>'s exact test of the discount base, through the ONE
-    /// <see cref="PresentValueDomain"/> raise site, whose §15.3 default 0 comes back unchanged — so a leading
+    /// <see cref="PresentValueDomain"/> raise site, whose §2023:15.3 default 0 comes back unchanged — so a leading
     /// table(ALL) rate needs no nullable element inside the enumerated <c>CobolExact[]</c>.</summary>
     public static double PresentValue(CobolRounding mode, CobolExact rate, params CobolExact[] amounts)
     {
@@ -544,18 +544,18 @@ public static partial class CobolIntrinsics
         return NarrowResult(PresentValueExact(mode, rate, amounts), "PRESENT-VALUE");
     }
 
-    // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
+    // ── RANDOM (ISO §2023:15.75) ────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>RANDOM with no argument (§15.75.3 rule 5): the next number of the CURRENT sequence; 0 ≤ r &lt; 1
-    /// (§15.75.4 rule 1). The sequence is RUN-UNIT state (§15.75.3 rule 4 scopes the implementor seed to "the first
+    /// <summary>RANDOM with no argument (§2023:15.75.3 rule 5): the next number of the CURRENT sequence; 0 ≤ r &lt; 1
+    /// (§2023:15.75.4 rule 1). The sequence is RUN-UNIT state (§2023:15.75.3 rule 4 scopes the implementor seed to "the first
     /// reference to this function in the run unit") and lives on <see cref="RunUnit.Random"/> — a process-global
     /// static here let a second run unit in one process continue the first's seeded sequence (kb/Work PB307).
     /// The spec form (one current sequence that seeded calls restart and argument-less calls
-    /// continue) is implemented here per the scout brief §4.1; it also satisfies the 0 ≤ r &lt; 1 NIST range checks.</summary>
+    /// continue) is implemented here per the scout brief §2023:4.1; it also satisfies the 0 ≤ r &lt; 1 NIST range checks.</summary>
     public static double Random() => RunUnit.Current.Random.Next();
 
-    /// <summary>RANDOM (seed) (§15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first
-    /// value. Same seed ⇒ same sequence on a given implementation (§15.75.4 rule 2 — per-process determinism is
+    /// <summary>RANDOM (seed) (§2023:15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first
+    /// value. Same seed ⇒ same sequence on a given implementation (§2023:15.75.4 rule 2 — per-process determinism is
     /// what NIST IF131A exercises; hazard H7). Seeds 0..32767 must yield distinct sequences (rule 3) — the .NET
     /// generator satisfies this for the whole int range. ⛔ A NEGATIVE seed violates r2 ("zero or a positive
     /// integer") and raises EC-ARGUMENT-FUNCTION (fix-queue PB65 — the old mask folded it onto a positive seed
@@ -564,17 +564,17 @@ public static partial class CobolIntrinsics
     /// <remarks>
     /// ⛔ THE SEED IS A <b>TOTAL</b> §15 INTEGER ARGUMENT, AND THE <c>Int128</c> CARRIER IS THAT CLAIM
     /// (kb/Work PB636 — see <c>IntrinsicRenderer.AsIntWide</c>, whose pairing guard reads this signature).
-    /// §15.75.3 r2 constrains the SIGN and nothing else — "If argument-1 is specified, it shall be zero or a
-    /// positive integer" — and §15.75.4 r3 makes the distinct-sequence subset a FLOOR, not a domain: "This
+    /// §2023:15.75.3 r2 constrains the SIGN and nothing else — "If argument-1 is specified, it shall be zero or a
+    /// positive integer" — and §2023:15.75.4 r3 makes the distinct-sequence subset a FLOOR, not a domain: "This
     /// subset shall include the values from 0 through at least 32767", so a seed outside that subset is still a
-    /// legal argument whose sequence r1/r2 define. §15.3's closing paragraph raises EC-ARGUMENT-FUNCTION only on
+    /// legal argument whose sequence r1/r2 define. §2023:15.3's closing paragraph raises EC-ARGUMENT-FUNCTION only on
     /// "an incorrect value for that argument … according to the rules specified in the function definition", and
     /// no rule here makes a large seed incorrect. The parameter was <c>long</c>, so the renderer's narrowing
     /// intake screened the argument first: <c>FUNCTION RANDOM(S)</c> with <c>S PIC 9(19)</c> holding
     /// 9,999,999,999,999,999,999 terminated the run unit under <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING
     /// ON</c> and, with checking off, substituted the ARGUMENT 0 and ran the seed-0 sequence without a word.
     /// <para>The reduction to the generator's state is unchanged and stays the documented one
-    /// (<c>docs/CONFORMANCE.md</c> row DOC-A.1-145 under §15.75.4 r3): the low 31 bits,
+    /// (<c>docs/CONFORMANCE.md</c> row DOC-A.1-145 under §2023:15.75.4 r3): the low 31 bits,
     /// <c>seed AND 0x7FFFFFFF</c>. It is the identity on 0..2³¹−1 — so the required 0..32 767 floor is injective
     /// with a wide margin — and folds every wider seed onto that window, which r3 permits: the subset yielding
     /// DISTINCT sequences need only include the floor, not exhaust the domain.</para>
@@ -583,7 +583,7 @@ public static partial class CobolIntrinsics
     {
         if (seed < 0)
         {
-            Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer (§15.75.3 r2)");
+            Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer (§2023:15.75.3 r2)");
             return 0;
         }
         return RunUnit.Current.Random.Restart((int)(seed & 0x7FFFFFFF));

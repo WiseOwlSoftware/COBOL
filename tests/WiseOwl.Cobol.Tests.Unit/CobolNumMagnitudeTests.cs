@@ -6,8 +6,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ THE MAGNITUDE OF AN Int128 CARRIER VALUE IS <see cref="CobolDec.UAbs"/>'S, AND IT IS
-/// MinValue-SAFE (kb/Work PB2639). ISO §14.9.25.4 GR6 b — "When an unsigned numeric item is the receiving item,
-/// the absolute value of the sending value is used" — and §14.7.5 case 3 — a size error only when the result is
+/// MinValue-SAFE (kb/Work PB2639). ISO §2023:14.9.25.4 GR6 b — "When an unsigned numeric item is the receiving item,
+/// the absolute value of the sending value is used" — and §2023:14.7.5 case 3 — a size error only when the result is
 /// "further from zero than permitted for the associated resultant data item" — are both about the absolute
 /// value, and the signed 16-byte minimum, −2^127, has one: 2^127, which an unsigned 16-byte container holds.
 /// <c>Int128.Abs</c> throws on it, and the throw surfaced as a FALSE size error on the statement lane and as a raw
@@ -55,7 +55,7 @@ public sealed class CobolNumMagnitudeTests
     }
 
     /// <summary>The raising lane (CALL / INVOKE argument crossings under EC-SIZE checking) raised a raw
-    /// <see cref="OverflowException"/>; it is the §14.7.5 size error like every sibling.</summary>
+    /// <see cref="OverflowException"/>; it is the §2023:14.7.5 size error like every sibling.</summary>
     [Fact]
     public void StoreOrRaise_OfMinValue_IsASizeErrorNotAnOverflowException()
     {

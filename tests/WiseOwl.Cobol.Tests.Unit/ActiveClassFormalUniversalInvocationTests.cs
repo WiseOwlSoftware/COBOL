@@ -10,13 +10,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ AN ACTIVE-CLASS FORMAL HANDED AN ARGUMENT BY A UNIVERSAL INVOCATION IS A CONFORMANCE VIOLATION OF THE INVOCATION, NOT OF
-/// THE ARGUMENT (kb/Work PB2985, the formal half of <see cref="ActiveClassReturningUniversalSenderTests"/>). ISO §14.8.2.3.2
+/// THE ARGUMENT (kb/Work PB2985, the formal half of <see cref="ActiveClassReturningUniversalSenderTests"/>). ISO §2023:14.8.2.3.2
 /// rule 4 admits an ACTIVE-CLASS formal only when "the method to be activated shall be invoked with the predefined object
 /// references SELF or SUPER, or with an object reference described with the ACTIVE-CLASS phrase" (4 a)) or "with that
 /// object-class-name or with an object reference described with that object-class-name and the ONLY phrase" (4 b)); a
-/// universal invoking reference is none of them. §14.9.23.4 GR7 c) makes the violation EC-OO-UNIVERSAL when checking is
+/// universal invoking reference is none of them. §2023:14.9.23.4 GR7 c) makes the violation EC-OO-UNIVERSAL when checking is
 /// enabled in both the activated method and the activating runtime element. Before PB2985 the run-time lane asked only
-/// §9.3.6 3 d) 4./5. (the argument's VALUE, <see cref="ActivationRelations.Matches"/>) and never rule 4.
+/// §2023:9.3.6 3 d) 4./5. (the argument's VALUE, <see cref="ActivationRelations.Matches"/>) and never rule 4.
 /// </summary>
 public sealed class ActiveClassFormalUniversalInvocationTests
 {
@@ -40,7 +40,7 @@ public sealed class ActiveClassFormalUniversalInvocationTests
     {
         string? why = ActivationRelations.ActiveClassFormalViolation(Described(kind, name, factory, only), ActiveFormal);
         Assert.NotNull(why);
-        Assert.Contains("§14.8.2.3.2 rule 4", why);
+        Assert.Contains("§2023:14.8.2.3.2 rule 4", why);
     }
 
     [Fact]
@@ -53,12 +53,12 @@ public sealed class ActiveClassFormalUniversalInvocationTests
     [Fact]
     public void ARelationOfOtherPairs_IsSilent()
     {
-        // Not ACTIVE-CLASS: §14.8.2.3.2 rules 1-3, ParameterViolation's (and §9.3.6 3 d) 1.-3.'s match).
+        // Not ACTIVE-CLASS: §2023:14.8.2.3.2 rules 1-3, ParameterViolation's (and §2023:9.3.6 3 d) 1.-3.'s match).
         Assert.Null(ActivationRelations.ActiveClassFormalViolation(
             Described(ObjectReferenceKind.Universal), Described(ObjectReferenceKind.Universal)));
         Assert.Null(ActivationRelations.ActiveClassFormalViolation(
             Described(ObjectReferenceKind.ObjectClass, "P"), Described(ObjectReferenceKind.ObjectClass, "P")));
-        // An OMITTED argument has no description to conform (§9.3.6 3 b)); an argument of another shape never matched.
+        // An OMITTED argument has no description to conform (§2023:9.3.6 3 b)); an argument of another shape never matched.
         Assert.Null(ActivationRelations.ActiveClassFormalViolation(
             new ActivationDescription { Shape = ActivationShape.Omitted }, ActiveFormal));
         Assert.Null(ActivationRelations.ActiveClassFormalViolation(
@@ -74,7 +74,7 @@ public sealed class ActiveClassFormalUniversalInvocationTests
         {
             ExceptionState.Clear();
             ExceptionState.OoUniversalChecking = true;
-            // The activated method's half is off: no exception condition exists (§14.9.23.4 GR7 c) "both") and the
+            // The activated method's half is off: no exception condition exists (§2023:14.9.23.4 GR7 c) "both") and the
             // invocation proceeds.
             CobolObject.CheckActiveClassFormal(false, "INVOKE 'M'", argument, ActiveFormal);
 

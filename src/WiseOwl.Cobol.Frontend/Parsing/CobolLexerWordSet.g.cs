@@ -230,8 +230,8 @@ public partial class CobolLexer
     };
 
     /// <summary>The RESERVATION-GATED token types (kb/Work PB693/PB655) — the same derived set step 4b
-    /// keeps out of cobolWord and ReservationGateRewriter retypes where §8.9 frees a declared word. A parse
-    /// error ON one of these that §8.9 reserves is the §8.9 violation only where a user-defined word could stand,
+    /// keeps out of cobolWord and ReservationGateRewriter retypes where §2023:8.9 frees a declared word. A parse
+    /// error ON one of these that §2023:8.9 reserves is the §2023:8.9 violation only where a user-defined word could stand,
     /// and CobolErrorStrategy.ReservedWordUse decides it (kb/Work PB4132): there the report is the targeted COBOL0901,
     /// elsewhere the word is its keyword out of place (a stray END-DISPLAY is COBOL0306, as END-ADD is).
     /// Generated, so a newly gated word needs no edit anywhere.</summary>
@@ -386,7 +386,7 @@ public partial class CobolLexer
         XOR,
     };
 
-    /// <summary>The words a general format spells as a keyword where ISO §8.9 may leave them free — the rows
+    /// <summary>The words a general format spells as a keyword where ISO §2023:8.9 may leave them free — the rows
     /// carrying the keywordWhereFree determination, whose &lt;word&gt;Keyword rules step 5c emits (kb/Work PB4174). A syntax
     /// diagnostic that names the words EXPECTED at an edition (AdmittedKinds) keeps them although the reserved-word
     /// table does not reserve them there. Generated, so a determination added tomorrow needs no edit anywhere.</summary>

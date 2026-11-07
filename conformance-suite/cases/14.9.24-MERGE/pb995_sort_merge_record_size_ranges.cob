@@ -12,20 +12,20 @@
       *>     records smaller than the smallest record nor larger than the largest record described for file-name-1.
       *>     If the file description entry for file-name-1 describes fixed-length records, the file description entry
       *>     for file-name-2 shall not describe a record that is larger than the record described for file-name-1."
-      *>     -> OK §14.9.40.3 5)
+      *>     -> OK §2023:14.9.40.3 5)
       *>   cite.py --check 14.9.40.3 "If the GIVING phrase is specified and the file description entry for
       *>     file-name-3 describes variable-length records, the file description entry for file-name-1 shall describe
       *>     neither records smaller than the smallest record nor larger than the largest record described for
       *>     file-name-3. If the file description entry for file-name-3 describes fixed-length records, the file
       *>     description entry for file-name-1 shall not describe a record that is larger than the record described
-      *>     for file-name-3." -> OK §14.9.40.3 11)
+      *>     for file-name-3." -> OK §2023:14.9.40.3 11)
       *>   cite.py --check 14.9.24.3 "If the file description entry for file-name-1 describes variable-length records,
       *>     the file description entry for file-name-2 or file-name-3 shall describe neither records smaller than the
-      *>     smallest record nor larger than the largest record described for file-name-1." -> OK §14.9.24.3 3)
+      *>     smallest record nor larger than the largest record described for file-name-1." -> OK §2023:14.9.24.3 3)
       *>   cite.py --check 14.9.24.3 "If the GIVING phrase is specified and the file description entry for file-name-4
       *>     describes variable-length records, the file description entry for file-name-1 shall describe neither
       *>     records smaller than the smallest record nor larger than the largest record described for file-name-4."
-      *>     -> OK §14.9.24.3 12)
+      *>     -> OK §2023:14.9.24.3 12)
       *> Every statement below sits on the LEGAL side of each rule, at the edge where the rule stops: a fixed-length file
       *> may be bounded by a LARGER or an EQUAL record (the rule only forbids larger), and a variable-length file's range
       *> may equal or contain the other's. The refusals are negative/pb995-sort-merge-record-size-*.

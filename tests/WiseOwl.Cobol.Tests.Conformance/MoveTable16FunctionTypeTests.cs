@@ -5,13 +5,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB73 (adjudicated 2026-08-18) — a function's ISO §15.2 TYPE decides its §14.9.25.3 Table-16 row as a
+/// kb/Work PB73 (adjudicated 2026-08-18) — a function's ISO §2023:15.2 TYPE decides its §2023:14.9.25.3 Table-16 row as a
 /// MOVE sender: an INTEGER function (item 5, "no digits to the right of the decimal point") is the Integer row and
 /// moves to a character receiver; a NUMERIC function (item 4) is the NONINTEGER row and moves only to a numeric or
-/// numeric-edited receiver — the principle §8.4.3.2.3 SR11 states for the integer-operand positions. The former
+/// numeric-edited receiver — the principle §2023:8.4.3.2.3 SR11 states for the integer-operand positions. The former
 /// admission of every function survives ONLY under --permissive, as a warning, rendering the CONFORMANCE.md item-92
 /// literal text. (The golden <c>pb73_table16_function_type_and_boolean_view</c> pins the admitted cells and the
-/// §8.4.3.3.4 GR2 display-form boolean view; the negatives <c>pb73-move-*</c> pin the strict refusals.)
+/// §2023:8.4.3.3.4 GR2 display-form boolean view; the negatives <c>pb73-move-*</c> pin the strict refusals.)
 /// </summary>
 public sealed class MoveTable16FunctionTypeTests
 {
@@ -37,7 +37,7 @@ public sealed class MoveTable16FunctionTypeTests
     public void NumericFunction_ToAlphanumeric_IsRefusedStrict(int edition)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("MOVE FUNCTION SQRT(16) TO X10"), edition);
-        Assert.False(ok, "a NUMERIC-typed function is the Noninteger sender (ISO §14.9.25.3 Table 16, §15.2 item 4)");
+        Assert.False(ok, "a NUMERIC-typed function is the Noninteger sender (ISO §2023:14.9.25.3 Table 16, §2023:15.2 item 4)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
     }
 

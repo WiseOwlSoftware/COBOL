@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR32 — relative file, I-O mode, random/dynamic
+      *> ISO §2023:14.9.51.4 GR32 — relative file, I-O mode, random/dynamic
       *>   access: WRITE inserts the record at the relative key value
       *> Rule: "When a relative file is opened in the I-O mode and the
       *>   access mode is random or dynamic, records are to be inserted
@@ -18,7 +18,7 @@
       *>   cite.py --check 14.9.51.4 "When a relative file is opened in
       *>   the I-O mode and the access mode is random or dynamic,
       *>   records are to be inserted in the associated file"
-      *>   -> OK  §14.9.51.4 32)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 32)  (General rules)
       *>   (The "Prior to the execution ... shall be initialized by the
       *>   runtime element" sentence is also printed in 29) b); cite.py
       *>   reports that first occurrence, so the GR32-only sentence is
@@ -26,7 +26,7 @@
       *>   cite.py --check 14.9.30.4 "If the file position indicator
       *>   was established by a prior successful OPEN or START
       *>   statement, the first existing record that is selected is
-      *>   made available" -> OK §14.9.30.4 21) (relative list, b))
+      *>   made available" -> OK §2023:14.9.30.4 21) (relative list, b))
       *> DERIVATION. An empty relative file is created (OPEN OUTPUT,
       *> CLOSE) and opened I-O with DYNAMIC access. The program sets
       *> the relative key to 5 and writes R005, then to 2 and writes

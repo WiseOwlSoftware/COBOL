@@ -6,16 +6,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB80. ISO §13.18.38.4 GR8: when a group containing an
+      *> kb/Work PB80. ISO §2023:13.18.38.4 GR8: when a group containing an
       *> occurs-depending table is a sending or receiving operand and
       *> data-name-1 is OUTSIDE the group, "only that part of the table area
       *> that is specified by the value of the data item referenced by
       *> data-name-1 at the start of the operation will be used" (GR8a); the
       *> rule does not care how the group is stored. A BASED record
-      *> (§13.18.5) is a string-canonical class here, and its ODO group was
+      *> (§2023:13.18.5) is a string-canonical class here, and its ODO group was
       *> never wrapped as an ODO operand: `MOVE BODO TO OUT` copied the MAXIMUM
       *> image (ABcccdddeee), a MOVE into it wrote past data-name-1's extent,
-      *> and FUNCTION LENGTH(BODO) was a run-time stage. §15.50.4 r4a: LENGTH of
+      *> and FUNCTION LENGTH(BODO) was a run-time stage. §2023:15.50.4 r4a: LENGTH of
       *> "a based entry not associated with actual data" is the receiving-item
       *> (maximum) length — 2 + 5 × 3 = 17; r4b: an associated one is
       *> data-name-1's current extent — 2 + 2 × 3 = 8. The WORKING-STORAGE twin

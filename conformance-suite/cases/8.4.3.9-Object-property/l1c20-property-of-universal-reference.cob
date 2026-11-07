@@ -4,16 +4,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.9.3 SR2 — an object property whose identifier-1 is
+      *> ISO §2023:8.4.3.9.3 SR2 — an object property whose identifier-1 is
       *> a universal object reference.
       *> "2) Identifier-1 shall be an object reference; neither a
       *>   universal object reference nor the predefined object
       *>   reference NULL shall be specified."
-      *>   OK  §8.4.3.9.3 2)  (Syntax rules)
+      *>   OK  §2023:8.4.3.9.3 2)  (Syntax rules)
       *> U is USAGE OBJECT REFERENCE with no class or interface: a
       *> universal object reference (§3 definition: "object reference
       *> that is not restricted to a specific class or interface").
-      *>   OK  §3.175   (universal object reference)
+      *>   OK  §2023:3.175   (universal object reference)
       *> Everything else is valid: BAL is a REPOSITORY property (SR1)
       *> with a GET PROPERTY method in class L1C20LC (SR3), and the
       *> same statement with the typed reference A compiles. Expected

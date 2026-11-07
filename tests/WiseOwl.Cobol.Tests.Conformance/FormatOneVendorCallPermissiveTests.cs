@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB162 — the <c>--permissive</c> lane for the vendor spellings of a FORMAT-1 CALL. ISO §14.9.4.2
+/// kb/Work PB162 — the <c>--permissive</c> lane for the vendor spellings of a FORMAT-1 CALL. ISO §2023:14.9.4.2
 /// Format 1 (<c>cite.py --check 14.9.4.2 "Format 1 (Program)"</c> → OK) prints <c>[BY REFERENCE] {identifier-2}</c>
 /// and <c>BY CONTENT {identifier-2}</c> and nothing else: no BY VALUE, no literal, no expression. Those belong to
 /// Format 2, which the AS phrase selects. Strict keeps PB130's ISO-correct narrowing (COBOL0899, an error);
@@ -74,7 +74,7 @@ public sealed class FormatOneVendorCallPermissiveTests
     public void VendorSpellings_AreRejectedUnderStrict()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program, 2023);
-        Assert.False(ok, "ISO §14.9.4.2 Format 1 admits identifier-2 only");
+        Assert.False(ok, "ISO §2023:14.9.4.2 Format 1 admits identifier-2 only");
         Assert.Equal(6, errors.Count(e => e.Contains("COBOL0899")));
     }
 
@@ -104,8 +104,8 @@ public sealed class FormatOneVendorCallPermissiveTests
     }
 
     // kb/Work PB4012 (owner decision 2026-10-28: "Yes, permissive accepts"): OMITTED passed BY REFERENCE is the sixth
-    // vendor spelling. Expected values, derived: §14.9.4.4 GR11 makes an omitted argument's formal OMITTED, so the
-    // callee's §8.8.4.8 omitted-argument condition `B IS OMITTED` is true for the first two calls and false for the
+    // vendor spelling. Expected values, derived: §2023:14.9.4.4 GR11 makes an omitted argument's formal OMITTED, so the
+    // callee's §2023:8.8.4.8 omitted-argument condition `B IS OMITTED` is true for the first two calls and false for the
     // third, which passes W in both positions.
     private const string OmittedProgram = """
        IDENTIFICATION DIVISION.
@@ -140,12 +140,12 @@ public sealed class FormatOneVendorCallPermissiveTests
     public void OmittedByReference_IsRejectedUnderStrict()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(OmittedProgram, 2023);
-        Assert.False(ok, "ISO §14.9.4.2 Format 1 prints OMITTED nowhere");
+        Assert.False(ok, "ISO §2023:14.9.4.2 Format 1 prints OMITTED nowhere");
         Assert.Equal(2, errors.Count(e => e.Contains("COBOL0899") && e.Contains("OMITTED")));
     }
 
     /// <summary><c>--permissive</c>: one vendor-extension warning per OMITTED, naming it, and each binds as the
-    /// §14.9.4.4 GR11 omitted argument.</summary>
+    /// §2023:14.9.4.4 GR11 omitted argument.</summary>
     [Fact]
     public void OmittedByReference_UnderPermissive_WarnsAndPassesTheOmittedArgument()
     {
@@ -159,7 +159,7 @@ public sealed class FormatOneVendorCallPermissiveTests
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 
-    /// <summary>An OMITTED that a BY CONTENT phrase carries over (§14.9.4.4 GR5) has no vendor lane: GnuCOBOL refuses
+    /// <summary>An OMITTED that a BY CONTENT phrase carries over (§2023:14.9.4.4 GR5) has no vendor lane: GnuCOBOL refuses
     /// it too (cobc 3.2, kb/Work PB3996), so <c>--permissive</c> keeps the error.</summary>
     [Fact]
     public void OmittedAfterByContent_StaysRejectedUnderPermissive()
@@ -183,7 +183,7 @@ public sealed class FormatOneVendorCallPermissiveTests
     // program-prototype CALL, and each of the six vendor spellings is a COBOL-2002 introduction: BY VALUE
     // (call-by-value-2002), OMITTED (omitted-arguments-2002) and a literal or expression argument
     // (call-literal-expression-argument-2002, ISO/IEC 1989:2002 Annex F.2 item 15). One CALL per spelling, so no
-    // argument inherits another's BY phrase (§14.9.4.4 GR5). The caller alone is compiled: COBOL-85 syntax throughout.
+    // argument inherits another's BY phrase (§2023:14.9.4.4 GR5). The caller alone is compiled: COBOL-85 syntax throughout.
     private const string Program85 = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4503V.
@@ -288,8 +288,8 @@ public sealed class FormatOneVendorCallPermissiveTests
         Assert.Equal(new[] { "A=ABCD B=QRST", "W=ABCD" }, stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 
-    // kb/Work PB4508. §8.9 reserves NULL from COBOL-2002 only (reserved-words.json r85 false), so at 85 an undeclared NULL in a
-    // CALL argument is a user word, identifier-2 (a Format 1 spelling) that names nothing: the §8.4.2.1 undefined reference
+    // kb/Work PB4508. §2023:8.9 reserves NULL from COBOL-2002 only (reserved-words.json r85 false), so at 85 an undeclared NULL in a
+    // CALL argument is a user word, identifier-2 (a Format 1 spelling) that names nothing: the §2023:8.4.2.1 undefined reference
     // (COBOL1639) and nothing else. The up-front judgement of PB4503 used to read it as a literal-2 COBOL-85 lacks and draw a
     // second, COBOL0900, refusal for the bare and BY CONTENT spellings.
     private const string UndeclaredNull85 = """

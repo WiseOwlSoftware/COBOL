@@ -22,7 +22,7 @@ flowchart TD
     Q -->|yes — conditional| PASS["enforced in VersionConformancePass\n(the ONE edition gate)"]
     BIND --> D1["Error/Warning → IDiagnosticSink\n(e.g. 0809 MOVE class, 0801 digits)"]
     PASS --> ARM{"syntactic or semantic?"}
-    ARM -->|syntactic recognition| PARSEARM["ParseArm\nintro/removal/phrase + §8.9 words"]
+    ARM -->|syntactic recognition| PARSEARM["ParseArm\nintro/removal/phrase + §2023:8.9 words"]
     ARM -->|resolved bound fact| BOUNDARM["GateStatement/GateMove/GateData"]
     PARSEARM --> CHECK["ConstructRegistry.Check(edition, id)"]
     BOUNDARM --> CHECK
@@ -43,7 +43,7 @@ flowchart TD
 | Digit capacity | conditional | `CheckDigitCapacity` (0801/0802) |
 | EXIT format availability | conditional | `VersionConformancePass` (0900) |
 | Condition precedence | invariant | binder |
-| Reserved-word §8.9 | conditional | ParseArm funnel (0901) |
+| Reserved-word §2023:8.9 | conditional | ParseArm funnel (0901) |
 
 ## See also
 - [[kb/Semantics/Passes]] · [[kb/Semantics/Validation Rules]]

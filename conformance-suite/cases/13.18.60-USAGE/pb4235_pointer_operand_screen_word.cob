@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.2 with §8.10 and §8.3.2.1 3) — a TO-less pointer operand spelled with a
+      *> ISO/IEC 1989:2023 §2023:13.18.60.2 with §2023:8.10 and §2023:8.3.2.1 3) — a TO-less pointer operand spelled with a
       *> SCREEN attribute word is the operand in a data description entry. kb/Work PB4235.
       *>
-      *> §13.18.60.2 prints `POINTER [ TO type-name-1 ]` and `PROGRAM-POINTER [ TO program-prototype-name-1 ]`
-      *> with TO not underlined (folio 503, rendered), so by §5.2.3 TO is an optional word that "may be written
-      *> to add clarity". §8.10 lists AUTO, BELL, SECURE (and ten more) as context-sensitive words whose
-      *> construct is the "screen description entry", and §8.3.2.1 3): "Context-sensitive words may be used as
+      *> §2023:13.18.60.2 prints `POINTER [ TO type-name-1 ]` and `PROGRAM-POINTER [ TO program-prototype-name-1 ]`
+      *> with TO not underlined (folio 503, rendered), so by §2023:5.2.3 TO is an optional word that "may be written
+      *> to add clarity". §2023:8.10 lists AUTO, BELL, SECURE (and ten more) as context-sensitive words whose
+      *> construct is the "screen description entry", and §2023:8.3.2.1 3): "Context-sensitive words may be used as
       *> user-defined words and system-names in contexts other than the language construct in which they are
       *> defined". In WORKING-STORAGE the words below are therefore type-names and a program-prototype-name, and
       *> each TO-less entry declares EXACTLY the restriction its TO-full twin declares:
-      *> §13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer."
-      *> §13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
-      *>   program-pointer."  §13.18.60.3 SR18 — the TYPEDEF clause is specified for the subject.
-      *> The observable proof is assignment between the twins: §14.9.39.3 SR19 ("identifier-6 shall be the
+      *> §2023:13.18.60.4 GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer."
+      *> §2023:13.18.60.4 GR25 — "If program-prototype-name-1 is specified, this data item is a restricted
+      *>   program-pointer."  §2023:13.18.60.3 SR18 — the TYPEDEF clause is specified for the subject.
+      *> The observable proof is assignment between the twins: §2023:14.9.39.3 SR19 ("identifier-6 shall be the
       *> predefined address NULL or shall reference a data-pointer restricted to the same type") and SR22 (the
       *> program-pointer twin) ADMIT each copy only because both declarations name the same type / prototype.
       *> WHY EACH LEG CAN FAIL: a compiler that reads AUTO / SECURE / BELL as the screen clause keyword refuses the
@@ -28,7 +28,7 @@
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   AUTO-SAME    DA1 (POINTER AUTO) took W-A's address; DA2 (POINTER TO AUTO) copied it (SR19); pointers
-      *>                that address the same item are equal (§8.8.4.2.16).
+      *>                that address the same item are equal (§2023:8.8.4.2.16).
       *>   SECURE-SAME  DS1 (POINTER SECURE) and DS2 (POINTER TO SECURE) likewise, over W-S.
       *>   BELL-SAME    PB1 (PROGRAM-POINTER BELL) took BELL's address; PB2 (… TO BELL) copied it (SR22).
       *>   CALLED 0042  CALL through PB2 activates BELL, which displays its argument.

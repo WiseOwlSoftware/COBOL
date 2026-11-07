@@ -2,8 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Common;
 
-/// <summary>Which decimal-separator rule a numeric literal violated, if any (ISO/IEC 1989:2023 §12.3.7 GR14a /
-/// §8.3.3.3.2). Returned by <see cref="NumericLiteral.Normalize"/> so each caller can route the diagnostic to its
+/// <summary>Which decimal-separator rule a numeric literal violated, if any (ISO/IEC 1989:2023 §2023:12.3.7 GR14a /
+/// §2023:8.3.3.3.2). Returned by <see cref="NumericLiteral.Normalize"/> so each caller can route the diagnostic to its
 /// own channel with its own code — the algorithm stays a single pure function.</summary>
 public enum NumericSeparatorIssue
 {
@@ -18,8 +18,8 @@ public enum NumericSeparatorIssue
 }
 
 /// <summary>
-/// The ONE numeric-literal normalizer (ISO/IEC 1989:2023 §12.3.7 GR14a: under DECIMAL-POINT IS COMMA "the
-/// character written in numeric literals to represent the decimal separator shall be the comma"; §8.3.3.3.2
+/// The ONE numeric-literal normalizer (ISO/IEC 1989:2023 §2023:12.3.7 GR14a: under DECIMAL-POINT IS COMMA "the
+/// character written in numeric literals to represent the decimal separator shall be the comma"; §2023:8.3.3.3.2
 /// admits ONLY the decimal point as the separator in a fixed-point literal). It converts a numeric literal's
 /// source text to the canonical dot-decimal form the whole decode pipeline consumes and reports — via the returned
 /// <see cref="NumericSeparatorIssue"/>, not by emitting anything itself — whether the source used the wrong
@@ -32,7 +32,7 @@ public enum NumericSeparatorIssue
 /// </summary>
 public static class NumericLiteral
 {
-    /// <summary>Normalize <paramref name="text"/> to canonical dot-decimal, reporting any §12.3.7 GR14a separator
+    /// <summary>Normalize <paramref name="text"/> to canonical dot-decimal, reporting any §2023:12.3.7 GR14a separator
     /// violation for the active <paramref name="decimalPointIsComma"/> mode through <paramref name="issue"/>. The
     /// returned text is always well-formed dot-decimal (a violation is normalized too, so downstream decode stays
     /// well-formed while the caller emits the diagnostic).</summary>
@@ -47,19 +47,19 @@ public static class NumericLiteral
         return text.Replace(',', '.');
     }
 
-    /// <summary>⛔ THE ONE integer-literal FORM test — ISO §8.3.3.3.2: "An integer literal is a fixed-point numeric
+    /// <summary>⛔ THE ONE integer-literal FORM test — ISO §2023:8.3.3.3.2: "An integer literal is a fixed-point numeric
     /// literal that contains no decimal point." It is the FORM, not the value: <c>1.0</c> is not an integer literal
-    /// though its value is integral, and no §8.3.3.3.3 floating-point literal is one (its significand includes a
+    /// though its value is integral, and no §2023:8.3.3.3.3 floating-point literal is one (its significand includes a
     /// decimal point). Either separator counts — the text may be as written (a ',' under DECIMAL-POINT IS COMMA) or
     /// canonical. Read by the compiler's integer classifier (<c>IntrinsicResultType.IsIntegerOperand</c>) and the
-    /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §5.5 2) a) the same way.</summary>
+    /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §2023:5.5 2) a) the same way.</summary>
     public static bool IsIntegerLiteralForm(string text) => !text.Contains('.') && !text.Contains(',');
 
     /// <summary>True when <paramref name="text"/> (canonical dot-decimal) has the FLOATING-POINT numeric literal form
-    /// of ISO §8.3.3.3.3: a fixed-point significand (optional sign, digits, at most one decimal point), the letter E,
+    /// of ISO §2023:8.3.3.3.3: a fixed-point significand (optional sign, digits, at most one decimal point), the letter E,
     /// and an optionally signed integer exponent — <c>1.5E+3</c>, <c>-2.5E-2</c>. Fixed-point text and any
     /// non-numeric operand return false. (Whether the significand carries the decimal point the standard requires, and
-    /// whether that point is not its rightmost character (§8.3.3.3.2 3)), is the lexer's question: FLOAT_BODY's
+    /// whether that point is not its rightmost character (§2023:8.3.3.3.2 3)), is the lexer's question: FLOAT_BODY's
     /// significand IS the fixed-point DEC_BODY, kb/Work PB2729; a text of this shape only ever arrives from a
     /// numeric-literal token.)</summary>
     public static bool IsFloatingPointForm(string text)
@@ -70,7 +70,7 @@ public static class NumericLiteral
         return IsSignedDigitsForm(t[..e], allowPoint: true) && IsSignedDigitsForm(t[(e + 1)..], allowPoint: false);
     }
 
-    /// <summary>⛔ THE ONE fixed-point numeric literal SPELLING test — ISO §8.3.3.3.2, on the text exactly as given (no
+    /// <summary>⛔ THE ONE fixed-point numeric literal SPELLING test — ISO §2023:8.3.3.3.2, on the text exactly as given (no
     /// trimming, no digit-count limit): at least one digit (rule 1), at most one sign and it the leftmost character
     /// (rule 2), at most one decimal point and never as the rightmost character (rule 3). <c>7</c>, <c>-2.5</c> and
     /// <c>+.5</c> are fixed-point numeric literals; <c>5.</c>, <c>1,000</c>, <c>+</c>, <c>1E5</c> and <c>" 7"</c> are not.
@@ -95,7 +95,7 @@ public static class NumericLiteral
         return digit;
     }
 
-    /// <summary>Which ISO §8.3.3.3.3 form rule a floating-point literal violates (kb/Work PB99), or None.</summary>
+    /// <summary>Which ISO §2023:8.3.3.3.3 form rule a floating-point literal violates (kb/Work PB99), or None.</summary>
     public enum FloatingLiteralIssue
     {
         None,
@@ -107,10 +107,10 @@ public static class NumericLiteral
         ZeroForm,
     }
 
-    /// <summary>The ISO §8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
+    /// <summary>The ISO §2023:8.3.3.3.3 SR2/SR3/SR4 form check of a canonical floating-point literal text (which shall
     /// satisfy <see cref="IsFloatingPointForm"/>). SR2's "shall include a decimal point" is the lexer's shape
-    /// (a point-less <c>1E10</c> is a user-defined word, §8.3.2.1), and so is the point's position: the significand
-    /// is the fixed-point DEC_BODY, whose point is never the rightmost character (§8.3.3.3.2 3), kb/Work PB2729 —
+    /// (a point-less <c>1E10</c> is a user-defined word, §2023:8.3.2.1), and so is the point's position: the significand
+    /// is the fixed-point DEC_BODY, whose point is never the rightmost character (§2023:8.3.3.3.2 3), kb/Work PB2729 —
     /// <c>3.E2</c> is no token of this shape); the digit counts and the zero form are checked
     /// here — the ONE place, since both the expression funnel and the VALUE funnel normalize through it.</summary>
     public static FloatingLiteralIssue CheckFloatingPointForm(string text)
@@ -130,7 +130,7 @@ public static class NumericLiteral
 
     /// <summary>True when the numeric literal's value (fixed-point or floating-point form) is representable in the
     /// IEEE binary64 (<paramref name="single"/>: binary32) range — finite, and not a nonzero value that rounds to
-    /// zero (below the smallest subnormal). The implementor-defined exponent range of ISO §8.3.3.3.3 r3 for a
+    /// zero (below the smallest subnormal). The implementor-defined exponent range of ISO §2023:8.3.3.3.3 r3 for a
     /// literal that evaluates in a binary floating-point form: a procedure-division floating-point literal (D16 —
     /// binary64) and a VALUE on a FLOAT-SHORT / FLOAT-LONG / FLOAT-BINARY-32/64 item (kb/Work PB99).</summary>
     public static bool FitsBinaryFloat(string text, bool single = false)
@@ -149,7 +149,7 @@ public static class NumericLiteral
     }
 
     /// <summary>The EXACT value of a canonical numeric literal of EITHER form as a significand and a power of ten
-    /// (ISO §8.3.3.3.3 GR5 for the floating form; a fixed-point literal is its unscaled digits at 10^−scale) — the ONE
+    /// (ISO §2023:8.3.3.3.3 GR5 for the floating form; a fixed-point literal is its unscaled digits at 10^−scale) — the ONE
     /// exact parser the binder's range checks, the standard-decimal literal operand and the VALUE initializer share
     /// (kb/Work PB99). False for any non-numeric text; a significand wider than Int128 (never a legal literal —
     /// 36 digits fit) also returns false.</summary>
@@ -176,9 +176,9 @@ public static class NumericLiteral
     /// <summary>⛔ THE ONE exact unscaled decomposition of a numeric literal, in EITHER notation: the signed
     /// unscaled digit string and the fraction-digit SCALE, so that the literal's value is exactly
     /// <c>digits × 10^−scale</c>. A FIXED-POINT literal is its digits at its decimal-point position (ISO
-    /// §8.3.3.3.2 rule 4 — "The value of a fixed-point numeric literal is the algebraic quantity represented by
+    /// §2023:8.3.3.3.2 rule 4 — "The value of a fixed-point numeric literal is the algebraic quantity represented by
     /// the characters in the fixed-point numeric literal"); a FLOATING-POINT literal decomposes to the SAME
-    /// KIND OF PAIR, because ISO §8.3.3.3.3 rule 5 makes its value "the algebraic product of the value of its
+    /// KIND OF PAIR, because ISO §2023:8.3.3.3.3 rule 5 makes its value "the algebraic product of the value of its
     /// significand and the quantity derived by raising ten to the power of the exponent" — an EXACT scaled
     /// integer, never an approximation.
     /// <para>⛔ NEVER A TEXT EXPANSION. The pair comes from <see cref="TryParseExact"/>'s (significand,
@@ -196,7 +196,7 @@ public static class NumericLiteral
     /// (<c>EmitText.UnscaledLit</c>, the CALL argument lane) and the bind-time lane prediction (<c>FunctionValueLane</c>,
     /// kb/Work PB3268) read the SAME pair: a literal's digit bound is asked of one decomposition.</para>
     /// Returns false for text that is not a canonical numeric literal; the binder has already diagnosed it
-    /// (COBOL1661 for an out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks for the rest).</summary>
+    /// (COBOL1661 for an out-of-range exponent, the §2023:8.3.3.3.3 SR2/SR3 form checks for the rest).</summary>
     public static bool TryUnscaledParts(string text, out string digits, out int scale)
     {
         string t = text.Trim().TrimStart('+');
@@ -212,7 +212,7 @@ public static class NumericLiteral
         digits = ""; scale = 0;
         if (!TryParseExact(t, out Int128 sig, out int exp10)) return false;
         // Normalize toward scale ≥ 0 while the magnitude still fits the Int128 carrier (the guard keeps the
-        // multiply from overflowing; a literal's significand is at most 36 digits per §8.3.3.3.3 rule 2).
+        // multiply from overflowing; a literal's significand is at most 36 digits per §2023:8.3.3.3.3 rule 2).
         Int128 limit = Int128.MaxValue / 10;
         while (exp10 > 0 && sig >= -limit && sig <= limit) { sig *= 10; exp10--; }
         digits = sig.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -230,7 +230,7 @@ public static class NumericLiteral
 
     /// <summary>The integer VALUE of a numeric literal of either form, whatever notation it was written in — <c>30</c>,
     /// <c>30.0</c> and <c>3.0E+1</c> are one operand (trailing zeros past the point are notation, not scale; ISO
-    /// §8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product of the value of its significand
+    /// §2023:8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product of the value of its significand
     /// and the quantity derived by raising ten to the power of the exponent" and nothing more). False for a literal
     /// whose value is not an integer, and for one past <see cref="Int128"/>. The ONE reader of "is this literal an
     /// integer VALUE" (kb/Work PB272): the native exact-integer exponentiation arm keys on it
@@ -251,11 +251,11 @@ public static class NumericLiteral
         return true;
     }
 
-    /// <summary>The EXACT value of a floating-point numeric literal (ISO §8.3.3.3.3 GR5: "the algebraic product of
+    /// <summary>The EXACT value of a floating-point numeric literal (ISO §2023:8.3.3.3.3 GR5: "the algebraic product of
     /// the value of its significand and the quantity derived by raising ten to the power of the exponent") as a
     /// canonical fixed-point literal text — <c>1.5E+3</c> → <c>1500</c>, <c>-1.234E-5</c> → <c>-0.00001234</c>,
     /// <c>0.0E+0</c> → <c>0.0</c>, <c>+1.5E+0</c> → <c>+1.5</c> (a written sign is kept). The ONE expansion the VALUE-clause pipeline applies when a floating-point literal
-    /// seeds a FIXED-POINT numeric subject (§13.18.63.3 SR2 — a numeric literal whose value shall be representable
+    /// seeds a FIXED-POINT numeric subject (§2023:13.18.63.3 SR2 — a numeric literal whose value shall be representable
     /// exactly, checked downstream on the expanded text). <paramref name="text"/> shall satisfy
     /// <see cref="IsFloatingPointForm"/>.</summary>
     public static string ExpandFloatingPoint(string text)
@@ -264,7 +264,7 @@ public static class NumericLiteral
         int e = t.IndexOfAny(['E', 'e']);
         string sig = t[..e], exps = t[(e + 1)..];
         // The significand's written sign survives the expansion: "If the significand is signed, the floating-point
-        // numeric literal is considered to be signed" (§8.3.3.3.3 2)), and the SR3 test downstream
+        // numeric literal is considered to be signed" (§2023:8.3.3.3.3 2)), and the SR3 test downstream
         // (DataBinder.ValidateNumericValue) reads the sign off the text, so dropping a '+' made +1.5E+0 an unsigned
         // literal (kb/Work PB3567 sibling arm).
         char? sign = sig.Length > 0 && (sig[0] == '-' || sig[0] == '+') ? sig[0] : null;

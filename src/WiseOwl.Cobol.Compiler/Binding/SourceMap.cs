@@ -15,7 +15,7 @@ using Core = CobolParserCore;
 /// context, and neither does a symbol of the class table, so the definition a <see cref="BoundUnit"/>, a class, an interface
 /// or a method was built from lives here, on the bind session, read only by the binders and the bind-time validation passes:
 /// a unit's is added by <c>BinderDriver.CollectUnits</c> as each unit is made, and a CLASS-ID's, INTERFACE-ID's and METHOD-ID's
-/// by <c>OoClassTable.Build</c> as each symbol is made, with what made a class or an interface an expansion (ISO §12.3.8.4 GR5,
+/// by <c>OoClassTable.Build</c> as each symbol is made, with what made a class or an interface an expansion (ISO §2023:12.3.8.4 GR5,
 /// GR8). A symbol is its own key: its <see cref="OoSymbolOrigin"/> says whether it has a definition (only
 /// <see cref="OoSymbolOrigin.Source"/> does), and asking for the definition of one that has none is a loud internal error, never
 /// a null a caller forgot to test (kb/Work PB4459).
@@ -95,11 +95,11 @@ internal sealed class SourceMap
         ? definition
         : throw NoDefinition(symbol.Origin, "method", symbol.Name);
 
-    /// <summary>What made the class <paramref name="symbol"/> an EXPANSION of a parameterized definition (ISO §12.3.8.4 GR5): the
+    /// <summary>What made the class <paramref name="symbol"/> an EXPANSION of a parameterized definition (ISO §2023:12.3.8.4 GR5): the
     /// skeleton, the REPOSITORY entry and the actuals; null for a class written as a class and for an imported one.</summary>
     public ExpansionOrigin? ExpansionOf(OoClassSymbol symbol) => _expansions.GetValueOrDefault(symbol);
 
-    /// <summary>What made the interface <paramref name="symbol"/> an EXPANSION (ISO §12.3.8.4 GR8); null for an interface written
+    /// <summary>What made the interface <paramref name="symbol"/> an EXPANSION (ISO §2023:12.3.8.4 GR8); null for an interface written
     /// as an interface and for an imported one.</summary>
     public ExpansionOrigin? ExpansionOf(OoInterfaceSymbol symbol) => _expansions.GetValueOrDefault(symbol);
 

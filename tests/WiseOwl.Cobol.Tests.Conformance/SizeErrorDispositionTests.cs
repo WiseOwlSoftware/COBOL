@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB75 — a size error raised OUTSIDE an arithmetic statement's own catch is the fatal exception condition
-/// ISO §14.7.5's no-phrase rules name ("EC-SIZE-OVERFLOW … is set to exist, and processing proceeds as specified in
+/// ISO §2023:14.7.5's no-phrase rules name ("EC-SIZE-OVERFLOW … is set to exist, and processing proceeds as specified in
 /// 14.6.13.1.3"), never a raw CLR crash. The golden <c>pb75_sdidi_overflow_outside_arithmetic</c> pins #4/#5 (USE /
 /// PERFORM WHEN dispatch with RESUME); this class pins the two TERMINATING dispositions: #7 (checking enabled, no
 /// handler resumes) and #8 (checking NOT enabled — the implementor's choice, documented as loud termination). Before
@@ -49,7 +49,7 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>The NATIVE-arithmetic twin (kb/Work PB639): the size error is on the RESULT's transfer into the
-    /// receiver (§14.7.5 case 3), not on an intermediate, so the receiver is a fixed-point picture the aligned
+    /// receiver (§2023:14.7.5 case 3), not on an intermediate, so the receiver is a fixed-point picture the aligned
     /// value cannot hold rather than a decimal128 escape.</summary>
     private static string ProgNative(string turn, string body) => $$"""
         {{turn}}
@@ -66,13 +66,13 @@ public sealed class SizeErrorDispositionTests
                    STOP RUN.
         """;
 
-    /// <summary>kb/Work PB639 — §14.7.5 NO-PHRASE RULE 4 over the RESULT: "if the result of the arithmetic
+    /// <summary>kb/Work PB639 — §2023:14.7.5 NO-PHRASE RULE 4 over the RESULT: "if the result of the arithmetic
     /// statement is a value further from zero than permitted for the associated resultant data item, the
-    /// EC-SIZE-TRUNCATION exception condition is set to exist", disposed by §14.6.13.1.3 #7 (checking enabled,
+    /// EC-SIZE-TRUNCATION exception condition is set to exist", disposed by §2023:14.6.13.1.3 #7 (checking enabled,
     /// nothing resumes) — the run unit terminates abnormally NAMING that condition, never EC-SIZE-OVERFLOW (which
     /// is the INTERMEDIATE's condition, no-phrase rule 3) and never silence.
     /// <para>⛔ The second row is the discriminator. 340282366920938463463374607432 is a legal 30-digit literal
-    /// (§8.3.3.3.2) equal to ceil(2^128 / 10^9), so aligning it at the receiver's scale 9 WRAPS to 231788544 —
+    /// (§2023:8.3.3.3.2) equal to ceil(2^128 / 10^9), so aligning it at the receiver's scale 9 WRAPS to 231788544 —
     /// well inside <c>PIC S9(9)V9(9)</c>. The store's capacity check looked at that wrap, found it fitting, and
     /// the program ran to "AFTER" with no exception at all: an exception condition the source asked to be told
     /// about, silently absent. Both rows are checked so a fix that only handles the obvious magnitude is
@@ -92,7 +92,7 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
     }
 
-    /// <summary>The same two results with checking NOT enabled: §14.6.13.1.3 #8 hands the disposition to the
+    /// <summary>The same two results with checking NOT enabled: §2023:14.6.13.1.3 #8 hands the disposition to the
     /// implementor and CONFORMANCE.md DOC-A.1-70 documents it as "execution continues and the resultant
     /// identifier receives the LOW-ORDER digits of the result aligned at its scale" — so the program MUST reach
     /// "AFTER" and exit 0. This is the other half of the same rule: rule 4 sets the condition in both cases; only
@@ -109,7 +109,7 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("EC-SIZE", stderr);
     }
 
-    /// <summary>§14.6.13.1.3 #8 — checking NOT enabled: the SDIDI range overflow in a CONDITION reaches the run-unit
+    /// <summary>§2023:14.6.13.1.3 #8 — checking NOT enabled: the SDIDI range overflow in a CONDITION reaches the run-unit
     /// boundary and terminates loudly (this implementation's documented choice) — the abnormal-termination surface
     /// names the condition, exit 1; never a .NET stack trace / exit 127.</summary>
     [Theory]
@@ -128,9 +128,9 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
     }
 
-    /// <summary>kb/Work PB1605 — the ZERO DIVISOR over every value lane and every divide shape. §14.7.5 case 2 is the
+    /// <summary>kb/Work PB1605 — the ZERO DIVISOR over every value lane and every divide shape. §2023:14.7.5 case 2 is the
     /// size error condition wherever a divisor is zero, and no-phrase rule 2 sets EC-SIZE-ZERO-DIVIDE; with checking
-    /// not enabled §14.6.13.1.3 item 8 hands the disposition to the implementor, and CONFORMANCE.md DOC-A.1-70's is
+    /// not enabled §2023:14.6.13.1.3 item 8 hands the disposition to the implementor, and CONFORMANCE.md DOC-A.1-70's is
     /// that a quotient which cannot be formed has no value to store: the run unit terminates abnormally naming the
     /// condition, exit 1. <c>ARITHMETIC</c> is the lane switch — native (the scaled Int128 carrier, and binary64
     /// wherever a FLOAT-LONG operand or receiver is present) or STANDARD-DECIMAL (the SDIDI intermediate, which
@@ -158,7 +158,7 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB4092 — checking enabled for ANOTHER EC-SIZE name is not checking for the condition that occurred
-    /// (§14.6.13.1.1 NOTE 3: "An exception condition is set to exist only if checking for that condition is enabled"), so
+    /// (§2023:14.6.13.1.1 NOTE 3: "An exception condition is set to exist only if checking for that condition is enabled"), so
     /// the zero divisor and the exponentiation-rule violation take the SAME not-enabled disposition as with no checking at
     /// all — the run unit terminates abnormally naming the condition (DOC-A.1-70) — in an arithmetic statement and in a
     /// condition alike. The family-wide catch used to latch the condition, find its name not enabled, drop it and go on
@@ -181,7 +181,7 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
     }
 
-    /// <summary>The same zero divisors under the SIZE ERROR phrase: §14.7.5 phrase rule 1 leaves every resultant
+    /// <summary>The same zero divisors under the SIZE ERROR phrase: §2023:14.7.5 phrase rule 1 leaves every resultant
     /// unchanged and rule 3 runs the phrase, then execution continues — the unchecked kernels' raise must not
     /// change the checked path. A (VALUE 7) and FR (VALUE 9) are displayed as their initial values.</summary>
     [Theory]
@@ -198,8 +198,8 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB3869 (retired) — a statement written with ONLY a NOT ON SIZE ERROR phrase meets a zero divisor
-    /// with checking off. §14.7.5 sends it to the no-phrase rules ("If a NOT SIZE ERROR phrase is specified, it is
-    /// ignored"), which end in §14.6.13.1.3 item 8: the implementor defines whether execution continues and how the
+    /// with checking off. §2023:14.7.5 sends it to the no-phrase rules ("If a NOT SIZE ERROR phrase is specified, it is
+    /// ignored"), which end in §2023:14.6.13.1.3 item 8: the implementor defines whether execution continues and how the
     /// receivers are affected. CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL there (CLAUDE.md rule 1): a statement carrying a
     /// SIZE ERROR or a NOT SIZE ERROR phrase leaves every resultant unchanged and continues, and the NOT imperative does
     /// not run. A (VALUE 7), R (VALUE 9) and FR (VALUE 9) are displayed as their initial values.</summary>
@@ -221,9 +221,9 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB3869 (retired) — the same NOT-only statement over a RESULT past its receiver, checking off, on
     /// every receiver store (fixed-point, edited, float) and both value lanes. DOC-A.1-70's determination for a statement
-    /// carrying a NOT SIZE ERROR phrase (§14.6.13.1.3 item 8, following GnuCOBOL, whose COMP-5 / COMP-X / COMP-N exemption is its own error, kb/Work PB3989): the
+    /// carrying a NOT SIZE ERROR phrase (§2023:14.6.13.1.3 item 8, following GnuCOBOL, whose COMP-5 / COMP-X / COMP-N exemption is its own error, kb/Work PB3989): the
     /// resultant keeps its value and the
-    /// NOT imperative is skipped; a result that fits lands and the imperative runs (§14.7.5's closing paragraph). A holds
+    /// NOT imperative is skipped; a result that fits lands and the imperative runs (§2023:14.7.5's closing paragraph). A holds
     /// 7 and E holds 0 before each statement; the displays are the verdict.</summary>
     [Theory]
     [InlineData("NATIVE", "COMPUTE A = 1234", "A=007 E=  0 R=0 F=-")]
@@ -240,10 +240,10 @@ public sealed class SizeErrorDispositionTests
     [InlineData("NATIVE", "COMPUTE A = FL * 400", "A=007 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "COMPUTE A = FL * 2", "A=010 E=  0 R=0 F=N")]
     [InlineData("NATIVE", "COMPUTE FR = FL * 2", "A=007 E=  0 R=0 F=N")]
-    // §14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
+    // §2023:14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
     [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
-    // §14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
+    // §2023:14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
     // the NOT-only statement keeping every receiver as the ON phrase does (PB3989), no remainder is stored (R keeps 0).
     [InlineData("NATIVE", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
     [InlineData("STANDARD-DECIMAL", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
@@ -274,10 +274,10 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB3990 — ROUNDED MODE IS PROHIBITED in a statement with NO SIZE ERROR phrase and checking off.
-    /// §14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
+    /// §2023:14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
     /// in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
     /// exists, and the content of the resultant identifier is unchanged" — and with checking off execution continues
-    /// (§14.6.13.1.3 item 8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final
+    /// (§2023:14.6.13.1.3 item 8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final
     /// transfer (a lone value, an outermost quotient and product, an in-place sum, a float sender), both value lanes:
     /// the receiver holds 7 before the statement, keeps it on an inexact value, and lands an exact one; a value only
     /// TOO BIG (exact) takes the no-phrase low-order digits; the run continues to the DISPLAY. Expected values are
@@ -343,8 +343,8 @@ public sealed class SizeErrorDispositionTests
     }
 
     /// <summary>kb/Work PB3869 (retired) — the NOT-only statement with EC-SIZE checking ENABLED: with no size error
-    /// condition the NOT phrase runs (§14.7.5's closing paragraph); with one, no SIZE ERROR phrase being written,
-    /// §14.6.13.1.3 #7 ends the run unit naming EC-SIZE-TRUNCATION and the NOT phrase is ignored.</summary>
+    /// condition the NOT phrase runs (§2023:14.7.5's closing paragraph); with one, no SIZE ERROR phrase being written,
+    /// §2023:14.6.13.1.3 #7 ends the run unit naming EC-SIZE-TRUNCATION and the NOT phrase is ignored.</summary>
     [Theory]
     [InlineData("COMPUTE WS-X = 5 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 0, true)]
     [InlineData("COMPUTE WS-X = 123456 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 1, false)]
@@ -378,7 +378,7 @@ public sealed class SizeErrorDispositionTests
                    STOP RUN.
         """;
 
-    /// <summary>§14.6.13.1.3 #7 — checking enabled and nothing resumes: the guarded statement sets the status,
+    /// <summary>§2023:14.6.13.1.3 #7 — checking enabled and nothing resumes: the guarded statement sets the status,
     /// finds no USE / WHEN, and the run unit terminates abnormally naming the condition.</summary>
     [Fact]
     public void CheckingOn_NoHandler_TerminatesAbnormally()
@@ -392,7 +392,7 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("Unhandled exception", stderr);
     }
 
-    /// <summary>ONE dispatch per raise (§14.6.13.1.3 #5 → #7): a fatal condition raised by a statement INSIDE a
+    /// <summary>ONE dispatch per raise (§2023:14.6.13.1.3 #5 → #7): a fatal condition raised by a statement INSIDE a
     /// PERFORM is processed by that statement's guard — the USE declarative runs once — and, unresumed, terminates
     /// the run unit; the enclosing PERFORM's guard lets the already-dispatched condition pass. Before this landing
     /// every enclosing statement re-dispatched it: the declarative ran once per nesting level.</summary>
@@ -431,7 +431,7 @@ public sealed class SizeErrorDispositionTests
         Assert.Contains("abnormal run-unit termination: EC-BOUND-REF-MOD (fatal)", stderr);
     }
 
-    /// <summary>The native carrier's receiverless-lane raise (§8.8.1 alignment past the Int128 escape boundary —
+    /// <summary>The native carrier's receiverless-lane raise (§2023:8.8.1 alignment past the Int128 escape boundary —
     /// <c>CobolNum.RescaleEscape</c>, kb/Work PB69's "stays loud") is the same condition and takes the same
     /// disposition: a subscript expression whose alignment overflows terminates loudly, not with a stack trace.
     /// The statement that reaches the lane is a numeric CONDITION: DISPLAY of a selecting function no longer aligns its

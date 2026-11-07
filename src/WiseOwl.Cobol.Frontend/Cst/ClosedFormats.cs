@@ -19,12 +19,12 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// <param name="Clause">The general format's own subclause, as §-numbered in ISO/IEC 1989:2023.</param>
 /// <param name="FormatLabel">"Format 1 " where the subclause prints several formats and only one carries the
 /// clause list; the empty string where it prints one. Written WITH its trailing space so the message reads
-/// "§13.16.2 Format 1 general format" or "§13.4.5.2 general format" with no second template.</param>
+/// "§2023:13.16.2 Format 1 general format" or "§2023:13.4.5.2 general format" with no second template.</param>
 /// <param name="Subject">The construct as the standard names it, for "… is not a clause of the {Subject}".</param>
-/// <param name="Noun">"clause" or "paragraph" — what the format's list is a list OF. The §12.3.2 and §11.2.1
+/// <param name="Noun">"clause" or "paragraph" — what the format's list is a list OF. The §2023:12.3.2 and §2023:11.2.1
 /// formats list PARAGRAPHS, not clauses, and a diagnostic that called an unrecognized paragraph header a
 /// "clause" would send the reader to the wrong subclause.</param>
-/// <param name="Diagnostic">The catalogue descriptor the refusal reports. §13.16.2 keeps COBOL1941, allocated when
+/// <param name="Diagnostic">The catalogue descriptor the refusal reports. §2023:13.16.2 keeps COBOL1941, allocated when
 /// it was closed alone (kb/Work PB487); the clause-list formats share COBOL1970 and the paragraph-list formats
 /// COBOL1971. Carried on the row, so neither refusal site re-derives the code from the noun.</param>
 public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic)
@@ -45,7 +45,7 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
 ///
 /// <para>WHY A TABLE AND NOT EIGHT DIAGNOSTIC SITES. The catch-all this closes (<c>genericClause :
 /// IDENTIFIER (IDENTIFIER|literal)*</c>) was ONE grammar rule wired into SIX sites spanning EIGHT closed general
-/// formats, and closing it one site at a time is how it survived: kb/Work PB487 closed §13.16.2 and its sibling
+/// formats, and closing it one site at a time is how it survived: kb/Work PB487 closed §2023:13.16.2 and its sibling
 /// sweep, reading the grammar by rule NAME, counted four of the remaining five and missed the I-O-CONTROL
 /// paragraph's INLINE alternative entirely. One production, one pass and one table make the NEXT closed format
 /// automatic — add the error production to its alternative list and <c>ClosedFormatDriftTests</c> fails
@@ -67,52 +67,52 @@ public static class ClosedFormats
     public static readonly FrozenDictionary<Type, ClosedFormat> ByContext =
         new Dictionary<Type, ClosedFormat>
         {
-            // §13.16.2 Format 1 — the data description entry. Closed first, alone, by kb/Work PB487; PDF p393 /
+            // §2023:13.16.2 Format 1 — the data description entry. Closed first, alone, by kb/Work PB487; PDF p393 /
             // folio 363. Keeps COBOL1941 and its message verbatim: the code was allocated for this format and
             // is pinned by conformance:cases/13.16-Data-description/pb487-unrecognized-data-clause.
             [typeof(Core.DataDescriptionClauseContext)] =
                 new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized),
 
-            // §13.4.5.2 — the file description entry (FD). PDF p372-373 / folios 342-343.
+            // §2023:13.4.5.2 — the file description entry (FD). PDF p372-373 / folios 342-343.
             [typeof(Core.FileDescriptionClauseContext)] =
                 new("13.4.5.2", "", "file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §13.4.6.2 — the sort-merge file description entry (SD). PDF p376 / folio 346. The SAME grammar
+            // §2023:13.4.6.2 — the sort-merge file description entry (SD). PDF p376 / folio 346. The SAME grammar
             // rule used to serve both this format and the FD's, which is why one catch-all left TWO formats open.
             [typeof(Core.SortMergeDescriptionClauseContext)] =
                 new("13.4.6.2", "", "sort-merge file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.4.5.1 — the file control entry (SELECT). PDF p342-344 / folios 312-314.
+            // §2023:12.4.5.1 — the file control entry (SELECT). PDF p342-344 / folios 312-314.
             [typeof(Core.FileControlClausesContext)] =
                 new("12.4.5.1", "", "file control entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.4.6.2 — the I-O-CONTROL paragraph. PDF p363 / folio 333. ⚠ The alternative kb/Work PB487's
+            // §2023:12.4.6.2 — the I-O-CONTROL paragraph. PDF p363 / folio 333. ⚠ The alternative kb/Work PB487's
             // sweep missed: it is INLINE, not a named `xxxClause : genericClause` wrapper.
             [typeof(Core.IoControlClauseContext)] =
                 new("12.4.6.2", "", "I-O-CONTROL paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.3.7.2 — the SPECIAL-NAMES paragraph. PDF p320 / folio 290.
+            // §2023:12.3.7.2 — the SPECIAL-NAMES paragraph. PDF p320 / folio 290.
             [typeof(Core.SpecialNameEntryContext)] =
                 new("12.3.7.2", "", "SPECIAL-NAMES paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.3.5.2 — the SOURCE-COMPUTER paragraph. PDF p314 / folio 284: `SOURCE-COMPUTER. [computer-name-1] .`
+            // §2023:12.3.5.2 — the SOURCE-COMPUTER paragraph. PDF p314 / folio 284: `SOURCE-COMPUTER. [computer-name-1] .`
             // and nothing else (the X3.23-1985 WITH DEBUGGING MODE clause is modelled so its deleted-2002 gate can
             // name it). Closed by kb/Work PB830 — the residue was a `~DOT` token sink, not `genericClause`.
             [typeof(Core.SourceComputerParagraphContext)] =
                 new("12.3.5.2", "", "SOURCE-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.3.6.2 — the OBJECT-COMPUTER paragraph. PDF p315 / folio 285: the CHARACTER CLASSIFICATION and
+            // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph. PDF p315 / folio 285: the CHARACTER CLASSIFICATION and
             // PROGRAM COLLATING SEQUENCE clauses (plus the modelled '85 MEMORY SIZE and SEGMENT-LIMIT, deleted
             // 2002). Closed by kb/Work PB830, the SOURCE-COMPUTER row's twin.
             [typeof(Core.ObjectComputerClauseContext)] =
                 new("12.3.6.2", "", "OBJECT-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
-            // §12.3.2 — the configuration section. PDF p313 / folio 283. A PARAGRAPH list, not a clause list:
+            // §2023:12.3.2 — the configuration section. PDF p313 / folio 283. A PARAGRAPH list, not a clause list:
             // four bracketed paragraph names and nothing else.
             [typeof(Core.ConfigurationParagraphContext)] =
                 new("12.3.2", "", "CONFIGURATION SECTION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
 
-            // §11.2.1 — the identification division structure. PDF p293 / folio 263. Also a PARAGRAPH list.
+            // §2023:11.2.1 — the identification division structure. PDF p293 / folio 263. Also a PARAGRAPH list.
             [typeof(Core.IdentificationParagraphContext)] =
                 new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
         }.ToFrozenDictionary();
@@ -136,7 +136,7 @@ public static class ClosedFormats
     /// <summary>⛔ THE ERROR PRODUCTION'S TWO FORMS, by rule index (kb/Work PB3390) — the ONE place the parse layer
     /// learns which rules they are. <c>unrecognizedClause</c> is written by every list that no level-number follows;
     /// <c>unrecognizedDataClause</c>, whose run holds no unsigned integer, by the data division's three entries, after
-    /// whose period the next entry's level-number (ISO §8.3.2.2.13) may come. <c>ClosedFormatDriftTests</c> holds each
+    /// whose period the next entry's level-number (ISO §2023:8.3.2.2.13) may come. <c>ClosedFormatDriftTests</c> holds each
     /// list to the form its follow set calls for.</summary>
     public static readonly FrozenSet<int> ErrorProductionRules =
         FrozenSet.ToFrozenSet([Core.RULE_unrecognizedClause, Core.RULE_unrecognizedDataClause]);
@@ -172,13 +172,13 @@ public static class ClosedFormats
     }
 
     /// <summary>⛔ THE ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604, PB4788), or null where no entry waits for one.
-    /// ISO §13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not specified,
+    /// ISO §2023:13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not specified,
     /// the entry is a filler; so a data description entry whose context holds no data-name has two readings of the first
     /// word after its level-number, the entry-name and the first clause, and only a word that is neither is "not a
     /// clause". The other closed formats write a mandatory name before their clause list (FD, SD, SELECT). The entries
     /// that share the optional name slot are the data description entry and the three that print the same
-    /// <c>level-number [data-name] …</c> head: the screen description entry (§13.17.2, screen-name), the report group
-    /// description entry (§13.15.2) and the constant entry (§13.10.2), so a dangling level-number before a header
+    /// <c>level-number [data-name] …</c> head: the screen description entry (§2023:13.17.2, screen-name), the report group
+    /// description entry (§2023:13.15.2) and the constant entry (§2023:13.10.2), so a dangling level-number before a header
     /// (<c>SCREEN SECTION.</c> then <c>01 LINKAGE SECTION.</c>) is the missing period in all four. The caller compares
     /// the entry's level-number with the token before the offending word: a name or a clause written already closes
     /// the slot.</summary>

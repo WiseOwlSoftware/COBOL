@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// (<see cref="CommentEntryResolver"/>; docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
 /// <para>Whether a line such as <c>AUTHOR. Pat O'Brien.</c> is a comment-entry paragraph or the program's own paragraph
 /// depends on the division the TEXT stands in, and "the text" is what the stages between the conversion and the parse
-/// leave: §6.5 converts "before the application of replacing and conditional compilation actions", so the conversion has
+/// leave: §2023:6.5 converts "before the application of replacing and conditional compilation actions", so the conversion has
 /// not seen which branch of a <c>&gt;&gt;IF</c> is compiled, what a <c>COPY … REPLACING</c> or a <c>REPLACE</c> wrote, or
 /// the synonyms a <c>&gt;&gt;COBOL-WORDS</c> directive gave <c>DIVISION</c>. The conversion therefore asks the one question
 /// it CAN answer — does the line begin, in the Area-A sense of COBOL-85, with a comment-entry paragraph's word? — and

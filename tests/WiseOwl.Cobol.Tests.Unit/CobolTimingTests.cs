@@ -12,9 +12,9 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// CONTINUE AFTER's runtime lanes (ISO §14.9.9.4 GR1; kb/Work PB138, PB1529) — the legs no stdout golden can pin:
+/// CONTINUE AFTER's runtime lanes (ISO §2023:14.9.9.4 GR1; kb/Work PB138, PB1529) — the legs no stdout golden can pin:
 /// the NON-FINITE intervals (`(long)double.NaN` saturates to 0, so a NaN interval is read as zero seconds on
-/// purpose, and kb/Work PB2841 pins that none of them is the fatal EC-DATA-NOT-FINITE), the raise REPORT the emitted §14.6.13.1.4
+/// purpose, and kb/Work PB2841 pins that none of them is the fatal EC-DATA-NOT-FINITE), the raise REPORT the emitted §2023:14.6.13.1.4
 /// dispatch consumes, the exact truncation contract, and the saturation of a huge interval to the maximum
 /// meaningful value on EVERY carrier the interval can evaluate on. A suspension is OBSERVED through
 /// <see cref="CobolTiming.SuspensionObserver"/>, never timed (kb/Work PB1590: no test asserts a wall clock, and a
@@ -32,11 +32,11 @@ public sealed class CobolTimingTests
     }
 
     /// <summary>⛔ kb/Work PB2841 — a NON-FINITE interval takes the rule of its kind, and never the fatal
-    /// EC-DATA-NOT-FINITE: §14.6.13.2 item 3 limits that condition to a sending operand described with a STANDARD
+    /// EC-DATA-NOT-FINITE: §2023:14.6.13.2 item 3 limits that condition to a sending operand described with a STANDARD
     /// floating-point usage and the emitter raises it where such an operand is READ (CobolFloat.Sending), so a
     /// non-finite double that reaches <see cref="CobolTiming.ContinueAfter(double, bool)"/> is a non-standard usage's
     /// content (or a standard one read with its checking off). The checking is ON here, which is what makes the
-    /// absence of the raise a witness. −∞ is a value below zero (§14.9.9.4 GR1 a-c: reported when checked, else a
+    /// absence of the raise a witness. −∞ is a value below zero (§2023:14.9.9.4 GR1 a-c: reported when checked, else a
     /// silent zero), +∞ is a number above the maximum meaningful value (the maximum, the PB2647 determination that
     /// an infinity is a number), and a NaN is no number: a zero interval, no suspension, no condition.</summary>
     [Fact]
@@ -64,7 +64,7 @@ public sealed class CobolTimingTests
     public void NegativeInterval_Checked_ReportsTheRaise_AndSetsTheStatus()
     {
         bool raised = CobolTiming.ContinueAfter(-0.5, checkLessThanZero: true);
-        Assert.True(raised);   // the emitted site dispatches §14.6.13.1.4 on this report
+        Assert.True(raised);   // the emitted site dispatches §2023:14.6.13.1.4 on this report
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class CobolTimingTests
         Assert.Equal([2000], suspensions);   // GR1: truncated toward zero, no ROUNDED
     }
 
-    /// <summary>§14.9.9.4 GR1 / kb/Work PB1529 — an interval above the maximum meaningful value suspends for exactly
+    /// <summary>§2023:14.9.9.4 GR1 / kb/Work PB1529 — an interval above the maximum meaningful value suspends for exactly
     /// the maximum, however large it is: the double is compared with the maximum BEFORE it is narrowed, so 1E30 (past
     /// the long range) and 9.3E18 (just past it) no longer wrap to a negative count and suspend 0 s.</summary>
     [Theory]
@@ -235,7 +235,7 @@ public sealed class CobolTimingTests
     /// literal, a PIC 9(20) item, a PIC 9(31) item, a scaled item, a product the planner lifts to the SDIDI
     /// (BIG * BIG = 2^128), a 16-byte unsigned COMP-5 item set to 2^128 - 1 through its alphanumeric image — is compiled
     /// and ACTIVATED IN PROCESS with the suspension observer installed, so the test sees every pause the run unit
-    /// would take. Each is above the maximum meaningful value (§14.9.9.4 GR1), so each is exactly 86,400 s; the last
+    /// would take. Each is above the maximum meaningful value (§2023:14.9.9.4 GR1), so each is exactly 86,400 s; the last
     /// two statements are an in-range interval (3.9 s truncates to 3) and a below-maximum product, the control arm
     /// that says the observer was connected.</summary>
     [Fact]

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1929 — the second negative twin of 2002/pb1929_set_identifier_senders. The sender is a
       *> function-identifier of class object (it RETURNS an object reference), so it references a data item of class
-      *> object — which §14.9.39.3 SR17 ("Identifier-6 shall be of category data-pointer") does not admit into a
+      *> object — which §2023:14.9.39.3 SR17 ("Identifier-6 shall be of category data-pointer") does not admit into a
       *> data-pointer receiver. The refusal names the SENDER's category, where it used to name "a literal or an
       *> arithmetic expression" (COBOL0869).
        IDENTIFICATION DIVISION.

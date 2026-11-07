@@ -17,23 +17,23 @@
       *> integral and fractional, is derived from the corresponding
       *> number of digits, excluding insertion editing characters, in
       *> the PICTURE clause of the entry containing the SUM clause."
-      *>   cite.py: OK  §13.18.54.4 1)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 1)  (General rules)
       *> "The adding is consistent with the general rules of the ADD
       *> statement with the ON SIZE ERROR phrase"
-      *>   cite.py: OK  §13.18.54.4 3)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 3)  (General rules)
       *> "If the associated size error indicator is set, an
       *> EC-REPORT-SUM-SIZE exception condition is set to exist and the
       *> printable item is filled with spaces."
-      *>   cite.py: OK  §13.18.54.4 4)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 4)  (General rules)
       *> "It is permissible for procedure division statements to alter
       *> the content of sum counters."
-      *>   cite.py: OK  §13.18.54.4 12)  (General rules)
+      *>   cite.py: OK  §2023:13.18.54.4 12)  (General rules)
       *> "the number of digit positions described by character-string-1
       *> shall range from 1 through 31."
-      *>   cite.py: OK  §13.18.40.3 14)  (Syntax rules)
+      *>   cite.py: OK  §2023:13.18.40.3 14)  (Syntax rules)
       *> "Native arithmetic is in effect when the ARITHMETIC IS NATIVE
       *> clause is specified in the OPTIONS paragraph"
-      *>   cite.py: OK  §8.8.1.3  (Native arithmetic)
+      *>   cite.py: OK  §2023:8.8.1.3  (Native arithmetic)
       *>
       *> DERIVATION (two GENERATEs, then TERMINATE prints CF FINAL):
       *> S1  PIC 9(20) SUM WS-A WS-A - four additions of 6E18 into a

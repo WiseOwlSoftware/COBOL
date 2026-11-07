@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> AN ELEMENTARY REPORT ENTRY WITH A VALUE CLAUSE NEEDS A COLUMN CLAUSE (kb/Work PB853's sweep).
-      *> ISO/IEC 1989:2023 §13.15.3 SR13: "A COLUMN clause shall be specified in each elementary entry that
+      *> ISO/IEC 1989:2023 §2023:13.15.3 SR13: "A COLUMN clause shall be specified in each elementary entry that
       *> has a VALUE clause." The column-less VALUE entry below printed nothing, in silence.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB853VWC.

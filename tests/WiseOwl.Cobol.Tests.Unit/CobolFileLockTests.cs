@@ -7,8 +7,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The COBOL-2002 file-sharing / record-locking registry (Phase 4d M2-FILE-1; ISO/IEC 1989:2023 §9.1.15/§9.1.16
-/// / §12.4.5.9.4 / §14.9.27 / §14.9.47 / §14.7.9). End-to-end behavior (OPEN 61, WITH LOCK 51, RETRY, IGNORING
+/// The COBOL-2002 file-sharing / record-locking registry (Phase 4d M2-FILE-1; ISO/IEC 1989:2023 §2023:9.1.15/§2023:9.1.16
+/// / §2023:12.4.5.9.4 / §2023:14.9.27 / §2023:14.9.47 / §2023:14.7.9). End-to-end behavior (OPEN 61, WITH LOCK 51, RETRY, IGNORING
 /// LOCK, UNLOCK, AUTOMATIC auto-lock) rides the <c>file_sharing</c> golden; these lock the
 /// <c>CobolFile.Locks</c> primitives the emitter wires to: the record-lock grant/deny, the 53/54 ceilings, the
 /// Table-19 open-conflict classifier, and the single-run-unit RETRY loop.
@@ -31,7 +31,7 @@ public sealed class CobolFileLockTests : IDisposable
     private const int Random = 1;   // KeyedAccess.Random
 
     /// <summary>Register two RELATIVE connectors bound to ONE physical file (the two-SELECTs-one-file scenario
-    /// §9.1.15 note :11729 makes 51/61 realizable in a single run unit), both MANUAL sharers.</summary>
+    /// §2023:9.1.15 note :11729 makes 51/61 realizable in a single run unit), both MANUAL sharers.</summary>
     private static void TwoConnectorsOneFile(string a, string b, string host)
     {
         CobolFile.Init();
@@ -48,7 +48,7 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "1"));
         Assert.True(CobolFile.IsLockedByOther("CB", "1"));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.LockRecord("CB", "1"));   // 51 — another connector holds it
-        Assert.False(CobolFile.IsLockedByOther("CA", "1"));                            // §9.1.16: a locked record may be re-accessed by its own holder, so not "other"
+        Assert.False(CobolFile.IsLockedByOther("CA", "1"));                            // §2023:9.1.16: a locked record may be re-accessed by its own holder, so not "other"
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.LockRecord("CA", "1");
         CobolFile.LockRecord("CA", "2");
         Assert.True(CobolFile.IsLockedByOther("CB", "1"));
-        CobolFile.ReleaseAllForConnector("CA");                                   // UNLOCK / CLOSE (§9.1.16 :11754)
+        CobolFile.ReleaseAllForConnector("CA");                                   // UNLOCK / CLOSE (§2023:9.1.16 :11754)
         Assert.False(CobolFile.IsLockedByOther("CB", "1"));
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CB", "1"));
     }
@@ -114,7 +114,7 @@ public sealed class CobolFileLockTests : IDisposable
 
     // ⛔ The Table-19 open-conflict matrix is NOT tested here any more. It used to be a six-row [InlineData]
     // theory labelled '(a)'–'(e)' against a table of 35 cells, with NO row whose incoming mode was OUTPUT —
-    // so §9.1.13.9 1) e) had neither an implementation nor a failing test, and the theory was GREEN while an
+    // so §2023:9.1.13.9 1) e) had neither an implementation nor a failing test, and the theory was GREEN while an
     // incoming OPEN OUTPUT truncated files another connector held open (kb/Work PB321). Its replacement is
     // `OpenTable19Tests`, which transcribes all 35 printed cells and enumerates all 144 connector pairs, so
     // it cannot be green for want of a row. The facade delegation is exercised there through FileRegistry.
@@ -135,13 +135,13 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(2, calls);
     }
 
-    /// <summary>⛔ THE DRIFT TEST for the §14.7.9.3 conflict-status CLASS rule (kb/Work PB142; the design is
+    /// <summary>⛔ THE DRIFT TEST for the §2023:14.7.9.3 conflict-status CLASS rule (kb/Work PB142; the design is
     /// docs/FILES_DESIGN.md D8). Every retry form × every conflict class, asserted cell by cell, so
-    /// that "the exhausted retry lands the CONFLICT'S OWN §9.1.13 status" cannot silently regrow a manufactured
-    /// literal at any one call site. The single exception — FOREVER on a record LOCK, the §9.1.13.8 item 2
+    /// that "the exhausted retry lands the CONFLICT'S OWN §2023:9.1.13 status" cannot silently regrow a manufactured
+    /// literal at any one call site. The single exception — FOREVER on a record LOCK, the §2023:9.1.13.8 item 2
     /// deadlock this implementation detects — is one cell here, not a rule spread over six callers.</summary>
     [Theory]
-    // ── RECORD OPERATION conflict, §9.1.13.8 item 1 ('51'): the conflict's own status, except FOREVER.
+    // ── RECORD OPERATION conflict, §2023:9.1.13.8 item 1 ('51'): the conflict's own status, except FOREVER.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]    // GR4a
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)]   // GR4a
@@ -150,7 +150,7 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)] // GR4a
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, FileStatusCode.RecordLocked)] // GR2 clamp
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, FileStatusCode.Deadlock)]      // GR3 + item 2
-    // ── FILE SHARING conflict, §9.1.13.9 item 1 ('61', OPEN): NEVER a deadlock — that clause defines none.
+    // ── FILE SHARING conflict, §2023:9.1.13.9 item 1 ('61', OPEN): NEVER a deadlock — that clause defines none.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
@@ -159,7 +159,7 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileSharingConflict, FileStatusCode.FileSharingConflict)]
-    // ── FILE SHARING conflict, §9.1.13.9 item 2 ('62', DELETE FILE): §14.9.10.4 GR15b is imperative.
+    // ── FILE SHARING conflict, §2023:9.1.13.9 item 2 ('62', DELETE FILE): §2023:14.9.10.4 GR15b is imperative.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Times, -3, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
@@ -168,8 +168,8 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
-    // ── RECORD OPERATION conflict, §9.1.13.8 items 3/4 ('54' connector / '53' run-unit lock maximum — the
-    //    §12.4.5.9.4 GR7 ceiling, kb/Work PB707): the class's own status under every form. Only a '51' under FOREVER
+    // ── RECORD OPERATION conflict, §2023:9.1.13.8 items 3/4 ('54' connector / '53' run-unit lock maximum — the
+    //    §2023:12.4.5.9.4 GR7 ceiling, kb/Work PB707): the class's own status under every form. Only a '51' under FOREVER
     //    is the deadlock; a ceiling is no lock another connector holds, so FOREVER lands '54'/'53' unchanged.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]     // GR4a
@@ -185,7 +185,7 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]      // GR4a
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]     // GR2 clamp
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]      // GR3, no '52'
-    // ── NOT A CONFLICT AT ALL: §14.7.9.3 GR4 scopes the whole discipline to the two conflict conditions, so an
+    // ── NOT A CONFLICT AT ALL: §2023:14.7.9.3 GR4 scopes the whole discipline to the two conflict conditions, so an
     //    OPEN's '35' (or any other unsuccessful status) is the statement's own answer and RETRY cannot touch it.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
     [InlineData(FileRetryKind.Times, 2, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
@@ -195,7 +195,7 @@ public sealed class CobolFileLockTests : IDisposable
         FileRetryKind kind, int amount, string conflict, string expected) =>
         Assert.Equal(expected, FileRegistry.RetryLoop(() => RetryAttempt.InRunUnit(conflict), kind, amount));
 
-    /// <summary>§14.7.9.3 GR4 again, on the axis the status cannot witness: a NON-conflict status must not be
+    /// <summary>§2023:14.7.9.3 GR4 again, on the axis the status cannot witness: a NON-conflict status must not be
     /// RE-ATTEMPTED either, and GR4a's zero/negative screen must make no attempt beyond the first.</summary>
     [Theory]
     [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked, 1)]
@@ -206,8 +206,8 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked, 1)]  // GR4a — negative: likewise
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, 1)]  // GR2 — zero-length clamped period
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, 2)]   // GR3 — one re-check, then the deadlock
-    [InlineData(FileRetryKind.Times, 3, FileStatusCode.ConnectorLockLimit, 4)]   // GR4 + §9.1.13.8 item 4: a '5x' IS a conflict — GR1's n re-attempts
-    [InlineData(FileRetryKind.Times, 3, FileStatusCode.RunUnitLockLimit, 4)]     // GR4 + §9.1.13.8 item 3
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.ConnectorLockLimit, 4)]   // GR4 + §2023:9.1.13.8 item 4: a '5x' IS a conflict — GR1's n re-attempts
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.RunUnitLockLimit, 4)]     // GR4 + §2023:9.1.13.8 item 3
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.ConnectorLockLimit, 2)] // GR3 — one re-check, no holder that can release
     [InlineData(FileRetryKind.Times, 3, FileStatusCode.FileNotFound, 1)]     // GR4 — not a conflict: no retry
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileNotFound, 1)]   // GR4 — not a conflict: no retry
@@ -219,15 +219,15 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(expectedCalls, calls);
     }
 
-    /// <summary>§14.7.9.3 GR3 against a holder OUTSIDE the run unit (kb/Work PB1163): <i>"If the FOREVER phrase is
+    /// <summary>§2023:14.7.9.3 GR3 against a holder OUTSIDE the run unit (kb/Work PB1163): <i>"If the FOREVER phrase is
     /// specified, the mass storage control system shall attempt to gain access to a locked resource until the
     /// input-output operation has been completed"</i>. Such a holder can release while the statement waits, so
     /// FOREVER keeps attempting — pausing <see cref="FileRegistry.RetryInterval"/> before each re-attempt (A.1 item
     /// 165) — and lands the attempt that completed. The loop used to stop after one re-attempt on the premise that no
     /// releaser existed. The pause is observed, never slept, so the test times nothing.</summary>
     [Theory]
-    [InlineData(FileStatusCode.FileSharingConflict)]   // OPEN, §9.1.13.9 item 1
-    [InlineData(FileStatusCode.DeleteFileSharing)]     // DELETE FILE, §9.1.13.9 item 2
+    [InlineData(FileStatusCode.FileSharingConflict)]   // OPEN, §2023:9.1.13.9 item 1
+    [InlineData(FileStatusCode.DeleteFileSharing)]     // DELETE FILE, §2023:9.1.13.9 item 2
     public void RetryForever_AgainstAHolderOutsideTheRunUnit_WaitsUntilTheOperationCompletes(string conflict)
     {
         int calls = 0, pauses = 0;
@@ -276,7 +276,7 @@ public sealed class CobolFileLockTests : IDisposable
         finally { FileRegistry.PauseObserver.Value = null; }
     }
 
-    /// <summary>⛔ THE §14.9.30.4 GR9 DRIFT TEST — the READ's OWN binding to §14.7.9, on BOTH read formats
+    /// <summary>⛔ THE §2023:14.9.30.4 GR9 DRIFT TEST — the READ's OWN binding to §2023:14.7.9, on BOTH read formats
     /// (kb/Work PB346). GR9 is three sentences and the last two are delegations: <i>"If the RETRY phrase is
     /// specified, additional attempts may be made to read the record as specified in the rules in 14.7.9,
     /// RETRY phrase"</i> and <i>"The I-O status is set in accordance with the rules for the RETRY phrase"</i>.
@@ -285,12 +285,12 @@ public sealed class CobolFileLockTests : IDisposable
     /// could have dropped or mis-plumbed its retry arguments and stayed green — which is exactly how the
     /// SECONDS/FOREVER conflation survived in five descriptions after the code was fixed.
     /// <para>The expected column is derived, not observed: the holder is a file connector of the EXECUTING run
-    /// unit and cannot release while this statement runs, so every form exhausts. §14.7.9.3 GR4 a) (no phrase,
+    /// unit and cannot release while this statement runs, so every form exhausts. §2023:14.7.9.3 GR4 a) (no phrase,
     /// or an arithmetic expression evaluating negative or zero) and the clause's closing paragraph both land
-    /// "the appropriate value … according to the rules for 9.1.13", i.e. §9.1.13.8 item 1's '51'; GR1's count
+    /// "the appropriate value … according to the rules for 9.1.13", i.e. §2023:9.1.13.8 item 1's '51'; GR1's count
     /// and GR2's timeout period reach the same closing paragraph — GR2 because its period is clamped to this
     /// implementation's maximum meaningful value of ZERO (Annex A.1 item 166). GR3's FOREVER alone is the
-    /// §9.1.13.8 item 2 deadlock this implementation detects, '52'.</para></summary>
+    /// §2023:9.1.13.8 item 2 deadlock this implementation detects, '52'.</para></summary>
     [Theory]
     [InlineData(FileRetryKind.None, 0, FileStatusCode.RecordLocked)]       // GR4a — no phrase
     [InlineData(FileRetryKind.Times, 0, FileStatusCode.RecordLocked)]      // GR4a — zero arithmetic-expression-1
@@ -299,14 +299,14 @@ public sealed class CobolFileLockTests : IDisposable
     [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RecordLocked)]    // GR4a — zero arithmetic-expression-2
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked)]   // GR4a — negative
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked)]   // GR2 — clamped to a zero-length period
-    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.Deadlock)]        // GR3 + §9.1.13.8 item 2
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.Deadlock)]        // GR3 + §2023:9.1.13.8 item 2
     public void ReadUnderEveryRetryForm_BindsGR9ToTheRetryRules_OnBothFormats(
         FileRetryKind kind, int amount, string expected)
     {
         string tag = $"{(int)kind}-{amount}";
 
         // ── FORMAT 2 (random keyed access): the governed random-read entry, RELATIVE organization.
-        // Its conflict leg is PRE-read like Format 1's since kb/Work PB338 (§14.9.30.4 GR10 a)/d)), so
+        // Its conflict leg is PRE-read like Format 1's since kb/Work PB338 (§2023:14.9.30.4 GR10 a)/d)), so
         // the entry OWNS the retrieval and there is no separate read left to govern afterwards. ──────────
         TwoOpenSharers("RGA", "RGB", Host($"lk-r2retry-{tag}.dat"));
         CobolFile.SetRelativeKey("RGA", 1);
@@ -315,7 +315,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.SetRelativeKey("RGB", 1);
         Assert.Equal(expected,
             CobolFile.ReadKeyedShared("RGB", -1, "", FileRecordLock.None, false, kind, amount, out _));
-        Assert.Equal(expected, CobolFile.Status("RGB"));   // §14.9.30.4 GR1 — the connector's I-O status is updated
+        Assert.Equal(expected, CobolFile.Status("RGB"));   // §2023:14.9.30.4 GR1 — the connector's I-O status is updated
 
         // ── FORMAT 1 (sequential access): the pre-read conflict leg, SEQUENTIAL organization. ───────────────
         CobolFile.Init();
@@ -336,7 +336,7 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(expected, CobolFile.ReadShared(
             "RSB", false, FileRecordLock.None, false, false, kind, amount, out string img));
         Assert.Equal(expected, CobolFile.Status("RSB"));
-        Assert.Equal("", img);   // §14.9.30.4 GR10 e) — the READ is unsuccessful; no record is made available
+        Assert.Equal("", img);   // §2023:14.9.30.4 GR10 e) — the READ is unsuccessful; no record is made available
         CobolFile.Close("RSA");
         CobolFile.Close("RSB");
     }
@@ -348,11 +348,11 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.RegisterRelative("CX", Host("lk-notopen.dat"), 8, false, Random, 4);
         CobolFile.RegisterSharing("CX", FileSharing.AllOther, FileLockMode.Manual, false);
         CobolFile.Unlock("CX", records: false);
-        Assert.Equal(FileStatusCode.FileNotOpen, CobolFile.Status("CX"));   // 42 — §9.1.13 (:11579)
+        Assert.Equal(FileStatusCode.FileNotOpen, CobolFile.Status("CX"));   // 42 — §2023:9.1.13 (:11579)
     }
 
-    // ── P10 Step 8: the governed mutating verbs (§14.9.35 GR11/GR12 · §14.9.10 GR6/GR7 · §14.9.51 GR10/GR11)
-    //    and the sequential-organization governed READ (§9.1.16 ordinal identity; §14.9.30 GR9/GR22) ──────────
+    // ── P10 Step 8: the governed mutating verbs (§2023:14.9.35 GR11/GR12 · §2023:14.9.10 GR6/GR7 · §2023:14.9.51 GR10/GR11)
+    //    and the sequential-organization governed READ (§2023:9.1.16 ordinal identity; §2023:14.9.30 GR9/GR22) ──────────
 
     /// <summary>Two open RELATIVE sharers on one seeded physical file (record 1 = AAAAA).</summary>
     private static void TwoOpenSharers(string a, string b, string host)
@@ -376,14 +376,14 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("MA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));   // MA locks record 1
         CobolFile.SetRelativeKey("MB", 1);
-        // §14.9.35 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
+        // §2023:14.9.35 GR11 — the record identified for rewriting is locked by another connector → 51 (not rewritten).
         Assert.Equal(FileStatusCode.RecordLocked,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.None, 0));
-        // §14.9.10 GR6 — same for deletion; a bounded RETRY exhausts to 51, FOREVER deadlock-bails to 52 (§14.7.9).
+        // §2023:14.9.10 GR6 — same for deletion; a bounded RETRY exhausts to 51, FOREVER deadlock-bails to 52 (§2023:14.7.9).
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.DeleteShared("MB", "", FileRetryKind.Times, 2));
         Assert.Equal(FileStatusCode.Deadlock,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.Forever, 0));
-        CobolFile.Unlock("MA", records: false);   // §14.9.47 GR1
+        CobolFile.Unlock("MA", records: false);   // §2023:14.9.47 GR1
         Assert.Equal(FileStatusCode.Success,
             CobolFile.RewriteShared("MB", "BBBBB", -1, FileRecordLock.None, FileRetryKind.None, 0));
     }
@@ -393,11 +393,11 @@ public sealed class CobolFileLockTests : IDisposable
     {
         TwoOpenSharers("WA", "WB", Host("lk-wrlock.dat"));
         CobolFile.SetRelativeKey("WA", 2);
-        // §14.9.51 GR11 — WITH LOCK locks the record written.
+        // §2023:14.9.51 GR11 — WITH LOCK locks the record written.
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
         Assert.True(CobolFile.IsLockedByOther("WB", "2"));
-        // §14.9.51 GR10 / §12.4.5.9.4 GR6 — single locking: the next WRITE releases the prior lock.
+        // §2023:14.9.51 GR10 / §2023:12.4.5.9.4 GR6 — single locking: the next WRITE releases the prior lock.
         CobolFile.SetRelativeKey("WA", 3);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "CCCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
@@ -405,10 +405,10 @@ public sealed class CobolFileLockTests : IDisposable
     }
 
     /// <summary>⛔ THE RECORD-LOCK CEILING IS A RECORD OPERATION CONFLICT, SO THE STATEMENT'S RETRY PHRASE GOVERNS IT
-    /// ON EVERY VERB THAT CAN REQUEST A NEW LOCK (kb/Work PB707). §12.4.5.9.4 GR7 refuses the statement that would
+    /// ON EVERY VERB THAT CAN REQUEST A NEW LOCK (kb/Work PB707). §2023:12.4.5.9.4 GR7 refuses the statement that would
     /// exceed a limit (<c>cite.py --check 12.4.5.9.4 "Any I-O statement that attempts to obtain a record lock that
-    /// would exceed either limit is unsuccessful"</c> → OK), §9.1.13.8 item 4 names the status '54' under the
-    /// heading "Record operation conflict condition with unsuccessful completion", and §14.7.9.3 GR4 engages on any
+    /// would exceed either limit is unsuccessful"</c> → OK), §2023:9.1.13.8 item 4 names the status '54' under the
+    /// heading "Record operation conflict condition with unsuccessful completion", and §2023:14.7.9.3 GR4 engages on any
     /// such condition. The count is the connector's own, so no re-attempt lowers it and every form lands the
     /// ceiling's own status — what changes is WHERE the rule is judged, which <c>RecordLockCeilingRetryDriftTests</c>
     /// pins. WRITE, REWRITE and READ each run the connector at its fifteenth lock asking for a sixteenth: '54', the
@@ -437,7 +437,7 @@ public sealed class CobolFileLockTests : IDisposable
             CobolFile.WriteShared("CA", "AAAAA", -1, FileRecordLock.None, kind, amount, page: null));   // no new lock: stored
         CobolFile.Close("CA");
         CobolFile.OpenIO("CA", host, assignDynamic: false, page: null);
-        for (int i = 1; i <= 15; i++)   // the CLOSE above released every lock (§9.1.16): take the connector maximum again
+        for (int i = 1; i <= 15; i++)   // the CLOSE above released every lock (§2023:9.1.16): take the connector maximum again
             Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", i.ToString()));
         CobolFile.SetRelativeKey("CA", 16);
         // READ ... WITH LOCK RETRY: the lock is refused and no record is made available.
@@ -473,15 +473,15 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.Close("SA");
         CobolFile.OpenInput("SA", host, assignDynamic: false, page: null);
         CobolFile.OpenInput("SB", host, assignDynamic: false, page: null);
-        // SA reads ordinal 1 WITH LOCK (§9.1.16 — the sequential lock identity is the ordinal position).
+        // SA reads ordinal 1 WITH LOCK (§2023:9.1.16 — the sequential lock identity is the ordinal position).
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("SA", false, FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string img));
         Assert.Equal("AAAAA", img);
-        // SB's READ of ordinal 1 conflicts BEFORE the physical read (§14.9.30 GR9; FPI unchanged, GR10a) → 51.
+        // SB's READ of ordinal 1 conflicts BEFORE the physical read (§2023:14.9.30 GR9; FPI unchanged, GR10a) → 51.
         Assert.Equal(FileStatusCode.RecordLocked,
             CobolFile.ReadShared("SB", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out _));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.Status("SB"));
-        // ADVANCING ON LOCK (§14.9.30 GR22) skip-scans the locked record — SB gets ordinal 2, no conflict raised.
+        // ADVANCING ON LOCK (§2023:14.9.30 GR22) skip-scans the locked record — SB gets ordinal 2, no conflict raised.
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("SB", false, FileRecordLock.None, true, false, FileRetryKind.None, 0, out img));
         Assert.Equal("BBBBB", img);
@@ -491,7 +491,7 @@ public sealed class CobolFileLockTests : IDisposable
     }
 
     /// <summary>
-    /// ⛔ §14.9.30.4 GR22 IS A FORMAT-1 RULE, NOT A SEQUENTIAL-ORGANIZATION ONE (kb/Work PB340). The skip-scan
+    /// ⛔ §2023:14.9.30.4 GR22 IS A FORMAT-1 RULE, NOT A SEQUENTIAL-ORGANIZATION ONE (kb/Work PB340). The skip-scan
     /// loop lived only inside the sequential arm of the governed read, so a RELATIVE or INDEXED
     /// <c>READ … NEXT ADVANCING ON LOCK</c> answered '51' — the one status GR22 says cannot arise ("A record
     /// operation conflict condition does not exist"). Both organizations now enter the SAME
@@ -527,7 +527,7 @@ public sealed class CobolFileLockTests : IDisposable
             CobolFile.RegisterSharing(n, FileSharing.AllOther, FileLockMode.Manual, false);
             CobolFile.OpenIO(n, host, assignDynamic: false, page: null);
         }
-        // KA takes the first record WITH LOCK (§14.9.30.4 GR11 d) — manual locking sets it only on request).
+        // KA takes the first record WITH LOCK (§2023:14.9.30.4 GR11 d) — manual locking sets it only on request).
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadShared("KA", false, FileRecordLock.WithLock, false, false, FileRetryKind.None, 0, out string a));
         Assert.Equal(recs[0], a);
@@ -615,9 +615,9 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.Register("DB", host, 5, false, false);
         CobolFile.OpenOutput("DA", host, assignDynamic: false, page: null);
         CobolFile.Write("DA", "HELLO", -1, page: null);
-        // §9.1.13.9 item 2 / §14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
-        // EVERY retry form exhausts to 62: §14.7.9.3's closing paragraph lands the conflict's own §9.1.13 status
-        // and §9.1.13.9 defines no deadlock value for a FILE SHARING conflict (kb/Work PB142).
+        // §2023:9.1.13.9 item 2 / §2023:14.9.10 GR15 — the physical file is open by ANOTHER connector → 62 (not deleted).
+        // EVERY retry form exhausts to 62: §2023:14.7.9.3's closing paragraph lands the conflict's own §2023:9.1.13 status
+        // and §2023:9.1.13.9 defines no deadlock value for a FILE SHARING conflict (kb/Work PB142).
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB"));
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Times, 2));
         Assert.Equal(FileStatusCode.DeleteFileSharing, CobolFile.DeleteFile("DB", FileRetryKind.Forever, 0));
@@ -628,14 +628,14 @@ public sealed class CobolFileLockTests : IDisposable
         Assert.Equal(FileStatusCode.OptionalFileNotFound, CobolFile.DeleteFile("DB"));   // GR14 — absent = successful '05'
     }
 
-    /// <summary>ISO §14.9.40.4 GR15 a) / §14.9.24.4 GR12 a) — SORT's and MERGE's implicit GIVING open is
+    /// <summary>ISO §2023:14.9.40.4 GR15 a) / §2023:14.9.24.4 GR12 a) — SORT's and MERGE's implicit GIVING open is
     /// <i>"as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed"</i>, and
-    /// §9.1.15 1) makes that mode <i>"exclusive access to a physical file"</i>. The exclusive half is not
+    /// §2023:9.1.15 1) makes that mode <i>"exclusive access to a physical file"</i>. The exclusive half is not
     /// observable from a single-threaded COBOL program — no statement of the program's runs between the implicit
     /// OPEN and the implicit CLOSE — so it is pinned HERE, on the very call
     /// <c>SortEmitter.EmitImplicitOpen</c> renders (kb/Work PB714).
     /// <para>The CONTROL arm is what the emitter used to render: a plain <c>OpenOutput</c>, which leaves the
-    /// connector's sharing mode at §9.1.15's undetermined implementor default, under which
+    /// connector's sharing mode at §2023:9.1.15's undetermined implementor default, under which
     /// <see cref="FileRegistry.Conflicts"/> finds a Table 19 <i>Normal open</i> candidate and lets the second
     /// connector in.</para></summary>
     [Fact]
@@ -670,12 +670,12 @@ public sealed class CobolFileLockTests : IDisposable
             FileRetryKind.None, 0, tape: OpenTapePhrase.None, host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("GA"));
         // Table 19's "sharing with no other / extend I-O input output" column is Unsuccessful open in EVERY row,
-        // so no second connector gets in, in any mode — §9.1.13.9 item 1 → '61'.
+        // so no second connector gets in, in any mode — §2023:9.1.13.9 item 1 → '61'.
         CobolFile.OpenInput("GB", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("GB"));
         CobolFile.OpenExtend("GB", host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("GB"));
-        // §9.1.15's lock "is removed by an explicit or implicit CLOSE statement executed for that file
+        // §2023:9.1.15's lock "is removed by an explicit or implicit CLOSE statement executed for that file
         // connector" — the implicit GR15 c) CLOSE ends the exclusivity, so the same open then succeeds.
         CobolFile.Close("GA");
         CobolFile.OpenInput("GB", host, assignDynamic: false, page: null);
@@ -683,7 +683,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.Close("GB");
     }
 
-    /// <summary>ISO §14.9.40.4 GR12 a) / §14.9.24.4 GR7 a) — the USING arm's override, at the same layer. The
+    /// <summary>ISO §2023:14.9.40.4 GR12 a) / §2023:14.9.24.4 GR7 a) — the USING arm's override, at the same layer. The
     /// conformance goldens drive this end to end; this pins the two renderings against each other so the
     /// CONTROL arm cannot quietly become the subject again (kb/Work PB714).</summary>
     [Fact]
@@ -699,7 +699,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.OpenOutput("UB", host, assignDynamic: false, page: null);
         CobolFile.Write("UB", "AAAAA", -1, page: null);
         CobolFile.Close("UB");
-        CobolFile.OpenExtend("UB", host, assignDynamic: false, page: null);   // "other than input" (§9.1.15 2)
+        CobolFile.OpenExtend("UB", host, assignDynamic: false, page: null);   // "other than input" (§2023:9.1.15 2)
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("UB"));
 
         // CONTROL — the pre-PB714 rendering: the file's OWN ALL OTHER clause governs, and Table 19's
@@ -709,7 +709,7 @@ public sealed class CobolFileLockTests : IDisposable
         CobolFile.Close("UA");
 
         // SUBJECT — GR12 a)'s override. Row "SHARING WITH READ ONLY / INPUT" × the same column is Unsuccessful
-        // open; §9.1.15 2) says it in words: read only "will be unsuccessful if the physical file is associated
+        // open; §2023:9.1.15 2) says it in words: read only "will be unsuccessful if the physical file is associated
         // with another file connector whose open mode is other than input".
         CobolFile.OpenShared("UA", FileOpenMode.Input, hasSharingOverride: true, FileSharing.ReadOnly,
             FileRetryKind.None, 0, tape: OpenTapePhrase.None, host, assignDynamic: false, page: null);
@@ -719,18 +719,18 @@ public sealed class CobolFileLockTests : IDisposable
 
     /// <summary>
     /// ⛔ THE CROSS-CONNECTOR MATRIX (kb/Work PB669): a locked record is inaccessible to a file connector
-    /// that declared NO SHARING clause and NO LOCK MODE clause, because ISO §9.1.16 states the rule over the
+    /// that declared NO SHARING clause and NO LOCK MODE clause, because ISO §2023:9.1.16 states the rule over the
     /// RECORD and the OTHER connector with no qualification on the reading connector at all — <i>"While locked
     /// by a given file connector, a record is not accessible to another file connector in the same or a
     /// different run unit, except by the execution of a READ statement with the IGNORING LOCK phrase."</i>
-    /// §12.4.5.9.4 GR1 a) and b) 1. restrict a clause-less connector only from SETTING locks, and GR1 b) 2.
+    /// §2023:12.4.5.9.4 GR1 a) and b) 1. restrict a clause-less connector only from SETTING locks, and GR1 b) 2.
     /// leaves its lock mode to the implementor, whose determination here is <c>FileLockMode.None</c>.
     /// <para>Every governed verb that states the record operation conflict is driven, because the defect was
-    /// ONE early return copied into each of them: §14.9.30.4 GR9 (both READ formats), §14.9.35.4 GR11
-    /// (REWRITE) and §14.9.10.4 GR6 (DELETE). The pre-fix answer was '00' for every one of them, and the
+    /// ONE early return copied into each of them: §2023:14.9.30.4 GR9 (both READ formats), §2023:14.9.35.4 GR11
+    /// (REWRITE) and §2023:14.9.10.4 GR6 (DELETE). The pre-fix answer was '00' for every one of them, and the
     /// DELETE actually REMOVED the locked record.</para>
     /// <para>THREE CONTROLS, so the assertions cannot pass for a runtime that simply refuses everything:
-    /// §14.9.30.4 GR12's IGNORING LOCK still reads the record; an UNLOCKED record of the SAME physical file is
+    /// §2023:14.9.30.4 GR12's IGNORING LOCK still reads the record; an UNLOCKED record of the SAME physical file is
     /// still available through the plain connector (GR9 names the record IDENTIFIED for access); and the
     /// REVERSE direction holds — the plain connector SETS no lock, so the MANUAL connector reads the record
     /// the plain one just read with no conflict, which is GR1 b) 2.'s determination being honoured rather than
@@ -760,23 +760,23 @@ public sealed class CobolFileLockTests : IDisposable
             FileRetryKind.None, 0, tape: OpenTapePhrase.None, host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("VB"));
 
-        // VA locks record 1 (§14.9.30.4 GR11 d) — manual locking, the LOCK phrase written).
+        // VA locks record 1 (§2023:14.9.30.4 GR11 d) — manual locking, the LOCK phrase written).
         CobolFile.SetRelativeKey("VA", 1);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("VA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));
 
         // SUBJECT — the three conflict rules, through the clause-less connector.
         CobolFile.SetRelativeKey("VB", 1);
-        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.30.4 GR9
+        Assert.Equal(FileStatusCode.RecordLocked,              // §2023:14.9.30.4 GR9
             CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
         CobolFile.SetRelativeKey("VB", 1);
-        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.35.4 GR11
+        Assert.Equal(FileStatusCode.RecordLocked,              // §2023:14.9.35.4 GR11
             CobolFile.RewriteShared("VB", "ZULU ", -1, FileRecordLock.None, FileRetryKind.None, 0));
         CobolFile.SetRelativeKey("VB", 1);
-        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.10.4 GR6
+        Assert.Equal(FileStatusCode.RecordLocked,              // §2023:14.9.10.4 GR6
             CobolFile.DeleteShared("VB", "", FileRetryKind.None, 0));
 
-        // CONTROL 1 — §14.9.30.4 GR12: IGNORING LOCK still makes the record available.
+        // CONTROL 1 — §2023:14.9.30.4 GR12: IGNORING LOCK still makes the record available.
         CobolFile.SetRelativeKey("VB", 1);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, true, FileRetryKind.None, 0, out string ign));
@@ -788,13 +788,13 @@ public sealed class CobolFileLockTests : IDisposable
             CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out string two));
         Assert.Equal("BRAVO", two);
 
-        // CONTROL 3 — the REVERSE direction: §12.4.5.9.4 GR1 b) 2.'s implementor default is NO record locking,
+        // CONTROL 3 — the REVERSE direction: §2023:12.4.5.9.4 GR1 b) 2.'s implementor default is NO record locking,
         // so VB's read of record 2 left no lock and VA reads it freely.
         CobolFile.SetRelativeKey("VA", 2);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.ReadKeyedShared("VA", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
 
-        // And the record VA holds is released by UNLOCK (§14.9.47 GR1), after which VB reads it.
+        // And the record VA holds is released by UNLOCK (§2023:14.9.47 GR1), after which VB reads it.
         CobolFile.Unlock("VA", false);
         CobolFile.SetRelativeKey("VB", 1);
         Assert.Equal(FileStatusCode.Success,

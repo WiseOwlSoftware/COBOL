@@ -4,18 +4,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR21 via SR20 (A.1 item 43) — equivalent
+      *> ISO §2023:12.3.7.3 SR21 via SR20 (A.1 item 43) — equivalent
       *>   non-COBOL symbols, two strings
       *>   cite.py --check 12.3.7.3 "No two CURRENCY SIGN clauses within
       *>     a single source
       *>   unit shall specify equivalent currency symbols unless they
       *>     specify identical
-      *>   currency strings"  -> OK  §12.3.7.3 21)  (Syntax rules)
+      *>   currency strings"  -> OK  §2023:12.3.7.3 21)  (Syntax rules)
       *>   cite.py --check 12.3.7.3 "any equivalence between that
       *>     character and any other
       *>   character in the computer's compile-time coded character set
       *>     is defined by the
-      *>   implementor"  -> OK  §12.3.7.3 20)  (Syntax rules)
+      *>   implementor"  -> OK  §2023:12.3.7.3 20)  (Syntax rules)
       *> Under the documented equivalence (docs/CONFORMANCE.md
       *>   DOC-A.1-43) 'é' ≡ 'É', so
       *> binding them to the different strings "EUR" and "USD" violates

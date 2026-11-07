@@ -5,12 +5,12 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>kb/Work PB234 residue 2 — ISO §14.9.5.4 GR4, RUN-verified rather than derivation-verified: "When a
+/// <summary>kb/Work PB234 residue 2 — ISO §2023:14.9.5.4 GR4, RUN-verified rather than derivation-verified: "When a
 /// CANCEL statement is executed, all programs contained within the program referenced by the CANCEL statement are
 /// also canceled. The result is the same as if an explicit CANCEL statement were executed for each contained
 /// program in the reverse order in which the programs appear in the outermost program."
 /// <para>The ORDER among sibling containees has no COBOL-observable witness a golden can print — GR9's implicit
-/// closes run without USE procedures, and the §14.6.2.3.2 resets are assignments — so the order is observed at
+/// closes run without USE procedures, and the §2023:14.6.2.3.2 resets are assignments — so the order is observed at
 /// the one runtime surface that performs it: <see cref="ProgramTable"/>'s cancel cascade, through each node's
 /// GR9 close hook and its static-reset hook, on a real run unit whose programs were really CALLed (GR7 makes a
 /// never-called program a no-op, so every node is activated first).</para></summary>
@@ -44,7 +44,7 @@ public sealed class CancelCascadeOrderTests
         table.CallProgram("OUTER", "", [], null);
         foreach (var n in new[] { "A", "B", "C" }) table.CallProgram(n, "OUTER", [], null);
         table.CallProgram("B1", "OUTER/B", [], null);
-        log.Clear();   // Register's §14.6.2.3.2 case-1 resets are not part of the cascade
+        log.Clear();   // Register's §2023:14.6.2.3.2 case-1 resets are not part of the cascade
 
         table.Cancel("OUTER", "");
 

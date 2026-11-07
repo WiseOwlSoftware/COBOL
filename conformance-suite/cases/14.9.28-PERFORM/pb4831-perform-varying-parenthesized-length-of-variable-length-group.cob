@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4831 - the parenthesized twin of pb4831_perform_varying_length_of_variable_length_group. ISO §14.9.28.2's FROM phrase
+      *> PB4831 - the parenthesized twin of pb4831_perform_varying_length_of_variable_length_group. ISO §2023:14.9.28.2's FROM phrase
       *> prints { identifier-3 | index-name-2 | literal-1 }; "(FUNCTION LENGTH (VG))" is "an arithmetic expression enclosed in
-      *> parentheses" (§8.8.1.1), no identifier, so it is refused although the bare function is admitted.
+      *> parentheses" (§2023:8.8.1.1), no identifier, so it is refused although the bare function is admitted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPVPARENVGLEN.
        DATA DIVISION.

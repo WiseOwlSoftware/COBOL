@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<c>CobolFloat.ToScaledUnchecked</c>) had always taken the receiver's mode at the receiver's scale, so ONE
 /// returned value landed TWO ways in ONE receiver — <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807 into
 /// <c>PIC 9V9(9)</c> and <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808 — and the ROUNDED phrase was a
-/// no-op on the whole §15.4.1 float family. ISO §15.4.1 forbids the split outright; §14.7.4.1 puts the
-/// truncation "relative to the size provided for the resultant identifier"; §14.7.4.3 rule 2 makes a no-phrase
+/// no-op on the whole §2023:15.4.1 float family. ISO §2023:15.4.1 forbids the split outright; §2023:14.7.4.1 puts the
+/// truncation "relative to the size provided for the resultant identifier"; §2023:14.7.4.3 rule 2 makes a no-phrase
 /// store ROUNDED MODE IS TRUNCATION.
 /// </para>
 /// <para>
@@ -29,8 +29,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class FloatLandingModeDriftTests
 {
-    /// <summary>Every (integer-digits, scale) pair a legal PICTURE can present (ISO §13.18.40.3 SR14 caps the
-    /// total digit positions at 31) crossed with every rounding mode §14.7.4.2's format admits.</summary>
+    /// <summary>Every (integer-digits, scale) pair a legal PICTURE can present (ISO §2023:13.18.40.3 SR14 caps the
+    /// total digit positions at 31) crossed with every rounding mode §2023:14.7.4.2's format admits.</summary>
     public static TheoryData<int, int, CobolRounding> LegalShapesAndModes()
     {
         var data = new TheoryData<int, int, CobolRounding>();
@@ -46,10 +46,10 @@ public sealed class FloatLandingModeDriftTests
 
     /// <summary>
     /// INVARIANT 1 — THE FINAL TRANSFER LANDS AT THE RESULTANT IDENTIFIER'S OWN SCALE, WITH ITS OWN MODE.
-    /// That is §14.7.4.1 ("truncation is relative to the size provided for the resultant identifier") plus
-    /// §14.7.4.3's per-mode rules, each of which names "the resultant identifier". It is also what makes the
+    /// That is §2023:14.7.4.1 ("truncation is relative to the size provided for the resultant identifier") plus
+    /// §2023:14.7.4.3's per-mode rules, each of which names "the resultant identifier". It is also what makes the
     /// arithmetic channel's landing IDENTICAL to the MOVE channel's, which lands at the receiver's scale with
-    /// the receiver's mode — the §15.4.1 identity the defect broke.
+    /// the receiver's mode — the §2023:15.4.1 identity the defect broke.
     /// </summary>
     [Theory]
     [MemberData(nameof(LegalShapesAndModes))]
@@ -75,11 +75,11 @@ public sealed class FloatLandingModeDriftTests
     /// <summary>
     /// INVARIANT 3 — A NESTED INTERMEDIATE IS NOT QUANTIZED AT ALL; IT KEEPS ITS BINARY64 (kb/Work PB653).
     /// It never inherits the receiver's MODE, because the ROUNDED phrase binds to the transfer into the resultant
-    /// identifier (§14.7.4.3 rules 3–10 each say "the resultant identifier") and the single receiver store
+    /// identifier (§2023:14.7.4.3 rules 3–10 each say "the resultant identifier") and the single receiver store
     /// performs it — but it must not inherit a receiver-derived SCALE either. A ≥9 working scale truncates the
     /// returned value one digit too early and every operation above it propagates the loss:
     /// <c>COMPUTE R = FUNCTION SQRT(3) * 2</c> into <c>PIC 9V9(9)</c> gave 3.464101614 where a <c>COMP-2</c> item
-    /// holding the IDENTICAL binary64 gave 3.464101615, which §15.4.1 forbids ("the returned value is the same
+    /// holding the IDENTICAL binary64 gave 3.464101615, which §2023:15.4.1 forbids ("the returned value is the same
     /// for all instances of a given function within a single execution of the runtime element so long as the
     /// value and order of the arguments, the collating sequence, and the locale are unchanged").
     /// <para>The alternative — guard digits, as <c>Divide</c>'s nested arm carries them — is what this
@@ -134,7 +134,7 @@ public sealed class FloatLandingModeDriftTests
     /// defect: the mode became a parameter, but a body that still writes <c>CobolRounding.Something</c> into the
     /// quantization silently overrides it, and no golden would say so — the value would simply be wrong in one
     /// channel again. The file names no mode constant at all: it used to name <see cref="CobolRounding.Prohibited"/>
-    /// to test for the §14.7.4.3 rule 7 raise, which the landing's own rounding decision now makes (kb/Work PB3990).
+    /// to test for the §2023:14.7.4.3 rule 7 raise, which the landing's own rounding decision now makes (kb/Work PB3990).
     /// </summary>
     [Fact]
     public void TheRuntimeQuantizer_HardCodesNoRoundingMode()
@@ -155,7 +155,7 @@ public sealed class FloatLandingModeDriftTests
     /// when PB647 added the nested case to <c>FloatLanding</c>, neither copy inherited it. A consumer that names
     /// those receiver flags again in its float-landing body has started a THIRD copy, and the next rule added to
     /// the decision will miss it exactly the same way. The flags are legitimate elsewhere in both files (argument
-    /// intake, NUMVAL-F's own §15.69.4 r2 determination), so the scan is anchored to the landing bodies.
+    /// intake, NUMVAL-F's own §2023:15.69.4 r2 determination), so the scan is anchored to the landing bodies.
     /// </summary>
     [Theory]
     [InlineData("IntrinsicRenderer.cs", "private NumX RenderFloatNative(")]

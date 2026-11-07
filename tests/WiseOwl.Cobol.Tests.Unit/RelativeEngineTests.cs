@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///   EVERY write of a WRITE, a REWRITE, a DELETE and a CLOSE. The bar: the next OPEN reads the file as the last COMPLETED
 ///   statement left it, never torn — the statement whose page 2 landed is in it, the one whose did not is not.</item>
 ///   <item>2.2.1.16, "Every statement REFUSED part-way": a host refusal at every write of each statement — the statement's
-///   '30' (§9.1.13.6 item 1), §9.1.13.1's permanent error replayed by the same connector, the CLOSE ending it
+///   '30' (§2023:9.1.13.6 item 1), §2023:9.1.13.1's permanent error replayed by the same connector, the CLOSE ending it
 ///   (DOC-A.1-105), the next OPEN reading the previous statement's file, and another run unit's next statement
 ///   succeeding.</item>
 ///   <item>2.2.1.17: two run units' statements in every sharing mode but NO OTHER (the coherence condition,
@@ -44,7 +44,7 @@ public sealed class RelativeEngineTests
         var all = new List<string>();
         string status;
         while ((status = FileHarness.ReadNext(reader, "R", out string image)) == "00") all.Add(image);
-        Assert.Equal("10", status);   // §14.9.30.4 GR24's at end, never '30': the file is not torn
+        Assert.Equal("10", status);   // §2023:14.9.30.4 GR24's at end, never '30': the file is not torn
         reader.Close("R");
         return all;
     }
@@ -170,8 +170,8 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>2.2.1.16's refused statements: a host refusal of write <c>i</c> of a changing statement answers THAT
-    /// statement '30' (§9.1.13.6 item 1: <i>"A permanent error exists and no further information is available"</i>), the same
-    /// connector's next statement replays it and touches nothing (§9.1.13.1: <i>"The permanent error condition remains in
+    /// statement '30' (§2023:9.1.13.6 item 1: <i>"A permanent error exists and no further information is available"</i>), the same
+    /// connector's next statement replays it and touches nothing (§2023:9.1.13.1: <i>"The permanent error condition remains in
     /// effect for all subsequent input-output operations on the file"</i>), its CLOSE ends it ('00', DOC-A.1-105), and the
     /// next OPEN reads the previous statement's file. Another run unit's next statement succeeds (2.2.1.17, "A's
     /// statement is refused mid-way").</summary>
@@ -249,12 +249,12 @@ public sealed class RelativeEngineTests
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("00", FileHarness.Read(b, "B", FileOrg.Relative, 3, out string image));
             Assert.Equal("0003CCCC", image);
-            Assert.Equal("22", FileHarness.Write(b, "B", FileOrg.Relative, 3, "XXXX"));      // §14.9.51.4 GR33 a): the record A wrote exists
+            Assert.Equal("22", FileHarness.Write(b, "B", FileOrg.Relative, 3, "XXXX"));      // §2023:14.9.51.4 GR33 a): the record A wrote exists
             Assert.Equal("00", FileHarness.Rewrite(b, "B", FileOrg.Relative, 3, "DDDD"));
             Assert.Equal("00", FileHarness.Delete(b, "B", FileOrg.Relative, 1));
             Assert.Equal("00", FileHarness.Read(a, "A", FileOrg.Relative, 3, out image)); // A's entry adopts B's page 2 after B's fence
             Assert.Equal("0003DDDD", image);
-            Assert.Equal("23", FileHarness.Read(a, "A", FileOrg.Relative, 1, out _));      // §9.1.13.5 3 a): B deleted it
+            Assert.Equal("23", FileHarness.Read(a, "A", FileOrg.Relative, 1, out _));      // §2023:9.1.13.5 3 a): B deleted it
             Assert.Equal("23", FileHarness.Delete(a, "A", FileOrg.Relative, 1));
             var c = new FileRegistry();                       // an INPUT OPEN beside two writers
             FileHarness.Register(c, "C", host, FileOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Sequential);
@@ -275,7 +275,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>⛔ THE REGRESSION FINDING R2-6 NAMED (2.2.1.7; 2.2.1.14): a <c>SHARING WITH READ ONLY</c> writer beside the
-    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§9.1.15 2): <i>"restricts concurrent access to a physical
+    /// <c>INPUT SHARING WITH ALL OTHER</c> reader Table 19 admits (§2023:9.1.15 2): <i>"restricts concurrent access to a physical
     /// file through file connectors other than this one, to input mode"</i>). The engine writes at every statement, so the
     /// writer runs under the store mutex (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and every READ NEXT of the
     /// reader, running concurrently on another thread, answers '00' or '10' — never '30', the half-written path. Counted,
@@ -306,7 +306,7 @@ public sealed class RelativeEngineTests
             int highest = 0;
             while (highest < 2 + Records)
             {
-                // The next record past the last one seen: none yet is the invalid key ('23', §14.9.41.4 GR9 c)), and the
+                // The next record past the last one seen: none yet is the invalid key ('23', §2023:14.9.41.4 GR9 c)), and the
                 // reader asks again — the writer is still releasing.
                 string started = reader.StartRelative("R", ">", highest);
                 Assert.True(started is "00" or "23", $"START answered '{started}' beside the READ ONLY writer");
@@ -327,7 +327,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>The PB3333 row of 2.2.1.12's tree cases: a READ NEXT that steps across leaves ANOTHER run unit's inserts split
-    /// between its reads selects, every time, §14.9.30.4 GR21 c)'s <i>"first existing record in the physical file whose
+    /// between its reads selects, every time, §2023:14.9.30.4 GR21 c)'s <i>"first existing record in the physical file whose
     /// relative key number is greater than the file position indicator"</i> — in the tree as it is NOW — so the reader sees
     /// every record, its own sequence and the other run unit's, in ascending order; at the edge, AT END ('10').</summary>
     [Fact]
@@ -358,7 +358,7 @@ public sealed class RelativeEngineTests
             }
             Assert.Equal("10", status);
             Assert.Equal(Enumerable.Range(1, 800), seen);
-            Assert.Equal("46", FileHarness.ReadNext(reader, "R", out _));   // §9.1.13.7 6 b): "The preceding READ statement ... was unsuccessful"
+            Assert.Equal("46", FileHarness.ReadNext(reader, "R", out _));   // §2023:9.1.13.7 6 b): "The preceding READ statement ... was unsuccessful"
             reader.Close("R");
             writer.Close("W");
         }
@@ -366,8 +366,8 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>A relative file round-trips through CLOSE and OPEN with gaps (a record in the billions is one leaf entry),
-    /// RECORD VARYING frames at their exact lengths (§13.18.43 GR13/GR15), an extent table (D-FRA (v), kb/Work PB1053), and
-    /// a CODE-SET (§13.18.13.4 GR6: the payload in the file's character set on the medium, the native one in the record
+    /// RECORD VARYING frames at their exact lengths (§2023:13.18.43 GR13/GR15), an extent table (D-FRA (v), kb/Work PB1053), and
+    /// a CODE-SET (§2023:13.18.13.4 GR6: the payload in the file's character set on the medium, the native one in the record
     /// area; the framing never converted, 2.2.1.5).</summary>
     [Fact]
     public void A_relative_store_round_trips_gaps_varying_frames_extent_tables_and_a_code_set()
@@ -404,7 +404,7 @@ public sealed class RelativeEngineTests
                 Assert.Equal(ext?.Lengths, r.CurrentRecordExtents?.Lengths);
             }
             r.SetPendingKey(5);
-            Assert.Equal("23", r.ReadRandom(out _));                // a gap: §9.1.13.5 3 a)
+            Assert.Equal("23", r.ReadRandom(out _));                // a gap: §2023:9.1.13.5 3 a)
             Assert.Equal("00", r.Close());
         }
         finally { FileHarness.TryDelete(host); }
@@ -413,7 +413,7 @@ public sealed class RelativeEngineTests
     private static bool Contains(byte[] haystack, byte[] needle) =>
         haystack.AsSpan().IndexOf(needle) >= 0;
 
-    /// <summary>⛔ ISO §13.18.43.4 GR2 — <i>"The size of records on physical storage media may be different due to control
+    /// <summary>⛔ ISO §2023:13.18.43.4 GR2 — <i>"The size of records on physical storage media may be different due to control
     /// information required by the operating environment"</i> — and the calculation docs/CONFORMANCE.md DOC-A.1-146 (d) states
     /// for it (Annex A.1 item 146, required + documented): a relative file is a whole number of 4,096-byte pages, and an
     /// 80-byte record is ONE leaf entry of 6 + 8 + (4 + 80) = 98 bytes, so a full leaf holds ⌊4,064 / 98⌋ = 41 of them and
@@ -450,7 +450,7 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>A file of the whole-store format (version 5, its magic at offset 0, kb/Work PB1099) is not a paged store:
-    /// the RELATIVE OPEN answers §14.9.27.4 GR10's '39' and leaves the file as it was (GR25), exactly as a format-3 file
+    /// the RELATIVE OPEN answers §2023:14.9.27.4 GR10's '39' and leaves the file as it was (GR25), exactly as a format-3 file
     /// does (2.2.1.3 decision 1: there is no reader of the whole-store format).</summary>
     [Fact]
     public void A_whole_store_file_is_a_fixed_attribute_conflict_39()
@@ -468,9 +468,9 @@ public sealed class RelativeEngineTests
     }
 
     /// <summary>The PB3333 rows of 2.2.1.12's tree cases through the connector: a WRITE of a present record number is
-    /// declined ('22', §14.9.51.4 GR33 a)) and an absent one released ('00'); a READ, REWRITE and DELETE of a key the tree
-    /// does not hold answer '23' (§9.1.13.5 3 a)); and a record statement whose tree read meets a TORN page answers '30'
-    /// (§9.1.13.6 item 1, 2.2.1.6 R3) with the file unchanged and §9.1.13.1's permanent error in effect until the CLOSE.</summary>
+    /// declined ('22', §2023:14.9.51.4 GR33 a)) and an absent one released ('00'); a READ, REWRITE and DELETE of a key the tree
+    /// does not hold answer '23' (§2023:9.1.13.5 3 a)); and a record statement whose tree read meets a TORN page answers '30'
+    /// (§2023:9.1.13.6 item 1, 2.2.1.6 R3) with the file unchanged and §2023:9.1.13.1's permanent error in effect until the CLOSE.</summary>
     [Fact]
     public void Present_and_absent_keys_and_a_torn_page_answer_the_general_rules_statuses()
     {
@@ -513,7 +513,7 @@ public sealed class RelativeEngineTests
     public static TheoryData<FileSharing> Sharings() => [FileSharing.AllOther, FileSharing.ReadOnly, FileSharing.NoOther];
 
     /// <summary>2.2.1.16's refused table, "A promotion (CLOSE ...)" before and after the slot write, through the connector:
-    /// a host refusal of EVERY write and sync of the CLOSE that follows a completed WRITE answers the CLOSE '30' (§9.1.13.6
+    /// a host refusal of EVERY write and sync of the CLOSE that follows a completed WRITE answers the CLOSE '30' (§2023:9.1.13.6
     /// item 1: <i>"A permanent error exists and no further information is available concerning the input-output
     /// operation"</i>) and leaves the connector closed — its next OPEN succeeds — and the WRITE's record is in the file,
     /// since page 2 already named it (2.2.1.6). Under ALL OTHER, another run unit open beside it runs its next statement
@@ -616,7 +616,7 @@ public sealed class RelativeEngineTests
             var a = new FileRegistry();
             try
             {
-                FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §2023:14.9.27.3 SR2 (kb/Work PB3479)
                 FileHarness.Open(a, "A", mode);
                 Assert.Equal("00", a.Status("A"));
             }
@@ -640,14 +640,14 @@ public sealed class RelativeEngineTests
     /// <summary>The records the next OPEN reads after an OPEN of the seeded file that a process death cut short: the fence
     /// of an <c>OPEN I-O</c> or <c>OPEN EXTEND</c> changes no record (2.2.1.16, "The fence"), so the seeded records; an
     /// <c>OPEN OUTPUT</c> whose creation's commit write — its FIRST write, the empty meta into the slot not holding the
-    /// previous committed meta (PagedFile.Create) — was handed over holds none (2.2.1.16's creation rows: §14.9.27.4
+    /// previous committed meta (PagedFile.Create) — was handed over holds none (2.2.1.16's creation rows: §2023:14.9.27.4
     /// GR18's file <i>"contains no records"</i>), and one that died before it left the seeded store.</summary>
     private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool committed) =>
         mode == FileOpenMode.Output && committed ? [] : Before;
 
     /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and the two <c>OPEN OUTPUT</c> rows (at any
     /// write or sync but the last sync; at its last sync), through the connector: a host refusal of EVERY write and sync
-    /// of the OPEN answers the OPEN '30' (§9.1.13.6
+    /// of the OPEN answers the OPEN '30' (§2023:9.1.13.6
     /// item 1) and leaves the connector closed (<see cref="FileConnector.AbandonOpen"/> detaches the store and gives the
     /// handle back), so the SAME connector's next OPEN succeeds and reads the file; another run unit's OPEN succeeds too.
     /// Neither reads a record the unfinished OPEN invented or misses one it could not have removed.</summary>
@@ -669,12 +669,12 @@ public sealed class RelativeEngineTests
                 PageMediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
-                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §2023:14.9.27.3 SR2 (kb/Work PB3479)
                     FileHarness.Open(a, "A", mode);
                     Assert.Equal("30", a.Status("A"));
                 }
                 finally { PageMediumObserver.Value = null; }
-                // The creation is §14.9.27.4 GR25's unsuccessful OPEN, "the file is not affected": a refusal at any of its
+                // The creation is §2023:14.9.27.4 GR25's unsuccessful OPEN, "the file is not affected": a refusal at any of its
                 // writes or syncs gives the file its previous bytes back (PagedFile.Create's undo), so the seeded records
                 // survive; only a refused FINAL sync, after the truncation, leaves the created empty store (2.2.1.16's
                 // refused OPEN OUTPUT rows). A fence changes no record either way.
@@ -726,7 +726,7 @@ public sealed class RelativeEngineTests
                 PageMediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try
                 {
-                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §2023:14.9.27.3 SR2 (kb/Work PB3479)
                     FileHarness.Open(a, "A", mode);   // what the dying run unit is told is not asked
                 }
                 finally { PageMediumObserver.Value = null; }

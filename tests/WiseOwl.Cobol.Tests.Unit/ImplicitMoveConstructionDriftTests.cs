@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>move.Emit(new BoundMove(from, [rl.Record]))</c> — downstream of every bind-time MOVE screen AND of the
 /// storage facts the emitter's own output consumes.
 ///
-/// <para><b>Measured cost, not a theory.</b> ISO §14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c>
+/// <para><b>Measured cost, not a theory.</b> ISO §2023:14.9.32.4 GR4 makes <c>RELEASE record-name-1 FROM x</c>
 /// exactly <c>MOVE x TO record-name-1</c> followed by the same RELEASE without FROM. It was not:
 /// <c>RELEASE SRT-REC FROM WS-NUM</c> (a PIC 9(3) sender into a PIC A(8) record) compiled clean where the
 /// identical explicit MOVE drew COBOL0819; and <c>RELEASE SRT-NUM FROM QUOTE</c> ABORTED THE RUN with an
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// emitter-built move never passed through it. Same source, same SD, opposite result.</para>
 ///
 /// <para><b>The invariant.</b> Every <c>BoundMove</c> the I-O and sort emitters render was built by
-/// <c>MoveBinder</c>, so it carries the §14.9.25.3 syntax rules and the collected storage facts. Adding an I-O
+/// <c>MoveBinder</c>, so it carries the §2023:14.9.25.3 syntax rules and the collected storage facts. Adding an I-O
 /// verb with a FROM or INTO phrase and synthesizing its move at emission fails HERE, at the shape, rather than
 /// silently in a program nobody has written yet.</para>
 ///
@@ -35,7 +35,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// cannot see a bound node built by a helper the emitter calls in another assembly.</para>
 ///
 /// <para><b>And the non-phrase implicit moves (kb/Work PB880).</b> Three more were emitter-built after PB348 —
-/// MOVE CORRESPONDING's per-pair moves, INITIALIZE's §14.9.20.4 GR4 stores and GOBACK RETURNING's move — and this
+/// MOVE CORRESPONDING's per-pair moves, INITIALIZE's §2023:14.9.20.4 GR4 stores and GOBACK RETURNING's move — and this
 /// class used to NAME them in a dictionary so their count could only go down. A green test that enumerates known
 /// holes is a decision, not a gate: <c>INITIALIZE G REPLACING NUMERIC DATA BY SPACE</c> aborted the run unit
 /// behind it. All three are bound now, and the gate below says the number is ZERO.</para>
@@ -62,13 +62,13 @@ public sealed class ImplicitMoveConstructionDriftTests
             TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", emitterFile)));
         Assert.False(Regex.IsMatch(src, $@"\bnew\s+{Node}\s*\("),
             $"{emitterFile} constructs a {Node}. The implicit MOVE of a FROM / INTO phrase is BOUND — "
-            + "MoveBinder.BindFromPhrase / BindIntoPhrase — so that the §14.9.25.3 syntax rules and the "
+            + "MoveBinder.BindFromPhrase / BindIntoPhrase — so that the §2023:14.9.25.3 syntax rules and the "
             + "ImageForcedItems / MarkRefModStoreImage storage facts apply to it. A move built here escapes both, "
             + "which is how RELEASE … FROM QUOTE came to abort the run unit (kb/Work PB348).");
     }
 
     /// <summary>⛔ NO BoundMove IS CONSTRUCTED ANYWHERE IN CodeGen (kb/Work PB880). Every implicit move — each
-    /// FROM / INTO phrase (PB348), INITIALIZE's §14.9.20.4 GR4 stores, MOVE CORRESPONDING's §14.9.25.4 GR11
+    /// FROM / INTO phrase (PB348), INITIALIZE's §2023:14.9.20.4 GR4 stores, MOVE CORRESPONDING's §2023:14.9.25.4 GR11
     /// per-pair moves and GOBACK RETURNING's move — is built by <c>MoveBinder.BindMoveOf</c> and carried on the
     /// bound node the emitter walks. A move built after binding is checked by no bind pass and carries none of the
     /// storage facts codegen consumes; the three this test used to enumerate as "known" each aborted the run unit
@@ -97,7 +97,7 @@ public sealed class ImplicitMoveConstructionDriftTests
 
     /// <summary>
     /// ⛔ THE <c>… INTO</c> RECEIVER SCREEN EXISTS IN EXACTLY ONE PLACE, AND IT IS THE PLACE EVERY INTO ARM MUST
-    /// GO THROUGH. ISO §14.9.30.3 SR1/SR2 (READ) and §14.9.34.3 SR2/SR3 (RETURN) had NO implementation at all
+    /// GO THROUGH. ISO §2023:14.9.30.3 SR1/SR2 (READ) and §2023:14.9.34.3 SR2/SR3 (RETURN) had NO implementation at all
     /// before PB337 — both READ binders and <c>SortBinder.BindReturn</c> resolved identifier-1 and inspected
     /// nothing — and the reason all four rules could go missing together is that each verb was expected to check
     /// for itself. They are checked in <c>MoveBinder.BindIntoPhrase</c> instead, which every INTO arm already
@@ -121,7 +121,7 @@ public sealed class ImplicitMoveConstructionDriftTests
         Assert.True(callers.Count == 1 && callers.TryGetValue("MoveBinder.cs", out int calls) && calls == 1,
             "StatementValidation.CheckIntoReceiver must be called exactly once, from MoveBinder.BindIntoPhrase "
             + $"— found [{string.Join(", ", callers.Select(kv => $"{kv.Key}×{kv.Value}"))}]. The INTO phrase's "
-            + "admissibility rules (ISO §14.9.30.3 SR1/SR2, §14.9.34.3 SR2/SR3) are checked at the ONE place "
+            + "admissibility rules (ISO §2023:14.9.30.3 SR1/SR2, §2023:14.9.34.3 SR2/SR3) are checked at the ONE place "
             + "the sequential READ, the keyed READ and the sort RETURN all funnel through, so the next "
             + "INTO-bearing verb cannot forget them (kb/Work PB337).");
     }
@@ -147,7 +147,7 @@ public sealed class ImplicitMoveConstructionDriftTests
         Assert.True(offenders.Count == 0,
             "An IntoPhraseRules row is referenced away from a BindIntoPhrase call:\n  "
             + string.Join("\n  ", offenders)
-            + "\nThe row carries the verb's §14.9.30.3 / §14.9.34.3 syntax rules, and BindIntoPhrase is what "
+            + "\nThe row carries the verb's §2023:14.9.30.3 / §2023:14.9.34.3 syntax rules, and BindIntoPhrase is what "
             + "applies them. Routing the phrase to BindMoveOf directly binds the move without its own verb's "
             + "rules (kb/Work PB337).");
     }

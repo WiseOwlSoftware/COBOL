@@ -10,10 +10,10 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1066 — ISO §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
+/// kb/Work PB1066 — ISO §2023:14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
 /// imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL" — reaching
 /// the state the CONDITIONAL-COMPILATION driver holds, which runs before any parse: the compilation-variable table
-/// (§7.3.22.4 GR3: "all instances of that directive" are pushed) and the frontend-inline FLAG options. A
+/// (§2023:7.3.22.4 GR3: "all instances of that directive" are pushed) and the frontend-inline FLAG options. A
 /// <c>&gt;&gt;DEFINE</c> written in a WHEN or FINALLY phrase is undone at END-PERFORM, one written in
 /// imperative-statement-1 (before the PUSH) survives, and the driver places a directive met inside a copybook or
 /// after a REPLACE statement in the same resultant frame the parser's tokens use.

@@ -4,12 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.4.3 SR1 — the FACTORY paragraph's IMPLEMENTS names an
+      *> ISO §2023:11.4.3 SR1 — the FACTORY paragraph's IMPLEMENTS names an
       *> interface that is not in the class definition's REPOSITORY.
       *> Rule: "Interface-name-1 shall be the name of an interface
       *> specified in the REPOSITORY paragraph of the containing class
       *> definition."
-      *> cite.py: OK  §11.4.3 1)  (Syntax rules)
+      *> cite.py: OK  §2023:11.4.3 1)  (Syntax rules)
       *> L1C09I is a real interface of the compilation group and is
       *> declared in the PROGRAM's REPOSITORY, and the factory defines
       *> a conforming SPEAK, so the only defect is that the class

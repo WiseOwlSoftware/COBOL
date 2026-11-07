@@ -450,7 +450,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | 46 | M/S | `Binding/EditionContext.cs` | `WiseOwl.Cobol.Editions/EditionInfo.cs` (immutable) + `DiagnosticSink.cs` | Split "edition" from "diagnostic sink" |
 | 47 | M | `Validation/{ReservedWords,ReservedWords.Table,EditionCodes}.cs`, `Validation/ConstructDialectStatus.cs` | `WiseOwl.Cobol.Editions/` | ONE catalogue home |
 | 48 | C | (163 bare code literals) | `WiseOwl.Cobol.Editions/DiagnosticDescriptors.cs` (+ `docs/DIAGNOSTICS.md` generated) | Central registry; matrix/--suppress targets |
-| 49 | S/X | `Validation/EditionValidator.cs` | absorbed by `Pipeline/VersionConformancePass.cs` (its §8.9 reserved-word funnel moves into the pass) | ONE edition-gating funnel over the bound tree |
+| 49 | S/X | `Validation/EditionValidator.cs` | absorbed by `Pipeline/VersionConformancePass.cs` (its §2023:8.9 reserved-word funnel moves into the pass) | ONE edition-gating funnel over the bound tree |
 
 ### CompilerDriver / Cli
 | # | Action | From | To | Why |

@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>
-/// ⛔ <b>THE ONE LEFT-TO-RIGHT ARGUMENT ORDER</b> — ISO §8.4.3.2.4 GR2 (kb/Work PB1423): "At the time reference is
+/// ⛔ <b>THE ONE LEFT-TO-RIGHT ARGUMENT ORDER</b> — ISO §2023:8.4.3.2.4 GR2 (kb/Work PB1423): "At the time reference is
 /// made to a function, its arguments are evaluated individually in the order specified in the list of arguments,
 /// from left to right. An argument being evaluated may itself be a function-identifier or may be an expression
 /// containing function-identifiers." It governs every function-identifier — GR1's three name forms are all
@@ -23,18 +23,18 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// operand bound inside it is recorded with the pending pre-op range it registered. When a LATER argument
 /// registered pre-ops (an activation, an inline invocation, a function-bearing subscript store) every earlier
 /// argument whose value can still change is MATERIALIZED into its own intermediate result item by the ONE
-/// materializer (<see cref="SendingValueTemp.Materialize"/> — the same §14.9.25.4 GR1 temp a MOVE sender gets),
+/// materializer (<see cref="SendingValueTemp.Materialize"/> — the same §2023:14.9.25.4 GR1 temp a MOVE sender gets),
 /// and the store is placed on the pending list at the position its argument finished binding — i.e. before the
 /// later argument's pre-ops. The list order IS the evaluation order, so no argument can observe a later one.</para>
 ///
 /// <para><b>A held argument keeps its DESCRIPTION (kb/Work PB4124).</b> An intrinsic function reads an argument's description as
-/// well as its value (ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item, §15.59.4, §15.63.4, §15.61.4; DISPLAY
+/// well as its value (ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item, §2023:15.59.4, §2023:15.63.4, §2023:15.61.4; DISPLAY
 /// and <c>FUNCTION LENGTH</c> measure it), and the intermediate result item an argument is held in has its own digits. A held
 /// argument that is a function whose result copies an argument's item (<see cref="NeedsItsArguments"/>) is therefore not held as
 /// a value: <see cref="Hold"/> holds ITS arguments and the call is read over them, a pure selection reading what it read at its
 /// place. Any other held argument is described by its value (<c>FunctionDeviceText.Field</c>).</para>
 ///
-/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §15.3 14): "When ALL is
+/// <para><b>A table(ALL) argument is a sequence of arguments, and is held as a table (kb/Work PB4162).</b> §2023:15.3 14): "When ALL is
 /// specified as a subscript, the effect is as if each table element associated with that subscript position were specified", each
 /// evaluated where it stands in the list. <c>IntrinsicBinder.TryBindAllArgument</c> records the operand it builds like any other, and
 /// <see cref="StoreAt"/> holds it with <see cref="SendingValueTemp.MaterializeTableAll"/>: a compiler-temporary TABLE of the element's
@@ -42,9 +42,9 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// naming an ALL is held by holding its arguments (<see cref="Hold"/>) like every other selecting call.</para>
 ///
 /// <para><b>An object property is an argument evaluated IN ITS PLACE (kb/Work PB1932).</b> Its value is temp-1,
-/// "determined as though the associated get property method were invoked" (§8.4.3.9.4 GR1), so the GET IS the
+/// "determined as though the associated get property method were invoked" (§2023:8.4.3.9.4 GR1), so the GET IS the
 /// argument's evaluation. Every property reference in a function argument is SENDING — an intrinsic argument always
-/// is, and a user function's identifier argument is BY REFERENCE "other than an object property" (§8.4.3.2.4 GR5 a))
+/// is, and a user function's identifier argument is BY REFERENCE "other than an object property" (§2023:8.4.3.2.4 GR5 a))
 /// — so <see cref="Record"/> moves the GETs the argument registered from the statement-level property list (whose
 /// wrap runs them ahead of EVERY pre-op of the statement) onto the pending pre-op list at the argument's position.
 /// The argument then counts as one that registered pre-ops, an earlier argument it could change is frozen before it,
@@ -54,9 +54,9 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// (<see cref="SendingValueTemp.Materialize"/> answers null). A compiler temporary — a user function's result, an
 /// earlier snapshot, an object-property or inline-invocation value — is written once, at its own position in the
 /// list, and no later argument writes it. A BY REFERENCE identifier argument of a user function designates its
-/// storage, and §8.4.3.2.4 GR6a says "the values of argument-1 are made available to the activated function at
+/// storage, and §2023:8.4.3.2.4 GR6a says "the values of argument-1 are made available to the activated function at
 /// the time control is transferred" — the caller of <see cref="Window.Freeze"/> never offers it. A BOOLEAN-EXPRESSION
-/// argument is stored by COMPUTE Format 2's own store into a boolean item of §8.8.2 rule 10's length
+/// argument is stored by COMPUTE Format 2's own store into a boolean item of §2023:8.8.2 rule 10's length
 /// (<see cref="SendingValueTemp.MaterializeBoolean"/>); the one shape left alone is a boolean expression whose
 /// length is a run-time value, which no intermediate item can describe.</para>
 /// </summary>
@@ -82,7 +82,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
 
     /// <summary>Record an argument operand just bound in the innermost open window, with the pending counts from
     /// before it bound (<paramref name="before"/>) to now. The GETs of the object properties the argument named move
-    /// onto the pending list here, at the argument's position (§8.4.3.9.4 GR1 with §8.4.3.2.4 GR2 — see the class
+    /// onto the pending list here, at the argument's position (§2023:8.4.3.9.4 GR1 with §2023:8.4.3.2.4 GR2 — see the class
     /// summary). Outside any window — nothing evaluates arguments — it is ignored.</summary>
     internal void Record(BoundOperand operand, (int PreOps, int Properties) before)
     {
@@ -95,7 +95,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     /// every entry by REFERENCE to the operand as bound, and <see cref="Window.Settle"/> / <see cref="Window.Freeze"/> match the call's
     /// arguments against those keys, so an operand swapped for an equal-valued one (the scale-0 form of an Integer-row argument,
     /// <c>IntrinsicResultType.IntegerRowArguments</c>) must say so here, or it is never frozen and is read after a later argument's
-    /// activation, which loses §8.4.3.2.4 GR2's left-to-right order. The pending counts of the entry stay: the replacement registers
+    /// activation, which loses §2023:8.4.3.2.4 GR2's left-to-right order. The pending counts of the entry stay: the replacement registers
     /// no pre-op of its own. Ignored outside any window, as <see cref="Record"/> is.</summary>
     internal void Rebind(BoundOperand recorded, BoundOperand replacement)
     {
@@ -156,7 +156,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
 
         /// <summary>The intrinsic form: every argument of the bound call settles, and the call is returned with the
         /// frozen operands swapped in (the argument-class screens already ran on the operands as written). ⛔ THE SWAP
-        /// CHANGES NO TYPE: the call's §15.2 type (<see cref="BoundIntrinsicCall.ResultType"/>) was decided from the
+        /// CHANGES NO TYPE: the call's §2023:15.2 type (<see cref="BoundIntrinsicCall.ResultType"/>) was decided from the
         /// arguments as written when the call was built, and the <c>with</c> keeps it — a frozen arithmetic expression is
         /// a scale-0 temporary (an integer data item) where the expression it replaced was not one, so a type re-read from
         /// the swapped arguments would depend on whether a LATER argument activated a user-defined function (kb/Work
@@ -245,14 +245,14 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     {
         int start = Pending.Mark();
         added = 0;
-        // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§8.8.2 rule 10); a
+        // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§2023:8.8.2 rule 10); a
         // run-time length is the one shape no intermediate item can describe, and stays where it was.
         var held = operand switch
         {
             BoundBoolOperand { Expr: var boolean } => ConditionBinder.BoolResultLength(boolean) is int positions and > 0
                 ? temps.MaterializeBoolean(boolean, positions, "fnarg", index)
                 : null,
-            // A table(ALL) argument is a SEQUENCE of arguments (§15.3), held as a table of its elements (kb/Work PB4162).
+            // A table(ALL) argument is a SEQUENCE of arguments (§2023:15.3), held as a table of its elements (kb/Work PB4162).
             BoundFieldOperand { Place: TableAllPlace all } => temps.MaterializeTableAll(all, "fnarg", index),
             _ => temps.Materialize(operand, "fnarg", index),
         };

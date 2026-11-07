@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4507 review R1-1 - ISO §15.37.3 r3: argument-3 "shall be an integer data item or integer literal". A function-identifier
-      *> is a data item (§8.4.3.2.4 r1), but a PARENTHESIZED function-identifier is an arithmetic expression (§8.8.1.1: "an
+      *> PB4507 review R1-1 - ISO §2023:15.37.3 r3: argument-3 "shall be an integer data item or integer literal". A function-identifier
+      *> is a data item (§2023:8.4.3.2.4 r1), but a PARENTHESIZED function-identifier is an arithmetic expression (§2023:8.8.1.1: "an
       *> arithmetic expression enclosed in parentheses"), and an arithmetic expression is neither. The expression binder drops
       *> the grouping parentheses and binds (FUNCTION ABS(I2)) to the very tree FUNCTION ABS(I2) binds to, so the screen must
       *> take the WRITTEN shape from the binder's statement and not from the tree (PB3678's doctrine).

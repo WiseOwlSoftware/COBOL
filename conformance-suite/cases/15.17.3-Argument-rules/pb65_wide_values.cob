@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.45.4, §15.17.3, §15.79.4 — the wide-value members (fix-queue PB65).
+      *> ISO §2023:15.45.4, §2023:15.17.3, §2023:15.79.4 — the wide-value members (fix-queue PB65).
       *> INTEGER-OF-BOOLEAN r1b is "the unsigned binary value" of the bit configuration — a 64-one-bit
       *> item is 2^64−1 = 18446744073709551615 (the old signed-long accumulator returned the EC default
       *> 0 at its inherited 63-bit cap). COMBINED-DATETIME's fold now carries the same guard prologue
-      *> as FORMATTED-DATETIME: argument-1 = 0 violates §15.17.3 r1 (§15.5.2 integer-date range) and
+      *> as FORMATTED-DATETIME: argument-1 = 0 violates §2023:15.17.3 r1 (§2023:15.5.2 integer-date range) and
       *> argument-2 = 86400 violates r2 (standard numeric time form, LEAP-SECOND OFF) — EC default 0;
       *> the legal control is 143951 + 45296.3/100000. And SECONDS-FROM-FORMATTED-TIME at TEN
-      *> fractional digits is exact (§15.79.4 r1) — the 32-bit subfield accumulator wrapped modulo
+      *> fractional digits is exact (§2023:15.79.4 r1) — the 32-bit subfield accumulator wrapped modulo
       *> 2^32 at the first width past nine.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65WIDE.

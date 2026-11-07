@@ -14,9 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// docs/rearchitecture; kb/Work PB3335). Within a run unit every connector over a physical file attaches to ONE store
 /// (<see cref="StoreTable"/>), so a sibling's change is visible at once; across run units the FILE is the truth, and a
 /// coherent statement learns of another run unit's change by reading ONE page — page 2, the work meta — and, when its
-/// generation moved, adopts page 2 and DROPS the page cache instead of reloading anything. ISO §9.1.15 3), <i>"The sharing
+/// generation moved, adopts page 2 and DROPS the page cache instead of reloading anything. ISO §2023:9.1.15 3), <i>"The sharing
 /// with all other mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or
-/// extend mode"</i>; §9.1.15 2), <i>"restricts concurrent access to a physical file through file connectors other than this
+/// extend mode"</i>; §2023:9.1.15 2), <i>"restricts concurrent access to a physical file through file connectors other than this
 /// one, to input mode"</i>. Every case runs both organizations, and every expected value is the design text's or a general
 /// rule's, never what the engine happens to do:
 /// <list type="bullet">
@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 ///   meeting the other's change, write a bounded page count per statement however large the file grows.</item>
 ///   <item>The predicate each engine asks follows the engine (2.2.1.13, finding R2-7): the keyed store asks
 ///   <see cref="FileLockPosture.AdmitsAnotherRunUnit"/>; so does the sequential release's flush (kb/Work PB1587,
-///   §14.9.51.4 GR12), so a <c>SHARING WITH READ ONLY</c> sequential writer hands each record over at its WRITE, and only
+///   §2023:14.9.51.4 GR12), so a <c>SHARING WITH READ ONLY</c> sequential writer hands each record over at its WRITE, and only
 ///   <c>SHARING WITH NO OTHER</c> buffers to the CLOSE; the sequential organization asks
 ///   <see cref="FileLockPosture.AdmitsAnotherWriter"/> only for what another WRITER may do (its append stream, its
 ///   ordinal, its reader's re-anchoring).</item>
@@ -221,7 +221,7 @@ public sealed class StoreCoherenceTests
     }
 
     /// <summary>A reader's entry writes nothing. B's CLOSE is refused at its committed-slot write, so its promotion answers
-    /// '30' (§9.1.13.6 1), <i>"A permanent error exists and no further information is available concerning the
+    /// '30' (§2023:9.1.13.6 1), <i>"A permanent error exists and no further information is available concerning the
     /// input-output operation"</i>) and leaves PROMOTING set on page 2 (2.2.1.6 R5). In run unit A, whose store is writable
     /// because its I-O connector A1 is open, the INPUT connector A2 READs: it holds the mutex shared, so it adopts B's
     /// record but writes NOTHING and leaves the flag set. A1's next READ holds the mutex exclusively and resolves it (R5's
@@ -420,9 +420,9 @@ public sealed class StoreCoherenceTests
     /// dies, and page 2 is torn. A2's READ holds the mutex SHARED and writes nothing: a page 2 that does not validate
     /// under a live store leaves a reader on the tree it holds, since nothing it can follow moved, so it answers '00' from
     /// records 1 and 2, as another run unit's reader would, statement after statement. A1's next statement is an
-    /// EXCLUSIVE entry of a writable store, which cannot know what another run unit completed: '30' (§9.1.13.6 item 1,
+    /// EXCLUSIVE entry of a writable store, which cannot know what another run unit completed: '30' (§2023:9.1.13.6 item 1,
     /// <i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
-    /// which remains in effect for A1's later statements (§9.1.13.1, <i>"The permanent error condition remains in effect
+    /// which remains in effect for A1's later statements (§2023:9.1.13.1, <i>"The permanent error condition remains in effect
     /// for all subsequent input-output operations on the file"</i>) and not for A2, whose file connector met none.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -451,7 +451,7 @@ public sealed class StoreCoherenceTests
             Assert.Equal(before, aMedium.Writes);                     // a reader's entry writes nothing
 
             Assert.Equal("30", Read(a, "A1", org, 1, out _));
-            Assert.Equal("30", Read(a, "A1", org, 2, out _));        // §9.1.13.1: in effect for A1's later statements
+            Assert.Equal("30", Read(a, "A1", org, 2, out _));        // §2023:9.1.13.1: in effect for A1's later statements
             Assert.Equal("00", Read(a, "A2", org, 2, out string two));
             Assert.Equal(Rec(2, "AAAA"), two);
 
@@ -463,10 +463,10 @@ public sealed class StoreCoherenceTests
     }
 
     /// <summary>A page 2 the medium REFUSES to read is '30' to a reader's entry too (2.2.1.16's refused READ row: <i>"a
-    /// refused read is no verdict on the page"</i>; §9.1.13.6 item 1; PB3335 review lead R1-L1), through the
+    /// refused read is no verdict on the page"</i>; §2023:9.1.13.6 item 1; PB3335 review lead R1-L1), through the
     /// fault-injecting medium of 2.2.1.12. A2, the INPUT connector beside the writable sibling A1, READs while the host
     /// refuses page 2: '30', and the permanent error remains in effect for A2's next READ after the medium recovers
-    /// (§9.1.13.1). A1's file connector met none: its READ and WRITE answer '00', and the next run unit reads the
+    /// (§2023:9.1.13.1). A1's file connector met none: its READ and WRITE answer '00', and the next run unit reads the
     /// record A1 wrote.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
@@ -494,7 +494,7 @@ public sealed class StoreCoherenceTests
             Assert.Equal("30", Read(a, "A2", org, 1, out _));
             refusing = false;
             Assert.True(refused > 0, "the reader's entry read page 2, and the host refused it");
-            Assert.Equal("30", Read(a, "A2", org, 2, out _));        // §9.1.13.1: in effect, nothing touched
+            Assert.Equal("30", Read(a, "A2", org, 2, out _));        // §2023:9.1.13.1: in effect, nothing touched
 
             Assert.Equal("00", Read(a, "A1", org, 1, out string one));
             Assert.Equal(Rec(1, "AAAA"), one);
@@ -515,7 +515,7 @@ public sealed class StoreCoherenceTests
 
     /// <summary>The reader's re-adoption at the writer's CLOSE, REFUSED (PB3335 review lead R1-L2; 2.2.1.16's re-adoption
     /// row). A1 (I-O) closes while its INPUT sibling A2 stays, and the host refuses the reads of the re-adoption (2.2.1.7:
-    /// pages 0 to 2): the CLOSE answers '30' (§9.1.13.6 item 1) and A1 is closed; A2 keeps reading the trees the store
+    /// pages 0 to 2): the CLOSE answers '30' (§2023:9.1.13.6 item 1) and A1 is closed; A2 keeps reading the trees the store
     /// holds. The store's writable state no longer has a fence behind it: D then dies over the file and tears page 2,
     /// and A3's <c>OPEN I-O</c> in the same run unit must FENCE (2.2.1.6 R6: the torn page 2 is FOREIGN, the committed
     /// meta C is adopted) rather than take the store as a live writable one: its WRITE answers '00', D's uncommitted
@@ -579,8 +579,8 @@ public sealed class StoreCoherenceTests
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and asks nothing else. The sequential organization asks two
     /// questions: its release (<c>SequentialConnector.ReleaseRecord</c>'s flush) asks about ANY other connector, a reader
     /// as well as a writer, through the ONE read <c>FileConnector.OtherConnectorsMayShare</c> (kb/Work PB670 review R1-1, which
-    /// adds to the mode's answer the COBOL-85 rule that only an open sibling is owed; kb/Work PB1587: §14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
-    /// and §9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
+    /// adds to the mode's answer the COBOL-85 rule that only an open sibling is owed; kb/Work PB1587: §2023:14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
+    /// and §2023:9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
     /// position), its ordinal count (the release's and the <c>OPEN EXTEND</c>'s) and its reader's re-anchoring ask only
     /// about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
     /// Behaviourally: a <c>SHARING WITH NO OTHER</c> sequential writer keeps its record in its input-output area until the

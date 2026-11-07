@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR15: "If identifier-5 or its corresponding formal parameter is specified with the BY
+      *> ISO §2023:14.9.23.3 SR15: "If identifier-5 or its corresponding formal parameter is specified with the BY
       *> VALUE phrase, identifier-5 shall be of class message-tag, numeric, object or pointer." Through the
       *> predefined NULL no method, and so no formal parameter, exists, but the rule reads the operand alone:
       *> BY VALUE X (class alphanumeric) is refused through NULL exactly as through a typed receiver.

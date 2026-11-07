@@ -5,23 +5,23 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 - ISO §15.37.3 r3: "argument-3 shall be an integer data item or integer literal." (cite.py --check 15.37.3
-      *> OK), and §15.12.3 r1 for BASECONVERT's bases. A BARE data item or literal is admitted at those positions; the
+      *> PB4635 - ISO §2023:15.37.3 r3: "argument-3 shall be an integer data item or integer literal." (cite.py --check 15.37.3
+      *> OK), and §2023:15.12.3 r1 for BASECONVERT's bases. A BARE data item or literal is admitted at those positions; the
       *> same item or literal written in grouping parentheses is "an arithmetic expression enclosed in parentheses"
-      *> (§8.8.1.1; §8.8.1.2 r1: the parenthesized result "is treated" as one operand), which is neither, and is refused
+      *> (§2023:8.8.1.1; §2023:8.8.1.2 r1: the parenthesized result "is treated" as one operand), which is neither, and is refused
       *> (negative/pb4635-findstr-parenthesized-item, pb4635-baseconvert-parenthesized-literal). In a position that takes
-      *> a NUMERIC argument (§15.3, §8.4.3.2.3 r8: an argument may be "an arithmetic expression") the parentheses change
+      *> a NUMERIC argument (§2023:15.3, §2023:8.4.3.2.3 r8: an argument may be "an arithmetic expression") the parentheses change
       *> nothing, so the parenthesized forms below still compile and evaluate.
       *>
-      *> EXPECTED VALUES. FIND-STRING (§15.37.4 r2: argument-3 "represents the number of matches to ignore"): "ABC" occurs
+      *> EXPECTED VALUES. FIND-STRING (§2023:15.37.4 r2: argument-3 "represents the number of matches to ignore"): "ABC" occurs
       *> in "ABCABCABC" at 1, 4 and 7, so ignoring I2 = 2 matches (bare item, then bare literal) returns 7. ABS((I2)) = 2,
       *> MOD((7) (I2)) = 7 mod 2 = 1, MAX((I2) (TE(1))) with I2 = 2 and TE(1) = 2 is 2, so the sum is 5. The bare BASECONVERT
       *> of "1A" from base 16 to base 10 is 26 (0x1A).
       *>
-      *> THE FUNCTION TYPE SURVIVES THE PARENTHESES (review R1-2). §15.7.1: an Integer argument gives an Integer ABS, and
-      *> §15.3 item 6 admits "an arithmetic expression that will always result in an integer value", which (I2) over an
+      *> THE FUNCTION TYPE SURVIVES THE PARENTHESES (review R1-2). §2023:15.7.1: an Integer argument gives an Integer ABS, and
+      *> §2023:15.3 item 6 admits "an arithmetic expression that will always result in an integer value", which (I2) over an
       *> integer item is. So ABS((I2)) is an integer function: FACTORIAL's argument is an integer position that
-      *> §8.4.3.2.3 SR11 bars a numeric function from, and FACTORIAL(2) = 2 (0002 in T); and the count of PERFORM ... TIMES
+      *> §2023:8.4.3.2.3 SR11 bars a numeric function from, and FACTORIAL(2) = 2 (0002 in T); and the count of PERFORM ... TIMES
       *> is MAX((I2) 1) = 2, so CNT reaches 2.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4635PARENNUM.

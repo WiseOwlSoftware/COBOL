@@ -10,27 +10,27 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.4 "The sorted table elements of the table referenced by data-name-2 are placed in
-      *>     the table referenced by data-name-2." -> OK §14.9.40.4 24)
+      *>     the table referenced by data-name-2." -> OK §2023:14.9.40.4 24)
       *>   cite.py --check 13.18.38.4 "The value of the data item referenced by data-name-1 represents the current
-      *>     number of occurrences of the subject of the entry" -> OK §13.18.38.4 7)
+      *>     number of occurrences of the subject of the entry" -> OK §2023:13.18.38.4 7)
       *>   cite.py --check 8.5.1.11.2 "behaves in all respects as though it were in fact contiguous with its
-      *>     neighbors" -> OK §8.5.1.11.2
+      *>     neighbors" -> OK §2023:8.5.1.11.2
       *> The record BR is EXTERNAL, so its variable-length components live apart from its fixed run and each element
       *> of E moves as its component carrier. The record's trailing storage is an OCCURS DEPENDING table T, counted
-      *> by N (§13.18.38.3 SR22 makes it the record's last item): the table is NOT part of E's elements, so the sort
+      *> by N (§2023:13.18.38.3 SR22 makes it the record's last item): the table is NOT part of E's elements, so the sort
       *> must neither carry it nor disturb it, and the carrier of an element must not be cut by the record's count.
-      *> (An element itself cannot hold an occurs-depending table: §13.18.38.3 SR1 b.)
+      *> (An element itself cannot hold an occurs-depending table: §2023:13.18.38.3 SR1 b.)
       *>
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules, not copied from a run):
       *>   keys 3, 1, 2; the key-3 element holds "THREE" "3" and two EP occurrences (Z Y), the key-1 element "ONE"
       *>   "1" and one (Q), the key-2 element "TWO" "2" and none. The element's contiguous extent is 1 + the two
-      *>   dynamic-length items + the table's current capacity (§8.5.1.11.2), so before: 9, 6, 5; after SORT E
+      *>   dynamic-length items + the table's current capacity (§2023:8.5.1.11.2), so before: 9, 6, 5; after SORT E
       *>   ASCENDING KEY EK the elements are in key order with their own components and capacities: 1ONE1Q (6),
       *>   2TWO2 (5), 3THREE3ZY (9). T keeps its two occurrences "A" "B" and N stays 2.
       *>   EXCEPTION PATH. N = 7 is above integer-2 (4), so the subject T and the items subordinate or superordinate
-      *>   to it (BR) would raise EC-BOUND-ODO when referenced (§13.18.38.4 GR7, --check validated:
+      *>   to it (BR) would raise EC-BOUND-ODO when referenced (§2023:13.18.38.4 GR7, --check validated:
       *>   cite.py --check 13.18.38.4 "At the time the subject of entry is referenced or any data item subordinate
-      *>   or superordinate to the subject of entry is referenced" -> OK §13.18.38.4 7)). E is a SIBLING of T, neither
+      *>   or superordinate to the subject of entry is referenced" -> OK §2023:13.18.38.4 7)). E is a SIBLING of T, neither
       *>   subordinate nor superordinate to it, so under checking SORT E DESCENDING KEY EK with N = 7 raises nothing
       *>   and still sorts, carriers whole: the declarative stays silent (no RAISED line) and the elements read
       *>   3THREE3ZY (9), 2TWO2 (5), 1ONE1Q (6). A regression that applied the record's count bound to a reference

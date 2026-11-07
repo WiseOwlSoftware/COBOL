@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.37 FIND-STRING — the 1-based position of argument-2 within argument-1. Default: the FIRST
+      *> ISO §2023:15.37 FIND-STRING — the 1-based position of argument-2 within argument-1. Default: the FIRST
       *> occurrence; LAST (rule 1) the last; [START AFTER] argument-3 (rule 2) ignores that many matches first;
       *> ANYCASE (rule 4) folds case. No match / zero-length argument returns 0 (rules 3, 5). HAY = "ABCABCABC"
       *> has "ABC" at non-overlapping positions 1, 4, 7.
@@ -34,9 +34,9 @@
            DISPLAY "CASED=" WS-P.
            MOVE FUNCTION FIND-STRING(WS-HAY "ZZZ") TO WS-P.
            DISPLAY "NONE=" WS-P.
-      *> ARGUMENT-3 IS TOTAL (kb/Work PB254). ISO §15.37.3 r3 is the whole argument rule —
+      *> ARGUMENT-3 IS TOTAL (kb/Work PB254). ISO §2023:15.37.3 r3 is the whole argument rule —
       *> "argument-3 shall be an integer data item or integer literal" — and places NO
-      *> constraint on the value, while §15.37.4 r2/r3 answer for every integer: ignore that
+      *> constraint on the value, while §2023:15.37.4 r2/r3 answer for every integer: ignore that
       *> many matches, and if none is left return zero. So a value beyond the long the body
       *> once took is CONFORMING source and must reach rule 2 intact.
       *> EXHAUST3 — the in-range boundary: HAY has matches at 1, 4 and 7, so ignoring 3 of
@@ -46,7 +46,7 @@
            DISPLAY "EXHAUST3=" WS-P.
       *> WIDESKIP / WIDELASTSKIP — a 19-digit LITERAL and a 19-digit DATA ITEM, both above
       *> 9 223 372 036 854 775 807. Rule 2 ignores every match, rule 3 returns 0. Before
-      *> PB254 the §15.3 narrowing landing substituted its checking-off default 0 for the
+      *> PB254 the §2023:15.3 narrowing landing substituted its checking-off default 0 for the
       *> ARGUMENT — "ignore no matches" — and the function answered 1, and 7 under LAST.
            MOVE FUNCTION FIND-STRING(WS-HAY WS-NDL START AFTER
                9999999999999999999) TO WS-P.

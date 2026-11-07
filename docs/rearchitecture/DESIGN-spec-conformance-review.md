@@ -2,7 +2,7 @@
 
 > **STATUS: DESIGN — decision-complete methodology + plan.** This is the exhaustive, spec-anchored conformance review
 > that is the PHASE-14 definition of DONE (owner decision D13: commercial-quality, 100% CONFORMING to ISO/IEC
-> 1989:2023 per §4.2.1 with correct support for 1985/2002/2014). It re-grounds the P14 Step-0 "traceability
+> 1989:2023 per §2023:4.2.1 with correct support for 1985/2002/2014). It re-grounds the P14 Step-0 "traceability
 > inventory" as **spec-first and exhaustive** — the spec text is the ORACLE, not a differential. Spec-first is the
 > only going priority (memory `feedback_spec_is_the_oracle`).
 
@@ -21,7 +21,7 @@ traceable review: every normative rule → its implementation → a verified ver
 
 Every normative ISO/IEC 1989:2023 rule — and its 1985/2002/2014 applicability — has:
 - **(a)** a located implementation (a traceability link into `src/WiseOwl.Cobol.*`), OR a recorded **owner
-  documented-non-support decision** (optional modules only, per §4.2.16);
+  documented-non-support decision** (optional modules only, per §2023:4.2.16);
 - **(b)** a conformance **verdict VERIFIED against the spec TEXT** (not against the legacy or GnuCOBOL);
 - **(c)** a **spec-derived test** that covers it — the expected value COMPUTED FROM THE SPEC, never copied from an
   implementation oracle; **OR, only for a rule that carries no observable obligation, the owner-signed
@@ -33,7 +33,7 @@ The traceability inventory at **zero unresolved GAP** = P14 DONE (D13). This sup
 
 ⛔ **This is the ONE widening of §1 an agent did not make, and the bounds are the owner's, not a paraphrase.**
 Some normative rules impose no obligation a conforming program can observe: the standard declares the result
-*undefined* (§4.4 2): *"Situations in which the results of executing a statement are explicitly undefined or
+*undefined* (§2023:4.4 2): *"Situations in which the results of executing a statement are explicitly undefined or
 unpredictable are identified in A.2, Undefined language element list. A COBOL run unit that allows these
 situations to happen is a conforming run unit"* — `cite.py --check 4.4` OK); or the rule's antecedent cannot be
 populated in this implementation; or its consequent cannot be told apart from another rule's. For such a rule
@@ -51,7 +51,7 @@ naming ONE of four arms and signed by the owner. It stands in place of §1(c) **
 | `undefined-A.2` | the standard itself lists this rule as explicitly undefined | **MECHANICAL.** The `Names` cell reads `A.2 item <n>`; the checker resolves Annex A.2 item *n*'s own trailing citation (`(14.9.5, CANCEL statement, General rule 11)`) against the rule catalog and requires **this row's `rule-id` to be among the ids it resolves to**. Naming an item that does not cover the row is refused. |
 | `unpopulatable-antecedent` | the antecedent is false for every state this implementation can reach | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must STATE the closed set that makes it unreachable (≥20 characters — a dash or an `n/a` is refused). The argument itself has a reader, and the owner's signature is that reader. |
 | `indistinguishable-consequent` | the consequent is byte-identical to another rule's, so no conforming program can distinguish them | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must be a `rule-id` that EXISTS in the catalog and is not this row's own. |
-| `definitional` | the rule DEFINES a property of the user's program (§4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
+| `definitional` | the rule DEFINES a property of the user's program (§2023:4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
 
 **What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
 described:
@@ -73,7 +73,7 @@ described:
 ⚖ **How this coexists with `PB280` Q2 ("no" for anchor-only DOC rows), which it does NOT reverse.** A DOC row
 asks the implementor to STATE a choice, so "there is nothing to observe" is unfalsifiable there and cannot close
 a row — that answer stands. `DOC-A.1-19` is admitted for the opposite reason: its determination **is** stated,
-in §7, and it names a greenfield site; only its WITNESS is impossible, because §14.9.5.4 GR10's branch is
+in §7, and it names a greenfield site; only its WITNESS is impossible, because §2023:14.9.5.4 GR10's branch is
 reachable only through the GR2 locate step this runtime never performs, so the effect is byte-identical to
 GR7's mandated no-op. **The distinction is encoded by ORDER, not by a special case**: `state_for` charges the
 kind's anchor and observability costs FIRST and consults the derivation only where a spec-derived `test-ref`
@@ -83,9 +83,9 @@ carry a derivation at all.
 
 ## 2. The unit of review — the normative rule
 
-The spec expresses requirements as: **Syntax Rules (SR) + General Rules (GR)** per statement (§14.9.x) and clause
-(§11/§12/§13.x); **general formats** (the grammar); **§8 concepts** (classes/categories §8.5, conditions §8.8.4,
-reference/subscript/ref-mod §8.4, standard conversions §8.5.1, arithmetic/boolean expressions §8.8); **§15 intrinsic**
+The spec expresses requirements as: **Syntax Rules (SR) + General Rules (GR)** per statement (§2023:14.9.x) and clause
+(§11/§12/§13.x); **general formats** (the grammar); **§8 concepts** (classes/categories §2023:8.5, conditions §2023:8.8.4,
+reference/subscript/ref-mod §2023:8.4, standard conversions §2023:8.5.1, arithmetic/boolean expressions §2023:8.8); **§15 intrinsic**
 definitions; **Annex A** required-documented-behavior; **Annex E** edition deltas; **Annex F** obsolete/archaic. Each
 rule = `(rule-id, §-anchor, subject, kind, edition-applicability, text)`. The complete rule set is the coverage
 **DENOMINATOR** — the thing the audits never enumerated.
@@ -100,7 +100,7 @@ are numbered under "Syntax rules" / "General rules" headings per section, so ext
 **THE RULE IS THE UNIT** (owner decision 2026-08-08, landed by kb/Work PB55): one entry per TOP-LEVEL numbered rule
 of a rule block; every sub-item — lettered, or a numbered list nested under one, at any depth — is its parent rule's
 text, addressed by citation path (`9) c) 2.`), and verifying the rule means verifying every sub-item, in that one
-row. A block may also print SEVERAL lists at its own margin, each under its own prose lead-in (§14.7.5, §9.3.6):
+row. A block may also print SEVERAL lists at its own margin, each under its own prose lead-in (§2023:14.7.5, §2023:9.3.6):
 those are rules in their own right and take sub-list ids `<kind>-<section>-L<sublist>.<n>`. The transcription's
 indentation cannot tell a flattened nested list from such a peer list, so the difference is MEASURED on the PDF
 (`scripts/spec/measure_sublist_levels.py`, recorded in `scripts/spec/data/sublist-levels.json`) and the extractor's
@@ -109,7 +109,7 @@ critic** cross-checks the catalog against the spec's TOC + section numbering, be
 confidence. Orchestrated: fan out over the §-clauses; loop-until-dry.
 
 **A general-format (FMT) row is a format the clause PRINTS, not a heading that says "General format(s)"** (kb/Work
-PB1536): a candidate heading yields a row only when its body carries a diagram or the "Format N" labels §5.2.1 gives a
+PB1536): a candidate heading yields a row only when its body carries a diagram or the "Format N" labels §2023:5.2.1 gives a
 multi-format construct. A candidate with neither is a PARENT clause about formats (§5.2 itself — skipped and printed)
 or a leaf whose diagram the transcription lost (a loud `--check` failure: restore the `<pre>`/`<u>` block from the
 rendered page). `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the bar over the written
@@ -168,7 +168,7 @@ deletes the file of a rule the spec dropped.
 > fails only when the thing it points at actually stops existing — which is the one event worth failing on.
 
 > **⚙ THE `code-location` OF A `kind: DOC` ROW (Annex A.1), and why it has a second form.** A DOC row is not a
-> behavioural rule: it is an obligation to SPECIFY and to DOCUMENT an implementor-defined element (§4.2.5), and a
+> behavioural rule: it is an obligation to SPECIFY and to DOCUMENT an implementor-defined element (§2023:4.2.5), and a
 > binder symbol alone cannot discharge that — a DETERMINATION in `docs/CONFORMANCE.md` §7 can. So a DOC row's
 > `code-location` is **its §7 register anchor, plus every greenfield implementing site**:
 > `docs/CONFORMANCE.md#DOC-A.1-<n>; src/WiseOwl.Cobol.…#Symbol[; …]`.
@@ -176,7 +176,7 @@ deletes the file of a rule the spec dropped.
 > **The anchor is COMPUTED from the row's own rule-id, never chosen** —
 > `inventory-schema.json` → `kinds.DOC.anchor-template` expands `{rule-id}`, which is why §7's item key is the
 > rule-id `DOC-A.1-<n>` and not the bare item number. Two things follow. A determination filed under a
-> neighbouring item cannot be *spelled*, which is the structural answer to `kb/Work/A11` (the §15.3.3.2
+> neighbouring item cannot be *spelled*, which is the structural answer to `kb/Work/A11` (the §2023:15.3.3.2
 > determination sat under item 87, whose obligation is FORMATTED-CURRENT-DATE's accuracy). And a bare number
 > could never have been an anchor at all: the gate resolves a `#Symbol` by a word search over the file, so `#7` —
 > which five live rows carried, all `state: OK` — matched the digit 7 anywhere in a 790-line document.
@@ -481,16 +481,16 @@ missed:
 
 | field | the scoping mechanism it reads | the module that needed it |
 |---|---|---|
-| `sections` | the rule's own CLAUSE — §8.8.1.4 is *titled* for the declined mode and its rules never repeat the phrase | A.4.3, A.4.8, A.4.14, PB198 |
+| `sections` | the rule's own CLAUSE — §2023:8.8.1.4 is *titled* for the declined mode and its rules never repeat the phrase | A.4.3, A.4.8, A.4.14, PB198 |
 | `pattern` | the rule's TEXT — the facility's functionality stated from inside a mandatory clause | PB198, A.4.14 |
-| both, as an AND-gate | a term that is STATEMENT-LOCAL (`file-name-1` means the FD's own subject in §13.4.5.4) or an OPERAND NAME (§12.3.7's `data-name-1` IS the CURSOR operand) | A.4.13, A.4.2 |
+| both, as an AND-gate | a term that is STATEMENT-LOCAL (`file-name-1` means the FD's own subject in §2023:13.4.5.4) or an OPERAND NAME (§2023:12.3.7's `data-name-1` IS the CURSOR operand) | A.4.13, A.4.2 |
 | `xref-sections` + `kinds` | an Annex A.1 documentation obligation citing a declined clause, keyed on the same clause numbers as the clause arm | A.4.8, A.4.14 |
 | `excludes-kinds`, per arm | a general format (kind FMT) is evidence about a CLAUSE, never one of its formats | A.4.2, A.4.3 |
 | `requirement` | the A.1 **requirement class the standard itself states** ("This item is optional."), carried on the catalog row — A.1's preamble writes its licences per class | PB280 Q1 |
 | `determination-prefix` | what **`docs/CONFORMANCE.md` §7 says** about the element, read off the register row keyed by the rule's own id — which is exactly the anchor `kinds.DOC.anchor-template` computes | PB280 Q1 |
 
 Two properties belong to the **matcher**, not to any selector, because a convention each author must remember is
-a convention one author will forget. Clause prefixes match **component-wise** — §13.18.30 is not inside §13.18.3,
+a convention one author will forget. Clause prefixes match **component-wise** — §2023:13.18.30 is not inside §2023:13.18.3,
 and a raw `StartsWith` had the screen selector taking 543 rules instead of 156, flipping 32 CONFORMS rows to
 non-support. And the text is **hyphen-normalised** before matching, because 29 catalog rules spell an operand name
 with U+2011 where the rest use ASCII `-`, which silently *under*-selects — the direction that leaves the drift
@@ -511,7 +511,7 @@ BECAME so on 2026-09-09.** When this landed, all 30 A.1-optional items and all 4
 selected the same two rows and left `DerivedVerdictDriftTests` green. ⭐ Re-measured 2026-09-09 the second half
 is no longer true: §7 now carries **58** rows, and **5** of A.1's 30 optional items have a §7 row (10, 127,
 150, 184, 206) of which only **2** open "Not provided." — item 206 left the set when owner decision Q30
-(`kb/Work/PB592`) found that §13.18.60.4 GR12's SIGNED minimum bands are OPEN at the bottom and the element is
+(`kb/Work/PB592`) found that §2023:13.18.60.4 GR12's SIGNED minimum bands are OPEN at the bottom and the element is
 PROVIDED. A predicate that matched *any* determination now selects five rows and this file's own live
 assertion (every selected row's cell opens "Not provided.") turns RED. The `requirement` axis is still blind
 live, because every "Not provided." row remains on an optional item. That is precisely the
@@ -545,13 +545,13 @@ rule three ways — by clause, by words, and by the group label printed above it
 format numbers it names) on every SR/GR row printed under one, and no longer lets the label leak into the text
 before it. The `formats` arm field selects a rule whose `band-formats` is a non-empty SUBSET of the arm's numbers —
 solely, because a rule under "FORMATS 1 AND 2" also holds for format 1 — and is only legal beside `sections`, since a
-format number is its clause's own (PRESENT WHEN's FORMAT 2 is not ACCEPT's). The operand arm stays: §14.9.1.3 prints no
+format number is its clause's own (PRESENT WHEN's FORMAT 2 is not ACCEPT's). The operand arm stays: §2023:14.9.1.3 prints no
 band at all and SR-14.9.1.3-5 is scoped by the names `identifier-3` / `identifier-4`; neither mechanism subsumes the
 other. The eight rows this reached (five in `validate-only`, three in `screen-handling-only`) are the ones
 the old `$format-band-residue` block recorded as unreachable.
 
 **Prose concept clauses are rows too** (kb/Work PB284 part 3, PB479). A clause whose rules are running prose with no
-numbered marker (§9.1.16 record locking, §9.1.17, §9.1.18.x commit and rollback) was invisible to the numbered scan
+numbered marker (§2023:9.1.16 record locking, §2023:9.1.17, §2023:9.1.18.x commit and rollback) was invisible to the numbered scan
 and to every completeness guard. The manifest's `paragraph-blocks` key admits such a clause, with its rule kind and
 the reason, and the extractor emits one row per normative paragraph (`GR-9.1.16-p1`, field `shape: paragraph`).
 `audit_catalog_coverage.py` holds each admitted clause to the same standard as a numbered one: the rows' text is the
@@ -671,8 +671,8 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
 
 1. **The spec is the only oracle**, and the legacy / GnuCOBOL / existing goldens are regression nets.
 2. **Validate every citation** with `cite.py --check`. Give the concrete precedents: the fabricated
-   "§12.3.7 GR7 k3 … distinct ascending" that came out of *our own design doc*, and the one-level-short shape
-   (§13.18.60 where the rule is in §13.18.60.4).
+   "§2023:12.3.7 GR7 k3 … distinct ascending" that came out of *our own design doc*, and the one-level-short shape
+   (§2023:13.18.60 where the rule is in §2023:13.18.60.4).
 3. **Only a SPEC-DERIVED test closes a row.** Name `nist:`, `characterization:` and any `*MatchesLegacy` method
    as non-qualifying, and say that CONFORMS-but-untested is a legitimate, expected outcome. The first batch
    offered seven rows that would otherwise have closed on a differential.
@@ -691,7 +691,7 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
    `python scripts/spec/work.py stats`, or `status: landed` over `kb/Work/`. A stale roster is worse than none:
    it tells an agent a fixed defect is open and the batch is spent re-reporting it.
    ⚠ Also tell agents that `Verified` now screens by CLASS SETS, not one class per operand — a figurative
-   constant is admissible wherever ANY class it can present is admissible (§8.3.3.6.4 GR4; fix-queue PB48) — so
+   constant is admissible wherever ANY class it can present is admissible (§2023:8.3.3.6.4 GR4; fix-queue PB48) — so
    "the screen accepts ZERO here AND there" is correct behaviour, not a missing rule.
 9. **Read-only, and no `dotnet build`/`dotnet test`** — other work is usually in flight.
 

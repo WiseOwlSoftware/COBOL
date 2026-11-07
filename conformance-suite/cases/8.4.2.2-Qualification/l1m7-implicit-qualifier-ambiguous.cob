@@ -4,17 +4,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.2.2.1 rule 5 + §8.4.2.1 — an ODO object name that the
+      *> ISO §2023:8.4.2.2.1 rule 5 + §2023:8.4.2.1 — an ODO object name that the
       *> implicit qualifiers leave NON-unique within the shared group.
       *> Rule 5: "... the names of any group items superordinate to
       *> both the data-name and the subject of the data description
       *> entry clause are used as implicit qualifiers for the
       *> reference, in addition to any explicit qualifiers needed to
       *> establish uniqueness within that group."
-      *> cite.py: OK  §8.4.2.2.1 5)
-      *> §8.4.2.1: "In order to use a resource, a statement shall
+      *> cite.py: OK  §2023:8.4.2.2.1 5)
+      *> §2023:8.4.2.1: "In order to use a resource, a statement shall
       *> contain a reference that uniquely identifies that resource."
-      *> cite.py: OK  §8.4.2.1
+      *> cite.py: OK  §2023:8.4.2.1
       *> Both CNTs share only G with T, so the implicit qualifier G
       *> matches both; rule 5 still requires the explicit qualifier (A
       *> or B) that would establish uniqueness within G, and none is

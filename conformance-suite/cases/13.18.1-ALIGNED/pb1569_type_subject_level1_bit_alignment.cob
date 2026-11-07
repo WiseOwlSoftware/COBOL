@@ -7,16 +7,16 @@
 *>---
       *> kb/Work PB1569 — a group TYPE subject is aligned as a LEVEL 1 item, so a bit group typed after a
       *> same-level bit item starts on a fresh byte instead of sharing its predecessor's.
-      *> ISO §13.18.57.4 GR2 d): "the subject of the entry is aligned as though it were a level 1 item"
-      *>   (cite.py --check 13.18.57.4 -> OK §13.18.57.4 2) d)).
-      *> ISO §8.5.1.6.3: "a bit group item immediately following a bit group item or elementary bit data
+      *> ISO §2023:13.18.57.4 GR2 d): "the subject of the entry is aligned as though it were a level 1 item"
+      *>   (cite.py --check 13.18.57.4 -> OK §2023:13.18.57.4 2) d)).
+      *> ISO §2023:8.5.1.6.3: "a bit group item immediately following a bit group item or elementary bit data
       *>   item of the same level" goes at the next bit position, but "Alignment of elementary bit data
       *>   items of level 1 or level 77 and a level 1 bit group are at the first bit of a byte"
       *>   (cite.py --check 8.5.1.6.3 -> OK, both).
-      *> ISO §13.18.49.4 GR1: SAME AS acts "as though the data description identified by data-name-1 had
-      *>   been coded in place of the SAME AS clause" (cite.py --check 13.18.49.4 -> OK §13.18.49.4 1)) —
+      *> ISO §2023:13.18.49.4 GR1: SAME AS acts "as though the data description identified by data-name-1 had
+      *>   been coded in place of the SAME AS clause" (cite.py --check 13.18.49.4 -> OK §2023:13.18.49.4 1)) —
       *>   so a SAME AS of a TYPE subject re-states its TYPE clause and inherits GR2 d), while a SAME AS of
-      *>   a plain level-1 bit group does NOT: its level-number is excluded, and §13.18.49.4 has no d).
+      *>   a plain level-1 bit group does NOT: its level-number is excluded, and §2023:13.18.49.4 has no d).
       *> DERIVATION (bits high-order first; every record is cleared to all-zero bits first):
       *>  R  = F(1) | filler(7) | S{B1 B2}(2) T(1) | filler(5)  -> 16 bits, BYTE-LENGTH 02
       *>       T is an elementary bit item after the same-level bit group S: next bit (rule 1)
@@ -29,11 +29,11 @@
       *>  R3 = F3(1) S3{P1 P2}(2) | filler(5): S3 SAME AS the plain level-1 bit group PB
       *>       continues F3's byte (rule 2)     -> BYTE-LENGTH 01, S3=11
       *>  Z  = TYPE TT, whose member H is itself a TYPE BT subject after the same-level bit G:
-      *>       the reproduced member keeps d) (§13.18.58.4 GR3 — "subordinate data descriptions are
+      *>       the reproduced member keeps d) (§2023:13.18.58.4 GR3 — "subordinate data descriptions are
       *>       assumed by data defined using the type-name", cite.py --check -> OK) -> BYTE-LENGTH 02
-      *>  AL = AF(1) | filler(7) | AG(1) | filler(7): the SIBLING ARM — an ALIGNED member (§13.18.1.4
+      *>  AL = AF(1) | filler(7) | AG(1) | filler(7): the SIBLING ARM — an ALIGNED member (§2023:13.18.1.4
       *>       GR1 "aligned on the first bit of the first available byte boundary", cite.py --check
-      *>       13.18.1.4 -> OK §13.18.1.4 1)) likewise starts a fresh byte, and a group MOVE composes and
+      *>       13.18.1.4 -> OK §2023:13.18.1.4 1)) likewise starts a fresh byte, and a group MOVE composes and
       *>       distributes the record image by that same placement in both directions:
       *>       AL -> AX puts AF at bit 1 and AG at bit 9        -> AX19=11
       *>       AX (bit 9 set only) -> AL sets AG, clears AF    -> AFG=01

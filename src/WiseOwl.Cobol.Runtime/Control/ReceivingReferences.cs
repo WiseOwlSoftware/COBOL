@@ -4,10 +4,10 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// ⛔ THE CHARACTER POSITIONS OF A FORMAL'S STORAGE THE ACTIVATED ELEMENT REFERENCED AS A RECEIVING ITEM (kb/Work PB2690).
-/// <para>ISO §8.5.1.9.3: "When a data item in a dynamic-capacity table is referenced as a receiving item and the value of
+/// <para>ISO §2023:8.5.1.9.3: "When a data item in a dynamic-capacity table is referenced as a receiving item and the value of
 /// the subscript exceeds the current capacity of the table, a new element is automatically created and the capacity of the
 /// table is increased to the value given by the subscript." A BY REFERENCE formal whose table has a FIXED occurrence count
-/// opposite the argument's dynamic-capacity table occupies the argument's storage (§14.2.3 GR8: "the activated runtime
+/// opposite the argument's dynamic-capacity table occupies the argument's storage (§2023:14.2.3 GR8: "the activated runtime
 /// element operates as if the formal parameter occupies the same storage area as the argument"), so a store through its
 /// occurrence past the argument's capacity is exactly that receiving reference. When the pair's shapes differ the formal
 /// occupies a fresh area filled from the argument and stored back at return (<c>CobolArgAdapt.Area</c>), and the image

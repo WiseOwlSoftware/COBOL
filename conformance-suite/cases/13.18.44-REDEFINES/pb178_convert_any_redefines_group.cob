@@ -7,11 +7,11 @@
 *>---
       *> kb/Work PB178. FUNCTION CONVERT's ANY source format over a Tier-B REDEFINES group VIEW.
       *>
-      *> §15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
+      *> §2023:15.19.3 r7: "When the source-format is ANY, argument-1 shall be of any usage, except index,
       *> message-tag, object reference, pointer, function-pointer or program-pointer. It is not necessary for
       *> the contents to be valid according to the usage" — the exclusion list is keyed on USAGE and names only
       *> the address/index shapes, so a GROUP is legal argument-1 and r7 asks for its RAW STORAGE.
-      *> §13.18.44.4 GR1: "Storage association for the subject of the entry starts at the first bit of the data
+      *> §2023:13.18.44.4 GR1: "Storage association for the subject of the entry starts at the first bit of the data
       *> item referenced by data-name-2 and continues over an area sufficient to contain the number of bits
       *> required by the data item referenced by the subject of the entry" — a REDEFINES view IS the same
       *> storage, so its raw-storage image is the redefined item's bytes, never a second encoding.
@@ -52,14 +52,14 @@
            DISPLAY "L2=" R.
       *> LEG 3 - FLIP THE AXIS THE FIRST TWO LEGS HOLD FIXED: a Tier-B group view containing a PIC S9(4) COMP
       *> leaf (the PB164-widened shape). Proves the fix routes by PLACE SHAPE, not by leaf category. The window
-      *> is D1's four characters "WXYZ" (57 58 59 5A) then D2's radix-2 bytes for 258 (§13.18.60.4 GR4/GR11
+      *> is D1's four characters "WXYZ" (57 58 59 5A) then D2's radix-2 bytes for 258 (§2023:13.18.60.4 GR4/GR11
       *> leave the representation implementor-defined; WiseOwl COBOL's determination is big-endian two's complement
       *> of the storage width - docs/CONFORMANCE.md items 205-215) = 01 02.
            MOVE "WXYZ" TO D1.
            MOVE 258 TO D2.
            MOVE FUNCTION CONVERT(D ANY ANUM HEX) TO R.
            DISPLAY "L3=" R.
-      *> LEG 4 - the OdoGroupPlace-over-RedefViewPlace shape (a BASED record is also string-canonical). §13.18.38.4
+      *> LEG 4 - the OdoGroupPlace-over-RedefViewPlace shape (a BASED record is also string-canonical). §2023:13.18.38.4
       *> GR8a: data-name-1 is OUTSIDE the group, so only the CURRENT-count part is used - 2 + 2x3 = 8 characters,
       *> "AB" + "ccc" + "ddd" = 41 42 63 63 63 64 64 64. The MAXIMUM image (17) would be the wrong answer.
            ALLOCATE BODO.

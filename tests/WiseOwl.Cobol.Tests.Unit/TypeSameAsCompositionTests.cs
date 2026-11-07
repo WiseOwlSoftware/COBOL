@@ -7,13 +7,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1300 — what a TYPE / SAME AS clause composes into its subject, and the rules the COMPOSED entry then
-/// answers to. §13.18.57.4 GR1 / §13.18.49.4 GR1: "The effect of the TYPE [SAME AS] clause is as though the data
+/// answers to. §2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1: "The effect of the TYPE [SAME AS] clause is as though the data
 /// description identified by type-name-1 [data-name-1] had been coded in place", excluding only the clauses each
-/// GR-1 names — so a BASED clause travels (§13.18.58.4 GR3: "All other data description clauses … are assumed by
+/// GR-1 names — so a BASED clause travels (§2023:13.18.58.4 GR3: "All other data description clauses … are assumed by
 /// data defined using the type-name"), and the composed entry is held to the placement rules a written BASED
-/// clause is (§13.16.3 SR5/SR13/SR16, COBOL2510). The subject's OWN VALUE literal initializes the composed item
-/// (§13.18.57.4 GR3), so it is screened against the composed PICTURE — except for the size sentence, which
-/// §13.18.63.3 SR4 writes over "an explicit PICTURE clause" only.
+/// clause is (§2023:13.16.3 SR5/SR13/SR16, COBOL2510). The subject's OWN VALUE literal initializes the composed item
+/// (§2023:13.18.57.4 GR3), so it is screened against the composed PICTURE — except for the size sentence, which
+/// §2023:13.18.63.3 SR4 writes over "an explicit PICTURE clause" only.
 /// <para>The corpus pins the level arm and the positive shapes (<c>2002/w66g_pb1300_type_same_as_composition</c>,
 /// <c>negative/w66g-pb1300-composed-based-level</c>); a negative golden's <c>.err</c> is one substring, so the
 /// arms that share COBOL2510 are told apart here by the rule each message names.</para>
@@ -31,7 +31,7 @@ public sealed class TypeSameAsCompositionTests : WiseOwlCobolTestBase
         + body
         + "           STOP RUN.\n";
 
-    /// <summary>§13.16.3 SR16 — "The level number of such data description entries shall be 1 or 77" — asked of
+    /// <summary>§2023:13.16.3 SR16 — "The level number of such data description entries shall be 1 or 77" — asked of
     /// the composed entry through BOTH carriers: a level-05 TYPE subject of a BASED type declaration and a
     /// level-05 SAME AS subject of a BASED item.</summary>
     [Fact]
@@ -45,10 +45,10 @@ public sealed class TypeSameAsCompositionTests : WiseOwlCobolTestBase
         Assert.False(ok);
         Assert.Contains("COBOL2510: 'X': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
         Assert.Contains("COBOL2510: 'S': SAME AS 'B' brings a BASED clause", detail, StringComparison.Ordinal);
-        Assert.Contains("§13.16.3 SR16", detail, StringComparison.Ordinal);
+        Assert.Contains("§2023:13.16.3 SR16", detail, StringComparison.Ordinal);
     }
 
-    /// <summary>§13.16.3 SR5 — "The EXTERNAL clause shall not be specified in the same data description entry as
+    /// <summary>§2023:13.16.3 SR5 — "The EXTERNAL clause shall not be specified in the same data description entry as
     /// the REDEFINES or BASED clause" — the subject writes EXTERNAL beside a TYPE whose declaration is BASED.</summary>
     [Fact]
     public void ComposedBased_WithTheSubjectsExternalClause_IsRefused()
@@ -58,7 +58,7 @@ public sealed class TypeSameAsCompositionTests : WiseOwlCobolTestBase
                 "           DISPLAY \"X\"\n"), dialectLevel: 2002);
         Assert.False(ok);
         Assert.Contains("COBOL2510: 'E': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
-        Assert.Contains("§13.16.3 SR5", detail, StringComparison.Ordinal);
+        Assert.Contains("§2023:13.16.3 SR5", detail, StringComparison.Ordinal);
     }
 
     /// <summary>The level-01 subject is legal and IS a based item: no storage of its own until SET ADDRESS OF,
@@ -76,7 +76,7 @@ public sealed class TypeSameAsCompositionTests : WiseOwlCobolTestBase
         Assert.Equal("[WORLD]", stdout);
     }
 
-    /// <summary>§13.18.57.4 GR3's first sentence with §13.18.63.3 SR2 and SR4: the subject's own literal is
+    /// <summary>§2023:13.18.57.4 GR3's first sentence with §2023:13.18.63.3 SR2 and SR4: the subject's own literal is
     /// screened against the COMPOSED (here explicit) PICTURE. Both used to compile and store a truncated value
     /// (<c>345</c>, <c>AB</c>) because the entry had no PICTURE when BindEntry screened it.</summary>
     [Fact]
@@ -92,7 +92,7 @@ public sealed class TypeSameAsCompositionTests : WiseOwlCobolTestBase
         Assert.Contains("COBOL1625: data item 'M'", detail, StringComparison.Ordinal);
     }
 
-    /// <summary>⚠ DETERMINATION (kb/Work PB1300): over a VALUE-IMPLIED template picture, §13.18.63.3 SR4's size
+    /// <summary>⚠ DETERMINATION (kb/Work PB1300): over a VALUE-IMPLIED template picture, §2023:13.18.63.3 SR4's size
     /// sentence ("the size indicated by an explicit PICTURE clause") does not apply, so the subject's longer
     /// literal is not a syntax error and the item keeps the template's implied X(2). The shorter-literal twin
     /// shows the implied picture is the template's, not one implied from the subject's own literal.</summary>

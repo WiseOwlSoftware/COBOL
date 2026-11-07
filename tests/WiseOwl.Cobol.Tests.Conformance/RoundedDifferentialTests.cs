@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The ROUNDED phrase on arithmetic statements (ISO/IEC 1989:2023 §14.7.4): a bare <c>ROUNDED</c> rounds
-/// NEAREST-AWAY-FROM-ZERO (§14.7.4.3 r1 / §11.9.6 r2), <c>ROUNDED MODE IS x</c> selects one of the eight modes, and
+/// The ROUNDED phrase on arithmetic statements (ISO/IEC 1989:2023 §2023:14.7.4): a bare <c>ROUNDED</c> rounds
+/// NEAREST-AWAY-FROM-ZERO (§2023:14.7.4.3 r1 / §2023:11.9.6 r2), <c>ROUNDED MODE IS x</c> selects one of the eight modes, and
 /// no phrase truncates toward zero (r2). The MODE-variant cases are pinned to <b>hand-computed spec values</b> (the
-/// rounding-mode definitions in §14.7.4.3 r3–r10), not to the committed golden — the legacy's NIST-85 corpus only ever
+/// rounding-mode definitions in §2023:14.7.4.3 r3–r10), not to the committed golden — the legacy's NIST-85 corpus only ever
 /// exercises bare ROUNDED, so it is a weak witness for the seven other modes (process rule: the spec is authority,
 /// the oracle is a net). Bare ROUNDED (the COBOL-85 default) is cross-checked against the legacy.
 /// </summary>
@@ -45,7 +45,7 @@ public sealed class RoundedDifferentialTests
 
     // ── 25 / 10 = 2.5 — the half-way value that separates every mode (positive). ───────────────────────────────
     [Theory]
-    [InlineData("NEAREST-EVEN", "002")]            // tie → even digit (2) — §14.7.4.3 r5
+    [InlineData("NEAREST-EVEN", "002")]            // tie → even digit (2) — §2023:14.7.4.3 r5
     [InlineData("NEAREST-AWAY-FROM-ZERO", "003")]  // tie → away from zero — r4
     [InlineData("NEAREST-TOWARD-ZERO", "002")]     // tie → toward zero — r6
     [InlineData("AWAY-FROM-ZERO", "003")]          // any dropped fraction → away — r3
@@ -56,7 +56,7 @@ public sealed class RoundedDifferentialTests
         => AssertOutput(ComputeInto("PIC 9(3)", mode, "25 / 10"), expected);
 
     // 35 / 10 = 3.5 — the OTHER NEAREST-EVEN tie, rounding UP to the even digit 4 (distinguishes banker's rounding
-    // from a fixed round-down). §14.7.4.3 r5.
+    // from a fixed round-down). §2023:14.7.4.3 r5.
     [Fact]
     public void ComputeRounded_NearestEven_3_5_RoundsUpToEven()
         => AssertOutput(ComputeInto("PIC 9(3)", "NEAREST-EVEN", "35 / 10"), "004");
@@ -77,7 +77,7 @@ public sealed class RoundedDifferentialTests
     public void ComputeRounded_FractionalReceiverScale()
         => AssertOutput(ComputeInto("PIC 9V9", "NEAREST-AWAY-FROM-ZERO", "20 / 3"), "6.7");   // 6.666… → 6.7
 
-    // ── No ROUNDED phrase → TRUNCATION (§14.7.4.3 r2) — the regression guard that the default is unchanged. ────
+    // ── No ROUNDED phrase → TRUNCATION (§2023:14.7.4.3 r2) — the regression guard that the default is unchanged. ────
     [Fact]
     public void Compute_NoRounded_Truncates()
         => AssertOutput(Program("01 R PIC 9(3).", "    COMPUTE R = 29 / 10.\n    DISPLAY R."), "002");   // 2.9 → 2

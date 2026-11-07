@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.4.4.2 format — FILE-CONTROL with repeated entries
+      *> ISO §2023:12.4.4.2 format — FILE-CONTROL with repeated entries
       *>
       *> Row pinned: FMT-12.4.4.2 (the ellipsis arm: more than one
       *> file-control-entry in one paragraph).
       *>  General format: "FILE-CONTROL. [ file-control-entry ] ..."
       *>  The ellipsis lets the bracketed entry repeat, so two SELECT
       *>  entries under one FILE-CONTROL header are legal and each
-      *>  declares its own file (§12.4.5: "The file control entry
+      *>  declares its own file (§2023:12.4.5: "The file control entry
       *>  declares the relevant physical attributes of a file.").
       *> cite.py --check:
-      *>  OK  §12.4.4.2   (General format)  file-control-entry
-      *>  OK  §12.4.5   (File control entry)
+      *>  OK  §2023:12.4.4.2   (General format)  file-control-entry
+      *>  OK  §2023:12.4.5   (File control entry)
       *> Derivation: each file is written with one record and read
       *> back through its own entry; if the second entry were lost or
       *> merged with the first, the second READ could not return its

@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>The party a <see cref="MessageTag"/> names (ISO §3.120 message requestor and message server; §8.8.4.2.14).</summary>
+/// <summary>The party a <see cref="MessageTag"/> names (ISO §2023:3.120 message requestor and message server; §2023:8.8.4.2.14).</summary>
 public enum MessageParty
 {
-    /// <summary>No party: the NULL content (ISO §8.4.3.10.4 GR4 — "guaranteed not to represent a message server or message requestor").</summary>
+    /// <summary>No party: the NULL content (ISO §2023:8.4.3.10.4 GR4 — "guaranteed not to represent a message server or message requestor").</summary>
     None = 0,
     /// <summary>A message server, named by its server name.</summary>
     Server,
@@ -14,21 +14,21 @@ public enum MessageParty
 }
 
 /// <summary>
-/// The message-tag carrier (ISO §13.18.60.4 GR9 — "The class and category of a message-tag data item are message-tag";
-/// §8.5.2.9; kb/Work PB4740, <c>docs/rearchitecture/DESIGN-message-control.md</c> §4.2). The standard leaves the
+/// The message-tag carrier (ISO §2023:13.18.60.4 GR9 — "The class and category of a message-tag data item are message-tag";
+/// §2023:8.5.2.9; kb/Work PB4740, <c>docs/rearchitecture/DESIGN-message-control.md</c> §2023:4.2). The standard leaves the
 /// alignment, representation and size of a message-tag data item to the implementor (Annex A.1 item 212, the
 /// documented determination <c>DOC-A.1-212</c>): the item rides a managed slot and occupies no character positions of
 /// its own, the slot rule of DOC-A.1-210 (<see cref="FunctionPointer"/>).
 /// <para>The contents are the MCS's identity, the party's role, the server's name or the requestor run unit's
 /// identity, and the message's serial number. <see cref="Null"/> (the default) is the value with no party
-/// (§8.4.3.10.3 SR1 b), §8.4.3.10.4 GR4). Only the message control system makes a non-null tag; a program copies tags
+/// (§2023:8.4.3.10.3 SR1 b), §2023:8.4.3.10.4 GR4). Only the message control system makes a non-null tag; a program copies tags
 /// (SET, a strongly-typed group MOVE, a parameter, a message) and compares them.</para>
-/// <para>⛔ A <c>readonly struct</c>, NOT a record: C# has no <c>==</c> an emitter could mistake for §8.8.4.2.14's
+/// <para>⛔ A <c>readonly struct</c>, NOT a record: C# has no <c>==</c> an emitter could mistake for §2023:8.8.4.2.14's
 /// equality, which <see cref="SameParty"/> alone decides.</para>
 /// </summary>
 public readonly struct MessageTag
 {
-    /// <summary>The null content of class message-tag (ISO §8.4.3.10.4 GR4; §13.18.63.4 GR4's initial state).</summary>
+    /// <summary>The null content of class message-tag (ISO §2023:8.4.3.10.4 GR4; §2023:13.18.63.4 GR4's initial state).</summary>
     public static readonly MessageTag Null = default;
 
     internal MessageTag(string mcs, MessageParty party, string name, long message)
@@ -54,7 +54,7 @@ public readonly struct MessageTag
     /// <summary>True when this tag holds the null content.</summary>
     public bool IsNull => Party == MessageParty.None;
 
-    /// <summary>ISO §8.8.4.2.14: "The operands are equal if they reference the same message requestor or message server
+    /// <summary>ISO §2023:8.8.4.2.14: "The operands are equal if they reference the same message requestor or message server
     /// of the same name or one is NULL and the other is NULL". Two server tags of one MCS and one server name, two
     /// requestor tags of one MCS and one requestor run unit, or two NULLs; the message number takes no part.</summary>
     public static bool SameParty(MessageTag a, MessageTag b) =>

@@ -5,19 +5,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.3 2) — SORT and MERGE transfer control implicitly to
+      *> ISO §2023:14.6.3 2) — SORT and MERGE transfer control implicitly to
       *> their input and output procedures.
       *> Rule: "When a SORT or MERGE statement is executed, an implicit
       *> transfer of control occurs to any associated input or output
       *> procedures."
-      *> cite.py: OK  §14.6.3 2)  (Explicit and implicit transfers of
+      *> cite.py: OK  §2023:14.6.3 2)  (Explicit and implicit transfers of
       *>            control)
-      *> cite.py: OK  §14.9.40.4 11)  (General rules) SORT "control is
+      *> cite.py: OK  §2023:14.9.40.4 11)  (General rules) SORT "control is
       *>          passed to the input procedure before the file ... is
       *>          sequenced"
-      *> cite.py: OK  §14.9.40.4 14)  (General rules) SORT "control
+      *> cite.py: OK  §2023:14.9.40.4 14)  (General rules) SORT "control
       *>          passes to it after the file ... has been sequenced"
-      *> cite.py: OK  §14.9.24.4 9)  (General rules) MERGE "control
+      *> cite.py: OK  §2023:14.9.24.4 9)  (General rules) MERGE "control
       *>          passes to it during execution of the MERGE statement"
       *> Neither procedure is named by a PERFORM or GO TO: the only way
       *> they can run is the implicit transfer the rule requires.

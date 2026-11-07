@@ -5,25 +5,25 @@ using Microsoft.Win32.SafeHandles;
 
 namespace WiseOwl.Cobol.Runtime.IO;
 
-/// <summary>The ACCESS MODE of a keyed file connector (ISO/IEC 1989:2023 §12.4.5.5, ACCESS MODE clause). The
+/// <summary>The ACCESS MODE of a keyed file connector (ISO/IEC 1989:2023 §2023:12.4.5.5, ACCESS MODE clause). The
 /// ordinals mirror the compiler's <c>FileAccessMode</c> enum — registration passes the raw int.</summary>
 public enum KeyedAccess
 {
-    /// <summary>ACCESS SEQUENTIAL — records in ascending RRN / key-of-reference order (§12.4.5.5.3 GR2).</summary>
+    /// <summary>ACCESS SEQUENTIAL — records in ascending RRN / key-of-reference order (§2023:12.4.5.5.3 GR2).</summary>
     Sequential = 0,
-    /// <summary>ACCESS RANDOM — records selected by key value (§9.1.8.3).</summary>
+    /// <summary>ACCESS RANDOM — records selected by key value (§2023:9.1.8.3).</summary>
     Random = 1,
-    /// <summary>ACCESS DYNAMIC — both, chosen per statement form (§9.1.8.4).</summary>
+    /// <summary>ACCESS DYNAMIC — both, chosen per statement form (§2023:9.1.8.4).</summary>
     Dynamic = 2,
 }
 
 /// <summary>
-/// The shared base of the KEYED connectors — RELATIVE (§9.1.7.3) and INDEXED (§9.1.7.4) — carrying the one fact
+/// The shared base of the KEYED connectors — RELATIVE (§2023:9.1.7.3) and INDEXED (§2023:9.1.7.4) — carrying the one fact
 /// every keyed verb branches on: the connector's ACCESS MODE, and the one LIFECYCLE both organizations share because
-/// they drive one engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1; kb/Work PB2753): the §14.9.27.4 OPEN
-/// arms (<see cref="OpenCore"/>), the store's attach and adoption, the CLOSE's promotion and the §9.1.15 release
+/// they drive one engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1; kb/Work PB2753): the §2023:14.9.27.4 OPEN
+/// arms (<see cref="OpenCore"/>), the store's attach and adoption, the CLOSE's promotion and the §2023:9.1.15 release
 /// (<see cref="CloseCore"/>), and the coherent statement entry. A sequential-organization connector has no access
-/// mode to carry (§12.4.5.5.2 SR2 — <i>"The DYNAMIC and RANDOM phrases shall not be specified for a
+/// mode to carry (§2023:12.4.5.5.2 SR2 — <i>"The DYNAMIC and RANDOM phrases shall not be specified for a
 /// sequential file"</i>), which is why this sits below <see cref="FileConnector"/> rather than on it.
 /// That premise is now ENFORCED rather than assumed: until kb/Work PB692 the rule had no check anywhere and
 /// <c>ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM</c> compiled and ran, so this class's reason for
@@ -33,16 +33,16 @@ public enum KeyedAccess
 ///
 /// ⛔ INVARIANT (kb/Work PB325) — <b>the OPEN MODE never SELECTS a keyed verb's branch; it is only ever
 /// SCREENED.</b> Every branch the standard draws inside a keyed verb is drawn on the ACCESS MODE:
-/// §14.9.51.4 GR29 a)/b) (relative WRITE: consecutive release vs. the staged RELATIVE KEY), GR38/GR39 (indexed
-/// WRITE: the ascending-prime-key requirement vs. "in any order"), §14.9.35.4 GR5 vs. GR21/GR22/GR23 and
-/// §14.9.10.4 GR2 vs. GR3/GR4 (REWRITE/DELETE target: the last-read record vs. the key item's). The OPEN MODE
-/// enters only as the permission test that follows — §14.9.27.4 GR8's Table 20, whose unsuccessful cells
-/// §9.1.13.7 items 8 and 9 name ('48' for WRITE, '49' for REWRITE/DELETE) — and item 8's own two arms are
+/// §2023:14.9.51.4 GR29 a)/b) (relative WRITE: consecutive release vs. the staged RELATIVE KEY), GR38/GR39 (indexed
+/// WRITE: the ascending-prime-key requirement vs. "in any order"), §2023:14.9.35.4 GR5 vs. GR21/GR22/GR23 and
+/// §2023:14.9.10.4 GR2 vs. GR3/GR4 (REWRITE/DELETE target: the last-read record vs. the key item's). The OPEN MODE
+/// enters only as the permission test that follows — §2023:14.9.27.4 GR8's Table 20, whose unsuccessful cells
+/// §2023:9.1.13.7 items 8 and 9 name ('48' for WRITE, '49' for REWRITE/DELETE) — and item 8's own two arms are
 /// themselves selected BY the access mode: a) sequential ⇒ extend or output, b) random or dynamic ⇒ I-O or
 /// output.
 ///
 /// Folding the open mode into a branch predicate ("sequential access <i>or</i> extend mode") therefore inverts
-/// the dependency and makes the runtime's answer depend on a bind-time screen holding: §14.9.27.3 SR2 confines
+/// the dependency and makes the runtime's answer depend on a bind-time screen holding: §2023:14.9.27.3 SR2 confines
 /// EXTEND to sequential access, so a random- or dynamic-access connector open in the extend mode is a state the
 /// SOURCE cannot legally reach — but the runtime must still answer '48' for it (Table 20 leaves the
 /// Random/Extend and Dynamic/Extend WRITE cells blank), not divert into the sequential-release branch and
@@ -53,7 +53,7 @@ public abstract partial class KeyedConnector : FileConnector
     protected KeyedConnector(string hostPath, int recordWidth, KeyedAccess access, int varyMin, int varyMax)
         : base(hostPath, recordWidth, varyMin, varyMax) => Access = access;
 
-    /// <summary>The connector's ACCESS MODE (§12.4.5.5) — the sole discriminator of every keyed verb's branch;
+    /// <summary>The connector's ACCESS MODE (§2023:12.4.5.5) — the sole discriminator of every keyed verb's branch;
     /// see the type remarks for why the open mode is never part of one.</summary>
     protected KeyedAccess Access { get; }
 
@@ -64,9 +64,9 @@ public abstract partial class KeyedConnector : FileConnector
     internal bool KeyCheck { get; set; } = true;
 
     /// <inheritdoc/>
-    /// <remarks>⛔ THE KEYED ORGANIZATIONS' §14.9.27.4 GR10 ANSWER: the paged store's COMMITTED META, read from pages 0
+    /// <remarks>⛔ THE KEYED ORGANIZATIONS' §2023:14.9.27.4 GR10 ANSWER: the paged store's COMMITTED META, read from pages 0
     /// and 1 (<see cref="MetaPage.Describes"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9), records the
-    /// physical file's §9.1.6 fixed file attributes, so the comparison is those attributes against
+    /// physical file's §2023:9.1.6 fixed file attributes, so the comparison is those attributes against
     /// <see cref="FileConnector.DeclaredAttributes"/> (<see cref="FixedFileAttributes.Conflicts"/> — the one
     /// place the comparison is written). RELATIVE and INDEXED share this method because they share the format;
     /// what differs between them is only what <see cref="FileConnector.DeclaredKeys"/> supplies, which is where
@@ -85,22 +85,22 @@ public abstract partial class KeyedConnector : FileConnector
     /// a few statements later, inside <c>OpenCore</c>, where the failure becomes '37' or '30'.</para>
     /// <para>A paged store whose meta pages carry the format's magic but whose committed slots both fail
     /// (<see cref="StoreFormat.Damaged"/>) is the store's own format, damaged: not a conflict, so the OPEN goes on to
-    /// the adoption rule, which answers §9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1).</para></remarks>
+    /// the adoption rule, which answers §2023:9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1).</para></remarks>
     protected override bool FixedAttributeConflict() =>
         MetaPage.Describes(HostPath, out var recorded) switch
         {
             StoreFormat.Empty or StoreFormat.Damaged => false,
             StoreFormat.Described => recorded!.Conflicts(DeclaredAttributes, KeyCheck),
-            _ => true,   // Foreign (not a store this build can interpret) or Message (no file of §9.1.6's organizations)
+            _ => true,   // Foreign (not a store this build can interpret) or Message (no file of §2023:9.1.6's organizations)
         };
 
-    // ── The ISO §9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────
+    // ── The ISO §2023:9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────
 
-    /// <summary>⛔ THE HANDLE THAT IS THIS CONNECTOR'S §9.1.15 FILE LOCK — held for the life of the OPEN, and
+    /// <summary>⛔ THE HANDLE THAT IS THIS CONNECTOR'S §2023:9.1.15 FILE LOCK — held for the life of the OPEN, and
     /// the ONE handle the store's pages are read and written through (kb/Work PB771).
     /// <para><i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
     /// thereby preventing other run units from opening that file with incompatible sharing rules"</i>
-    /// (§9.1.15 3)) — and a host share mode is the only thing a .NET process can say to another run unit, which
+    /// (§2023:9.1.15 3)) — and a host share mode is the only thing a .NET process can say to another run unit, which
     /// means a connector that holds no handle says nothing.</para>
     /// <para>⛔ AND IT HAS TO BE THE SAME HANDLE THE STORE TRAVELS THROUGH. A second handle taken for a page read or
     /// write would ask the operating environment for access this connector's own <see cref="FileShare.None"/> forbids,
@@ -119,7 +119,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// <inheritdoc/>
     /// <remarks>⛔ THE ENGINE READS THE FILE BEFORE IT WRITES IT, so every writable mode reads — <c>OPEN EXTEND</c>
     /// included, where <see cref="FileLockPosture.AccessOf"/>'s mode-derived floor says <see cref="FileAccess.Write"/>
-    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §14.9.51.4 GR29 a)'s release number is
+    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §2023:14.9.51.4 GR29 a)'s release number is
     /// <i>"one greater than the highest relative record number existing in the physical file"</i>, a fact of the
     /// records already there. Stating it here is what lets the registry widen a SIBLING's file lock by the access this
     /// handle really takes (kb/Work PB771).</remarks>
@@ -134,7 +134,7 @@ public abstract partial class KeyedConnector : FileConnector
         /// <summary>A PRESENT file an INPUT, I-O or EXTEND OPEN reads or extends: <see cref="FileMode.Open"/>. The only taking that
         /// may take back the handle a CLOSE under commit control kept.</summary>
         Existing,
-        /// <summary>A PRESENT file an OPEN OUTPUT replaces (§14.9.27.4 GR18): <see cref="FileMode.Open"/>; the store's creation
+        /// <summary>A PRESENT file an OPEN OUTPUT replaces (§2023:14.9.27.4 GR18): <see cref="FileMode.Open"/>; the store's creation
         /// truncates it (<see cref="PagedFile.Create"/>), and the handle is a new one beside the kept one (kb/Work PB3493).</summary>
         Replacing,
         /// <summary>A creation decided on an ABSENT probe: <see cref="FileMode.CreateNew"/> (kb/Work PB3635).</summary>
@@ -170,12 +170,12 @@ public abstract partial class KeyedConnector : FileConnector
     {
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
         // ⛔ THE CONNECTOR'S OWN RE-OPEN TAKES BACK THE HANDLE ITS CLOSE UNDER COMMIT CONTROL KEPT when that handle is the
-        // one this OPEN would take — the same access and the same share mode, so the same §9.1.15 file lock (review finding
+        // one this OPEN would take — the same access and the same share mode, so the same §2023:9.1.15 file lock (review finding
         // R1-1): the transaction's liveness byte and the file lock never leave the run unit, and no other run unit's OPEN
         // or dead-owner step can come between them (2.2.1.10). The kept handle is the store's medium already, so only the
         // connector's fields change. ⛔ NEVER FOR A CREATION: an OPEN that creates the file takes a handle of its own and makes the
         // new store through it beside the kept one (Recreate), so that a creation which is refused leaves the kept state as the
-        // CLOSE left it (§14.9.27.4 GR25; kb/Work PB3493).
+        // CLOSE left it (§2023:14.9.27.4 GR25; kb/Work PB3493).
         if (taking is FileTaking.Existing && _kept is { Handle: { } kept, Adopted: false } && kept.Share == HostShare && kept.Stream.CanWrite == (access != FileAccess.Read))
         {
             _kept = _kept with { Adopted = true };
@@ -192,12 +192,12 @@ public abstract partial class KeyedConnector : FileConnector
             _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
         }
         // ⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector — a
-        // SHARING WITH READ ONLY writer against the INPUT reader §9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
+        // SHARING WITH READ ONLY writer against the INPUT reader §2023:9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
         // and only SHARING WITH NO OTHER runs without the mutex.
         _coherent = FileLockPosture.AdmitsAnotherRunUnit(HostShare);
     }
 
-    /// <summary>Give the file lock back — §9.1.15, <i>"The file lock is removed by an explicit or implicit CLOSE
+    /// <summary>Give the file lock back — §2023:9.1.15, <i>"The file lock is removed by an explicit or implicit CLOSE
     /// statement executed for that file connector"</i>. Runs from <see cref="CloseCore"/>'s finally (whatever the
     /// promotion did) and from <see cref="AbandonOpen"/>.</summary>
     private void ReleaseFileLock()
@@ -239,11 +239,11 @@ public abstract partial class KeyedConnector : FileConnector
     /// <summary>Forget the store the connector was attached to (it holds a placeholder again).</summary>
     private protected abstract void ForgetStore();
 
-    /// <summary>The organization's position state reset at the start of every OPEN (§14.9.27.4 GR14's key of reference
+    /// <summary>The organization's position state reset at the start of every OPEN (§2023:14.9.27.4 GR14's key of reference
     /// and position are set by the arm that succeeds).</summary>
     private protected abstract void ResetPosition();
 
-    /// <summary>The organization's last step of a successful OPEN arm in <paramref name="mode"/> — §14.9.27.4 GR14's and
+    /// <summary>The organization's last step of a successful OPEN arm in <paramref name="mode"/> — §2023:14.9.27.4 GR14's and
     /// GR15's positioning; the failing I-O status (a torn page met while positioning: '30'), or null.</summary>
     private protected abstract string? Opened(FileOpenMode mode);
 
@@ -255,18 +255,18 @@ public abstract partial class KeyedConnector : FileConnector
     /// kb/Work PB3336), which read its <see cref="PagedFile.Counters"/> and drop its cache cold.</summary>
     internal PagedFile? PagedStore => _attached ? AttachedStore.File : null;
 
-    /// <summary>The file position indicator's validity bit (§9.1.11; §14.9.41.4 GR7 clears it), the one piece of the
+    /// <summary>The file position indicator's validity bit (§2023:9.1.11; §2023:14.9.41.4 GR7 clears it), the one piece of the
     /// position both organizations keep alike.</summary>
     private protected bool FpiValid { get; set; }
 
-    /// <summary>The keyed OPEN body (§14.9.27). GR14: INPUT/I-O position the file position indicator at the start of
+    /// <summary>The keyed OPEN body (§2023:14.9.27). GR14: INPUT/I-O position the file position indicator at the start of
     /// the key of reference (the organization's <see cref="Opened"/>); GR15: EXTEND positions after the highest; GR17: an
-    /// absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6 item 5: an absent NON-optional file on
+    /// absent OPTIONAL file on I-O/EXTEND is created ('05'); §2023:9.1.13.6 item 5: an absent NON-optional file on
     /// INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode bookkeeping, the position reset, the
     /// ONE presence probe behind <paramref name="presence"/>, GR3's authority '37' and the '37'/'30' exception mapping
     /// live on <see cref="FileConnector.Open"/>.
     /// <para>The store is adopted or created under the store mutex (2.2.1.7, R6): a damaged store — both committed
-    /// slots fail — or a refused read, write or sync is §9.1.13.6 item 1's '30', and the OPEN is unsuccessful
+    /// slots fail — or a refused read, write or sync is §2023:9.1.13.6 item 1's '30', and the OPEN is unsuccessful
     /// (<see cref="AbandonOpen"/> detaches what it attached).</para></summary>
     protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
@@ -282,8 +282,8 @@ public abstract partial class KeyedConnector : FileConnector
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
-                    OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
-                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here. What a CLOSE under commit
+                    OptionalAbsent = true;               // positioned "not present" (§2023:14.9.27 GR13)
+                    // NO file lock: §2023:9.1.15 establishes one on a PHYSICAL FILE, and there is none here. What a CLOSE under commit
                     // control kept belonged to a file that is not there any more (removed or renamed away outside the run unit): the
                     // OPEN handed it to the registry before this body (RetireWhatWasKeptOfAnotherFile), so nothing of its store
                     // describes this one and this OPEN attaches to none of it.
@@ -292,11 +292,11 @@ public abstract partial class KeyedConnector : FileConnector
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                if ((Lock(FileTaking.Existing) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
-                if (SettleDeadOwnersOfTheOpen() is { } unsettled) return unsettled;   // §9.1.18.5, before any record is read (kb/Work PB4097)
+                if ((Lock(FileTaking.Existing) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §2023:9.1.15 — the lock, before the store is read through it
+                if (SettleDeadOwnersOfTheOpen() is { } unsettled) return unsettled;   // §2023:9.1.18.5, before any record is read (kb/Work PB4097)
                 break;
             case FileOpenMode.Output:
-                // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754). Under commit control an
+                // §2023:14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754). Under commit control an
                 // EXISTING file is captured first (R4, through this OPEN's own handle) and an absent one's creation journaled
                 // before the handle creates it (R1): 2.2.2.14.
                 var refusedOutput = exists
@@ -309,13 +309,13 @@ public abstract partial class KeyedConnector : FileConnector
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
-                    // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
+                    // Created as if OPEN OUTPUT + CLOSE (§2023:14.9.27 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
                     if ((JournalCreation() ?? LockCreating(FileTaking.Creating)) is { } refusedCreated) return refusedCreated;
                     // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the
                     // file this OPEN created is a different one, and nothing of the kept store describes it. The OPEN handed the
                     // kept state to the registry before this body (RetireWhatWasKeptOfAnotherFile), whole, so a refused handle
-                    // leaves it as the CLOSE left it (§14.9.27.4 GR25) and the COMMIT still reaches it.
+                    // leaves it as the CLOSE left it (§2023:14.9.27.4 GR25) and the COMMIT still reaches it.
                     if (Attach(create: false) is { } failedCreated) return failedCreated;
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
@@ -336,9 +336,9 @@ public abstract partial class KeyedConnector : FileConnector
     // creation replaced the store, KeyedStore.FileReplaced) are FileConnector's: _begunByOpen, _openChangedFile, WithdrawWhatTheOpenBegan.
 
     /// <summary>⛔ A CREATION UNDER COMMIT CONTROL IS JOURNALED BEFORE THE FILE EXISTS (2.2.2.2 (e), 2.2.2.5 R1, 2.2.2.14): an OPEN that
-    /// creates an absent file — OUTPUT, or I-O or EXTEND of an OPTIONAL one (§14.9.27.4 GR17, GR18) — begins the run unit's
+    /// creates an absent file — OUTPUT, or I-O or EXTEND of an OPTIONAL one (§2023:14.9.27.4 GR17, GR18) — begins the run unit's
     /// transaction on it with no file at its start (START <c>A</c>), under the entry mutex (<see cref="FileConnector.EnterPhysicalFile"/>),
-    /// so its ROLLBACK removes the file: §14.9.36.4 GR3 restores <i>"the state they were in at the execution of the last COMMIT
+    /// so its ROLLBACK removes the file: §2023:14.9.36.4 GR3 restores <i>"the state they were in at the execution of the last COMMIT
     /// statement or the start of the run unit"</i>, and that state had no file. A transaction that stands has journaled what it
     /// needs already. Returns null; throws on a refusal (the OPEN's '30', the file not created).</summary>
     private string? JournalCreation()
@@ -349,7 +349,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ THE RUN UNIT'S ROLLBACK REMOVED THE FILE A CREATION SINCE THE LAST COMMIT MADE, AND THIS CONNECTOR STAYED OPEN
-    /// (§14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement or the start of the
+    /// (§2023:14.9.36.4 GR3, <i>"restored to the state they were in at the execution of the last COMMIT statement or the start of the
     /// run unit"</i>, a state with no file; DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, review finding R1-2; the
     /// sequential organization's twin is <c>SequentialConnector</c>'s own): the connector keeps its open mode on no file
     /// (<see cref="LeaveTheRemovedFile"/>). A READ or START reads it as an absent OPTIONAL file (<see cref="FileConnector.OptionalAbsent"/>:
@@ -375,14 +375,14 @@ public abstract partial class KeyedConnector : FileConnector
         finally
         {
             SuspendRunUnitFileLock();
-            (_fileRemoved, OptionalAbsent) = (true, true);   // the file position indicator stays as it was (§14.9.36.4 GR3 leaves the open mode)
+            (_fileRemoved, OptionalAbsent) = (true, true);   // the file position indicator stays as it was (§2023:14.9.36.4 GR3 leaves the open mode)
             AttachStore(create: false);   // no file, no records
             _attached = true;
         }
     }
 
     /// <summary>⛔ A WRITE THROUGH A CONNECTOR WHOSE FILE THE ROLLBACK REMOVED (<see cref="_fileRemoved"/>) CREATES IT AGAIN, AS ITS OPEN
-    /// DID (§14.9.27.4 GR17, GR18; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>), then runs
+    /// DID (§2023:14.9.27.4 GR17, GR18; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>), then runs
     /// <paramref name="write"/> against the file it created, inside the statement of its store (2.2.1.7: a connector with no file
     /// entered none). Each organization's WRITE calls it at its last check before the record is released, so a WRITE the
     /// absent file refuses (its record rules, its keys, its locks) creates nothing.</summary>
@@ -395,7 +395,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// <summary>The creation of <see cref="WriteCreatingTheFileAgain"/>, under the entry mutex: the journal begun with no file at its
     /// start (START <c>A</c>, <see cref="JournalCreation"/>), the creating handle taken and the empty store created
     /// (<see cref="LockCreating"/>, <see cref="Attach"/>), and the Table 19 column published again. A file another run unit made at
-    /// the path meanwhile is not this WRITE's to replace: '30' (§9.1.13.6) from the presence probe, or from the creating handle
+    /// the path meanwhile is not this WRITE's to replace: '30' (§2023:9.1.13.6) from the presence probe, or from the creating handle
     /// (<see cref="FileMode.CreateNew"/>) for one made after it, as for any refusal. An unsuccessful creation leaves the
     /// connector on no file, the journal withdrawn when the file was not created and otherwise left to item 8's ROLLBACK, which
     /// removes it. Returns the failing I-O status, or null.</summary>
@@ -446,7 +446,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ THE CAPTURE OF AN OPEN OUTPUT OF AN EXISTING FILE UNDER COMMIT CONTROL (2.2.2.5 R4, 2.2.2.14; kb/Work PB3492): the
-    /// keyed store's transaction cannot undo the creation (§14.9.27.4 GR18: <i>"After the creation of the file, the file contains no
+    /// keyed store's transaction cannot undo the creation (§2023:14.9.27.4 GR18: <i>"After the creation of the file, the file contains no
     /// records"</i>), whose pages hold the before-images, so the file's bytes are copied — as they stand, the run unit's uncommitted
     /// changes and their UNDO pages included — through THIS OPEN's own handle into the journal's before file, synced, and the
     /// <c>K</c> record synced, all before the creation runs (<see cref="Attach"/>, <see cref="Recreate"/>). Under the entry mutex,
@@ -522,7 +522,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>The file lock of an arm that has a physical file (<see cref="TakeFileLock"/>), taken only for a declaration
-    /// the physical format can hold (<see cref="FormatHolds"/>): one it cannot is §14.9.27.4 GR10's fixed file attribute
+    /// the physical format can hold (<see cref="FormatHolds"/>): one it cannot is §2023:14.9.27.4 GR10's fixed file attribute
     /// conflict, '39', answered before any file is touched (GR25, <i>"If the execution of the OPEN statement is
     /// unsuccessful, the file is not affected"</i>). Returns the failing I-O status, or null.</summary>
     private string? Lock(FileTaking taking)
@@ -534,7 +534,7 @@ public abstract partial class KeyedConnector : FileConnector
         // same handle back (TakeFileLock). With no transaction there is nothing to write, so the handle takes the access
         // of its own mode (HostAccess) and no more (review finding R2-1): a writable handle under an INPUT re-OPEN would be
         // refused by the host share mode of the OPENs of other run units that Table 19 admits beside an INPUT opener
-        // (§9.1.15). The handle that stands writable while the transaction does leaves the one case a share mode cannot say, an
+        // (§2023:9.1.15). The handle that stands writable while the transaction does leaves the one case a share mode cannot say, an
         // INPUT opener that owes its transaction's writes, to the OPEN that meets it: a SHARING WITH READ ONLY request is
         // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
         // (FileConnector.Open, kb/Work PB3482), which the connector's column says by owing writes (FileConnector.OwesWrites, kb/Work PB3499).
@@ -542,14 +542,14 @@ public abstract partial class KeyedConnector : FileConnector
         try { TakeFileLock(taking, access); }
         catch (IOException refusal) when (HostFile.IsSharingRefusal(refusal) && _kept is { Handle: { } kept, Adopted: false })
         {
-            // The handle this connector kept at its CLOSE under commit control may refuse the new one's share mode (§9.1.15
+            // The handle this connector kept at its CLOSE under commit control may refuse the new one's share mode (§2023:9.1.15
             // speaks of OTHER run units, never of the connector's own re-OPEN), and the host's refusal does not say whose
             // handle refused: the kept one's, or another run unit's, which the kept one admitted. So the HANDLE is given back
             // and the new one tried again — the attachment, and with it the run unit's transaction, stays (review finding
             // R1-1), and the store takes the transaction's liveness byte again through the new handle at the attach
             // (KeyedStore.HoldLivenessThrough). ⛔ A re-OPEN that is unsuccessful after that — the refusal persists because it
             // is another run unit's, or the attach or the positioning fails — must not cost the connector what the CLOSE kept
-            // (§14.9.27.4 GR25; §14.9.7.4 GR4): AbandonOpen takes the handle again as it was (RetakeKeptHandle). Any other
+            // (§2023:14.9.27.4 GR25; §2023:14.9.7.4 GR4): AbandonOpen takes the handle again as it was (RetakeKeptHandle). Any other
             // IOException leaves the kept handle where it is.
             _kept = _kept with { Handle = null };
             _givenBack = kept;
@@ -580,13 +580,13 @@ public abstract partial class KeyedConnector : FileConnector
     private KeptHandle? _givenBack;
 
     /// <summary>⛔ PUT THE HANDLE A CLOSE UNDER COMMIT CONTROL KEPT BACK, as <see cref="GiveBack"/> left it (kb/Work PB3483): the
-    /// re-OPEN gave it away to take another, and the re-OPEN is unsuccessful, so §14.9.27.4 GR25's <i>"the file is not
-    /// affected"</i> means the kept state is what the CLOSE left — the file lock (§9.1.15, §14.9.7.4 GR4) and the
+    /// re-OPEN gave it away to take another, and the re-OPEN is unsuccessful, so §2023:14.9.27.4 GR25's <i>"the file is not
+    /// affected"</i> means the kept state is what the CLOSE left — the file lock (§2023:9.1.15, §2023:14.9.7.4 GR4) and the
     /// transaction's liveness byte (2.2.1.10), which a handle that is not there holds for nobody, so that the next writable
     /// OPEN of another run unit rolls back a transaction whose owner lives. The handle is taken with the access and share
     /// mode it had and attached to the store exactly as an OPEN attaches its own (<see cref="Attach"/>), then handed back to
     /// <see cref="_kept"/>. Runs after this OPEN's own handle is given back, which would otherwise refuse it.
-    /// <para>⛔ The record locks the CLOSE kept (§14.9.6.4 GR9) are part of that state: the retaken handle's endpoint becomes
+    /// <para>⛔ The record locks the CLOSE kept (§2023:14.9.6.4 GR9) are part of that state: the retaken handle's endpoint becomes
     /// the one they are published through (<see cref="KeptFile.Endpoint"/>) — <see cref="Attach"/> moves to it those the given-back
     /// endpoint still names, and <paramref name="unpublished"/>, the ones <see cref="AbandonOpen"/> took off this OPEN's own
     /// handle, are published through it again (<see cref="PhysicalFileTable.Republish"/>). A retake the HOST refuses leaves them in
@@ -611,9 +611,9 @@ public abstract partial class KeyedConnector : FileConnector
             stream = null;   // the connector's now
             // ⛔ THE HANDLE IS RETAKEN WHETHER OR NOT THE MEDIUM LETS THE STORE BE ADOPTED AGAIN (kb/Work PB3497): the giving
             // back detached the store's last handle, so Attach reads its pages anew, and a medium that refuses that read
-            // (§9.1.13.6 item 1) fails the Attach before it carries the holdings across. What the CLOSE kept is a handle's —
+            // (§2023:9.1.13.6 item 1) fails the Attach before it carries the holdings across. What the CLOSE kept is a handle's —
             // the share mode that is the file lock, the transaction's liveness byte, the record locks — and none of it
-            // depends on a page read, so the unsuccessful OPEN leaves it standing all the same (§14.9.27.4 GR25; §14.9.6.4
+            // depends on a page read, so the unsuccessful OPEN leaves it standing all the same (§2023:14.9.27.4 GR25; §2023:14.9.6.4
             // GR9): without the liveness byte another run unit's writable OPEN would roll back a transaction whose owner
             // lives, and without the endpoint its READ of a record the CLOSE kept locked would answer '00'. The store stays
             // unadopted (no file) until the connector's next OPEN reads it again.
@@ -686,7 +686,7 @@ public abstract partial class KeyedConnector : FileConnector
         return Failed(opened);
     }
 
-    /// <summary>⛔ THE HOST-LEVEL HOLDINGS A CLOSE UNDER COMMIT CONTROL KEPT MOVE TO THIS CONNECTOR'S HANDLE (§14.9.6.4 GR9; §14.9.7.4
+    /// <summary>⛔ THE HOST-LEVEL HOLDINGS A CLOSE UNDER COMMIT CONTROL KEPT MOVE TO THIS CONNECTOR'S HANDLE (§2023:14.9.6.4 GR9; §2023:14.9.7.4
     /// GR4; 2.2.1.10): the run unit's open transaction keeps its liveness byte through this handle from here — the kept one's
     /// moves, or one given back with it is taken again — and so do the record locks the CLOSE kept: they move to the new
     /// handle's endpoint, before the kept one is given back and takes every byte it holds with it. The caller holds the store
@@ -700,7 +700,7 @@ public abstract partial class KeyedConnector : FileConnector
             PhysicalFileTable.Rehome(physical, carried.Endpoint, _regions!);
     }
 
-    /// <summary>⛔ <c>OPEN OUTPUT</c> OVER THE FILE ITS CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT (§14.9.27.4 GR18, <i>"the
+    /// <summary>⛔ <c>OPEN OUTPUT</c> OVER THE FILE ITS CONNECTOR'S CLOSE UNDER COMMIT CONTROL KEPT (§2023:14.9.27.4 GR18, <i>"the
     /// successful execution of the OPEN statement creates the file"</i>; GR25, <i>"If the execution of the OPEN statement is
     /// unsuccessful, the file is not affected"</i>; kb/Work PB3493): the new, EMPTY store is created in a store of its own,
     /// through this OPEN's handle, BESIDE the kept attachment, and what the CLOSE kept ends only once the creation has landed.
@@ -738,8 +738,8 @@ public abstract partial class KeyedConnector : FileConnector
         return Failed(InStoreMutex(() => StoreHandleWritable ? created.RollBackDeadOwners(_regions!, Restoring) : StoreStatus.Ok));
     }
 
-    /// <summary>Attach this connector's handle (its §9.1.15 file lock) to <paramref name="store"/> with its input-output areas as the
-    /// page cache's floor (§12.4.5.14.3 GR1) - the ONE place the keyed lifecycle sizes them (kb/Work PB3333).</summary>
+    /// <summary>Attach this connector's handle (its §2023:9.1.15 file lock) to <paramref name="store"/> with its input-output areas as the
+    /// page cache's floor (§2023:12.4.5.14.3 GR1) - the ONE place the keyed lifecycle sizes them (kb/Work PB3333).</summary>
     private void AttachHandleTo(KeyedStore store) =>
         store.AttachHandle(_handle!, StoreHandleWritable, HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
 
@@ -760,7 +760,7 @@ public abstract partial class KeyedConnector : FileConnector
                 return store.DetachHandle(handle);
             })
             : StoreStatus.Ok;
-        // A failed re-OPEN after a CLOSE under commit control leaves the attachment the CLOSE kept as it was (§14.9.27.4
+        // A failed re-OPEN after a CLOSE under commit control leaves the attachment the CLOSE kept as it was (§2023:14.9.27.4
         // GR25, "the file is not affected"): it is still the kept one's, until the COMMIT or ROLLBACK.
         if (_kept is not null) return status;
         SharedStores?.Detach(HostPath, store);
@@ -772,12 +772,12 @@ public abstract partial class KeyedConnector : FileConnector
     /// <inheritdoc/>
     protected sealed override void AbandonOpen()
     {
-        // ⛔ A journal this OPEN began for its creation or capture is WITHDRAWN when the file was not affected (§14.9.27.4 GR25,
+        // ⛔ A journal this OPEN began for its creation or capture is WITHDRAWN when the file was not affected (§2023:14.9.27.4 GR25,
         // "If the execution of the OPEN statement is unsuccessful, the file is not affected"; 2.2.2.14): no transaction began on
         // it, and a kept transaction stands as the CLOSE left it. One whose file the OPEN changed stands for item 8's ROLLBACK.
         WithdrawWhatTheOpenBegan();
         // A re-OPEN that ADOPTED the handle its CLOSE under commit control kept gives it back to the kept state unchanged,
-        // its liveness byte with it (§14.9.27.4 GR25); the kept column lock this OPEN replaced goes back to the kept state
+        // its liveness byte with it (§2023:14.9.27.4 GR25); the kept column lock this OPEN replaced goes back to the kept state
         // (and its old column) in FileConnector.Open, after this (TryRestoreKeptFileLock).
         if (_kept is { Adopted: true } adopted)
         {
@@ -796,7 +796,7 @@ public abstract partial class KeyedConnector : FileConnector
             });
         // A kept handle given back early has no endpoint to move them to while this OPEN's own handle is on the file: they
         // leave the host with that handle, as the liveness byte does (the share-mode window, KeyedStore.LivenessGoneWith), but
-        // they stay this run unit's, in its table, until the COMMIT or the ROLLBACK (§14.9.27.4 GR25, §14.9.6.4 GR9; review
+        // they stay this run unit's, in its table, until the COMMIT or the ROLLBACK (§2023:14.9.27.4 GR25, §2023:14.9.6.4 GR9; review
         // finding R1-2) — and are published again through the kept handle when it is taken again below (RetakeKeptHandle).
         List<string>? unpublished = null;
         if (_kept is { Handle: null } && Physical is { } stale && _regions is { } own)
@@ -811,7 +811,7 @@ public abstract partial class KeyedConnector : FileConnector
         finally
         {
             // A re-OPEN that gave the kept handle away to try another share mode is unsuccessful: the kept state stands as the
-            // CLOSE left it (§14.9.27.4 GR25), now that this OPEN's own handle is off the file.
+            // CLOSE left it (§2023:14.9.27.4 GR25), now that this OPEN's own handle is off the file.
             if (_givenBack is { } gone)
             {
                 _givenBack = null;
@@ -820,17 +820,17 @@ public abstract partial class KeyedConnector : FileConnector
         }
     }
 
-    /// <summary>The keyed CLOSE body (ISO §14.9.6): through a writable handle the store's PROMOTION (2.2.1.6 R5) — the
+    /// <summary>The keyed CLOSE body (ISO §2023:14.9.6): through a writable handle the store's PROMOTION (2.2.1.6 R5) — the
     /// work meta made a committed slot, synced — under the store mutex, so the next OPEN verifies the retirement's few
     /// pages and nothing else; the records themselves were written by the statements that changed them. The
     /// run-unit-termination <c>CloseAll</c> reaches it too, which keyed chains (RL208A) depend on. The not-open '42'
     /// guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected sealed override string CloseCore()
     {
-        // A refused promotion maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping), which ends
+        // A refused promotion maps to '30' on FileConnector.Close (§2023:9.1.13.6 item 1 — the ONE mapping), which ends
         // the open mode either way; ModeKnown then stays true for the USE-declarative scoping. The records survive it:
         // page 2 already names the last completed statement's trees (2.2.1.6), so the next OPEN adopts them.
-        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file position
+        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §2023:14.9.6.4 GR6 says the file position
         // indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
         var detached = StoreStatus.Ok;
         try
@@ -841,9 +841,9 @@ public abstract partial class KeyedConnector : FileConnector
         }
         finally
         {
-            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE FILE LOCK, AND THE HANDLE THAT IS IT (§9.1.15: "The file lock is
+            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE FILE LOCK, AND THE HANDLE THAT IS IT (§2023:9.1.15: "The file lock is
             // removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file is
-            // subject to an active APPLY COMMIT clause."; §14.9.7.4 GR4, "closed and not reopened prior to the COMMIT
+            // subject to an active APPLY COMMIT clause."; §2023:14.9.7.4 GR4, "closed and not reopened prior to the COMMIT
             // statement, the file locks are released"; DESIGN-runtime-library.md 2.2.1.10). The rule is the clause's, not
             // the transaction's (review finding R1-2): a connector that only READ keeps it as one that changed records
             // does. The connector's handle, its region endpoint — through which the transaction's liveness byte may be
@@ -860,7 +860,7 @@ public abstract partial class KeyedConnector : FileConnector
             }
             else
             {
-                // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
+                // §2023:9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
                 // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
                 // its medium reads through is still open.
                 try { detached = Detach(); }
@@ -868,7 +868,7 @@ public abstract partial class KeyedConnector : FileConnector
             }
         }
         // The last writable connector's CLOSE re-adopts the store as its INPUT siblings' (KeyedStore.DetachHandle); a
-        // refused read there is this CLOSE's permanent error (§9.1.13.6 item 1; 2.2.1.16's refused READ row), mapped to
+        // refused read there is this CLOSE's permanent error (§2023:9.1.13.6 item 1; 2.2.1.16's refused READ row), mapped to
         // '30' by FileConnector.Close like a refused promotion. The connector is closed either way.
         if (detached != StoreStatus.Ok)
             throw new IOException($"the medium refused the reader's re-adoption of '{HostPath}' at the CLOSE");
@@ -878,18 +878,18 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>The I-O status a store operation's failure answers when the statement is not a record WRITE or REWRITE —
-    /// an OPEN's adoption or creation, a DELETE — in either organization: §9.1.13.6 item 1's '30' (<i>"A permanent error
+    /// an OPEN's adoption or creation, a DELETE — in either organization: §2023:9.1.13.6 item 1's '30' (<i>"A permanent error
     /// exists and no further information is available concerning the input-output operation"</i>) for every failure, the
-    /// boundary of the physical file included. The boundary's '24' is §9.1.13.5 item 4's <i>"An attempt is made to write
+    /// boundary of the physical file included. The boundary's '24' is §2023:9.1.13.5 item 4's <i>"An attempt is made to write
     /// outside the externally-defined boundaries of a physical relative or indexed file"</i> — an attempt to WRITE a
-    /// record — and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses
+    /// record — and §2023:14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses
     /// to grow the file for is the permanent error and never the invalid key condition (docs/CONFORMANCE.md
     /// DOC-A.1-107). Null on success.</summary>
     private protected static string? Failed(StoreStatus status) =>
         status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
 
     /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers, in either organization: '24' for the
-    /// boundary of the physical file (§9.1.13.5 item 4; §14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
+    /// boundary of the physical file (§2023:9.1.13.5 item 4; §2023:14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
     /// one; 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on success.</summary>
     private protected static string? RecordWriteFailed(StoreStatus status) =>
         status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
@@ -898,19 +898,19 @@ public abstract partial class KeyedConnector : FileConnector
     /// verb), so the change's own statement need not read it again.</summary>
     private protected bool Entered => AttachedStore.StatementDepth > 0;
 
-    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §14.9.41.4 GR7 clears the bit too)
+    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §2023:14.9.41.4 GR7 clears the bit too)
     protected sealed override void InvalidateFilePosition()
     {
         FpiValid = false;
-        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§9.1.13.7 item 6 a))
+        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§2023:9.1.13.7 item 6 a))
     }
 
     /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
-    /// (§9.1.13.5 item 3): §14.9.41.4 GR7's invalidation plus that value.</summary>
+    /// (§2023:9.1.13.5 item 3): §2023:14.9.41.4 GR7's invalidation plus that value.</summary>
     private protected string StartFail() => Unsuccessful(FileStatusCode.RecordNotFound);
 
     /// <summary>⛔ THE RECORD'S OWN RULES, WRITTEN ONCE FOR EVERY KEYED WRITE AND REWRITE (kb/Work PB2751): the size
-    /// (§14.9.51.4 GR14 / §14.9.35.4 GR20, '44': <i>"If this rule is violated, the execution of the WRITE statement is
+    /// (§2023:14.9.51.4 GR14 / §2023:14.9.35.4 GR20, '44': <i>"If this rule is violated, the execution of the WRITE statement is
     /// unsuccessful and the I-O status of the write file connector is set to '44'"</i>), then a character with no
     /// byte image in the file's coded character set ('91', docs/CONFORMANCE.md DOC-A.1-110). Each statement asks it
     /// after its open-mode rule (and REWRITE's GR5 '43') and BEFORE any key or invalid key rule, which is the order
@@ -945,13 +945,13 @@ public abstract partial class KeyedConnector : FileConnector
     /// PB3485): the organization's own key orders, so two keys the file's collating sequence makes equal are one holding.</summary>
     private protected abstract IKeyOrder HoldingsOrder { get; }
 
-    /// <summary>The record identity — the HOLDINGS tree's bytes — of a §9.1.16 record lock identity string
+    /// <summary>The record identity — the HOLDINGS tree's bytes — of a §2023:9.1.16 record lock identity string
     /// (<see cref="FileConnector.LastReadRecordId"/>'s form); null when it names no record the file can hold.</summary>
     private protected abstract byte[]? IdentityOf(string recordId);
 
     /// <inheritdoc/>
     /// <remarks>⛔ THE ONE DECISION that a CLOSE keeps the file lock, the handle that is it and the record locks published
-    /// through it (§14.9.6.4 GR9; <see cref="CloseCore"/>, <c>FileRegistry.SharedClose</c>): the connector is under commit
+    /// through it (§2023:14.9.6.4 GR9; <see cref="CloseCore"/>, <c>FileRegistry.SharedClose</c>): the connector is under commit
     /// control and has a handle to keep (an absent OPTIONAL INPUT file has none, and so has nothing to keep).</remarks>
     internal sealed override bool CloseKeepsLocks =>
         CommitControlled && _store is not null && _handle is not null && _regions is not null;
@@ -982,7 +982,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ HAND THE KEPT STATE OVER TO THE REGISTRY (kb/Work PB3494, PB3576): the connector is displaced by its element's next
-    /// activation, or its next OPEN associates it with another physical file (§12.4.5.3 GR3 b), or the path of its OPEN no longer
+    /// activation, or its next OPEN associates it with another physical file (§2023:12.4.5.3 GR3 b), or the path of its OPEN no longer
     /// names the file it was kept on, and what its CLOSE kept belongs to the file it was kept on, not to the connector — the
     /// COMMIT, the ROLLBACK and the run unit's end still reach it there (<c>FileRegistry.Retire</c>), and the connector holds
     /// nothing of it any more. Nothing when it kept nothing. The ONE hand-over: every path that parts a connector from its kept
@@ -1015,7 +1015,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// (<c>FileRegistry.Associate</c>, kb/Work PB3494): its transaction, record locks and file lock stay the COMMIT's and the
     /// ROLLBACK's in the physical file they belong to, which the run unit's tables hold apart from the file now at the path
     /// (<see cref="StoreTable"/>, <c>PhysicalFileTable.For</c>), so a renamed file's changes are committed, not abandoned. It
-    /// retires whatever this OPEN goes on to answer: §14.9.27.4 GR25's <i>"the file is not affected"</i> is about the file the path
+    /// retires whatever this OPEN goes on to answer: §2023:14.9.27.4 GR25's <i>"the file is not affected"</i> is about the file the path
     /// names, and the kept one is not it. A connector that inherited the kept state of the connector it replaced
     /// (<see cref="InheritKept"/>) meets the same question here.</remarks>
     private protected sealed override void RetireWhatWasKeptOfAnotherFile(FilePresence presence)
@@ -1025,7 +1025,7 @@ public abstract partial class KeyedConnector : FileConnector
 
     /// <summary>The connector's re-OPEN SUCCEEDED (<see cref="OpenCore"/>): what its CLOSE under commit control kept is this
     /// OPEN's now — the attachment and the transaction's liveness byte were carried on by <see cref="Attach"/>, so the kept
-    /// handle, unless the OPEN adopted it, and any file lock left are given back (§14.9.7.4 GR4's <i>"closed and not
+    /// handle, unless the OPEN adopted it, and any file lock left are given back (§2023:14.9.7.4 GR4's <i>"closed and not
     /// reopened"</i>: a reopened file's lock is the new OPEN's).</summary>
     private void CarryKeptOver()
     {
@@ -1044,7 +1044,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ TAKE OVER what a connector this one replaced kept at its CLOSE under commit control (review finding R1-1;
-    /// <c>FileRegistry.ReclaimRetired</c>): the replacement is the same SELECT's next activation (§12.4.6.3.4 GR5 keeps the
+    /// <c>FileRegistry.ReclaimRetired</c>): the replacement is the same SELECT's next activation (§2023:12.4.6.3.4 GR5 keeps the
     /// APPLY COMMIT clause active across the CANCEL), so its OPEN is a re-OPEN of the file the kept state belongs to - the
     /// attachment and the transaction in it, the handle, the Table 19 file lock and the record locks published through the
     /// endpoint - and every rule written for that re-OPEN (<see cref="TakeFileLock"/>, <see cref="Attach"/>,
@@ -1073,7 +1073,7 @@ public abstract partial class KeyedConnector : FileConnector
 
     /// <inheritdoc/>
     /// <remarks>The kept handle's own share mode refuses the probe, so it is given back for the instant of the question and,
-    /// when another handle does hold the file, taken again before the OPEN answers '61' (§14.9.27.4 GR25); when none does,
+    /// when another handle does hold the file, taken again before the OPEN answers '61' (§2023:14.9.27.4 GR25); when none does,
     /// it stays away and the OPEN's end gives the kept state back or takes the handle again, as for any re-OPEN that swapped
     /// handles (<see cref="Lock"/>).</remarks>
     private protected sealed override bool HeldByAnotherHandle()
@@ -1123,11 +1123,11 @@ public abstract partial class KeyedConnector : FileConnector
     /// writer and every reader not IGNORING LOCK"; findings R2-3, R2-4, R4-1): when page 2's holdings root is not empty, each
     /// HOLDINGS key the statement would touch — the record's identity, and for a WRITE or REWRITE each unique alternate key
     /// value it would insert — is looked up, at DOC-A.1-104's point (after the invalid key conditions, which ignore locks,
-    /// §14.9.51.4 GR33/GR42; before the record is touched). No entry: the identity is nobody's, and no rollback will ever
-    /// touch it. This run unit's own transaction through a connector under commit control: proceed (§14.9.30.4 GR8's
+    /// §2023:14.9.51.4 GR33/GR42; before the record is touched). No entry: the identity is nobody's, and no rollback will ever
+    /// touch it. This run unit's own transaction through a connector under commit control: proceed (§2023:14.9.30.4 GR8's
     /// re-access). Any other transaction — another run unit's, or this run unit's through a connector no APPLY COMMIT names —
-    /// has its owner's liveness byte probed NOW: held, '51' (§9.1.16's implementor-specified circumstance, DOC-A.1-152), and
-    /// the statement's RETRY phrase applies (§14.9.51.4 GR16, <i>"for the case where resources needed to write a record are
+    /// has its owner's liveness byte probed NOW: held, '51' (§2023:9.1.16's implementor-specified circumstance, DOC-A.1-152), and
+    /// the statement's RETRY phrase applies (§2023:14.9.51.4 GR16, <i>"for the case where resources needed to write a record are
     /// locked by another run unit"</i>); free, the owner died, and its transaction is rolled back HERE, under the mutex this
     /// statement holds, before its own change. <paramref name="reevaluate"/> is then true — as after any RETRY wait — and the
     /// caller evaluates the statement's conditions again from the invalid key conditions on, against the file as it is now
@@ -1157,8 +1157,8 @@ public abstract partial class KeyedConnector : FileConnector
                     // A dead owner's holding: a writer rolls the owner back here. A reader cannot (its handle is read-only and
                     // it holds the mutex shared): the statement's entry settled every dead owner through a handle of its own
                     // (Enter, SettleDeadOwnersBeside), so a holder met dead HERE died after that probe, within this very
-                    // statement. Its holding stands until the rollback (§9.1.18.5 releases the locks only after it), so the
-                    // reader is refused as by any holding, '51' (§9.1.16's implementor-specified circumstance, DOC-A.1-152) and
+                    // statement. Its holding stands until the rollback (§2023:9.1.18.5 releases the locks only after it), so the
+                    // reader is refused as by any holding, '51' (§2023:9.1.16's implementor-specified circumstance, DOC-A.1-152) and
                     // the RETRY phrase's wait lets go of the mutex; the attempt after it re-enters and settles.
                     if (!file.Writable) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
                     if (store.RollBack(owner, Restoring) != StoreStatus.Ok) return RetryAttempt.InRunUnit(FileStatusCode.PermanentError);
@@ -1195,19 +1195,19 @@ public abstract partial class KeyedConnector : FileConnector
         if (_attached) AttachedStore.ReleaseLivenessForWitness();
     }
 
-    /// <summary>⛔ COMMIT the run unit's transaction on this connector's physical file (§14.9.7.4 GR3; 2.2.1.10), under the
+    /// <summary>⛔ COMMIT the run unit's transaction on this connector's physical file (§2023:14.9.7.4 GR3; 2.2.1.10), under the
     /// store mutex through this connector's handle, or — a connector that is closed — through the one it kept at its CLOSE
     /// (<see cref="KeptFile.CommitTransaction"/>).</summary>
     internal CommitOutcome CommitTransaction() =>
         _regions is null && _kept is { } kept ? kept.CommitTransaction() : InStoreMutex(() => AttachedStore.Commit(Restoring, HoldingsOrder));
 
-    /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§14.9.36.4 GR3; 2.2.1.10): the
+    /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§2023:14.9.36.4 GR3; 2.2.1.10): the
     /// statement's entry (which unwinds an unlanded COMMIT's claim, R5's restart rule) and the ROLLBACK statement, under the
     /// store mutex, or — a connector that is closed — through the handle it kept (<see cref="KeptFile.RollbackTransaction"/>).</summary>
     internal StoreStatus RollbackTransaction() =>
         _regions is null && _kept is { } kept ? kept.RollbackTransaction() : InStoreMutex(() => AttachedStore.Rollback(Restoring, HoldingsOrder));
 
-    // ── Coherence ACROSS RUN UNITS (ISO §9.1.15, §9.1.16; kb/Work PB2660) ────────────────────────────────────
+    // ── Coherence ACROSS RUN UNITS (ISO §2023:9.1.15, §2023:9.1.16; kb/Work PB2660) ────────────────────────────────────
 
     /// <summary>The connector's own handle — <see cref="FileLock"/>'s, taken once — through which the store's pages are
     /// read and written POSITIONALLY and through which the store mutex and the record locks are held
@@ -1223,7 +1223,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// COHERENT (<see cref="BeginStatement"/>): it runs inside the store mutex, starting from the file as it is now. The
     /// engine writes at every statement, so this is every sharing mode that admits ANY other run unit's connector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and
-    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
+    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §2023:9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
     /// half-written path.</summary>
     private bool _coherent;
 
@@ -1238,10 +1238,10 @@ public abstract partial class KeyedConnector : FileConnector
     /// — waiting for another run unit's statement to finish — and read page 2, adopting it when another run unit's
     /// statement moved it (2.2.1.7). Every governed record statement runs inside one (<c>FileRegistry</c>), so its
     /// record-lock check, its operation, its lock actions and the pages it writes are ONE step to every other run unit —
-    /// which is what makes §9.1.16's <i>"While locked by a given file connector, a record is not accessible to another
-    /// file connector in the same or a different run unit"</i> enforceable, and what makes §14.9.30.4 GR21's <i>"the
+    /// which is what makes §2023:9.1.16's <i>"While locked by a given file connector, a record is not accessible to another
+    /// file connector in the same or a different run unit"</i> enforceable, and what makes §2023:14.9.30.4 GR21's <i>"the
     /// first existing record in the physical file"</i> the file's and not a snapshot's. Inert (<c>default</c>) for every
-    /// other connector — and for a statement on a connector whose PERMANENT ERROR is in effect (§9.1.13.1, <i>"The
+    /// other connector — and for a statement on a connector whose PERMANENT ERROR is in effect (§2023:9.1.13.1, <i>"The
     /// permanent error condition remains in effect for all subsequent input-output operations on the file"</i>): the
     /// verb answers it first (<see cref="FileConnector.PermanentErrorReplay"/>), and the technique this processor provides
     /// (docs/CONFORMANCE.md DOC-A.1-105) says such a statement <i>"does not touch the physical file"</i>, so it neither
@@ -1254,10 +1254,10 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ A HOST FAILURE OF A STATEMENT'S OWN ENTRY IS A PERMANENT ERROR, NOT AN EXCEPTION (kb/Work PB2842).
-    /// Taking the mutex and reading page 2 are host I/O, and §9.1.13.6 1)'s <i>"A permanent error exists and no further
+    /// Taking the mutex and reading page 2 are host I/O, and §2023:9.1.13.6 1)'s <i>"A permanent error exists and no further
     /// information is available concerning the input-output operation"</i> ('30') is what the standard gives such a
     /// failure. The statement is entered all the same, holding what it took: the status is recorded
-    /// (<see cref="FileConnector.SetStatus"/>, which starts the permanent error of §9.1.13.1, <i>"The permanent error
+    /// (<see cref="FileConnector.SetStatus"/>, which starts the permanent error of §2023:9.1.13.1, <i>"The permanent error
     /// condition remains in effect for all subsequent input-output operations on the file"</i>) and the statement's own
     /// body ends at the replay every verb makes first (<see cref="FileConnector.PermanentErrorReplay"/>) — so READ and
     /// START invalidate the file position indicator as they do for any permanent error. A failure that is not the
@@ -1287,7 +1287,7 @@ public abstract partial class KeyedConnector : FileConnector
             {
                 if (store.RollBackDeadOwners(_regions, Restoring) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
             }
-            // ⛔ A READER's entry owes the same step (§9.1.18.5, kb/Work PB4097), and cannot take it through its own handle: the
+            // ⛔ A READER's entry owes the same step (§2023:9.1.18.5, kb/Work PB4097), and cannot take it through its own handle: the
             // statement enters under the SHARED mutex through a read-only handle. It finds a dead owner (a read) and, if there is
             // one, lets go of the mutex, settles through a handle opened for the purpose and enters again.
             else if (ReaderEntryFindsDeadOwner(store, out var found) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
@@ -1324,7 +1324,7 @@ public abstract partial class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ WAIT OUTSIDE THE MUTEX. A statement that meets another run unit's record lock and carries a RETRY
-    /// phrase waits for that run unit to give the lock back (§14.7.9.3) — which it can only do by executing a
+    /// phrase waits for that run unit to give the lock back (§2023:14.7.9.3) — which it can only do by executing a
     /// statement of its own, inside this same mutex. So the wait lets go of the mutex, and the statement re-enters
     /// (re-reading page 2 if it changed) before its next attempt. Nothing has been written when a conflict is
     /// being retried — every conflict check precedes its operation (kb/Work PB338).</summary>

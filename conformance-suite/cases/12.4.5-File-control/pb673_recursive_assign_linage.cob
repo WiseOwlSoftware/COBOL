@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §12.4.5.3 GR3 b) and §13.18.34.4 GR6 b) - THE OPERANDS BELONG TO THE ACTIVATION THAT
+      *> ISO 1989:2023 §2023:12.4.5.3 GR3 b) and §2023:13.18.34.4 GR6 b) - THE OPERANDS BELONG TO THE ACTIVATION THAT
       *> EXECUTES THE STATEMENT, not to the last one that ran its prologue. The connector of a RECURSIVE,
-      *> non-INITIAL program is UNIT-SCOPED last-used state (§8.6.4 "one copy of the item is available in a run
-      *> unit"; §14.6.2.3.3), so ONE connector serves every activation while LOCAL-STORAGE is allocated afresh
-      *> for each (§8.6.4) - which makes "whose data item?" observable.
+      *> non-INITIAL program is UNIT-SCOPED last-used state (§2023:8.6.4 "one copy of the item is available in a run
+      *> unit"; §2023:14.6.2.3.3), so ONE connector serves every activation while LOCAL-STORAGE is allocated afresh
+      *> for each (§2023:8.6.4) - which makes "whose data item?" observable.
       *>
-      *> §13.18.34.4 GR6 b): "If a data-name is specified, the value is the content of the data item referenced
+      *> §2023:13.18.34.4 GR6 b): "If a data-name is specified, the value is the content of the data item referenced
       *> by the associated data-name at the following times when the indicated statement references the
       *> associated file: 1. At the completion of an OPEN statement with the OUTPUT phrase." That statement is
       *> executed by depth 1, AFTER depth 2 has returned.
@@ -19,10 +19,10 @@
       *> EXPECTED, derived from the rules (depth 1's LOCAL-STORAGE: page size 4, footing start 3, file
       *> "pb673o.dat"; depth 2's: page size 9, footing start 9, file "pb673i.dat"):
       *>   OPEN=00   the association is made with depth 1's LS-NAME.
-      *>   §13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at the OPEN OUTPUT; each WRITE AFTER ADVANCING 1 LINE
+      *>   §2023:13.18.34.4 GR7 d) sets LINAGE-COUNTER to one at the OPEN OUTPUT; each WRITE AFTER ADVANCING 1 LINE
       *>   increments it by one (GR7 c) 2.), so the counters observed after the two writes are 02 and 03.
-      *>   EOP=N LC=02  counter 2 is below the footing start 3 - no end-of-page (§14.9.51.4 GR26).
-      *>   EOP=Y LC=03  §14.9.51.4 GR26 b): "the execution of the WRITE statement causes printing or spacing
+      *>   EOP=N LC=02  counter 2 is below the footing start 3 - no end-of-page (§2023:14.9.51.4 GR26).
+      *>   EOP=Y LC=03  §2023:14.9.51.4 GR26 b): "the execution of the WRITE statement causes printing or spacing
       *>                within the footing area of a page body ... when the associated LINAGE-COUNTER is equal
       *>                to or exceeds the current value of the footing start and is less than the page size" -
       *>                3 >= 3 and 3 < 4.  (Neither write reaches the page size, so GR26 a) never applies and
@@ -46,7 +46,7 @@
                FILE STATUS IS CK.
        DATA DIVISION.
        FILE SECTION.
-      *> §13.18.34.3 SR2 - the LINAGE operands are elementary unsigned numeric integer items; nothing confines
+      *> §2023:13.18.34.3 SR2 - the LINAGE operands are elementary unsigned numeric integer items; nothing confines
       *> them to WORKING-STORAGE, and LOCAL-STORAGE is what makes the per-activation reading observable.
        FD  PRT LINAGE IS LS-BODY LINES WITH FOOTING AT LS-FOOT.
        01  PRT-REC PIC X(2).
@@ -55,7 +55,7 @@
        FD  CHKO.
        01  CHKO-REC PIC X(2).
        WORKING-STORAGE SECTION.
-      *> A RECURSIVE program's WORKING-STORAGE is static (§13.5.4 GR1), so DEPTH counts activations.
+      *> A RECURSIVE program's WORKING-STORAGE is static (§2023:13.5.4 GR1), so DEPTH counts activations.
        01  FS    PIC XX.
        01  CK    PIC XX.
        01  DEPTH PIC 9 VALUE 0.

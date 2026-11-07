@@ -97,7 +97,7 @@ public sealed class BindPipelineTests
         Assert.Contains("ImageForcedItems", ex.Message);
     }
 
-    /// <summary>A pass reading a fact set whole in or before the phase of its last appender is rejected (§8.3 (1): a whole
+    /// <summary>A pass reading a fact set whole in or before the phase of its last appender is rejected (§2023:8.3 (1): a whole
     /// read is legal only after the last phase that appends).</summary>
     [Fact]
     public void ValidateDag_WholeReadNotAfterTheLastAppender_Throws()

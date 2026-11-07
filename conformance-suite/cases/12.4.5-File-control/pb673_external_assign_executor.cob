@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §12.4.5.3 GR3 b) - THE ASSIGN ... USING SOURCE IS THE EXECUTING RUNTIME ELEMENT'S.
+      *> ISO 1989:2023 §2023:12.4.5.3 GR3 b) - THE ASSIGN ... USING SOURCE IS THE EXECUTING RUNTIME ELEMENT'S.
       *> "When the USING phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1
       *> is associated with a physical file identified by the content of the data item referenced by data-name-1
       *> in the runtime element that executes the OPEN, SORT, or MERGE statement."
       *>
-      *> The connector here is EXTERNAL, so §13.18.22.4 GR4 a) makes it ONE file connector for the whole run
+      *> The connector here is EXTERNAL, so §2023:13.18.22.4 GR4 a) makes it ONE file connector for the whole run
       *> unit ("the file connector associated with this file description entry is an external file connector"),
-      *> shared by BOTH describing programs - and §12.4.5.3 GR1 b) asks of their file control entries only "A
+      *> shared by BOTH describing programs - and §2023:12.4.5.3 GR1 b) asks of their file control entries only "A
       *> consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause. The
       *> implementor shall specify the consistency rules"; it does NOT require the same data item the way GR1 i)
       *> does for FILE STATUS ("where data-name-4 shall reference the same corresponding external data item").
@@ -25,9 +25,9 @@
       *> OPEN. GR3 b) names the EXECUTOR, so the physical file is the one PB673A's FNAME names.
       *>
       *> EXPECTED, derived from the rule:
-      *>   OPEN=00  the association succeeds and the file is created (§14.9.27.4 Table 18, OUTPUT).
+      *>   OPEN=00  the association succeeds and the file is created (§2023:14.9.27.4 Table 18, OUTPUT).
       *>   CHKB=05  "pb673b.dat" - the name in the LAST ACTIVATOR's data item - was never associated, so the
-      *>            OPTIONAL connector finds it absent (§14.9.27.4 GR14 / §9.1.13.2 item 5).
+      *>            OPTIONAL connector finds it absent (§2023:14.9.27.4 GR14 / §2023:9.1.13.2 item 5).
       *>   CHKA=00  "pb673a.dat" - the name in the EXECUTOR's data item - exists and holds the record.
       *>   READA=AAAAA  read back through the same EXTERNAL connector.
       *> Before kb/Work PB673 the connector held ONE installed source closure, re-installed unguarded at every
@@ -55,11 +55,11 @@
        FD  CHKA.
        01  CHKA-REC PIC X(5).
        WORKING-STORAGE SECTION.
-      *> §12.4.5.2 SR7 - data-name-1 is an alphanumeric item, not subordinate to F's FD. It is PB673A's OWN
-      *> storage: §12.4.5.3 GR1 b) does not make it external, and GR3 b) is what decides whose is read.
+      *> §2023:12.4.5.2 SR7 - data-name-1 is an alphanumeric item, not subordinate to F's FD. It is PB673A's OWN
+      *> storage: §2023:12.4.5.3 GR1 b) does not make it external, and GR3 b) is what decides whose is read.
        01  FNAME  PIC X(20) VALUE "pb673a.dat".
        01  WS-CK  PIC XX.
-      *> §12.4.5.3 GR1 i) + §14.8.4.2 - an external connector's FILE STATUS item shall be the SAME corresponding
+      *> §2023:12.4.5.3 GR1 i) + §2023:14.8.4.2 - an external connector's FILE STATUS item shall be the SAME corresponding
       *> external data item in every describing element, so this one is EXTERNAL and identically named in both.
        01  EXT-ST IS EXTERNAL PIC XX.
        PROCEDURE DIVISION.
@@ -93,7 +93,7 @@
                FILE STATUS IS EXT-ST.
        DATA DIVISION.
        FILE SECTION.
-      *> §13.4.5.4 GR2 d) - the same smallest and largest record size in every describing entry.
+      *> §2023:13.4.5.4 GR2 d) - the same smallest and largest record size in every describing entry.
        FD  F IS EXTERNAL.
        01  F-REC PIC X(5).
        WORKING-STORAGE SECTION.

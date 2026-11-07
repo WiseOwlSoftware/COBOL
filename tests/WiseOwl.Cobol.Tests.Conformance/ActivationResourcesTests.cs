@@ -10,10 +10,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// kb/Work PB2659 — the activation the run unit's stack cannot hold, end to end, on the arms the manifest goldens cannot
 /// observe because the run unit ends abnormally (the golden harness requires exit 0). The resource is the stack an
-/// activation needs (docs/CONFORMANCE.md DOC-A.1-14, -89, -102; <c>ActivationStack</c>): ISO §14.9.4.4 GR3c and
-/// §8.4.3.2.4 GR6c make it EC-PROGRAM-RESOURCES for a CALL and a function activation, §14.9.23.4 GR7b EC-OO-METHOD for
-/// a method. Each condition here is fatal and unhandled, so the run unit ends through the §14.6.12 abnormal termination
-/// — the documented diagnostic and exit code 1 — and its §14.6.11 2) implicit CLOSE: "An implicit CLOSE statement
+/// activation needs (docs/CONFORMANCE.md DOC-A.1-14, -89, -102; <c>ActivationStack</c>): ISO §2023:14.9.4.4 GR3c and
+/// §2023:8.4.3.2.4 GR6c make it EC-PROGRAM-RESOURCES for a CALL and a function activation, §2023:14.9.23.4 GR7b EC-OO-METHOD for
+/// a method. Each condition here is fatal and unhandled, so the run unit ends through the §2023:14.6.12 abnormal termination
+/// — the documented diagnostic and exit code 1 — and its §2023:14.6.11 2) implicit CLOSE: "An implicit CLOSE statement
 /// without any phrases is executed for each file that is in the open mode". Before the fix each program died of a CLR
 /// stack overflow at a depth of about 250: no diagnostic a COBOL programmer can act on, and no CLOSE. The CALL arm
 /// with ON EXCEPTION is the golden <c>conformance:cases/14.9.4-CALL/pb2659_call_resources_recursion</c>.
@@ -29,7 +29,7 @@ public sealed class ActivationResourcesTests
     }
 
     /// <summary>A RECURSIVE program with no ON EXCEPTION phrase and checking off: GR3h item 3 leaves the condition to
-    /// §14.6.13.1, and the run unit ends abnormally — after the §14.6.11 CLOSE has written the record the program wrote
+    /// §2023:14.6.13.1, and the run unit ends abnormally — after the §2023:14.6.11 CLOSE has written the record the program wrote
     /// before it began to recurse.</summary>
     [Fact]
     public void UnhandledCall_PastTheStack_EndsAbnormally_AndClosesTheRunUnitsFiles()
@@ -68,14 +68,14 @@ public sealed class ActivationResourcesTests
             Assert.Equal("OPENED", stdout);
             Assert.Equal(1, exit);
             Assert.Contains("abnormal run-unit termination: CALL 'PB2659CL'", stderr, StringComparison.Ordinal);
-            Assert.Contains("ISO §14.9.4.4 GR3c — EC-PROGRAM-RESOURCES", stderr, StringComparison.Ordinal);
+            Assert.Contains("ISO §2023:14.9.4.4 GR3c — EC-PROGRAM-RESOURCES", stderr, StringComparison.Ordinal);
             Assert.DoesNotContain("Stack overflow", stderr, StringComparison.Ordinal);
             Assert.Equal("WRITTEN BEFORE", File.ReadAllText(Path.Combine(dir, "pb2659cl.txt")).TrimEnd());
         }
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    /// <summary>The function arm (§8.4.3.2.4 GR6c): a user-defined function that references itself with no end.</summary>
+    /// <summary>The function arm (§2023:8.4.3.2.4 GR6c): a user-defined function that references itself with no end.</summary>
     [Fact]
     public void RecursiveFunction_PastTheStack_IsEcProgramResources()
     {
@@ -111,10 +111,10 @@ public sealed class ActivationResourcesTests
         Assert.Equal("STARTED", stdout);
         Assert.Equal(1, exit);
         Assert.Contains("FUNCTION 'PB2659FN'", stderr, StringComparison.Ordinal);
-        Assert.Contains("ISO §8.4.3.2.4 GR6c — EC-PROGRAM-RESOURCES", stderr, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:8.4.3.2.4 GR6c — EC-PROGRAM-RESOURCES", stderr, StringComparison.Ordinal);
     }
 
-    /// <summary>The method arm (§14.9.23.4 GR7b): a factory method that invokes itself with no end.</summary>
+    /// <summary>The method arm (§2023:14.9.23.4 GR7b): a factory method that invokes itself with no end.</summary>
     [Fact]
     public void RecursiveMethod_PastTheStack_IsEcOoMethod()
     {
@@ -152,6 +152,6 @@ public sealed class ActivationResourcesTests
         Assert.Equal("STARTED", stdout);
         Assert.Equal(1, exit);
         Assert.Contains("EC-OO-METHOD (fatal): INVOKE 'DIVE' of class 'PB2659CC'", stderr, StringComparison.Ordinal);
-        Assert.Contains("ISO §14.9.23.4 GR7b", stderr, StringComparison.Ordinal);
+        Assert.Contains("ISO §2023:14.9.23.4 GR7b", stderr, StringComparison.Ordinal);
     }
 }

@@ -84,29 +84,29 @@ public sealed class ExceptionPerformBanPositionTests
     public void Imp1Ban_IsReportedAtTheOffendingStatement(string code, string statement) =>
         AssertAt(Files + Perform("ADD 1 TO N\n        " + statement), code, statement);
 
-    [Fact]   // §14.9.21.3 SR3 — the INITIATE is NOT the PERFORM's first statement
+    [Fact]   // §2023:14.9.21.3 SR3 — the INITIATE is NOT the PERFORM's first statement
     public void InitiateMulti_IsReportedAtTheInitiate() => AssertAt(
         Reports + Perform("TERMINATE R-A\n        INITIATE R-A R-B", "WHEN EC-REPORT DISPLAY \"x\""),
         "COBOL1605", "INITIATE R-A R-B");
 
-    [Fact]   // §14.9.46.3 SR3
+    [Fact]   // §2023:14.9.46.3 SR3
     public void TerminateMulti_IsReportedAtTheTerminate() => AssertAt(
         Reports + Perform("INITIATE R-A\n        TERMINATE R-A R-B", "WHEN EC-REPORT DISPLAY \"x\""),
         "COBOL1606", "TERMINATE R-A R-B");
 
     // ── region C / D bans: at the offending statement inside a WHEN or FINALLY phrase ────────────────────────
 
-    [Fact]   // §14.9.17.3 SR3 — region C includes WHEN OTHER
+    [Fact]   // §2023:14.9.17.3 SR3 — region C includes WHEN OTHER
     public void GoToInWhenOther_IsReportedAtTheGoTo() => AssertAt(
         Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    WHEN OTHER\n        GO TO SKIP\n"
         + "    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE.\n", "COBOL1608", "GO TO SKIP");
 
-    [Fact]   // §14.9.29.3 SR4 — region D includes FINALLY
+    [Fact]   // §2023:14.9.29.3 SR4 — region D includes FINALLY
     public void RaiseInFinally_IsReportedAtTheRaise() => AssertAt(
         Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    FINALLY\n"
         + "        RAISE EXCEPTION EC-SIZE\n    END-PERFORM.\n    STOP RUN.\n", "COBOL1611", "RAISE EXCEPTION EC-SIZE");
 
-    [Fact]   // §14.9.14.3 SR8 sentence 2 and §14.9.33.3 SR1 are bound at their own statements by the verb binders
+    [Fact]   // §2023:14.9.14.3 SR8 sentence 2 and §2023:14.9.33.3 SR1 are bound at their own statements by the verb binders
     public void ExitPerformCycle_AndResumeAt_AreReportedAtTheirStatements()
     {
         AssertAt(Files + Perform("ADD 1 TO N\n        EXIT PERFORM CYCLE"), "COBOL1604", "EXIT PERFORM CYCLE");
@@ -114,14 +114,14 @@ public sealed class ExceptionPerformBanPositionTests
             + "    STOP RUN.\nSKIP.\n    CONTINUE.\n", "COBOL1610", "RESUME AT SKIP");
     }
 
-    [Fact]   // §14.9.28.4 GR16 reports the FINALLY transfer at its statement, at the same column the others use
+    [Fact]   // §2023:14.9.28.4 GR16 reports the FINALLY transfer at its statement, at the same column the others use
     public void FinallyTransferOut_IsReportedAtTheStatement_NotOneColumnLate() => AssertAt(
         Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"s\"\n    FINALLY\n        GO TO SKIP\n"
         + "    END-PERFORM.\n    STOP RUN.\nSKIP.\n    CONTINUE.\n", "COBOL2927", "GO TO SKIP");
 
     // ── the WHEN-operand rules: at the operand, not the PERFORM ──────────────────────────────────────────────
 
-    [Fact]   // §14.9.28.3 SR15 — the REPEAT is the violation
+    [Fact]   // §2023:14.9.28.3 SR15 — the REPEAT is the violation
     public void Sr15ExceptionNameRepeat_IsReportedAtTheSecondInstance()
     {
         string src = Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"a\"\n    WHEN EC-SIZE DISPLAY \"b\"\n"
@@ -133,7 +133,7 @@ public sealed class ExceptionPerformBanPositionTests
         Assert.Equal(Where(src, "WHEN EC-SIZE DISPLAY \"b\"").Line, at[0].Line);
     }
 
-    [Fact]   // §14.9.28.3 SR14 — a bare file-name repeated in a second WHEN phrase
+    [Fact]   // §2023:14.9.28.3 SR14 — a bare file-name repeated in a second WHEN phrase
     public void Sr14FileNameRepeat_IsReportedAtTheSecondInstance()
     {
         string src = Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EXCEPTION F1 DISPLAY \"a\"\n    WHEN EXCEPTION F1 DISPLAY \"b\"\n"
@@ -148,7 +148,7 @@ public sealed class ExceptionPerformBanPositionTests
     // With three instances "the second" is not the offender: the operand that FIRST breaks the rule is (review R1-1).
     // Each case asserts line AND column, and its legal twin (the third instance changed so the rule holds) compiles.
 
-    [Fact]   // §14.9.28.3 SR15 — F1, F2 are distinct pairings; the second F1 is the repeat
+    [Fact]   // §2023:14.9.28.3 SR15 — F1, F2 are distinct pairings; the second F1 is the repeat
     public void Sr15ExceptionNameRepeat_WithThreeInstances_IsReportedAtTheInstanceThatBreaksTheRule()
     {
         const string head = "    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O FILE F1 DISPLAY \"a\"\n"
@@ -158,7 +158,7 @@ public sealed class ExceptionPerformBanPositionTests
         AssertCompiles(Files + head + "    WHEN EC-I-O FILE F3 DISPLAY \"c\"\n    END-PERFORM.\n    STOP RUN.\n");
     }
 
-    [Fact]   // §14.9.28.3 SR14 — two paired F1 instances are legal; the bare third one breaks the rule
+    [Fact]   // §2023:14.9.28.3 SR14 — two paired F1 instances are legal; the bare third one breaks the rule
     public void Sr14FileNameRepeat_WithThreeInstances_IsReportedAtTheBareInstance()
     {
         const string head = "    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O-AT-END FILE F1 DISPLAY \"a\"\n"
@@ -169,7 +169,7 @@ public sealed class ExceptionPerformBanPositionTests
             + "    STOP RUN.\n");
     }
 
-    [Fact]   // §14.9.28.3 SR16 — the non-EC-I-O name paired with FILE, on its own WHEN line
+    [Fact]   // §2023:14.9.28.3 SR16 — the non-EC-I-O name paired with FILE, on its own WHEN line
     public void Sr16NonIoNamePairedWithFile_IsReportedAtTheWhenItem()
     {
         string src = Files + "    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE DISPLAY \"a\"\n"

@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>kb/Work PB978 — the DATA DIVISION resolvers bound the FIRST candidate of an ambiguous reference: the
 /// report binder's CONTROL / SOURCE / SUM lookup, the OCCURS DEPENDING ON fallback, the file-control key and ASSIGN
 /// USING operands and the RENAMES operands each read <c>[0]</c> (or <c>FirstOrDefault()</c>) off a candidate list, so
-/// source ISO §8.4.2.2.3 SR1 refuses compiled clean and ran on whichever item was declared first. The fix is a TYPE:
+/// source ISO §2023:8.4.2.2.3 SR1 refuses compiled clean and ran on whichever item was declared first. The fix is a TYPE:
 /// <see cref="NameCandidates{T}"/> can be counted, narrowed and read only when it holds exactly one item, and the
 /// first-declared member is granted by the ONE ambiguity verdict alone, under <c>--permissive</c>. These tests keep
 /// both halves true.</summary>
@@ -53,7 +53,7 @@ public sealed class DataNameResolutionDriftTests
             .ToList();
         Assert.True(readers.Count == 1 && readers[0].StartsWith("DataBinder.cs:", StringComparison.Ordinal),
             "FirstDeclaredForPermissive is read outside DataBinder.UniqueOrReportAmbiguous: " + string.Join(", ", readers)
-            + " — an ambiguous data-name reference is §8.4.2.2.3 SR1's error, and only the ONE verdict may apply the "
+            + " — an ambiguous data-name reference is §2023:8.4.2.2.3 SR1's error, and only the ONE verdict may apply the "
             + "--permissive first-declared disposition (kb/Work PB978).");
     }
 

@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ISO/IEC 1989:2023 §4.2.10's warning mechanism, end to end (kb/Work PB1525): "An implementation shall provide a
+/// ISO/IEC 1989:2023 §2023:4.2.10's warning mechanism, end to end (kb/Work PB1525): "An implementation shall provide a
 /// warning mechanism that optionally may be invoked by the user at compile time to indicate use of a nonstandard
 /// extension in a compilation group. This warning mechanism shall flag only extensions that are syntactically
 /// distinguishable." Each leg below can fail on its own: the flag ON names the extension (COBOL2894) at every
@@ -51,7 +51,7 @@ public sealed class NonstandardExtensionWarningTests
     }
 
     /// <summary>"Flag only extensions": the STANDARD spelling of each usage the vendor words stand for, and the bare
-    /// COMP / COMPUTATIONAL ISO §13.18.60.3 SR6 defines, are never named — even with the flag on.</summary>
+    /// COMP / COMPUTATIONAL ISO §2023:13.18.60.3 SR6 defines, are never named — even with the flag on.</summary>
     [Theory]
     [InlineData("COMP", 85)]
     [InlineData("COMPUTATIONAL", 85)]
@@ -65,7 +65,7 @@ public sealed class NonstandardExtensionWarningTests
             Assert.DoesNotContain(Warnings(source, edition, flag: true), w => w.Contains(Code));
     }
 
-    /// <summary><c>GOBACK RETURNING</c> (§14.9.18.2 has no such phrase) and <c>SET program-pointer TO ENTRY</c> (the
+    /// <summary><c>GOBACK RETURNING</c> (§2023:14.9.18.2 has no such phrase) and <c>SET program-pointer TO ENTRY</c> (the
     /// words occur nowhere in the standard) are accepted from COBOL-2002, the edition that introduced the statements
     /// they extend; each is named at the ONE binder site that accepts it, program and method arm alike.</summary>
     [Theory]

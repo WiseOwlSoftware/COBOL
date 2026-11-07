@@ -6,15 +6,15 @@
 *> portable: unverified
 *>---
       *> PB65 / RV-15.64.4-1 — integer-operand ** is receiver-independent and exact to the carrier.
-      *> §15.64.4 r1 (MOD's EAE) with argument-1 = A ** 2 (a legal §15.3 type-6 argument): the value is
+      *> §2023:15.64.4 r1 (MOD's EAE) with argument-1 = A ** 2 (a legal §2023:15.3 type-6 argument): the value is
       *> 999999999999999^2 mod 1000000007 = 13657001 (independent oracle), owed IDENTICALLY in every
-      *> receiver and context — §15.4.1 native arithmetic approximates the EXPRESSION, and §15.2 5) makes
+      *> receiver and context — §2023:15.4.1 native arithmetic approximates the EXPRESSION, and §2023:15.2 5) makes
       *> MOD an integer function. The old receiver-bearing arm forced the FloatWorkingScale (≥9) landing
       *> onto the exact power, overflowed Int128 inside PowNativeInt, saturated, and MOD consumed the
       *> sentinel: 320612800 into S9(9)/S9(18)/S9(28) and the right answer into S9(31) — the receiver's
       *> PICTURE selected the value. Now: literal exponent → the exact wide form at scale 0; runtime-item or
       *> negative exponent → the exact carrier owning its scale at run time (CobolExact.Pow, kb/Work PB4569).
-      *> REM (§15.77.4) rides the same argument, the reciprocal (§8.8.1.2) keeps its fraction on both
+      *> REM (§2023:15.77.4) rides the same argument, the reciprocal (§2023:8.8.1.2) keeps its fraction on both
       *> arms, and 10 ** 30 stays exact (the PB18 case).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65POWRCV.

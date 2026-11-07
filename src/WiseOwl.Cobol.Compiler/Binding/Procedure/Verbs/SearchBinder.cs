@@ -25,13 +25,13 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// WORD, so the qualifiers, the subscripts and any reference modifier were discarded UNREAD, and
     /// <c>candidates.FirstOrDefault(i =&gt; i.IsTable)</c> then broke a same-name tie by DECLARATION ORDER.
     /// <c>SEARCH E IN G2</c>, with a table <c>E</c> in each of two groups, searched <c>G1</c>'s — a silent wrong
-    /// answer on legal, unambiguous COBOL — and none of §14.9.37.3 SR1–SR3 could even be asked, because nothing
-    /// downstream ever saw a subscript or a modifier at all. The resolution is now the ordinary §8.4.2.2 one
+    /// answer on legal, unambiguous COBOL — and none of §2023:14.9.37.3 SR1–SR3 could even be asked, because nothing
+    /// downstream ever saw a subscript or a modifier at all. The resolution is now the ordinary §2023:8.4.2.2 one
     /// (<c>ReferenceResolver.ResolveTableOperand</c>) and the rules are the one check catalog's.</para>
     /// <para>⛔ A DYNAMIC-CAPACITY TABLE NESTED UNDER OTHER TABLES IS BOUNDED BY ONE INSTANCE'S CAPACITY (kb/Work
-    /// PB3365). Its scan bound (§8.5.1.9.1 current capacity) and its EnterSearch/ExitSearch bracket (§14.9.39 GR31)
+    /// PB3365). Its scan bound (§2023:8.5.1.9.1 current capacity) and its EnterSearch/ExitSearch bracket (§2023:14.9.39 GR31)
     /// are the <c>CobolDynTable</c> of ONE occurrence of the enclosing tables, and the statement names that occurrence
-    /// in one of two places: identifier-1, which §14.9.37.3 SR2 lets write the enclosing subscripts (read here, as the
+    /// in one of two places: identifier-1, which §2023:14.9.37.3 SR2 lets write the enclosing subscripts (read here, as the
     /// SORT table subject reads the same written subscripts, kb/Work PB1055), or — the spelling GR1 puts first and
     /// the standard's own suite writes — the WHEN phrases, whose first reference to the table names it
     /// (<see cref="DynamicTablePath"/>, after the phrases are bound). This used to be a <c>BoundUnsupported</c> "later
@@ -39,7 +39,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <param name="dref">identifier-1 as written.</param>
     /// <param name="verb">"SEARCH" or "SEARCH ALL".</param>
     /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundRejected</c> after a reported syntax
-    /// rule (the compile has already failed — ISO §4.2.2 ¶2), or the deferral of an access path the one builder
+    /// rule (the compile has already failed — ISO §2023:4.2.2 ¶2), or the deferral of an access path the one builder
     /// has not built.</param>
     /// <param name="written">The enclosing subscripts identifier-1 wrote for a dynamic-capacity table nested under
     /// other tables, outermost first; null when it wrote none (or the table is not dynamic or not nested).</param>
@@ -68,9 +68,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>⛔ THE ACCESS PATH OF A DYNAMIC-CAPACITY TABLE'S INSTANCE, FOR THE SCAN BOUND AND THE EC-FLOW-SEARCH
-    /// BRACKET (kb/Work PB3365; ISO §8.5.1.9.1, §14.9.39 GR31) — null for every other table, whose bound is a number
+    /// BRACKET (kb/Work PB3365; ISO §2023:8.5.1.9.1, §2023:14.9.39 GR31) — null for every other table, whose bound is a number
     /// the declaration holds. The enclosing occurrences are identifier-1's own subscripts when it wrote them, else the
-    /// ones the WHEN phrases wrote (§14.9.37.4 GR1: "The subscript that is used to determine the occurrence of each
+    /// ones the WHEN phrases wrote (§2023:14.9.37.4 GR1: "The subscript that is used to determine the occurrence of each
     /// superordinate table to search is specified by the user in the WHEN phrases"); a table in no other table needs
     /// none. A nested table no phrase subscripts has no occurrence to bound the scan, which is reported
     /// (<see cref="StatementValidation.SearchNestedDynamicWithoutOccurrence"/>) rather than guessed.</summary>
@@ -111,7 +111,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The ALL-FORMATS phrases both formats print identically — <c>[ AT END imperative-statement-1 ]</c>
     /// and the WHEN arms' <c>{ imperative-statement-2 | NEXT SENTENCE }</c> under an optional END-SEARCH — bound
-    /// in ONE place so the two arms cannot disagree (feedback_two_arm_dispatch). §14.9.37.3 SR4 is asked here
+    /// in ONE place so the two arms cannot disagree (feedback_two_arm_dispatch). §2023:14.9.37.3 SR4 is asked here
     /// for both formats. The AT END phrase is exactly the printed one: the NOT AT END phrase neither format
     /// prints is refused by the GRAMMAR now (kb/Work PB446 — it used to parse, and a helper here refused it).
     /// A NEXT SENTENCE arm binds through the statement funnel, which admits it only as the WHOLE arm
@@ -124,11 +124,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     {
         ctx.Validation.CheckSearchEndSearchNextSentence(verb, endSearch, whens.Select(w => w.Arm));
         var (atEnd, _) = PhraseBlocks.Bind(phrases, ConditionalPhraseFamily.AtEnd, b => host.BindBlocks([b]));
-        // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a
+        // A WHEN condition re-evaluates on every scan pass — §2023:14.9.37.4 GR1, "Any subscripting specified in a
         // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
         // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
-        // evaluation: the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
+        // evaluation: the per-evaluation wrapper (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
         bool capture = table.IsDynamicTable && table.SubscriptArity > 1;
         EnclosingOccurrence? whenEnclosing = null;
         var bound = whens.Select(w =>
@@ -147,8 +147,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return (atEnd, bound, whenEnclosing);
     }
 
-    /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). identifier-1 is resolved and screened by
-    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names
+    /// <summary>Bind a serial SEARCH (ISO §2023:14.9.37 Format 1). identifier-1 is resolved and screened by
+    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§2023:14.9.37.4 GR3 a) — unless VARYING names
     /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
     /// in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by
     /// index-name-1 is the search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b)
@@ -175,12 +175,12 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             }
             else if (host.Expr.ResolveReceiving(v) is { } p)                                       // data item (GR3 b)
             {
-                // §14.9.37.3 SR5, BOTH sentences (kb/Work PB211): identifier-2 is a class-closed position — "a
+                // §2023:14.9.37.3 SR5, BOTH sentences (kb/Work PB211): identifier-2 is a class-closed position — "a
                 // data item whose usage is index or a data item that is an integer" — screened by the ONE
                 // operand-class screen; and it "shall not be subscripted by the first or only index-name" of
                 // identifier-1, whose occurrence would otherwise move with every step of the scan (measured: the
                 // illegal spelling printed NONE where the legal one printed HIT). Both are reported; the bind
-                // stops at a refusal (§4.2.2 — the compile has failed).
+                // stops at a refusal (§2023:4.2.2 — the compile has failed).
                 string text = DataBinder.WrittenText(v);
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.SearchVaryingIdentifier, p, text);
                 if (table.Indexes.Count > 0 && ctx.Refs.Subscripts.SubscriptNamesIndex(v, table.Indexes[0]))
@@ -188,7 +188,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error(DiagnosticCatalog.SearchVaryingOperand,
                         $"SEARCH VARYING identifier-2 '{text}' is subscripted by '{table.IndexNames[0]}', the first "
                         + $"index-name in the INDEXED phrase of '{table.CobolName}'s OCCURS clause, which ISO "
-                        + "§14.9.37.3 SR5 prohibits");
+                        + "§2023:14.9.37.3 SR5 prohibits");
                     admitted = false;
                 }
                 if (!admitted) return BoundRejected.Reported(ctx.Edition);
@@ -205,15 +205,15 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependItem: OdoModel.SearchDepending(table, ctx.Refs.Places),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
-            // §14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
+            // §2023:14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
             // sets the nonfatal range EC when checking is enabled — captured at the statement line (F10/CONTINUE template).
             CheckSearchIndex: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-INDEX", null, s.Start.Line),
             CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line)));
     }
 
-    /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the ordered-table search form). The initial index
+    /// <summary>Bind <c>SEARCH ALL</c> (ISO §2023:14.9.37 Format 2 — the ordered-table search form). The initial index
     /// setting is ignored and this implementation scans from occurrence 1; both are inside the latitude
-    /// §14.9.37.4 GR9 grants — "A non serial type of search operation MAY take place. The initial setting of the
+    /// §2023:14.9.37.4 GR9 grants — "A non serial type of search operation MAY take place. The initial setting of the
     /// search index is ignored. Its setting is varied during the search operation in a manner specified by the
     /// implementor" — so a serial probe is one permitted technique, not a concession.
     /// <para>⛔ The LATITUDE IS THE TECHNIQUE, NOT THE RANGE. The same rule's next sentence — "At no time is it
@@ -224,7 +224,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// <para>⛔ THE CONFORMANCE ARGUMENT DOES NOT REST ON SYNTAX RULE 7, AND MUST NOT BE "RESTORED" TO (kb/Work
     /// PB445). SR7 requires only that the OCCURS clause CARRY a KEY phrase — a requirement on the data
     /// description entry, saying nothing about how the data is ordered at run time. The proposition a search
-    /// technique would need is §14.9.37.4 GR5 a) ("The contents of each key data item referenced in the WHEN
+    /// technique would need is §2023:14.9.37.4 GR5 a) ("The contents of each key data item referenced in the WHEN
     /// phrase shall be sequenced in the table according to the ASCENDING or DESCENDING phrase"), and that is a
     /// condition the PROGRAM shall satisfy, never a guarantee the compiler may rely on — GR6 exists precisely to
     /// define behaviour when it is false, and GR6 a) 2. ends "It is undefined which of these alternatives
@@ -237,9 +237,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     {
         if (Identifier1(s.dataReference(), "SEARCH ALL", out var bail, out var written) is not { } table) return bail;
 
-        // The Format-2 operand rules (ISO §14.9.37.3 SR7–SR13; kb/Work PB445). Screened BEFORE the WHEN phrases
+        // The Format-2 operand rules (ISO §2023:14.9.37.3 SR7–SR13; kb/Work PB445). Screened BEFORE the WHEN phrases
         // bind, so a violation is reported against the source's own operands rather than after whatever the
-        // general condition binder made of them; the bind proceeds either way (§4.2.2 ¶2 — the indication is at
+        // general condition binder made of them; the bind proceeds either way (§2023:4.2.2 ¶2 — the indication is at
         // compile time, and one compile reports every violation it can see).
         ctx.Validation.CheckSearchAllFormat2(s, table, ctx.Refs, host.Cond);
 

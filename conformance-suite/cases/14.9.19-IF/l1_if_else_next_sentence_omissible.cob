@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.19.3 SR3 (FORMAT 2) — "The ELSE NEXT SENTENCE phrase
+      *> ISO §2023:14.9.19.3 SR3 (FORMAT 2) — "The ELSE NEXT SENTENCE phrase
       *> may be omitted if it immediately precedes the terminal
       *> separator period of the sentence."
       *> SR3 is a PERMISSION, not a constraint: it forbids nothing, it
@@ -14,7 +14,7 @@
       *> content is therefore an EQUIVALENCE, and each W-/O- pair of
       *> lines below is one half of it.
       *> The two meanings are computed independently from the general
-      *> rules of §14.9.19.4:
+      *> rules of §2023:14.9.19.4:
       *>   written form, condition FALSE — GR6: "the THEN phrase is
       *>     ignored and control is transferred to an implicit CONTINUE
       *>     statement immediately preceding the next separator period";

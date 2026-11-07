@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.4.3.13.3 3) — program-prototype-name-1 must be specified in the REPOSITORY paragraph
+      *> ISO §2023:8.4.3.13.3 3) — program-prototype-name-1 must be specified in the REPOSITORY paragraph
       *> Rule: "Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY
-      *>   paragraph."   cite.py: OK  §8.4.3.13.3 3)  (Syntax rules)
+      *>   paragraph."   cite.py: OK  §2023:8.4.3.13.3 3)  (Syntax rules)
       *> L1C23G has no REPOSITORY paragraph.  L1C23H is a real outermost program of the same
       *> compilation unit, so the bare word is a program-name, but it is not a program prototype
       *> specified in the REPOSITORY paragraph (SR3), and it is not a data item either (so the

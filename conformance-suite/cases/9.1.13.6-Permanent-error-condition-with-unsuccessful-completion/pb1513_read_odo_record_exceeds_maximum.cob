@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §9.1.13.6 item 4 b) - I-O status '34' for a READ of a record made variable by OCCURS DEPENDING ON.
+      *> ISO 1989:2023 §2023:9.1.13.6 item 4 b) - I-O status '34' for a READ of a record made variable by OCCURS DEPENDING ON.
       *> "I-O status = 34, A permanent error exists because of a boundary violation: ... b) A READ statement is
       *> unsuccessfully executed because the records are variable in length because of an OCCURS DEPENDING ON clause
       *> in the record in the associated record description entry and the associated DEPENDING ON item contains a
       *> value that makes the number of bytes in the record exceed the value specified or implied by the file
       *> description entry."
-      *> The FD below has no RECORD clause, so §13.18.43.4 GR5 implies the largest record description: OD-R is 2 bytes
+      *> The FD below has no RECORD clause, so §2023:13.18.43.4 GR5 implies the largest record description: OD-R is 2 bytes
       *> of count plus an X table of up to 10 = 12 bytes, and a record's size at count N is 2 + N (GR13 c)). So the
       *> READ is unsuccessful exactly when the count that lands in OD-N exceeds 10: 03 and 10 fit, 11 and 99 do not.
-      *> An unsuccessful READ runs no NOT AT END (§9.1.13.1: for a fatal condition "Any NOT AT END or NOT INVALID KEY phrase specified for that statement is ignored"), and
-      *> the permanent error it is (§9.1.13.1) REMAINS IN EFFECT for every later statement until the CLOSE
+      *> An unsuccessful READ runs no NOT AT END (§2023:9.1.13.1: for a fatal condition "Any NOT AT END or NOT INVALID KEY phrase specified for that statement is ignored"), and
+      *> the permanent error it is (§2023:9.1.13.1) REMAINS IN EFFECT for every later statement until the CLOSE
       *> (Annex A.1 item 105, DOC-A.1-105) - the fourth READ below fails although its own record is the legal 03.
       *>
       *> WHY EACH LEG CAN FAIL: the writer FD (a PIC X(12) record on the same physical file) gives the records any

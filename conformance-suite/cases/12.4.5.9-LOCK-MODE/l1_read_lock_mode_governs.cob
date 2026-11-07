@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.30.4 GR7 — "Whether record locking is in effect is
+      *> ISO §2023:14.9.30.4 GR7 — "Whether record locking is in effect is
       *> determined by the rules specified in 12.4.5.9, LOCK MODE
       *> clause."  A pure delegation rule: the only thing it can be
       *> observed to do is make the READ's locking behaviour follow the
@@ -20,11 +20,11 @@
       *>   statement is executed."
       *>
       *> LEG 1 (F1/F2, SHARING but no LOCK MODE).  F1 reads record 1
-      *> WITH LOCK — §14.9.30.3 SR4 permits the phrase precisely because
+      *> WITH LOCK — §2023:14.9.30.3 SR4 permits the phrase precisely because
       *> automatic locking was NOT specified — and GR1a means no lock is
       *> set, so F2 reads the same record successfully ('00').
       *> ⛔ WHY "READ ONLY" AND NOT "ALL OTHER" ON LEG 1 — DO NOT
-      *> "SIMPLIFY" THESE TWO SELECTS TO MATCH F3/F4.  §14.9.27.3 SR8:
+      *> "SIMPLIFY" THESE TWO SELECTS TO MATCH F3/F4.  §2023:14.9.27.3 SR8:
       *>   "When file-name-1 is not subject to an APPLY COMMIT clause,
       *>   then if the sharing phrase is omitted from the OPEN statement
       *>   and the ALL phrase is specified in the SHARING clause of the
@@ -38,20 +38,20 @@
       *> DataBinder; see tests/conformance/negative/
       *> sharing-all-no-lockmode.cob, which carries no OPEN at all).
       *> Nor can an OPEN … SHARING WITH READ ONLY phrase rescue it —
-      *> §14.9.27.4 GR23 lets the phrase override the clause, but this
+      *> §2023:14.9.27.4 GR23 lets the phrase override the clause, but this
       *> build rejects the entry regardless.  SHARING WITH READ ONLY on
       *> the SELECT is therefore the only legal carrier, and it keeps
       *> every conjunct of the derivation — it is still "a SHARING
-      *> clause in that file control entry" so §12.4.5.9.4 GR1a applies
-      *> verbatim, §9.1.15 item 2 says of it "Record locks are in
+      *> clause in that file control entry" so §2023:12.4.5.9.4 GR1a applies
+      *> verbatim, §2023:9.1.15 item 2 says of it "Record locks are in
       *> effect" and permits a second connector in INPUT mode (Table 19,
       *> read only/input × READ ONLY/INPUT = normal open) — and it does
       *> not name the ALL phrase, so SR8 never fires.  F3/F4 keep ALL
       *> OTHER legally: they carry LOCK MODE IS AUTOMATIC.
       *> LEG 2 (F3/F4, SHARING plus LOCK MODE IS AUTOMATIC).  F3's PLAIN
       *> read locks record 1 (GR4), so F4's read of it is refused with
-      *> the record operation conflict status '51' (§14.9.30 GR9,
-      *> §9.1.13.8) and no record is made available.
+      *> the record operation conflict status '51' (§2023:14.9.30 GR9,
+      *> §2023:9.1.13.8) and no record is made available.
       *> R2='00' against R4='51' IS the delegation: identical
       *> statements, opposite outcomes, decided only by 12.4.5.9.
        IDENTIFICATION DIVISION.

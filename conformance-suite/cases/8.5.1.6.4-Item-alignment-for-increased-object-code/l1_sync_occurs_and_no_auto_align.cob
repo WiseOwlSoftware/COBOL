@@ -6,14 +6,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.4 GR8 + GR10 — the SYNCHRONIZED clause inside a table
+      *> ISO §2023:13.18.55.4 GR8 + GR10 — the SYNCHRONIZED clause inside a table
       *> applies to EVERY occurrence (and its implicit FILLER is generated per
       *> occurrence), and the OPTIONAL automatic alignment GR10 offers is not
       *> specified by this implementor, so nothing is aligned without the
       *> clause either.
       *>
       *> THE RULES.
-      *> §13.18.55.4 GR8: "When the SYNCHRONIZED clause is specified in the
+      *> §2023:13.18.55.4 GR8: "When the SYNCHRONIZED clause is specified in the
       *> data description entry that contains an OCCURS clause, or in the data
       *> description entry of a data item subordinate to the data description
       *> entry that contains an OCCURS clause, then: a) The SYNCHRONIZED
@@ -21,13 +21,13 @@
       *> FILLER generated for other data items within that same table is
       *> generated for each occurrence of those data items (see General rule
       *> 9b)."
-      *> §13.18.55.4 GR10: "An implementor may optionally specify automatic
+      *> §2023:13.18.55.4 GR10: "An implementor may optionally specify automatic
       *> alignment for any internal data representations except for bit data
       *> items and, within a record, data items described with usage display
       *> or national. A record itself may be automatically synchronized."
       *>
       *> THE DETERMINATION THESE TWO REST ON, docs/CONFORMANCE.md DOC-A.1-195
-      *> (the §13.18.55.4 GR9 obligation, Annex A.1 item 195): WiseOwl COBOL
+      *> (the §2023:13.18.55.4 GR9 obligation, Annex A.1 item 195): WiseOwl COBOL
       *> performs NO physical alignment for SYNCHRONIZED and generates NO
       *> implicit FILLER for it — and "GR10's optional automatic alignment is
       *> not specified, so nothing is aligned without the clause either", and

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The SIGN clause's two placement rules — <b>ISO §13.18.52.3 SR1</b> ("The SIGN clause may be specified only
+/// The SIGN clause's two placement rules — <b>ISO §2023:13.18.52.3 SR1</b> ("The SIGN clause may be specified only
 /// for: — a numeric data or screen description entry whose picture character-string contains the symbol 'S' —
 /// a numeric report group description entry whose picture character-string contains the symbol 'S' — an
 /// alphanumeric group item, national group item, or strongly-typed group item.") and <b>SR2</b> ("The usage of
@@ -26,14 +26,14 @@ using Core = CobolParserCore;
 ///
 /// <para><b>Why a POST-FOREST pass for the data description arm.</b> Both halves ask facts entry bind does not
 /// yet have: SR1's third bullet asks whether the entry is a GROUP and of which kind (a group is known once its
-/// subordinates are, and a group becomes a bit group by §13.16.4 GR1 inheritance), and SR2 asks the elementary
-/// item's USAGE, which a group-level USAGE clause supplies by §13.18.60.4 GR1 — both settled by
-/// <c>UsageInheritancePass</c>. So the pass sits right after it, beside the §13.18.1.3 SR1 ALIGNED screen for the
+/// subordinates are, and a group becomes a bit group by §2023:13.16.4 GR1 inheritance), and SR2 asks the elementary
+/// item's USAGE, which a group-level USAGE clause supplies by §2023:13.18.60.4 GR1 — both settled by
+/// <c>UsageInheritancePass</c>. So the pass sits right after it, beside the §2023:13.18.1.3 SR1 ALIGNED screen for the
 /// same reason.</para>
 ///
 /// <para><b>Why the subject is the entry that WROTE the clause.</b> <see cref="DataItem.OwnSign"/> is also written
-/// by the description copies — a TYPE subject assumes its template's clause (§13.18.57.4 GR1) and a SAME AS
-/// subject a group-level clause of data-name-1's ancestor (§13.18.49.4 GR5) — and neither is a SIGN clause the
+/// by the description copies — a TYPE subject assumes its template's clause (§2023:13.18.57.4 GR1) and a SAME AS
+/// subject a group-level clause of data-name-1's ancestor (§2023:13.18.49.4 GR5) — and neither is a SIGN clause the
 /// subject's entry specifies. The template is screened once where it is declared; re-screening its copy would
 /// report one source entry once per reference site, and screening a GR5-assumed ancestor clause on an
 /// alphanumeric subject would refuse legal source. So the capture site records its own entry
@@ -43,8 +43,8 @@ public sealed partial class DataBinder
 {
     /// <summary>⛔ THE COBOL-85 REPORT GROUP DESCRIPTION ENTRY'S SIGN CLAUSE IS NARROWER (kb/Work PB3683) — the report twin
     /// of <see cref="CheckSignClausesPass.GateGroupSignSubordinates"/>. The 2023 text lets a report group description entry carry the clause
-    /// with SEPARATE CHARACTER optional (§13.18.52.3 SR1 admits "a numeric report group description entry whose picture
-    /// character-string contains the symbol 'S'" and §13.18.52.4 GR5 gives the clause without SEPARATE an
+    /// with SEPARATE CHARACTER optional (§2023:13.18.52.3 SR1 admits "a numeric report group description entry whose picture
+    /// character-string contains the symbol 'S'" and §2023:13.18.52.4 GR5 gives the clause without SEPARATE an
     /// implementor-defined representation) and on a group entry ("an alphanumeric group item, national group item, or
     /// strongly-typed group item"). ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES both as COBOL-2002 introductions: "SIGN
     /// clause in a report description entry. The SEPARATE phrase is no longer required in a report description entry
@@ -52,7 +52,7 @@ public sealed partial class DataBinder
     /// "SIGN clause does not require SEPARATE phrase in report section"). So at --std 85 an entry that writes a SIGN
     /// clause without SEPARATE, and a report group entry that is a GROUP and writes one, are each refused through its
     /// construct row. Asked ONCE per WRITTEN entry over the flat entry array (the <see cref="ReportSectionBinder.ScreenReportEntryClausePresence"/>
-    /// shape), never per §13.18.38 replay; the 2023 subject rules (SR1/SR2 for an elementary entry) are
+    /// shape), never per §2023:13.18.38 replay; the 2023 subject rules (SR1/SR2 for an elementary entry) are
     /// <see cref="SignClauseElementaryDefect"/>'s, asked by the walk where the printable item's picture is known.</summary>
     internal void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
@@ -86,16 +86,16 @@ public sealed partial class DataBinder
         // PICTURE-less signed usage such as BINARY-LONG SIGNED or FLOAT-LONG has no character-string to hold one).
         if (pic.Category is not PicCategory.Numeric || !pic.Signed || pictureText is null)
             return $"the SIGN clause may be specified for an elementary {entryKind} only when it is numeric and its "
-                + "picture character-string contains the symbol 'S' (ISO §13.18.52.3 SR1) — this entry "
+                + "picture character-string contains the symbol 'S' (ISO §2023:13.18.52.3 SR1) — this entry "
                 + (pictureText is null
                     ? $"has no PICTURE clause (USAGE {UsageFamilies.UsageWord(pic.Usage)})"
                     : pic.Category is PicCategory.Numeric
                         ? $"is numeric but PICTURE {pictureText} has no 'S'"
                         : $"is of category {pic.Category.ToString().ToLowerInvariant()} (PICTURE {pictureText})");
-        // SR2 — the usage of the elementary subject, written or inherited (§13.18.60.4 GR1).
+        // SR2 — the usage of the elementary subject, written or inherited (§2023:13.18.60.4 GR1).
         if (pic.Usage is not (Usage.Display or Usage.National))
             return "the usage of an elementary item for which the SIGN clause is specified shall be display or "
-                + $"national (ISO §13.18.52.3 SR2) — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+                + $"national (ISO §2023:13.18.52.3 SR2) — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 }

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> VCR 16 STRENGTH half (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10; review finding C9):
+*> VCR 16 STRENGTH half (ISO §2023:13.16.3 SR13 ¶2; Annex E.2 item 10; review finding C9):
 *> at >=2023 an EXTERNAL CONSTANT RECORD requires a TYPE naming a STRONGLY typed
 *> definition. WK here is a WEAK typedef — presence alone passed the earlier gate;
 *> the strength half must reject (COBOL1549). Below 2023 the requirement did not

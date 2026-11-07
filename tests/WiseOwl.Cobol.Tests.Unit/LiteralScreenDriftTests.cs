@@ -9,11 +9,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A LITERAL'S OWN SYNTAX RULES ARE ASKED ONCE, OF EVERY LITERAL TOKEN, AT ONE SITE (kb/Work PB1393): the §8.3.3
+/// ⛔ A LITERAL'S OWN SYNTAX RULES ARE ASKED ONCE, OF EVERY LITERAL TOKEN, AT ONE SITE (kb/Work PB1393): the §2023:8.3.3
 /// length rule (COBOL0814), hexadecimal grouping rule (COBOL1635) and content repertoire rule (COBOL2630,
 /// kb/Work PB1441) live in <c>LiteralScreen</c>, which walks every token of the unit's tree and of each compiler-directive
 /// fragment (kb/Work PB1616), and nowhere else; and
-/// the literal token set (<c>LiteralTokens.Types</c>, shared with the §8.3.5 <c>SeparatorRule</c>) is every token the
+/// the literal token set (<c>LiteralTokens.Types</c>, shared with the §2023:8.3.5 <c>SeparatorRule</c>) is every token the
 /// lexer defines over a literal body fragment, so a new literal token joins both rules or fails here.
 /// </summary>
 /// <remarks>
@@ -110,7 +110,7 @@ public sealed class LiteralScreenDriftTests
         string[] expected = expectedSites.Length == 0 ? [] : expectedSites.Split(',');
         Assert.True(sites.SequenceEqual(expected),
             $"'{needle}' is used at [{string.Join(", ", sites)}], expected [{string.Join(", ", expected)}] — a literal's "
-            + "own §8.3.3 rules are a property of the TOKEN; a second site is a second funnel the next literal position "
+            + "own §2023:8.3.3 rules are a property of the TOKEN; a second site is a second funnel the next literal position "
             + "will miss");
     }
 

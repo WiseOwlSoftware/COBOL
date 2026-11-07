@@ -6,43 +6,43 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.30.3 r1 / §15.31.3 r1 / §15.32.3 r1 - the NO-LOCATION
+      *> ISO §2023:15.30.3 r1 / §2023:15.31.3 r1 / §2023:15.32.3 r1 - the NO-LOCATION
       *> arm, on BOTH of the enabling mechanisms the antecedent names:
       *> "the LOCATION option of the TURN directive or PERFORM statement
       *> that enabled checking for the exception condition associated
       *> with the last exception status is not specified and the
       *> implementor does not save the location information". One
       *> consequent per function:
-      *>   §15.30.3 r1  EXCEPTION-LOCATION   -> one alphanumeric space
-      *>   §15.31.3 r1  EXCEPTION-LOCATION-N -> one national space char
-      *>   §15.32.3 r1  EXCEPTION-STATEMENT  -> 63 spaces
+      *>   §2023:15.30.3 r1  EXCEPTION-LOCATION   -> one alphanumeric space
+      *>   §2023:15.31.3 r1  EXCEPTION-LOCATION-N -> one national space char
+      *>   §2023:15.32.3 r1  EXCEPTION-STATEMENT  -> 63 spaces
       *> WiseOwl COBOL saves no location information when LOCATION is absent
-      *> - the §7.3.25.4 GR7 determination ("If the LOCATION phrase is
+      *> - the §2023:7.3.25.4 GR7 determination ("If the LOCATION phrase is
       *> not specified, the implementor shall specify whether this
       *> information is made available or not"; Annex A.1 item 204) - so
       *> the antecedent holds on both legs and r1 governs both.
       *>
       *> LEG A - the TURN-directive leg. The >>TURN below carries no
-      *> WITH LOCATION. §14.9.43.4 8) b): STRING sets EC-OVERFLOW-STRING
+      *> WITH LOCATION. §2023:14.9.43.4 8) b): STRING sets EC-OVERFLOW-STRING
       *> when the pointer passes the receiver - 7 characters DELIMITED
       *> BY SIZE into a PIC X(3). Table 13 makes it nonfatal and
-      *> §14.6.13.1.4 1) hands control to ON OVERFLOW, so the run
+      *> §2023:14.6.13.1.4 1) hands control to ON OVERFLOW, so the run
       *> continues.
       *>
       *> LEG B - the PERFORM leg. No >>TURN names EC-USER-NOLOC, so
-      *> §14.9.28.4 GR14 supplies the implicit TURN directive before
+      *> §2023:14.9.28.4 GR14 supplies the implicit TURN directive before
       *> imperative-statement-1, and "If LOCATION is specified, that
       *> implicit TURN directive contains LOCATION" - which this PERFORM
-      *> does not specify. §14.6.13.1.1: "All user-defined exception
+      *> does not specify. §2023:14.6.13.1.1: "All user-defined exception
       *> conditions shall be nonfatal", so the WHEN phrase completes and
-      *> execution continues at the end of the PERFORM (§14.9.28.4
-      *> GR20). §14.6.13.1.1 also makes the last exception status a
+      *> execution continues at the end of the PERFORM (§2023:14.9.28.4
+      *> GR20). §2023:14.6.13.1.1 also makes the last exception status a
       *> RUN-UNIT entity, so it is still readable after END-PERFORM.
       *>
-      *> A-S / B-S are §15.33.3 r1's 31-character exception-name - the
+      *> A-S / B-S are §2023:15.33.3 r1's 31-character exception-name - the
       *> leg markers, and the proof that a condition really was raised.
       *> A-LL / A-NL / B-LL / B-NL are FUNCTION LENGTH of the returned
-      *> value (§15.50.4 r3 counts alphanumeric character positions, r2
+      *> value (§2023:15.50.4 r3 counts alphanumeric character positions, r2
       *> counts national character positions), so 1 is exactly what "one
       *> ... space character" asserts. A-N / B-N are DISPLAY-OF of the
       *> national value and show the character itself is a space.

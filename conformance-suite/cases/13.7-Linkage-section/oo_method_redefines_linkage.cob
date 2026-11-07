@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7 / §13.18.44 / §14.2.3 GR8 — a Tier-B REDEFINES canonical (NUM 9(4), redefined by NCHARS X(4))
+      *> ISO §2023:11.7 / §2023:13.18.44 / §2023:14.2.3 GR8 — a Tier-B REDEFINES canonical (NUM 9(4), redefined by NCHARS X(4))
       *> used as a method BY REFERENCE USING formal (M2-OO-1h review A/D). Its storage IS the string backing, so
       *> the copy-out must write that back to the caller. Driver ARG=1234; the method mutates NCHARS→"0042"; on
       *> return ARG must reflect it.

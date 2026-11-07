@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A <c>FileStatusCode</c> SUMMARY THAT NAMES THE STATEMENTS A STATUS IS SET BY NAMES THEM ALL, AND THE CLASS
 /// SUMMARY PROMISES NO MORE THAN THAT (kb/Work PB671, branch review R1-1). The class summary once said "Each
 /// constant's summary names every statement that sets it" while 05, 41 and 42 named only OPEN or CLOSE; the standard
-/// lists DELETE FILE for 05 (§9.1.13.2 item 4 b) and 41 (§9.1.13.7 item 1) and UNLOCK for 42 (§9.1.13.7 item 2), and a
+/// lists DELETE FILE for 05 (§2023:9.1.13.2 item 4 b) and 41 (§2023:9.1.13.7 item 1) and UNLOCK for 42 (§2023:9.1.13.7 item 2), and a
 /// maintainer tracing every producer of a status from the summary would have missed those verbs. The statements for
 /// each status below are read back from the standard's own item (so a spec repair reaches this table or fails here)
 /// and must each appear in the constant's summary; the class summary may not claim exhaustiveness for the rest.
@@ -21,7 +21,7 @@ public sealed class FileStatusCodeDocDriftTests
     private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
     private static readonly string Source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileStatus.cs"));
 
-    /// <summary>Status, constant name and the statements §9.1.13's item for that status names.</summary>
+    /// <summary>Status, constant name and the statements §2023:9.1.13's item for that status names.</summary>
     public static TheoryData<string, string, string[]> Documented => new()
     {
         { "05", "OptionalFileNotFound", ["OPEN", "DELETE FILE"] },
@@ -59,7 +59,7 @@ public sealed class FileStatusCodeDocDriftTests
             Assert.True(item.Contains(statement, StringComparison.Ordinal),
                 $"the standard's item for I-O status {status} no longer names {statement}; update the table");
             Assert.True(summary.Contains(statement, StringComparison.Ordinal),
-                $"FileStatusCode.{constant} ('{status}') does not name {statement}, which §9.1.13 lists for it");
+                $"FileStatusCode.{constant} ('{status}') does not name {statement}, which §2023:9.1.13 lists for it");
         }
     }
 

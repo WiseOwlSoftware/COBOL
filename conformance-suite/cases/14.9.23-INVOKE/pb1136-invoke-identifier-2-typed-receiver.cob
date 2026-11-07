@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.3 SR7: "Identifier-2 may be specified only when
+      *> ISO §2023:14.9.23.3 SR7: "Identifier-2 may be specified only when
       *> identifier-1 is a universal object reference."  O is typed
       *> (OBJECT REFERENCE PB1136C6), so the method name held in MA is
       *> refused - a typed receiver binds its method statically from

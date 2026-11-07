@@ -8,10 +8,10 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// THE ONE ALLOCATOR OF THE CLR NAMES a module emits for a COBOL word (docs/rearchitecture/DESIGN-external-repository.md
-/// §4.5; docs/rearchitecture/DESIGN-backend-abstraction.md §2.4; kb/Work PB2093, PB4265). The names are decided HERE, at
+/// §2023:4.5; docs/rearchitecture/DESIGN-backend-abstraction.md §2.4; kb/Work PB2093, PB4265). The names are decided HERE, at
 /// bind time, and are the module's ABI: a program compiled by either backend (Roslyn, or a direct-CIL one) exposes the
 /// same type, field and method names, so one can call or inherit from the other. Uniqueness bites on a REFERENCE, not on
-/// a declaration (ISO §8.4.2.1: "In order to use a resource, a statement shall contain a reference that uniquely
+/// a declaration (ISO §2023:8.4.2.1: "In order to use a resource, a statement shall contain a reference that uniquely
 /// identifies that resource"), so two subordinates of one group may share a data-name; and a data-name may legally be
 /// spelled like a member the emitter itself writes into the same type — a subordinate named <c>AsImage</c> or
 /// <c>Equals</c>, a record named <c>CloseFiles</c>. So every such name is ALLOCATED in a <see cref="CsNameScope"/> that
@@ -52,7 +52,7 @@ public static class CsNames
         ["Call", "CloseFiles", "EndStorage", "Activate", "DescribeExternals"], StringComparer.Ordinal);
 
     /// <summary>The members a generated HOST-ENTRY class carries (<c>HostEntryEmitter</c>; DESIGN-external-repository
-    /// §4.3): <c>Call</c>, the .NET counterpart of a CALL statement, and <c>Cancel</c>, of a CANCEL statement. Its
+    /// §2023:4.3): <c>Call</c>, the .NET counterpart of a CALL statement, and <c>Cancel</c>, of a CANCEL statement. Its
     /// published record structs AND the <c>Call</c> parameters are allocated in the same scope — the <c>Call</c> body
     /// names each record type by its simple name, which a parameter of that spelling would shadow — so a description
     /// whose word spells any of them is given the next free name.</summary>
@@ -146,7 +146,7 @@ public static class CsNames
     }
 
     /// <summary>The namespace every type a module emits lives in (docs/rearchitecture/DESIGN-external-repository.md
-    /// §4.5; kb/Work PB2097): <c>Cobol.&lt;S&gt;</c>, where <c>&lt;S&gt;</c> is the assembly simple name made ONE CLR
+    /// §2023:4.5; kb/Work PB2097): <c>Cobol.&lt;S&gt;</c>, where <c>&lt;S&gt;</c> is the assembly simple name made ONE CLR
     /// identifier by <see cref="DataItem.Sanitize"/> (each character an identifier cannot hold, <c>.</c> included,
     /// written <c>_uXXXX_</c>; a leading digit prefixed), so <c>PAY.V2.dll</c> is <c>Cobol.PAY_u002E_V2</c> and never
     /// meets a type <c>V2</c> in <c>Cobol.PAY</c>, and no emitted type lives directly in <c>Cobol</c>. Two COBOL

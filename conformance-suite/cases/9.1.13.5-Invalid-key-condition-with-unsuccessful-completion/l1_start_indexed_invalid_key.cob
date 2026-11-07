@@ -5,26 +5,26 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.41.4 GR17 e) 2. (INDEXED FILES) — "If the comparison
+      *> ISO §2023:14.9.41.4 GR17 e) 2. (INDEXED FILES) — "If the comparison
       *> is not satisfied by any record in the file, the invalid key
       *> condition exists and the execution of the START statement is
       *> unsuccessful." (The identical sentence is GR9 c) for RELATIVE
       *> files; this program exercises the INDEXED arm.)
       *> Two shapes of "not satisfied by any record", plus a control.
       *>   S1  CONTROL — the comparison IS satisfiable, so the START
-      *>       succeeds, the NOT INVALID KEY imperative runs (§9.1.14),
+      *>       succeeds, the NOT INVALID KEY imperative runs (§2023:9.1.14),
       *>       the status is '00', and the following READ NEXT delivers
-      *>       the record the START positioned at (§14.9.30.4 GR21 d1).
+      *>       the record the START positioned at (§2023:14.9.30.4 GR21 d1).
       *>       Without this line the two invalid-key legs could pass by
       *>       a START that always fails.
       *>   S2  A relation no record can satisfy: KEY > "ZZZ999" over
       *>       AAA100 / BBB200 / CCC300. The INVALID KEY imperative is
-      *>       taken. The value: §9.1.13.5 lists the whole invalid-key
+      *>       taken. The value: §2023:9.1.13.5 lists the whole invalid-key
       *>       family — '21' is an indexed WRITE/REWRITE sequence
       *>       error, '22' a duplicate key created by a WRITE or
       *>       REWRITE, '24' a WRITE outside the file's boundaries —
       *>       and none of the three can arise from a START, so '23' is
-      *>       the only applicable value and §9.1.13.1's "if more than
+      *>       the only applicable value and §2023:9.1.13.1's "if more than
       *>       one value applies" tie-break is never reached. The
       *>       standard states '23' outright for every START
       *>       invalid-key leg it spells out (GR14, GR18, GR19, GR20,
@@ -33,7 +33,7 @@
       *>       has a consequence in GR7 — "the file position indicator
       *>       is set to indicate that no valid record position has
       *>       been established" — so the next sequential READ is '46'
-      *>       (§9.1.13.7 item 6a, "The preceding START statement …
+      *>       (§2023:9.1.13.7 item 6a, "The preceding START statement …
       *>       was unsuccessful"), NOT the at end '10'.
       *>   S3  The other shape: an EMPTY indexed file, where no record
       *>       exists to satisfy any comparison. Same condition, '23'.

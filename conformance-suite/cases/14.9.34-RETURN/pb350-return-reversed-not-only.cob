@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.34.2 with §14.9.34.3 SR4 — the REVERSED-ORDER arm, written with only its NOT AT END half.
+      *> ISO §2023:14.9.34.2 with §2023:14.9.34.3 SR4 — the REVERSED-ORDER arm, written with only its NOT AT END half.
       *> SR4 says "The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed
       *> order": it permits REVERSING the two phrases, and "when specified" is a condition on the reversal,
       *> not a licence to omit either one. The AT END line of the general format is still unbracketed, so it
-      *> is still mandatory (§5.2.6.2), and this program is rejected at every edition.
+      *> is still mandatory (§2023:5.2.6.2), and this program is rejected at every edition.
       *> ⛔ THIS IS THE SECOND GRAMMAR ARM, and the reason the screen lives in the binder rather than in
       *> returnAtEndPhrase: `NOT AT? END statementBlock (AT? END statementBlock)?` made the AT END HALF of the
       *> reversed pair optional too, so a screen that only asked whether the PHRASE NODE was present would

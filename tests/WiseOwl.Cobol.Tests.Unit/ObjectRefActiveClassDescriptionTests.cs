@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1497 (+ PB1112's override leg) — the ACTIVE-CLASS object-reference DESCRIPTION is owner-less.
-/// ISO §9.3.8.2.3 rule 2 d) (cite.py --check 9.3.8.2.3 "If the parameter in interface-2 is described with the
+/// ISO §2023:9.3.8.2.3 rule 2 d) (cite.py --check 9.3.8.2.3 "If the parameter in interface-2 is described with the
 /// ACTIVE-CLASS phrase, the corresponding parameter in interface-1 is described with the ACTIVE-CLASS phrase" → OK
 /// 9.3.8.2.3 2)) asks only for the phrase on both sides and the same FACTORY presence; the class the entry is written
-/// in (§13.18.60.3 SR16) is no part of it — GR22 e) binds the class at activation.
+/// in (§2023:13.18.60.3 SR16) is no part of it — GR22 e) binds the class at activation.
 /// </summary>
 public sealed class ObjectRefActiveClassDescriptionTests
 {

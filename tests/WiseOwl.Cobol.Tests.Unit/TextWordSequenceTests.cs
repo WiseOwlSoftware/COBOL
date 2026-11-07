@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// <see cref="TextWordSequence.Matches"/> — the public face of the ONE text-word equality (ISO/IEC 1989:2023
-/// §7.2.3.4 9) c)), which §13.10.3 SR9 asks when a constant-name is duplicated (kb/Work PB1230): "the specification
+/// §2023:7.2.3.4 9) c)), which §2023:13.10.3 SR9 asks when a constant-name is duplicated (kb/Work PB1230): "the specification
 /// of arithmetic-expression-1, literal-1, data-name-1, data-name-2, or compilation-variable-name-1 shall be the same
 /// as specified in the other constant-name". Each case pins one clause of the matching rule, and the "different"
 /// cases pin the PB1230 defect itself: specifications that FOLD to the same value are still different specifications.
@@ -33,7 +33,7 @@ public sealed class TextWordSequenceTests
     [InlineData("LENGTH OF W", "7")]
     [InlineData("5", "+5")]
     [InlineData("5", "05")]
-    [InlineData("-5", "- 5")]                  // a literal vs. a unary operator applied to one (§8.3.3.3.2 rule 2)
+    [InlineData("-5", "- 5")]                  // a literal vs. a unary operator applied to one (§2023:8.3.3.3.2 rule 2)
     [InlineData("\"A\" & \"B\"", "\"AB\"")]    // c) 2. — a concatenation's operands and operator are text-words
     // c) 3. — the non-hexadecimal alphanumeric format keeps its letter case.
     [InlineData("\"ab\"", "\"AB\"")]

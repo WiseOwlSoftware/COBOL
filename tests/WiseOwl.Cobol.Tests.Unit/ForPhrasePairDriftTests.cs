@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY REPEATED FOR ALPHANUMERIC / FOR NATIONAL PHRASE IS READ BY THE ONE CHOICE-INDICATOR READER (kb/Work PB1075).
 /// <para>Five general formats print the same brace with choice indicators, <c>{ | FOR ALPHANUMERIC IS x-1 | FOR
-/// NATIONAL IS x-2 | }</c> (ISO §5.2.6.4: "any single alternative may be specified only once"), and the grammar parses
+/// NATIONAL IS x-2 | }</c> (ISO §2023:5.2.6.4: "any single alternative may be specified only once"), and the grammar parses
 /// each as a <c>xxxForPhrase+</c> superset. Each binder used to walk its own array: four wrote their own "specified
 /// more than once" message and the file-level COLLATING SEQUENCE clause let the LAST repeat win in silence. The rule
 /// now lives in <c>ChoiceIndicators.ForPhrasePair</c>; this test keeps the NEXT clause automatic by deriving the
@@ -64,7 +64,7 @@ public sealed class ForPhrasePairDriftTests
         }
         Assert.True(offenders.Count == 0,
             "a binder walks a repeated FOR ALPHANUMERIC / FOR NATIONAL phrase array itself — pass it to "
-            + "ChoiceIndicators.ForPhrasePair / AlphabetPair, the one reader of §5.2.6.4's at-most-once rule "
+            + "ChoiceIndicators.ForPhrasePair / AlphabetPair, the one reader of §2023:5.2.6.4's at-most-once rule "
             + "(kb/Work PB1075):\n" + string.Join("\n", offenders));
         Assert.All(reads, kv => Assert.True(kv.Value > 0, $"no binder reads '{kv.Key}' — re-derive this guard"));
     }

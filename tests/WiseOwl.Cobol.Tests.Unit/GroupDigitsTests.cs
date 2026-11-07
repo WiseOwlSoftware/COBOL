@@ -9,16 +9,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// The characters a numeric value with no stated representation sends to a group (kb/Work PB3570, PB3613;
 /// docs/CONFORMANCE.md D-B4): its digits, in order, without the sign or the decimal separator, and the digits of a
 /// floating-point text's SIGNIFICAND (never its exponent). The rule is the owner's determination for the literal
-/// (2026-10-23), extended to a numeric function's value (§15.2 4)-5, §15.4.1); expected values come from that rule.
+/// (2026-10-23), extended to a numeric function's value (§2023:15.2 4)-5, §2023:15.4.1); expected values come from that rule.
 /// </summary>
 public sealed class GroupDigitsTests
 {
     [Theory]
     [InlineData("456", "456")]            // a bare digit run is its own image
-    [InlineData("-456", "456")]           // the sign is no digit (§14.9.25.4 GR6 a)
+    [InlineData("-456", "456")]           // the sign is no digit (§2023:14.9.25.4 GR6 a)
     [InlineData("+456", "456")]
     [InlineData("-4.56", "456")]          // the decimal point is no digit
-    [InlineData("-4,56", "456")]          // nor the comma of DECIMAL-POINT IS COMMA (§12.3.7.4 GR14 a)
+    [InlineData("-4,56", "456")]          // nor the comma of DECIMAL-POINT IS COMMA (§2023:12.3.7.4 GR14 a)
     [InlineData("-0.05", "005")]          // leading zeros are digits
     [InlineData("0.00", "000")]
     [InlineData("1.5E+3", "15")]          // a floating-point text sends its significand

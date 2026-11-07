@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB412 — EVERY SPELLING §14.9.17.2's TWO GENERAL FORMATS ADMIT, end to end. The grammar rule
+      *> kb/Work PB412 — EVERY SPELLING §2023:14.9.17.2's TWO GENERAL FORMATS ADMIT, end to end. The grammar rule
       *> `goToStatement` used to be the UNION of both formats with every element optional, so narrowing it to one
       *> alternative per printed format could have taken legal spellings with it; this is the over-rejection
       *> guard for that narrowing. Rendered from the canonical PDF page 660 / printed folio 630:

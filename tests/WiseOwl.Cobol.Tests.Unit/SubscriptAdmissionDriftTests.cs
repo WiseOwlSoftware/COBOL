@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §8.4.2.3.3 SR2 HAS TWO HALVES AND THE COMPILER ONLY EVER WROTE DOWN THE FIRST (kb/Work PB877).
+/// ⛔ ISO §2023:8.4.2.3.3 SR2 HAS TWO HALVES AND THE COMPILER ONLY EVER WROTE DOWN THE FIRST (kb/Work PB877).
 /// SR2: "If a subscript is specified, the data description entry describing qualified-data-name-1 or the
 /// conditional variable associated with qualified-condition-name-1 shall contain an OCCURS clause <b>or shall be
 /// subordinate to a data description entry that contains an OCCURS clause</b>." <c>DataItem.IsTable</c> answers
@@ -39,7 +39,7 @@ public sealed class SubscriptAdmissionDriftTests
     private static readonly string DataItem =
         Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "DataItem.cs");
 
-    /// <summary>Every caller that segments a subscript list passes THE shared §8.4.2.3.3 SR2 predicate.
+    /// <summary>Every caller that segments a subscript list passes THE shared §2023:8.4.2.3.3 SR2 predicate.
     /// A call with any other argument — or with none, which is how the intrinsic table(ALL) caller silently kept
     /// the pre-PB136 join — is the drift this test exists to catch.</summary>
     [Fact]
@@ -63,7 +63,7 @@ public sealed class SubscriptAdmissionDriftTests
         foreach (var (file, args) in sites)
             Assert.True(args.Contains("CannotBeSubscripted", StringComparison.Ordinal),
                 $"{file}: SegmentsOf is called with '{args.Trim()}' instead of the shared "
-                + "SubscriptBinder.CannotBeSubscripted predicate. ISO §8.4.2.3.3 SR2 decides whether a '(' after "
+                + "SubscriptBinder.CannotBeSubscripted predicate. ISO §2023:8.4.2.3.3 SR2 decides whether a '(' after "
                 + "a name belongs to that name; writing the test a second time is how PB877 happened.");
     }
 
@@ -74,7 +74,7 @@ public sealed class SubscriptAdmissionDriftTests
         string text = ResolverSources.Text;
         // The predicate takes the WHOLE qualified name (kb/Work PB1455): a '(' after `E OF T` subscripts `E OF T`.
         var m = Regex.Match(text, @"bool CannotBeSubscripted\(string name, List<string> qualifiers\)\s*=>(?<body>[^;]*);");
-        Assert.True(m.Success, "SubscriptBinder.CannotBeSubscripted is gone — §8.4.2.3.3 SR2's admission test "
+        Assert.True(m.Success, "SubscriptBinder.CannotBeSubscripted is gone — §2023:8.4.2.3.3 SR2's admission test "
                                + "has no home, and the subscript splitter has no shared rule (kb/Work PB877)");
         string body = m.Groups["body"].Value;
         Assert.Contains("IsTableElement", body, StringComparison.Ordinal);
@@ -93,7 +93,7 @@ public sealed class SubscriptAdmissionDriftTests
         Assert.Contains("public List<DataItem> SubscriptLevels()", text, StringComparison.Ordinal);
     }
 
-    /// <summary>§8.4.2.3.3 SR3's arity walk — "the number of subscripts shall equal the number of OCCURS clauses
+    /// <summary>§2023:8.4.2.3.3 SR3's arity walk — "the number of subscripts shall equal the number of OCCURS clauses
     /// in the description of the table element being referenced" — exists in exactly ONE place. Five copies of
     /// this ancestor walk were in the compiler when PB877 landed; the ones that answer a DIFFERENT question (a
     /// class-scoped Tier-B window walk, which counts <c>Occurs is not null</c> and stops at the REDEFINES class
@@ -125,7 +125,7 @@ public sealed class SubscriptAdmissionDriftTests
         Assert.Contains("DiagnosticCatalog.SubscriptCountMismatch", text, StringComparison.Ordinal);
     }
 
-    /// <summary>kb/Work PB681 — the THIRD arm of the written-subscript family, §8.4.2.3.3 SR5's omitted list, on
+    /// <summary>kb/Work PB681 — the THIRD arm of the written-subscript family, §2023:8.4.2.3.3 SR5's omitted list, on
     /// EVERY entry that resolves an identifier: <c>Resolve</c>, <c>ResolveForItem</c> (the condition-name
     /// conditional variable) and <c>ResolveForAddressOf</c> (the first and last through <c>Identify</c>, kb/Work
     /// PB3287). Each used to return an unreported null — or, for

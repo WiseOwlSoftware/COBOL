@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The file-names visible in one source element (<c>DataBindState.VisibleFiles</c>): its own files
 /// (<c>FileSlice.FilesByName</c>) over its containers' GLOBAL files (<c>InheritedGlobals.Files</c>, nearest
-/// container first), an own file-name hiding a container's of the same spelling (§8.4.6.2.1 3) a)). The ONE lookup every
+/// container first), an own file-name hiding a container's of the same spelling (§2023:8.4.6.2.1 3) a)). The ONE lookup every
 /// reader of a file-name a statement or clause writes asks, in the data phases and the procedure division alike.</summary>
 public readonly struct FileNameScope(IReadOnlyDictionary<string, FileModel> own, IReadOnlyDictionary<string, FileModel> inherited)
 {

@@ -5,28 +5,28 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR14 b)4 — alphabet at the native-set count
+      *> ISO §2023:12.3.7.3 SR14 b)4 — alphabet at the native-set count
       *> THE RULE (SR14 b), ALPHANUMERIC specified or implied):
       *>   "4. The number of characters specified shall not exceed the
       *>   number of characters in the native alphanumeric character
       *>     set."
       *>   cite.py --check 12.3.7.3 "The number of characters specified
       *>     shall not exceed the number of characters in the native
-      *>     alphanumeric character set." -> OK §12.3.7.3 14)
+      *>     alphanumeric character set." -> OK §2023:12.3.7.3 14)
       *>   cite.py --check 12.3.7.3 "Each numeric literal shall be an
       *>     unsigned integer and shall have a value within the range of
       *>     one through the maximum number of characters in the native
-      *>     alphanumeric character set." -> OK §12.3.7.3 14)
+      *>     alphanumeric character set." -> OK §2023:12.3.7.3 14)
       *>   cite.py --check 12.3.7.4 "may specify characters of the
       *>     native
       *>     character set in either ascending or descending sequence"
-      *>     -> OK §12.3.7.4 7) 2.  (cite.py mislabels the list item,
+      *>     -> OK §2023:12.3.7.4 7) 2.  (cite.py mislabels the list item,
       *>       PB1554;
       *>     the text is GR7 k) 5.)
       *> "Shall not EXCEED" makes EQUAL legal. The native alphanumeric
       *>   set
       *> is the 65,536 UTF-16 code units, ordinal n = code unit n-1
-      *> (docs/CONFORMANCE.md DOC-A.1-8, §12.3.7.4 GR6), so "65536 THRU
+      *> (docs/CONFORMANCE.md DOC-A.1-8, §2023:12.3.7.4 GR6), so "65536 THRU
       *>   1"
       *> specifies exactly 65,536 characters - the bound itself. The
       *> source is legal and MUST compile; an off-by-one count check

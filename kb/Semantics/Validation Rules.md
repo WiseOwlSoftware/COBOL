@@ -32,18 +32,18 @@ KEY item (`COBOL1575`), and those items must themselves be external (`COBOL1624`
 tags FILE-STATUS references testing `'04'`/`'07'` for the FLAG-14 migration net.
 
 ## Category / MOVE compatibility
-`MoveBinder` enforces the version-invariant §14.9.25.3 SR1 class check first — a MOVE operand of class
+`MoveBinder` enforces the version-invariant §2023:14.9.25.3 SR1 class check first — a MOVE operand of class
 index/message-tag/object/pointer is rejected at every edition (`COBOL0809`). The edition-conditional SR5
 figurative-category rules (ALL-digit→integer obsolete-2023; QUOTE→numeric obsolete-2014; other→numeric removed-2023)
 are gated in the pass's `GateMove`, re-deriving classification from the bound MOVE's source × each receiver's resolved
 PICTURE. See [[kb/IR/Data Flow]].
 
-## The §8.9 reserved-word funnel (`ParseArm.VisitCobolWord`)
+## The §2023:8.9 reserved-word funnel (`ParseArm.VisitCobolWord`)
 Every user-defined word reaches the tree through the `cobolWord` rule; one text-based check gates 2023-new words that
 lex as IDENTIFIER (COMMIT, FINALLY) plus the EC-band context tokens. It is **position-blind** for a fixed
 `CheckedTokenTypes` set and **position-aware** elsewhere via `IsProvableUserWordPosition` (only slots where no
 clause/statement keyword can legally sit). Reserved-word truth comes from `ReservedWordEntry` rows generated from
-**four sources** (in-repo ISO 2023 §8.9, VCR row 32 / Annex E.2, GnuCOBOL 85/2002/2014 lists), consumed through
+**four sources** (in-repo ISO 2023 §2023:8.9, VCR row 32 / Annex E.2, GnuCOBOL 85/2002/2014 lists), consumed through
 `ReservedWordSet` (composing the `>>COBOL-WORDS` overlay). Only `Confidence:"high"` rows reject — the no-false-reject
 policy.
 
@@ -64,7 +64,7 @@ reflected, feeding [[docs/DIAGNOSTICS]] and `DiagnosticRegistryDriftTests`. Nota
 - `0900/0901/0902/0903` — edition introduction / reserved-word / removal / obsolete.
 - `0801/0802/0809/0810/0811` — digit-capacity & MOVE class checks.
 - `1533/1535` — strong-type rules.
-- `1560`+ / `1518` — §4.2.6 non-support warnings / locale reject.
+- `1560`+ / `1518` — §2023:4.2.6 non-support warnings / locale reject.
 - `1573/1575/1624` — external-file consistency; `1620–1625` — directive & 2023 rules.
 
 ## Key concepts

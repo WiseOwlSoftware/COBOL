@@ -30,7 +30,7 @@ public sealed class CobolDecWithPrecisionTests
         Assert.Equal(expected, CobolDec.FractionDigits(new CobolDec(sig, exp)));
 
     /// <summary>The NUMVAL family lifts its argument EXACTLY at the written scale, which is what makes
-    /// <see cref="CobolDecWithPrecision.Own"/> of its value the argument's written places (§15.67.4 1) and §15.68.4 1):
+    /// <see cref="CobolDecWithPrecision.Own"/> of its value the argument's written places (§2023:15.67.4 1) and §2023:15.68.4 1):
     /// "The returned value is the numeric value represented by argument-1"; NUMVAL-F's SDIDI arm likewise). The value is the
     /// standard's; the precision a nested native quotient reads from it is this implementation's (DOC-A.1-123).</summary>
     [Theory]
@@ -116,7 +116,7 @@ public sealed class CobolDecWithPrecisionTests
         Assert.Equal("EC-SIZE-ZERO-DIVIDE", error.EcName);
     }
 
-    /// <summary>⛔ A ZERO CARRIES ITS PLACES LIKE ANY OTHER VALUE (review finding R5-1). ISO §8.8.1.5.3 performs the four
+    /// <summary>⛔ A ZERO CARRIES ITS PLACES LIKE ANY OTHER VALUE (review finding R5-1). ISO §2023:8.8.1.5.3 performs the four
     /// operations as ISO/IEC 60559 5.4.1 does, whose exact results take the PREFERRED exponent: the smaller of a sum's two,
     /// the sum of a product's, the dividend's less the divisor's for a quotient — a zero operand's and a zero result's
     /// included. The sum with a zero term was held at the OTHER operand's places, so `0.000 + 2.5` had 1 where

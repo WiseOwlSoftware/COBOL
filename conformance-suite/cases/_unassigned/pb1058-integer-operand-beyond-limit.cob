@@ -8,7 +8,7 @@
       *> binds the integer-n of a data description (a PAGE or LINAGE line count,
       *> a COLUMN, an OCCURS size) into its own model as a 32-bit integer, so a
       *> value above 2,147,483,647 is beyond this implementation's limit —
-      *> ISO/IEC 1989:2023 §4.5: "Translation may be unsuccessful due to factors
+      *> ISO/IEC 1989:2023 §2023:4.5: "Translation may be unsuccessful due to factors
       *> other than lack of conformance of a compilation group", and its NOTE
       *> names "the limits of an implementation" (docs/CONFORMANCE.md §3
       *> "Integer operands and host carriers"). Before PB1058 each of these took

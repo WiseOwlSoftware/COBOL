@@ -6,23 +6,23 @@
 *> portable: unverified
 *>---
       *> A GENERATE THAT PRINTS NOTHING STILL CONSUMES ITS GROUP'S GROUP INDICATE CONDITION (kb/Work PB1652).
-      *> ISO/IEC 1989:2023 §13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
+      *> ISO/IEC 1989:2023 §2023:13.18.28.4 GR1: "The GROUP INDICATE clause has the same effect as a PRESENT
       *> WHEN clause where the associated condition is true only on the first occasion that a GENERATE is
       *> issued for the current detail group after any of the following events." a) an INITIATE, b) a
       *> page advance, c) a control break.
       *>   cite.py --check 13.18.28.4 "true only on the first occasion that a GENERATE is issued for the
-      *>     current detail group"  -> OK  §13.18.28.4 1)  (General rule)
+      *>     current detail group"  -> OK  §2023:13.18.28.4 1)  (General rule)
       *> The rule counts GENERATEs ISSUED for the group, not lines printed: a GENERATE whose group is
-      *> inhibited by SUPPRESS (§14.9.45.4 GR3: the statement inhibits "b) Any page advance associated
+      *> inhibited by SUPPRESS (§2023:14.9.45.4 GR3: the statement inhibits "b) Any page advance associated
       *> with the report group" and the printing and LINE-COUNTER changes) or whose every line is absent
-      *> under PRESENT WHEN (§13.18.41.4 GR2 b: "the corresponding data item is declared to be absent and
+      *> under PRESENT WHEN (§2023:13.18.41.4 GR2 b: "the corresponding data item is declared to be absent and
       *> the effect on processing is as though the entry were omitted") is still a GENERATE issued for the
       *> group, so it is the "first occasion" and the next GENERATE of the same group finds the condition
       *> false.
-      *>   cite.py --check 14.9.45.4 "Any page advance associated with the report group"  -> OK  §14.9.45.4 3) b)
+      *>   cite.py --check 14.9.45.4 "Any page advance associated with the report group"  -> OK  §2023:14.9.45.4 3) b)
       *>   cite.py --check 13.18.41.4 "the corresponding data item is declared to be absent and the effect
-      *>     on processing is as though the entry were omitted"  -> OK  §13.18.41.4 2) b)
-      *> §13.18.14.4 GR7: "If integer-2 is specified for an item that is the first printable item in the
+      *>     on processing is as though the entry were omitted"  -> OK  §2023:13.18.41.4 2) b)
+      *> §2023:13.18.14.4 GR7: "If integer-2 is specified for an item that is the first printable item in the
       *> current line, it specifies the leftmost column of that item" -- so with the indicated item absent
       *> the relative item after it lands in column 2.
       *>   cite.py --check 13.18.14.4 "If integer-2 is specified for an item that is the first printable
@@ -35,7 +35,7 @@
       *>
       *> DERIVATION (PAGE LIMIT 20, FIRST DETAIL 1, LAST DETAIL 20; no control break and no page advance
       *> occurs after INITIATE, so event a) is the only arming; the report file is read back byte by byte,
-      *> each line DISPLAYed between brackets; the first printed line is line 1 by §13.18.35.4 GR5 b 3):
+      *> each line DISPLAYed between brackets; the first printed line is line 1 by §2023:13.18.35.4 GR5 b 3):
       *>   INITIATE                      : a) arms D1 and D2
       *>   WN=1 GENERATE D1 (hidden)     : the USE BEFORE REPORTING procedure executes SUPPRESS PRINTING;
       *>                                   nothing prints; the GENERATE is the first occasion -> D1 consumed

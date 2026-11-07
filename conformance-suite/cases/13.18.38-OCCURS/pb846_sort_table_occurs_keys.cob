@@ -6,15 +6,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §14.9.40 SORT Format 2 (table) with the KEY phrase OMITTED. kb/Work PB846.
+      *> ISO/IEC 1989:2023 §2023:14.9.40 SORT Format 2 (table) with the KEY phrase OMITTED. kb/Work PB846.
       *>
-      *> §14.9.40.2 — the printed Format 2 (folio 746, RENDERED) BRACKETS the KEY phrase, where Format 1 braces it.
-      *> §14.9.40.3 SR15 — "The KEY phrase may be omitted only if the description of the table referenced by
+      *> §2023:14.9.40.2 — the printed Format 2 (folio 746, RENDERED) BRACKETS the KEY phrase, where Format 1 braces it.
+      *> §2023:14.9.40.3 SR15 — "The KEY phrase may be omitted only if the description of the table referenced by
       *>   data-name-2 contains a KEY phrase."
-      *> §14.9.40.4 GR21 — "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the
+      *> §2023:14.9.40.4 GR21 — "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the
       *>   data description entry of the table referenced by data-name-2."
-      *> §13.18.38.4 GR3 — the OCCURS KEY data-names are "specified in descending order of significance", and each
-      *>   carries its own ASCENDING/DESCENDING (§14.9.40.4 GR1's transitivity is the same shape).
+      *> §2023:13.18.38.4 GR3 — the OCCURS KEY data-names are "specified in descending order of significance", and each
+      *>   carries its own ASCENDING/DESCENDING (§2023:14.9.40.4 GR1's transitivity is the same shape).
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   S=12345         TA (one ASCENDING key TK) loaded 3 1 5 2 4; GR21 sorts on TK ascending.

@@ -10,7 +10,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// The WiseOwl COBOL <c>&gt;&gt;COBOL-WORDS</c> directive stage (ISO §7.3.10; Annex D.12; Annex E.3.3 item 12;
+/// The WiseOwl COBOL <c>&gt;&gt;COBOL-WORDS</c> directive stage (ISO §2023:7.3.10; Annex D.12; Annex E.3.3 item 12;
 /// greenfield-only — the legacy pipeline keeps consuming the word via
 /// <see cref="ConditionalCompilationProcessor"/>'s <c>KnownIgnoredDirectives</c>): parses each surviving
 /// <c>&gt;&gt;COBOL-WORDS { EQUATE l1 WITH l2 | UNDEFINE l3 | SUBSTITUTE l4 BY l5 | RESERVE l6 }</c> line of the
@@ -30,18 +30,18 @@ public static class CobolWordsDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate each <c>&gt;&gt;COBOL-WORDS</c> line, parse its
     /// option, enforce SR1/SR2/SR5, and blank the directive lines. Returns the composed override map (empty when
     /// no directive is present). Line-count preserving.</summary>
-    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text (§7.3.20 / §7.3.22; kb/Work
+    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text (§2023:7.3.20 / §2023:7.3.22; kb/Work
     /// PB941), replayed over the entries up to the first IDENTIFICATION DIVISION: a POP COBOL-WORDS there
-    /// withdraws every entry written since its PUSH, and the map is the set in effect where §7.3.10.3 SR1 closes
+    /// withdraws every entry written since its PUSH, and the map is the set in effect where §2023:7.3.10.3 SR1 closes
     /// the region.</para>
     /// <para><paramref name="compilationVariables"/> is the &gt;&gt;DEFINE timeline of the same text (kb/Work PB1368):
-    /// §7.3.11.4 GR1 lets a compilation-variable-name defined before a directive stand in any of its literal slots
+    /// §2023:7.3.11.4 GR1 lets a compilation-variable-name defined before a directive stand in any of its literal slots
     /// where a literal of the name's category is permitted, and each literal of this directive is alphanumeric
-    /// (§7.3.10.3 SR2).</para>
+    /// (§2023:7.3.10.3 SR2).</para>
     /// <para>The third result is <c>FirstUnitLine</c>: the 1-based line on which the group's first compilation unit
-    /// begins, <see cref="int.MaxValue"/> when none does — §7.3.10.3 SR1's boundary, decided HERE because this is the one
+    /// begins, <see cref="int.MaxValue"/> when none does — §2023:7.3.10.3 SR1's boundary, decided HERE because this is the one
     /// stage that holds what decides it: a unit's header may be spelled with a word the group's own
-    /// <c>&gt;&gt;COBOL-WORDS EQUATE</c> made a synonym (<c>IDENT DIVISION.</c>, §7.3.10.4 GR2), and only the entries in
+    /// <c>&gt;&gt;COBOL-WORDS EQUATE</c> made a synonym (<c>IDENT DIVISION.</c>, §2023:7.3.10.4 GR2), and only the entries in
     /// effect before the line can say so (<see cref="CompilationUnitStart.IsAt(string, CobolWordsMap)"/>). The placement
     /// rows that name this boundary are judged against it by <see cref="DirectiveSiteProcessor.JudgeFirstUnitPlacement"/>.</para>
     public static (string Text, CobolWordsMap Map, int FirstUnitLine) Process(
@@ -53,7 +53,7 @@ public static class CobolWordsDirectiveProcessor
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, CobolWordsMap.Empty, CompilationUnitStart.FirstLine(text));
         var lines = text.Split('\n');
         var ops = new List<CobolWordsOp>();
-        // SR5 (§7.3.10.3 / D.12.1): a COBOL word may be contained in a literal of at most ONE directive in the
+        // SR5 (§2023:7.3.10.3 / D.12.1): a COBOL word may be contained in a literal of at most ONE directive in the
         // group (the modified word AND its substitute both count). First occurrence wins; a repeat is the error.
         var seenWords = new Dictionary<string, int>(CobolNames.Comparer);
         bool sawFirstIdDivision = false;
@@ -65,7 +65,7 @@ public static class CobolWordsDirectiveProcessor
         {
             string trimmed = lines[i].TrimSpacesStart();
             // SR1 boundary: the FIRST IDENTIFICATION DIVISION ends the region where COBOL-WORDS is legal — and its
-            // header is optional (§11.2.1), so the boundary is the ONE unit-start test (kb/Work PB829), asked of the
+            // header is optional (§2023:11.2.1), so the boundary is the ONE unit-start test (kb/Work PB829), asked of the
             // line as the group's own synonyms read it (kb/Work PB1373): `IDENT DIVISION.` after `>>COBOL-WORDS EQUATE
             // "IDENTIFICATION" WITH "IDENT"` is the identification division header.
             if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
@@ -87,7 +87,7 @@ public static class CobolWordsDirectiveProcessor
                 }
                 continue;
             }
-            // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
+            // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§2023:7.3.3 SR5)
             // and the trailing inline comment (SR3/SR4) are its rules, not this stage's — `>>COBOL-WORDS
             // RESERVE "ZQX" *> why` used to be rejected as a malformed entry list.
             if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
@@ -96,11 +96,11 @@ public static class CobolWordsDirectiveProcessor
             int at = CompilerDirectiveLine.IndicatorIndex(lines[i]);
             var loc = lineMap?.Locate(i + 1, at, sourcePath) ?? new SourceLocation(sourcePath, 0, i, at);   // the SOURCE position of the directive (kb/Work PB82, PB1801)
 
-            // The introduction gate (§7.3.10 is a COBOL-2023 addition, Annex E.3.3 item 12) already fired at
+            // The introduction gate (§2023:7.3.10 is a COBOL-2023 addition, Annex E.3.3 item 12) already fired at
             // the ONE directive-recognition point — CompilerDirectiveCatalog, from the cobol-words-directive-2023
             // row's directiveWords (kb/Work PB725). This stage parses; it does not re-decide the edition.
 
-            // §7.3.10.3 SR1 — a COBOL-WORDS directive after the first IDENTIFICATION DIVISION is illegal — is judged by
+            // §2023:7.3.10.3 SR1 — a COBOL-WORDS directive after the first IDENTIFICATION DIVISION is illegal — is judged by
             // the ONE placement screen, from the row's directivePlacement data (DirectiveSiteProcessor.
             // JudgeFirstUnitPlacement, COBOL2652, kb/Work PB1377), for the directive itself and for a PUSH/POP naming
             // it, against the FirstUnitLine this stage returns. The boundary is also STATE: the map is the set in effect
@@ -114,7 +114,7 @@ public static class CobolWordsDirectiveProcessor
                 {
                     if (seenWords.TryGetValue(w, out _))
                         Invalid(diagnostics, loc,
-                            $"the COBOL word '{w}' is used in more than one >>COBOL-WORDS directive (ISO §7.3.10.3 SR5)");
+                            $"the COBOL word '{w}' is used in more than one >>COBOL-WORDS directive (ISO §2023:7.3.10.3 SR5)");
                     else
                         seenWords[w] = i;
                 }
@@ -134,8 +134,8 @@ public static class CobolWordsDirectiveProcessor
         if (op.New is { } n) yield return n;
     }
 
-    /// <summary>Parse the operand after <c>COBOL-WORDS</c> into one option (§7.3.10.2), enforcing SR2 per literal
-    /// and the §8.3.2.2 user-word form for the fresh word. Returns false (with a COBOL1623) when malformed — with
+    /// <summary>Parse the operand after <c>COBOL-WORDS</c> into one option (§2023:7.3.10.2), enforcing SR2 per literal
+    /// and the §2023:8.3.2.2 user-word form for the fresh word. Returns false (with a COBOL1623) when malformed — with
     /// none when a literal slot names a variable whose last DEFINE was refused, which that directive reported (kb/Work PB3119).
     /// <para><paramref name="definitionOf"/> reads the DEFINE timeline (<see cref="CompilationVariableTimeline.StandingAt"/>)
     /// for a compilation-variable-name in a literal slot; null is the SYNTAX-ONLY parse of <see cref="CheckOperand"/>, where such a name is accepted by its shape
@@ -149,18 +149,18 @@ public static class CobolWordsDirectiveProcessor
             if (tok.Defect is { } defect)
             {
                 Invalid(diag, loc, $">>COBOL-WORDS: the literal \"{tok.Text}\" is not an alphanumeric literal — {defect} "
-                    + "(ISO §7.3.10.3 SR2)");
+                    + "(ISO §2023:7.3.10.3 SR2)");
                 return false;
             }
         if (toks.Count == 0)
         {
-            Invalid(diag, loc, ">>COBOL-WORDS requires an EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE option (ISO §7.3.10.2)");
+            Invalid(diag, loc, ">>COBOL-WORDS requires an EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE option (ISO §2023:7.3.10.2)");
             return false;
         }
         var kw = toks[0];
         if (kw.IsLiteral)
         {
-            Invalid(diag, loc, ">>COBOL-WORDS requires an EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE option (ISO §7.3.10.2)");
+            Invalid(diag, loc, ">>COBOL-WORDS requires an EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE option (ISO §2023:7.3.10.2)");
             return false;
         }
         switch (CobolKeywords.Spelling(kw.Text))
@@ -175,7 +175,7 @@ public static class CobolWordsDirectiveProcessor
                 return TryUnary(toks, CobolWordsAction.Reserve, isExisting: false, at, diag, loc, definitionOf, out op);
             default:
                 Invalid(diag, loc,
-                    $"'{kw.Text}' is not a >>COBOL-WORDS option — expected EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE (ISO §7.3.10.2)");
+                    $"'{kw.Text}' is not a >>COBOL-WORDS option — expected EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE (ISO §2023:7.3.10.2)");
                 return false;
         }
     }
@@ -188,7 +188,7 @@ public static class CobolWordsDirectiveProcessor
         if (toks.Count != 4 || !toks[2].IsKeyword(join))
         {
             Invalid(diag, loc, $">>COBOL-WORDS {toks[0].Text.ToUpperInvariant()} expects "
-                + $"literal-1 {join} literal-2 (ISO §7.3.10.2)");
+                + $"literal-1 {join} literal-2 (ISO §2023:7.3.10.2)");
             return false;
         }
         if (!Literal(toks[1], diag, loc, "the existing word", definitionOf, out string existing, out _)) return false;
@@ -205,12 +205,12 @@ public static class CobolWordsDirectiveProcessor
         op = null!;
         if (toks.Count != 2)
         {
-            Invalid(diag, loc, $">>COBOL-WORDS {toks[0].Text.ToUpperInvariant()} expects a single literal (ISO §7.3.10.2)");
+            Invalid(diag, loc, $">>COBOL-WORDS {toks[0].Text.ToUpperInvariant()} expects a single literal (ISO §2023:7.3.10.2)");
             return false;
         }
         if (!Literal(toks[1], diag, loc, isExisting ? "the word" : "the new word", definitionOf, out string word,
                 out bool isWritten)) return false;
-        // RESERVE's operand is a fresh user word (SR4 §8.3.2.2 form); UNDEFINE's is an existing word (no form check).
+        // RESERVE's operand is a fresh user word (SR4 §2023:8.3.2.2 form); UNDEFINE's is an existing word (no form check).
         if (!isExisting && isWritten && !UserWord(word, diag, loc)) return false;
         op = isExisting
             ? new CobolWordsOp(action, word, null, at)
@@ -219,7 +219,7 @@ public static class CobolWordsDirectiveProcessor
     }
 
     /// <summary>SR2: a plain alphanumeric literal (quoted, non-hex/national, space-free). Returns the content as
-    /// <see cref="Spelled"/> keeps it. A WORD in the slot is a compilation-variable-name (§7.3.11.4 GR1: "In text that follows a DEFINE
+    /// <see cref="Spelled"/> keeps it. A WORD in the slot is a compilation-variable-name (§2023:7.3.11.4 GR1: "In text that follows a DEFINE
     /// directive specifying compilation-variable-name-1 without the OFF phrase, compilation-variable-name-1 may be used
     /// … in any compiler directive where a literal of the category associated with the name is permitted"): it stands
     /// for the literal its DEFINE wrote, and that literal meets SR2 like a written one — so a name defined
@@ -231,12 +231,12 @@ public static class CobolWordsDirectiveProcessor
         isWritten = true;
         if (!tok.IsLiteral && definitionOf is null)
         {
-            // The syntax-only parse (an omitted conditional-compilation branch, §7.2.1): a compilation-variable-name in
+            // The syntax-only parse (an omitted conditional-compilation branch, §2023:7.2.1): a compilation-variable-name in
             // the slot is a name by its shape, and what it denotes is not read — nothing in that branch is compiled.
             if (!CobolCharacterRepertoire.IsWordShape(tok.Text))
             {
-                Invalid(diag, loc, $">>COBOL-WORDS: {role} must be an alphanumeric literal (ISO §7.3.10.3 SR2), or a "
-                    + $"compilation-variable-name (ISO §7.3.11.4 GR1), not '{tok.Text}'");
+                Invalid(diag, loc, $">>COBOL-WORDS: {role} must be an alphanumeric literal (ISO §2023:7.3.10.3 SR2), or a "
+                    + $"compilation-variable-name (ISO §2023:7.3.11.4 GR1), not '{tok.Text}'");
                 return false;
             }
             content = Spelled(tok.Text);
@@ -250,21 +250,21 @@ public static class CobolWordsDirectiveProcessor
             if (standing is { Refused: true }) return false;
             if (standing is not { Value: { } value } definition)
             {
-                Invalid(diag, loc, $">>COBOL-WORDS: {role} must be an alphanumeric literal (ISO §7.3.10.3 SR2), or a "
-                    + $"compilation-variable-name defined before the directive (ISO §7.3.11.4 GR1), not '{tok.Text}'");
+                Invalid(diag, loc, $">>COBOL-WORDS: {role} must be an alphanumeric literal (ISO §2023:7.3.10.3 SR2), or a "
+                    + $"compilation-variable-name defined before the directive (ISO §2023:7.3.11.4 GR1), not '{tok.Text}'");
                 return false;
             }
             if (value.Category != CtCategory.Alphanumeric)
             {
                 Invalid(diag, loc, $">>COBOL-WORDS: {role} names the compilation variable '{tok.Text}', whose value is "
                     + $"{value.Category.ToString().ToLowerInvariant()} — a compilation-variable-name stands only where a "
-                    + "literal of its own category is permitted (ISO §7.3.11.4 GR1), and this literal is alphanumeric "
-                    + "(ISO §7.3.10.3 SR2)");
+                    + "literal of its own category is permitted (ISO §2023:7.3.11.4 GR1), and this literal is alphanumeric "
+                    + "(ISO §2023:7.3.10.3 SR2)");
                 return false;
             }
-            // The literal the name represents: the DEFINE operand as written (one literal — §7.3.3 SR10 keeps a
+            // The literal the name represents: the DEFINE operand as written (one literal — §2023:7.3.3 SR10 keeps a
             // concatenation expression out of every directive — so its format is screened below like a written one),
-            // or, for a value the PARAMETER phrase obtained from the environment (§7.3.11.4 GR4), which has no written
+            // or, for a value the PARAMETER phrase obtained from the environment (§2023:7.3.11.4 GR4), which has no written
             // operand, that value as a plain literal.
             tok = Tokenize(definition.Written) is [{ IsLiteral: true, Defect: null } written]
                 ? written : new Tok(value.Text, IsLiteral: true, Prefix: "");
@@ -272,12 +272,12 @@ public static class CobolWordsDirectiveProcessor
         if (tok.Prefix.Length != 0)
         {
             Invalid(diag, loc, $">>COBOL-WORDS: {role} must be a plain alphanumeric literal, not a "
-                + $"{tok.Prefix.ToUpperInvariant()}-prefixed literal (ISO §7.3.10.3 SR2)");
+                + $"{tok.Prefix.ToUpperInvariant()}-prefixed literal (ISO §2023:7.3.10.3 SR2)");
             return false;
         }
         if (tok.Text.Length == 0 || tok.Text.Contains(' '))
         {
-            Invalid(diag, loc, $">>COBOL-WORDS: {role} literal must be a non-empty, space-free COBOL word (ISO §7.3.10.3 SR2)");
+            Invalid(diag, loc, $">>COBOL-WORDS: {role} literal must be a non-empty, space-free COBOL word (ISO §2023:7.3.10.3 SR2)");
             return false;
         }
         content = Spelled(tok.Text);
@@ -288,15 +288,15 @@ public static class CobolWordsDirectiveProcessor
     /// upper-cased and every other character as written. The EXISTING word (literal-1/3/4) is a keyword, so
     /// <c>UNDEFINE "DİSPLAY"</c> (U+0130) names no word SR3 admits and undefines nothing; the FRESH word (literal-2/5/6) is
     /// a user-defined word, compared through the Annex C fold wherever it is looked up (the map's
-    /// <c>CobolNames.Comparer</c> sets, SR5's set, the §8.9 / §8.10 tables; ISO §8.1.3.2 3) a), 4) b); kb/Work PB4240), so
+    /// <c>CobolNames.Comparer</c> sets, SR5's set, the §2023:8.9 / §2023:8.10 tables; ISO §2023:8.1.3.2 3) a), 4) b); kb/Work PB4240), so
     /// the fold decides its identity and never its spelling, and a diagnostic names the letters the user wrote
     /// (<c>'CAFÉ-'</c>, never the folded <c>'CAFé-'</c>; kb/Work PB4312).</summary>
     private static string Spelled(string text) => CobolKeywords.Spelling(text);
 
     /// <summary>SR4 (frontend half): the fresh word (literal-2/5/6) is a well-formed user-defined word per
-    /// §8.3.2.1 / §8.3.2.2 — the word shape (word characters, the extended letters included, neither hyphen nor
+    /// §2023:8.3.2.1 / §2023:8.3.2.2 — the word shape (word characters, the extended letters included, neither hyphen nor
     /// underscore first or last) and at least one basic or extended letter (kb/Work PB1402 — this admitted only
-    /// letters, digits and hyphens, so the 2002 underscore was refused, and counted a digit as the letter §8.3.2.2
+    /// letters, digits and hyphens, so the 2002 underscore was refused, and counted a digit as the letter §2023:8.3.2.2
     /// asks for). (Whether it is nonetheless reserved/context/intrinsic — the SR4 category bar — is checked in the
     /// compiler.)</summary>
     private static bool UserWord(string word, DiagnosticBag diag, SourceLocation loc)
@@ -305,24 +305,24 @@ public static class CobolWordsDirectiveProcessor
         if (!ok)
         {
             Invalid(diag, loc, CobolCharacterRepertoire.SeparatorPositionViolation(word) is { } position
-                ? $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {position} (ISO §7.3.10.3 SR4)"
-                : $">>COBOL-WORDS: '{word}' is not a valid user-defined word (ISO §7.3.10.3 SR4 / §8.3.2.2)");
+                ? $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {position} (ISO §2023:7.3.10.3 SR4)"
+                : $">>COBOL-WORDS: '{word}' is not a valid user-defined word (ISO §2023:7.3.10.3 SR4 / §2023:8.3.2.2)");
             return false;
         }
-        // The rest of §8.3.2.1 — the 63-character ceiling and the Annex B placement of each extended character — is the
+        // The rest of §2023:8.3.2.1 — the 63-character ceiling and the Annex B placement of each extended character — is the
         // word's own rule (CobolWordRule, the one place it lives for a directive-carried word). A RESERVE'd or EQUATE'd
         // word no statement uses never reaches the tree funnel that asks it of every other user word, so asking it here
         // is the only place a 64-character fresh word is seen. The directive is a COBOL-2023 introduction, so the
         // edition whose limit applies is the one that introduced it.
         foreach (var (_, violation) in CobolWordRule.DirectiveWordViolations(word, CobolWordsMap.DirectiveEdition))
         {
-            Invalid(diag, loc, $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {violation} (ISO §7.3.10.3 SR4)");
+            Invalid(diag, loc, $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {violation} (ISO §2023:7.3.10.3 SR4)");
             ok = false;
         }
         return ok;
     }
 
-    /// <summary>The SYNTAX-ONLY check of one <c>&gt;&gt;COBOL-WORDS</c> operand — what ISO §7.2.1 asks of a directive
+    /// <summary>The SYNTAX-ONLY check of one <c>&gt;&gt;COBOL-WORDS</c> operand — what ISO §2023:7.2.1 asks of a directive
     /// whose line is in an OMITTED conditional-compilation branch ("syntactically correct in the initial source text and
     /// library text"; kb/Work PB2003): the option, its arity and join word, and each literal's form (SR2) and, for the
     /// fresh word, its user-word shape (SR4). Nothing is applied and nothing is looked up — SR3/SR4's word categories,
@@ -335,7 +335,7 @@ public static class CobolWordsDirectiveProcessor
 
     // ── operand tokenizer ────────────────────────────────────────────────────────────────────────────────────
     /// <param name="Defect">Null for a well-formed token; otherwise why a LITERAL is not an alphanumeric literal at all
-    /// (§8.3.3.2.3, §8.3.5 5) — SR2 requires each operand literal to be one.</param>
+    /// (§2023:8.3.3.2.3, §2023:8.3.5 5) — SR2 requires each operand literal to be one.</param>
     private readonly record struct Tok(string Text, bool IsLiteral, string Prefix, string? Defect = null)
     {
         public bool IsKeyword(string kw) => !IsLiteral && CobolKeywords.Same(Text, kw);
@@ -343,7 +343,7 @@ public static class CobolWordsDirectiveProcessor
 
     /// <summary>Split the operand into barewords and quoted literals. The separators are the operand's own: the
     /// separator space, which the directive-line parse has already made of every separator comma and semicolon
-    /// (<see cref="CompilerDirectiveLine.SeparatorsAsSpaces"/>, §8.3.5 2)). A letter run immediately followed by a quote
+    /// (<see cref="CompilerDirectiveLine.SeparatorsAsSpaces"/>, §2023:8.3.5 2)). A letter run immediately followed by a quote
     /// (no space) is captured as a PREFIXED literal (e.g. <c>X"AB"</c>) so SR2 can reject it precisely.</summary>
     private static List<Tok> Tokenize(string s)
     {
@@ -371,10 +371,10 @@ public static class CobolWordsDirectiveProcessor
 
     /// <summary>Read a quoted literal starting at <paramref name="q"/> (its opening quote); returns the index past
     /// the closing quote. Emits a Literal token carrying its content: two contiguous quotation symbols matching the
-    /// opening one are one occurrence of that character in the content (§8.3.3.2.3 3)), a literal with no closing
+    /// opening one are one occurrence of that character in the content (§2023:8.3.3.2.3 3)), a literal with no closing
     /// delimiter is DEFECTIVE (SR2: "Each literal shall be an alphanumeric literal"), and so is one whose closing
     /// delimiter is not "immediately followed by one of the separators space, comma, semicolon, period, right
-    /// parenthesis, or closing pseudo-text delimiter" (§8.3.5 5)) — the comma and semicolon are already spaces here,
+    /// parenthesis, or closing pseudo-text delimiter" (§2023:8.3.5 5)) — the comma and semicolon are already spaces here,
     /// and a period or right parenthesis can only end an operand this directive's format does not admit, which is
     /// the same refusal.</summary>
     private static int ReadQuoted(string s, int q, string prefix, List<Tok> toks)
@@ -391,7 +391,7 @@ public static class CobolWordsDirectiveProcessor
         if (j >= s.Length)
         {
             toks.Add(new Tok(content.ToString(), IsLiteral: true, Prefix: prefix,
-                Defect: "it has no closing quotation symbol (ISO §8.3.5 5))"));
+                Defect: "it has no closing quotation symbol (ISO §2023:8.3.5 5))"));
             return j;
         }
         j++;   // step past the closing quote
@@ -399,7 +399,7 @@ public static class CobolWordsDirectiveProcessor
         toks.Add(new Tok(content.ToString(), IsLiteral: true, Prefix: prefix,
             Defect: separated ? null
                 : $"its closing quotation symbol is followed by '{s[j]}', and a separator space (or a comma or semicolon "
-                  + "followed by one, and more of the operand) shall come next (ISO §8.3.5 2), 5))"));
+                  + "followed by one, and more of the operand) shall come next (ISO §2023:8.3.5 2), 5))"));
         return j;
     }
 }

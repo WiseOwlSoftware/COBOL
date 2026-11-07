@@ -5,11 +5,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§8.5.1.12.1) in an INDEXED
+      *> ISO 1989:2014 §13.18.43 (RECORD clause Format 1) over a VARIABLE-LENGTH GROUP record (§2023:8.5.1.12.1) in an INDEXED
       *> file: the indexed sibling of pb1562_variable_group_under_fixed_record_clause (record sequential) and of its relative
       *> twin. The record holds two DYNAMIC LENGTH members around the RECORD KEY, in a file described with RECORD CONTAINS
-      *> 20 CHARACTERS: legal because §13.18.43.3 SR3 bounds the description by its maximum (9 + 3 + 8 = 20, D-FRA (iv)).
-      *> What the indexed organization adds is the KEY. §9.1.7.4: "For each key, the number of such components, their
+      *> 20 CHARACTERS: legal because §2023:13.18.43.3 SR3 bounds the description by its maximum (9 + 3 + 8 = 20, D-FRA (iv)).
+      *> What the indexed organization adds is the KEY. §2023:9.1.7.4: "For each key, the number of such components, their
       *> length, and their relative positions within the record area are fixed file attributes and shall not be changed
       *> once the physical file has been created." The key KY sits BEHIND the variable member A, so a store that placed
       *> the key where the CURRENT record puts it (after 3 characters in one record, after 1 in the next, after none in
@@ -17,11 +17,11 @@
       *> member at the position it has at its maximum size - KY at byte 10 of 20 in every record - so the key window is
       *> the same in all of them, and a record is found, ordered and replaced by the key the program wrote.
       *>   W1 W2 W3  KB1, KA2, KC3 written in that order: '00' each (A holds 3, 1 and 0 characters).
-      *>   W4        KA2 again: the prime record key is unique (§14.9.51.4 GR42 b); §9.1.7.4: "shall be unique"), the invalid key condition
+      *>   W4        KA2 again: the prime record key is unique (§2023:14.9.51.4 GR42 b); §2023:9.1.7.4: "shall be unique"), the invalid key condition
       *>             '22', INVALID KEY runs.
       *>   RK1 RK3   random READ of KB1 and KC3 with junk in the members: every member comes back.
       *>   ST N1-N3  START KEY EQUAL KA2 then READ NEXT three times: the records come back in ASCENDING KEY order
-      *>             (§9.1.8.2: "ascending based on the value of the key of reference"), KA2, KB1, KC3, not in the order
+      *>             (§2023:9.1.8.2: "ascending based on the value of the key of reference"), KA2, KB1, KC3, not in the order
       *>             written; after KC3 the file is exhausted (N4 '10').
       *>   RW RK1B   REWRITE of KB1 with other member lengths; READ shows the new members and the same key.
       *>   DL RK2B   DELETE of KA2, then a READ of KA2: '23'; START KEY GREATER than KC3: '23'.

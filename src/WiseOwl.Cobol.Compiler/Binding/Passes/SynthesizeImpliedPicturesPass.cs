@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// The §13.16.3 SR9 VALUE-implied PICTURE (kb/Work PB504/PB831/PB1300; DataBinder.ImpliedPicture.cs). FIRST, and the placement is the design. SR9 implies the clause for the entry the programmer WROTE, and §13.18.57.4 GR3 then says "when the description of type-name-1 includes an implicit PICTURE clause derived from a VALUE clause, that implicit PICTURE clause becomes part of the description of the subject of the entry" — so the template must OWN its implied PICTURE before ExpandTypes copies its description, exactly as it owns a written one. Run after the copy (the former order), the template had no PICTURE to hand over and the subject's OWN VALUE literal implied one instead: `01 U TYPEDEF VALUE "ABCD". 01 W TYPE U VALUE "Q".` bound W as PIC X(1) where GR3 makes it PIC X(4) (kb/Work PB1300). An entry whose description is still a pending TYPE / SAME AS reference is not picture-less in SR9's sense (IsPictureLessLeaf) — its PICTURE is the referenced description's — so it waits for the copy. BEFORE UsageInheritancePass as well, so that from this point on the entry is INDISTINGUISHABLE from one whose source wrote `PICTURE X(n)` — §13.18.60.4 GR1 inheritance, the §13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance and every later pass apply to it through their existing single sites.
+/// The §2023:13.16.3 SR9 VALUE-implied PICTURE (kb/Work PB504/PB831/PB1300; DataBinder.ImpliedPicture.cs). FIRST, and the placement is the design. SR9 implies the clause for the entry the programmer WROTE, and §2023:13.18.57.4 GR3 then says "when the description of type-name-1 includes an implicit PICTURE clause derived from a VALUE clause, that implicit PICTURE clause becomes part of the description of the subject of the entry" — so the template must OWN its implied PICTURE before ExpandTypes copies its description, exactly as it owns a written one. Run after the copy (the former order), the template had no PICTURE to hand over and the subject's OWN VALUE literal implied one instead: `01 U TYPEDEF VALUE "ABCD". 01 W TYPE U VALUE "Q".` bound W as PIC X(1) where GR3 makes it PIC X(4) (kb/Work PB1300). An entry whose description is still a pending TYPE / SAME AS reference is not picture-less in SR9's sense (IsPictureLessLeaf) — its PICTURE is the referenced description's — so it waits for the copy. BEFORE UsageInheritancePass as well, so that from this point on the entry is INDISTINGUISHABLE from one whose source wrote `PICTURE X(n)` — §2023:13.18.60.4 GR1 inheritance, the §2023:13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance and every later pass apply to it through their existing single sites.
 /// </para>
 /// </remarks>
 internal sealed class SynthesizeImpliedPicturesPass : IBindPass
@@ -27,7 +27,7 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.None;
 
-    /// <summary>§13.16.3 SR9 — give every picture-less elementary item whose VALUE clause supplies an
+    /// <summary>§2023:13.16.3 SR9 — give every picture-less elementary item whose VALUE clause supplies an
     /// alphanumeric, boolean or national literal the PICTURE the rule implies.</summary>
     public void Run(DataBinder binder)
     {
@@ -46,18 +46,18 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
             if (DataBinder.IsWrittenEntry(item)) SynthesizeImpliedPicture(binder, item);
     }
 
-    /// <summary>§13.16.3 SR9 for one entry: the body of <see cref="Run"/>.</summary>
+    /// <summary>§2023:13.16.3 SR9 for one entry: the body of <see cref="Run"/>.</summary>
     private static void SynthesizeImpliedPicture(DataBinder binder, DataItem item)
     {
         // ⛔ THE SAME PREDICATE THE SR8 GUARD USES, and deliberately so: SR9's subject is precisely the
         // population SR8 would otherwise reject, so the two rules must never disagree about which entries
         // they are looking at. It also excludes an entry whose description is a still-pending TYPE / SAME AS
-        // reference (its PICTURE is the referenced description's — §13.18.57.4 GR3, §13.18.49.4 GR1), and it
+        // reference (its PICTURE is the referenced description's — §2023:13.18.57.4 GR3, §2023:13.18.49.4 GR1), and it
         // is what makes this pass IDEMPOTENT: an entry that already has a PICTURE (written or
         // usage-synthesized) fails it.
         if (!DataBinder.IsPictureLessLeaf(item)) return;
         // ⛔ FORMAT 1 ONLY. SR9's grant is worded "specified in the DATA-ITEM FORMAT of the VALUE clause",
-        // which is §13.18.63.2 Format 1 (`VALUE IS literal-1`) — DataItem.RawValue. The Format-2 (table)
+        // which is §2023:13.18.63.2 Format 1 (`VALUE IS literal-1`) — DataItem.RawValue. The Format-2 (table)
         // carrier, DataItem.TableValues, is a different format and SR9 does not reach it, so a picture-less
         // `OCCURS … VALUES ARE "AB" FROM (1)` stays SR8's rejection.
         if (item.RawValue is not { } raw) return;
@@ -77,28 +77,28 @@ internal sealed class SynthesizeImpliedPicturesPass : IBindPass
         // usage and its own SIGN clause, `explicitUsage` = "this entry wrote a USAGE clause". A usage the
         // entry acquires from a GROUP is applied ONCE, by UsageInheritancePass's ApplyEffectiveUsage, exactly
         // as it is for a written PICTURE; passing the inherited usage here as well would screen it twice and
-        // report the §13.18.60.3 SR3/SR5/SR12/SR20 violation twice.
+        // report the §2023:13.18.60.3 SR3/SR5/SR12/SR20 violation twice.
         item.PictureText = implied.Text;
         item.PicIsValueImplied = true;   // an IMPLICIT clause: no SR4/SR5/SR10 size bound (see the property)
         item.Pic = PictureAnalyzer.Analyze(implied.Text, item.OwnUsage ?? Usage.Display, binder.Edition, where,
             item.OwnSign, currencies: binder.State.Configuration.CurrencySigns, blankWhenZero: item.BlankWhenZero,
             explicitUsage: item.OwnUsage is not null, decimalPointIsComma: binder.State.Configuration.DecimalPointIsComma);
-        // The entry is no longer picture-less, so the deferred §13.18.60.3 SR5/SR12 adjudication a
+        // The entry is no longer picture-less, so the deferred §2023:13.18.60.3 SR5/SR12 adjudication a
         // PICTURE-less USAGE NATIONAL / BIT entry carries is ANSWERED — by the picture SR9 supplies. The
         // screen above is the one that judges it (`01 A USAGE NATIONAL VALUE "AB".` is SR12's alphanumeric
         // refusal; `01 A USAGE NATIONAL VALUE N"AB".` conforms).
         item.Pending = PicPending.None;
 
         // ⚠ The VALUE literal is NOT re-screened through ScreenValueLiteral, and that is the rule's own
-        // doing: §13.18.63.3 SR4/SR5/SR10's size sentences bound the literal by "the size indicated by an
+        // doing: §2023:13.18.63.3 SR4/SR5/SR10's size sentences bound the literal by "the size indicated by an
         // EXPLICIT PICTURE clause", and this one is implied; their class sentences cannot bite because the
         // implied picture's category IS the literal's class by construction; and SR2's numeric-range arm is
         // unreachable, SR9 admitting only the three character categories.
     }
 
-    /// <summary>The usage that applies to <paramref name="item"/> by §13.18.60.4 GR1 — its own clause (or the one
-    /// a GROUP-USAGE clause implies), else the NEAREST ENCLOSING entry's, else §13.18.60.3 SR13 b)'s implied
-    /// DISPLAY. It is the CONTEXT §8.3.3.6.4 GR1 and GR4 ask about, and nothing else: a written literal carries
+    /// <summary>The usage that applies to <paramref name="item"/> by §2023:13.18.60.4 GR1 — its own clause (or the one
+    /// a GROUP-USAGE clause implies), else the NEAREST ENCLOSING entry's, else §2023:13.18.60.3 SR13 b)'s implied
+    /// DISPLAY. It is the CONTEXT §2023:8.3.3.6.4 GR1 and GR4 ask about, and nothing else: a written literal carries
     /// its own class, so only a figurative constant consults it.
     /// <para><see cref="DataBinder.DeclaredUsageOf"/> is the "own or implied" half, shared verbatim with
     /// <c>UsageInheritanceWalk</c>, which PUSHES the same derivation down the forest; the loop is GR1's "nearest

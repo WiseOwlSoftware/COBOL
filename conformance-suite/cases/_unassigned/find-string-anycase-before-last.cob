@@ -4,15 +4,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.37.2 fixes the phrase ORDER as well as the phrase set:
+      *> ISO §2023:15.37.2 fixes the phrase ORDER as well as the phrase set:
       *>   FUNCTION FIND-STRING argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]
       *> LAST stands in the bracket BEFORE argument-3's bracket, which stands before ANYCASE's, so a
       *> call writing ANYCASE and then LAST is not a shape this format produces and shall be rejected.
       *> The existing negative fixture find-string-dangling-start-after pins the OTHER way this format
       *> can be misread (a START AFTER with no argument-3); this one pins the ordering itself, which
       *> matters because an order-free reading accepts it and computes an answer.
-      *> FIND-STRING itself exists only from COBOL-2023 (§E.3.3 item 27), so 2023 is the only edition
-      *> at which this rejection is §15.37.2's rather than the function's own edition gate.
+      *> FIND-STRING itself exists only from COBOL-2023 (§2023:E.3.3 item 27), so 2023 is the only edition
+      *> at which this rejection is §2023:15.37.2's rather than the function's own edition gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1FSNEGORD.
        DATA DIVISION.

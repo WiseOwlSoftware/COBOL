@@ -6,18 +6,18 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>The clauses of the standard's identical-description lists that are properties of the ENTRY rather than
-/// of <see cref="PicInfo"/> — written once for every asker: ISO §8.5.3.1 (type equivalence), §9.3.6 3) (method
-/// matching), §9.3.8.2.3 rules 3/6 (interface conformance: overrides, IMPLEMENTS), §14.8.2.3.2 rule 2 (BY REFERENCE
-/// arguments) and §14.8.3.3 (returning items). The PICTURE clause itself is <see cref="PictureClauseIdentity"/>,
+/// of <see cref="PicInfo"/> — written once for every asker: ISO §2023:8.5.3.1 (type equivalence), §2023:9.3.6 3) (method
+/// matching), §2023:9.3.8.2.3 rules 3/6 (interface conformance: overrides, IMPLEMENTS), §2023:14.8.2.3.2 rule 2 (BY REFERENCE
+/// arguments) and §2023:14.8.3.3 (returning items). The PICTURE clause itself is <see cref="PictureClauseIdentity"/>,
 /// carried on <see cref="PicInfo.Clause"/>.</summary>
 public static class DescriptionClauses
 {
-    /// <summary>ALIGNED (§13.18.1) and DYNAMIC LENGTH with its LIMIT phrase and its structure's definition (§13.18.19; the name never, DESIGN-external-repository §6.4), asked of
+    /// <summary>ALIGNED (§2023:13.18.1) and DYNAMIC LENGTH with its LIMIT phrase and its structure's definition (§2023:13.18.19; the name never, DESIGN-external-repository §6.4), asked of
     /// both sides; null when they agree. kb/Work PB1166: the activation / signature comparator of the day compared
     /// neither, so <c>PIC 1(8) USAGE BIT ALIGNED</c> crossed BY REFERENCE into <c>PIC 1(8) USAGE BIT</c>, and
     /// <c>PIC X DYNAMIC LENGTH</c> overrode <c>PIC X</c>. That comparator is deleted (kb/Work PB3101): the activation and
     /// pair-mode relations read both clauses from the description's clause key (<c>ActivationDescriptions</c>), and this
-    /// predicate is the §8.5.3.1 profile compare's (<see cref="StrongTypeModel"/>).</summary>
+    /// predicate is the §2023:8.5.3.1 profile compare's (<see cref="StrongTypeModel"/>).</summary>
     /// <param name="x">The formal parameter (or the sending returning item / one type's item).</param>
     /// <param name="y">The argument (or the receiving returning item / the other type's item).</param>
     public static string? AlignedOrDynamicLengthMismatch(DataItem x, DataItem y)

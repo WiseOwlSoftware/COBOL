@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// </summary>
 /// <remarks>
 /// <para><b>Placement in the pipeline.</b>
-/// The §13.16.3 SR8 closing guard — every elementary item has a PICTURE or a synthesized profile (kb/Work PB487). Placed immediately after UsageInheritancePass because that is the LAST pass which can legitimately fill a null Pic (a group header shedding its usage to leaves, §13.18.60.4 GR1; a PICTURE-less INDEX / OBJECT REFERENCE leaf taking the inherited profile), and BEFORE everything that reads a Pic. Without it `01 M.` — plain COBOL, no exotic clause — reached MoveEmitter with a null Pic and crashed the compiler with an unhandled NullReferenceException and no diagnostic at all.
+/// The §2023:13.16.3 SR8 closing guard — every elementary item has a PICTURE or a synthesized profile (kb/Work PB487). Placed immediately after UsageInheritancePass because that is the LAST pass which can legitimately fill a null Pic (a group header shedding its usage to leaves, §2023:13.18.60.4 GR1; a PICTURE-less INDEX / OBJECT REFERENCE leaf taking the inherited profile), and BEFORE everything that reads a Pic. Without it `01 M.` — plain COBOL, no exotic clause — reached MoveEmitter with a null Pic and crashed the compiler with an unhandled NullReferenceException and no diagnostic at all.
 /// </para>
 /// </remarks>
 internal sealed class CheckPictureRequiredPass : IBindPass
@@ -29,8 +29,8 @@ internal sealed class CheckPictureRequiredPass : IBindPass
     public PassViews Views => PassViews.None;
 
     /// <summary>The <see cref="ClausePlacementKind.ElementaryOnly"/> rows over the finished forest — the
-    /// "has this clause ⇒ is elementary" direction for PICTURE (§13.18.40.3 SR1), JUSTIFIED and BLANK WHEN ZERO
-    /// (§13.16.3 SR11). §8.5.1.3.1: "The most basic subdivisions of a record, that is, those not further
+    /// "has this clause ⇒ is elementary" direction for PICTURE (§2023:13.18.40.3 SR1), JUSTIFIED and BLANK WHEN ZERO
+    /// (§2023:13.16.3 SR11). §2023:8.5.1.3.1: "The most basic subdivisions of a record, that is, those not further
     /// subdivided, are called elementary items", so the test is <see cref="DataBinder.HasNoSubordinates"/>, never
     /// <see cref="DataItem.IsElementary"/> (which is DEFINED as <c>Pic is not null</c> and would make the PICTURE
     /// row circular).
@@ -53,7 +53,7 @@ internal sealed class CheckPictureRequiredPass : IBindPass
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(rule.Code, $"data item '{item.CobolName ?? "FILLER"}': the {DataClauseKinds.Name(present)} "
                     + $"clause may be specified only at the elementary level (ISO {rule.Rule}) — this entry has {n} "
-                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item (§8.5.1.3.1: the "
+                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item (§2023:8.5.1.3.1: the "
                     + "elementary items are the subdivisions \"not further subdivided\"). Remove "
                     + (present == DataClauseKind.Picture && item.PictureText is { } pt
                         ? $"PICTURE {pt}" : $"the {DataClauseKinds.Name(present)} clause")
@@ -67,7 +67,7 @@ internal sealed class CheckPictureRequiredPass : IBindPass
             item.Pic = null;              // the entry becomes the group its hierarchy declares
             item.Justified = false;
             item.BlankWhenZero = false;
-            item.Property = null;         // a refused PROPERTY defines no accessor (§13.18.42.3 SR3)
+            item.Property = null;         // a refused PROPERTY defines no accessor (§2023:13.18.42.3 SR3)
         }
     }
 
@@ -81,14 +81,14 @@ internal sealed class CheckPictureRequiredPass : IBindPass
         | (item.BlankWhenZero ? DataClauseKind.BlankWhenZero : DataClauseKind.None)
         | (item.Property is not null ? DataClauseKind.Property : DataClauseKind.None);
 
-    /// <summary>§13.16.3 SR8 — every elementary item has a PICTURE or a synthesized profile by now.
+    /// <summary>§2023:13.16.3 SR8 — every elementary item has a PICTURE or a synthesized profile by now.
     /// <para>Runs immediately after <c>UsageInheritancePass</c>, which is the last pass that can legitimately
-    /// FILL a null <c>Pic</c> (a group header shedding its usage to leaves, §13.18.60.4 GR1; a PICTURE-less
+    /// FILL a null <c>Pic</c> (a group header shedding its usage to leaves, §2023:13.18.60.4 GR1; a PICTURE-less
     /// INDEX or OBJECT REFERENCE leaf taking the inherited profile). Anything still null at this point is a
     /// declaration defect, not a pending adjudication.</para></summary>
     public void Run(DataBinder binder)
     {
-        CheckElementaryOnlyClauses(binder);   // §13.18.40.3 SR1 + §13.16.3 SR11 — the table's ElementaryOnly rows
+        CheckElementaryOnlyClauses(binder);   // §2023:13.18.40.3 SR1 + §2023:13.16.3 SR11 — the table's ElementaryOnly rows
         foreach (var item in binder.ConformanceForest())
         {
             if (!DataBinder.IsPictureLessLeaf(item)) continue;
@@ -96,8 +96,8 @@ internal sealed class CheckPictureRequiredPass : IBindPass
             // words — "except as indicated in Syntax rule 9" — and SR9 is APPLIED, not excused: the
             // SynthesizeImpliedPictures pass gives every entry inside SR9's grant the PICTURE the rule implies
             // (DataBinder.ImpliedPicture.cs), so such an entry is no longer a picture-less leaf and this guard
-            // never sees it. The FIGURATIVE case rides the same synthesis (§8.3.3.1 makes a figurative constant a
-            // literal; §8.3.3.6.4 GR3 b/c supply the length SR9 takes "as specified in 8.3.3"), so the former
+            // never sees it. The FIGURATIVE case rides the same synthesis (§2023:8.3.3.1 makes a figurative constant a
+            // literal; §2023:8.3.3.6.4 GR3 b/c supply the length SR9 takes "as specified in 8.3.3"), so the former
             // exemption — which let `01 G VALUE ALL "AB".` fall to the ONE-CHARACTER recovery item and store "A",
             // a silent wrong answer — is gone rather than widened. What remains here is exactly SR8's own
             // population: a numeric literal VALUE (`01 F VALUE 42.`), the class-pointer figurative NULL, a
@@ -106,7 +106,7 @@ internal sealed class CheckPictureRequiredPass : IBindPass
             using var _ = binder.Edition.At(item);
             binder.Edition.Error(DiagnosticCatalog.UsageClauseCompatibility,
                 $"data item '{item.CobolName ?? "FILLER"}': a PICTURE clause shall be specified for an elementary "
-                + "item (ISO §13.16.3 SR8) — it may be omitted only for an item whose usage is "
+                + "item (ISO §2023:13.16.3 SR8) — it may be omitted only for an item whose usage is "
                 + "binary-char, binary-short, binary-long, binary-double, float-short, float-long, "
                 + "float-extended, index, message-tag, object reference, pointer, function-pointer or "
                 + "program-pointer, or when a VALUE clause supplies an alphanumeric, boolean or national "

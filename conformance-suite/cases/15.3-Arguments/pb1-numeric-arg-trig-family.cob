@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> The §15.3 class screen extended to the batch-2 functions: ACOS §15.8.3 r1, ASIN §15.10.3 r1 and
-*> ATAN §15.11.3 r1 each read "Argument-1 shall be of class numeric". Each was enforced only once its
+*> The §2023:15.3 class screen extended to the batch-2 functions: ACOS §2023:15.8.3 r1, ASIN §2023:15.10.3 r1 and
+*> ATAN §2023:15.11.3 r1 each read "Argument-1 shall be of class numeric". Each was enforced only once its
 *> function was added to IntrinsicArgumentRules.Verified - a function ABSENT from that table is screened
 *> exactly as before, which is what made PB1 safe to land incrementally.
 *> (ACOS/ASIN/ATAN are post-85 intrinsics, so 85 rejects these earlier for a different reason.)

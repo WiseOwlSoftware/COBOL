@@ -7,7 +7,7 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>kb/Work PB1177 — ISO §14.9.40.4 GR17: "If a USE procedure invoked while a format 1 SORT statement is active
+/// <summary>kb/Work PB1177 — ISO §2023:14.9.40.4 GR17: "If a USE procedure invoked while a format 1 SORT statement is active
 /// does not complete normally, the SORT statement is terminated." Every format 1 SORT registers itself
 /// (<see cref="CobolSort.RegisterFormat1Sort"/>) and the generated <c>__RunUse</c> of every EC-model element hands each
 /// declarative's action to <see cref="CobolSort.AfterUseProcedure"/>; these pin its answer per action, per scope and per
@@ -82,7 +82,7 @@ public sealed class SortUseTerminationTests
     });
 
     /// <summary>With no format 1 SORT active the rule has nothing to terminate: a SORT that has ended (no store) and a
-    /// MERGE (its rules, §14.9.24.4, carry no such sentence, so it registers none) both give the action back. A store
+    /// MERGE (its rules, §2023:14.9.24.4, carry no such sentence, so it registers none) both give the action back. A store
     /// reused by the next statement on the file starts unregistered (<c>Init</c> clears the registration).</summary>
     [Fact]
     public void EndedSortsAndMerges_AreNotTerminated() => RunUnit.Run(_ =>

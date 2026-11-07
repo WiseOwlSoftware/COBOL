@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB3245 — the token a literal its line ends inside becomes. The general formats close every alphanumeric,
-/// boolean and national literal (ISO §8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2) and a literal may stay open at a line's end
-/// only when a continuation line continues it (§6.3.5 1), §6.4.2), which the reference-format stage joins before the
+/// boolean and national literal (ISO §2023:8.3.3.2.2, §2023:8.3.3.4.2, §2023:8.3.3.5.2) and a literal may stay open at a line's end
+/// only when a continuation line continues it (§2023:6.3.5 1), §2023:6.4.2), which the reference-format stage joins before the
 /// lexer runs. The lexer makes the rest the literal's OWN token (CobolLexer.g4 STR_BODY): its kind and prefix kept, its
 /// extent the rest of the line less trailing spaces and one trailing separator period (OnDelimitedLiteral), so the
 /// parser reads one literal and the statement still ends where the period says. Before it, the opening delimiter fell to
@@ -64,7 +64,7 @@ public sealed class UnterminatedLiteralTokenTests
     }
 
     /// <summary>A literal the line closes is the closed literal, whatever follows it: maximal munch prefers it, and the
-    /// action cuts nothing — the closing delimiter's own separator context stays SeparatorRule's (§8.3.5 5)).</summary>
+    /// action cuts nothing — the closing delimiter's own separator context stays SeparatorRule's (§2023:8.3.5 5)).</summary>
     [Theory]
     [InlineData("DISPLAY \"AB\".", "\"AB\"")]
     [InlineData("DISPLAY \"A.\".", "\"A.\"")]

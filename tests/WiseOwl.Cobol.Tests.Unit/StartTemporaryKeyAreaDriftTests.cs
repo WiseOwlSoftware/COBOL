@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
+/// ISO §2023:14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
 /// temporary data area" — names TWO things and neither is data-name-1: the SOURCE is the record area, and the
 /// key is GR16's key of reference ("The key specified in the KEY phrase, or that shares a leftmost character
 /// with the data item specified in the KEY phrase, becomes the key of reference"). data-name-1's whole role is
@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// The two readings agree for every temporary area no longer than data-name-1, which is why the defect survived
 /// the whole generic-key corpus: a generic key's own content IS the record area's content at those positions
-/// (§13.18.33.4 GR3 makes the FD's level-1 entries "implicit redefinitions of the same area"). They part company
+/// (§2023:13.18.33.4 GR3 makes the FD's level-1 entries "implicit redefinitions of the same area"). They part company
 /// the moment <c>WITH LENGTH</c> counts PAST the operand into the rest of the key — where the shipped emitter
 /// sent data-name-1's own storage image and the connector then PADDED it with spaces, searching for characters
 /// nobody wrote instead of the ones the record area holds.
@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// The fix is the CHANNEL, not the padding expression: <c>KeyedIoEmitter.EmitStart</c> sends the record-area
 /// image and <c>IndexedConnector.Start</c> slices the key of reference out of it with the SAME <c>KeyOf</c> the
-/// random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) use. That is what this file pins — one extraction
+/// random READ (§2023:14.9.30.4 GR32) and DELETE (§2023:14.9.10.4 GR3) use. That is what this file pins — one extraction
 /// for three verbs, so a fourth key-valued verb cannot grow a private one, and no arm of START can reintroduce
 /// a manufactured character. The BEHAVIOUR is pinned by the corpus goldens
 /// <c>conformance-suite/cases/14.9.41-START/pb355_start_length_past_operand.cob</c> and
@@ -99,13 +99,13 @@ public sealed class StartTemporaryKeyAreaDriftTests
 
     // ── the gates ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§14.9.41.4 GR17 a) — the moved characters come from the record area.</summary>
+    /// <summary>§2023:14.9.41.4 GR17 a) — the moved characters come from the record area.</summary>
     [Fact]
     public void IndexedStart_BuildsTheTemporaryArea_FromTheRecordArea()
     {
         Assert.True(StartCutsTheTemporaryAreaOutOfTheRecordArea(IndexedConnectorSource()),
             "IndexedConnector.Start must build its search key as AreaKey(keyedRecordImage, areaExtents, keyIndex) "
-            + "truncated to compareLength, and must pad nothing. ISO §14.9.41.4 GR17 a) — \"The specified key is "
+            + "truncated to compareLength, and must pad nothing. ISO §2023:14.9.41.4 GR17 a) — \"The specified key is "
             + "set up by moving the relevant parts of the record area into a temporary data area\" — sources it "
             + "from the RECORD AREA at GR16's key of reference; padding data-name-1's own content to the GR17 b) "
             + "length searches for invented spaces (kb/Work PB355).");
@@ -117,8 +117,8 @@ public sealed class StartTemporaryKeyAreaDriftTests
     {
         Assert.True(StartTakesTheRecordAreaImage(IndexedConnectorSource()),
             "IndexedConnector.Start's comparand parameter must be `string keyedRecordImage` — the record area, "
-            + "the same image ReadKeyed and Delete take, because §14.9.41.4 GR17 a), §14.9.30.4 GR32 and "
-            + "§14.9.10.4 GR3 all take their key value out of it (kb/Work PB355).");
+            + "the same image ReadKeyed and Delete take, because §2023:14.9.41.4 GR17 a), §2023:14.9.30.4 GR32 and "
+            + "§2023:14.9.10.4 GR3 all take their key value out of it (kb/Work PB355).");
     }
 
     /// <summary>The emit boundary is where the defect lived: the connector cannot slice an area it never got.</summary>
@@ -128,7 +128,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
         Assert.True(EmitStartSendsTheRecordArea(KeyedIoEmitterSource()),
             "KeyedIoEmitter.EmitStart must pass OperandText.RecordSendImage of PlaceTable.RecordArea(file) "
             + "to RuntimeApi.FileStartIndexed. Sending OperandText.AsStorageImage(sta.Operand) makes the record-area "
-            + "slice §14.9.41.4 GR17 a) names unavailable to the connector at all (kb/Work PB355).");
+            + "slice §2023:14.9.41.4 GR17 a) names unavailable to the connector at all (kb/Work PB355).");
     }
 
     /// <summary>⛔ The failure proof: every predicate must DISCRIMINATE, not merely return a constant.</summary>

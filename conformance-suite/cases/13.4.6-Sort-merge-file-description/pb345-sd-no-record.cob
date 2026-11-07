@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO/IEC 1989:2023 §13.4.6.3 syntax rule 2: "One or more record description entries
+*> ISO/IEC 1989:2023 §2023:13.4.6.3 syntax rule 2: "One or more record description entries
 *> shall be associated with the sort-merge file description entry."
-*> The sort-merge arm never had §13.4.5.3 SR3's permission -- that is a FORMATS 1 AND 2
-*> rule of the FILE description entry -- and §14.9.40.3 SR6 a) says why: "The data items
+*> The sort-merge arm never had §2023:13.4.5.3 SR3's permission -- that is a FORMATS 1 AND 2
+*> rule of the FILE description entry -- and §2023:14.9.40.3 SR6 a) says why: "The data items
 *> identified by key data-names shall be described in records associated with file-name-1."
 *> Until kb/Work PB345 the ONLY diagnostic this program drew was the compiler's own
 *> deferral warning, "SORT 'S1' without an SD record - not implemented" (COBOL1756),

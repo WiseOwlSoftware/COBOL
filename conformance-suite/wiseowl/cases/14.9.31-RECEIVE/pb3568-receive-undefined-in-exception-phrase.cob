@@ -6,9 +6,9 @@
       *>---
       *> The imperative statement of an ON EXCEPTION phrase is source that must compile even when the declined
       *> facility never runs it: DISPLAY NOSUCH-MSG names nothing. Expected: COBOL1639.
-      *> ISO §14.9.31.4 GR5 a) - "If the ON EXCEPTION phrase is specified in the RECEIVE statement, control is
+      *> ISO §2023:14.9.31.4 GR5 a) - "If the ON EXCEPTION phrase is specified in the RECEIVE statement, control is
       *> transferred to imperative-statement-1." - a statement the standard makes reachable is a statement.
-      *>   cite.py: OK  §14.9.31.4 5)  (General rules)
+      *>   cite.py: OK  §2023:14.9.31.4 5)  (General rules)
       *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md
       *> section 4 item 1; Annex A.3 item 4, section 4.2.6). Declining a facility declines its behaviour, not the
       *> identifiers its statements name: the statement binds to a no-op, and every operand that is an

@@ -5,32 +5,32 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.9.5.1 format — ARITHMETIC [IS] {NATIVE |
+      *> ISO §2023:11.9.5.1 format — ARITHMETIC [IS] {NATIVE |
       *> STANDARD-DECIMAL}, IS optional, one alternative per clause
       *> THE FORMAT: ARITHMETIC IS {NATIVE | STANDARD-BINARY |
       *> STANDARD-DECIMAL}; ARITHMETIC and the three phrases are
       *> underlined, IS is NOT (optional); plain braces = exactly one.
       *>   cite.py --check 11.9.5.1 "STANDARD-DECIMAL"
-      *>     -> OK §11.9.5.1 (General format)
+      *>     -> OK §2023:11.9.5.1 (General format)
       *>   cite.py --check 11.9.5.2 "If the STANDARD-DECIMAL phrase is
       *>     specified, the techniques used in handling arithmetic
       *>     expressions, arithmetic statements, the SUM clause, and
       *>     integer and numeric functions shall be as described for
-      *>     standard-decimal arithmetic" -> OK §11.9.5.2 3)
+      *>     standard-decimal arithmetic" -> OK §2023:11.9.5.2 3)
       *>   cite.py --check 11.9.5.2 "If the ARITHMETIC clause is not
       *>     specified in this source element or a containing source
-      *>     element" -> OK §11.9.5.2 4)
+      *>     element" -> OK §2023:11.9.5.2 4)
       *>   cite.py --check 15.84.4 "When standard-decimal arithmetic is
       *>     in effect, the returned value is the absolute value of the
       *>     exact square root of argument-1 rounded to 34 digits"
-      *>     -> OK §15.84.4 2)
+      *>     -> OK §2023:15.84.4 2)
       *>   cite.py --check 15.84.4 "When native arithmetic is in effect,
       *>     the returned value is the absolute value of the
-      *>     approximation of the square root" -> OK §15.84.4 4)
+      *>     approximation of the square root" -> OK §2023:15.84.4 4)
       *> STANDARD-BINARY is the documented processor-dependent decline
       *> (A.3 item 2, docs/CONFORMANCE.md, COBOL0806); not used here.
       *> 2014 dir: STANDARD-DECIMAL first exists in 2014.
-      *> Each source element has its own OPTIONS paragraph (§11.9.5.2 4
+      *> Each source element has its own OPTIONS paragraph (§2023:11.9.5.2 4
       *> names "this source element or a containing source element");
       *> the contained programs override the outer program's clause.
       *> DERIVATION of every .out line:

@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class CobolIntrinsicsMinValueTests
 {
-    // ── ABS (§15.7.4): the magnitude of every Int128 value, MinValue included ───────────────────────────────────
+    // ── ABS (§2023:15.7.4): the magnitude of every Int128 value, MinValue included ───────────────────────────────────
 
     [Theory]
     [InlineData("0", "0")]
@@ -29,7 +29,7 @@ public sealed class CobolIntrinsicsMinValueTests
         Assert.Equal(Int128.Parse(expected), CobolIntrinsics.AbsScaled(Int128.Parse(value)));
 
     /// <summary>|−2^127| = 2^127 is past the native intermediate data item (DOC-A.1-123), so ABS raises the size
-    /// error condition (§14.7.5 rule 5, range checked — DOC-A.1-179) and never returns the negative number
+    /// error condition (§2023:14.7.5 rule 5, range checked — DOC-A.1-179) and never returns the negative number
     /// <c>-v</c> wraps to. The pre-fix body returned <see cref="Int128.MinValue"/> itself.</summary>
     [Fact]
     public void AbsScaled_OfMinValue_IsTheSizeError_NotANegativeNumber()
@@ -108,7 +108,7 @@ public sealed class CobolIntrinsicsMinValueTests
 
     // ── CobolNum.Divide with a divisor of Int128.MinValue on the SDIDI arm (exp < 0, the divisor cannot be scaled) ──
     // a is at scale 4, the result at scale 0, so the alignment would multiply the divisor by 10^4 and leave the carrier.
-    // |quotient| < 1e-30: every mode lands on the sign-dependent 0 or ±1 unit that §14.7.4.3 owes.
+    // |quotient| < 1e-30: every mode lands on the sign-dependent 0 or ±1 unit that §2023:14.7.4.3 owes.
 
     [Theory]
     [InlineData(CobolRounding.Truncation, 12345, 0)]

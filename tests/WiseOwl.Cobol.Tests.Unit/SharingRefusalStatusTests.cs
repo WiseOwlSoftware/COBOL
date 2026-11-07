@@ -9,14 +9,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>kb/Work PB860 — the I-O status a file connector answers when ANOTHER RUN UNIT holds the physical file
 /// in a manner that excludes this request. The standard has a value for exactly this:
 /// <list type="bullet">
-/// <item>§9.1.13.9 1) — <i>"I-O status = 61. A file sharing conflict condition exists because an OPEN statement
+/// <item>§2023:9.1.13.9 1) — <i>"I-O status = 61. A file sharing conflict condition exists because an OPEN statement
 ///   is attempted on a physical file and that physical file is already open by another file connector in a manner
 ///   that conflicts with this request"</i>, sub-case a) <i>"An attempt is made to open a physical file that is
 ///   currently open by another file connector in the sharing with no other mode"</i>;</item>
-/// <item>§9.1.13.9 2) — <i>"I-O status = 62. … a DELETE FILE statement is attempted on a physical file and that
+/// <item>§2023:9.1.13.9 2) — <i>"I-O status = 62. … a DELETE FILE statement is attempted on a physical file and that
 ///   physical file is currently open by another file connector"</i>.</item>
 /// </list>
-/// Every organization answered '30' — §9.1.13.6 1)'s <i>"no further information is available"</i> — because
+/// Every organization answered '30' — §2023:9.1.13.6 1)'s <i>"no further information is available"</i> — because
 /// <c>FileConnector.Open</c> mapped every <see cref="IOException"/> to it. The other file connector here is a
 /// <see cref="FileShare.None"/> handle held by the test itself: a host share mode names no requester, so it is
 /// exactly as foreign to the runtime's connector as another program's (<see cref="HostCapability.OutsiderCan"/>).
@@ -42,7 +42,7 @@ public sealed class SharingRefusalStatusTests
         return data;
     }
 
-    /// <summary>§9.1.13.9 1) a), for every organization and every open mode: '61', and — §14.9.27.4 GR25, <i>"If
+    /// <summary>§2023:9.1.13.9 1) a), for every organization and every open mode: '61', and — §2023:14.9.27.4 GR25, <i>"If
     /// the execution of the OPEN statement is unsuccessful, the file is not affected"</i> — the physical file
     /// byte-for-byte as it was, OUTPUT's truncation included.</summary>
     [Theory]
@@ -56,20 +56,20 @@ public sealed class SharingRefusalStatusTests
             byte[] before = File.ReadAllBytes(host);
             string status;
             var reg = new FileRegistry();
-            FileHarness.Register(reg, "F", host, org, sharing: null, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+            FileHarness.Register(reg, "F", host, org, sharing: null, access: FileHarness.AccessFor(mode));   // §2023:14.9.27.3 SR2 (kb/Work PB3479)
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
                 FileHarness.Open(reg, "F", mode);
                 status = reg.Status("F");
             }
             Assert.True(status == FileStatusCode.FileSharingConflict,
-                $"{org} OPEN {mode} against another run unit's exclusive handle answered '{status}'; §9.1.13.9 1) a) "
-                + "requires '61' ('30' is §9.1.13.6 1)'s \"no further information is available\" — the host said "
+                $"{org} OPEN {mode} against another run unit's exclusive handle answered '{status}'; §2023:9.1.13.9 1) a) "
+                + "requires '61' ('30' is §2023:9.1.13.6 1)'s \"no further information is available\" — the host said "
                 + "which refusal it was).");
             reg.Close("F");
             Assert.True(reg.Status("F") == FileStatusCode.FileNotOpen,
                 "an unsuccessful OPEN leaves the connector in no open mode, so its CLOSE answers '42'");
-            Assert.Equal(before, File.ReadAllBytes(host));   // §14.9.27.4 GR25 — the file is not affected
+            Assert.Equal(before, File.ReadAllBytes(host));   // §2023:14.9.27.4 GR25 — the file is not affected
         }
         finally { FileHarness.TryDelete(host); }
     }
@@ -131,7 +131,7 @@ public sealed class SharingRefusalStatusTests
         finally { File.Delete(host); }
     }
 
-    /// <summary>§9.1.13.9 2)'s DELETE FILE twin: '62', and the file left in place (§14.9.10.4 — an unsuccessful
+    /// <summary>§2023:9.1.13.9 2)'s DELETE FILE twin: '62', and the file left in place (§2023:14.9.10.4 — an unsuccessful
     /// DELETE FILE deletes nothing). ⛔ The file must SURVIVE on every host: a Unix unlink never consults open
     /// handles, so before <c>HostFile.IsHeldByAnother</c> the delete there succeeded over another run unit's open
     /// file, while Windows refused it and the refusal answered '30'. Both hosts were wrong, differently.</summary>
@@ -150,7 +150,7 @@ public sealed class SharingRefusalStatusTests
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                 status = reg.DeleteFile("F");
             Assert.True(status == FileStatusCode.DeleteFileSharing,
-                $"{org} DELETE FILE against another run unit's open handle answered '{status}'; §9.1.13.9 2) requires '62'.");
+                $"{org} DELETE FILE against another run unit's open handle answered '{status}'; §2023:9.1.13.9 2) requires '62'.");
             Assert.True(File.Exists(host), "an unsuccessful DELETE FILE leaves the file in place");
             // …and once the other run unit lets go, the same statement deletes it.
             Assert.Equal(FileStatusCode.Success, reg.DeleteFile("F"));
@@ -159,7 +159,7 @@ public sealed class SharingRefusalStatusTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>kb/Work PB1163 — §14.7.9.3 GR3, <i>"If the FOREVER phrase is specified, the mass storage control
+    /// <summary>kb/Work PB1163 — §2023:14.7.9.3 GR3, <i>"If the FOREVER phrase is specified, the mass storage control
     /// system shall attempt to gain access to a locked resource until the input-output operation has been
     /// completed"</i>, end to end against a real handle of ANOTHER run unit that is released while the statement
     /// waits. DELETE FILE and OPEN both complete: '00', and the file deleted (or opened). Before the fix both gave up

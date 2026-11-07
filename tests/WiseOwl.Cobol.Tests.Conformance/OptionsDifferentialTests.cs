@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The OPTIONS paragraph (ISO/IEC 1989:2023 §11.9), now fully parsed into a structured clause tree. The first
-/// applied consumer is DEFAULT ROUNDED (§11.9.6): a <b>bare</b> <c>ROUNDED</c> phrase (no MODE) uses the program's
-/// DEFAULT ROUNDED mode rather than the NEAREST-AWAY-FROM-ZERO fallback (§14.7.4.3 r1). Mode-specific results are
+/// The OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9), now fully parsed into a structured clause tree. The first
+/// applied consumer is DEFAULT ROUNDED (§2023:11.9.6): a <b>bare</b> <c>ROUNDED</c> phrase (no MODE) uses the program's
+/// DEFAULT ROUNDED mode rather than the NEAREST-AWAY-FROM-ZERO fallback (§2023:14.7.4.3 r1). Mode-specific results are
 /// pinned to hand-computed spec values; the former legacy engine (which also honors DEFAULT ROUNDED) is cross-checked.
 /// </summary>
 public sealed class OptionsDifferentialTests
@@ -38,7 +38,7 @@ public sealed class OptionsDifferentialTests
             STOP RUN.
         """;
 
-    // ── DEFAULT ROUNDED feeds a bare ROUNDED phrase (§11.9.6 r1 / §14.7.4.3 r1). 25/10 = 2.5. ───────────────────
+    // ── DEFAULT ROUNDED feeds a bare ROUNDED phrase (§2023:11.9.6 r1 / §2023:14.7.4.3 r1). 25/10 = 2.5. ───────────────────
     [Fact]
     public void BareRounded_HonorsDefaultRounded_NearestEven()
     {
@@ -61,7 +61,7 @@ public sealed class OptionsDifferentialTests
 
     [Fact]
     public void NoDefaultRounded_BareRounded_IsNearestAway()
-        // With no DEFAULT ROUNDED clause (but an OPTIONS paragraph present), a bare ROUNDED is the §11.9.6 r2 default
+        // With no DEFAULT ROUNDED clause (but an OPTIONS paragraph present), a bare ROUNDED is the §2023:11.9.6 r2 default
         // NEAREST-AWAY-FROM-ZERO: 2.5 → 3.
         => AssertOutput(Program("           ARITHMETIC IS NATIVE.",
             "01 R PIC 9(3).", "    COMPUTE R ROUNDED = 25 / 10.\n    DISPLAY R."), "003");
@@ -74,7 +74,7 @@ public sealed class OptionsDifferentialTests
             "           ARITHMETIC IS STANDARD-DECIMAL\n           DEFAULT ROUNDED MODE IS NEAREST-EVEN.",
             "01 R PIC 9(3).", "    COMPUTE R ROUNDED = 35 / 10.\n    DISPLAY R."));   // 3.5 → 4 (even)
 
-    // ── A bare OPTIONS header with no clauses (§11.9.3 — period optional) still compiles. ───────────────────────
+    // ── A bare OPTIONS header with no clauses (§2023:11.9.3 — period optional) still compiles. ───────────────────────
     [Fact]
     public void BareOptionsHeader_Compiles()
         => AssertMatchesGolden("""

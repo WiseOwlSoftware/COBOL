@@ -11,13 +11,13 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The §15.21.3 r1 / §15.99.3 r1 21-character layout, position by position — and the ONE owner determination
+/// The §2023:15.21.3 r1 / §2023:15.99.3 r1 21-character layout, position by position — and the ONE owner determination
 /// that layout forces (owner answered 2026-08-30: <b>report the TRUE offset</b>).
 ///
-/// <para><b>The determination, and why the standard leaves no conforming alternative.</b> §15.21.3 r1 fixes the
+/// <para><b>The determination, and why the standard leaves no conforming alternative.</b> §2023:15.21.3 r1 fixes the
 /// UTC-offset hours in positions 18–19 at "00 through 13" when position 17 is '+' and "00 through 12" when it is
 /// '–' (cite.py --check 15.21.3 "two numeric digits are returned in the range 00 through 13 indicating the number
-/// of hours that the local time is ahead of Coordinated Universal Time" → OK; §15.99.3 r1 carries the identical
+/// of hours that the local time is ahead of Coordinated Universal Time" → OK; §2023:15.99.3 r1 carries the identical
 /// table, verified the same way). Real offsets exceed both bounds: Pacific/Kiritimati is UTC+14:00, a zone both
 /// IANA and Windows ship ("Line Islands Standard Time"), and the <c>WISEOWL_COBOL_CLOCK</c> pin reaches −14:00 through
 /// <see cref="DateTimeOffset"/>, whose offset range is ±14:00. For such a host the rule's table offers NO in-range
@@ -25,10 +25,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// MISREPORTS the offset, and writing '0'/'00'/'00' asserts position 17's "the system … does not have the facility
 /// to provide the local time differential factor" (cite.py --check 15.21.3 → OK), which is false. WiseOwl COBOL
 /// reports the true offset and documents the departure — <c>docs/CONFORMANCE.md</c> §7, and inventory rows
-/// RV-15.21.3-1 / RV-15.99.3-1 at DOCUMENTED-NON-SUPPORT (§4.2.6/§4.2.7 documentation obligation).</para>
+/// RV-15.21.3-1 / RV-15.99.3-1 at DOCUMENTED-NON-SUPPORT (§2023:4.2.6/§2023:4.2.7 documentation obligation).</para>
 ///
 /// <para><b>What these tests pin.</b> Not merely "14 comes out". The determination's SCOPE: positions 18–19 are
-/// the ONLY positions that ever leave their §15.21.3 r1 range, on either sign, and every other position stays in
+/// the ONLY positions that ever leave their §2023:15.21.3 r1 range, on either sign, and every other position stays in
 /// range in exactly the cases where the offset is extreme — which is what makes the departure documentable as one
 /// determination rather than an open-ended divergence. <see cref="R1Violations"/> is a full re-reading of the rule
 /// table, not a spot check, so a future change that broke position 15–16 or 20–21 at +14:00 would fail here even
@@ -51,12 +51,12 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
     }
 
     /// <summary>Every position of a 21-character CURRENT-DATE / WHEN-COMPILED value that leaves the range
-    /// §15.21.3 r1 states for it, named by its position span. EMPTY means the value satisfies the rule outright.
+    /// §2023:15.21.3 r1 states for it, named by its position span. EMPTY means the value satisfies the rule outright.
     ///
     /// <para>This is a transcription of the rule's table, deliberately re-derived here rather than compared
     /// against the formatter's own logic: a validator written from the implementation could only ever agree with
     /// it. Positions 13–14 are checked against 00–59 because no LEAP-SECOND directive is in effect in these
-    /// fixtures (§7.3.17.4 GR1 implies OFF, GR3 then forbids &gt; 59).</para></summary>
+    /// fixtures (§2023:7.3.17.4 GR1 implies OFF, GR3 then forbids &gt; 59).</para></summary>
     private static IReadOnlyList<string> R1Violations(string v)
     {
         var bad = new List<string>();
@@ -72,7 +72,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
         Digits("7-8", 7, 8, 1, 31);          // day of the month, 01 through 31
         Digits("9-10", 9, 10, 0, 23);        // hours past midnight, 00 through 23
         Digits("11-12", 11, 12, 0, 59);      // minutes past the hour, 00 through 59
-        Digits("13-14", 13, 14, 0, 59);      // seconds past the minute (LEAP-SECOND OFF — §7.3.17.4 GR1/GR3)
+        Digits("13-14", 13, 14, 0, 59);      // seconds past the minute (LEAP-SECOND OFF — §2023:7.3.17.4 GR1/GR3)
         Digits("15-16", 15, 16, 0, 99);      // hundredths of a second, 00 through 99
 
         char sign = v[16];                   // position 17: '–', '+' or '0'
@@ -85,7 +85,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
         return bad;
     }
 
-    /// <summary>The fixture table. Every expected value is hand-derived from §15.21.3 r1's position table — the
+    /// <summary>The fixture table. Every expected value is hand-derived from §2023:15.21.3 r1's position table — the
     /// year/month/day/hour/minute/second/hundredth of the instant, then the sign, then |hours|, then |minutes| —
     /// never read off a run of the formatter. <c>determinationSpan</c> names the position span the determination
     /// permits outside the rule for that case, or null when the case is fully in range.</summary>
@@ -129,14 +129,14 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
     {
         string actual = CobolDate.Format21(at);
         Assert.Equal(expected, actual);
-        Assert.Equal(21, actual.Length);   // §15.21.1: "returns a 21-character alphanumeric value"
+        Assert.Equal(21, actual.Length);   // §2023:15.21.1: "returns a 21-character alphanumeric value"
 
         // The determination's SCOPE, asserted both ways: an in-range case must satisfy every position of r1, and
         // a determination case must depart in EXACTLY the one span the determination covers and nowhere else.
         var violations = R1Violations(actual);
         if (determinationSpan is null)
             Assert.True(violations.Count == 0,
-                $"{name}: §15.21.3 r1 violated at {string.Join(", ", violations)} in '{actual}'");
+                $"{name}: §2023:15.21.3 r1 violated at {string.Join(", ", violations)} in '{actual}'");
         else
             Assert.Equal([determinationSpan], violations);
     }
@@ -144,7 +144,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
     [Fact]
     public void Determination_CoversOnlyOffsetHours_OnBothSigns()
     {
-        // The whole table at once: across every fixture, the ONLY position span that ever leaves §15.21.3 r1 is
+        // The whole table at once: across every fixture, the ONLY position span that ever leaves §2023:15.21.3 r1 is
         // 18-19. If a change made, say, position 17 emit '0' for an extreme offset, or truncated the value to 20
         // characters, this fails even though each individual case might still look plausible.
         var spans = Layout()
@@ -163,7 +163,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
     [Fact]
     public void CurrentDate_ReadsTheClockOffsetUnaltered()
     {
-        // §15.21.1: the value is the "calendar date, time of day, and local time differential factor provided by
+        // §2023:15.21.1: the value is the "calendar date, time of day, and local time differential factor provided by
         // the system on which the function is evaluated". The run unit's clock IS that system reading, so the
         // offset it carries must reach positions 17-21 unmodified — no TimeZoneInfo.Local re-derivation, no clamp.
         var at = new DateTimeOffset(2026, 8, 31, 10, 20, 30, 450, TimeSpan.FromHours(14));
@@ -179,7 +179,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
     [Fact]
     public void WhenCompiled_AndCurrentDate_AgreeOnPositions17To21_UnderOneClock()
     {
-        // §15.99.3 r1's table is character-for-character §15.21.3 r1's, and the determination is stated ONCE for
+        // §2023:15.99.3 r1's table is character-for-character §2023:15.21.3 r1's, and the determination is stated ONCE for
         // both — which is only legitimate if the two paths really share the formatter. They are independent
         // seams: WHEN-COMPILED is baked at compile time from IntrinsicBinder.CompileClock, CURRENT-DATE is read
         // at run time from RunUnit.Current.Clock. Pin both to ONE instant and require the same 21 characters,
@@ -215,7 +215,7 @@ public sealed class CurrentDateOffsetDeterminationTests : WiseOwlCobolTestBase
         // Read the stamp OUT of the generated source by its shape rather than searching for the value we expect —
         // searching for the expectation would pass on a compiler that baked nothing at all.
         var m = Regex.Match(generated, "\"(?<v>[0-9]{16}[-+0][0-9]{4})\"");
-        Assert.True(m.Success, "no §15.99.3 21-character stamp was baked into the generated source");
+        Assert.True(m.Success, "no §2023:15.99.3 21-character stamp was baked into the generated source");
         string baked = m.Groups["v"].Value;
 
         string currentDate;

@@ -12,19 +12,19 @@ using WiseOwl.Cobol.Frontend.Preprocessor;// FlagOption
 namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
-/// FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (ISO §7.3.15.4 GR4 e/f): "A reference to a data item specified in a FILE
+/// FLAG-14 e I-O-STATUS-04 / f I-O-STATUS-07 (ISO §2023:7.3.15.4 GR4 e/f): "A reference to a data item specified in a FILE
 /// STATUS clause that tests for '04' / '07' shall be flagged." A reference TESTS for a status value in every place the
 /// language lets a condition compare — so the population of tests is the population of RELATIONS and CONDITION-NAMES,
-/// wherever §8.8.4 and §14.9.13 let them be written:
+/// wherever §2023:8.8.4 and §2023:14.9.13 let them be written:
 /// <list type="bullet">
 /// <item>a relation `FS = "04"` (either operand order, any relational operator) — the leading simple condition of a
 /// condition;</item>
 /// <item>a SUCCEEDING simple condition whose subject is elided: the abbreviated combined relation
-/// `FS = "00" OR "04"` / `FS = "00" OR = "04"` (§8.8.4.12.4 GR1 inserts the last preceding stated subject, so the elided
+/// `FS = "00" OR "04"` / `FS = "00" OR = "04"` (§2023:8.8.4.12.4 GR1 inserts the last preceding stated subject, so the elided
 /// object is a test of the FILE STATUS item exactly as the written one is);</item>
 /// <item>a level-88 condition-name defined on the FILE STATUS item whose VALUE is the status;</item>
 /// <item>an EVALUATE selection-subject / selection-object pair `EVALUATE FS WHEN "04"` and its partial expression
-/// `WHEN = "04"` (§14.9.13.3 SR5/SR8: the object is "treated as though" preceded by the subject), and a bare
+/// `WHEN = "04"` (§2023:14.9.13.3 SR5/SR8: the object is "treated as though" preceded by the subject), and a bare
 /// condition-name object `EVALUATE TRUE WHEN FS-AVAIL`.</item>
 /// </list>
 /// A range (<c>WHEN "00" THRU "09"</c>, an 88 with a THRU) is deliberately NOT a test FOR '04': whether it contains the
@@ -63,7 +63,7 @@ internal sealed partial class FlagConformancePass
         return false;
     }
 
-    /// <summary>The subject of an abbreviated combined relation in flight (§8.8.4.12.4 GR1): the leftmost operand of the
+    /// <summary>The subject of an abbreviated combined relation in flight (§2023:8.8.4.12.4 GR1): the leftmost operand of the
     /// last preceding stated relation of the SAME condition, which every succeeding elided relation takes as its own.</summary>
     private sealed class RelationSubject
     {
@@ -80,8 +80,8 @@ internal sealed partial class FlagConformancePass
         return base.VisitChildren(ctx);
     }
 
-    /// <summary>EVALUATE's selection subjects and objects (§14.9.13): each WHEN phrase's objects are paired with the
-    /// subjects by position (§14.9.13.3 SR2 — one object per subject, joined by ALSO). A value object is compared
+    /// <summary>EVALUATE's selection subjects and objects (§2023:14.9.13): each WHEN phrase's objects are paired with the
+    /// subjects by position (§2023:14.9.13.3 SR2 — one object per subject, joined by ALSO). A value object is compared
     /// with its subject; a partial expression is a condition with the subject elided, scanned with that subject
     /// carried in; a condition object is an ordinary condition (<see cref="VisitCondition"/>).</summary>
     public override object? VisitEvaluateStatement(CobolParserCore.EvaluateStatementContext ctx)
@@ -138,7 +138,7 @@ internal sealed partial class FlagConformancePass
         if (comparison.comparisonOperator() is not null && operands.Length == 2)
         {
             // A relation: one side the FILE-STATUS item, the other the literal '04' / '07' (either order). Its left
-            // operand is the subject any elided succeeding relation takes (§8.8.4.12.4 GR1).
+            // operand is the subject any elided succeeding relation takes (§2023:8.8.4.12.4 GR1).
             var left = operands[0].valueOperand();
             var right = operands[1].valueOperand();
             FileStatusRelation(left, right, comparison);
@@ -218,15 +218,15 @@ internal sealed partial class FlagConformancePass
     private static CobolParserCore.DataReferenceContext? SoleReference(CobolParserCore.ValueOperandContext? operand)
         => operand?.arithmeticExpression() is { } arithmetic ? ConditionBinder.SoleDataRef(arithmetic) : null;
 
-    /// <summary>The VALUE of a SOLE alphanumeric (plain or hexadecimal) or national literal operand (§8.3.3.2, §8.3.3.5) —
+    /// <summary>The VALUE of a SOLE alphanumeric (plain or hexadecimal) or national literal operand (§2023:8.3.3.2, §2023:8.3.3.5) —
     /// decoded once, by the one literal decoder — else null.</summary>
     private static string? OperandLiteral(CobolParserCore.ValueOperandContext? operand)
         => operand?.nonNumericLiteral() is { } literal && CharacterLiteralText(literal) is { } text ? StatusLiteral(text) : null;
 
     /// <summary>The character value of a raw alphanumeric or national literal operand (a relation's or a level-88's), else
-    /// null: <see cref="CobolLiteral.Decode"/> keeps only what §8.3.3.2.4 GR1 keeps (the delimiters are not part of the
-    /// value) and what §8.3.3.2.3 SR3 / §8.3.3.5.3 SR3 say (a doubled delimiter is one character), and decodes
-    /// the hexadecimal form (§8.3.3.2.4 GR4).</summary>
+    /// null: <see cref="CobolLiteral.Decode"/> keeps only what §2023:8.3.3.2.4 GR1 keeps (the delimiters are not part of the
+    /// value) and what §2023:8.3.3.2.3 SR3 / §2023:8.3.3.5.3 SR3 say (a doubled delimiter is one character), and decodes
+    /// the hexadecimal form (§2023:8.3.3.2.4 GR4).</summary>
     private static string? StatusLiteral(string raw)
         => CobolLiteral.ClassOf(raw) is LiteralClass.Alphanumeric or LiteralClass.National ? CobolLiteral.Decode(raw) : null;
 }

@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A NAME JOINS THE NAME INDEX OF THE SOURCE ELEMENT THAT OWNS ITS RECORD, AT EVERY REGISTRATION (kb/Work PB3192). A
 /// method definition is a source element of its own, and its data-names, condition-names, index-names and type-names are
-/// local names (ISO §8.4.6.2.2; §13.18.27.3 SR4) that hide its object's of the spelling inside the method (§11.7.4 GR5).
+/// local names (ISO §2023:8.4.6.2.2; §2023:13.18.27.3 SR4) that hide its object's of the spelling inside the method (§2023:11.7.4 GR5).
 /// They used to join the CLASS's maps as they were bound and move to the method's scope only after the whole method had
 /// bound (<c>OoScopeSubtree</c>), while type-names never moved: so a method constant's <c>LENGTH OF W</c> measured the
 /// object's <c>W</c>, a method's <c>TYPEDEF</c> spelled like its object's drew "duplicate type-name", and the members of a

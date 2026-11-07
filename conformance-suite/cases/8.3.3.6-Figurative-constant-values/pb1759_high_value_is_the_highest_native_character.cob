@@ -10,9 +10,9 @@
       *> kb/Work PB1759 / PB1093 (owner decision R52) - HIGH-VALUE IS
       *> THE HIGHEST CHARACTER OF THE NATIVE SEQUENCE, WHOSE 65,536
       *> CHARACTERS ARE THE UTF-16 CODE UNITS (DOC-A.1-31/-188):
-      *>  §8.3.3.6.4 GR6 - "the high-value format represents the
+      *>  §2023:8.3.3.6.4 GR6 - "the high-value format represents the
       *>  character ... that has the highest ordinal position in the
-      *>  runtime collating sequence" - U+FFFF, ORDINAL 65536 (§15.70
+      *>  runtime collating sequence" - U+FFFF, ORDINAL 65536 (§2023:15.70
       *>  ORD: "The lowest ordinal position is 1").
       *> WHY EACH LEG CAN FAIL:
       *>  ORD-HV  - 65536; U+00FF (THE OLD PIN) WAS 256.
@@ -27,7 +27,7 @@
       *>            KEEPS ITS CHARACTERS: THE FIELD HOLDS X'FFFF' (-1)
       *>            AND THE GROUP STILL EQUALS HIGH-VALUES.
       *>  CLASS   - IN SPECIAL-NAMES HIGH-VALUE IS THE NATIVE EXTREME
-      *>            (§12.3.7.4 GR10): CLASS HVC IS HIGH-VALUE HOLDS
+      *>            (§2023:12.3.7.4 GR10): CLASS HVC IS HIGH-VALUE HOLDS
       *>            CHAR(65536) = U+FFFF AND NOT CHAR(256) = U+00FF.
       *>  YUML    - THE ACCEPTED COST (DOC-A.1-31): A REAL U+00FF THAT
       *>            PASSES THROUGH A ONE-BYTE RECORD MEDIUM SHARES THE

@@ -6,16 +6,16 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime.IO.Store;
 
 /// <summary>What <see cref="MetaPage.Describes"/> found in a physical file opened through a RELATIVE or INDEXED
-/// description, or tested by a sequential one (§14.9.27.4 GR10).</summary>
+/// description, or tested by a sequential one (§2023:14.9.27.4 GR10).</summary>
 internal enum StoreFormat
 {
     /// <summary>The file holds no bytes (or the host would not let this process read them). It records no
     /// records and therefore no attribute, so it can misread nothing and contradicts nothing — the ONE
-    /// tolerated shape that is not a §14.9.27.4 GR10 conflict.</summary>
+    /// tolerated shape that is not a §2023:14.9.27.4 GR10 conflict.</summary>
     Empty,
 
     /// <summary>A paged store whose committed meta validates; its <see cref="FixedFileAttributes"/> are the physical
-    /// file's §9.1.6 fixed file attributes.</summary>
+    /// file's §2023:9.1.6 fixed file attributes.</summary>
     Described,
 
     /// <summary>Bytes that are not a paged store this build understands — a file some other tool wrote, a plain
@@ -26,12 +26,12 @@ internal enum StoreFormat
 
     /// <summary>A paged store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of whose three meta pages
     /// carries this format's magic but neither COMMITTED slot validates: the store's own format, damaged beyond what it
-    /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §9.1.13.6 item 1's
+    /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §2023:9.1.13.6 item 1's
     /// '30' (2.2.1.6 R6 step 1).</summary>
     Damaged,
 
     /// <summary>A paged store of the message control system (<see cref="StoreKind.Message"/>): the engine's own format, so a
-    /// sequential OPEN I-O or EXTEND must not write into it, and no file of §9.1.6's organizations, so a keyed OPEN of it is
+    /// sequential OPEN I-O or EXTEND must not write into it, and no file of §2023:9.1.6's organizations, so a keyed OPEN of it is
     /// GR10's conflict ('39') and it records no <see cref="FixedFileAttributes"/>.</summary>
     Message,
 }
@@ -39,9 +39,9 @@ internal enum StoreFormat
 /// <summary>A META page of the paged keyed store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): pages 0 and 1
 /// are the two COMMITTED slots, written alternately by promotions, and page 2 is the WORK slot, written by every
 /// statement that changes the file (2.2.1.6, 2.2.1.15). One encoder (<see cref="Encode"/>) and one decoder
-/// (<see cref="Decode"/>); <see cref="Describes"/> is the §14.9.27.4 GR10 read of the attributes the file records.
+/// (<see cref="Decode"/>); <see cref="Describes"/> is the §2023:14.9.27.4 GR10 read of the attributes the file records.
 /// <para>The layout after the 32-byte page header: the magic <c>CBNFSTR</c> and the format version, the store's
-/// <see cref="StoreKind"/> (the organization byte <c>R</c>, <c>I</c> or <c>M</c>, then a file's §9.1.6 attributes: record
+/// <see cref="StoreKind"/> (the organization byte <c>R</c>, <c>I</c> or <c>M</c>, then a file's §2023:9.1.6 attributes: record
 /// type, minimum and maximum record size, key count; the message store writes <c>F</c>, 0, 0 and 0 there), the coherence
 /// <see cref="Generation"/>, the three mints, the page count, the five root POINTERS, the base
 /// (<see cref="CommittedGeneration"/>), the flags byte whose bit 0 is <see cref="Promoting"/>,
@@ -119,7 +119,7 @@ internal sealed record MetaPage(
     private const byte PromotingFlag = 0x01;
 
     /// <summary>The empty store's meta for <paramref name="kind"/> — what creation writes to all three slots
-    /// (§14.9.27.4 GR18: <i>"After the creation of the file, the file contains no records"</i>).</summary>
+    /// (§2023:14.9.27.4 GR18: <i>"After the creation of the file, the file contains no records"</i>).</summary>
     public static MetaPage Empty(StoreKind kind) => new(
         kind, Generation: 0, ReleaseMint: 0, PageCount: MetaPages, TransactionMint: 0,
         PagePointer.None, PagePointer.None, PagePointer.None, PagePointer.None,
@@ -252,15 +252,15 @@ internal sealed record MetaPage(
         ({ } x, { } y) => y.Generation > x.Generation ? (y, SlotB) : (x, SlotA),
     };
 
-    /// <summary>The §9.1.6 fixed file attributes the paged store at <paramref name="path"/> records — the read half of
-    /// §14.9.27.4 GR10 (<i>"The implementor defines which of the fixed-file attributes are validated during the execution
+    /// <summary>The §2023:9.1.6 fixed file attributes the paged store at <paramref name="path"/> records — the read half of
+    /// §2023:14.9.27.4 GR10 (<i>"The implementor defines which of the fixed-file attributes are validated during the execution
     /// of the OPEN statement"</i>). It reads the three meta pages through a short-lived auxiliary handle and takes the
     /// valid committed slot with the higher generation; a file with no bytes is <see cref="StoreFormat.Empty"/>, one whose
     /// meta pages carry this format's magic but whose committed slots both fail is <see cref="StoreFormat.Damaged"/> (the
     /// adoption rule's '30'), a committed message store is <see cref="StoreFormat.Message"/>, and anything else is
     /// <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of format 5 included.
     /// <para>An I/O failure answers <see cref="StoreFormat.Empty"/>, never a conflict: this bounded read is bookkeeping,
-    /// and the authority questions (§14.9.27.4 GR3's '37', §9.1.13.6 item 1's '30') are answered in ONE place each — by
+    /// and the authority questions (§2023:14.9.27.4 GR3's '37', §2023:9.1.13.6 item 1's '30') are answered in ONE place each — by
     /// the connector's own handle, <c>HostFile.Probe</c> and <c>FileConnector.Open</c>'s catch — never by guessing
     /// here.</para></summary>
     public static StoreFormat Describes(string path, out FixedFileAttributes? attributes)
@@ -279,7 +279,7 @@ internal sealed record MetaPage(
             }
             if (Committed(Decode(pages[SlotA], SlotA), Decode(pages[SlotB], SlotB)) is { } committed)
             {
-                // The message store is no file of §9.1.6's organizations: a keyed OPEN of it is GR10's conflict ('39') and
+                // The message store is no file of §2023:9.1.6's organizations: a keyed OPEN of it is GR10's conflict ('39') and
                 // a sequential I-O or EXTEND OPEN of it is the same conflict, never a misread (DESIGN-communication-facility.md §8).
                 if (committed.Meta.Kind.IsMessage) return StoreFormat.Message;
                 attributes = committed.Meta.Kind.RequireAttributes();
@@ -302,11 +302,11 @@ internal sealed record MetaPage(
         return measure.Length + (long)PagePointer.Bytes * StoreKind.AlternateKeysOf(attributes);
     }
 
-    // ── The ONE key codec: a key's §9.1.6 fixed attributes ──────────────────────────────────────────────────────
+    // ── The ONE key codec: a key's §2023:9.1.6 fixed attributes ──────────────────────────────────────────────────────
 
     /// <summary>Write one key's descriptor — its segment count and (offset, length) windows, its DUPLICATES flag, its
-    /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §9.1.6 fixed attributes (a
-    /// SOURCE-phrase key is a SEQUENCE of byte windows, the concatenation of its data-name-2 operands, §12.4.5.12.4 GR2
+    /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §2023:9.1.6 fixed attributes (a
+    /// SOURCE-phrase key is a SEQUENCE of byte windows, the concatenation of its data-name-2 operands, §2023:12.4.5.12.4 GR2
     /// and GR3, kb/Work PB1099). <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
     internal static void WriteKeyDescriptor(Stream fs, FixedFileAttributes.KeyDescriptor k)
     {
@@ -321,10 +321,10 @@ internal sealed record MetaPage(
             fs.Write(word);
         }
         fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
-        // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
+        // §2023:12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
         // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
         // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The meta page records what the
-        // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
+        // program DECLARED, and §2023:12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
         // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
         // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
         // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.

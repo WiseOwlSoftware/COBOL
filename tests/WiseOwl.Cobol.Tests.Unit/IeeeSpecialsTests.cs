@@ -7,15 +7,15 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>ISO §14.9.39.4 GR33/GR34/GR35 — the canonical ISO/IEC 60559:2020 Clause 3 values SET Format 15
+/// <summary>ISO §2023:14.9.39.4 GR33/GR34/GR35 — the canonical ISO/IEC 60559:2020 Clause 3 values SET Format 15
 /// stores, and the Annex A.1 item 176 NaN-payload determination that rides GR34/GR35 (kb/Work PB452).
 /// <para>⛔ THESE ARE A PUBLISHED CONFORMANCE CLAIM, not an incidental encoding: A.1 item 176 says the payload
 /// "shall be documented in the implementor's user documentation", docs/CONFORMANCE.md §7 DOC-A.1-176 documents
 /// it, and this file is what makes the documented value and the emitted value the same thing. The suite DECODES
-/// the constants (is it a NaN? which side of §6.2.1's quiet bit? whose sign?) rather than string-matching them,
+/// the constants (is it a NaN? which side of §2023:6.2.1's quiet bit? whose sign?) rather than string-matching them,
 /// so a re-spelling that changed the VALUE would fail while a re-spelling that did not would pass.</para>
 /// <para>The COBOL-observable witnesses are `conformance:cases/14.9.39-SET/pb452_set_content_float` (infinite, which sign, a
-/// NaN unequal to itself) and `conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_conditions`, whose §8.8.4.4.4 GR3 j)/k)
+/// NaN unequal to itself) and `conformance:cases/8.8.4.4-Simple-class-condition/pb225_float_class_conditions`, whose §2023:8.8.4.4.4 GR3 j)/k)
 /// FLOAT-NOT-A-NUMBER-QUIET / -SIGNALING class conditions (kb/Work PB225) observe the quiet/signaling
 /// distinction; <c>CobolFloatClassTests</c> pins that every value this table writes classifies as what it was
 /// written as.</para>
@@ -52,7 +52,7 @@ public sealed class IeeeSpecialsTests
         Assert.Equal(expMask, bits & expMask);
         Assert.Equal(which is IeeeSpecial.Infinity, (bits & sigMask) == 0);
 
-        // §6.2.1: the LEADING significand bit is the quiet bit — set = quiet, clear = signaling; a signaling
+        // §2023:6.2.1: the LEADING significand bit is the quiet bit — set = quiet, clear = signaling; a signaling
         // NaN needs some other significand bit nonzero, which is what the documented payload of 1 supplies.
         ulong quietBit = single ? 0x0040_0000UL : 0x0008_0000_0000_0000UL;
         if (which is IeeeSpecial.QuietNaN) Assert.Equal(quietBit, bits & quietBit);
@@ -114,7 +114,7 @@ public sealed class IeeeSpecialsTests
         }
     }
 
-    /// <summary>The §14.9.39.4 general rule a theory row names — GR33 is the infinity, GR34 the quiet NaN,
+    /// <summary>The §2023:14.9.39.4 general rule a theory row names — GR33 is the infinity, GR34 the quiet NaN,
     /// GR35 the signaling one. The rows are keyed by RULE NUMBER so the internal enum stays out of a public test
     /// signature and each row reads as the obligation it pins.</summary>
     private static IeeeSpecial Of(int generalRule) => generalRule switch
@@ -122,6 +122,6 @@ public sealed class IeeeSpecialsTests
         33 => IeeeSpecial.Infinity,
         34 => IeeeSpecial.QuietNaN,
         35 => IeeeSpecial.SignalingNaN,
-        _ => throw new ArgumentOutOfRangeException(nameof(generalRule), generalRule, "not a §14.9.39.4 Format-15 float rule"),
+        _ => throw new ArgumentOutOfRangeException(nameof(generalRule), generalRule, "not a §2023:14.9.39.4 Format-15 float rule"),
     };
 }

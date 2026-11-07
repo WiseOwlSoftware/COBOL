@@ -8,14 +8,14 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER AND ITS FINDINGS, end to end through the compiler (ISO §12.3.8.4 GR10 c) / GR11 c),
-/// §8.13; DESIGN-external-repository §8.2, §8.6, §9.2, §9.3, §14, §17.6; kb/Work PB2103). Each Fact compiles a library into a
+/// ⛔ THE EXTERNAL REPOSITORY'S PROVIDER AND ITS FINDINGS, end to end through the compiler (ISO §2023:12.3.8.4 GR10 c) / GR11 c),
+/// §2023:8.13; DESIGN-external-repository §8.2, §8.6, §9.2, §9.3, §14, §17.6; kb/Work PB2103). Each Fact compiles a library into a
 /// directory and a caller against it, as two separate compilations, and asserts what the caller's compilation says: these are
 /// the cases that need a directory layout, an option or a damaged file no manifest case states (the multi-unit goldens of
 /// §17.1 cover the default layout, <c>conformance-suite/wiseowl/cases/</c>).
-/// <para>The rules, checked: §12.3.8.3 SR14 "the name of a program for which information exists in the external repository"
-/// and §12.3.8.4 GR10 c) "the details are taken from the external repository for the program with the same name as the
-/// externalized name of the program prototype"; §8.13 "The implementor shall provide a mechanism that allows the user to
+/// <para>The rules, checked: §2023:12.3.8.3 SR14 "the name of a program for which information exists in the external repository"
+/// and §2023:12.3.8.4 GR10 c) "the details are taken from the external repository for the program with the same name as the
+/// externalized name of the program prototype"; §2023:8.13 "The implementor shall provide a mechanism that allows the user to
 /// specify whether to update the external repository when a compilation unit is compiled" and "… whether to flag differences
 /// in prototypes and definitions in the compilation group from the information in the external repository".</para>
 /// </summary>
@@ -99,7 +99,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // REPO-1 (SR14), naming the place searched; the CALL through the unregistered prototype is COBOL1760 (§8.2 step 4).
+    [Fact]   // REPO-1 (SR14), naming the place searched; the CALL through the unregistered prototype is COBOL1760 (§2023:8.2 step 4).
     public void ASpecifierNoProviderAnswers_IsRepo1_NamingThePlacesSearched()
     {
         WithDirectory("repo-1", dir =>
@@ -112,7 +112,7 @@ public sealed class ExternalRepositoryResolutionTests
     }
 
     /// <summary>kb/Work PB4633: a verb's COBOL1760 sentence says WHY the word is no program prototype. A word a PROGRAM
-    /// specifier DECLARES whose specifier no provider answered (REPO-1, §12.3.8.3 SR14) is declared, so the sentence
+    /// specifier DECLARES whose specifier no provider answered (REPO-1, §2023:12.3.8.3 SR14) is declared, so the sentence
     /// must not say it is "neither declared"; a word no specifier declares keeps that sentence.</summary>
     private static string Refusal1760(CompilerDriver.Result r, string verbAndWord) =>
         Assert.Single(r.Errors, e => e.Contains("COBOL1760", StringComparison.Ordinal)
@@ -148,17 +148,17 @@ public sealed class ExternalRepositoryResolutionTests
             {
                 string text = Refusal1760(r, declared);
                 Assert.Contains("declared by a PROGRAM specifier in the REPOSITORY paragraph", text, StringComparison.Ordinal);
-                Assert.Contains("§12.3.8.3 SR14", text, StringComparison.Ordinal);
+                Assert.Contains("§2023:12.3.8.3 SR14", text, StringComparison.Ordinal);
                 Assert.DoesNotContain("neither declared", text, StringComparison.Ordinal);
             }
             string undeclared = Refusal1760(r, "CANCEL NOSUCH");
             Assert.Contains("neither declared by a PROGRAM specifier", undeclared, StringComparison.Ordinal);
-            Assert.DoesNotContain("§12.3.8.3 SR14", undeclared, StringComparison.Ordinal);
+            Assert.DoesNotContain("§2023:12.3.8.3 SR14", undeclared, StringComparison.Ordinal);
         });
     }
 
     /// <summary>kb/Work PB4708: the SECOND route to a declared word with no prototype. <c>PROGRAM R4708P AS ""</c> is refused
-    /// by §12.3.8.3 SR2 (a zero-length literal-3), so it registers no ProgramSpecifiers row, yet the REPOSITORY paragraph
+    /// by §2023:12.3.8.3 SR2 (a zero-length literal-3), so it registers no ProgramSpecifiers row, yet the REPOSITORY paragraph
     /// DECLARES the word: CALL, CANCEL and CALL AS say so, cite SR2 rather than SR14 (no REPO-1 exists on this route), and
     /// the USAGE PROGRAM-POINTER TO screen does not add its own "not declared" refusal.</summary>
     [Fact]
@@ -190,7 +190,7 @@ public sealed class ExternalRepositoryResolutionTests
             {
                 string text = Refusal1760(r, declared);
                 Assert.Contains("declared by a PROGRAM specifier in the REPOSITORY paragraph", text, StringComparison.Ordinal);
-                Assert.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", text, StringComparison.Ordinal);
+                Assert.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", text, StringComparison.Ordinal);
                 Assert.DoesNotContain("neither declared", text, StringComparison.Ordinal);
                 Assert.DoesNotContain("SR14", text, StringComparison.Ordinal);
             }
@@ -232,19 +232,19 @@ public sealed class ExternalRepositoryResolutionTests
             Assert.False(r.Success);
             string set = Assert.Single(r.Errors, e => e.Contains("COBOL2157", StringComparison.Ordinal)
                                                       && e.Contains("ADDRESS OF PROGRAM R4708Q", StringComparison.Ordinal));
-            Assert.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", set, StringComparison.Ordinal);
+            Assert.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", set, StringComparison.Ordinal);
             Assert.DoesNotContain("not declared in the REPOSITORY", set, StringComparison.Ordinal);
             Assert.DoesNotContain("neither declared", set, StringComparison.Ordinal);
             // The resolver is not asked about a declared word: no COBOL1639 "no declaration gives the name" beside it (R2-1).
             Assert.DoesNotContain(r.Errors, e => e.Contains("COBOL1639", StringComparison.Ordinal));
             // Both CALLs: the outer one and the contained program's, which inherits the refused row.
             Assert.Equal(2, r.Errors.Count(e => e.Contains("COBOL1760", StringComparison.Ordinal)
-                                                && e.Contains("AS literal-3 was refused (ISO §12.3.8.3 SR2)", StringComparison.Ordinal)
+                                                && e.Contains("AS literal-3 was refused (ISO §2023:12.3.8.3 SR2)", StringComparison.Ordinal)
                                                 && !e.Contains("neither declared", StringComparison.Ordinal)));
         });
     }
 
-    /// <summary>kb/Work PB4773: every specifier kind whose <c>AS literal-n</c> is refused by §12.3.8.3 SR2 reports that refusal
+    /// <summary>kb/Work PB4773: every specifier kind whose <c>AS literal-n</c> is refused by §2023:12.3.8.3 SR2 reports that refusal
     /// ALONE. The resolution rules (SR6 class, SR9 interface, SR16 property, SR10 function) ask for the externalized name,
     /// and a refused literal gave none: they fell back to the word, so each drew a REPO-1 whose sentence said the name sought
     /// was a word, or an <c>AS "WORD"</c>, the source never wrote.</summary>
@@ -275,7 +275,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // §9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
+    [Fact]   // §2023:9.3: a --repository directory is searched instead of the output directory, and a --reference file after it.
     public void TheNamedDirectoriesAndReferences_AreTheSearchSpace()
     {
         WithDirectory("repo-dirs", dir =>
@@ -300,7 +300,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // REPO-8: an entry built with --repository-update off carries no signature to bind against (§8.13, §9.1).
+    [Fact]   // REPO-8: an entry built with --repository-update off carries no signature to bind against (§2023:8.13, §2023:9.1).
     public void AnEntryBuiltWithoutSignatures_IsRepo8()
     {
         WithDirectory("repo-8", dir =>
@@ -331,7 +331,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // REPO-2 (§8.6): the first entry in search order wins; a later different build of the name that differs warns.
+    [Fact]   // REPO-2 (§2023:8.6): the first entry in search order wins; a later different build of the name that differs warns.
     public void ALaterDifferingEntry_IsRepo2_AndTheFirstIsUsed()
     {
         WithDirectory("repo-2", dir =>
@@ -345,7 +345,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // REPO-9 (§9.2): the previous build of the output differs; --repository-check off does not compare.
+    [Fact]   // REPO-9 (§2023:9.2): the previous build of the output differs; --repository-check off does not compare.
     public void ARebuildThatChangesTheSignature_IsRepo9_UnlessCheckingIsOff()
     {
         WithDirectory("repo-9", dir =>
@@ -362,7 +362,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // REPO-12 (§9.2): the previous build of the output was compiled by another runtime major, so it is not compared.
+    [Fact]   // REPO-12 (§2023:9.2): the previous build of the output was compiled by another runtime major, so it is not compared.
     public void APreviousBuildAnotherRuntimeMajorCompiled_IsRepo12_AndIsOverwritten()
     {
         WithDirectory("repo-12", dir =>
@@ -376,7 +376,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // §9.3: the output being produced is never resolved against, even when its previous build publishes the name.
+    [Fact]   // §2023:9.3: the output being produced is never resolved against, even when its previous build publishes the name.
     public void TheOutputsOwnPreviousBuild_AnswersNoSpecifier()
     {
         WithDirectory("repo-own", dir =>
@@ -423,7 +423,7 @@ public sealed class ExternalRepositoryResolutionTests
         END PROGRAM R2103O.
         """;
 
-    [Fact]   // REPO-11 (§6.4): the entry's formal is an object reference to a class neither this group nor any entry has.
+    [Fact]   // REPO-11 (§2023:6.4): the entry's formal is an object reference to a class neither this group nor any entry has.
     public void AnEntryNamingAClassNoEntryPublishes_IsRepo11()
     {
         WithDirectory("repo-11", dir =>
@@ -450,7 +450,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    // ISO §12.3.8.4 GR11 b): a function prototype definition of the group supplies the details and "the details in the
+    // ISO §2023:12.3.8.4 GR11 b): a function prototype definition of the group supplies the details and "the details in the
     // external repository are ignored" (cite.py --check 12.3.8.4 "the details in the external repository are ignored").
     // So an entry the group's prototype makes irrelevant is never a fault of the compilation, whatever is wrong with it.
 
@@ -621,7 +621,7 @@ public sealed class ExternalRepositoryResolutionTests
     {
         WithDirectory("repo-fn-shadow", dir =>
         {
-            // R2103F AS "R2103G": the user-function-name R2103F, externalized R2103G (§8.4.6.7). The group's prototype is
+            // R2103F AS "R2103G": the user-function-name R2103F, externalized R2103G (§2023:8.4.6.7). The group's prototype is
             // externalized R2103F, so GR11 b) selects it and the repository function shadows it by word.
             Assert.True(Compile(dir, "R2103G", FunctionLibrary(ShadowingClause)).Success);
             var warned = Compile(dir, "R2103FM", FunctionPrototypeCaller);
@@ -697,7 +697,7 @@ public sealed class ExternalRepositoryResolutionTests
         END PROGRAM R2103SM.
         """;
 
-    [Fact]   // §13.7.3 SR2 over two groups: a prototype that groups and names its fields otherwise than the definition draws no REPO-9; one that lays them out otherwise does.
+    [Fact]   // §2023:13.7.3 SR2 over two groups: a prototype that groups and names its fields otherwise than the definition draws no REPO-9; one that lays them out otherwise does.
     public void APrototypeAndItsDefinitionInTwoUnits_AreComparedByLayout_NotByGroupingOrNames()
     {
         WithDirectory("repo-split", dir =>
@@ -732,7 +732,7 @@ public sealed class ExternalRepositoryResolutionTests
         END FUNCTION R2103F.
         """;
 
-    [Fact]   // §10.6.3 GR1: compiling a program prototype ALONE generates the external-repository information a later compilation reads (GR10 c)).
+    [Fact]   // §2023:10.6.3 GR1: compiling a program prototype ALONE generates the external-repository information a later compilation reads (GR10 c)).
     public void AProgramPrototypeCompiledAlone_PublishesItsSignature_AndACallerIsCheckedAgainstIt()
     {
         WithDirectory("repo-proto-alone", dir =>
@@ -747,7 +747,7 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    [Fact]   // §10.6.3 GR1, the function prototype's half: the entry it publishes answers a later FUNCTION specifier (GR11 c)) — and with update off it does not.
+    [Fact]   // §2023:10.6.3 GR1, the function prototype's half: the entry it publishes answers a later FUNCTION specifier (GR11 c)) — and with update off it does not.
     public void AFunctionPrototypeCompiledAlone_PublishesItsSignature_UnlessUpdateIsOff()
     {
         WithDirectory("repo-fn-proto-alone", dir =>
@@ -763,8 +763,8 @@ public sealed class ExternalRepositoryResolutionTests
         });
     }
 
-    // REPO-4 and REPO-5 (ISO §8.13: the information in the external repository is what the compilation reads; DESIGN-external-repository
-    // §14, §15.3 "nothing an entry holds is trusted"): a compiled library with ONE record damaged in a way the reader or the codec
+    // REPO-4 and REPO-5 (ISO §2023:8.13: the information in the external repository is what the compilation reads; DESIGN-external-repository
+    // §14, §2023:15.3 "nothing an entry holds is trusted"): a compiled library with ONE record damaged in a way the reader or the codec
     // detects. Each case asserts the code, and that no REPO-1 (COBOL5962) follows it: the entry was found, it is the entry that cannot answer.
 
     private const string RedefiningLibrary = """

@@ -10,7 +10,7 @@
       *> implicit MOVE is THE CURRENT RECORD, not the padded record area.
       *> The 2002 leg.
       *>
-      *> ISO §14.9.30.4 GR4 b) (and its RETURN twin §14.9.34.4 GR5 b), word
+      *> ISO §2023:14.9.30.4 GR4 b) (and its RETURN twin §2023:14.9.34.4 GR5 b), word
       *> for word bar one preposition): "The current record is moved from the
       *> record area to the area specified by identifier-1 according to the
       *> rules for the MOVE statement without the CORRESPONDING phrase.  The
@@ -18,7 +18,7 @@
       *> RECORD clause.  If the file description entry contains a RECORD IS
       *> VARYING clause, the implied move is an alphanumeric group move."
       *>
-      *> §13.18.43.4 GR16 supplies that size for a FORMAT 2 RECORD clause:
+      *> §2023:13.18.43.4 GR16 supplies that size for a FORMAT 2 RECORD clause:
       *> "If the INTO phrase is specified in the READ or RETURN statement,
       *> the number of bytes in the current record that participate as the
       *> sending operands in the implicit MOVE statement is determined by the
@@ -36,32 +36,32 @@
       *>
       *> EXPECTED VALUES, each derived before it was run:
       *>  A  F holds the 5-byte record "ABCDE" (WS-LEN = 5 at the WRITE, so
-      *>     §13.18.43.4 GR13 a) wrote five bytes).  GR15 restores WS-LEN = 5,
+      *>     §2023:13.18.43.4 GR13 a) wrote five bytes).  GR15 restores WS-LEN = 5,
       *>     GR16 a) makes the sender those five bytes.  Receiver X(10)
-      *>     JUSTIFIED: §13.18.32.4 GR2 — "the data is aligned at the rightmost
+      *>     JUSTIFIED: §2023:13.18.32.4 GR2 — "the data is aligned at the rightmost
       *>     character position … with … space fill for the leftmost character
       *>     positions" => "     ABCDE".  Sending the 20-byte area instead
       *>     yields ten spaces (that is the defect).
-      *>  B  Receiver X(3) JUSTIFIED, sender five bytes: §13.18.32.4 GR1 —
+      *>  B  Receiver X(3) JUSTIFIED, sender five bytes: §2023:13.18.32.4 GR1 —
       *>     "the leftmost character positions … of the sending operand shall
       *>     be truncated" => "CDE".  From the padded area it would be three
       *>     spaces.
-      *>  C  Receiver X(10) plain: §14.6.8.5 left-aligned, right space fill =>
+      *>  C  Receiver X(10) plain: §2023:14.6.8.5 left-aligned, right space fill =>
       *>     "ABCDE     ".  The control leg: identical either way.
       *>  D  Receiver PIC XXBXXBXX (eight character positions).  GR4 b) makes
-      *>     the move an alphanumeric GROUP move, and §14.9.25.4 GR4 treats a
+      *>     the move an alphanumeric GROUP move, and §2023:14.9.25.4 GR4 treats a
       *>     group move "exactly as if it were an alphanumeric to alphanumeric
       *>     elementary move, except that there is no conversion of data from
       *>     one form of internal representation to another", the receiving
       *>     area "filled without consideration for the individual elementary
       *>     or group items" — so NO editing: "ABCDE   ".  Editing the sender
       *>     would give "AB CD E " (or, from the padded area, "AB CD E ").
-      *>  E  Receiver X(3) plain: §14.6.8.5 right truncation => "ABC".
+      *>  E  Receiver X(3) plain: §2023:14.6.8.5 right truncation => "ABC".
       *>  F  GR16 b), the arm with no DEPENDING ON phrase: G has two record
       *>     descriptions and WRITE G-SHORT wrote its own five bytes
-      *>     (§13.18.43.4 GR13 b).  The sender is still five bytes, so the
+      *>     (§2023:13.18.43.4 GR13 b).  The sender is still five bytes, so the
       *>     X(10) JUSTIFIED receiver gets "     ABCDE".
-      *>  G  RETURN … INTO, §14.9.34.4 GR5 b) + §13.18.43.4 GR16 a): the SD
+      *>  G  RETURN … INTO, §2023:14.9.34.4 GR5 b) + §2023:13.18.43.4 GR16 a): the SD
       *>     released eight bytes "K01PQRST"; receiver X(12) JUSTIFIED =>
       *>     "    K01PQRST".
        IDENTIFICATION DIVISION.

@@ -9,7 +9,7 @@
       *> ISO 1989:2023 7.3.10.4 GR6 (kb/Work PB4488): "6) A COBOL-WORDS
       *> directive does not affect any Compiler directing statements or
       *> Compiler directives."
-      *>   cite.py: OK  §7.3.10.4 6)  (General rules)
+      *>   cite.py: OK  §2023:7.3.10.4 6)  (General rules)
       *> The order of 7.2.1 says the same: "Step 1: Library text identified
       *> in COPY statements is incorporated" and "Step 3: The
       *> conditionally-processed compilation group is read and the
@@ -17,12 +17,12 @@
       *> come first, and "Step 4: The results of Step 3 are read, and the
       *> actions of the COBOL-WORDS directive are applied in order."
       *> comes last.
-      *>   cite.py: OK  §7.2.1   (General)  (each of the three)
+      *>   cite.py: OK  §2023:7.2.1   (General)  (each of the three)
       *> REPLACE matching: "Pseudo-text-1 matches the source text if, and
       *> only if, the ordered sequence of text-words that forms
       *> pseudo-text-1 is equal, character for character, to the ordered
       *> sequence of source text-words."
-      *>   cite.py: OK  §7.2.4.4 8) b)  (General rules)
+      *>   cite.py: OK  §2023:7.2.4.4 8) b)  (General rules)
       *> The directives: SUBSTITUTE "COPY" BY "CPY" (GR4 takes COPY from
       *> the syntax of the compilation stage), RESERVE "PB4488RS" (GR5: a
       *> text-name the program may not use as a user-defined word),

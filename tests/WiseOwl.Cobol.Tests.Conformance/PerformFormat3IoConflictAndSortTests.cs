@@ -13,16 +13,16 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// the PERFORM (a table SORT in imperative-statement-1, a file SORT or MERGE in a WHEN phrase) on their success and
 /// on their USING-file failure paths (owner 2026-10-17: SORT and file I-O tests cover both); a failure of the
 /// sort-merge WORK file itself is <c>PerformFormat3SortWorkFileFailureTests</c>.
-/// <para>Each status is delivered, per §9.1.12 and §14.9.28.4 GR17, to the FIRST of: a WHEN phrase naming the
-/// exception, the USE declarative for the file (§14.9.49.4 GR6), the file's FILE STATUS item with nothing else
+/// <para>Each status is delivered, per §2023:9.1.12 and §2023:14.9.28.4 GR17, to the FIRST of: a WHEN phrase naming the
+/// exception, the USE declarative for the file (§2023:14.9.49.4 GR6), the file's FILE STATUS item with nothing else
 /// applicable. Which of the three runs is pinned for each status here, with the NONFATAL / FATAL split the exception
-/// table (§14.6.13.1.6, the EC-I-O names) gives: 51 (EC-I-O-RECORD-OPERATION), 61 and 62 (EC-I-O-FILE-SHARING), 05 (EC-I-O-WARNING), 10 (EC-I-O-AT-END) and 23
+/// table (§2023:14.6.13.1.6, the EC-I-O names) gives: 51 (EC-I-O-RECORD-OPERATION), 61 and 62 (EC-I-O-FILE-SHARING), 05 (EC-I-O-WARNING), 10 (EC-I-O-AT-END) and 23
 /// (EC-I-O-INVALID-KEY) are NF and the run goes on; 37 and 39 (EC-I-O-PERMANENT-ERROR) are Fatal.</para>
-/// <para>Expected statuses are the standard's: §9.1.13.8 item 1 ('51': a record another file connector has locked),
-/// §9.1.13.9 item 1 e) ('61': OPEN OUTPUT of a physical file another file
-/// connector has open) and item 2 ('62': DELETE FILE of a physical file another file connector has open), §9.1.13.6
+/// <para>Expected statuses are the standard's: §2023:9.1.13.8 item 1 ('51': a record another file connector has locked),
+/// §2023:9.1.13.9 item 1 e) ('61': OPEN OUTPUT of a physical file another file
+/// connector has open) and item 2 ('62': DELETE FILE of a physical file another file connector has open), §2023:9.1.13.6
 /// items 6 and 7 ('37' insufficient authority or a file that will not support the write operation, '39' a fixed-
-/// attribute conflict), §9.1.13.2 item 4 a) ('05': an OPTIONAL file absent), §9.1.13.5 ('23', an invalid key).</para>
+/// attribute conflict), §2023:9.1.13.2 item 4 a) ('05': an OPTIONAL file absent), §2023:9.1.13.5 ('23', an invalid key).</para>
 /// <para>A RETRY phrase cannot clear a conflict whose holder is a connector of THIS run unit (kb/Work PB142, the
 /// conformance case <c>pb142_retry_open_sharing</c>): every retry form answers the conflict status, which is what is
 /// asserted after the statement.</para>
@@ -34,7 +34,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private const string On = ">>TURN EC-ALL CHECKING ON";
 
     /// <summary>A free-form program from its parts. <paramref name="use"/> adds a USE AFTER STANDARD EXCEPTION
-    /// declarative on one file whose body is the given statements (§14.4.1: with declaratives present every
+    /// declarative on one file whose body is the given statements (§2023:14.4.1: with declaratives present every
     /// paragraph of the main part lives in a section).</summary>
     private static string Prog(string name, string select, string fd, string ws, string proc,
         string checking = On, (string File, string Body)? use = null, string paras = "")
@@ -86,7 +86,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         Assert.Equal(expectedStdout, stdout);
     }
 
-    // ── lock contention: two connectors on ONE physical file (§9.1.13.9) ──────────────────────────────────────
+    // ── lock contention: two connectors on ONE physical file (§2023:9.1.13.9) ──────────────────────────────────────
 
     /// <summary>F holds the physical file open (OUTPUT); G is a second connector over the same path.</summary>
     private static string Share(string name, string proc, bool gStatus = true, string checking = On,
@@ -112,7 +112,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §9.1.13.9 1) e): OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.9 1) e): OPEN OUTPUT of a physical file another connector has open is '61'; the WHEN is selected
     public void OpenOutputConflict_Retry_WhenFileSharing_RunsHandler_WithStatus61() => AssertRuns(Share("F3SH61N", """
             PERFORM
                 OPEN OUTPUT RETRY 2 TIMES G
@@ -123,7 +123,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """), "HANDLER 61\nAFTER 61\nDONE");
 
-    [Fact]   // the paired form: exception-name FILE file-name (§14.9.28.2 Format 3) selects only G's exception
+    [Fact]   // the paired form: exception-name FILE file-name (§2023:14.9.28.2 Format 3) selects only G's exception
     public void OpenOutputConflict_Retry_WhenFileSharingPairedWithTheFile_RunsHandler() => AssertRuns(Share("F3SH61P", """
             PERFORM
                 OPEN OUTPUT RETRY FOREVER G
@@ -144,7 +144,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """), "AFTER 61\nDONE");
 
-    [Fact]   // §14.9.49.4 GR6: nothing in the PERFORM matches, so the USE declarative for G is executed
+    [Fact]   // §2023:14.9.49.4 GR6: nothing in the PERFORM matches, so the USE declarative for G is executed
     public void OpenOutputConflict_Retry_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(Share("F3SH61U", """
             PERFORM
                 OPEN OUTPUT RETRY 2 TIMES G
@@ -165,7 +165,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         """, gStatus: false), "AFTER\nDONE");
 
     [Fact]   // checking OFF, the WHEN names an unrelated condition: no WHEN runs. The USE declarative still does: a USE
-             // for a file is executed "upon the unsuccessful execution of an input-output operation" (§14.9.49.4 GR6)
+             // for a file is executed "upon the unsuccessful execution of an input-output operation" (§2023:14.9.49.4 GR6)
              // whether or not a TURN directive enabled EC-I-O, and the status is the file's own.
     public void OpenOutputConflict_CheckingOff_RunsNoWhen_ButTheUseDeclarativeStillRuns() => AssertRuns(Share("F3SH61Z", """
             PERFORM
@@ -176,7 +176,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: "", use: ("G", "DISPLAY \"USE \" GS.")), "USE 61\nAFTER 61\nDONE");
 
-    [Fact]   // §9.1.13.9 2): DELETE FILE of a physical file another connector has open is '62'
+    [Fact]   // §2023:9.1.13.9 2): DELETE FILE of a physical file another connector has open is '62'
     public void DeleteFileConflict_Retry_WhenFileSharing_RunsHandler_WithStatus62() => AssertRuns(Share("F3SH62N", """
             PERFORM
                 DELETE FILE G RETRY 2 TIMES
@@ -217,12 +217,12 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: ""), "AFTER 62\nDONE");
 
-    // ── record lock contention: '51', the record operation conflict (§9.1.13.8 1)) ────────────────────────────
+    // ── record lock contention: '51', the record operation conflict (§2023:9.1.13.8 1)) ────────────────────────────
 
     /// <summary>Two connectors on ONE relative file, both SHARING WITH ALL OTHER and LOCK MODE IS AUTOMATIC (the
-    /// <c>l1_read_lock_mode_governs</c> shape): F's plain READ of record 1 locks it (§12.4.5.9.4 GR4), so G's READ of
-    /// the same record in <paramref name="proc"/> is refused with '51' (§14.9.30.4 GR9), which is
-    /// EC-I-O-RECORD-OPERATION, NONFATAL (the exception table, §14.6.13.1.6).</summary>
+    /// <c>l1_read_lock_mode_governs</c> shape): F's plain READ of record 1 locks it (§2023:12.4.5.9.4 GR4), so G's READ of
+    /// the same record in <paramref name="proc"/> is refused with '51' (§2023:14.9.30.4 GR9), which is
+    /// EC-I-O-RECORD-OPERATION, NONFATAL (the exception table, §2023:14.6.13.1.6).</summary>
     private static string Lock(string name, string proc, bool gStatus = true, string checking = On,
         (string File, string Body)? use = null)
     {
@@ -263,7 +263,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             checking, use);
     }
 
-    [Fact]   // §9.1.13.8 1): the READ of a record another connector has locked is '51'; the WHEN is selected
+    [Fact]   // §2023:9.1.13.8 1): the READ of a record another connector has locked is '51'; the WHEN is selected
     public void ReadOfALockedRecord_Retry_WhenRecordOperation_RunsHandler_WithStatus51() => AssertRuns(Lock("F3LK51N", """
             PERFORM
                 READ G RETRY 2 TIMES
@@ -285,7 +285,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """), "HOLD 00 R001\nPAIRED 51\nAFTER 51\nDONE");
 
-    [Fact]   // RETRY FOREVER on a lock THIS run unit holds is the one deadlock the implementor detects, '52' (§9.1.13.8
+    [Fact]   // RETRY FOREVER on a lock THIS run unit holds is the one deadlock the implementor detects, '52' (§2023:9.1.13.8
              // 2); docs/CONFORMANCE.md DOC-A.1-109), the same EC-I-O-RECORD-OPERATION ("5x"), so the same WHEN runs
     public void ReadOfALockedRecord_RetryForever_IsADeadlock_WhenRecordOperation_RunsHandler_WithStatus52() => AssertRuns(Lock("F3LK52N", """
             PERFORM
@@ -307,7 +307,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """), "HOLD 00 R001\nAFTER 51\nDONE");
 
-    [Fact]   // §14.9.49.4 GR6: nothing in the PERFORM matches, so the USE declarative for G is executed
+    [Fact]   // §2023:14.9.49.4 GR6: nothing in the PERFORM matches, so the USE declarative for G is executed
     public void ReadOfALockedRecord_Retry_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(Lock("F3LK51U", """
             PERFORM
                 READ G RETRY 2 TIMES
@@ -340,8 +340,8 @@ public sealed class PerformFormat3IoConflictAndSortTests
     // ── OPEN '39' (fixed-attribute conflict), '05' (OPTIONAL file absent), '37' (insufficient authority) ─────────
 
     /// <summary>A RELATIVE file of 20-byte records, then a second description of the same physical file with 40-byte
-    /// records: §14.9.27.4 GR10 compares the attributes the program gives with the file's and answers '39'
-    /// (§9.1.13.6 item 7). <paramref name="proc"/> runs after the 20-byte file has been created.</summary>
+    /// records: §2023:14.9.27.4 GR10 compares the attributes the program gives with the file's and answers '39'
+    /// (§2023:9.1.13.6 item 7). <paramref name="proc"/> runs after the 20-byte file has been created.</summary>
     private static string Attribute39(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null)
     {
@@ -411,7 +411,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, checking: ""), "AFTER 39\nDONE");
 
-    /// <summary>One OPTIONAL file that is absent (§9.1.13.2 item 4 a: OPEN INPUT is SUCCESSFUL, '05').</summary>
+    /// <summary>One OPTIONAL file that is absent (§2023:9.1.13.2 item 4 a: OPEN INPUT is SUCCESSFUL, '05').</summary>
     private static string Optional05(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
@@ -426,7 +426,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             """,
         proc, checking, use);
 
-    [Fact]   // '05' is the nonfatal EC-I-O-WARNING, raised only when explicitly enabled (§14.9.28.4 GR14: by the WHEN)
+    [Fact]   // '05' is the nonfatal EC-I-O-WARNING, raised only when explicitly enabled (§2023:14.9.28.4 GR14: by the WHEN)
     public void OpenOptionalAbsent_WhenWarning_RunsHandler_WithStatus05() => AssertRuns(Optional05("F3OP05N", """
             PERFORM
                 OPEN INPUT OP
@@ -457,8 +457,8 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, status: false), "AFTER\nDONE");
 
-    /// <summary>'37' on OPEN OUTPUT over a PRESENT file this process may not write (§14.9.27.4 GR3: "If the file
-    /// associated with file-name-1 is present and insufficient authority exists to open the file ..."; §9.1.13.6 item
+    /// <summary>'37' on OPEN OUTPUT over a PRESENT file this process may not write (§2023:14.9.27.4 GR3: "If the file
+    /// associated with file-name-1 is present and insufficient authority exists to open the file ..."; §2023:9.1.13.6 item
     /// 6 a) 1.: "the EXTEND or OUTPUT phrase is specified but the file will not support write operations", and 6 b):
     /// "insufficient authority exists to access the file"). The host's ability to refuse is MEASURED, not assumed
     /// (kb/Work PB795): a process that bypasses file permissions (a root Linux user) has nothing to assert, and that
@@ -554,7 +554,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             """,
         proc, checking, use);
 
-    [Fact]   // §14.9.6.4 GR1 / §9.1.13.7 item 2: CLOSE of a file not open is '42', Fatal; the USE runs when no WHEN matches
+    [Fact]   // §2023:14.9.6.4 GR1 / §2023:9.1.13.7 item 2: CLOSE of a file not open is '42', Fatal; the USE runs when no WHEN matches
     public void CloseUnopenedFile_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(OneFile("F3CL42U", """
             PERFORM
                 CLOSE F
@@ -574,7 +574,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, use: ("F", "DISPLAY \"USE \" FS.")), "EC-I-O-LOGIC-ERROR", "USE 42");
 
-    [Fact]   // §9.1.13.7 item 1: DELETE FILE of a file in an open mode is '41', Fatal
+    [Fact]   // §2023:9.1.13.7 item 1: DELETE FILE of a file in an open mode is '41', Fatal
     public void DeleteFileOfOpenFile_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(OneFile("F3DF41U", """
             OPEN OUTPUT F
             PERFORM
@@ -621,7 +621,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             CLOSE F
         """, use: ("F", "DISPLAY \"USE \" FS RESUME NEXT STATEMENT.")), "USE 41\nAFTER\nDONE");
 
-    // ── AT END and INVALID KEY: the statement's OWN phrase wins over the WHEN phrase (§9.1.13.1 text above 9.1.13.2)
+    // ── AT END and INVALID KEY: the statement's OWN phrase wins over the WHEN phrase (§2023:9.1.13.1 text above 9.1.13.2)
 
     /// <summary>A LINE SEQUENTIAL file holding one record, closed, then read from the PERFORM's imperative statement.</summary>
     private static string OneRecord(string name, string proc, bool status = true, string checking = On,
@@ -633,7 +633,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
                 OPEN INPUT F
             """ + "\n" + proc + "\n    CLOSE F", status, checking, use);
 
-    [Fact]   // §9.1.13 / "If the exception condition EC-I-O-AT-END ... exists and the statement ... is specified with an AT END
+    [Fact]   // §2023:9.1.13 / "If the exception condition EC-I-O-AT-END ... exists and the statement ... is specified with an AT END
              // phrase ... no other applicable exception processing statements shall be executed"
     public void ReadAtEnd_WithAtEndPhrase_RunsThePhrase_NotTheWhen() => AssertRuns(OneRecord("F3AE10P", """
             PERFORM
@@ -679,7 +679,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, status: false), "AFTER\nDONE");
 
-    /// <summary>A RELATIVE file with record 1 only, read at random: key 9 is absent (§9.1.13.5, '23').</summary>
+    /// <summary>A RELATIVE file with record 1 only, read at random: key 9 is absent (§2023:9.1.13.5, '23').</summary>
     private static string Relative(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
@@ -743,7 +743,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, status: false), "AFTER\nDONE");
 
-    // ── SORT / MERGE around the PERFORM (§14.9.40.3 SR3, §14.9.24.3 SR1: banned IN imperative-statement-1, legal in a WHEN)
+    // ── SORT / MERGE around the PERFORM (§2023:14.9.40.3 SR3, §2023:14.9.24.3 SR1: banned IN imperative-statement-1, legal in a WHEN)
 
     private const string SortSelect = """
         SELECT F ASSIGN "{0}" ORGANIZATION LINE SEQUENTIAL FILE STATUS FS.
@@ -828,9 +828,9 @@ public sealed class PerformFormat3IoConflictAndSortTests
 
     /// <summary>The imperative-statement-1 that earns the WHEN phrase a file SORT / MERGE: OPEN INPUT of the ABSENT
     /// file H answers '35' (EC-I-O-PERMANENT-ERROR), the WHEN runs <paramref name="body"/> and RESUMEs.
-    /// <para>⛔ A WHEN body binds under TURN OFF ALL (§14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL
+    /// <para>⛔ A WHEN body binds under TURN OFF ALL (§2023:14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL
     /// is assumed at the end of imperative-statement-1"), and a TURN directive may NOT be written inside the
-    /// exception-checking PERFORM at all (§7.3.25.3 SR5: "A TURN directive shall not be specified within an exception
+    /// exception-checking PERFORM at all (§2023:7.3.25.3 SR5: "A TURN directive shall not be specified within an exception
     /// processing PERFORM statement"; the compiler warns, COBOL2187). A SORT / MERGE whose EC-SORT-MERGE conditions
     /// must be raised therefore lives in a PARAGRAPH compiled under the program's own EC-ALL directive and is
     /// PERFORMed from the WHEN body (<c>paras</c> of <see cref="Sort"/>): the shape a conforming program has.</para></summary>
@@ -855,7 +855,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
 
     private const string Nl = "\n                ";
 
-    [Fact]   // §14.9.40.4 GR12 a)/b): the USING file's implicit OPEN INPUT answers '35', FATAL; the SORT is TERMINATED
+    [Fact]   // §2023:14.9.40.4 GR12 a)/b): the USING file's implicit OPEN INPUT answers '35', FATAL; the SORT is TERMINATED
              // (GR12 b: "if a fatal exception condition exists ... the SORT is terminated"), the FILE STATUS item holds
              // '35', the run unit goes on, and no GIVING file was created (the GIVING phase never began)
     public void FileSortInWhen_UsingFileAbsent_WithFileStatus_TerminatesTheSort_RunContinues() => AssertRuns(Sort("F3ST03",
@@ -875,7 +875,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         InWhen("SORT SF ASCENDING KEY SK USING H GIVING G" + Nl + "DISPLAY \"NOT REACHED\""), hStatus: false),
         "EC-I-O-PERMANENT-ERROR", "");
 
-    [Fact]   // §14.9.40.4 GR9 a): a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §14.6.13.1.3 2)
+    [Fact]   // §2023:14.9.40.4 GR9 a): a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §2023:14.6.13.1.3 2)
              // makes the SORT rules apply, so the declarative runs, the SORT is terminated and the run unit continues
     public void FileSortInWhen_UsingFileOpen_SortMergeFileOpen_TerminatesTheSort() => AssertRuns(Sort("F3ST06",
         "    OPEN INPUT F\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\"")
@@ -884,7 +884,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
         "USE-SM\nCONTINUED\nG-ABSENT 35\nDONE");
 
     [Fact]   // the same condition with NO declarative for it: EC-SORT-MERGE-FILE-OPEN is checked and unhandled, yet a
-             // fatal condition in a SORT does NOT end the run unit (§14.6.12: "unless the exception occurs in a MERGE
+             // fatal condition in a SORT does NOT end the run unit (§2023:14.6.12: "unless the exception occurs in a MERGE
              // statement, a SORT statement, or an I-O statement for which the implementor specifies otherwise, the
              // runtime system attempts to perform ..." the abnormal termination); the SORT is terminated and control
              // goes on, with no GIVING file created
@@ -894,14 +894,14 @@ public sealed class PerformFormat3IoConflictAndSortTests
         "CONTINUED\nG-ABSENT 35\nDONE");
 
     /// <summary>The paragraph a conforming program PERFORMs from a WHEN body to run a SORT or MERGE with the
-    /// EC-SORT-MERGE conditions checked (§7.3.25.3 SR5 forbids the TURN directive inside the exception-checking
+    /// EC-SORT-MERGE conditions checked (§2023:7.3.25.3 SR5 forbids the TURN directive inside the exception-checking
     /// PERFORM; the paragraph is compiled under the program's own EC-ALL directive).</summary>
     private static string SortPara(string statement) => $"""
             SORT-PARA.
                 {statement}.
             """;
 
-    [Fact]   // §14.9.24.4 GR12: MERGE in a WHEN phrase (legal); both USING files are in key order, the GIVING file is merged
+    [Fact]   // §2023:14.9.24.4 GR12: MERGE in a WHEN phrase (legal); both USING files are in key order, the GIVING file is merged
     public void MergeInWhen_Success_MergesTheFiles() => AssertRuns(Sort("F3MG01", """
             OPEN OUTPUT G
             MOVE "BBBB" TO GR WRITE GR
@@ -926,7 +926,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             CLOSE J
         """), "MERGED 000000\nAAAA\nBBBB\nCCCC\nEEEE\nDONE");
 
-    [Fact]   // §14.9.24.4 GR6: a USING file out of key order is EC-SORT-MERGE-SEQUENCE; the MERGE is terminated, the
+    [Fact]   // §2023:14.9.24.4 GR6: a USING file out of key order is EC-SORT-MERGE-SEQUENCE; the MERGE is terminated, the
              // declarative runs and the run unit continues
     public void MergeInWhen_UsingFileOutOfSequence_TerminatesTheMerge() => AssertRuns(Sort("F3MG02", """
             OPEN OUTPUT G

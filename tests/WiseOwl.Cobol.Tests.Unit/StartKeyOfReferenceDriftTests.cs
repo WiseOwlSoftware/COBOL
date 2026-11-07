@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §14.9.41.4 states the decision once per format and never as a default: GR16 — "The key specified in the
+/// ISO §2023:14.9.41.4 states the decision once per format and never as a default: GR16 — "The key specified in the
 /// KEY phrase, or that shares a leftmost character with the data item specified in the KEY phrase, becomes the
 /// key of reference" — for the KEY phrase, and GR18/GR19 — "the file position indicator is set to the value of
 /// the primary key of the first [last] existing logical record in the physical file and the key of reference is
@@ -22,9 +22,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// That is exactly what PB356 was. <c>IndexedConnector.StartFirstLast</c> ordered the file with
 /// <c>Ordered(_refKey)</c> and never reset it, so a START LAST after a START on an ALTERNATE key answered the
 /// alternate ordering's last record — with the prime and alternate orderings inverted, the FIRST record — and
-/// left every following sequential READ walking the alternate (§14.9.30.4 GR21 b)'s "Otherwise, the key of
+/// left every following sequential READ walking the alternate (§2023:14.9.30.4 GR21 b)'s "Otherwise, the key of
 /// reference is set to the last key of reference in the file position indicator"). Where the alternate carried
-/// SUPPRESS WHEN it additionally hid records §12.4.5.6.4 GR6 withholds from the ALTERNATE path only, which
+/// SUPPRESS WHEN it additionally hid records §2023:12.4.5.6.4 GR6 withholds from the ALTERNATE path only, which
 /// GR18/GR19's primary-key view must include.
 /// </para>
 /// <para>
@@ -71,7 +71,7 @@ public sealed class StartKeyOfReferenceDriftTests
         ["\n    /// ", "\n    public ", "\n    private ", "\n    protected ", "\n    internal "];
 
     /// <summary>True when the connector has ONE successful-START epilogue and it takes the key of reference as a
-    /// parameter. <c>_positioner = 'S'</c> is the marker of that epilogue — §14.9.30.4 GR21 d) keys the whole
+    /// parameter. <c>_positioner = 'S'</c> is the marker of that epilogue — §2023:14.9.30.4 GR21 d) keys the whole
     /// following sequential walk on it — so a second occurrence IS a second epilogue.</summary>
     internal static bool OneStartEpilogueTakingTheKeyOfReference(string source)
     {
@@ -121,22 +121,22 @@ public sealed class StartKeyOfReferenceDriftTests
     {
         Assert.True(OneStartEpilogueTakingTheKeyOfReference(IndexedConnectorSource()),
             "IndexedConnector must complete EVERY successful START through one "
-            + "StartSucceeded(int keyOfReference, byte[] keyValue). ISO §14.9.41.4 states the key-of-reference "
+            + "StartSucceeded(int keyOfReference, byte[] keyValue). ISO §2023:14.9.41.4 states the key-of-reference "
             + "decision once per format — GR16 for the KEY phrase, GR18/GR19's \"the key of reference is set to "
             + "the primary key\" for FIRST/LAST — so an epilogue that reads _refKey instead inherits whatever "
             + "the last START or random READ established (kb/Work PB356).");
     }
 
-    /// <summary>§14.9.41.4 GR18/GR19 — the prime key both orders the search and becomes the key of reference.</summary>
+    /// <summary>§2023:14.9.41.4 GR18/GR19 — the prime key both orders the search and becomes the key of reference.</summary>
     [Fact]
     public void StartFirstLast_OrdersAndAnswersOnThePrimeKey_NotTheInheritedOne()
     {
         Assert.True(StartFirstLastNamesThePrimeKey(IndexedConnectorSource()),
             "IndexedConnector.StartFirstLast must search the prime tree (_st.Edge(PrimeKey, …)) and StartSucceeded(PrimeKey, …) and "
-            + "must not mention _refKey. §14.9.41.4 GR18/GR19 name the primary key twice — \"the first [last] "
+            + "must not mention _refKey. §2023:14.9.41.4 GR18/GR19 name the primary key twice — \"the first [last] "
             + "existing logical record in the physical file\" is the PRIME ordering, and \"the key of reference "
             + "is set to the primary key\" is what the statement leaves for every following sequential READ. "
-            + "§14.9.27.4 GR14 is about what OPEN establishes and does not authorize inheriting it here.");
+            + "§2023:14.9.27.4 GR14 is about what OPEN establishes and does not authorize inheriting it here.");
     }
 
     /// <summary>The KEY-phrase START shares the epilogue — one rule, one place.</summary>

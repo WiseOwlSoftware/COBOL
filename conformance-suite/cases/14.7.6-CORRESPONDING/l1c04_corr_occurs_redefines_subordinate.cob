@@ -5,12 +5,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.7.6 rule 5 — no pair under an OCCURS or REDEFINES
+      *> ISO §2023:14.7.6 rule 5 — no pair under an OCCURS or REDEFINES
       *>   group that is subordinate to D1 or D2 (either side).
       *> cite.py --check 14.7.6 "Neither data item is subordinate to a
       *>   group item that is subordinate to D1 or D2 when the group
       *>   item contains an OCCURS or REDEFINES clause"
-      *>   -> OK §14.7.6 5)
+      *>   -> OK §2023:14.7.6 5)
       *> Every namesake below is numeric (rule 3 holds) and has the
       *> same qualifiers up to D1/D2 (rule 1 holds), so only rule 5
       *> decides:

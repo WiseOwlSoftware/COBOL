@@ -65,7 +65,7 @@ public sealed class CodeWriter
     /// Run <paramref name="emit"/> and return everything it wrote, INSTEAD of appending it to the source — the
     /// statement-emitter's output captured as a string.
     /// <para>It exists for EXPRESSION-POSITION statement text: a <c>BoundUdfEvaluated</c> per-evaluation window
-    /// (ISO §8.8.4.13 r2) renders its pre-ops inside an immediately-invoked <c>Func&lt;bool&gt;</c>, whose body is
+    /// (ISO §2023:8.8.4.13 r2) renders its pre-ops inside an immediately-invoked <c>Func&lt;bool&gt;</c>, whose body is
     /// C# statement text the condition renderer must have as a string. Capturing lets that body come from the ONE
     /// statement emitter — so a hoisted store gets the same scale alignment, truncation and wide-tier handling as
     /// it would at statement position — instead of a second hand-written store renderer.</para>

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §13.18.2 ANY LENGTH — a CONTAINED program's LINKAGE formal (SR2/SR3): two CALLs
+      *> ISO 1989:2023 §2023:13.18.2 ANY LENGTH — a CONTAINED program's LINKAGE formal (SR2/SR3): two CALLs
       *> with different-width BY REFERENCE arguments; the callee's FUNCTION LENGTH tracks each caller
       *> argument (GR1 — the callee sees the CALLER's full string, never a Pic.Length window).
        IDENTIFICATION DIVISION.

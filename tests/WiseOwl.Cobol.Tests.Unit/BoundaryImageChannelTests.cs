@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The rule, stated once in <c>PlaceRenderer.GroupImage</c>'s own doc-comment — "THE ONE reader — a
 /// consumer that spells <c>.AsImage()</c> itself is wrong for the window shape" — is: the character image of a
 /// group operand is the struct's generated <c>AsImage()</c>, EXCEPT that a Tier-B / BASED string-canonical
-/// view's <c>Read</c> ALREADY IS the image (§13.18.44.4 GR1 — one storage area), an <c>OdoGroupPlace</c> must
-/// be unwrapped first (and in a SENDING context sliced to §13.18.38.4 GR8's current extent), and an imageless
+/// view's <c>Read</c> ALREADY IS the image (§2023:13.18.44.4 GR1 — one storage area), an <c>OdoGroupPlace</c> must
+/// be unwrapped first (and in a SENDING context sliced to §2023:13.18.38.4 GR8's current extent), and an imageless
 /// group stages the Tier-C loud. <c>PlaceRenderer</c>'s <c>GroupImage</c> / <c>SendingGroupImage</c> /
 /// <c>WriteGroupImage</c> / <c>WriteFullGroupImage</c> state all four arms; every consumer routes through
 /// them.</para>
@@ -37,8 +37,8 @@ public sealed class BoundaryImageChannelTests
 
     /// <summary>The image-channel member names a consumer must never spell for itself. <c>AsImage</c>/
     /// <c>FromImage</c> are the character-image pair; <c>AsBits</c>/<c>FromBits</c> are the bit-group
-    /// (§13.18.29.4 GR1b) pair, which has the identical window/ODO/capability problem; <c>AsNat</c>/
-    /// <c>FromNat</c> are the NATIONAL-group (§13.18.29.4 GR2b) pair, which has it too.
+    /// (§2023:13.18.29.4 GR1b) pair, which has the identical window/ODO/capability problem; <c>AsNat</c>/
+    /// <c>FromNat</c> are the NATIONAL-group (§2023:13.18.29.4 GR2b) pair, which has it too.
     /// <para>⛔ THE NATIONAL PAIR WAS MISSING FROM THIS LIST until kb/Work PB678, and that is the two-arm
     /// shape this file exists to catch, one level up: kb/Work PB327 created <c>AsNat()</c>/<c>FromNat()</c> as
     /// the national twin of <c>AsImage()</c>/<c>FromImage()</c> — same window problem, same ODO problem, same
@@ -56,11 +56,11 @@ public sealed class BoundaryImageChannelTests
         // SortEmitter.TableCompare renders the key's member chain (BoundTableSortKey.MemberChain) as STRUCT RVALUES (off the comparer's two element
         // parameters), never a Place — so no window, ODO or Tier-C shape can reach it and there is no Place to
         // hand PlaceRenderer. Its own IsImageCapable guard sits one line above. Self-spelled by NECESSITY.
-        // The count is FOUR because §14.9.40.4 GR5 gives a key of each CLASS its own operand face and the
-        // comparer must read both a key may have: AsImage() for an ordinary group (§8.8.4.2.1 — "an alphanumeric group item shall be treated as an elementary alphanumeric data item"; NOT §8.8.4.2.3 SR2, the identifier-CLASS syntax rule — kb/Work PB741)
-        // and AsNat() for a GROUP-USAGE NATIONAL group (§13.18.29.4 GR2b), each spelled twice (the two element
+        // The count is FOUR because §2023:14.9.40.4 GR5 gives a key of each CLASS its own operand face and the
+        // comparer must read both a key may have: AsImage() for an ordinary group (§2023:8.8.4.2.1 — "an alphanumeric group item shall be treated as an elementary alphanumeric data item"; NOT §2023:8.8.4.2.3 SR2, the identifier-CLASS syntax rule — kb/Work PB741)
+        // and AsNat() for a GROUP-USAGE NATIONAL group (§2023:13.18.29.4 GR2b), each spelled twice (the two element
         // parameters). kb/Work PB678. (It was six while a GROUP-USAGE BIT group's AsBits() was a third face; a bit
-        // group is a boolean operand and §14.9.40.3 SR14 c) refuses boolean keys, kb/Work PB1173.)
+        // group is a boolean operand and §2023:14.9.40.3 SR14 c) refuses boolean keys, kb/Work PB1173.)
         ["CodeGen/Verbs/SortEmitter.cs"] = (4, "TableCompare compares struct rvalues, not Places"),
         // ⛔ OperandText.FieldAsString's bit-group row IS GONE — routed, not re-justified. It read
         // `Read(p).AsBits()` for itself and was exempted on the promise "kb/Work PB173 gives the bit channel its
@@ -129,13 +129,13 @@ public sealed class BoundaryImageChannelTests
             Assert.Contains("OdoGroupPlace", body);
             // ⛔ The capability is asked of the OPERAND (Place.ImageCapable), never of the declaring entry
             // (kb/Work PB189): `group.Item.IsImageCapable` refused a subscripted dynamic-capacity-table ELEMENT —
-            // an ordinary fixed-length group, §8.5.1.12.1 — although its struct carries AsImage().
+            // an ordinary fixed-length group, §2023:8.5.1.12.1 — although its struct carries AsImage().
             Assert.Contains("group.ImageCapable", body);
             Assert.DoesNotContain("Item.IsImageCapable", body);
         }
     }
 
-    /// <summary>⛔ THE §13.18.38.4 GR8 DIRECTION LAW IS WRITTEN ONCE (kb/Work PB202). GR8a and GR8b agree that a
+    /// <summary>⛔ THE §2023:13.18.38.4 GR8 DIRECTION LAW IS WRITTEN ONCE (kb/Work PB202). GR8a and GR8b agree that a
     /// SENDING occurs-depending group uses only its current-count part; only a depending-INSIDE group as a
     /// RECEIVING operand takes the maximum. The ref-mod READ arm used to spell its own
     /// <c>OdoGroupPlace { DependingInside: false }</c> test and read the MAXIMUM image of a depending-inside group,
@@ -161,10 +161,10 @@ public sealed class BoundaryImageChannelTests
     /// <summary>The BIT channel is a two-arm dispatch too (kb/Work PB173): a <c>BitImagePlace</c> without BOTH
     /// a <c>Read</c> arm and a <c>Write</c> arm is a runtime <c>Unhandled</c> throw, not a compile error — the
     /// <c>_ =&gt; throw Unhandled(p)</c> default swallows it. Assert the pair directly. (The units this place
-    /// carries — BIT positions, §8.4.3.3.4 GR5a — are why it is a separate type from
-    /// <c>GroupImagePlace</c>, and a NATIONAL group deliberately keeps the latter, §13.18.29.4 GR2b.)
+    /// carries — BIT positions, §2023:8.4.3.3.4 GR5a — are why it is a separate type from
+    /// <c>GroupImagePlace</c>, and a NATIONAL group deliberately keeps the latter, §2023:13.18.29.4 GR2b.)
     /// <para>⛔ Both arms must DELEGATE to <c>SendingBits</c>/<c>WriteBits</c> rather than spell the member: the
-    /// bit channel has the same §13.18.38.4 GR8 current-extent split the image channel has, and the first cut of
+    /// bit channel has the same §2023:13.18.38.4 GR8 current-extent split the image channel has, and the first cut of
     /// these arms spelled <c>Read(b.Inner).AsBits()</c> / <c>.FromBits(rhs)</c> with NO ODO arm on either side —
     /// so a bit group holding an occurs-depending table read and wrote its MAXIMUM bit positions. The ONE
     /// reader/writer pair is asserted the same way <see cref="PlaceRenderer_ReadAndWriteGroupImage_BothCarryEveryArm"/>

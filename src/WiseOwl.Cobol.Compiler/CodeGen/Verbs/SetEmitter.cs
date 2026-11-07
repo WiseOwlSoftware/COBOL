@@ -16,16 +16,16 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     ReceiverBracketEmitter brackets)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the SET lane reaches it for
-    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §13.18.63 VALUE recipe §14.9.39.4 GR6
+    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §2023:13.18.63 VALUE recipe §2023:14.9.39.4 GR6
     /// places a level-88 literal by (kb/Work PB560). Lazy and cached for the same reason the report lane's twin
     /// is (<see cref="ReportWriterEmitter"/>): a DataEmitter builds a PhysicalModel and its four collaborators,
     /// and a program with no <c>SET condition-name</c> must not pay for one.</summary>
     private DataEmitter? _data;
     private DataEmitter Data => _data ??= new DataEmitter(ctx);
 
-    /// <summary><c>SET … TO value</c> (ISO §14.9.39 Format 1): the sender is evaluated ONCE through THE ONE SET
+    /// <summary><c>SET … TO value</c> (ISO §2023:14.9.39 Format 1): the sender is evaluated ONCE through THE ONE SET
     /// amount landing (GR2 — "the value of the sending operand is determined once"), then each receiver takes it
-    /// by kind: an index-name or index data item receives it unchanged (GR2a/GR2b — in the §3.5 model an index IS
+    /// by kind: an index-name or index data item receives it unchanged (GR2a/GR2b — in the §2023:3.5 model an index IS
     /// its 1-based occurrence number, so cross-table conversion is the identity); a numeric data item receives the
     /// occurrence number through its own PICTURE store (GR2c).
     /// <para>⛔ THE LANDING IS THE GUARD (kb/Work PB459). GR2 a) 1. a — "If the value of arithmetic-expression-1
@@ -35,7 +35,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// the cast TRUNCATED the fraction the first tests for and WRAPPED the magnitude the second rejects. The whole
     /// receiver loop now sits inside the landing's success leg, so "unsuccessful" leaves EVERY receiver unchanged
     /// — the rule is stated over the statement, not over the receiver that happened to be reached first.</para>
-    /// <para>The guard rides every receiver kind and that is exactly right: §14.9.39.3 SR3 forbids
+    /// <para>The guard rides every receiver kind and that is exactly right: §2023:14.9.39.3 SR3 forbids
     /// arithmetic-expression-1 with an index-data-item receiver and SR4 requires index-name-2 with a numeric
     /// receiver, so an arithmetic-expression sender implies EVERY receiver is an index-name-1 — GR2 a)'s own
     /// population. With an index / index-data-item sender the value is a <c>long</c> occurrence number, integral
@@ -52,7 +52,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>⛔ THE ONE SET-FAMILY AMOUNT LANDING at the emitter — the two-lane render that keeps an amount's
-    /// FRACTION and its FULL MAGNITUDE alive all the way into <see cref="CobolIndex"/>, where §14.9.39.4's
+    /// FRACTION and its FULL MAGNITUDE alive all the way into <see cref="CobolIndex"/>, where §2023:14.9.39.4's
     /// integrality / range / sign guards are written once (kb/Work PB459). Renders the amount temp and returns the
     /// C# condition text that is TRUE when the landing succeeded; the caller puts the statement's effect inside
     /// <c>if (…)</c> so the unsuccessful leg leaves every receiving operand unchanged.
@@ -87,7 +87,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     private string LandAmount(BoundExpr amount, SetAmountRule rule, string detail, out string valueVar, string prefix) =>
         LandAmount(num.Render(amount, ReceiverContext.None), rule, detail, out valueVar, prefix);
 
-    /// <summary><c>SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6</c> (ISO §14.9.39 Format 7):
+    /// <summary><c>SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6</c> (ISO §2023:14.9.39 Format 7):
     /// ONE loop over the printed receiving list, each operand taking its own general rule.
     /// <para>⛔ GR12 AND GR13 ARE ONE LOOP, BECAUSE THE STANDARD WRITES THEM AS ONE (kb/Work PB450). GR12 — "the
     /// address identified by identifier-6 is stored in EACH data item referenced by identifier-5 IN THE ORDER
@@ -101,18 +101,18 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         // which also makes `SET P1 P2 TO ADDRESS OF R` and a receiver that names the sender's own item agree
         // with the rule. A TO NULL sender is the constant and needs no local.
         string src = s.ToNull ? "ManagedPointer.Null"
-            : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // §8.4.3.11 data-address-identifier sender
+            : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // §2023:8.4.3.11 data-address-identifier sender
                                               : PlaceRenderer.Read(s.Source!), s.Receivers.Count, "setPtr");
         BoundOperand? sender = s.ToNull ? null : s.Address is { } ad ? new BoundAddressOperand(ad, null) : new BoundFieldOperand(s.Source!);
         foreach (var r in s.Receivers)
             if (r.Based is { } based) ptr.EmitSetAddressOfBased(based, src);       // GR13 — data-name-1
             else ctx.Writer.Line(StorePointer(sender, s.Receivers.Count, r.Pointer!, src)   // GR12 — identifier-5
-                                 + "   // SET pointer (ISO §14.9.39.4 Format 7 GR12)");
+                                 + "   // SET pointer (ISO §2023:14.9.39.4 Format 7 GR12)");
     }
 
     /// <summary>The store of a pointer-family SET's sending address <paramref name="src"/> into <paramref name="receiver"/>
     /// — Formats 7, 8 and 9, whose general rules each say the receiver's "Item identification ... is done immediately before
-    /// the value of that data item is changed" (ISO §14.9.39.4 GR12, GR14, GR16), so the sender is evaluated first
+    /// the value of that data item is changed" (ISO §2023:14.9.39.4 GR12, GR14, GR16), so the sender is evaluated first
     /// (<see cref="PlaceIdentification.SenderFirst"/>, kb/Work PB3261). With more than one receiver
     /// <c>EmitCore.SendOnce</c> has already evaluated the sender into a local ahead of every store, and a TO NULL sender
     /// (<paramref name="sender"/> null) evaluates nothing, so both store in place.</summary>
@@ -121,7 +121,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             ? PlaceIdentification.SenderFirst(sender, receiver, src, v => PlaceRenderer.Write(receiver, v))
             : PlaceRenderer.Write(receiver, src);
 
-    /// <summary><c>SET LOCALE … TO …</c> (ISO §14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE
+    /// <summary><c>SET LOCALE … TO …</c> (ISO §2023:14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE
     /// <c>LocaleState</c> per (first operand, source) pair — GR22 (the user default), GR23a/b/c (the categories from a
     /// locale-name / a saved locale / the defaults); GR24 / GR21 are the runtime's EC-LOCALE-MISSING / -INVALID-PTR.</summary>
     public void EmitSetLocale(BoundSetLocale s)
@@ -138,56 +138,56 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             (false, LocaleSetSource.UserDefault) => $"{state}.SetFromUserDefault({cats})",
             _ => $"{state}.SetFromSystemDefault({cats})",
         };
-        ctx.Writer.Line($"{call};   // SET LOCALE (ISO §14.9.39 Format 11{(s.SetsUserDefault ? ", GR22" : ", GR23")})");
+        ctx.Writer.Line($"{call};   // SET LOCALE (ISO §2023:14.9.39 Format 11{(s.SetsUserDefault ? ", GR22" : ", GR23")})");
     }
 
-    /// <summary><c>SET identifier TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §14.9.39 Format 12; GR26/GR27): a saved-locale
+    /// <summary><c>SET identifier TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §2023:14.9.39 Format 12; GR26/GR27): a saved-locale
     /// handle into the data-pointer.</summary>
     public void EmitSaveLocale(BoundSaveLocale s) =>
         ctx.Writer.Line(PlaceRenderer.Write(s.Target, $"RunUnit.Current.Locale.Save(userDefault: {(s.UserDefault ? "true" : "false")})")
-            + $"   // SET … TO LOCALE {(s.UserDefault ? "USER-DEFAULT" : "LC_ALL")} (ISO §14.9.39 Format 12)");
+            + $"   // SET … TO LOCALE {(s.UserDefault ? "USER-DEFAULT" : "LC_ALL")} (ISO §2023:14.9.39 Format 12)");
 
     private static string CsLiteral(string s) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(s, quote: true);
 
-    /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; P10 Step 7):
+    /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §2023:14.9.39 Format 9; P10 Step 7):
     /// a straight carrier copy — the Format-4 data-pointer twin over <c>ProgramPointer</c>.</summary>
     public void EmitSetProgramPointer(BoundSetProgramPointer s)
     {
         string src = s.ToNull ? "ProgramPointer.Null"
-            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPp");   // §14.9.39.4 GR16 (PB394)
+            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPp");   // §2023:14.9.39.4 GR16 (PB394)
         BoundOperand? sender = s.ToNull ? null : new BoundFieldOperand(s.Source!);
         foreach (var t in s.Targets)
-            ctx.Writer.Line(StorePointer(sender, s.Targets.Count, t, src) + "   // SET program-pointer (ISO §14.9.39 Format 9)");
+            ctx.Writer.Line(StorePointer(sender, s.Targets.Count, t, src) + "   // SET program-pointer (ISO §2023:14.9.39 Format 9)");
     }
 
-    /// <summary><c>SET function-pointer… TO {NULL | function-pointer}</c> (ISO §14.9.39.2 Format 8; GR14 — the
+    /// <summary><c>SET function-pointer… TO {NULL | function-pointer}</c> (ISO §2023:14.9.39.2 Format 8; GR14 — the
     /// address is stored in each receiver in the order specified): the Format-9 twin, a carrier copy. The GR14
-    /// EC-FUNCTION-PTR-INVALID screen belongs to the ADDRESS OF FUNCTION sender, not here — §14.9.39.3 SR20 has
-    /// already proven the two prototypes' signatures equal at bind and §13.18.60.4 GR26 makes the sender's
+    /// EC-FUNCTION-PTR-INVALID screen belongs to the ADDRESS OF FUNCTION sender, not here — §2023:14.9.39.3 SR20 has
+    /// already proven the two prototypes' signatures equal at bind and §2023:13.18.60.4 GR26 makes the sender's
     /// content NULL-or-same-signature by construction. kb/Work PB452.</summary>
     public void EmitSetFunctionPointer(BoundSetFunctionPointer s)
     {
         string src = s.ToNull ? "FunctionPointer.Null"
-            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setFp");   // §14.9.39.4 GR14 (PB394)
+            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setFp");   // §2023:14.9.39.4 GR14 (PB394)
         BoundOperand? sender = s.ToNull ? null : new BoundFieldOperand(s.Source!);
         foreach (var t in s.Targets)
-            ctx.Writer.Line(StorePointer(sender, s.Targets.Count, t, src) + "   // SET function-pointer (ISO §14.9.39.2 Format 8)");
+            ctx.Writer.Line(StorePointer(sender, s.Targets.Count, t, src) + "   // SET function-pointer (ISO §2023:14.9.39.2 Format 8)");
     }
 
-    /// <summary><c>SET message-tag TO {NULL | message-tag}</c> (ISO §14.9.39.2 Format 17; GR40, GR41 read as D-SET17
+    /// <summary><c>SET message-tag TO {NULL | message-tag}</c> (ISO §2023:14.9.39.2 Format 17; GR40, GR41 read as D-SET17
     /// has it — data-name-4 is the receiver): a carrier copy, the Format-9 twin. The general rules' "Item
     /// identification ... immediately before the value is changed" clause belongs to the pointer formats; a message tag
     /// is a plain value, so the store is in place. kb/Work PB4740.</summary>
     public void EmitSetMessageTag(BoundSetMessageTag s)
     {
         string src = s.ToNull ? "MessageTag.Null" : PlaceRenderer.Read(s.Source!);
-        ctx.Writer.Line(PlaceRenderer.Write(s.Target, src) + "   // SET message-tag (ISO §14.9.39 Format 17)");
+        ctx.Writer.Line(PlaceRenderer.Write(s.Target, src) + "   // SET message-tag (ISO §2023:14.9.39 Format 17)");
     }
 
-    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
+    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §2023:14.9.39 Format 2): the amount is evaluated ONCE
     /// through THE ONE landing (GR3 — "If arithmetic-expression-2 does not evaluate to an integer" ⇒
     /// EC-BOUND-SUBSCRIPT, the SET unsuccessful, the receiving operand unchanged), then each index is adjusted by
-    /// it through the GUARDED augment (GR4 a) — a result outside the §13.18.38.4 GR2 implementor range is
+    /// it through the GUARDED augment (GR4 a) — a result outside the §2023:13.18.38.4 GR2 implementor range is
     /// EC-RANGE-INDEX with the index unchanged). kb/Work PB459: both guards were absent, so `SET IX UP BY 1.5`
     /// moved IX by 1 and `UP BY 9223372036854775800` twice left IX holding a NEGATIVE occurrence number.</summary>
     public void EmitSetUpDown(BoundSetUpDown s)
@@ -199,9 +199,9 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0), verb);
     }
 
-    /// <summary>SET Format 14 (ISO §14.9.39 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,
+    /// <summary>SET Format 14 (ISO §2023:14.9.39 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,
     /// then the owning table's current capacity is set / raised / lowered through the runtime — new occurrences
-    /// seeded (§8.5.1.9.5), clamped to the minimum, and EC-FLOW-SEARCH raised if a SEARCH of the same table is
+    /// seeded (§2023:8.5.1.9.5), clamped to the minimum, and EC-FLOW-SEARCH raised if a SEARCH of the same table is
     /// active (GR31). The register carries no storage; the operation is on the <c>CobolDynTable&lt;T&gt;</c> itself.</summary>
     public void EmitSetCapacity(BoundSetCapacity s)
     {
@@ -225,12 +225,12 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             w.Line($"{PlaceRenderer.RenderPath(s.Table, AccessDir.Sending)}.{call}({tmp});");
     }
 
-    /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): evaluate the amount ONCE, then
+    /// <summary>SET [SIZE OF] data-name TO n (ISO §2023:14.9.39 Format 16, COBOL-2023): evaluate the amount ONCE, then
     /// resize the dynamic-length item's native string in place — <c>CobolDynString.SetSize</c> space-fills grown
     /// positions (GR39), drops trailing ones on shrink, clamps above the LIMIT and floors a negative to 0
     /// (GR37/GR38), and raises the nonfatal EC-STORAGE-NOT-AVAIL on the clamp/negative legs through the engine's
     /// ambient (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair — the gate this statement's EC wrapper set —
-    /// so the raise also runs the §14.6.13.1.4 #3 declarative selection (kb/Work PB367b).</summary>
+    /// so the raise also runs the §2023:14.6.13.1.4 #3 declarative selection (kb/Work PB367b).</summary>
     public void EmitSetSize(BoundSetSize s)
     {
         // Evaluate arithmetic-expression-5 ONCE and hand it to the runtime on the carrier it evaluated on
@@ -255,7 +255,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         _ => throw new InvalidOperationException($"SET SIZE: no runtime call for the carrier {x.Carrier}"),
     };
 
-    /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §14.9.39.2 Format 15, numeric-content; kb/Work PB452) —
+    /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §2023:14.9.39.2 Format 15, numeric-content; kb/Work PB452) —
     /// one store per receiver, each with the content the binder computed for THAT receiver's data description.
     /// <list type="bullet">
     /// <item>GR32/GR36 (FARTHEST-FROM-ZERO / NEAREST-TO-ZERO): the extreme is a numeric literal, stored through
@@ -264,7 +264,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// this only renders it.</item>
     /// <item>GR33/GR34/GR35 (FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-SIGNALING]): a bit-exact write of the carrier.
     /// No numeric store path can carry an infinity or a NaN — CobolNum's store rules are stated over algebraic
-    /// values — and §14.9.39.3 SR32 has already confined the receiver to a STANDARD floating-point usage, so the
+    /// values — and §2023:14.9.39.3 SR32 has already confined the receiver to a STANDARD floating-point usage, so the
     /// carrier IS the ISO/IEC 60559:2020 basic interchange format GR33-GR35 name. A WINDOWED receiver (Tier-B /
     /// image-stored) takes its IEEE window bytes, the same shape MoveEmitter's and InitializeEmitter's
     /// float-receiver arms use, so all three deposit identical bytes into the same window.</item></list></summary>
@@ -286,14 +286,14 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an
-    /// index-name field or index data item takes the integer value UNCHANGED (§14.9.39 GR2a/2b — an index IS its
+    /// index-name field or index data item takes the integer value UNCHANGED (§2023:14.9.39 GR2a/2b — an index IS its
     /// occurrence number); a numeric data item takes it through its own PICTURE store (GR2c).
     /// <para>⛔ PRECONDITION — <paramref name="value"/> SHALL ALREADY HAVE COME THROUGH <see cref="LandAmount"/>
-    /// when the target is an index (kb/Work PB459): the integrality (§14.9.39.4 GR2 a) 1. a) and implementor-range
-    /// (GR2 a) 1. b / §13.18.38.4 GR2) guards are stated over the value BEFORE it reaches the <c>long</c> carrier,
+    /// when the target is an index (kb/Work PB459): the integrality (§2023:14.9.39.4 GR2 a) 1. a) and implementor-range
+    /// (GR2 a) 1. b / §2023:13.18.38.4 GR2) guards are stated over the value BEFORE it reaches the <c>long</c> carrier,
     /// so they cannot be applied here — by the time this renders, a fraction and a 64-bit overflow are already
     /// gone. Both of this method's callers land first (<see cref="EmitSetTo"/>, and
-    /// <c>ControlFlowEmitter.InitVaryingTarget</c> for PERFORM VARYING's FROM, which §13.18.38.4 GR2 names
+    /// <c>ControlFlowEmitter.InitVaryingTarget</c> for PERFORM VARYING's FROM, which §2023:13.18.38.4 GR2 names
     /// alongside SET); <c>SetIndexStoreLandingTests</c> is the drift test that keeps that true for the next
     /// caller. The landing hands back a range-checked <c>long</c>, so an index target stores it AS IS — no
     /// narrowing, and never a C# cast (kb/Work PB1033: a cast here would wrap anything that bypassed the
@@ -308,7 +308,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // A WINDOWED index data item (Tier-B / image-stored — the Step D arm-1 dissolution) stores
                 // its 8 occurrence-number bytes (the R40 pin); a native one takes the raw long unchanged
-                // (§14.9.39 GR2b). The raw arm against a window was CS1503 in generated code.
+                // (§2023:14.9.39 GR2b). The raw arm against a window was CS1503 in generated code.
                 ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
                     ? RuntimeApi.NumFormatImage(NumericRenderer.Align(value, 0), p.Item.ProfileName)
                     : NumericRenderer.Align(value, 0)));
@@ -320,13 +320,13 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>THE augment of a SET-style target by ±amount (shared by SET UP/DOWN BY, PERFORM VARYING and
-    /// SEARCH's varied item, §14.9.37.4 GR3 b)/c)): index-name / index data item → THE GUARDED occurrence-number augment; a
+    /// SEARCH's varied item, §2023:14.9.37.4 GR3 b)/c)): index-name / index data item → THE GUARDED occurrence-number augment; a
     /// numeric data item → an in-place add through its PICTURE store (legal as a VARYING induction variable,
-    /// §14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
-    /// BIND (§14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment
+    /// §2023:14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
+    /// BIND (§2023:14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment
     /// used to say "the edition validator will diagnose it", and no validator did: the statement compiled and
     /// ran. The numeric arm survives because PERFORM VARYING and SEARCH reach this same augment.
-    /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §14.9.39.4 GR4 a) and §13.18.38.4 GR2 — which names
+    /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §2023:14.9.39.4 GR4 a) and §2023:13.18.38.4 GR2 — which names
     /// PERFORM VARYING and SEARCH beside SET as the three statements that may modify an index — make a result
     /// "outside the range of the values allowed by the implementor" the EC-RANGE-INDEX case with the receiving
     /// operand unchanged. The former <c>{ix} += (long)(…)</c> formed the sum IN the carrier, so the boundary was a
@@ -334,10 +334,10 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// NEGATIVE occurrence number and the program carried on. <see cref="CobolIndex.Augment"/> forms it in
     /// <c>Int128</c>, where the boundary is a value the runtime can see.</para>
     /// <para>The amount stays <c>Int128</c> into the runtime for the same reason: a PERFORM VARYING BY operand is
-    /// an integer data item (§14.9.28.3 SR4 a/c — so no integrality test belongs here) but may be up to 31 digits,
+    /// an integer data item (§2023:14.9.28.3 SR4 a/c — so no integrality test belongs here) but may be up to 31 digits,
     /// which a <c>long</c> narrowing would wrap before the guard could see it.</para>
-    /// <para>The numeric-data-item arm is deliberately NOT guarded: §14.9.28.4 GR13's induction variable is a
-    /// PICTURE store with its own §14.7 size rules, and no index exists to be out of range.</para></summary>
+    /// <para>The numeric-data-item arm is deliberately NOT guarded: §2023:14.9.28.4 GR13's induction variable is a
+    /// PICTURE store with its own §2023:14.7 size rules, and no index exists to be out of range.</para></summary>
     /// <param name="detail">The statement this augment belongs to, for the EC-RANGE-INDEX detail — every caller
     /// names its own verb so the diagnostic reads as the user's statement, not as "SET".</param>
     public void AugmentSetTarget(BoundSetTarget t, bool down, NumX amount, string detail)
@@ -353,7 +353,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // The windowed twin of the StoreSetTarget arm (Step D): decode → augment → re-encode.
                 // sending: false — an INDEX data item's class and category are INDEX, not numeric
-                // (§13.18.60.4 GR10), so §14.6.13.2 rule 2 ("a numeric sending item") is not about it.
+                // (§2023:13.18.60.4 GR10), so §2023:14.6.13.2 rule 2 ("a numeric sending item") is not about it.
                 string cur = p.Item.StoreAsImage
                     ? RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending: false)
                     : PlaceRenderer.Read(p);
@@ -372,50 +372,50 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     {
         foreach (var (parent, cond, toTrue) in set.Sets)
         {
-            // ⛔ THE ONLY DIFFERENCE BETWEEN THE TWO ARMS (kb/Work PB555). §14.9.39.4 GR6 stores "the literal in
+            // ⛔ THE ONLY DIFFERENCE BETWEEN THE TWO ARMS (kb/Work PB555). §2023:14.9.39.4 GR6 stores "the literal in
             // the VALUE clause … If more than one literal is specified in the VALUE clause, the conditional
             // variable is set to the value of the FIRST literal that appears in the VALUE clause"; GR7 stores
-            // "the literal in the FALSE phrase of the VALUE clause" — §13.18.63.4 GR20's literal-4. Everything
+            // "the literal in the FALSE phrase of the VALUE clause" — §2023:13.18.63.4 GR20's literal-4. Everything
             // after this line is the ONE store both rules describe in the same words, so the FALSE arm inherits
             // the figurative fill, the group-image splice and the category funnel without a second copy. The
-            // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOL2049).
-            // ⛔ THE ARM IS THE GROUP'S, NOT THE STATEMENT'S (kb/Work PB450): §14.9.39.2 Format 4's outer `…`
+            // binder has already refused a FALSE arm with no phrase (§2023:14.9.39.3 SR7, COBOL2049).
+            // ⛔ THE ARM IS THE GROUP'S, NOT THE STATEMENT'S (kb/Work PB450): §2023:14.9.39.2 Format 4's outer `…`
             // repeats the whole `{ condition-name-1 } … TO { TRUE | FALSE }` unit, so one statement may store
             // TRUE into one group and FALSE into the next.
             string low = toTrue ? cond.Values[0].Low : cond.FalseValue!;
-            // ⛔ THE ONE §13.18.63 VALUE RECIPE — DataEmitter.ValueImageOf → ValueInitializer.InitializerFrom,
+            // ⛔ THE ONE §2023:13.18.63 VALUE RECIPE — DataEmitter.ValueImageOf → ValueInitializer.InitializerFrom,
             // the SAME method that renders the conditional variable's OWN VALUE clause and the report section's
-            // format-4 operand (kb/Work PB506). §14.9.39.4 GR6 does not describe a store of its own: it says the
+            // format-4 operand (kb/Work PB506). §2023:14.9.39.4 GR6 does not describe a store of its own: it says the
             // literal "is placed in the conditional variable according to the rules for the VALUE clause", so
             // there is exactly one recipe and this statement is one of its callers (kb/Work PB560).
             // <para>What the private recipe deleted here could not answer, each MEASURED on its own probe:
             // a NUMERIC-EDITED variable took the raw literal text (`88 E-TEN VALUE 10` over `PIC ZZ9.99` stored
-            // `10    `, not ` 10.00` — §13.18.63.3 SR6 converts it "according to the rules for the MOVE
+            // `10    `, not ` 10.00` — §2023:13.18.63.3 SR6 converts it "according to the rules for the MOVE
             // statement"); a FLOAT variable took `UnscaledAtScale(…, 0)`, dropping the fraction (`VALUE 0.5`
-            // stored 0 — §13.18.63.4 GR17/GR1's "approximation of the arithmetic value"); BLANK WHEN ZERO was
+            // stored 0 — §2023:13.18.63.4 GR17/GR1's "approximation of the arithmetic value"); BLANK WHEN ZERO was
             // ignored (`88 B-ZERO VALUE 0` over `PIC ZZ9 BLANK WHEN ZERO` stored `0  `, not spaces —
-            // §13.18.63.3 SR8 NOTE 2); a PICTURE format-2 (LOCALE) variable had no runtime compose at all
-            // (§13.18.40.5 editing rule 11 — the locale is the one current AT THE TIME of editing, so no
+            // §2023:13.18.63.3 SR8 NOTE 2); a PICTURE format-2 (LOCALE) variable had no runtime compose at all
+            // (§2023:13.18.40.5 editing rule 11 — the locale is the one current AT THE TIME of editing, so no
             // compile-time image exists); and a WHOLE-GROUP-
             // ALIASED numeric variable (StoreAsImage) handed a `long` to a `string` field — `SET PK-SEVEN TO
             // TRUE` over `05 PK PIC 9(4) COMP-3` under a REDEFINES failed the whole compilation with CS1503.
             // Every one of the five is a branch InitializerFrom already had, because the VALUE clause needs it.
             // WHICH ARM DID I FIX? The STORE. The TEST arm (ConditionRenderer.StringMembershipExpr /
             // FloatMembershipValue) already called this recipe's shared pieces, which is why a SET-then-IF
-            // round-trip returned FALSE; both arms now read §13.18.63's rules from the same code.</para>
+            // round-trip returned FALSE; both arms now read §2023:13.18.63's rules from the same code.</para>
             string rhs = Data.ValueImageOf(parent.Item, low);
             // An ORDINARY (alphanumeric) group has neither a PICTURE nor an as-if one (DataItem.OperandPic, the
             // ONE category reader, is null for exactly that shape); it is the receiver that takes its value
             // through the group-image store below rather than as a record-struct assignment. The VALUE clause's
-            // own rule for that subject — §13.18.63.3 SR4, "Alphanumeric literals in the VALUE clause of an
+            // own rule for that subject — §2023:13.18.63.3 SR4, "Alphanumeric literals in the VALUE clause of an
             // alphanumeric group item shall not exceed the size of the group item" — is how InitializerFrom
             // described it just now.
             bool imageGroup = parent.Item.OperandPic is null && parent.Item.IsGroup;
             // ⛔ An ORDINARY group receiver takes the value through THE ONE GROUP-IMAGE STORE, not a bare
             // assignment: PlaceRenderer.Write's MemberPlace arm assigns the record struct, so handing it a string
-            // is the CS0029 above. §14.9.25.4 GR4 — a group receiver is "filled without consideration for the
-            // individual elementary or group items" — and §14.9.39.4 GR6's OCCURS-dependent length is exactly the
-            // §13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
+            // is the CS0029 above. §2023:14.9.25.4 GR4 — a group receiver is "filled without consideration for the
+            // individual elementary or group items" — and §2023:14.9.39.4 GR6's OCCURS-dependent length is exactly the
+            // §2023:13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
             // its as-if value is boolean positions / national positions, which Write routes to FromBits / FromNat.
             ctx.Writer.Line(imageGroup
                 ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(toTrue ? "TRUE" : "FALSE")}")
@@ -423,6 +423,6 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         }
     }
 
-    // ── File I/O (ISO §14.9; DESIGN §8) ─────────────────────────────────────────────────────────────
+    // ── File I/O (ISO §2023:14.9; DESIGN §8) ─────────────────────────────────────────────────────────────
 
 }

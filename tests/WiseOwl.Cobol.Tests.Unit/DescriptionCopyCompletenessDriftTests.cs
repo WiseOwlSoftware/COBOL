@@ -14,21 +14,21 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE DATA-DESCRIPTION COPY IS DEFINED BY AN EXCLUSION LIST, SO ITS DEFAULT IS "CARRIED" (kb/Work PB522).
 ///
-/// <para><b>The rule.</b> ISO <b>§13.18.57.4 GR1</b> — the TYPE clause's effect "is as though the data description
+/// <para><b>The rule.</b> ISO <b>§2023:13.18.57.4 GR1</b> — the TYPE clause's effect "is as though the data description
 /// identified by type-name-1 had been coded in place of the TYPE clause, <i>excluding</i> the level-number, name,
-/// alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses" — and <b>§13.18.49.4 GR1</b>, the same sentence for
+/// alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses" — and <b>§2023:13.18.49.4 GR1</b>, the same sentence for
 /// SAME AS excluding only the level-number, name, CONSTANT RECORD, EXTERNAL, GLOBAL, REDEFINES and SELECT WHEN.
-/// Both state what is LEFT OUT. Every other data description clause travels, and §13.18.58.4 GR1 reproduces a
+/// Both state what is LEFT OUT. Every other data description clause travels, and §2023:13.18.58.4 GR1 reproduces a
 /// template's subordinate entries whole.</para>
 ///
 /// <para><b>What went wrong.</b> Both copiers inverted that default by spelling their own field list in an object
 /// initializer, where a clause that is simply absent is invisible — no diagnostic, no site at which the omission can
 /// be read. <c>DataItem.GroupUsage</c>, the one field that makes an item a bit or national group, was in NEITHER
 /// list, so <c>01 R TYPE T</c> over a <c>GROUP-USAGE NATIONAL</c> template bound as an ORDINARY alphanumeric group —
-/// wrong class, wrong category, and <c>FUNCTION LENGTH</c> in the wrong unit (§15.50.4 r1/r2) — and, because
-/// §13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, the false antecedent silently re-categorized the
-/// whole subtree. SYNCHRONIZED (§13.18.55), ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH
-/// (§13.18.19) were lost the same way, each measured against a byte-identical inline control.
+/// wrong class, wrong category, and <c>FUNCTION LENGTH</c> in the wrong unit (§2023:15.50.4 r1/r2) — and, because
+/// §2023:13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, the false antecedent silently re-categorized the
+/// whole subtree. SYNCHRONIZED (§2023:13.18.55), ALIGNED (§2023:13.18.1), ANY LENGTH (§2023:13.18.2) and DYNAMIC LENGTH
+/// (§2023:13.18.19) were lost the same way, each measured against a byte-identical inline control.
 ///
 /// <para>⛔ <b>What this file guards, and why a golden cannot.</b> A conformance golden proves the clauses that
 /// exist TODAY travel. Only a check on the SHAPE makes the NEXT one automatic: every stored
@@ -68,7 +68,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
         var unclassified = StoredProperties().Where(p => Classification(p) is null).Select(p => p.Name).ToList();
         Assert.True(unclassified.Count == 0,
             "DataItem properties with no [DescriptionCopy(...)] classification: " + string.Join(", ", unclassified)
-            + ".\nISO §13.18.57.4 GR1 / §13.18.49.4 GR1 state an EXCLUSION list, so a new field is CARRIED by the "
+            + ".\nISO §2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1 state an EXCLUSION list, so a new field is CARRIED by the "
             + "description copy unless a rule leaves it out. Classify it where it is declared — "
             + "DescriptionCopyKind.Clause (it travels), .Alignment (it travels except onto a TYPE subject), "
             + ".MemberOnly (a reproduced subordinate only), .CopyWritten (the copy derives it) or .None (with the "
@@ -83,7 +83,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     }
 
     /// <summary>The PB522 anchor, named so a future edit that drops GROUP-USAGE from the copy fails by NAME rather
-    /// than as one row of a table. ISO §13.18.29 is in neither GR-1 exclusion list.</summary>
+    /// than as one row of a table. ISO §2023:13.18.29 is in neither GR-1 exclusion list.</summary>
     [Fact]
     public void GroupUsage_IsClassifiedAsAClauseThatTravels()
     {
@@ -142,7 +142,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
 
     /// <summary>⛔ The whole contract, measured: <c>DataBinder.CopyEntryDescription</c> carries EXACTLY the fields
     /// classified <see cref="DescriptionCopyKind.Clause"/> (both arms) and <see cref="DescriptionCopyKind.Alignment"/>
-    /// (the SAME AS / subordinate arm only — ISO §13.18.57.4 GR1 alone excludes "alignment"), and leaves every
+    /// (the SAME AS / subordinate arm only — ISO §2023:13.18.57.4 GR1 alone excludes "alignment"), and leaves every
     /// <see cref="DescriptionCopyKind.None"/> / <see cref="DescriptionCopyKind.MemberOnly"/> field at the receiver's
     /// own value.</summary>
     [Fact]
@@ -152,7 +152,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
         Assert.True(findings.Count == 0,
             "DataBinder.CopyEntryDescription disagrees with the [DescriptionCopy] classification on DataItem:\n  "
             + string.Join("\n  ", findings)
-            + "\nEither the copy is missing a clause ISO §13.18.57.4 GR1 / §13.18.49.4 GR1 do not exclude (the "
+            + "\nEither the copy is missing a clause ISO §2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1 do not exclude (the "
             + "PB522 shape), or the classification names the wrong class. Fix the ONE copy, never the callers.");
     }
 
@@ -182,7 +182,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// wrong — it was that there were several, so a clause could be present in one and absent from another with
     /// nothing to contradict it: <c>CloneItem</c> lost GROUP-USAGE, SYNCHRONIZED and ALIGNED (kb/Work PB522), and
     /// the compiler-temp pair <c>CompilerTemps.Create</c> / <c>CompilerTemps.CloneNode</c> — the third and fourth hand lists —
-    /// lost them again (kb/Work PB888: ISO §8.4.3.2.4 GR1 gives a function result's temporary "the description,
+    /// lost them again (kb/Work PB888: ISO §2023:8.4.3.2.4 GR1 gives a function result's temporary "the description,
     /// class, and category" of the RETURNING item, and a GROUP-USAGE NATIONAL result measured 8 national-less
     /// positions where the working-storage twin measured 4). Each copier's own initializer may carry identity, the
     /// level and the <see cref="DescriptionCopyKind.MemberOnly"/> fields; every actual clause goes through
@@ -219,8 +219,8 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// shape — <c>X = src.X</c> (or <c>??=</c> / <c>|=</c>) for a description clause field — and a site that does
     /// it for TWO OR MORE clause fields from the same source expression is a copier, whatever its name. Outside
     /// <c>DataBinder.CopyEntryDescription</c> there must be none. A single borrowed clause is a different rule and
-    /// is not flagged: §13.16.4 GR1/GR2's implied GROUP-USAGE of a subordinate group, the §13.18.60.2 WITH NO SIGN
-    /// inheritance, and §13.18.45 GR1's RENAMES alias taking data-name-2's PICTURE each read ONE clause.</summary>
+    /// is not flagged: §2023:13.16.4 GR1/GR2's implied GROUP-USAGE of a subordinate group, the §2023:13.18.60.2 WITH NO SIGN
+    /// inheritance, and §2023:13.18.45 GR1's RENAMES alias taking data-name-2's PICTURE each read ONE clause.</summary>
     [Fact]
     public void NoCodeOutsideTheOneCopy_HandCopiesTwoDescriptionClauses()
     {

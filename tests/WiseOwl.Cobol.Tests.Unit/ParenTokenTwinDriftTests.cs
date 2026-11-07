@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// <para>
 /// ⛔ WHY THIS EXISTS, AND IT IS THE MOST EXPENSIVE LESSON OF fix-queue PB48. Splitting one lexeme into two
-/// token types — the argument-list <c>(</c> of ISO §8.4.3.2.3 SR6 versus an arithmetic grouping <c>(</c> — is
+/// token types — the argument-list <c>(</c> of ISO §2023:8.4.3.2.3 SR6 versus an arithmetic grouping <c>(</c> — is
 /// invisible to the compiler's type system: every existing `t.Type is LPAREN` keeps compiling and silently
 /// stops matching half the parens it used to. The GRAMMAR consumers were swept (`functionCall`, `refModPart`);
 /// the CODE consumers were not, and the former legacy engine's <c>MapFunctionArgTokens</c> — which maps a nested call's
@@ -105,7 +105,7 @@ public sealed class ParenTokenTwinDriftTests
         Assert.True(unconsidered.Count == 0,
             $"{proj}/{rel} line(s) {string.Join(", ", unconsidered)} test the PLAIN paren token type without "
             + $"considering BOTH twins. The lexer types the '(' after `FUNCTION <name>` as FNARG_LPAREN (ISO "
-            + $"§8.4.3.2.3 SR6) and the '(' after a data name as REF_LPAREN (kb/Work PB2113), so a site matching only "
+            + $"§2023:8.4.3.2.3 SR6) and the '(' after a data name as REF_LPAREN (kb/Work PB2113), so a site matching only "
             + $"LPAREN/RPAREN silently stops seeing every function argument list or subscript list — which is how "
             + $"PB48 shipped 31 NIST regressions past a green wave-local gate. Either handle FNARG_ and REF_ parens, "
             + $"or write {Marker} in a comment on or "

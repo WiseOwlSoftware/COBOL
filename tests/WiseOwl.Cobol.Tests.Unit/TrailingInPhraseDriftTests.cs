@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para><c>IN</c> is also the qualification connective (<c>qualification : (OF | IN) cobolWord</c>), and the
 /// parser's greedy <c>dataReferenceSuffix*</c> loop takes the word as a qualifier before any enclosing rule's
 /// optional <c>(IN cobolWord)?</c> is tried. So over an identifier the enclosing phrase is NEVER parsed as such:
-/// §14.9.13.2's range-expression <c>WHEN WS-LO THRU WS-HI IN AL</c> was COBOL1639 on 'WS-HI IN AL' for as long
-/// as the phrase existed. ISO §8.3.2.2 makes the word's TYPE decide it ("a given user-defined word may be used as
+/// §2023:14.9.13.2's range-expression <c>WHEN WS-LO THRU WS-HI IN AL</c> was COBOL1639 on 'WS-HI IN AL' for as long
+/// as the phrase existed. ISO §2023:8.3.2.2 makes the word's TYPE decide it ("a given user-defined word may be used as
 /// only one type of user-defined word"), so the binder that owns the rule must re-read the last qualifier by
 /// symbol — <c>EvaluateBinder.BindRangeHigh</c> + <c>ReferenceResolver.WithoutTrailingSuffix</c>.</para>
 /// <para>This test scans EVERY grammar rule for an operand that can end in a data reference followed by an
@@ -34,8 +34,8 @@ public sealed class TrailingInPhraseDriftTests
     {
         ["valueRange"] = (Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "EvaluateBinder.cs"),
             "BindRangeHigh"),
-        // §13.18.63.2 formats 3 and 5 print the SAME `[ IN alphabet-name-1 ]` phrase after the literal list, and a
-        // constant-name (§13.10.3 SR2) is an identifier-ending operand there too (kb/Work PB983).
+        // §2023:13.18.63.2 formats 3 and 5 print the SAME `[ IN alphabet-name-1 ]` phrase after the literal list, and a
+        // constant-name (§2023:13.10.3 SR2) is an identifier-ending operand there too (kb/Work PB983).
         ["valueClause"] = (Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"), "RangeAlphabetPhraseOf"),
     };
 
@@ -76,7 +76,7 @@ public sealed class TrailingInPhraseDriftTests
             + "The greedy qualification loop takes that word as a QUALIFIER, so the phrase is never parsed over an "
             + "identifier. Re-read the last qualifier by symbol in the rule's binder (the EvaluateBinder."
             + "BindRangeHigh shape, over ReferenceResolver.WithoutTrailingSuffix) and name it in Consumers "
-            + "(kb/Work PB843; ISO §8.3.2.2).");
+            + "(kb/Work PB843; ISO §2023:8.3.2.2).");
         foreach (var (rule, (file, member)) in Consumers)
         {
             string src = File.ReadAllText(TestRepo.Src(file));
@@ -87,12 +87,12 @@ public sealed class TrailingInPhraseDriftTests
         }
     }
 
-    /// <summary>⛔ `IN` IS AN OPTIONAL WORD IN ALL THREE FORMATS THAT PRINT `[ IN alphabet-name-1 ]` — §14.9.13.2's
-    /// range-expression and §13.18.63.2 formats 3 and 5 (none underlines it; §5.2.3) — and this pins the two
+    /// <summary>⛔ `IN` IS AN OPTIONAL WORD IN ALL THREE FORMATS THAT PRINT `[ IN alphabet-name-1 ]` — §2023:14.9.13.2's
+    /// range-expression and §2023:13.18.63.2 formats 3 and 5 (none underlines it; §2023:5.2.3) — and this pins the two
     /// places that honour it together (kb/Work PB983): the EVALUATE rule admits the word with IN omitted, where
     /// position alone decides it, and the VALUE clause's binder peels an IN-less LAST operand that names an
     /// alphabet, because there only the symbol can. Either half regressing re-opens the rejection of legal
-    /// source on one of the two clauses §14.7.8 governs in one sentence.</summary>
+    /// source on one of the two clauses §2023:14.7.8 governs in one sentence.</summary>
     [Fact]
     public void RangeAlphabetPhrase_InIsOptional_InEveryFormatThatPrintsIt()
     {

@@ -5,12 +5,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// Sections as procedure-name targets + qualified procedure-names (ISO §14.4.3 structure; §14.9.17 GO TO;
-/// §14.9.28 PERFORM section / THRU incl. the legal INVERTED range; §8.4.2.2 <c>para OF section</c> qualification
+/// Sections as procedure-name targets + qualified procedure-names (ISO §2023:14.4.3 structure; §2023:14.9.17 GO TO;
+/// §2023:14.9.28 PERFORM section / THRU incl. the legal INVERTED range; §2023:8.4.2.2 <c>para OF section</c> qualification
 /// and same-section implicit resolution of duplicated paragraph names), and the PERFORM … TIMES once-evaluated
-/// count (§14.9.28 GR7 — body modifications of the count item must not change the iteration count; zero/negative
+/// count (§2023:14.9.28 GR7 — body modifications of the count item must not change the iteration count; zero/negative
 /// counts run zero times). Pinned to the committed golden (NIST-85 green across the whole PERFORM/GO TO series).
-/// Every program that has a section opens with one too (MAIN-SECT): ISO §14.4.1 — "If one paragraph is in a
+/// Every program that has a section opens with one too (MAIN-SECT): ISO §2023:14.4.1 — "If one paragraph is in a
 /// section, all paragraphs shall be in sections" (kb/Work PB1146, COBOL2797).
 /// </summary>
 public sealed class SectionDifferentialTests
@@ -96,8 +96,8 @@ public sealed class SectionDifferentialTests
 
     /// <summary>SPEC-PINNED (not differential): a duplicated paragraph-name referenced WITHOUT qualification from
     /// within a section that contains the named paragraph resolves to the paragraph IN THAT SECTION — ISO
-    /// §8.4.2.2.1 rule 6 ("the name is a paragraph-name and the section containing the reference also contains the
-    /// named paragraph") + §8.4.2.2.3 SR7 ("need not be qualified when referred to from within the same section").
+    /// §2023:8.4.2.2.1 rule 6 ("the name is a paragraph-name and the section containing the reference also contains the
+    /// named paragraph") + §2023:8.4.2.2.3 SR7 ("need not be qualified when referred to from within the same section").
     /// The former legacy engine resolves this global-first (a version-invariant non-conformance — the rule is unchanged
     /// since COBOL-85), so this case pins to the spec.</summary>
     [Fact]
@@ -145,10 +145,10 @@ public sealed class SectionDifferentialTests
                 ADD 1 TO WS-RUNS.
             """));
 
-    // ── EXIT SECTION (ISO §14.9.14 Format 4, GR7) — SPEC-PINNED (the legacy shares the __atExit latent bug so a
+    // ── EXIT SECTION (ISO §2023:14.9.14 Format 4, GR7) — SPEC-PINNED (the legacy shares the __atExit latent bug so a
     //    differential would match the WRONG output); EXIT SECTION is a 2002 introduction, so compiled at 2023 ──
 
-    /// <summary>§14.9.14.4 GR7 — EXIT SECTION from a MID-section paragraph of a PERFORMed section transfers to the
+    /// <summary>§2023:14.9.14.4 GR7 — EXIT SECTION from a MID-section paragraph of a PERFORMed section transfers to the
     /// section end, triggering the PERFORM's return: the rest of W1 AND the following paragraph W2 must NOT run.
     /// This is the exact case the design's bare <c>pc = lastPara+1</c> port gets wrong — the bounded dispatch's
     /// <c>__atExit</c> tail-check is false for a mid-section pc, so it would fall through into W2. Pinned to the
@@ -179,7 +179,7 @@ public sealed class SectionDifferentialTests
         Assert.Equal("start\nw1\nback", stdout);   // EXIT SECTION skips w1-tail AND W2, returns from PERFORM WORK-SEC
     }
 
-    /// <summary>§14.9.14.4 GR7 at top level (not PERFORMed): EXIT SECTION transfers to the section end and execution
+    /// <summary>§2023:14.9.14.4 GR7 at top level (not PERFORMed): EXIT SECTION transfers to the section end and execution
     /// continues into the NEXT section (the implicit sequential return) — S1's tail is skipped, S2 runs.</summary>
     [Fact]
     public void ExitSection_TopLevel_FallsThroughToNextSection()
@@ -203,7 +203,7 @@ public sealed class SectionDifferentialTests
         Assert.Equal("s1\ns2", stdout);
     }
 
-    /// <summary>§14.9.14.3 SR9 — EXIT SECTION outside a section (a paragraph before any SECTION header) is rejected
+    /// <summary>§2023:14.9.14.3 SR9 — EXIT SECTION outside a section (a paragraph before any SECTION header) is rejected
     /// at compile time (COBOL0827, the EXIT-placement SR family).</summary>
     [Fact]
     public void ExitSection_OutsideSection_IsRejected()

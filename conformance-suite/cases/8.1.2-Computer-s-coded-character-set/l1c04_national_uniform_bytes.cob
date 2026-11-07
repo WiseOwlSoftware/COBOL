@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.1.2 GR2 — every national character takes the same
+      *> ISO §2023:8.1.2 GR2 — every national character takes the same
       *>   number of bytes, fixed at compile time.
       *> "The number of bytes used in the memory of the computer to
       *>  represent characters in the national coded character set shall
@@ -14,14 +14,14 @@
       *> cite.py --check 8.1.2 "The number of bytes used in the memory
       *>   of the computer to represent characters in the national coded
       *>   character set shall be the same for all characters in that
-      *>   coded character set" -> OK §8.1.2 2)
+      *>   coded character set" -> OK §2023:8.1.2 2)
       *> cite.py --check 13.18.60.4 "Each implementor shall specify the
       *>   size and representation of characters stored for usage
-      *>   NATIONAL" -> OK §13.18.60.4 8)  - the documented size is 2
+      *>   NATIONAL" -> OK §2023:13.18.60.4 8)  - the documented size is 2
       *>   (docs/CONFORMANCE.md DOC-A.1-213: one UTF-16 code unit).
       *> cite.py --check 15.14.4 "The returned value is an integer that
       *>   is the length of argument-1 in number of bytes"
-      *>   -> OK §15.14.4 1)
+      *>   -> OK §2023:15.14.4 1)
       *> Derivation (b = the uniform byte count, 2 per DOC-A.1-213):
       *>   "A=02 E=02 J=02"  PIC N items holding U+0041, U+20AC, U+65E5
       *>                     - one character each, so b each, EQUAL.

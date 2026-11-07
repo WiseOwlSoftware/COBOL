@@ -9,9 +9,9 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>kb/Work PB919 — ISO §8.4.2.2.3 SR1's uniqueness obligation covers EVERY user-defined name, and it was
+/// <summary>kb/Work PB919 — ISO §2023:8.4.2.2.3 SR1's uniqueness obligation covers EVERY user-defined name, and it was
 /// enforced per name class with one class (index-names) never done. <see cref="QualifiedNameClasses"/> names the
-/// resolution of each §8.4.2.2.2 qualified-name format; these tests hold it to the standard's own format list, in
+/// resolution of each §2023:8.4.2.2.2 qualified-name format; these tests hold it to the standard's own format list, in
 /// both directions, and hold each named member to existence — so a name class added later cannot arrive unrouted.
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -20,16 +20,16 @@ public sealed class QualifiedNameClassDriftTests
     private static readonly Regex FormatHeading =
         new(@"^Format \d+ \((qualified-[a-z-]+)\):\s*$", RegexOptions.Compiled);
 
-    /// <summary>The §8.4.2.2.2 formats as the standard prints them.</summary>
+    /// <summary>The §2023:8.4.2.2.2 formats as the standard prints them.</summary>
     private static List<string> SpecFormats()
     {
         string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => l.StartsWith("###### 8.4.2.2.2 General format", StringComparison.Ordinal));
-        Assert.True(start >= 0, "specs/ISO_COBOL_2023.md has no §8.4.2.2.2 heading — the scan measured nothing");
+        Assert.True(start >= 0, "specs/ISO_COBOL_2023.md has no §2023:8.4.2.2.2 heading — the scan measured nothing");
         var formats = new List<string>();
         for (int i = start + 1; i < lines.Length && !lines[i].StartsWith("###### ", StringComparison.Ordinal); i++)
             if (FormatHeading.Match(lines[i]) is { Success: true } m) formats.Add(m.Groups[1].Value);
-        Assert.True(formats.Count >= 8, $"§8.4.2.2.2 yielded only {formats.Count} formats — the scan measured nothing");
+        Assert.True(formats.Count >= 8, $"§2023:8.4.2.2.2 yielded only {formats.Count} formats — the scan measured nothing");
         return formats;
     }
 
@@ -42,9 +42,9 @@ public sealed class QualifiedNameClassDriftTests
         var missing = spec.Except(rows, StringComparer.Ordinal).ToList();
         var extra = rows.Except(spec, StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0 && extra.Count == 0,
-            $"QualifiedNameClasses disagrees with ISO §8.4.2.2.2 — unrouted: [{string.Join(", ", missing)}]; not "
+            $"QualifiedNameClasses disagrees with ISO §2023:8.4.2.2.2 — unrouted: [{string.Join(", ", missing)}]; not "
             + $"in the standard: [{string.Join(", ", extra)}]. Route each qualified-name format's references through "
-            + "ONE resolution that counts candidates (§8.4.2.2.3 SR1), and name it here (kb/Work PB919).");
+            + "ONE resolution that counts candidates (§2023:8.4.2.2.3 SR1), and name it here (kb/Work PB919).");
     }
 
     [Fact]

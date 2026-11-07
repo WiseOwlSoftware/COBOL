@@ -13,13 +13,13 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
-/// <summary>The CLASS and SYMBOLIC CHARACTERS clauses (ISO §12.3.7.2; §12.3.7.3 SR16, SR17; §12.3.7.4 GR11, GR12).
+/// <summary>The CLASS and SYMBOLIC CHARACTERS clauses (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR16, SR17; §2023:12.3.7.4 GR11, GR12).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
     /// <summary>The symbolic character a BARE (unqualified, unsubscripted) data reference names, or null — the
     /// twin of <c>ConstantOf</c> (one shape for "a word that stands for a literal"). A resolution: the word is
-    /// recorded as used as a symbolic-character (§8.3.2.2; kb/Work PB3153).</summary>
+    /// recorded as used as a symbolic-character (§2023:8.3.2.2; kb/Work PB3153).</summary>
     internal (string Value, bool National)? SymbolicOf(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w ? SymbolicOf(dref, w.GetText()) : null;
 
@@ -35,25 +35,25 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>The symbolic character the word <paramref name="word"/> written at <paramref name="site"/> names, or
     /// null (the FigurativeOperand ALL-form lookup, a concatenation operand). A resolution, recorded as a use
-    /// (§8.3.2.2; kb/Work PB3153) — only when the symbolic-character is visible: one a nearer declaration of the
+    /// (§2023:8.3.2.2; kb/Work PB3153) — only when the symbolic-character is visible: one a nearer declaration of the
     /// spelling hides (<see cref="HidesSymbolic"/>) is not what the word references, so it is neither resolved nor
     /// recorded.</summary>
     internal (string Value, bool National)? SymbolicOf(Antlr4.Runtime.RuleContext site, string word) =>
         !HidesSymbolic(word) && Cfg.SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
-    /// (§8.4.6.1, §8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
+    /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
     /// condition- or index-name hides (<see cref="InheritStep.DropShadowed"/>), or any one the method being bound
     /// declares a name of (<see cref="OoDataBinder.ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
     private bool HidesSymbolic(string word) => _host.State.Inherited.HidesSymbolic(word) || _host.Oo.ActiveMethodDeclares(word);
 
     /// <summary>One <c>CLASS class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS {literal-5 [THROUGH literal-6]}…
-    /// [IN alphabet-name-4]</c> clause (ISO §12.3.7.2): expand each value item to its member characters — a
+    /// [IN alphabet-name-4]</c> clause (ISO §2023:12.3.7.2): expand each value item to its member characters — a
     /// multi-character literal lists each character; a THRU pair contributes the contiguous native-collating range
-    /// between the two single characters, ASCENDING OR DESCENDING (§12.3.7.4 GR12 — NC174A's <c>"D" THROUGH "A"</c>
+    /// between the two single characters, ASCENDING OR DESCENDING (§2023:12.3.7.4 GR12 — NC174A's <c>"D" THROUGH "A"</c>
     /// equals <c>"A" THRU "D"</c>).
-    /// <para>⛔ THE FOR PHRASE IS READ ONCE, HERE, AND EVERY §12.3.7.3 SR17 RULE KEYS ON THAT ONE READING (kb/Work
+    /// <para>⛔ THE FOR PHRASE IS READ ONCE, HERE, AND EVERY §2023:12.3.7.3 SR17 RULE KEYS ON THAT ONE READING (kb/Work
     /// PB976). It used to be parsed and IGNORED, so the whole class-dependent half of SR17 — b1/c1 the IN alphabet's
     /// class, b3/c3 each noninteger literal's class, b4/c4 one character under THROUGH — went unenforced:
     /// <c>CLASS C IS N"0" THRU N"9"</c> and <c>CLASS C FOR NATIONAL IS 1 THRU 5 IN an-alphanumeric-alphabet</c>
@@ -67,9 +67,9 @@ public sealed partial class SpecialNamesBinder
         // ParseArm.VisitClassDefinitionClause (14g.4, recognition).
         using var _ = Edition.At(cd);
         string name = cd.cobolWord(0).GetText();
-        _host.DeclareUserWord(name, UserWordKind.ClassName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB1083)
+        _host.DeclareUserWord(name, UserWordKind.ClassName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
         bool national = ForPhraseIsNational(cd.specialNamesForPhrase(), cd.misplacedSpecialNamesForPhrase());
-        // The IN phrase (ISO §12.3.7.4 GR12 a; kb/Work PB110): a NUMERIC literal is the ordinal of a character
+        // The IN phrase (ISO §2023:12.3.7.4 GR12 a; kb/Work PB110): a NUMERIC literal is the ordinal of a character
         // within the character set referenced by alphabet-name-4 — not the native set. SR17 d (a LOCALE alphabet)
         // and an undeclared name refuse through the ONE resolver; the clause then binds no class (its references
         // stay loud) rather than silently reverting to native ordinals.
@@ -78,7 +78,7 @@ public sealed partial class SpecialNamesBinder
         {
             string inName = cd.cobolWord(1).GetText();
             inSet = CodedCharacterSetOf(cd.cobolWord(1), inName, $"CLASS {name} IN {inName}",
-                "ISO §12.3.7.3 SR17 d — alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase");
+                "ISO §2023:12.3.7.3 SR17 d — alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             // SR17 b1/c1 — "When the IN phrase is specified, alphabet-name-4 shall reference an alphabet that defines
             // an alphanumeric / a national character set". The SYMBOLIC CHARACTERS clause's SR16 e1/f1 twin is the
@@ -88,7 +88,7 @@ public sealed partial class SpecialNamesBinder
                 Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"CLASS {name}{(national ? " FOR NATIONAL" : "")} "
                     + $"IN {inName}: alphabet-name-4 shall reference an alphabet that defines "
                     + $"{(national ? "a NATIONAL" : "an ALPHANUMERIC")} character set — this alphabet is "
-                    + $"{(inSet.National ? "FOR NATIONAL" : "alphanumeric")} (ISO §12.3.7.3 SR17 {(national ? "c1" : "b1")})");
+                    + $"{(inSet.National ? "FOR NATIONAL" : "alphanumeric")} (ISO §2023:12.3.7.3 SR17 {(national ? "c1" : "b1")})");
                 return;
             }
         }
@@ -96,7 +96,7 @@ public sealed partial class SpecialNamesBinder
         var members = new System.Text.StringBuilder();
         foreach (var item in cd.classValueSet().classValueItem())
         {
-            // literal-5 and literal-6, each written as a literal or as a constant-name (§13.10.3 SR2; kb/Work PB1942).
+            // literal-5 and literal-6, each written as a literal or as a constant-name (§2023:13.10.3 SR2; kb/Work PB1942).
             var lits = item.specialNamesLiteral()
                 .Select(o => (Antlr4.Runtime.Tree.IParseTree)o.literal() ?? o.cobolWord()).ToArray();
             if (LiteralPhraseOperand(lits[0], rules) is not { } lo) continue;
@@ -123,14 +123,14 @@ public sealed partial class SpecialNamesBinder
             if (distinct > inSet.OrdinalCount)
                 Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"{rules.What} IN {cd.cobolWord(1).GetText()}: "
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
-                    + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §12.3.7.3 {rules.Rule('5')})");
+                    + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §2023:12.3.7.3 {rules.Rule('5')})");
         }
         Cfg.UserClasses.TryAdd(name, new UserClassDef(set, national));
     }
 
     /// <summary>⛔ THE ONE READING OF A SPECIAL-NAMES FOR PHRASE, for all three clauses that print it (ALPHABET,
-    /// CLASS, SYMBOLIC CHARACTERS — ISO §12.3.7.2): NATIONAL when the phrase says so, ALPHANUMERIC otherwise
-    /// (§12.3.7.3 SR13, SR16 d, SR17 a — "the ALPHANUMERIC phrase is implied"). The phrase belongs between the
+    /// CLASS, SYMBOLIC CHARACTERS — ISO §2023:12.3.7.2): NATIONAL when the phrase says so, ALPHANUMERIC otherwise
+    /// (§2023:12.3.7.3 SR13, SR16 d, SR17 a — "the ALPHANUMERIC phrase is implied"). The phrase belongs between the
     /// clause's name and IS; one written after the definition (<paramref name="misplaced"/>) has already been
     /// refused by name in ClosedFormatPass (kb/Work PB977), and is read here only so the rest of the clause binds
     /// in the class the user evidently meant instead of cascading class-rule diagnostics.</summary>
@@ -138,7 +138,7 @@ public sealed partial class SpecialNamesBinder
         Core.MisplacedSpecialNamesForPhraseContext? misplaced)
         => (iso ?? misplaced?.specialNamesForPhrase())?.NATIONAL() is not null;
 
-    /// <summary>Bind one SYMBOLIC CHARACTERS clause (ISO §12.3.7.2; §12.3.7.3 SR16; §12.3.7.4 GR11 — kb/Work
+    /// <summary>Bind one SYMBOLIC CHARACTERS clause (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR16; §2023:12.3.7.4 GR11 — kb/Work
     /// PB110: the clause was accepted-inert): each symbolic-character-1 defines a FIGURATIVE CONSTANT whose value
     /// is the character at ordinal integer-1 in the native character set of the clause's class (ALPHANUMERIC
     /// implied — SR16 d) or, under IN, in the coded character set of alphabet-name-3 (GR11 b/c; SR16 e1/f1 the
@@ -154,14 +154,14 @@ public sealed partial class SpecialNamesBinder
         if (sc.cobolWord() is { } inWord && inWord is not null)
         {
             inSet = CodedCharacterSetOf(inWord, inWord.GetText(), $"SYMBOLIC CHARACTERS IN {inWord.GetText()}",
-                "ISO §12.3.7.3 SR16 g — alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase");
+                "ISO §2023:12.3.7.3 SR16 g — alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             if (inSet.National != national)
             {
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS{(national ? " FOR NATIONAL" : "")} "
                     + $"IN {inWord.GetText()}: alphabet-name-3 shall reference an alphabet that defines "
                     + $"{(national ? "a NATIONAL" : "an ALPHANUMERIC")} character set — this alphabet is "
-                    + $"{(inSet.National ? "FOR NATIONAL" : "alphanumeric")} (ISO §12.3.7.3 SR16 {(national ? "f1" : "e1")})");
+                    + $"{(inSet.National ? "FOR NATIONAL" : "alphanumeric")} (ISO §2023:12.3.7.3 SR16 {(national ? "f1" : "e1")})");
                 return;
             }
         }
@@ -172,12 +172,12 @@ public sealed partial class SpecialNamesBinder
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, "SYMBOLIC CHARACTERS: the clause repeats the "
                     + "group {symbolic-character-1}... [IS|ARE] {integer-1}..., so each repetition names at least one "
                     + "symbolic-character-1 and then at least one integer-1: the clause must open with a "
-                    + "symbolic-character-1 and close with an integer-1 (ISO §12.3.7.2 general format)");
+                    + "symbolic-character-1 and close with an integer-1 (ISO §2023:12.3.7.2 general format)");
             else
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: {names.Count} "
                     + $"symbolic-character name(s) against {ords.Count} integer(s) — there shall be a one-to-one "
                     + "correspondence between the occurrences of symbolic-character-1 and of integer-1 in the clause, "
-                    + "paired by position (ISO §12.3.7.3 SR16 b/c)");
+                    + "paired by position (ISO §2023:12.3.7.3 SR16 b/c)");
             // RECOVERY, so the one refusal does not cascade into a false "'SC1' is not defined" at each use: the names
             // the clause wrote are declared with a placeholder value (never observed: the clause failed).
             foreach (var name in names)
@@ -190,9 +190,9 @@ public sealed partial class SpecialNamesBinder
         for (int i = 0; i < names.Count; i++)
         {
             string symName = names[i].GetText();
-            _host.DeclareUserWord(symName, UserWordKind.SymbolicCharacter);   // §8.3.2.2 (kb/Work PB1083)
-            // integer-1 is an INTEGERLIT — unsigned digits by the grammar (§5.5 1)) — or an integer constant-name
-            // (§13.10.3 SR2, read by the same reader: kb/Work PB1948) — so only its magnitude can be wrong. ⛔ It used to be read with `int.TryParse` and a failure `continue`d: an ordinal too long
+            _host.DeclareUserWord(symName, UserWordKind.SymbolicCharacter);   // §2023:8.3.2.2 (kb/Work PB1083)
+            // integer-1 is an INTEGERLIT — unsigned digits by the grammar (§2023:5.5 1)) — or an integer constant-name
+            // (§2023:13.10.3 SR2, read by the same reader: kb/Work PB1948) — so only its magnitude can be wrong. ⛔ It used to be read with `int.TryParse` and a failure `continue`d: an ordinal too long
             // for an int bound NOTHING and drew NO diagnostic, and the name then surfaced as "not defined" at
             // its first use (kb/Work PB1557's sibling). It is an integer-n, so it is read by THE ONE integer-n
             // reader — the very one the ALPHABET and CLASS literal phrases read their ordinals through
@@ -211,7 +211,7 @@ public sealed partial class SpecialNamesBinder
                     Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS {symName} IS "
                         + $"{ordText}: the ordinal position does not exist in the "
                         + $"{(inSet is not null ? $"character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters)" : $"native character set ({CollatingTable.Repertoire} characters)")}"
-                        + $" — ISO §12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}");
+                        + $" — ISO §2023:12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}");
                 // RECOVERY, so one bad ordinal does not cascade: the name is DECLARED (DeclareUserWord above), and a
                 // statement that uses it must find it defined rather than draw a second, false diagnostic ("'BIG' is
                 // not defined") for a name the program did write. The placeholder value is never observed — the
@@ -223,15 +223,15 @@ public sealed partial class SpecialNamesBinder
             if (!Cfg.SymbolicCharacters.TryAdd(symName, (value, national)))
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
-                    + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO §12.3.7.3 SR16 a)");
+                    + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO §2023:12.3.7.3 SR16 a)");
         }
     }
 
     /// <summary>⛔ THE NAMES AND THE ORDINALS OF ONE SYMBOLIC CHARACTERS CLAUSE, each in source order across ALL the clause's
-    /// entries (ISO §12.3.7.2: <c>{symbolic-character-1}… [IS|ARE] {integer-1}…</c>, the braced group repeating;
-    /// §12.3.7.3 SR16 b: the pairing is "by position in the SYMBOLIC CHARACTERS clause", the first symbolic-character-1
+    /// entries (ISO §2023:12.3.7.2: <c>{symbolic-character-1}… [IS|ARE] {integer-1}…</c>, the braced group repeating;
+    /// §2023:12.3.7.3 SR16 b: the pairing is "by position in the SYMBOLIC CHARACTERS clause", the first symbolic-character-1
     /// with the first integer-1; SR16 c: one to one between their occurrences — kb/Work PB4108). An ordinal is an
-    /// <c>integer-n</c>, so an integer CONSTANT-NAME may stand for it (§13.10.3 SR2; kb/Work PB1948) and every ordinal is
+    /// <c>integer-n</c>, so an integer CONSTANT-NAME may stand for it (§2023:13.10.3 SR2; kb/Work PB1948) and every ordinal is
     /// read through THE one integer-n reader.
     /// <para>The names and the ordinals are written as WORDS side by side, and a constant-name is the same kind of token
     /// as the next symbolic-character-1, so the parser cannot tell them apart (<c>symbolicCharacterEntry</c> parses an

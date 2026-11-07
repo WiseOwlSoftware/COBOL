@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.23.3 r5 / §15.25.3 r5 — an OMITTED argument-3 evaluates as though
+      *> ISO §2023:15.23.3 r5 / §2023:15.25.3 r5 — an OMITTED argument-3 evaluates as though
       *> "(FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4)))" had been written there.
       *>
       *> BOTH RULES ARE THE SAME SENTENCE, verbatim, one for DATE-TO-YYYYMMDD and
@@ -18,12 +18,12 @@
       *> form would drift every January 1.
       *>
       *> ⛔ r5's EXPRESSION CANNOT BE WRITTEN IN THE ARGUMENT-3 SLOT, and an earlier
-      *> draft of this file wrote it there. §8.4.3.2.3 SR11: "A numeric function
+      *> draft of this file wrote it there. §2023:8.4.3.2.3 SR11: "A numeric function
       *> shall not be specified where an integer operand is required, even though a
       *> particular reference of the numeric function might yield an integer value."
-      *> §15.67.1 makes NUMVAL a NUMERIC function ("The type of this function is
-      *> numeric"); §15.23.3 r4 and §15.25.3 r4 make argument-3 "an integer greater
-      *> than 1600 and less than 10000", which §15.3 type 6 admits only as "an
+      *> §2023:15.67.1 makes NUMVAL a NUMERIC function ("The type of this function is
+      *> numeric"); §2023:15.23.3 r4 and §2023:15.25.3 r4 make argument-3 "an integer greater
+      *> than 1600 and less than 10000", which §2023:15.3 type 6 admits only as "an
       *> arithmetic expression that will always result in an integer value or an
       *> integer data item". r5 says the omitted form is EVALUATED AS THOUGH that
       *> expression were specified — an evaluation equivalence, not a licence to
@@ -42,27 +42,27 @@
       *> YearToYyyy defaulted through the run unit's clock while CurrentDate read a
       *> different one (kb/Work R21, "one run unit, one clock").
       *> The probes therefore put the WINDOW BOUNDARY ON THE EXECUTION YEAR itself.
-      *> With YY = MOD(CY,100) and argument-1 = YY*10000 + 1003, §15.100.4 gives:
+      *> With YY = MOD(CY,100) and argument-1 = YY*10000 + 1003, §2023:15.100.4 gives:
       *>   argument-2 = 0  -> maximum-year = CY, MOD(CY,100) = YY, and YY >= YY is
       *>     TRUE, so r2a returns YY + 100*INTEGER(CY/100) = CY. A year one LOW
       *>     makes MOD = YY-1 < YY, takes r2b, and drops a century.
       *>   argument-2 = -1 -> maximum-year = CY-1, which takes r2b. A year one HIGH
       *>     makes maximum-year = CY, takes r2a, and gains a century.
       *> The two together break on a ONE-YEAR skew in either direction. Both stay
-      *> legal: §15.23.3 r6 / §15.25.3 r6 need CY and CY-1 inside 1699..10000, and
-      *> §15.23.3 r1 / §15.25.3 r1 cap argument-1 at 991003 < 1000000 and
+      *> legal: §2023:15.23.3 r6 / §2023:15.25.3 r6 need CY and CY-1 inside 1699..10000, and
+      *> §2023:15.23.3 r1 / §2023:15.25.3 r1 cap argument-1 at 991003 < 1000000 and
       *> 99365 < 100000 (both positive, since 1003 and 365 survive YY = 0).
       *>
       *> TWO CLOCK-FREE WITNESSES stand beside the equality so it cannot pass on
       *> pairs of equal zeros:
-      *>  · THE VALUE IS REAL. §15.23.4 r1 makes the result
+      *>  · THE VALUE IS REAL. §2023:15.23.4 r1 makes the result
       *>    "(FUNCTION YEAR-TO-YYYY (YY, argument-2, argument-3) * 10000 + mmdd)"
       *>    with "mmdd = FUNCTION MOD (argument-1, 10000)", so the low four digits
-      *>    are 1003 whatever the year is; §15.25.4 r1's "nnn = FUNCTION MOD
+      *>    are 1003 whatever the year is; §2023:15.25.4 r1's "nnn = FUNCTION MOD
       *>    (argument-1, 1000)" gives 365 the same way.
       *>  · ARGUMENT-3 IS LOAD-BEARING. Two EXPLICIT argument-3 values must give
       *>    DIFFERENT answers, or the equality would also hold for a compiler that
-      *>    ignored argument-3 entirely. Hand-derived from §15.100.4 (r1
+      *>    ignored argument-3 entirely. Hand-derived from §2023:15.100.4 (r1
       *>    maximum-year = argument-2 + argument-3):
       *>      (851003, 10, 1900): YY = 85, max = 1910, MOD(1910,100) = 10, and
       *>      10 >= 85 is FALSE, so r2b -> 85 + 100 * (INTEGER(1910/100) - 1)
@@ -71,7 +71,7 @@
       *>      = 1985, giving 19851003.
       *>      (85365, 10, 1900) -> 1885 * 1000 + 365 = 1885365; (…, 2000) -> 1985365.
       *>
-      *> THE COMMA SEPARATORS ON THE PROBE LINES ARE LOAD-BEARING TOO. §8.3.5 r2
+      *> THE COMMA SEPARATORS ON THE PROBE LINES ARE LOAD-BEARING TOO. §2023:8.3.5 r2
       *> makes them legal anywhere a space separator is ("the COBOL characters comma
       *> and semicolon, immediately followed by a space, are separators that may be
       *> used anywhere the separator space is used") — and here they are REQUIRED:
@@ -100,12 +100,12 @@
        PROCEDURE DIVISION.
        MAIN.
       *> r5's own expression, staged once into an integer item. A COMPUTE receiver
-      *> is not an integer operand position, so §8.4.3.2.3 SR11 does not reach it.
+      *> is not an integer operand position, so §2023:8.4.3.2.3 SR11 does not reach it.
            COMPUTE CY = FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4))
            COMPUTE YY = FUNCTION MOD(CY, 100)
            COMPUTE A1 = YY * 10000 + 1003
            COMPUTE B1 = YY * 1000 + 365
-      *> ── §15.23.3 r5, DATE-TO-YYYYMMDD ──────────────────────────────────────
+      *> ── §2023:15.23.3 r5, DATE-TO-YYYYMMDD ──────────────────────────────────────
       *> argument-2 = 0 puts the window's last year AT the execution year, so an
       *> argument-3 one year LOW changes the answer by a century.
            COMPUTE A-OM-0 = FUNCTION DATE-TO-YYYYMMDD(A1, 0)
@@ -131,7 +131,7 @@
            DISPLAY "DATE-A3-1900=" CTL8
            COMPUTE CTL8 = FUNCTION DATE-TO-YYYYMMDD(851003 10 2000)
            DISPLAY "DATE-A3-2000=" CTL8
-      *> ── §15.25.3 r5, DAY-TO-YYYYDDD ────────────────────────────────────────
+      *> ── §2023:15.25.3 r5, DAY-TO-YYYYDDD ────────────────────────────────────────
            COMPUTE J-OM-0 = FUNCTION DAY-TO-YYYYDDD(B1, 0)
            COMPUTE J-EX-0 = FUNCTION DAY-TO-YYYYDDD(B1, 0, CY)
            COMPUTE J-OM-M1 = FUNCTION DAY-TO-YYYYDDD(B1, -1)

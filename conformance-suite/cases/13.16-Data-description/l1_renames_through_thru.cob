@@ -6,28 +6,28 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.16.3 SR22 data description entry, FORMAT 2 (renames) —
+      *> ISO §2023:13.16.3 SR22 data description entry, FORMAT 2 (renames) —
       *> "The words THROUGH and THRU are equivalent."
       *>   python scripts/spec/cite.py --check 13.16.3 "The words
       *>   THROUGH and THRU are equivalent."
-      *>   -> OK  §13.16.3 22)  (Syntax rules)
+      *>   -> OK  §2023:13.16.3 22)  (Syntax rules)
       *>
       *> SCOPE — WHICH FORMAT THE RULE GOVERNS. SR22 stands under the
-      *> "FORMAT 2" heading of §13.16.3; the "FORMATS 3 AND 4" heading
+      *> "FORMAT 2" heading of §2023:13.16.3; the "FORMATS 3 AND 4" heading
       *> comes AFTER it and opens SR23. So the rule is about the
-      *> §13.16.2 Format 2 (renames) entry
+      *> §2023:13.16.2 Format 2 (renames) entry
       *>   66 data-name-1 RENAMES data-name-4 [{THROUGH|THRU}
       *>   data-name-5] .
       *> — not the level-88 VALUE ... THRU of formats 3 and 4.
       *>
       *> DERIVATION. Equivalence means the two spellings select the
       *> same alternative of that brace, so both 66 entries are the
-      *> same clause and §13.18.45.4 GR2 gives each the SAME area:
+      *> same clause and §2023:13.18.45.4 GR2 gives each the SAME area:
       *>   python scripts/spec/cite.py --check 13.18.45.4 "When the
       *>   THROUGH phrase is specified, data-name-1 defines an
       *>   alphanumeric group item that includes all elementary items
       *>   starting with data-name-2"
-      *>   -> OK  §13.18.45.4 2)  (General rules)
+      *>   -> OK  §2023:13.18.45.4 2)  (General rules)
       *> "...an alphanumeric group item that includes all elementary
       *> items starting with data-name-2 ... and concluding with
       *> data-name-3". WS-A holds AB, WS-B holds CD, WS-C holds EF, so

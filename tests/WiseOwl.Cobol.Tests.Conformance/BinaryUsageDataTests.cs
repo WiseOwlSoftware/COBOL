@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// USAGE BINARY-CHAR / -SHORT / -LONG / -DOUBLE [SIGNED|UNSIGNED] (ISO §13.18.60.4 GR12/GR21) — Phase 4
+/// USAGE BINARY-CHAR / -SHORT / -LONG / -DOUBLE [SIGNED|UNSIGNED] (ISO §2023:13.18.60.4 GR12/GR21) — Phase 4
 /// M2-DATA-1. PICTURE-less native two's-complement integers of 1/2/4/8 bytes (SIGNED default; UNSIGNED widens
 /// the positive range) on the COMP-5 BinaryCapacity discipline. The happy-path end-to-end behavior (all four
 /// widths, DISPLAY, arithmetic) rides the <c>binary_usage</c> conformance golden; the byte-width wrap arithmetic
@@ -21,7 +21,7 @@ public sealed class BinaryUsageDataTests
         // COMPUTE routes the product through CobolNum.Store with the receiver's BinaryCapacity NumProfile. The
         // same value 200 (= 100 * 2) is stored into a SIGNED BINARY-CHAR (range −128..127 — 200 wraps to
         // 200 − 256 = −56) and an UNSIGNED BINARY-CHAR (range 0..255 — 200 is in range). Implied DISPLAY
-        // width 3 (§13.18.60.4 GR12): −56 renders "-056", 200 renders "200".
+        // width 3 (§2023:13.18.60.4 GR12): −56 renders "-056", 200 renders "200".
         const string src = """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. BINWRAP.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1072 — ISO §12.4.5.6.3 SR7: "Literal-1 shall be an alphanumeric literal, a national literal,
+      *> kb/Work PB1072 — ISO §2023:12.4.5.6.3 SR7: "Literal-1 shall be an alphanumeric literal, a national literal,
       *> or a figurative constant, and shall be of the same category as data-name-1 or data-name-2. If ALL
       *> literal is specified, the literal shall be one character long." All three obligations are broken
       *> below (a numeric literal, a national literal on an alphanumeric key, an ALL literal two characters

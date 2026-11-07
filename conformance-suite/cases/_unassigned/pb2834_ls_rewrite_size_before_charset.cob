@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2834LS.
       *> kb/Work PB2834 -- a LINE SEQUENTIAL REWRITE tests ISO/IEC
-      *> 1989:2023 §14.9.35.4 GR17 in the order the rule states it:
+      *> 1989:2023 §2023:14.9.35.4 GR17 in the order the rule states it:
       *> b) a record of MORE bytes than the record being replaced is
       *> unsuccessful, I-O status '44', and only then d) a record area
       *> holding a character outside the line sequential character set
@@ -17,11 +17,11 @@
       *>   python scripts/spec/cite.py --check 14.9.35.4 "is greater
       *>   than the number of bytes in the record being replaced, the
       *>   execution of the REWRITE statement is unsuccessful"
-      *>                                    -> OK  §14.9.35.4 17) (b)
+      *>                                    -> OK  §2023:14.9.35.4 17) (b)
       *>   python scripts/spec/cite.py --check 14.9.35.4 "not in the
       *>   implementor-defined character set defined for a line
       *>   sequential file the execution of the REWRITE statement is
-      *>   unsuccessful"                    -> OK  §14.9.35.4 17) (d)
+      *>   unsuccessful"                    -> OK  §2023:14.9.35.4 17) (d)
       *> Every line replaced here is the two bytes AB.
       *>  S1-LONGER  - CODE-SET STANDARD-1 (ISO/IEC 646, 128
       *>               characters): "AéBCD" is 5 bytes whatever image
@@ -35,7 +35,7 @@
       *>               U+0001 is outside the set (d).
       *>  CTRL-EQUAL - U+0001 after "A" is 2 bytes, so only d): '71'.
       *>  S1-AFTER   - a refused REWRITE changes nothing: the line is
-      *>               still AB (§9.1.13.10 item 1).
+      *>               still AB (§2023:9.1.13.10 item 1).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.

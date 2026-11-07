@@ -16,7 +16,7 @@ authority** for all syntax, semantics, and behavior.
 
 ## Notes in this domain
 
-- [[kb/Spec/Overview]] — what ISO/IEC 1989:2023 is, its 16 clauses + annexes, the §4.2.16 conformance record, the four-editions mission.
+- [[kb/Spec/Overview]] — what ISO/IEC 1989:2023 is, its 16 clauses + annexes, the §2023:4.2.16 conformance record, the four-editions mission.
 - [[kb/Spec/Language Features]] — the implemented language surface by division + intrinsics + OO/post-85.
 - [[kb/Spec/Version Targeting]] — "four compilers in one," edition gating (COBOL0900–0903), the VCR checklist, the (construct × edition) test matrix, the GnuCOBOL register.
 - [[kb/Spec/Constraints]] — conformance clause §4, reference format §6, the §7 directive facility, documented non-support.

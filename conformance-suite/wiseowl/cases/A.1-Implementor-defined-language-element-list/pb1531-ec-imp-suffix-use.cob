@@ -5,8 +5,8 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1531 - the USE AFTER EXCEPTION CONDITION form of the
-      *> EC-IMP-suffix refusal. USE Format 3 (§14.9.49.2) takes an
-      *> exception-name, the term §14.6.13.1.1 defines; an EC-IMP-suffix
+      *> EC-IMP-suffix refusal. USE Format 3 (§2023:14.9.49.2) takes an
+      *> exception-name, the term §2023:14.6.13.1.1 defines; an EC-IMP-suffix
       *> is the implementor's to define ("The implementor defines the
       *> action to be taken, the fatality, and when any of these
       *> exceptions are raised"), and this implementation defines none

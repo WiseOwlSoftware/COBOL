@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.23.4 GR2 b) — "If the method to be invoked is a
+      *> ISO §2023:14.9.23.4 GR2 b) — "If the method to be invoked is a
       *> non-COBOL method, the behavior of the INVOKE statement is
       *> implementor-defined." (cite.py --check 14.9.23.4 OK, GR 2.)
       *> Annex A.1 item 101 requires that behavior be documented. The

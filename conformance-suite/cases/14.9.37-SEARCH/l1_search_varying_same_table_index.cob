@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.37.4 GR3 c) 1 — "If index-name-1 is specified in the
+      *> ISO §2023:14.9.37.4 GR3 c) 1 — "If index-name-1 is specified in the
       *> INDEXED BY phrase in the OCCURS clause associated with
       *> identifier-1, the index referenced by index-name-1 IS the
       *> search index." Not an extra varied index: the search index

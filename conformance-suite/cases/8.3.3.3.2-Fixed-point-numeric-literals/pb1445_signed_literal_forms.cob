@@ -7,12 +7,12 @@
       *>---
       *> A SIGN ABUTTING ITS DIGITS IS PART OF THE LITERAL; A SEPARATED SIGN IN AN
       *> EXPRESSION IS A UNARY OPERATOR (kb/Work PB1445).
-      *> ISO/IEC 1989:2023 §8.3.3.3.2 2): "A literal shall not contain more than one sign
+      *> ISO/IEC 1989:2023 §2023:8.3.3.3.2 2): "A literal shall not contain more than one sign
       *> character. If a sign is used, it shall appear as the leftmost character of the
       *> literal." So VALUE -5 / VALUE +4 and MOVE -3 / ADD -2 carry one-sign literals and
       *> must stay legal after the separated-sign screen (COBOL2155) was widened to every
       *> literal slot; `- 5` inside an arithmetic expression (a relation operand, COMPUTE)
-      *> is the unary minus of §8.8.1 applied to 5 and must also stay legal.
+      *> is the unary minus of §2023:8.8.1 applied to 5 and must also stay legal.
       *> Expected, by the rules: B = -5, C = +4; MOVE -3 TO A gives -3.00; ADD -2 gives
       *> -5.00; A = - 5 is TRUE (EQ); COMPUTE A = - 5 * 2 gives -10.00.
        IDENTIFICATION DIVISION.

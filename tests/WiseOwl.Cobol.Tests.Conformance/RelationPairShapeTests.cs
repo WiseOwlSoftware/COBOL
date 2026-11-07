@@ -6,8 +6,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The relation's operand-PAIR classification (kb/Work PB1469 / PB1467): a same-type strongly-typed pair compares
-/// element by element (ISO §8.8.4.2.12), a pair with a variable-length group is screened by §8.5.1.12.1 and compares
-/// by §8.8.4.2.17, everything else compares as one item each. The run-time VALUES of both shapes are the goldens
+/// element by element (ISO §2023:8.8.4.2.12), a pair with a variable-length group is screened by §2023:8.5.1.12.1 and compares
+/// by §2023:8.8.4.2.17, everything else compares as one item each. The run-time VALUES of both shapes are the goldens
 /// <c>2002/strong_group_element_order</c> and <c>2014/variable_length_group_relation</c>; these are the screens and the
 /// shapes the goldens do not reach.
 /// </summary>
@@ -36,7 +36,7 @@ public sealed class RelationPairShapeTests
     private static (bool Ok, IReadOnlyList<string> Diag) CompileVariable(string id, string relation) =>
         EditionHarness.Compile(VariableLengthDecl.Replace("{0}", id).Replace("{1}", relation), 2014);
 
-    /// <summary>§8.5.1.12.1 — "a variable-length group … may not undergo a comparison … unless the other operand is a
+    /// <summary>§2023:8.5.1.12.1 — "a variable-length group … may not undergo a comparison … unless the other operand is a
     /// compatible group": a literal and a figurative constant are not groups, in either operand position.</summary>
     [Theory]
     [InlineData("RPS01", "G1 = \"AB\"")]
@@ -45,31 +45,31 @@ public sealed class RelationPairShapeTests
     public void VariableLengthGroup_ComparedWithANonGroup_Rejected2492(string id, string relation)
     {
         var (ok, diag) = CompileVariable(id, relation);
-        Assert.False(ok, $"'{relation}' compares a variable-length group with a non-group (ISO §8.5.1.12.1)");
+        Assert.False(ok, $"'{relation}' compares a variable-length group with a non-group (ISO §2023:8.5.1.12.1)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL2492");
     }
 
-    /// <summary>§8.5.1.12.1 rule 3 with §8.5.1.12.2 — the two dynamic-length items must START at the same relative
+    /// <summary>§2023:8.5.1.12.1 rule 3 with §2023:8.5.1.12.2 — the two dynamic-length items must START at the same relative
     /// position; G3's starts at 3, G1's at 2, so the groups are not compatible and may not be compared.</summary>
     [Fact]
     public void VariableLengthGroups_WhoseDynamicItemsDoNotCorrespond_Rejected2492()
     {
         var (ok, diag) = CompileVariable("RPS04", "G1 < G3");
-        Assert.False(ok, "G1 and G3 are not compatible groups (ISO §8.5.1.12.2)");
+        Assert.False(ok, "G1 and G3 are not compatible groups (ISO §2023:8.5.1.12.2)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL2492");
     }
 
-    /// <summary>The compatible pair is legal (§8.8.4.2.17) and compiles clean.</summary>
+    /// <summary>The compatible pair is legal (§2023:8.8.4.2.17) and compiles clean.</summary>
     [Fact]
     public void CompatibleVariableLengthGroups_CompileClean()
     {
         var (ok, diag) = CompileVariable("RPS05", "G1 = G4");
-        Assert.True(ok, "G1 and G4 are compatible (ISO §8.5.1.12.1): " + string.Join("; ", diag));
+        Assert.True(ok, "G1 and G4 are compatible (ISO §2023:8.5.1.12.1): " + string.Join("; ", diag));
     }
 
-    /// <summary>§8.8.4.2.12 over a strongly-typed group with a DYNAMIC LENGTH leaf — a strong group may itself be
-    /// variable-length, and the element order carries it: the leaf compares at its current length (§8.5.1.10.4) as an
-    /// alphanumeric operand, the shorter one extended with spaces (§8.8.4.2.7), so "AB" = "AB " and "AB" &lt; "ABC".</summary>
+    /// <summary>§2023:8.8.4.2.12 over a strongly-typed group with a DYNAMIC LENGTH leaf — a strong group may itself be
+    /// variable-length, and the element order carries it: the leaf compares at its current length (§2023:8.5.1.10.4) as an
+    /// alphanumeric operand, the shorter one extended with spaces (§2023:8.8.4.2.7), so "AB" = "AB " and "AB" &lt; "ABC".</summary>
     [Fact]
     public void StrongGroupWithDynamicLengthLeaf_ComparesTheLeafAtItsCurrentLength()
     {
@@ -127,8 +127,8 @@ public sealed class RelationPairShapeTests
 
     /// <summary>The OTHER arm of the same dispatch: an EVALUATE THRU range under EC-RANGE-INVALID checking used to take
     /// the character-image range node for every pair, so a strongly-typed range over a float leaf compared images.
-    /// §14.9.13.4 GR4 a) 5. makes the range "selection-subject &gt;= left-part AND selection-subject &lt;= right-part",
-    /// and each half is a §8.8.4.2.12 element comparison: -10 &lt;= -5 &lt;= 3 is IN, with checking on or off.</summary>
+    /// §2023:14.9.13.4 GR4 a) 5. makes the range "selection-subject &gt;= left-part AND selection-subject &lt;= right-part",
+    /// and each half is a §2023:8.8.4.2.12 element comparison: -10 &lt;= -5 &lt;= 3 is IN, with checking on or off.</summary>
     [Theory]
     [InlineData("RPS09", ">>TURN EC-RANGE-INVALID CHECKING ON")]
     [InlineData("RPS10", "")]

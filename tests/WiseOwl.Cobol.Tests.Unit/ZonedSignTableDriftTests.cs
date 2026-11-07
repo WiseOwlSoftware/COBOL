@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE OVER-PUNCH TABLES (kb/Work PB803). ISO §13.18.52.4 GR4 leaves the REPRESENTATION of a fused operational
+/// ⛔ THE OVER-PUNCH TABLES (kb/Work PB803). ISO §2023:13.18.52.4 GR4 leaves the REPRESENTATION of a fused operational
 /// sign to the implementor and GR5 b) leaves the VALID SIGN SET to the implementor — Annex A.1 items 177 and 178 —
 /// and the owner's 2026-09-09 decision is both surveyed conventions behind one option, defaulting to IBM / Micro
 /// Focus compatibility. <see cref="ZonedSign"/> is the ONE place either table is written; these facts are what keep
@@ -84,7 +84,7 @@ public sealed class ZonedSignTableDriftTests
 
     /// <summary>A plain digit is always a valid sign character (an item whose sign was never punched — what a group
     /// MOVE of raw characters deposits), and a character outside both tables never is. The negative case is what
-    /// makes §8.8.4.4.4 GR3 n)1.a able to answer FALSE at all.</summary>
+    /// makes §2023:8.8.4.4.4 GR3 n)1.a able to answer FALSE at all.</summary>
     [Fact]
     public void ValidSignSet_AdmitsPlainDigits_AndRefusesForeignCharacters()
     {

@@ -8,9 +8,9 @@
       *> kb/Work PB1173 — A FILE SORT KEY DESCRIBED IN ONLY ONE OF THE SD'S RECORD DESCRIPTIONS IS THE SAME BYTE POSITIONS
       *> IN EVERY RECORD OF THE FILE.
       *>   cite.py --check 14.9.40.3 "The same byte positions that are referenced by a key data-name in one record
-      *>     description entry are taken as the key in all records of the file." -> OK §14.9.40.3 6) e)
+      *>     description entry are taken as the key in all records of the file." -> OK §2023:14.9.40.3 6) e)
       *> SA is the 3-byte record the program releases; SK is described only under SB, the SD's SECOND 01, at bytes 2-3
-      *> of its record. Both 01s are one area (§13.18.33.4 GR3), so SK's bytes 2-3 are the key of every record,
+      *> of its record. Both 01s are one area (§2023:13.18.33.4 GR3), so SK's bytes 2-3 are the key of every record,
       *> including the SA records released here. The ordering this derives: "a30" "b10" "c20" order on bytes 2-3
       *> ("30" "10" "20"), so the sorted output is b10, c20, a30; a sort on the FIRST byte would return a30, b10, c20
       *> and a sort that took SK at offset 0 would compare bytes 1-2 ("a3" "b1" "c2") and return the same, so the

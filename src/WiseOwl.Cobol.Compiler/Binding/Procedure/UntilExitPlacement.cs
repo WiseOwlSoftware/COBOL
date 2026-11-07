@@ -8,14 +8,14 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>
-/// The OUT-OF-LINE half of ISO §14.9.28.3 SR8 — "The UNTIL EXIT phrase shall not be specified in a PERFORM
+/// The OUT-OF-LINE half of ISO §2023:14.9.28.3 SR8 — "The UNTIL EXIT phrase shall not be specified in a PERFORM
 /// statement with or under a PERFORM statement with the VARYING phrase or either the TEST BEFORE or TEST AFTER
 /// phrase" (kb/Work PB434).
 ///
 /// <para>The "with" arm and the LEXICAL "under" arm are decided where the PERFORM binds
 /// (<c>ControlFlowBinder.CheckUntilExitPlacement</c>, asking <see cref="EnclosingContext.UnderVaryingOrTestPerform"/>).
 /// What no bind position can see is a PERFORM UNTIL EXIT written in a paragraph that a VARYING or TEST PERFORM
-/// elsewhere performs: §14.9.28.4 GR1 puts that paragraph in the PERFORM's range, and whether any such PERFORM
+/// elsewhere performs: §2023:14.9.28.4 GR1 puts that paragraph in the PERFORM's range, and whether any such PERFORM
 /// exists is known only once every procedure of the source element is bound. So the binder RECORDS here — each
 /// UNTIL EXIT statement no frame refused (its paragraph pc and position), and the ranges each VARYING or TEST
 /// PERFORM executes — and <see cref="Report"/> answers the question once, over <see cref="ProcedureReach"/>.</para>
@@ -51,9 +51,9 @@ internal sealed class UntilExitPlacement
             edition.Error(DiagnosticCatalog.PerformUntilExitPlacement,
                 $"the UNTIL EXIT phrase is specified in a PERFORM statement under the PERFORM statement at line {line}, "
                 + "which has the VARYING phrase or a TEST BEFORE / TEST AFTER phrase: this statement's paragraph is "
-                + "in that PERFORM's range (ISO §14.9.28.4 GR1), and \"The UNTIL EXIT phrase shall not be specified in "
+                + "in that PERFORM's range (ISO §2023:14.9.28.4 GR1), and \"The UNTIL EXIT phrase shall not be specified in "
                 + "a PERFORM statement with or under a PERFORM statement with the VARYING phrase or either the TEST "
-                + "BEFORE or TEST AFTER phrase\" (ISO §14.9.28.3 SR8)");
+                + "BEFORE or TEST AFTER phrase\" (ISO §2023:14.9.28.3 SR8)");
         }
     }
 }

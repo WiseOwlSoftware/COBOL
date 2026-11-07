@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.2.2 SR4 — RETURNING in a program definition, a program
+      *> ISO §2023:14.2.2 SR4 — RETURNING in a program definition, a program
       *> prototype and a method definition, each delivering its value.
       *> RULE (14.2.2 SR4): "The RETURNING phrase may be specified in a
       *> method definition, a program definition, or a program
       *> prototype."
       *> cite.py --check 14.2.2 "The RETURNING phrase may be specified
       *>   in a method definition, a program definition, or a program
-      *>   prototype" -> OK  §14.2.2 4)  (Syntax rules)
+      *>   prototype" -> OK  §2023:14.2.2 4)  (Syntax rules)
       *> cite.py --check 14.2.3 "Data-name-2 is the name used in the
       *>   function, method, or program for the result that is returned
-      *>   to the activating element" -> OK  §14.2.3 6)
+      *>   to the activating element" -> OK  §2023:14.2.3 6)
       *> One arm per permitted source element; each value is computed by
       *> the activated element into its RETURNING item and delivered to
       *> the activating element (14.2.3 GR6), so a rejected or ignored

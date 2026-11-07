@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-RANGE-PERFORM-VARYING (ISO §14.9.28.4 GR3, spec :29222; Table 13 Fatal): when a PERFORM VARYING/AFTER
+      *> EC-RANGE-PERFORM-VARYING (ISO §2023:14.9.28.4 GR3, spec :29222; Table 13 Fatal): when a PERFORM VARYING/AFTER
       *> initializes an INDEX-NAME from an IDENTIFIER FROM operand whose value is NOT POSITIVE (<= 0). NARROW — only
       *> an index-name target with an IDENTIFIER (not literal, not index-name) FROM; a data-item induction variable
       *> and a literal FROM are out of GR3 scope. Under >>TURN … CHECKING ON the USE declarative catches the fatal EC
-      *> and RESUME AT NEXT STATEMENT continues (§14.9.33). The FROM value is tested (GR3 — the item, not the index).
+      *> and RESUME AT NEXT STATEMENT continues (§2023:14.9.33). The FROM value is tested (GR3 — the item, not the index).
       *>
-      *> ⛔ "IDENTIFIER" IS EVERY §8.4.3.1.2 IDENTIFIER FORMAT, NOT ONE OF THEM (kb/Work PB439). P7 is the leg that
-      *> says so: a FUNCTION-IDENTIFIER FROM operand — §8.4.3.2.4 GR1, "a function-identifier references a temporary
+      *> ⛔ "IDENTIFIER" IS EVERY §2023:8.4.3.1.2 IDENTIFIER FORMAT, NOT ONE OF THEM (kb/Work PB439). P7 is the leg that
+      *> says so: a FUNCTION-IDENTIFIER FROM operand — §2023:8.4.3.2.4 GR1, "a function-identifier references a temporary
       *> data item whose value is determined when the function is referenced at runtime" — is an identifier, so GR3
       *> governs it. It used to take the unchecked path (the guard tested the bound node's C# type), so the FATAL EC
       *> was never set to exist and the index was left holding occurrence 0.
@@ -53,7 +53,7 @@
            DISPLAY "P3-AFTER".
       *> control: a LITERAL FROM is out of GR3 scope (GR3's premise is "an identifier is specified in the
       *> associated FROM phrase"), so no raise. ⛔ THE LITERAL IS 1, NOT 0, AND IT HAS TO BE (kb/Work PB432):
-      *> §14.9.28.3 SR4 b) says "The literal in the associated FROM phrase shall be a positive integer" whenever an
+      *> §2023:14.9.28.3 SR4 b) says "The literal in the associated FROM phrase shall be a positive integer" whenever an
       *> index-name is varied, so `FROM 0` here is not conforming source at all — this leg used to write it and
       *> assert it compiled clean, which is the SR4 b) hole itself. GR3's exclusion of literals is therefore
       *> unobservable in conforming source when the target is an index-name; what P4 pins is that the literal arm

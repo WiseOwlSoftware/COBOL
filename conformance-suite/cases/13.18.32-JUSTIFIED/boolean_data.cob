@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.40.4 PICTURE / §8.3.3.4 / §14.6.8.6 — COBOL-2002 BOOLEAN data.
+      *> ISO §2023:13.18.40.4 PICTURE / §2023:8.3.3.4 / §2023:14.6.8.6 — COBOL-2002 BOOLEAN data.
       *> A boolean item (PIC 1(n), optionally USAGE BIT) holds boolean positions '0'/'1'. Stored one byte
-      *> per position (§13.18.40.4 R14 permits an alphanumeric-character representation). Covers B"…"
+      *> per position (§2023:13.18.40.4 R14 permits an alphanumeric-character representation). Covers B"…"
       *> literals; MOVE boolean←boolean (left-justify, zero-fill right, truncate right); literal and
       *> figurative VALUE; MOVE ZERO and INITIALIZE (zero fill); DISPLAY; and boolean comparison.
       *> (BX"…" hex, the bit operators B-AND/B-OR/B-XOR/B-NOT, and true bit-packing are deferred.)
@@ -46,7 +46,7 @@
            MOVE B"1111" TO B-WORK.
            INITIALIZE B-WORK.
            DISPLAY "INIT=" B-WORK.
-      *> JUSTIFIED RIGHT boolean: a 2-position value right-aligns with '0' left-pad (ISO §13.18.32).
+      *> JUSTIFIED RIGHT boolean: a 2-position value right-aligns with '0' left-pad (ISO §2023:13.18.32).
            MOVE B"11" TO B-JR.
            DISPLAY "JR=" B-JR.
       *> Boolean comparison: equality against a literal and a field, and inequality.

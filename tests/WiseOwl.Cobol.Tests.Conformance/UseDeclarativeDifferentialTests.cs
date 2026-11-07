@@ -5,8 +5,8 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// USE AFTER STANDARD ERROR/EXCEPTION DECLARATIVES (ISO/IEC 1989:2023 §14.3 DECLARATIVES, §14.9.49 USE,
-/// §9.1.13.1 exception processing): spec-derived facts at COBOL-85, differential against the committed golden
+/// USE AFTER STANDARD ERROR/EXCEPTION DECLARATIVES (ISO/IEC 1989:2023 §2023:14.3 DECLARATIVES, §2023:14.9.49 USE,
+/// §2023:9.1.13.1 exception processing): spec-derived facts at COBOL-85, differential against the committed golden
 /// (NIST RL/IX/SQ-green). The contract under test: a declarative runs after the FILE STATUS store for an
 /// unsuccessful status NOT covered by the statement's own AT END ('1x') / INVALID KEY ('2x') phrase; file-scoped
 /// USE beats mode-scoped (incl. the failed-OPEN being-opened mode, GR6b); at most ONE declarative per exception
@@ -16,7 +16,7 @@ public sealed class UseDeclarativeDifferentialTests
 {
     private static void AssertMatchesGolden(string source) => DifferentialGolden.Assert(source);
 
-    /// <summary>§14.9.30 GR24d + §9.1.13.1: READ at end WITHOUT an AT END phrase invokes the file-scoped
+    /// <summary>§2023:14.9.30 GR24d + §2023:9.1.13.1: READ at end WITHOUT an AT END phrase invokes the file-scoped
     /// declarative — and the FILE STATUS item already holds "10" inside it (the status stores FIRST, GR6).</summary>
     [Fact]
     public void ReadAtEnd_NoPhrase_FileScopedDeclarativeRuns()
@@ -55,7 +55,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§9.1.13.1 / §14.9.30 GR24c: a READ at end WITH the AT END phrase does NOT invoke the
+    /// <summary>§2023:9.1.13.1 / §2023:14.9.30 GR24c: a READ at end WITH the AT END phrase does NOT invoke the
     /// declarative — the imperative runs instead.</summary>
     [Fact]
     public void ReadAtEnd_WithPhrase_DeclarativeSuppressed()
@@ -93,7 +93,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.49.4 GR6b: a failed OPEN INPUT (status 35, the file absent and not OPTIONAL) reaches a
+    /// <summary>§2023:14.9.49.4 GR6b: a failed OPEN INPUT (status 35, the file absent and not OPTIONAL) reaches a
     /// MODE-scoped USE … ON INPUT — the file was "in the process of being opened" in that mode.</summary>
     [Fact]
     public void FailedOpen_ReachesModeScopedDeclarative()
@@ -123,7 +123,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.49.4 GR3/GR5: the FILE-scoped USE takes precedence over the mode-scoped one for the same
+    /// <summary>§2023:14.9.49.4 GR3/GR5: the FILE-scoped USE takes precedence over the mode-scoped one for the same
     /// exception — exactly ONE declarative runs.</summary>
     [Fact]
     public void FileScope_BeatsModeScope_OneDeclarativeOnly()
@@ -155,7 +155,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.49.4 GR2: a declarative that itself provokes an I/O exception on its own file is NOT
+    /// <summary>§2023:14.9.49.4 GR2: a declarative that itself provokes an I/O exception on its own file is NOT
     /// re-entered (the RL111A re-entrancy shape — without the guard this recurses to a stack overflow).</summary>
     [Fact]
     public void Declarative_SelfExceptionDoesNotReenter()
@@ -187,7 +187,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.49.4 GR6: a SUCCESSFUL completion (status 0x) never invokes a declarative, and after a
+    /// <summary>§2023:14.9.49.4 GR6: a SUCCESSFUL completion (status 0x) never invokes a declarative, and after a
     /// non-fatal declarative return execution continues after the failing statement (GR7b).</summary>
     [Fact]
     public void SuccessNeverInvokes_AndExecutionContinuesAfterReturn()
@@ -223,7 +223,7 @@ public sealed class UseDeclarativeDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.49 SR4: a declarative paragraph may be PERFORMed from the nondeclarative body as a plain
+    /// <summary>§2023:14.9.49 SR4: a declarative paragraph may be PERFORMed from the nondeclarative body as a plain
     /// procedure (declaratives share the one pc space).</summary>
     [Fact]
     public void PerformIntoDeclarative_RunsAsPlainProcedure()

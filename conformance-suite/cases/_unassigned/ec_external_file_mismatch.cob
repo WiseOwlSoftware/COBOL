@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-EXTERNAL-FILE-MISMATCH (ISO §14.8.4.4 / §12.4.5.3 GR1(e); raise point
-      *> §14.9.4.4 GR3e; VCR 15). MAIN's file control entry for external file XFM-F is
+      *> EC-EXTERNAL-FILE-MISMATCH (ISO §2023:14.8.4.4 / §2023:12.4.5.3 GR1(e); raise point
+      *> §2023:14.9.4.4 GR3e; VCR 15). MAIN's file control entry for external file XFM-F is
       *> ORGANIZATION SEQUENTIAL; the CALLed sub's corresponding entry is ORGANIZATION
       *> RELATIVE — GR1(e) requires the same organization for every file control entry
       *> referencing an external file connector in the run unit. Checking enabled in both
       *> elements; at the CALL the activated element's registration detects the entry
       *> conflict, the Fatal condition is set, the call is not successful (GR3h #1 — the
-      *> ON EXCEPTION phrase), and the sub never runs. No OPEN is needed: the §14.8.4.4
+      *> ON EXCEPTION phrase), and the sub never runs. No OPEN is needed: the §2023:14.8.4.4
       *> check is an activation-time conformance check, not an I-O operation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XFMMAIN.

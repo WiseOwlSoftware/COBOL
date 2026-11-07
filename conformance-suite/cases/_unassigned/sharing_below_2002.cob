@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The SHARING clause (ISO §12.4.5.15 / §14.9.27) is a COBOL-2002 introduction. Residue migration #3
+      *> The SHARING clause (ISO §2023:12.4.5.15 / §2023:14.9.27) is a COBOL-2002 introduction. Residue migration #3
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicates (SELECT + OPEN) AND the
       *> reverse-signature ReservedWordEditionHints arm are GONE — SHARING parses at all editions (superset) and the
       *> introduction gate is enforced at BIND (DataBinder SELECT + BindOpen phrase -> Check(FileSharingClause2002)),

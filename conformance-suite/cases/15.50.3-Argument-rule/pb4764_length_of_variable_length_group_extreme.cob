@@ -5,9 +5,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4764 review R1-1 - a class test over FUNCTION LENGTH (VG), a variable-length group's run-time LENGTH. ISO §8.8.4.4.3 SR6
-      *> needs a numeric identifier-1 and §8.4.3.2.4 1) makes the function-identifier a temporary data item, so FARTHEST-FROM-ZERO and
-      *> NEAREST-TO-ZERO (§8.8.4.4.4 3) g and its sibling) are legal; LENGTH is an integer function, so its value 3 is neither the
+      *> PB4764 review R1-1 - a class test over FUNCTION LENGTH (VG), a variable-length group's run-time LENGTH. ISO §2023:8.8.4.4.3 SR6
+      *> needs a numeric identifier-1 and §2023:8.4.3.2.4 1) makes the function-identifier a temporary data item, so FARTHEST-FROM-ZERO and
+      *> NEAREST-TO-ZERO (§2023:8.8.4.4.4 3) g and its sibling) are legal; LENGTH is an integer function, so its value 3 is neither the
       *> farthest value nor the nearest nonzero one (1) of the returned-value item. Each test was a run-time abort for want of a range.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4764EXTREME.

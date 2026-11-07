@@ -10,8 +10,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ USAGE MESSAGE-TAG ANSWERS TO ONE ROW PER EDITION (kb/Work PB916): below COBOL-2023 the COBOL0900 introduction
 /// gate (<c>usage-message-tag-2023</c>) is the whole edition answer; at 2023 the usage binds (kb/Work PB4740 retired
 /// the Annex A.3 decline COBOL1943). The conformance harness's refusal files check that a code is REPORTED, not that
-/// another is NOT, so the absence of the gate at 2023 is asserted here, over BOTH spellings of the clause (§13.18.60.2
-/// prints <c>[ USAGE IS ]</c> as optional) and over the usage a group hands down (§13.18.60.4 GR1).
+/// another is NOT, so the absence of the gate at 2023 is asserted here, over BOTH spellings of the clause (§2023:13.18.60.2
+/// prints <c>[ USAGE IS ]</c> as optional) and over the usage a group hands down (§2023:13.18.60.4 GR1).
 /// </summary>
 public sealed class MessageTagIntroductionGateTests
 {
@@ -58,8 +58,8 @@ public sealed class MessageTagIntroductionGateTests
         Assert.Empty(errors);
     }
 
-    /// <summary>A group's message-tag usage is handed to its elementary items (§13.18.60.4 GR1), and an item that is not
-    /// at level 1 or under a STRONG type declaration breaks §13.18.60.3 SR14 at every edition that has the usage.</summary>
+    /// <summary>A group's message-tag usage is handed to its elementary items (§2023:13.18.60.4 GR1), and an item that is not
+    /// at level 1 or under a STRONG type declaration breaks §2023:13.18.60.3 SR14 at every edition that has the usage.</summary>
     [Fact]
     public void AtTheIntroduction_AGroupsMessageTagUsageIsRefusedBySr14()
     {
@@ -260,7 +260,7 @@ public sealed class MessageTagIntroductionGateTests
     }
 
     /// <summary>kb/Work PB4771 review R1-1: a message-tag SENDER that is an IMPORTED function's returned temporary has no
-    /// declaration in this compilation, so no COBOL0900 gate fires on it; the SET must still be refused (§14.9.39.3 SR35,
+    /// declaration in this compilation, so no COBOL0900 gate fires on it; the SET must still be refused (§2023:14.9.39.3 SR35,
     /// COBOL0869) at every edition, never dropped as a no-op that compiles clean below 2023.</summary>
     [Theory]
     [InlineData(2002)]

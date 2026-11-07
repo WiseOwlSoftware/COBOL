@@ -17,16 +17,16 @@ public abstract record MethodLocal;
 /// <summary>The construct that declares a <see cref="StatementLocal"/>: with the ordinal, the local's whole identity.</summary>
 public enum StatementLocalRole
 {
-    /// <summary>An INITIALIZE per-occurrence loop counter (ISO §14.9.20.4 5) b) 2.: "each occurrence of the elementary data
+    /// <summary>An INITIALIZE per-occurrence loop counter (ISO §2023:14.9.20.4 5) b) 2.: "each occurrence of the elementary data
     /// item is a possible receiving-operand"); the ordinal is the unit's INITIALIZE loop serial.</summary>
     InitializeOccurrence,
 
-    /// <summary>The element loop counter of a variable-length group MOVE's corresponding tables (ISO §14.6.9.2:
+    /// <summary>The element loop counter of a variable-length group MOVE's corresponding tables (ISO §2023:14.6.9.2:
     /// "Correspondingly numbered elements are moved according to the rules of the MOVE statement"); the ordinal is the
     /// unit's element-loop serial.</summary>
     ElementMoveOccurrence,
 
-    /// <summary>The sending group's anchor of a CORRESPONDING statement (ISO §14.7.6: "Any item identification associated
+    /// <summary>The sending group's anchor of a CORRESPONDING statement (ISO §2023:14.7.6: "Any item identification associated
     /// with a corresponding pair of operands is done at the start of the execution of the statement containing the
     /// CORRESPONDING phrase"); the ordinal is the statement's serial in the unit.</summary>
     CorrespondingSendingAnchor,
@@ -35,7 +35,7 @@ public enum StatementLocalRole
     /// <see cref="CorrespondingSendingAnchor"/>; the same ordinal.</summary>
     CorrespondingReceivingAnchor,
 
-    /// <summary>A table(ALL) enumeration's index vector (ISO §15.3 14), one current occurrence per ALL level); the ordinal is
+    /// <summary>A table(ALL) enumeration's index vector (ISO §2023:15.3 14), one current occurrence per ALL level); the ordinal is
     /// the unit's table(ALL) serial.</summary>
     TableAllIndices,
 
@@ -43,11 +43,11 @@ public enum StatementLocalRole
     /// <see cref="DataItem.Uid"/>.</summary>
     HeldTableAllIndices,
 
-    /// <summary>A report VARYING counter (ISO §13.18.64.4 1): "an independent temporary integer data item"); the ordinal is
+    /// <summary>A report VARYING counter (ISO §2023:13.18.64.4 1): "an independent temporary integer data item"); the ordinal is
     /// the counter's compilation-unique <c>ReportVaryingModel.Uid</c>.</summary>
     ReportVaryingCounter,
 
-    /// <summary>A METHOD's carrier-resident formal's carrier (ISO §14.2.3 GR8: "the activated runtime element operates as
+    /// <summary>A METHOD's carrier-resident formal's carrier (ISO §2023:14.2.3 GR8: "the activated runtime element operates as
     /// if the formal parameter occupies the same storage area as the argument"; <see cref="FormalCarrier.Local"/>,
     /// kb/Work PB4380): the method-local <c>ManagedPointer&lt;T&gt;</c> every reference to the formal reads and writes
     /// through. The ordinal is the formal's <see cref="DataItem.Uid"/>.</summary>
@@ -61,7 +61,7 @@ public sealed record StatementLocal(StatementLocalRole Role, int Ordinal) : Meth
 
 /// <summary>⛔ THE STORAGE OF A METHOD'S LEVEL-1 DATA ROOT, a local of the generated method (kb/Work PB4416;
 /// DESIGN-backend-abstraction §1.2, §1.3 L8): a LOCAL-STORAGE root, whose items "are automatic items. Their storage is
-/// allocated and set to initial state each time the runtime element containing them is activated" (ISO §8.6.4), and a
+/// allocated and set to initial state each time the runtime element containing them is activated" (ISO §2023:8.6.4), and a
 /// LINKAGE root that holds its own copy for the activation (a formal copied in, the RETURNING item, an unattached record).
 /// <paramref name="Root"/> is the root itself, so the identity is the root's and two references to it are equal values
 /// (<see cref="DataItem"/> compares by reference). Set as <see cref="DataItem.ActivationLocal"/> by

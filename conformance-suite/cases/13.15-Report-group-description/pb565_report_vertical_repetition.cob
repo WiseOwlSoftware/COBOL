@@ -11,35 +11,35 @@
       *> ⛔ A REPORT GROUP DESCRIPTION ENTRY REPEATS ON EITHER AXIS, AND THE VERTICAL ONE IS THE LINE CLAUSE
       *> (kb/Work PB565). The horizontal (COLUMN) half landed first; an OCCURS clause on an entry that contains
       *> or has subordinate to it a LINE clause was still refused by name (COBOL0899), and so was its twin
-      *> the multiple LINE clause — conforming source rejected, with §13.18.35.4 GR9 and §13.18.38.4
+      *> the multiple LINE clause — conforming source rejected, with §2023:13.18.35.4 GR9 and §2023:13.18.38.4
       *> GR10c/GR10d/GR12c/GR12d unreachable. This golden pins all four, plus the multiple LINE clause, at the
       *> edition that introduced them.
       *>
-      *> THE TWO VEHICLES ARE ONE. §13.18.35.4 GR9: "A multiple LINE clause is functionally equivalent to a LINE
+      *> THE TWO VEHICLES ARE ONE. §2023:13.18.35.4 GR9: "A multiple LINE clause is functionally equivalent to a LINE
       *> clause with a single operand, together with a simple OCCURS clause whose integer is equal to the number
       *> of operands of the LINE clause, except that the multiple LINE clause allows the report lines to be
       *> defined at unequal vertical intervals." So both drive the SAME subtree replay.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT, line by line. The report has no heading groups and DET-V is the
-      *> chronologically first body group since the INITIATE, so no page fit test takes place (§13.18.35.4 GR4)
-      *> and the group's first line number is given by §13.18.35.4 GR5a — the first LINE clause is absolute, so
+      *> chronologically first body group since the INITIATE, so no page fit test takes place (§2023:13.18.35.4 GR4)
+      *> and the group's first line number is given by §2023:13.18.35.4 GR5a — the first LINE clause is absolute, so
       *> integer-1, line 2. Every subsequent line follows GR7: absolute -> integer-1, relative -> LINE-COUNTER
-      *> + integer-2. §13.18.35.3 SR6 orders the group: the absolute lines are ascending and none follows a
+      *> + integer-2. §2023:13.18.35.3 SR6 orders the group: the absolute lines are ascending and none follows a
       *> relative one.
       *>
       *> LINES 2, 4, 7 — THE MULTIPLE LINE CLAUSE. Three operands, so GR9 makes the entry a repeating entry of
       *> three repetitions at unequal intervals. Its subordinate printable item carries a three-operand VALUE
-      *> clause, which §13.18.63.3 SR35 admits because the entry "shall be subordinate to a repeating entry"
-      *> with a matching operand count, and §13.18.63.4 GR23 assigns "successive operands … to successive
+      *> clause, which §2023:13.18.63.3 SR35 admits because the entry "shall be subordinate to a repeating entry"
+      *> with a matching operand count, and §2023:13.18.63.4 GR23 assigns "successive operands … to successive
       *> repeating printable items" => X on line 2, Y on line 4, Z on line 7.
       *>
       *> LINES 9, 11, 14 — A MULTIPLE LINE CLAUSE CARRYING THE PRINTABLE ITEM ITSELF, with a VARYING counter.
-      *> §13.18.64.3 SR1 names the multiple LINE clause as a VARYING vehicle, and §13.18.64.4 GR3 fixes the
+      *> §2023:13.18.64.3 SR1 names the multiple LINE clause as a VARYING vehicle, and §2023:13.18.64.4 GR3 fixes the
       *> counter per repetition: FROM 2 BY 3 => 2, 5, 8, printed through PIC 9 at column 1.
       *>
       *> LINES 16, 18, 20 — GR12c OVER AN ABSOLUTE LINE. "If the entry contains a LINE clause, each successive
       *> occurrence is positioned integer-3 lines vertically beneath the preceding occurrence." LINE 16 OCCURS 3
-      *> TIMES STEP 2 => 16, 18, 20. §13.18.38.3 SR25a REQUIRES the STEP phrase here: without it every
+      *> TIMES STEP 2 => 16, 18, 20. §2023:13.18.38.3 SR25a REQUIRES the STEP phrase here: without it every
       *> repetition would print on line 16.
       *>
       *> LINES 21, 22 and 25, 26 — GR12d OVER A GROUP OF RELATIVE LINES. "If the entry is a group entry having
@@ -48,16 +48,16 @@
       *> STEP 4 over two LINE PLUS 1 entries: LINE-COUNTER is 20, so the first occurrence lands on 21 and 22;
       *> the second is each of those plus 4 — 25 and 26 — which is NOT LINE-COUNTER + 4, because the datum is
       *> the line the preceding OCCURRENCE occupied while LINE-COUNTER holds the last line PRINTED
-      *> (§13.18.35.4 GR1).
+      *> (§2023:13.18.35.4 GR1).
       *>
       *> LINES 27, 28, 29 — GR10c WITH NO STEP PHRASE. "If the entry also contains a relative LINE clause, each
       *> repetition behaves as though it had the same relative LINE clause", and GR12's closing sentence makes
       *> the relative operand itself the interval: LINE PLUS 1 OCCURS 3 TIMES from LINE-COUNTER 26 => 27, 28,
-      *> 29. §13.18.38.3 SR25 leaves the STEP phrase optional here, which is why its absence is the point.
+      *> 29. §2023:13.18.38.3 SR25 leaves the STEP phrase optional here, which is why its absence is the point.
       *>
-      *> LINES 30, 31 — THE TWO AXES NESTED, AND §13.18.63.4 GR23's WRAP-AROUND. The outer 02 repeats twice
+      *> LINES 30, 31 — THE TWO AXES NESTED, AND §2023:13.18.63.4 GR23's WRAP-AROUND. The outer 02 repeats twice
       *> vertically and its subordinate printable item three times horizontally, so the item has SIX placements
-      *> and a three-operand VALUE clause. §13.18.63.3 SR35 admits the count — the operands equal "the number of
+      *> and a three-operand VALUE clause. §2023:13.18.63.3 SR35 admits the count — the operands equal "the number of
       *> repetitions of the repeating entry", 3, and the admissible counts are the prefix products 3 and 6 — and
       *> GR23's closing sentence then governs the rest: "If no further operands remain, assignment begins again
       *> from the first operand." So both lines print A, B, C at columns 1, 3, 5 (STEP 2 over PIC X(1)), the
@@ -65,10 +65,10 @@
       *> repeating entry subordinate to another one, which needed both axes.
       *>
       *> THE READ-BACK IS BYTE-WISE AND NUMBERS THE LINES. A report file's lines are newline-delimited and
-      *> ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 introduction (§12.4.5.10.3 GR2), so a one-character
+      *> ORGANIZATION IS LINE SEQUENTIAL is a COBOL-2023 introduction (§2023:12.4.5.10.3 GR2), so a one-character
       *> record on a second SELECT over the same file reassembles them at every edition. The LINE NUMBER is
       *> what this golden is about, so each printed line is shown with the page line it landed on; the blank
-      *> lines between them are §13.18.35.4 GR7's "Any unoccupied lines on the page result in a blank line".
+      *> lines between them are §2023:13.18.35.4 GR7's "Any unoccupied lines on the page result in a blank line".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB565RVR.
        ENVIRONMENT DIVISION.

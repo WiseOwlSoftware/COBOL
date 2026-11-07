@@ -4,18 +4,18 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// ⛔ <b>THE ONE PRESENCE FACT OF A FORMAL PARAMETER</b> — how the activated element learns whether the
-/// argument corresponding to a formal was omitted (ISO §8.8.4.8.4 GR1: the OMITTED phrase was written, the
+/// argument corresponding to a formal was omitted (ISO §2023:8.8.4.8.4 GR1: the OMITTED phrase was written, the
 /// argument was a trailing one omitted from the activating statement, or it is itself a formal parameter for
 /// which the omitted-argument condition is true).
 /// <para>Two activation ABIs carry it, and they carry it differently (kb/Work PB757):</para>
 /// <list type="bullet">
 /// <item><see cref="Carrier"/> — a PROGRAM / FUNCTION formal crosses as a <c>ManagedPointer&lt;T&gt;</c> carrier
-/// (INTERPROGRAM_DESIGN D1/D2); the omitted argument is the NULL carrier (§14.9.4.4 GR11).</item>
+/// (INTERPROGRAM_DESIGN D1/D2); the omitted argument is the NULL carrier (§2023:14.9.4.4 GR11).</item>
 /// <item><see cref="MethodFlag"/> — a METHOD formal crosses as a typed <c>ref T</c> parameter (OO_DESIGN
 /// D6), which has no omitted state of its own, so every formal is paired with a <c>bool</c> presence parameter
-/// that is TRUE when the argument was omitted (§14.9.23.4 GR9).</item>
+/// that is TRUE when the argument was omitted (§2023:14.9.23.4 GR9).</item>
 /// </list>
-/// <para>Every consumer — the §8.8.4.8 condition, and the §8.8.4.8.4 GR1c forwarding of a formal as an argument
+/// <para>Every consumer — the §2023:8.8.4.8 condition, and the §2023:8.8.4.8.4 GR1c forwarding of a formal as an argument
 /// by CALL and by INVOKE — reads THIS record, so a third activation ABI is one new case here and a compile error
 /// at every consumer's switch rather than a silently missing arm.</para>
 /// </summary>

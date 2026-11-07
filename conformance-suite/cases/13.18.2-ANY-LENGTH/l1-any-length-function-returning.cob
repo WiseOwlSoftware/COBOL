@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.2.3 SR4 — a FUNCTION's ANY LENGTH item used as its
+      *> ISO §2023:13.18.2.3 SR4 — a FUNCTION's ANY LENGTH item used as its
       *> RETURNING item is refused.
       *>   cite.py --check 13.18.2.3 "If the source element containing the
       *>     ANY LENGTH clause is a function, the subject of the entry

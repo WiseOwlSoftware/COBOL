@@ -8,7 +8,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §15.3 type 6 — "An arithmetic expression that will always result in an integer value or an integer data item
+/// ISO §2023:15.3 type 6 — "An arithmetic expression that will always result in an integer value or an integer data item
 /// shall be specified" — judged on the expression's VALUE when its non-integral part is a literal constant
 /// (kb/Work PB617). <c>IntrinsicArgumentRules.CollectAdditive</c> used to accumulate data items only, so a literal's
 /// fraction never entered the integrality net: <c>FUNCTION CHAR(1.5 + 1)</c> (= 2.5) compiled clean while the bare
@@ -66,7 +66,7 @@ public sealed class IntegerArgumentConstantWitnessTests
         string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr));
         if (refused)
             Assert.True(why is not null,
-                $"'{shape}' is never an integer for any valuation, so ISO §15.3 type 6 does not admit it — but the "
+                $"'{shape}' is never an integer for any valuation, so ISO §2023:15.3 type 6 does not admit it — but the "
                 + "integer screen admitted it (kb/Work PB617: the additive spine must fold its literal terms).");
         else
             Assert.True(why is null,

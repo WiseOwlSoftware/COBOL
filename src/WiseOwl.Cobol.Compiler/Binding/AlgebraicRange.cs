@@ -7,35 +7,35 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The extreme values ONE data description permits, rendered as decimal literal TEXT.</summary>
 /// <param name="Farthest">The POSITIVE algebraic value of greatest finite magnitude the description permits —
-/// ISO §15.43.4 r2 ("the positive algebraic value of greatest finite magnitude that may be represented in
-/// argument-1") and §14.9.39.4 GR32 a) ("the value farthest away from zero permitted by the specifications of
+/// ISO §2023:15.43.4 r2 ("the positive algebraic value of greatest finite magnitude that may be represented in
+/// argument-1") and §2023:14.9.39.4 GR32 a) ("the value farthest away from zero permitted by the specifications of
 /// identifier-14") name the same quantity.</param>
 /// <param name="FarthestNegative">The NEGATIVE value of greatest finite magnitude, or <c>null</c> when the
 /// description cannot represent a sign at all. ⚠ It is NOT always <c>-Farthest</c>: a two's-complement container
 /// reaches one further down (<c>PIC S9(4) COMP-5</c> spans −32768..32767 — DOC-A.1-208; BINARY-SHORT likewise,
-/// §13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §14.9.39.3 SR31 a) makes the SIGN phrase
+/// §2023:13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §2023:14.9.39.3 SR31 a) makes the SIGN phrase
 /// mandatory for.</param>
-/// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §15.83.4 r2's "smallest
+/// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §2023:15.83.4 r2's "smallest
 /// algebraic value that may represent the difference between two values represented in argument-1" and
-/// §14.9.39.4 GR36 a)'s "the nonzero value nearest to zero permitted by the specifications of identifier-14".
+/// §2023:14.9.39.4 GR36 a)'s "the nonzero value nearest to zero permitted by the specifications of identifier-14".
 /// Always a POSITIVE magnitude; a caller wanting the negative one prefixes the sign. <c>null</c> for a
-/// FLOATING-POINT numeric-edited picture, and deliberately so: no rule in the standard asks for it (§15.83.3 r1
-/// admits category numeric ONLY, and §14.9.39.3 SR31 likewise), so deriving one here would be a lookup nothing
+/// FLOATING-POINT numeric-edited picture, and deliberately so: no rule in the standard asks for it (§2023:15.83.3 r1
+/// admits category numeric ONLY, and §2023:14.9.39.3 SR31 likewise), so deriving one here would be a lookup nothing
 /// reads and therefore nothing has ever contradicted (feedback_a_dead_lookup_is_also_unverified). A future
-/// caller derives it from §13.18.40.4 GR13's significand normalization, which is the part this would have to
+/// caller derives it from §2023:13.18.40.4 GR13's significand normalization, which is the part this would have to
 /// guess at.</param>
 /// <param name="Zero">Zero rendered AT THIS DESCRIPTION'S OWN SCALE — <c>"0.00"</c> for a <c>9V99</c> item, not
 /// <c>"0"</c>. It rides here rather than being recomputed by callers because the scale that produces it is an
-/// EDITED mask's fractional width, which is not <c>PicInfo.Scale</c>; §15.58.4's lowest value for an item that
+/// EDITED mask's fractional width, which is not <c>PicInfo.Scale</c>; §2023:15.58.4's lowest value for an item that
 /// cannot represent a sign IS this, and a literal at the wrong scale then feeds whatever arithmetic reads it.</param>
 internal readonly record struct AlgebraicRange(string Farthest, string? FarthestNegative, string? Nearest, string Zero);
 
 /// <summary>⛔ THE ONE EVALUATOR for "what are the extreme values this data description permits", because the
 /// standard gives that one quantity TWO surfaces and says so itself:
 /// <list type="bullet">
-/// <item>the §15.43 / §15.58 / §15.83 HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC / SMALLEST-ALGEBRAIC intrinsics
+/// <item>the §2023:15.43 / §2023:15.58 / §2023:15.83 HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC / SMALLEST-ALGEBRAIC intrinsics
 /// (<c>IntrinsicBinder.BindAlgebraicFold</c>), and</item>
-/// <item>the §14.9.39.2 Format 15 <c>SET CONTENT OF … TO FARTHEST-FROM-ZERO / NEAREST-TO-ZERO</c> statement
+/// <item>the §2023:14.9.39.2 Format 15 <c>SET CONTENT OF … TO FARTHEST-FROM-ZERO / NEAREST-TO-ZERO</c> statement
 /// (<c>SetBinder.BindSetContent</c>).</item>
 /// </list>
 /// Annex D.32 states the equivalence in normative-adjacent words — "<c>SET CONTENT OF numeric-item TO
@@ -43,10 +43,10 @@ internal readonly record struct AlgebraicRange(string Farthest, string? Farthest
 /// HIGHEST-ALGEBRAIC (numeric-item) TO numeric-item</c>" — so a second copy of this arithmetic is a rule written
 /// down twice, and the two copies would disagree the first time a usage's capacity discipline changed
 /// (feedback_one_rule_one_place).
-/// <para>⚠ WHAT THIS DOES NOT DO. The two surfaces have DIFFERENT SCREENS and each keeps its own: §15.43.3 /
-/// §15.58.3 / §15.83.3 r1's data-item/category rules and r2/r3's arithmetic-mode usage bars, plus the §15.x.4 r1
-/// well-formedness test, belong to the intrinsics; §14.9.39.3 SR31/SR32 belong to the statement. This is the
-/// VALUE only, and every caller screens before it asks. §15.43.1 is explicit that the two differ — "The content
+/// <para>⚠ WHAT THIS DOES NOT DO. The two surfaces have DIFFERENT SCREENS and each keeps its own: §2023:15.43.3 /
+/// §2023:15.58.3 / §2023:15.83.3 r1's data-item/category rules and r2/r3's arithmetic-mode usage bars, plus the §15.x.4 r1
+/// well-formedness test, belong to the intrinsics; §2023:14.9.39.3 SR31/SR32 belong to the statement. This is the
+/// VALUE only, and every caller screens before it asks. §2023:15.43.1 is explicit that the two differ — "The content
 /// of any numeric data item can be set exactly to the highest algebraic value permitted for it using the SET
 /// statement, regardless of the mode of arithmetic that is in effect."</para></summary>
 internal static class AlgebraicRanges
@@ -60,13 +60,13 @@ internal static class AlgebraicRanges
     internal static AlgebraicRange? Of(PicInfo pic)
     {
         bool decimalPointIsComma = pic.DecimalPointIsComma;
-        if (pic.Usage is Usage.Index) return null;                 // class index — not category numeric (§13.18.60)
+        if (pic.Usage is Usage.Index) return null;                 // class index — not category numeric (§2023:13.18.60)
         bool edited = pic.Category is PicCategory.NumericEdited;
         if (pic.Category is not PicCategory.Numeric && !edited) return null;
 
-        // ── Standard / native floating-point USAGES (§13.18.60.4 GR13–GR18) ────────────────────────────────
+        // ── Standard / native floating-point USAGES (§2023:13.18.60.4 GR13–GR18) ────────────────────────────────
         // The extremes are properties of the CARRIER this implementation maps the usage onto (PicInfo.ClrType),
-        // which is what §15.43.4 r2's "represented in argument-1" and GR32 a)'s "permitted by the specifications
+        // which is what §2023:15.43.4 r2's "represented in argument-1" and GR32 a)'s "permitted by the specifications
         // of identifier-14" both denote. Every float usage is signed, so FarthestNegative is always the mirror.
         if (pic.IsFloat)
         {
@@ -82,9 +82,9 @@ internal static class AlgebraicRanges
             return new AlgebraicRange(max, "-" + max, min, Zero: "0");
         }
 
-        // ── A FLOATING-POINT numeric-edited picture (§13.18.40, D21/kb/Work PB66) ──────────────────────────
+        // ── A FLOATING-POINT numeric-edited picture (§2023:13.18.40, D21/kb/Work PB66) ──────────────────────────
         // The extreme is the all-nines significand at the mask's maximum exponent; an UNSIGNED mask has no
-        // negative extreme at all (the standard's own §15.43.4 NOTE table shows `$**,**9.99` reaching 0 downward).
+        // negative extreme at all (the standard's own §2023:15.43.4 NOTE table shows `$**,**9.99` reaching 0 downward).
         if (edited && pic.IsFloatEdited)
         {
             var fm = WiseOwl.Cobol.Runtime.CobolEdit.FloatMask.Parse(pic.EditMask!, decimalPointIsComma);
@@ -101,8 +101,8 @@ internal static class AlgebraicRanges
         bool signable;
         if (edited && pic.LocaleEdit is not null)
         {
-            // A format-2 (LOCALE) picture (§13.18.40 format 2; kb/Work PB64 T6): capacity = the Z+9 digit
-            // positions at the picture's scale; signable = a '+' in character-string-1 (§13.18.40.5 r13).
+            // A format-2 (LOCALE) picture (§2023:13.18.40 format 2; kb/Work PB64 T6): capacity = the Z+9 digit
+            // positions at the picture's scale; signable = a '+' in character-string-1 (§2023:13.18.40.5 r13).
             scale = pic.Scale;
             unscaled = Pow10(pic.DigitPositions) - 1;
             signable = pic.Signed;
@@ -110,20 +110,20 @@ internal static class AlgebraicRanges
         else if (edited)
         {
             // The EDITING rules travel with the mask: a FLOATING extended editing sign control symbol's
-            // repetitions are digit positions (§13.18.40.5 rule 6), so the capacity is wrong without them
+            // repetitions are digit positions (§2023:13.18.40.5 rule 6), so the capacity is wrong without them
             // (kb/Work PB491).
             var (cap, frac) = WiseOwl.Cobol.Runtime.CobolEdit.MaskCapacity(pic.EditMask!,
                 pic.EditingRules as WiseOwl.Cobol.Runtime.CobolEdit.EditRule[], '$', decimalPointIsComma);
             scale = frac;
-            unscaled = Pow10(cap) - 1;      // all-nines over the mask's digit positions (§13.18.40.4)
+            unscaled = Pow10(cap) - 1;      // all-nines over the mask's digit positions (§2023:13.18.40.4)
             signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
                        || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
         }
         else if (pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity)
         {
             // ⛔ Keyed on the ONE capacity-discipline datum (PicInfo.Truncation), never on a usage list: the
-            // item owns its container's FULL two's-complement range (COMP-5: DOC-A.1-208; BINARY-*: §13.18.60.4
-            // GR12), the shape whose |min| ≠ |max| makes §14.9.39.3 SR31 a) demand the SIGN phrase.
+            // item owns its container's FULL two's-complement range (COMP-5: DOC-A.1-208; BINARY-*: §2023:13.18.60.4
+            // GR12), the shape whose |min| ≠ |max| makes §2023:14.9.39.3 SR31 a) demand the SIGN phrase.
             // AlgebraicFoldContainerAgreementTests pins this bound against the runtime capacity for every
             // BinaryCapacity profile.
             scale = pic.Scale;
@@ -148,20 +148,20 @@ internal static class AlgebraicRanges
             farthest,
             signable ? Decimalize(unscaled, scale, negative: true) : null,
             // The smallest positive increment 10^(−scale) — independent of digit count, sign and container
-            // (§15.83.4 r2; §14.9.39.4 GR36 a).
+            // (§2023:15.83.4 r2; §2023:14.9.39.4 GR36 a).
             Decimalize(BigInteger.One, scale, negative: false),
             Decimalize(BigInteger.Zero, scale, negative: false));
     }
 
     /// <summary>The extremes of a COUNTER REGISTER — LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER, category-numeric
-    /// data items by §8.5.2.12 items 3–5 — or <c>null</c> for any other expression (kb/Work R26, PB1401). Each is
-    /// "a temporary unsigned integer data item" (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1), so its nearest nonzero value
+    /// data items by §2023:8.5.2.12 items 3–5 — or <c>null</c> for any other expression (kb/Work R26, PB1401). Each is
+    /// "a temporary unsigned integer data item" (§2023:8.4.3.14.4 GR1 / §2023:8.4.3.15.4 GR1), so its nearest nonzero value
     /// is 1, its zero is 0 and it has no negative extreme; its capacity is:
     /// <list type="bullet">
-    /// <item>LINAGE-COUNTER — "whose size is equal to the page size specified in the LINAGE clause" (§8.4.3.14.4
+    /// <item>LINAGE-COUNTER — "whose size is equal to the page size specified in the LINAGE clause" (§2023:8.4.3.14.4
     /// GR1): a literal page size directly; a data-name page size is set at run time, so the capacity is the
     /// largest page size that item can hold, its all-nines. The data-name is read from its RESOLVED item
-    /// (<see cref="LinageOperand.Item"/>, qualified per §8.4.2.2 — kb/Work PB489), never re-looked-up by its bare
+    /// (<see cref="LinageOperand.Item"/>, qualified per §2023:8.4.2.2 — kb/Work PB489), never re-looked-up by its bare
     /// name.</item>
     /// <item>LINE-COUNTER / PAGE-COUNTER — the standard gives no size and no usage, so the owner's latitude order
     /// (CLAUDE.md rule 1) takes GnuCOBOL's: an unsigned 32-bit binary integer (<c>CB_USAGE_UNSIGNED_INT</c>,
@@ -169,17 +169,17 @@ internal static class AlgebraicRanges
     /// registers' declared description"). It is <see cref="PicInfo.ReportCounterItem"/>, read here and nowhere
     /// else.</item>
     /// </list>
-    /// ⛔ THE ONE STATEMENT OF THE REGISTERS' DESCRIPTION: the §15.43/§15.58/§15.83 algebraic folds, the §8.8.4.4.4
+    /// ⛔ THE ONE STATEMENT OF THE REGISTERS' DESCRIPTION: the §2023:15.43/§2023:15.58/§2023:15.83 algebraic folds, the §2023:8.8.4.4.4
     /// GR3 g)/l)/m) class conditions, the character image, the LENGTH / BYTE-LENGTH folds and the usage screens
-    /// (STRING / UNSTRING / the §8.8.4.2.5 relation) all ask <see cref="DescribeCounter"/>, so a HIGHEST-ALGEBRAIC of
+    /// (STRING / UNSTRING / the §2023:8.8.4.2.5 relation) all ask <see cref="DescribeCounter"/>, so a HIGHEST-ALGEBRAIC of
     /// the register, an <c>IS FARTHEST-FROM-ZERO</c> test of it and its DISPLAY image cannot describe three
     /// different items.</summary>
     internal static AlgebraicRange? OfCounterRegister(Bound.BoundExpr register) => DescribeCounter(register)?.Range;
 
     /// <summary>True for a COUNTER REGISTER read — LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER — which the binder
     /// carries as a computed operand (the register is runtime state, never storage) although the standard makes it a
-    /// DATA ITEM: "a temporary unsigned integer data item of class and category numeric" (§8.4.3.14.4 GR1 /
-    /// §8.4.3.15.4 GR1), referable "in any context where an integer data item may appear" (§8.4.3.15.3 SR1). Every
+    /// DATA ITEM: "a temporary unsigned integer data item of class and category numeric" (§2023:8.4.3.14.4 GR1 /
+    /// §2023:8.4.3.15.4 GR1), referable "in any context where an integer data item may appear" (§2023:8.4.3.15.3 SR1). Every
     /// consumer that asks "is this an integer data item" or "what is its character image" asks HERE (kb/Work PB1153,
     /// PB1199, PB1318), so a new register is one arm of <see cref="DescribeCounter"/>, not one per consumer.</summary>
     internal static bool IsCounterRegister(Bound.BoundExpr e) => DescribeCounter(e) is not null;
@@ -187,11 +187,11 @@ internal static class AlgebraicRanges
     /// <summary>The number of digit positions of a counter register's implicit description: the digits of the LINAGE
     /// page size (a <c>PIC 9(d)</c> item whose all-nines is its capacity) and 10 for LINE-/PAGE-COUNTER (the decimal
     /// width of 2³²−1). It sizes the register's character image, exactly as an integer data item's description sizes
-    /// its own (§14.9.25.4 GR6's numeric-integer sender; §8.8.4.2.5's "number of digits in the integer"). <c>null</c>
+    /// its own (§2023:14.9.25.4 GR6's numeric-integer sender; §2023:8.8.4.2.5's "number of digits in the integer"). <c>null</c>
     /// for any other expression.</summary>
     internal static int? CounterRegisterDigits(Bound.BoundExpr e) => DescribeCounter(e)?.Pic.Digits;
 
-    /// <summary>The register's size in BYTES — what FUNCTION LENGTH / BYTE-LENGTH report (§15.50.4 r3 / §15.14.4 r1):
+    /// <summary>The register's size in BYTES — what FUNCTION LENGTH / BYTE-LENGTH report (§2023:15.50.4 r3 / §2023:15.14.4 r1):
     /// one byte per digit for LINAGE-COUNTER's DISPLAY item, 4 for LINE-/PAGE-COUNTER's 32-bit binary one.
     /// <c>null</c> for any other expression.</summary>
     internal static int? CounterRegisterByteLength(Bound.BoundExpr e) => DescribeCounter(e) is { Pic: var pic }
@@ -199,7 +199,7 @@ internal static class AlgebraicRanges
         : null;
 
     /// <summary>True when the register is an item "described implicitly … as usage display or national" — the
-    /// antecedent of STRING's and UNSTRING's SR1 (§14.9.43.3, §14.9.48.3) and of §8.8.4.2.5's numeric integer operand.
+    /// antecedent of STRING's and UNSTRING's SR1 (§2023:14.9.43.3, §2023:14.9.48.3) and of §2023:8.8.4.2.5's numeric integer operand.
     /// LINAGE-COUNTER is (its size is the page size's digits, a DISPLAY description); LINE-/PAGE-COUNTER are not
     /// (kb/Work PB1746). <c>null</c> for any other expression.</summary>
     internal static bool? CounterRegisterIsUsageDisplay(Bound.BoundExpr e) =>
@@ -231,7 +231,7 @@ internal static class AlgebraicRanges
     });
 
     /// <summary>LINAGE-COUNTER: the unsigned DISPLAY integer <c>PIC 9(d)</c> whose all-nines (or literal) is the page
-    /// size (§8.4.3.14.4 GR1 — "whose size is equal to the page size specified in the LINAGE clause").</summary>
+    /// size (§2023:8.4.3.14.4 GR1 — "whose size is equal to the page size specified in the LINAGE clause").</summary>
     private static CounterDescription LinageCounter(FileModel file)
     {
         string capacity = LinagePageCapacity(file);
@@ -250,9 +250,9 @@ internal static class AlgebraicRanges
         return ReportCounter.Value.Range.Farthest;
     }
 
-    /// <summary>The extremes of a numeric or integer FUNCTION's returned value (§8.5.2.12 items 6–7) — the
-    /// "temporary elementary data item" §15.4 places it in — for a function whose value is NOT a binary64 (that
-    /// family is asked on its own bits by <c>CobolFloatClass</c>, whose extremes are binary64's). §15.4.1 leaves the
+    /// <summary>The extremes of a numeric or integer FUNCTION's returned value (§2023:8.5.2.12 items 6–7) — the
+    /// "temporary elementary data item" §2023:15.4 places it in — for a function whose value is NOT a binary64 (that
+    /// family is asked on its own bits by <c>CobolFloatClass</c>, whose extremes are binary64's). §2023:15.4.1 leaves the
     /// characteristics and representation of the returned value to the implementor under native arithmetic, and
     /// WiseOwl COBOL's determination (CONFORMANCE.md DOC-A.1-92) fixes it:
     /// <list type="bullet">
@@ -260,7 +260,7 @@ internal static class AlgebraicRanges
     /// every function under a standard arithmetic mode): the SDIDI's own extremes, the same text
     /// <see cref="ArithmeticModes.IntermediateExtremes"/> states for that form.</item>
     /// <item>otherwise the NOMINAL returned-value item (<c>SendingValueTemp</c>): S9(30) for an INTEGER function
-    /// (§15.2 item 5 — "no digits to the right of the decimal point", so its nearest nonzero value is 1), and
+    /// (§2023:15.2 item 5 — "no digits to the right of the decimal point", so its nearest nonzero value is 1), and
     /// S9(21)V9(9) for a NUMERIC function. It is nominal because the temporary DISPLAY shows and LENGTH measures
     /// (<c>FunctionValueField</c>, kb/Work PB3951) has a description that follows the function and its value, so no
     /// one item's extremes exist to read.</item>
@@ -279,7 +279,7 @@ internal static class AlgebraicRanges
     /// <see cref="CompareMagnitude"/> parses) lies within <paramref name="range"/>: its magnitude is no greater than
     /// <see cref="AlgebraicRange.Farthest"/> when <paramref name="negative"/> is false, no greater than the magnitude
     /// of <see cref="AlgebraicRange.FarthestNegative"/> when it is true; a negative literal against a range with no
-    /// negative extreme is not admitted. The VALUE clause's USAGE-range test (§13.18.63.3 SR2, kb/Work PB3997) asks
+    /// negative extreme is not admitted. The VALUE clause's USAGE-range test (§2023:13.18.63.3 SR2, kb/Work PB3997) asks
     /// this of the very range the HIGHEST/LOWEST-ALGEBRAIC fold reads, so the VALUE check never restates a band.</summary>
     internal static bool Admits(AlgebraicRange range, string magnitude, bool negative)
     {
@@ -320,7 +320,7 @@ internal static class AlgebraicRanges
 
     /// <summary>Compare two decimal literal TEXTS by magnitude, exactly (no binary float anywhere in the path):
     /// −1 when |<paramref name="a"/>| &lt; |<paramref name="b"/>|, 0 when equal, +1 when greater. Both surfaces
-    /// of §14.9.39.4 GR32 b / GR36 b need it — "whichever is closer to zero" / "whichever is farther from zero"
+    /// of §2023:14.9.39.4 GR32 b / GR36 b need it — "whichever is closer to zero" / "whichever is farther from zero"
     /// — and the operands are an item's extreme and an ARITHMETIC MODE'S extreme, which reach 10^6144 and
     /// 10^−6176 (<see cref="ArithmeticModes.IntermediateExtremes"/>): no CLR floating type spans that, and
     /// <see cref="decimal"/> spans neither the range nor the 34-digit precision. Scaled BigInteger does.</summary>

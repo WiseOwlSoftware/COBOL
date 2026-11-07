@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// ⛔ THE ONE TRANSFER OF AN ARITHMETIC VALUE INTO A FLOATING-POINT RESULTANT IDENTIFIER (kb/Work PB1196) — the
 /// float arm of the arithmetic store, the twin of the fixed-point arm's <c>CobolNum.TryStore</c>/<c>Store</c>.
-/// <para>§14.7.4.3 rules 3–10 speak of "the resultant identifier" with no floating-point exemption, and a binary32
+/// <para>§2023:14.7.4.3 rules 3–10 speak of "the resultant identifier" with no floating-point exemption, and a binary32
 /// or binary64 resultant cannot represent most values exactly: 0.1 is not a FLOAT-SHORT value, and 16777217 is not
 /// either. So every mode applies here exactly as it does at a decimal scale — rule 10 "If the TRUNCATION phrase is
 /// specified or implied, and the arithmetic value cannot be represented exactly in the resultant identifier, the
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// exist, the size error condition exists, and the content of the resultant identifier is unchanged"
 /// (cite.py-verified). The store used to be a bare IEEE round-to-nearest-even cast whatever the phrase said, so
 /// implied TRUNCATION stored 0.1 into a FLOAT-SHORT as 0.10000000149 — FARTHER from zero than the value.</para>
-/// <para>THE CAPACITY HALF is §14.7.5 case 3 — "if, after radix point alignment and any applicable rounding
+/// <para>THE CAPACITY HALF is §2023:14.7.5 case 3 — "if, after radix point alignment and any applicable rounding
 /// specifications, the result of an arithmetic statement is further from zero than permitted for the associated
 /// resultant data item" (cite.py-verified). For a binary format that is ISO/IEC 60559's overflow: the value
 /// rounded under the mode with an UNBOUNDED exponent exceeds the format's largest finite magnitude. So a value
@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// evaluates in binary64), so a binary64 resultant holds it exactly under every mode and only a binary32 resultant
 /// rounds it.</para>
 /// <para>A NON-FINITE value (NaN, ±Infinity) transfers unchanged and is never the size error: it is not a result
-/// that is "further from zero" than a finite one, it is the §14.6.13.2 item 3 EC-DATA-NOT-FINITE content its
+/// that is "further from zero" than a finite one, it is the §2023:14.6.13.2 item 3 EC-DATA-NOT-FINITE content its
 /// sending read already answers for (CONFORMANCE.md DOC-A.1-70).</para>
 /// <para>COST: a binary64 intermediate into a binary64 resultant is an identity; every other landing is the
 /// nearest binary64 (<see cref="CobolFloat.ScaledToDouble"/> — one IEEE divide, or a decimal parse past 2^53) plus
@@ -50,7 +50,7 @@ public static class FloatResultant
         Unchecked(LandReal(v, mode, single, out Outcome o), o, mode);
 
     /// <summary>The checked landing of a binary64 intermediate: <c>false</c> is the size error condition —
-    /// §14.7.5 case 3 (further from zero than the resultant permits) or §14.7.4.3 rule 7 (PROHIBITED, inexact).</summary>
+    /// §2023:14.7.5 case 3 (further from zero than the resultant permits) or §2023:14.7.4.3 rule 7 (PROHIBITED, inexact).</summary>
     public static bool TryFromReal(double v, CobolRounding mode, bool single, out double landed)
     {
         landed = LandReal(v, mode, single, out Outcome o);
@@ -108,8 +108,8 @@ public static class FloatResultant
 
     // ── The RAISING forms: the third caller shape — an EXPRESSION with no SIZE ERROR phrase to offer and no
     //    arithmetic statement to hang a flag on, compiled when EC-SIZE-TRUNCATION checking is enabled at the
-    //    activating statement (§14.7.5 case 3 + no-phrase rule 4; the float twin of CobolNum.StoreOrRaise). Its live
-    //    callers are the §14.2.3 GR9/GR10 argument crossings — "a COMPUTE statement without the ROUNDED phrase" into
+    //    activating statement (§2023:14.7.5 case 3 + no-phrase rule 4; the float twin of CobolNum.StoreOrRaise). Its live
+    //    callers are the §2023:14.2.3 GR9/GR10 argument crossings — "a COMPUTE statement without the ROUNDED phrase" into
     //    a floating-point formal — on the CALL lane (CobolArgAdapt.LandForFormal) and the INVOKE lane
     //    (kb/Work PB1114). ──
 
@@ -136,10 +136,10 @@ public static class FloatResultant
     // ── The rounding ─────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>What a landing did: stored the value itself, rounded it (the mode chose a neighbor), or found it
-    /// further from zero than the resultant permits (§14.7.5 case 3).</summary>
+    /// further from zero than the resultant permits (§2023:14.7.5 case 3).</summary>
     private enum Outcome { Exact, Rounded, Overflow }
 
-    /// <summary>A §14.7.4.3 mode restated on the MAGNITUDE (the sign is re-applied after the rounding): which of the
+    /// <summary>A §2023:14.7.4.3 mode restated on the MAGNITUDE (the sign is re-applied after the rounding): which of the
     /// two representable magnitudes bracketing an inexact value a mode takes, and for the NEAREST-* modes which
     /// one a tie takes.</summary>
     private enum Dir { Down, Up, NearestEven, NearestUp, NearestDown }
@@ -153,17 +153,17 @@ public static class FloatResultant
         CobolRounding.NearestAwayFromZero => Dir.NearestUp,                 // r4
         CobolRounding.NearestEven => Dir.NearestEven,                       // r5
         CobolRounding.NearestTowardZero => Dir.NearestDown,                 // r6
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "not a §14.7.4.2 rounding mode"),
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "not a §2023:14.7.4.2 rounding mode"),
     };
 
-    /// <summary>Whether a checked store commits: never on an overflow (§14.7.5 case 3), and under PROHIBITED only
-    /// when the value was representable exactly (§14.7.4.3 r7).</summary>
+    /// <summary>Whether a checked store commits: never on an overflow (§2023:14.7.5 case 3), and under PROHIBITED only
+    /// when the value was representable exactly (§2023:14.7.4.3 r7).</summary>
     private static bool Admits(Outcome o, CobolRounding mode) =>
         o == Outcome.Exact || (o == Outcome.Rounded && mode != CobolRounding.Prohibited);
 
     /// <summary>The unchecked (no-phrase) landing's disposition: the landed value, an overflow included (ISO/IEC 60559's
     /// overflow result for the mode, CONFORMANCE.md DOC-A.1-70), EXCEPT a PROHIBITED value the format cannot represent
-    /// exactly, which raises <see cref="CobolSizeError.ProhibitedInexact"/> — §14.7.4.3 rule 7 leaves the resultant
+    /// exactly, which raises <see cref="CobolSizeError.ProhibitedInexact"/> — §2023:14.7.4.3 rule 7 leaves the resultant
     /// identifier unchanged whether or not checking is enabled (kb/Work PB3990).</summary>
     private static double Unchecked(double landed, Outcome o, CobolRounding mode) =>
         o == Outcome.Rounded && mode == CobolRounding.Prohibited ? throw CobolSizeError.ProhibitedInexact() : landed;
@@ -296,7 +296,7 @@ public static class FloatResultant
         return pick;
     }
 
-    /// <summary>An overflow (§14.7.5 case 3). The checked store rejects it; the unchecked one stores ISO/IEC
+    /// <summary>An overflow (§2023:14.7.5 case 3). The checked store rejects it; the unchecked one stores ISO/IEC
     /// 60559's overflow result for the direction — the largest finite magnitude when the mode rounds toward zero,
     /// +∞ otherwise.</summary>
     private static double Overflowed(Dir dir, double max, out Outcome outcome)

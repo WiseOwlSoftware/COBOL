@@ -11,11 +11,11 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// directive's POSITION can be decided against the parser's token lines.</summary>
 /// <param name="Line">The 1-based resultant-text line, directly comparable to a token's <c>Start.Line</c>
 /// (the <c>&gt;&gt;TURN</c> anchoring discipline — hazard H3).</param>
-/// <param name="Word">The compiler-directive word, upper-cased (§7.3.3 SR6 / §8.12).</param>
-/// <param name="AllForm">True for a <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> — the form §7.3.22.3 SR3 and
-/// §7.3.20.3 SR3 confine to positions between clauses / statements of a compilation unit (kb/Work PB1005).</param>
-/// <param name="NamedRow">For a <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> that names a directive (§7.3.20.2 / §7.3.22.2
-/// <c>directive-name</c>): that directive's <c>constructs.json</c> row. §7.3.20.3 SR2 / §7.3.22.3 SR2 — the PUSH or
+/// <param name="Word">The compiler-directive word, upper-cased (§2023:7.3.3 SR6 / §2023:8.12).</param>
+/// <param name="AllForm">True for a <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> — the form §2023:7.3.22.3 SR3 and
+/// §2023:7.3.20.3 SR3 confine to positions between clauses / statements of a compilation unit (kb/Work PB1005).</param>
+/// <param name="NamedRow">For a <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> that names a directive (§2023:7.3.20.2 / §2023:7.3.22.2
+/// <c>directive-name</c>): that directive's <c>constructs.json</c> row. §2023:7.3.20.3 SR2 / §2023:7.3.22.3 SR2 — the PUSH or
 /// POP "shall not be specified where directive-name must not be specified" — so the named row's placement rule
 /// judges the PUSH/POP too (kb/Work PB1377). Null for every other directive and for the ALL form.</param>
 /// <param name="Column">The 0-based RESULTANT column of the directive's indicator on <paramref name="Line"/> — where a
@@ -23,12 +23,12 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 public readonly record struct DirectiveSite(int Line, string Word, bool AllForm = false, string? NamedRow = null, int Column = 0);
 
 /// <summary>
-/// The POSITION-RULED compiler directives (ISO §7.3): the three whose syntax rules are about WHERE the directive
+/// The POSITION-RULED compiler directives (ISO §2023:7.3): the three whose syntax rules are about WHERE the directive
 /// is written rather than what it does —
 /// <list type="bullet">
-/// <item>§7.3.25.3 SR5 — "A TURN directive shall not be specified within an exception processing PERFORM statement."</item>
-/// <item>§7.3.22.3 SR4 — "The PUSH directive shall not be specified within an exception checking PERFORM statement."</item>
-/// <item>§7.3.20.3 SR4 — "The POP directive shall not be specified within an exception checking PERFORM statement."</item>
+/// <item>§2023:7.3.25.3 SR5 — "A TURN directive shall not be specified within an exception processing PERFORM statement."</item>
+/// <item>§2023:7.3.22.3 SR4 — "The PUSH directive shall not be specified within an exception checking PERFORM statement."</item>
+/// <item>§2023:7.3.20.3 SR4 — "The POP directive shall not be specified within an exception checking PERFORM statement."</item>
 /// </list>
 /// This stage records each one's <see cref="DirectiveSite"/> on the FINAL text, which is the only frame in which
 /// a directive line number and a parser token line number are the same number (COPY expansion is already done;
@@ -40,9 +40,9 @@ public readonly record struct DirectiveSite(int Line, string Word, bool AllForm 
 /// blanked by the conditional-compilation driver, which runs BEFORE COPY expansion has settled the line frame and
 /// therefore cannot say which resultant line a directive ended on; they are now left in the text by that driver
 /// (<c>Frontend.LeftDirectives</c>) and blanked here instead, at the point where their position is knowable. Before
-/// blanking a PUSH/POP it records the line as a <see cref="DirectiveStackOp"/>: the §7.3.20 / §7.3.22 directive
+/// blanking a PUSH/POP it records the line as a <see cref="DirectiveStackOp"/>: the §2023:7.3.20 / §2023:7.3.22 directive
 /// state SEMANTICS are the <see cref="DirectiveStateStack"/>, which every later stage holding directive state
-/// replays over these ops (kb/Work PB941), and the one unsuccessful-POP warning of §7.3.20.4 GR2 is issued here.
+/// replays over these ops (kb/Work PB941), and the one unsuccessful-POP warning of §2023:7.3.20.4 GR2 is issued here.
 /// <c>&gt;&gt;TURN</c>'s line is NOT blanked here: <see cref="TurnDirectiveProcessor"/> owns that directive's
 /// parse, its syntax rules and its blanking, and this stage runs just before it.</para>
 /// </summary>
@@ -66,9 +66,9 @@ public static class DirectiveSiteProcessor
         CompilerDirectiveCatalog.Words.Where(w => CompilerDirectiveCatalog.Find(w)?.Placement is not null)
             .ToHashSet(CobolKeywords.Comparer);
 
-    /// <summary>⛔ THE ONE JUDGE OF <see cref="DirectivePlacementRule.BeforeFirstCompilationUnit"/> (§7.3.10.3 SR1,
+    /// <summary>⛔ THE ONE JUDGE OF <see cref="DirectivePlacementRule.BeforeFirstCompilationUnit"/> (§2023:7.3.10.3 SR1,
     /// COBOL2652; kb/Work PB1377, PB1373): a directive whose row carries that rule — and a PUSH or POP that names
-    /// it (§7.3.20.3 SR2, §7.3.22.3 SR2: "shall not be specified where directive-name must not be specified") — written
+    /// it (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2: "shall not be specified where directive-name must not be specified") — written
     /// on a line AFTER <paramref name="firstUnitLine"/> is a placement violation. The line is the boundary the
     /// COBOL-WORDS stage reports, because that stage is the one that reads the unit's header as the group's own
     /// <c>&gt;&gt;COBOL-WORDS</c> synonyms spell it; this stage cannot, so it never judges the rule on the raw text.</summary>
@@ -87,7 +87,7 @@ public static class DirectiveSiteProcessor
             diagnostics.ReportError(DiagnosticCatalog.DirectivePlacementViolation.Code,
                 named
                     ? $">>{site.Word} {subject.DirectiveWords[0]} is written where {subject.DirectiveWords[0]} must not be specified "
-                      + $"(ISO §7.3.20.3 SR2, §7.3.22.3 SR2) — \"{placement.Text}\" (ISO {placement.Citation})"
+                      + $"(ISO §2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2) — \"{placement.Text}\" (ISO {placement.Citation})"
                     : $">>{site.Word} is written after the first compilation unit began — \"{placement.Text}\" "
                       + $"(ISO {placement.Citation}); write it before the first IDENTIFICATION DIVISION of the compilation group",
                 lineMap?.Locate(site.Line, site.Column, sourcePath) ?? new SourceLocation(sourcePath, 0, site.Line - 1, site.Column), default);
@@ -95,7 +95,7 @@ public static class DirectiveSiteProcessor
     }
 
     /// <summary>Record the position-ruled directive sites on <paramref name="text"/>, record the PUSH/POP ops the
-    /// later stages replay (<see cref="DirectiveStateStack"/>), warn for each unsuccessful named POP (§7.3.20.4
+    /// later stages replay (<see cref="DirectiveStateStack"/>), warn for each unsuccessful named POP (§2023:7.3.20.4
     /// GR2, <c>COBOL2297</c> — here, once, because only this stage sees every PUSH/POP of the final text), and
     /// blank the lines this stage consumes. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<DirectiveSite> Sites, IReadOnlyList<DirectiveStackOp> StackOps) Process(
@@ -117,7 +117,7 @@ public static class DirectiveSiteProcessor
             var site = new DirectiveSite(i + 1, directive.Word, AllForm: isOp && op.Row is null,
                 NamedRow: isOp ? op.Row : null, Column: CompilerDirectiveLine.IndicatorIndex(lines[i]));
             (sites ??= []).Add(site);
-            // §7.3.10.3 SR1 (COBOL-WORDS) is a rule about the TEXT, judged against the first unit's first line — which
+            // §2023:7.3.10.3 SR1 (COBOL-WORDS) is a rule about the TEXT, judged against the first unit's first line — which
             // only the COBOL-WORDS stage can name, because a header may be spelled with that group's own synonym — by
             // JudgeFirstUnitPlacement over the sites recorded here. The rules that need the parse tree are judged by
             // DirectivePlacementPass from the same sites.
@@ -129,7 +129,7 @@ public static class DirectiveSiteProcessor
                     diagnostics.ReportWarning(DiagnosticCatalog.PopDirectiveUnsuccessful.Code,
                         $">>POP {directive.Operand.ToUpperInvariant()} is unsuccessful: no state of that directive "
                         + "was saved by a PUSH directive that an earlier POP has not already restored, so nothing "
-                        + "is restored (ISO §7.3.20.4 GR2)",
+                        + "is restored (ISO §2023:7.3.20.4 GR2)",
                         lineMap?.Locate(i + 1, site.Column, sourcePath) ?? new SourceLocation(sourcePath, 0, i, site.Column), default);
             }
             lines[i] = "";   // blank, never delete — line-count preserving (H3)

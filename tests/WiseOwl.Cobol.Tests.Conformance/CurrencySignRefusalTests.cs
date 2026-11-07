@@ -6,9 +6,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A CURRENCY SIGN CLAUSE REFUSED FOR ITS CURRENCY STRING STILL NAMES ITS PICTURE SYMBOL (kb/Work PB1920). In the
-/// PICTURE SYMBOL form (ISO §12.3.7.3 SR23: "literal-7 is the currency string and literal-8 is the associated currency
+/// PICTURE SYMBOL form (ISO §2023:12.3.7.3 SR23: "literal-7 is the currency string and literal-8 is the associated currency
 /// symbol") the two operands carry rules of their own, so a literal-7 refused under SR18 (a figurative constant),
-/// SR23 a) (no non-space character), SR23 b) (a digit or one of + - , . *) or §8.4.3.10.3 SR1 (NULL) leaves a valid
+/// SR23 a) (no non-space character), SR23 b) (a digit or one of + - , . *) or §2023:8.4.3.10.3 SR1 (NULL) leaves a valid
 /// literal-8 standing. <c>SpecialNamesBinder.SwitchBindCurrency</c> used to return before registering it, so every PICTURE
 /// using the symbol drew COBOL0808 / COBOL0819 behind the clause's own error. Each shape now compiles to exactly the
 /// clause's diagnostic.
@@ -27,7 +27,7 @@ public sealed class CurrencySignRefusalTests
     [InlineData("SPACE", "COBOL0892", "SR18")]
     [InlineData("\"   \"", "COBOL0890", "r23a")]
     [InlineData("\"E1\"", "COBOL0890", "r23b")]
-    [InlineData("NULL", "COBOL2576", "§8.4.3.10.3 SR1")]
+    [InlineData("NULL", "COBOL2576", "§2023:8.4.3.10.3 SR1")]
     public void ARefusedCurrencyString_IsTheClausesOneDiagnostic(string literal7, string code, string rule)
     {
         var (ok, errors) = EditionHarness.Compile(Program(literal7), 2023);
@@ -38,7 +38,7 @@ public sealed class CurrencySignRefusalTests
     }
 
     /// <summary>A later clause that binds the same symbol to a valid string takes it over: the refused clause states no
-    /// string, so §12.3.7.3 SR21 ("unless they specify identical currency strings") finds no conflict, and the
+    /// string, so §2023:12.3.7.3 SR21 ("unless they specify identical currency strings") finds no conflict, and the
     /// valid clause's string and class are the ones its PICTUREs read.</summary>
     [Fact]
     public void ALaterValidClause_BindsTheSymbolWithoutAnSr21Conflict()

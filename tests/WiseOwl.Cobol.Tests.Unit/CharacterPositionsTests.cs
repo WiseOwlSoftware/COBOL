@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A CHARACTER POSITION IS ONE CHARACTER, NOT ONE UTF-16 CODE UNIT (kb/Work PB1966; docs/CONFORMANCE.md DOC-A.1-157;
-/// ISO/IEC 1989:2023 §6.1 1) a) "Reference format is described in terms of character positions on a line", c) "The
+/// ISO/IEC 1989:2023 §2023:6.1 1) a) "Reference format is described in terms of character positions on a line", c) "The
 /// implementor shall specify the meaning of lines and character positions"). Every expectation here is a position
 /// COMPUTED from the rule — the characters written, one position each — never read off a run. A supplementary-plane
 /// character (<c>U+1000D</c>, a Linear B syllable; <c>U+1F600</c>) is two <see cref="char"/>s and one position, so a
@@ -150,7 +150,7 @@ public sealed class CharacterPositionsTests
         Assert.Equal(Wides(65), lines[0]);
     }
 
-    [Fact] // §6.1 1) c) + §6.3.5: a literal continued by the fixed indicator carries every position up to margin R
+    [Fact] // §2023:6.1 1) c) + §2023:6.3.5: a literal continued by the fixed indicator carries every position up to margin R
     public void FixedForm_ContinuedLiteral_CarriesPositionsToMarginR_AfterWideCharacters()
     {
         string first = "000100 01  " + Wides(20) + " PIC X(80) VALUE \"";
@@ -197,7 +197,7 @@ public sealed class CharacterPositionsTests
         Assert.Equal(4, line.Columns.ToPhysical(11));                         // X is physical position 5 (0-based 4)
     }
 
-    [Fact] // §6.1 3) a): a free-form line has at most 255 character positions — 128 wide characters are 128, not 256
+    [Fact] // §2023:6.1 3) a): a free-form line has at most 255 character positions — 128 wide characters are 128, not 256
     public void FreeForm_255Positions_AreCountedAsCharacters()
     {
         var (_, within) = Normalize("DISPLAY " + Wides(247) + "\n", InitialReferenceFormat.Free);   // 8 + 247 = 255
@@ -207,7 +207,7 @@ public sealed class CharacterPositionsTests
         Assert.Contains("256 character positions", diagnostic.Message);
     }
 
-    [Fact] // §6.3.3 / §6.2.2: an indicator that is not a fixed indicator is diagnosed AS THE CHARACTER, not as half of a pair
+    [Fact] // §2023:6.3.3 / §2023:6.2.2: an indicator that is not a fixed indicator is diagnosed AS THE CHARACTER, not as half of a pair
     public void FixedForm_AWideIndicator_IsNamedWhole()
     {
         var (lines, bag) = Normalize("000100" + Wide + "DISPLAY \"A\".\n", InitialReferenceFormat.Fixed);

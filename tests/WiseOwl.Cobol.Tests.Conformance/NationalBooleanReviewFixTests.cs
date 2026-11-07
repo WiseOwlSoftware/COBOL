@@ -8,14 +8,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// Regression locks for the Phase-4a national/boolean ADVERSARIAL-REVIEW wave (the DEVLOG 615/617/619 cadence).
 /// Each fact pins one confirmed finding so it cannot silently re-open:
 /// <list type="bullet">
-/// <item>Apostrophe-delimited N'…'/B'…' literals decode (ISO §8.3.3.1 — both quote forms equal-standing; the
+/// <item>Apostrophe-delimited N'…'/B'…' literals decode (ISO §2023:8.3.3.1 — both quote forms equal-standing; the
 ///   delimiters are not part of the value; a doubled opening quote is one embedded quote).</item>
-/// <item>§14.9.25.3 SR8 — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender requires a numeric/numeric-edited receiver.</item>
-/// <item>§8.3.3.6.4 GR2 / §8.4.3.3 GR5 — a figurative MOVE fills EVERY position of a ref-mod slice.</item>
-/// <item>§8.8.4.2.8 — a boolean figurative relation right-extends with boolean zeros (not spaces).</item>
-/// <item>§13.18.63 SR4/SR5/SR24→SR10 — level-88 VALUE category conformance, both directions.</item>
-/// <item>§8.8.4.4.3 SR8/SR4 — class conditions on boolean operands.</item>
-/// <item>§15.50 — N"…"/B"…" as intrinsic-function arguments (the keyword-omitted parser leg).</item>
+/// <item>§2023:14.9.25.3 SR8 — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender requires a numeric/numeric-edited receiver.</item>
+/// <item>§2023:8.3.3.6.4 GR2 / §2023:8.4.3.3 GR5 — a figurative MOVE fills EVERY position of a ref-mod slice.</item>
+/// <item>§2023:8.8.4.2.8 — a boolean figurative relation right-extends with boolean zeros (not spaces).</item>
+/// <item>§2023:13.18.63 SR4/SR5/SR24→SR10 — level-88 VALUE category conformance, both directions.</item>
+/// <item>§2023:8.8.4.4.3 SR8/SR4 — class conditions on boolean operands.</item>
+/// <item>§2023:15.50 — N"…"/B"…" as intrinsic-function arguments (the keyword-omitted parser leg).</item>
 /// <item>The ALL-prefixed figurative VALUE (ALL SPACES / ALL ZEROS) is NOT falsely rejected.</item>
 /// <item>SET condition-name TO TRUE fills a figurative-word 88 VALUE, not the word's characters.</item>
 /// </list>
@@ -63,7 +63,7 @@ public sealed class NationalBooleanReviewFixTests
             01 BL USAGE BINARY-LONG VALUE 42.
             01 N5 PIC N(5).
             """, "MOVE BL TO N5."), 2002);
-        Assert.False(ok, "MOVE BINARY-LONG TO national must be rejected (ISO §14.9.25.3 SR8)");
+        Assert.False(ok, "MOVE BINARY-LONG TO national must be rejected (ISO §2023:14.9.25.3 SR8)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0819");
         EditionHarness.AssertHasDiagnostic(errors, "SR8");
     }
@@ -78,7 +78,7 @@ public sealed class NationalBooleanReviewFixTests
             """);
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("R=[A000E]", stdout.TrimEnd('\n'));   // §8.3.3.6.4 GR2 — not 'A0  E'
+        Assert.Equal("R=[A000E]", stdout.TrimEnd('\n'));   // §2023:8.3.3.6.4 GR2 — not 'A0  E'
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class NationalBooleanReviewFixTests
             """);
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("EQ=YES", stdout.TrimEnd('\n'));   // §8.8.4.2.8 — "00" vs boolean-zero-extended ZERO
+        Assert.Equal("EQ=YES", stdout.TrimEnd('\n'));   // §2023:8.8.4.2.8 — "00" vs boolean-zero-extended ZERO
     }
 
     [Theory]
@@ -98,7 +98,7 @@ public sealed class NationalBooleanReviewFixTests
     public void Level88ValueCategory_Mismatch_Rejected0898(string ws)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("NBRF05", ws, "CONTINUE."), 2002);
-        Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §13.18.63 SR4/SR5/SR24→SR10)");
+        Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §2023:13.18.63 SR4/SR5/SR24→SR10)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL5982");
     }
 
@@ -109,7 +109,7 @@ public sealed class NationalBooleanReviewFixTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("NBRF06", "01 B-BIT PIC 1(4) USAGE BIT VALUE B\"0101\".", proc), 2002);
-        Assert.False(ok, "a class condition on a boolean operand must be rejected (ISO §8.8.4.4.3 SR8/SR4)");
+        Assert.False(ok, "a class condition on a boolean operand must be rejected (ISO §2023:8.8.4.4.3 SR8/SR4)");
         EditionHarness.AssertHasDiagnostic(errors, code);
     }
 
@@ -124,7 +124,7 @@ public sealed class NationalBooleanReviewFixTests
             """);
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("NL=0002\nBL=0004", stdout.TrimEnd('\n'));   // ISO §15.50 — length in character positions
+        Assert.Equal("NL=0002\nBL=0004", stdout.TrimEnd('\n'));   // ISO §2023:15.50 — length in character positions
     }
 
     [Fact]
@@ -154,6 +154,6 @@ public sealed class NationalBooleanReviewFixTests
             """);
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
         Assert.True(ok, detail);
-        Assert.Equal("S=[0000]", stdout.TrimEnd('\n'));   // §14.9.39 F5 + §8.3.3.6.4 GR2 — not "ZERO"
+        Assert.Equal("S=[0000]", stdout.TrimEnd('\n'));   // §2023:14.9.39 F5 + §2023:8.3.3.6.4 GR2 — not "ZERO"
     }
 }

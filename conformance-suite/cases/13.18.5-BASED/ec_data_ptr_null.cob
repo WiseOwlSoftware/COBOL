@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.5.4 GR3: "If the subject of the entry or any item subordinate to it is referenced directly
+      *> ISO §2023:13.18.5.4 GR3: "If the subject of the entry or any item subordinate to it is referenced directly
       *> or indirectly while its address is NULL, the EC-DATA-PTR-NULL exception condition is set to exist."
-      *> Table 13: Fatal — so the USE declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) is what keeps the
-      *> run unit alive past the failed reference; without it §14.6.13.1.3 #5 terminates abnormally.
+      *> Table 13: Fatal — so the USE declarative runs and RESUME AT NEXT STATEMENT (§2023:14.9.33) is what keeps the
+      *> run unit alive past the failed reference; without it §2023:14.6.13.1.3 #5 terminates abnormally.
       *>
       *> B is BASED and its address is never SET, so DISPLAY B dereferences a NULL data-address pointer. Before
       *> this fix CobolPtr.Deref threw a CobolFatalException directly without setting the last-exception status
       *> and with no emitted statement guard, so the declarative could never select and the run unit died.
       *>
       *> ⚠ The dereference throws whether or not checking is enabled — the owner's decided rule, because
-      *> §13.18.5.4 GR3/GR4 name NO outcome for the unchecked case and Deref must return a StorageCell, so
+      *> §2023:13.18.5.4 GR3/GR4 name NO outcome for the unchecked case and Deref must return a StorageCell, so
       *> "lenient" could only mean continuing on a fabricated cell. Every surveyed COBOL hard-stops here. What
       *> checking ON adds is the NAMED condition and the chance to handle it, which is what this golden proves.
       >>TURN EC-DATA-PTR-NULL CHECKING ON

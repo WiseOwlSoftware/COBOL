@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY RESIDENCE A GLOBAL NAME CAN HAVE IS REACHABLE FROM A CONTAINED PROGRAM (kb/Work PB1009).
 /// </summary>
 /// <remarks>
-/// ISO §13.18.27.3 SR1 b) admits GLOBAL on a level-1 entry "specified in the file, working-storage, local-storage,
-/// or linkage section", and §13.18.27.4 GR2 lets a contained program "reference that name without describing it
+/// ISO §2023:13.18.27.3 SR1 b) admits GLOBAL on a level-1 entry "specified in the file, working-storage, local-storage,
+/// or linkage section", and §2023:13.18.27.4 GR2 lets a contained program "reference that name without describing it
 /// again" — the storage stays the container's, reached through a ref-bridge to each container member a reference
 /// renders. Those members differ by residence: a plain field, a Tier-B backing, the cell behind a cell-backed class,
 /// a BASED item's address pointer, a carrier-resident formal's carrier, a table's index fields. The bridge list used
@@ -34,7 +34,7 @@ public sealed class GlobalBridgeResidenceDriftTests : WiseOwlCobolTestBase
     [InlineData(8, "linkage-elementary", "", "", "GLOBAL", "", "", "X")]
     [InlineData(9, "linkage-elementary-addressed", "", "", "GLOBAL", "", "SET P TO ADDRESS OF X", "X")]
     [InlineData(10, "linkage-group", "", "", "", "GLOBAL", "", "X1")]
-    // §13.18.27.4 GR3 — only the SUBJECT of a GLOBAL REDEFINES is global. A Tier-A (Alias) subject owns no member, so its
+    // §2023:13.18.27.4 GR3 — only the SUBJECT of a GLOBAL REDEFINES is global. A Tier-A (Alias) subject owns no member, so its
     // bridge names the original's field; an elementary and a group subject; both entries global (one member, one bridge)
     // (kb/Work PB1523).
     [InlineData(11, "global-alias-redefiner", "01 GX PIC X(4) VALUE \"INIT\".\n       01 GY REDEFINES GX GLOBAL PIC X(4).", "", "", "", "", "GY")]
@@ -93,10 +93,10 @@ public sealed class GlobalBridgeResidenceDriftTests : WiseOwlCobolTestBase
         Assert.Equal("N=INIT Z=INIT\nC=NEWV", stdout.Replace("\r\n", "\n").TrimEnd());
     }
 
-    /// <summary>The storage-less residence: a GLOBAL constant-name (§13.18.27.4 GR1 lists constant-names among the
+    /// <summary>The storage-less residence: a GLOBAL constant-name (§2023:13.18.27.4 GR1 lists constant-names among the
     /// global names) substitutes in a contained program — including in its DATA DIVISION, since the substitution is
-    /// compile-time (§13.10.4 GR1) — and a contained program's own declaration of the name, constant or data item,
-    /// shadows it (§8.4.6). The contained-program reference used to fail as an undefined name (kb/Work PB1009).</summary>
+    /// compile-time (§2023:13.10.4 GR1) — and a contained program's own declaration of the name, constant or data item,
+    /// shadows it (§2023:8.4.6). The contained-program reference used to fail as an undefined name (kb/Work PB1009).</summary>
     [Fact]
     public void AGlobalConstantIsVisibleInAContainedProgramAndShadowable()
     {

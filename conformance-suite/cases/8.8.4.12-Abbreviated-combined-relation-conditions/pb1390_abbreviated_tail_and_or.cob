@@ -6,11 +6,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.4.12 ABBREVIATED COMBINED RELATION CONDITIONS with an abbreviated relation after OR that the
-      *> sequence then CONTINUES with AND (kb/Work PB1390). §8.8.4.12.1: "any relation condition except the first
-      *> may be abbreviated"; §8.8.4.12.2 repeats ONE group {AND|OR} {NOT|relational-operator} object-1 with any
+      *> ISO §2023:8.8.4.12 ABBREVIATED COMBINED RELATION CONDITIONS with an abbreviated relation after OR that the
+      *> sequence then CONTINUES with AND (kb/Work PB1390). §2023:8.8.4.12.1: "any relation condition except the first
+      *> may be abbreviated"; §2023:8.8.4.12.2 repeats ONE group {AND|OR} {NOT|relational-operator} object-1 with any
       *> connective in any position. Each case runs the abbreviated form over all 81 tuples of A..D in 1..3 and
-      *> counts (a) the TRUE tuples and (b) the tuples where it disagrees with the §8.8.4.12.4 GR1 expansion
+      *> counts (a) the TRUE tuples and (b) the tuples where it disagrees with the §2023:8.8.4.12.4 GR1 expansion
       *> ("as if the last preceding stated subject were inserted in place of the omitted subject, and the last
       *> stated relational operator ... in place of the omitted relational operator"). The TRUE counts were
       *> computed from the expansions, never read off a run; every disagreement count must be 00.

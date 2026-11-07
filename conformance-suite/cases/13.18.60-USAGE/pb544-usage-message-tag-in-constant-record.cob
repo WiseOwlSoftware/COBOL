@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB544 — §13.18.60.3 syntax rule 4's MESSAGE-TAG arm, which had no reachable subject until the
+      *> kb/Work PB544 — §2023:13.18.60.3 syntax rule 4's MESSAGE-TAG arm, which had no reachable subject until the
       *> phrase joined `usageKeyword` (kb/Work PB487): `05 Q USAGE MESSAGE-TAG.` used to be
       *> `COBOL0001: no viable alternative at input 'MESSAGE-TAG'`, so nothing could distinguish SR4's
       *> violation from the general format's gap, and the row stayed PARTIAL on exactly this one phrase.

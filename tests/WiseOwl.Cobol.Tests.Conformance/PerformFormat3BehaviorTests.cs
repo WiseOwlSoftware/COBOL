@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The exception-checking (Format-3) PERFORM RUNTIME interceptor (ISO/IEC 1989:2023 §14.9.28.4 GR14–GR22) — the
+/// The exception-checking (Format-3) PERFORM RUNTIME interceptor (ISO/IEC 1989:2023 §2023:14.9.28.4 GR14–GR22) — the
 /// per-GR behavior net for the pc-RANGE interceptor (design SSOT <c>PHASE-13-c5-perform-format3-DESIGN.md</c> §9).
 /// Every expected value is SPEC-PINNED (the former legacy engine has no EC model). Covers: GR17 tier-ordered WHEN match +
 /// USE preemption; GR18 WHEN OTHER; GR19 WHEN COMMON; GR20 nonfatal resume-in-place vs fatal abnormal-termination +
-/// RESUME NEXT; GR16 FINALLY; §14.9.14.4 GR4 EXIT PERFORM; the version gate (COBOL0900) + the staged sub-GAPs
+/// RESUME NEXT; GR16 FINALLY; §2023:14.9.14.4 GR4 EXIT PERFORM; the version gate (COBOL0900) + the staged sub-GAPs
 /// (COBOL0899). The frame-stack unit mechanics are <c>PerformFrameStackTests</c>.
 /// </summary>
 public sealed class PerformFormat3BehaviorTests
@@ -60,9 +60,9 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nAFTER\nDONE");
 
-    // ── GR20 fatal (WHEN runs, then §14.6.13.1.3 abnormal termination unless RESUME) ───────────────────────────
+    // ── GR20 fatal (WHEN runs, then §2023:14.6.13.1.3 abnormal termination unless RESUME) ───────────────────────────
 
-    [Fact]   // GR20 fatal: the WHEN runs, then — no RESUME — the run unit terminates abnormally (§14.6.13.1.3 #5/#7).
+    [Fact]   // GR20 fatal: the WHEN runs, then — no RESUME — the run unit terminates abnormally (§2023:14.6.13.1.3 #5/#7).
     public void Fatal_WhenMatch_ThenTerminates()
         => AssertFatal("""
                 PERFORM
@@ -74,7 +74,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "EC-SIZE-OVERFLOW", "HANDLED");
 
-    [Fact]   // §14.9.33.4 GR2: RESUME NEXT STATEMENT in a WHEN suppresses the fatal termination and resumes past the
+    [Fact]   // §2023:14.9.33.4 GR2: RESUME NEXT STATEMENT in a WHEN suppresses the fatal termination and resumes past the
              // raiser (a WHEN's only way to keep a FATAL condition from terminating).
     public void Fatal_ResumeNext_SuppressesTermination()
         => AssertSpec("""
@@ -88,7 +88,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "HANDLED\nAFTER\nDONE");
 
-    // ── GR17 → §14.9.49.4 GR3c-g tier ordering (NOT written order) ─────────────────────────────────────────────
+    // ── GR17 → §2023:14.9.49.4 GR3c-g tier ordering (NOT written order) ─────────────────────────────────────────────
 
     [Fact]   // A level-3 EC-BOUND-SUBSCRIPT (tier 2) outranks a level-1 EC-ALL (tier 4) even though EC-ALL is written
              // FIRST — the match is tier-priority (GR3c-g), source order only within a tier.
@@ -162,7 +162,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "OTHER\nCOMMON\nAFTER\nDONE");
 
-    [Fact]   // GR18 + GR20 fatal: a FATAL condition named by no WHEN runs WHEN OTHER, then — no RESUME — §14.6.13.1.3
+    [Fact]   // GR18 + GR20 fatal: a FATAL condition named by no WHEN runs WHEN OTHER, then — no RESUME — §2023:14.6.13.1.3
              // abnormal termination, exactly as for a named WHEN (Fatal_WhenMatch_ThenTerminates).
     public void WhenOther_Fatal_ThenTerminates()
         => AssertFatal("""
@@ -177,7 +177,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "EC-SIZE-OVERFLOW", "OTHER");
 
-    [Fact]   // GR18 + §14.9.33 RESUME NEXT STATEMENT: a transfer OUT of imp-3, so WHEN COMMON does not run (the WHEN OTHER
+    [Fact]   // GR18 + §2023:14.9.33 RESUME NEXT STATEMENT: a transfer OUT of imp-3, so WHEN COMMON does not run (the WHEN OTHER
              // arm of ResumeNext_SkipsWhenCommon) — and the resume lands after the raiser, as for a named WHEN.
     public void WhenOther_ResumeNext_SkipsWhenCommon()
         => AssertSpec("""
@@ -224,7 +224,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nAFTER\nDONE");
 
-    // ── GR16 FINALLY + §14.9.14.4 GR4 EXIT PERFORM ─────────────────────────────────────────────────────────────
+    // ── GR16 FINALLY + §2023:14.9.14.4 GR4 EXIT PERFORM ─────────────────────────────────────────────────────────────
 
     [Fact]   // GR16: FINALLY (imp-5) is the end of the PERFORM — it runs on the normal (nonfatal-resume) fall-through.
     public void Finally_RunsOnNormalPath()
@@ -240,7 +240,7 @@ public sealed class PerformFormat3BehaviorTests
                 DISPLAY "DONE"
             """, "WHEN\nAFTER\nFINALLY\nDONE");
 
-    [Fact]   // §14.9.14.4 GR4: an EXIT PERFORM in a handler transfers to the implicit CONTINUE preceding FINALLY —
+    [Fact]   // §2023:14.9.14.4 GR4: an EXIT PERFORM in a handler transfers to the implicit CONTINUE preceding FINALLY —
              // WHEN COMMON and the imp-1 remainder are skipped; FINALLY still runs.
     public void ExitPerform_InHandler_JumpsToFinally_SkipsCommon()
         => AssertSpec("""
@@ -343,11 +343,11 @@ public sealed class PerformFormat3BehaviorTests
              // GR21 were violated, WHEN OTHER would print "OTHER" and RESUME instead.
              //
              // ⚠ The handler-local >>TURN is load-bearing, not decoration. This test used to rely on the enclosing
-             // `>>TURN EC-ALL CHECKING ON` reaching into the handler — which §14.9.28.4 GR14 forbids: an "implicit
+             // `>>TURN EC-ALL CHECKING ON` reaching into the handler — which §2023:14.9.28.4 GR14 forbids: an "implicit
              // PUSH ALL followed by TURN OFF ALL is assumed at the end of imperative-statement-1", so no checking
-             // is enabled inside a handler and §14.6.13.1.1 means the ADD raises nothing at all. The old form
+             // is enabled inside a handler and §2023:14.6.13.1.1 means the ADD raises nothing at all. The old form
              // asserted pre-GR14 behaviour and passed only because handler bodies wrongly inherited the enclosing
-             // state. An explicit RAISE cannot substitute — §14.9.29.3 SR4: "Within an exception-checking PERFORM
+             // state. An explicit RAISE cannot substitute — §2023:14.9.29.3 SR4: "Within an exception-checking PERFORM
              // statement, the RAISE statement shall not be specified in any imperative statement other than
              // imperative-statement-1" (COBOL1611). Re-enabling INSIDE the handler is the legal way to raise
              // there, and it doubles as the proof that a handler-local directive still wins over the GR14 floor.
@@ -370,7 +370,7 @@ public sealed class PerformFormat3BehaviorTests
 
     // ── The version gate + the staged sub-GAPs (loud, never silent) ────────────────────────────────────────────
 
-    [Fact]   // §14.9.28 Format 3 is COBOL-2023; below 2023 it is rejected by the construct gate (COBOL0900). Tested
+    [Fact]   // §2023:14.9.28 Format 3 is COBOL-2023; below 2023 it is rejected by the construct gate (COBOL0900). Tested
              // at 2014 (where >>TURN itself is already legal, isolating the PERFORM gate).
     public void VersionGate_Below2023_Rejected0900()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""

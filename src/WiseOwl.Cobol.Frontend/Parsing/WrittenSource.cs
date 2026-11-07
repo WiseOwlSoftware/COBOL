@@ -25,7 +25,7 @@ public static class WrittenSource
 
     /// <summary>The source extent of <paramref name="token"/> as written, or its text where it has none (a synthesized
     /// token). <see cref="Antlr4.Runtime.IToken.Text"/> is NOT what the programmer wrote after a <c>&gt;&gt;COBOL-WORDS</c>
-    /// retype, which spells the token as its original word (<c>CobolWordsRewriter.Plan.Apply</c>, ISO §7.3.10.4 GR2, GR4):
+    /// retype, which spells the token as its original word (<c>CobolWordsRewriter.Plan.Apply</c>, ISO §2023:7.3.10.4 GR2, GR4):
     /// a diagnostic that names the word asks the source.</summary>
     public static string Of(Antlr4.Runtime.IToken token)
         => token is { StartIndex: >= 0 } && token.StopIndex >= token.StartIndex && token.InputStream is { } input

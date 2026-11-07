@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> RECORD CONTAINS ON A LINE SEQUENTIAL FILE (kb/Work PB1238).
-      *> ISO/IEC 1989:2023 §13.4.5.3 SR4: "If the LINE SEQUENTIAL phrase of the ORGANIZATION
+      *> ISO/IEC 1989:2023 §2023:13.4.5.3 SR4: "If the LINE SEQUENTIAL phrase of the ORGANIZATION
       *> clause of the sequential format of the 12.4.5, File control entry is specified
       *> neither the BLOCK CONTAINS clause nor the RECORD CONTAINS clause shall be
       *> specified." LINE SEQUENTIAL is new in ISO/IEC 1989:2023, so the rule is 2023-only

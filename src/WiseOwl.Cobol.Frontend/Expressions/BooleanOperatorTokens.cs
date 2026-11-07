@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 namespace WiseOwl.Cobol.Frontend.Expressions;
 
 /// <summary>
-/// ⛔ THE ONE LIST OF THE BOOLEAN-OPERATOR TOKENS (ISO §8.8.2 rules 5–8; kb/Work PB1412), asked by every reader that
+/// ⛔ THE ONE LIST OF THE BOOLEAN-OPERATOR TOKENS (ISO §2023:8.8.2 rules 5–8; kb/Work PB1412), asked by every reader that
 /// must tell a genuine boolean expression from an operand the grammar merely routed through the
 /// <c>booleanExpression</c> rule: the parser's look-ahead predicates (<c>boolExprAhead</c>, <c>boolArgAhead</c>), the
 /// condition binder's relation / simple-condition discriminator, and the introduction gate's two edition lists.
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// <c>B-…</c> operator word fails a test until it is classified here.</para>
 /// <para>Three tiers, because the three readers ask three different questions of the same tokens: an INFIX
 /// operator needs a completed left operand to be an operator at all (below 2002 B-AND, B-OR and B-XOR are legal
-/// user words, §8.9), the PREFIX operator B-NOT needs an operand start after it, and a SHIFT operator is never a
+/// user words, §2023:8.9), the PREFIX operator B-NOT needs an operand start after it, and a SHIFT operator is never a
 /// user word, so it is always the operator. <see cref="IsOperator"/> is their union.</para>
 /// </summary>
 public static class BooleanOperatorTokens
@@ -33,7 +33,7 @@ public static class BooleanOperatorTokens
     /// <summary>B-NOT — the COBOL-2002 unary operator, written before its operand.</summary>
     public static bool IsPrefix(int type) => type == CobolLexer.B_NOT;
 
-    /// <summary>B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC — the COBOL-2023 shift operators (§8.8.2 rule 8), a
+    /// <summary>B-SHIFT-L, B-SHIFT-R, B-SHIFT-LC, B-SHIFT-RC — the COBOL-2023 shift operators (§2023:8.8.2 rule 8), a
     /// DISTINCT construct from the 2002 set so a program using only shifts at 2002 is told about the shift.</summary>
     public static bool IsShift(int type) =>
         type is CobolLexer.B_SHIFT_L or CobolLexer.B_SHIFT_R or CobolLexer.B_SHIFT_LC or CobolLexer.B_SHIFT_RC;

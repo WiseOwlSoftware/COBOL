@@ -94,7 +94,7 @@ roadmap changes 25-28 / 39-43 and PHASE-07.
 (`data.IndexFields.TryAdd(...)`).
 
 **Description.** The hard invariant is "the emitter must NEVER mutate the binder's model." It is violated in four
-distinct places. `MarkStoreAsImage` is a *binding-time semantic decision* (ISO §14.9.25.4 MOVE GR4 — which
+distinct places. `MarkStoreAsImage` is a *binding-time semantic decision* (ISO §2023:14.9.25.4 MOVE GR4 — which
 numeric-DISPLAY leaves must be stored as their character image) that runs **from inside the code generator**,
 writing `DataItem.StoreAsImage` after binding is nominally complete. The run-unit orchestrator additionally
 re-syncs that flag across `CompilerTempClones`, and the OO emit path flips it again. The emitter even inserts
@@ -118,7 +118,7 @@ activation boundary must agree on the carrier form").
 **Recommendation.** Move the whole-group→image decision into **one `StorageFormPass`** that runs after procedure
 binding (where `WholeGroupReferenced` is fully collected), writes an **init-only** `StorageForm` discriminator,
 and hands the emitter a read-only view. Delete `MarkStoreAsImage`, the compiler-temp re-sync, and the
-emitter-side `IndexFields` write. This is roadmap §2.7 / §3.4 and PHASE-06 Step 3 (exit criterion #2: "no
+emitter-side `IndexFields` write. This is roadmap §2.7 / §2023:3.4 and PHASE-06 Step 3 (exit criterion #2: "no
 CodeGen writes into the Binding data model").
 
 ---
@@ -183,11 +183,11 @@ Cross-pass, cross-class writers (no ownership):
 
 Name lookup is also quadrupled (`LookupData` / `LookupDataInScopeOf` / `TryGetVisibleIndexField` / `IndexFieldFor`
 per `DataBinder.Oo.cs`) because OO method scoping is a parallel shadow name-model callers must opt into — a
-caller that reaches `ByName`/`IndexFields` directly silently misses §11.7 sibling-invisibility.
+caller that reaches `ByName`/`IndexFields` directly silently misses §2023:11.7 sibling-invisibility.
 
 **Recommendation.** Replace the ~15 public collections with ONE scope-aware `SymbolTable` written only through a
 `SymbolTableBuilder` inside passes and sealed into an immutable projection on `BoundCompilation`; collapse the
-lookup quadruple into one `TryResolve(name, scope)`. Roadmap §3.2 / PHASE-06 Steps 5-7.
+lookup quadruple into one `TryResolve(name, scope)`. Roadmap §2023:3.2 / PHASE-06 Steps 5-7.
 
 ---
 
@@ -219,7 +219,7 @@ computed properties that walk `Parent` on every access, so their correctness sil
 **Recommendation.** Split into an immutable declaration core + a pass-written side-table (`StrongTypeModel`,
 `RedefinesClass`) set init-only through the pass write handle; make the recursive computed properties into
 init-only fields set once by a bottom-up pass; add a completion-phase watermark so reading a late fact before
-its producing pass ran is a located compiler error. Roadmap §2.7 / §3.1 / PHASE-06 Step 6.
+its producing pass ran is a located compiler error. Roadmap §2.7 / §2023:3.1 / PHASE-06 Step 6.
 
 ---
 
@@ -269,7 +269,7 @@ independently.
 
 **Evidence.**
 ```
-EditionGateHints.cs:36  new("the ALLOCATE statement", 2002, "ISO §14.9.3", "allocate-2002")     // frontend copy
+EditionGateHints.cs:36  new("the ALLOCATE statement", 2002, "ISO §2023:14.9.3", "allocate-2002")     // frontend copy
 EditionGateHints.cs:14-18  "the registry row is the canonical metadata; this table only maps a PARSE-time surface"
 CobolParserCoreBase.cs:17   public int DialectLevel { get; set; } = 85;                          // frontend edition
 EditionContext.cs:26        public sealed class EditionContext(int dialectLevel, …)              // compiler edition
@@ -329,19 +329,19 @@ the public dictionaries, and an immutable `BoundCompilation`. Concretely:
 
 | Finding | Addressed by | Adequate? |
 |---|---|---|
-| F1 god-class slicing | topology §2.4/§2.5 + binder-tree §3.5 + PHASE-07 Steps 7-10 (`BinderContext`/`EmitContext`, per-verb classes, ban on `partial class` for size §2.15) | **Yes** |
-| F2 emitter→model write-back | topology §2.7/§3.4 + PHASE-06 Step 3 (`StorageFormPass`; delete `MarkStoreAsImage`; exit criterion #2 grep-proves no CodeGen write) | **Yes** |
-| F3 no bind/emit boundary | binder-tree §3.1 + PHASE-06 Steps 2/4 (`BinderDriver.Bind → BoundCompilation`, `EmitBound(comp)`, `CheckOnly` halts after Bind) | **Yes** |
-| F4 public-dict blackboard + lookup quadruple | binder-tree §3.2 + PHASE-06 Steps 5/7 (`SymbolTable`/`SymbolTableBuilder`, read-only views, one `TryResolve(name, scope)`) | **Yes** |
-| F5 mutable `DataItem` | topology §2.7 + binder-tree §3.1 (`StorageForm` init-only, `StrongTypeModel` side-table, watermark gate) + PHASE-06 Step 6 | **Yes** |
-| F6 `Place` leaks C# text | topology §2.12 + binder-tree §3.3 + PHASE-07 Steps 5/11-12 (structural `Place`, `PlaceRenderer`, `RuntimeApi`, `ICodeGenBackend`) | **Yes** |
+| F1 god-class slicing | topology §2.4/§2.5 + binder-tree §2023:3.5 + PHASE-07 Steps 7-10 (`BinderContext`/`EmitContext`, per-verb classes, ban on `partial class` for size §2.15) | **Yes** |
+| F2 emitter→model write-back | topology §2.7/§2023:3.4 + PHASE-06 Step 3 (`StorageFormPass`; delete `MarkStoreAsImage`; exit criterion #2 grep-proves no CodeGen write) | **Yes** |
+| F3 no bind/emit boundary | binder-tree §2023:3.1 + PHASE-06 Steps 2/4 (`BinderDriver.Bind → BoundCompilation`, `EmitBound(comp)`, `CheckOnly` halts after Bind) | **Yes** |
+| F4 public-dict blackboard + lookup quadruple | binder-tree §2023:3.2 + PHASE-06 Steps 5/7 (`SymbolTable`/`SymbolTableBuilder`, read-only views, one `TryResolve(name, scope)`) | **Yes** |
+| F5 mutable `DataItem` | topology §2.7 + binder-tree §2023:3.1 (`StorageForm` init-only, `StrongTypeModel` side-table, watermark gate) + PHASE-06 Step 6 | **Yes** |
+| F6 `Place` leaks C# text | topology §2.12 + binder-tree §2023:3.3 + PHASE-07 Steps 5/11-12 (structural `Place`, `PlaceRenderer`, `RuntimeApi`, `ICodeGenBackend`) | **Yes** |
 | F7 edition metadata dup | topology §2.1/§2.11 (new `WiseOwl.Cobol.Editions` leaf) | **Yes** |
 | F8 stale namespace | topology §2.2 (rename now, Wave 0) | **Yes** |
 
 The plan is also *stronger than my critique in two respects*: (a) it adds a **DAG-validated pass manifest +
-completion-phase watermark** (binder-tree §3.1), which structurally fixes the implicit-ordering latent-bug class
+completion-phase watermark** (binder-tree §2023:3.1), which structurally fixes the implicit-ordering latent-bug class
 that underlies F2/F5 — I flagged the mutation, they also fix the *ordering* that makes the mutation fragile; and
-(b) it correctly identifies the **source-generated exhaustive visitor** (binder-tree §3.3, PHASE-07) as the fix
+(b) it correctly identifies the **source-generated exhaustive visitor** (binder-tree §2023:3.3, PHASE-07) as the fix
 for the ≥5 hand-maintained bound-tree switches (`BindStatementCore`, `EmitStatement`, `BoundStores.StoreKindOf`,
 `NumericRenderer`, `ConditionRenderer`) — an encapsulation problem I under-weighted (those switches are a
 different flavor of the "coupling invisible to the compiler" defect). The migration discipline
@@ -362,7 +362,7 @@ the OO `SymbolTable` collapse last behind goldens) is exactly right for a behavi
 2. **`OoClasses` is publicly settable and assigned by the emitter *before* `Bind` — call it out as its own
    deletion.** `DataBinder.cs:88` (`public OoClassTable? OoClasses { get; set; }`) is set at
    `CSharpEmitter.Call.cs:308`. The roadmap folds `OoClasses` into `BoundCompilation.Classes` (read-only
-   projection, binder-tree §3.2) and moves OO to `Oo/` (§2.10), which covers it — but the *pre-Bind settable
+   projection, binder-tree §2023:3.2) and moves OO to `Oo/` (§2.10), which covers it — but the *pre-Bind settable
    handshake* is a distinct write channel not enumerated in the "close every open write channel" list (§1.2 names
    `WholeGroupReferenced`, `CompilerTempClones`, `StoreAsImage`, but not the `OoClasses` setter). Add it to the
    PHASE-06 Step 5 grep so the sealing is complete.
@@ -384,7 +384,7 @@ the OO `SymbolTable` collapse last behind goldens) is exactly right for a behavi
    ordering the whole `StoreAsImage` fix depends on.
 
 5. **No finding-level gap on the *value* side.** The plan does not over-reach: it explicitly keeps the
-   owner-locked "no shared lowered IR" decision (binder-tree §3.3) and keeps `Place` as the lvalue abstraction
+   owner-locked "no shared lowered IR" decision (binder-tree §2023:3.3) and keeps `Place` as the lvalue abstraction
    (structural, not deleted). That restraint is correct — `Place`, `NumX`, and the `Bound*` records are the
    healthy core and should not be re-architected beyond the string-leak fix.
 

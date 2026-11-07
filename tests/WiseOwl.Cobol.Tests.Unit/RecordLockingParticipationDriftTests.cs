@@ -9,13 +9,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A CONNECTOR IS A RECORD-LOCKING PARTICIPANT EXACTLY WHEN ITS RECORD LOCKS CAN BE SET, AND A SHARING CLAUSE, A
-/// SHARING OR RETRY PHRASE ON THE OPEN, OR THE NO OTHER MODE CONFERS NONE (kb/Work PB3372). ISO §12.4.5.9.4 GR1:
+/// SHARING OR RETRY PHRASE ON THE OPEN, OR THE NO OTHER MODE CONFERS NONE (kb/Work PB3372). ISO §2023:12.4.5.9.4 GR1:
 /// <i>"If the LOCK MODE clause is omitted from a file control entry, a) If there is a SHARING clause in that file
 /// control entry, no record locks are set by the execution of I-O statements through the associated file
 /// connector"</i> and <i>"b) … 1. If an OPEN statement for the associated file connector has a SHARING phrase, no
 /// record locks are set by the execution of I-O statements for that opening of the associated file connector"</i>;
 /// GR3: <i>"If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect"</i>.
-/// <para><c>FileConnector.SharedPhysical</c> is the participation fact: the §9.1.16 lock identity the release-ordinal
+/// <para><c>FileConnector.SharedPhysical</c> is the participation fact: the §2023:9.1.16 lock identity the release-ordinal
 /// mint of a sequential <c>OPEN EXTEND</c> numbers (a whole-file count of the records already there) and the
 /// read-write host access a locking writer needs. <c>FileRegistry.OpenCore</c> used to make ANY SHARING or RETRY
 /// phrase a participant by registering a lock-less posture on the spot, and <c>SharedOpenAttempt</c> read the mere
@@ -60,7 +60,7 @@ public sealed class RecordLockingParticipationDriftTests
             reg.HostPathOf(name), assignDynamic: false, page: null);
     }
 
-    /// <summary>One way a connector comes to be opened EXTEND, with the answers §12.4.5.9.4 gives for it. The
+    /// <summary>One way a connector comes to be opened EXTEND, with the answers §2023:12.4.5.9.4 gives for it. The
     /// ordinal base is measured (and so non-zero) only for a participant whose file lock admits no other writer; a
     /// writer that may meet another counts its ordinals off the medium instead (kb/Work PB2692).</summary>
     public sealed record Case(string Name, FileSharing? ClauseSharing, FileLockMode? ClauseLock,
@@ -86,7 +86,7 @@ public sealed class RecordLockingParticipationDriftTests
         new("LockModeAutomaticReadOnlyClause", FileSharing.ReadOnly, FileLockMode.Automatic, null, FileRetryKind.None, true, 2),
         new("LockModeAllOtherClause", FileSharing.AllOther, FileLockMode.Manual, null, FileRetryKind.None, true, 0),
         new("LockModeClauseAllOtherPhrase", null, FileLockMode.Manual, FileSharing.AllOther, FileRetryKind.None, true, 0),
-        // §9.1.15 / §14.9.27.4 GR23: the OPEN's SHARING phrase overrides the clause, and the posture is per OPEN.
+        // §2023:9.1.15 / §2023:14.9.27.4 GR23: the OPEN's SHARING phrase overrides the clause, and the posture is per OPEN.
         new("NoOtherClauseOverriddenByReadOnlyPhrase", FileSharing.NoOther, FileLockMode.Manual, FileSharing.ReadOnly, FileRetryKind.None, true, 2),
         new("ReadOnlyClauseOverriddenByNoOtherPhrase", FileSharing.ReadOnly, FileLockMode.Manual, FileSharing.NoOther, FileRetryKind.None, false, 0),
         // GR3: the physical file is open in the sharing with no other mode — the LOCK MODE clause has no effect.
@@ -172,7 +172,7 @@ public sealed class RecordLockingParticipationDriftTests
     }
 
     /// <summary>The conflict path stays whole for a participant: a sibling reader that reaches the record a
-    /// locking writer released WITH LOCK gets the record operation conflict '51' (§14.9.30.4 GR9/GR10) and the
+    /// locking writer released WITH LOCK gets the record operation conflict '51' (§2023:14.9.30.4 GR9/GR10) and the
     /// record before it is delivered '00'; the same read against a lock-less writer's record answers '00'.</summary>
     [Theory]
     [InlineData(SharedExtendOpenDriftTests.Framing.LineSequential)]
@@ -208,9 +208,9 @@ public sealed class RecordLockingParticipationDriftTests
     }
 
     /// <summary>The unsuccessful OPENs, each through the phrase spellings that used to register a posture before the
-    /// open was admitted: an absent non-optional file is '35' (§9.1.13.6), a sibling's NO OTHER open is '61'
-    /// (§9.1.13.9 item 1) — also after a RETRY phrase exhausts (§14.7.9.3) — and a second OPEN of an open connector
-    /// is '41' (§14.9.27.4 GR2) that leaves the participation of the OPEN in force. None of them leaves the
+    /// open was admitted: an absent non-optional file is '35' (§2023:9.1.13.6), a sibling's NO OTHER open is '61'
+    /// (§2023:9.1.13.9 item 1) — also after a RETRY phrase exhausts (§2023:14.7.9.3) — and a second OPEN of an open connector
+    /// is '41' (§2023:14.9.27.4 GR2) that leaves the participation of the OPEN in force. None of them leaves the
     /// connector a participant it was not.</summary>
     [Theory]
     [InlineData("NoClauseSharingPhrase")]

@@ -10,13 +10,13 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The P2.8/W2 position classifier behind the §8.9 reserved-word funnel
+/// The P2.8/W2 position classifier behind the §2023:8.9 reserved-word funnel
 /// (<c>VersionConformancePass.IsProvableUserWordPosition</c>): an allowlist-band context-keyword token rejects as a
-/// reserved word (ISO §8.3.2.1 rule 1 / §8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
-/// grammar position that is unambiguously a user-defined-word use (§8.3.2.2) — the data/parameter entry-name
-/// slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3), the SELECT file-name (§12.4.5.1), and the
-/// program-name sites (§11.10.2/§11.5/§10.6.1). Mis-parse-prone optional entry-name slots (the RW104A hazard:
-/// the report-group COLUMN clause keyword, §13.18.14, binds into the <c>dataName?</c> slot of <c>reportGroupEntry</c> under the
+/// reserved word (ISO §2023:8.3.2.1 rule 1 / §2023:8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
+/// grammar position that is unambiguously a user-defined-word use (§2023:8.3.2.2) — the data/parameter entry-name
+/// slot (§2023:13.16), a paragraph/section definition (§2023:14.4.2/§2023:14.4.3), the SELECT file-name (§2023:12.4.5.1), and the
+/// program-name sites (§2023:11.10.2/§2023:11.5/§2023:10.6.1). Mis-parse-prone optional entry-name slots (the RW104A hazard:
+/// the report-group COLUMN clause keyword, §2023:13.18.14, binds into the <c>dataName?</c> slot of <c>reportGroupEntry</c> under the
 /// permissive grammar) and every reference position classify FALSE. Each fact feeds REAL parse trees through
 /// the frontend — no hand-built contexts.
 /// </summary>
@@ -48,7 +48,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
             Collect(node.GetChild(i), word, hits);
     }
 
-    [Fact]   // §13.16: `01 SCREEN PIC …` — the entry-name slot is provably a user-word use (no data
+    [Fact]   // §2023:13.16: `01 SCREEN PIC …` — the entry-name slot is provably a user-word use (no data
              // description clause begins with a cobolWord-admitted token).
     public void DataDescriptionEntryName_IsProvableUserWordPosition()
     {
@@ -67,7 +67,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
         Assert.Contains(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
-    [Fact]   // The RW104A hazard (§13.18.14): a report-group COLUMN clause KEYWORD either parses through the
+    [Fact]   // The RW104A hazard (§2023:13.18.14): a report-group COLUMN clause KEYWORD either parses through the
              // dedicated reportColumnClause token (never reaching the funnel) or binds into the optional
              // report-group entry-name slot under the permissive grammar (DEVLOG 585) — EITHER way no COLUMN
              // occurrence may classify as a provable user-word position (a conforming CCVS-85 shape must
@@ -103,7 +103,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
         Assert.DoesNotContain(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
-    [Fact]   // §14.4.3: the paragraph DEFINITION `COL.` classifies true; the `PERFORM COL` REFERENCE does not
+    [Fact]   // §2023:14.4.3: the paragraph DEFINITION `COL.` classifies true; the `PERFORM COL` REFERENCE does not
              // (references stay unchecked — conservative subset).
     public void ParagraphDefinition_True_PerformReference_False()
     {
@@ -124,7 +124,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
                 { Parent: CobolParserCore.ParagraphNameContext })));
     }
 
-    [Fact]   // §14.4.2: a section DEFINITION (`BIT SECTION.`) classifies true.
+    [Fact]   // §2023:14.4.2: a section DEFINITION (`BIT SECTION.`) classifies true.
     public void SectionDefinition_IsProvableUserWordPosition()
     {
         var hits = CobolWords("""
@@ -139,7 +139,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
         Assert.Contains(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
-    [Fact]   // §12.4.5.1: the SELECT file-name classifies true; the FD / OPEN / CLOSE REFERENCES of the same
+    [Fact]   // §2023:12.4.5.1: the SELECT file-name classifies true; the FD / OPEN / CLOSE REFERENCES of the same
              // name do not (one provable defining occurrence suffices — the funnel dedups per word anyway).
     public void SelectFileName_True_FdAndStatementReferences_False()
     {
@@ -169,7 +169,7 @@ public sealed class ReservedWordPositionTests : WiseOwlCobolTestBase
                 { Parent: CobolParserCore.FileControlClauseGroupContext })));
     }
 
-    [Fact]   // §11.10.2/§10.6.1: every programName site (PROGRAM-ID header, END PROGRAM marker) names the
+    [Fact]   // §2023:11.10.2/§2023:10.6.1: every programName site (PROGRAM-ID header, END PROGRAM marker) names the
              // source unit itself — classifies true (here via the ordinary IDENTIFIER program name; the slot
              // matters for band tokens, which occupy the identical context).
     public void ProgramName_IsProvableUserWordPosition()

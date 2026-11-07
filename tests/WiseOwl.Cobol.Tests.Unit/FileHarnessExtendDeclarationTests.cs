@@ -8,7 +8,7 @@ using Xunit.Sdk;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ A TEST THAT OPENS A FILE EXTEND MEASURES A PROGRAM THE COMPILER ACCEPTS (kb/Work PB3479). §14.9.27.3 SR2: <i>"The EXTEND
+/// ⛔ A TEST THAT OPENS A FILE EXTEND MEASURES A PROGRAM THE COMPILER ACCEPTS (kb/Work PB3479). §2023:14.9.27.3 SR2: <i>"The EXTEND
 /// phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is sequential"</i>, and
 /// the compiler refuses the other declarations (COBOL2372). <see cref="FileHarness.Register"/> declares a RELATIVE or
 /// INDEXED connector with DYNAMIC access unless told otherwise, so a theory that crossed the open modes and registered with
@@ -37,7 +37,7 @@ public sealed class FileHarnessExtendDeclarationTests
         Assert.Equal(expected, FileHarness.AccessFor(mode));
 
     /// <summary>The declaration <see cref="FileHarness.AccessFor"/> gives opens in its own mode, in every organization:
-    /// the success-family status of the OPEN (§14.9.27.4 GR4 with Table 18, an available file not currently open; none of Table 19's refusals applies to a lone connector).</summary>
+    /// the success-family status of the OPEN (§2023:14.9.27.4 GR4 with Table 18, an available file not currently open; none of Table 19's refusals applies to a lone connector).</summary>
     [Theory]
     [MemberData(nameof(EveryOrgAndOpenMode))]
     public void TheDeclarationAnOpenModeCanMake_OpensInThatMode(FileOrg org, FileOpenMode mode)
@@ -72,7 +72,7 @@ public sealed class FileHarnessExtendDeclarationTests
             var reg = new FileRegistry();
             FileHarness.Register(reg, "F", host, org, sharing: null, access: declared);
             var failure = Assert.Throws<FailException>(() => FileHarness.Open(reg, "F", FileOpenMode.Extend));
-            Assert.Contains("§14.9.27.3 SR2", failure.Message);
+            Assert.Contains("§2023:14.9.27.3 SR2", failure.Message);
         }
         finally { FileHarness.TryDelete(host); }
     }
@@ -92,7 +92,7 @@ public sealed class FileHarnessExtendDeclarationTests
             var reg = new FileRegistry();
             FileHarness.Register(reg, "F", host, org, sharing: null);
             var failure = Assert.Throws<FailException>(() => reg.OpenStatic("F", FileOpenMode.Extend));
-            Assert.Contains("§14.9.27.3 SR2", failure.Message);
+            Assert.Contains("§2023:14.9.27.3 SR2", failure.Message);
             reg.OpenStatic("F", FileOpenMode.IO);   // the same declaration opens in the modes DYNAMIC admits
             Assert.Equal("00", reg.Status("F"));
             reg.CloseAll();

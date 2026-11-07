@@ -20,7 +20,7 @@ public sealed class ImportedTypeCollisionTests
     /// <summary>The imported library: a type <c>P2104.Twin</c> and, in the namespace <c>P2104.Inner</c>, a type of its own.</summary>
     private const string Library = "namespace P2104 { public class Twin { } } namespace P2104.Inner { public class Deep { } }";
 
-    [Theory]   // §10.2 — each of the three warnings a name meeting an imported one draws, escalated.
+    [Theory]   // §2023:10.2 — each of the three warnings a name meeting an imported one draws, escalated.
     [InlineData("CS0436", "namespace P2104 { public class Twin { } public class Use { Twin T; } }")]               // a source TYPE meeting an imported type
     [InlineData("CS0435", "namespace P2104.Twin { public class Deep { } } namespace P2104 { public class Use { Twin.Deep T; } }")]   // a source NAMESPACE meeting an imported type
     [InlineData("CS0437", "namespace P2104 { public class Inner { } public class Use { Inner T; } }")]             // a source TYPE meeting an imported namespace
@@ -59,7 +59,7 @@ public sealed class ImportedTypeCollisionTests
     public void TheFactoryOfAClass_IsASiblingInItsNamespace(string clrName, string factory) =>
         Assert.Equal(factory, NamingConvention.FactoryClassName(clrName));
 
-    [Fact]   // §10.1: an imported class is named by its full name under global::, the namespace's keyword segments escaped.
+    [Fact]   // §2023:10.1: an imported class is named by its full name under global::, the namespace's keyword segments escaped.
     public void AnImportedClass_IsNamedByItsFullNameUnderGlobal()
     {
         Assert.Equal("global::Cobol.LIB.LEDGER", NamingConvention.ImportedTypeName(CsNames.ModuleNamespaceOf("LIB"), "LEDGER"));
@@ -72,7 +72,7 @@ public sealed class ImportedTypeCollisionTests
         Assert.Contains(' ', key);
     }
 
-    [Fact]   // §6.4: the description is equal whoever resolved it; the identity and the CLR name are functions of the name.
+    [Fact]   // §2023:6.4: the description is equal whoever resolved it; the identity and the CLR name are functions of the name.
     public void AnObjectReferenceDescription_IsEqualWhateverIdentityItCarries()
     {
         var plain = ObjectRefDescriptor.ObjectClass("LEDGER");

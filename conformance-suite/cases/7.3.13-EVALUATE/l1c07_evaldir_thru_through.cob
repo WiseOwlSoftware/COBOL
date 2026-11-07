@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.3.13.3 SR13 — EVALUATE directive: THRU and THROUGH are
+      *> ISO §2023:7.3.13.3 SR13 — EVALUATE directive: THRU and THROUGH are
       *> equivalent spellings of the range phrase.
       *> RULE 7.3.13.3 SR13: "The words THROUGH and THRU are
       *>   equivalent."
       *> RULE 7.3.13.4 GR4 b): "a TRUE result is returned if the
       *>   selection subject lies in the inclusive range ..."
       *> cite.py:
-      *>   OK  §7.3.13.3 13)  (Syntax rules)
-      *>   OK  §7.3.13.4 4) b)  (General rules)
+      *>   OK  §2023:7.3.13.3 13)  (Syntax rules)
+      *>   OK  §2023:7.3.13.4 4) b)  (General rules)
       *> EXPECTED OUTPUT, DERIVED (each block has the same ranges; only
       *> the spelling differs, so SR13 requires the same branch):
       *>   A2-THRU             5 not in 1 THRU 4; 5 in 5 THRU 9.

@@ -129,7 +129,7 @@ internal static class NistRunner
 /// The next program that writes a second file is graded with no change here. <c>scripts/guard-verdict.sh</c>
 /// (<c>guard_files_apply</c>) is the shell guard's arm of the same rule, so CI's NIST leg grades the same files.</para>
 /// <para>The expected bytes are the program's own output — the size and layout of records on the storage medium
-/// are the implementor's (ISO §13.18.43.4 GR2: "The size of records on physical storage media may be different due
+/// are the implementor's (ISO §2023:13.18.43.4 GR2: "The size of records on physical storage media may be different due
 /// to control information required by the operating environment"), so these goldens pin WiseOwl COBOL's behavior,
 /// not the standard's: a deliberate format change re-captures them
 /// (<see cref="UpdateVariable"/>=1, then review <c>git diff tests/nist/valid-files</c>). The standard-defined
@@ -206,7 +206,7 @@ internal static class NistOutputs
     }
 
     /// <summary>The form two files are compared in. A line sequential file ends each record with the HOST's newline
-    /// — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md DOC-A.1-114; ISO §12.4.5.10.3 GR2: "an implementor-defined
+    /// — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md DOC-A.1-114; ISO §2023:12.4.5.10.3 GR2: "an implementor-defined
     /// line delimiter") — so a TEXT file is compared with each CR LF taken as LF, and the goldens hold that form
     /// (they read the same on both hosts). A CR not followed by LF is record data and stays. A binary file is
     /// compared as written: a record file's bytes do not depend on the host, so a newline translation there is a

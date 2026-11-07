@@ -13,21 +13,21 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 
-/// <summary>The LOCALE clause and the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §12.3.7.2; §12.3.6.2; DESIGN-locale-facility).
+/// <summary>The LOCALE clause and the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (ISO §2023:12.3.7.2; §2023:12.3.6.2; DESIGN-locale-facility).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
 public sealed partial class SpecialNamesBinder
 {
     /// <summary>Bind the OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC
-    /// IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}…}</c> clause (ISO §12.3.6.2; kb/Work PB64 T5): each phrase is
+    /// IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}…}</c> clause (ISO §2023:12.3.6.2; kb/Work PB64 T5): each phrase is
     /// LOCALE (the current locale at activation), SYSTEM-DEFAULT, USER-DEFAULT, or a locale-name of the SPECIAL-NAMES
-    /// paragraph (§12.3.6.3 SR3 — undeclared → COBOL1664, the ONE undeclared-locale-name diagnostic); the two-phrase IS
+    /// paragraph (§2023:12.3.6.3 SR3 — undeclared → COBOL1664, the ONE undeclared-locale-name diagnostic); the two-phrase IS
     /// form gives the alphanumeric then the national classification (GR5 a–j); a class named twice in the FOR form is
-    /// a form violation (§5.2.6.4 — each at most once).</summary>
+    /// a form violation (§2023:5.2.6.4 — each at most once).</summary>
     private void ResolveClassification(Core.CharacterClassificationClauseContext cc)
     {
         using var _ = Edition.At(cc);
         LocalePhrase? alphanumeric = null, national = null;
-        // The FOR pair — each class at most once (§5.2.6.4) — through the one reader (kb/Work PB1075).
+        // The FOR pair — each class at most once (§2023:5.2.6.4) — through the one reader (kb/Work PB1075).
         var (alnumFor, natFor) = ChoiceIndicators.ForPhrasePair(Edition, cc.classificationForPhrase(),
             f => f.NATIONAL() is not null, "CHARACTER CLASSIFICATION", "12.3.6.2");
         if (alnumFor is not null || natFor is not null)
@@ -54,19 +54,19 @@ public sealed partial class SpecialNamesBinder
 
     private LocalePhrase? ClassificationPhrase(Antlr4.Runtime.RuleContext at, string word, bool national)
     {
-        // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250): a §8.9/§8.10 word the lexer does not
+        // >>COBOL-WORDS (ISO §2023:7.3.10.4 GR2/GR3/GR4; kb/Work PB250): a §2023:8.9/§2023:8.10 word the lexer does not
         // tokenize is reached ONLY through the map; a raw text test here is inert to the directive both ways.
         if (_host.CobolWords.Is(word, "LOCALE")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Current, null);
         if (_host.CobolWords.Is(word, "SYSTEM-DEFAULT")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.SystemDefault, null);
         if (_host.CobolWords.Is(word, "USER-DEFAULT")) return new LocalePhrase(Runtime.Globalization.LocalePhraseKind.UserDefault, null);
         var sym = ResolveLocaleName(at, word, $"CHARACTER CLASSIFICATION{(national ? " FOR NATIONAL" : "")} {word}",
-            $"ISO §12.3.6.3 SR3 — locale-name-{(national ? 2 : 1)} shall be a locale name defined in the SPECIAL-NAMES paragraph");
+            $"ISO §2023:12.3.6.3 SR3 — locale-name-{(national ? 2 : 1)} shall be a locale name defined in the SPECIAL-NAMES paragraph");
         return sym is null ? null : new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Named, sym);
     }
 
     /// <summary>
-    /// Bind the SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §12.3.7.2 — the last item
-    /// of the paragraph's general format; kb/Work PB101 / DESIGN-locale-facility §4.9). §12.3.7.4 GR17: "When ORDER
+    /// Bind the SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §2023:12.3.7.2 — the last item
+    /// of the paragraph's general format; kb/Work PB101 / DESIGN-locale-facility §4.9). §2023:12.3.7.4 GR17: "When ORDER
     /// TABLE is specified, ordering-name-1 shall reference a cultural ordering table that is identified by
     /// literal-9 and constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the
     /// allowable content of literal-9."
@@ -81,25 +81,25 @@ public sealed partial class SpecialNamesBinder
     /// </list>
     /// <para>⚖ The ADVISORY (COBOL1662, a warning): GR17 leaves literal-9's allowable content to the
     /// implementor, so a spelling this implementation cannot resolve is legal source with a defined RUNTIME
-    /// outcome — §15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
+    /// outcome — §2023:15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
     /// conforming program; saying nothing would let a program whose every STANDARD-COMPARE is inoperative compile
     /// clean. The resolver consulted here is the SAME one the runtime uses
     /// (<c>CollationEngine.TryGetOrderingTable</c>), so bind-time advice and run-time behaviour cannot drift.</para>
     /// </summary>
     /// <summary>The SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> clause (ISO
-    /// §12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §12.3.7.3
+    /// §2023:12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §2023:12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative
     /// constant" nor a zero-length literal (the grammar admits any literal, so both are checked here); a locale-name
-    /// declared twice is COBOL4250, asked by the declaration funnel (§8.4.2.1; kb/Work PB3216). §12.3.7.4
+    /// declared twice is COBOL4250, asked by the declaration funnel (§2023:8.4.2.1; kb/Work PB3216). §2023:12.3.7.4
     /// GR5 — the implementor specifies the allowable content: DETERMINATION L1, a locale tag, POSIX spellings normalized
-    /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
+    /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§2023:8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
     {
         var words = loc.cobolWord();                  // [0] = locale-name-1, [1] = external-locale-name-1 (word branch); LOCALE is the formatWord
         string name = words[0].GetText();
-        _host.DeclareUserWord(name, UserWordKind.LocaleName);   // §8.3.2.2 — the one declaration funnel (kb/Work PB1083)
+        _host.DeclareUserWord(name, UserWordKind.LocaleName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
         string external;
-        // literal-4 is written as a literal, or as a constant-name standing for one (§13.10.3 SR2; kb/Work PB1942). The
+        // literal-4 is written as a literal, or as a constant-name standing for one (§2023:13.10.3 SR2; kb/Work PB1942). The
         // word branch is ALSO external-locale-name-1, a system-name: ⚠ DETERMINATION — a word this unit declares as a
         // constant-name takes the constant reading (the program's own declaration of the word), any other word is
         // external-locale-name-1.
@@ -114,15 +114,15 @@ public sealed partial class SpecialNamesBinder
             if (!TryClauseTextLiteral(written4, $"LOCALE {name} IS {spelling}", "literal-4", out external)) return;
         }
         else external = words[1].GetText();
-        // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
+        // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §2023:8.4.2.1; kb/Work
         // PB3216); the first stands, as every registry keeps it.
         Cfg.Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
     }
 
-    /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
+    /// <summary>Resolve a locale-name reference (ISO §2023:12.3.7.3 SR24 for the ALPHABET clause; §2023:14.9.39.3 SR26 for SET
     /// LOCALE; the later increments' sites) to its symbol, or null after COBOL1664 — the ONE undeclared-locale-name
     /// diagnostic, with the citing site named (DESIGN-locale-facility §7 rule a).</summary>
-    /// <param name="at">The reference, whose source element's §8.3.2.2 census records the use (kb/Work PB3153).</param>
+    /// <param name="at">The reference, whose source element's §2023:8.3.2.2 census records the use (kb/Work PB3153).</param>
     internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
     {
         if (Cfg.Locales.TryUse(at, name, out var sym)) return sym;

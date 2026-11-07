@@ -4,13 +4,13 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.45.3 SR1 — SUPPRESS written in a nondeclarative
+      *> ISO §2023:14.9.45.3 SR1 — SUPPRESS written in a nondeclarative
       *> procedure (not a USE BEFORE REPORTING procedure).
       *> Rule: "The SUPPRESS statement may appear only in a USE BEFORE
       *> REPORTING procedure."
       *> cite.py --check 14.9.45.3 "The SUPPRESS statement may appear
       *>   only in a USE BEFORE REPORTING procedure."
-      *>   -> OK  §14.9.45.3 1)  (Syntax rule)
+      *>   -> OK  §2023:14.9.45.3 1)  (Syntax rule)
       *> The program is otherwise a valid Report Writer program (the
       *> same shape as conformance:cases/13.18.16-CONTROL/rw_suppress with the SUPPRESS
       *> moved out of its declarative into MAIN-PARA and no

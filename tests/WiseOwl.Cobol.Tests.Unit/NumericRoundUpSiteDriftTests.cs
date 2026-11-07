@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DRIFT TEST for the "rounded up to the next whole number" landing (kb/Work PB142-B).
-/// <para>The standard says that phrase in exactly TWO normative places — §14.7.9.3 GR1 (the RETRY phrase's
-/// arithmetic-expression-1, an n-TIMES count) and §14.9.3.4 GR1 (ALLOCATE's arithmetic-expression-1, a byte
+/// <para>The standard says that phrase in exactly TWO normative places — §2023:14.7.9.3 GR1 (the RETRY phrase's
+/// arithmetic-expression-1, an n-TIMES count) and §2023:14.9.3.4 GR1 (ALLOCATE's arithmetic-expression-1, a byte
 /// count) — and for a long time only ONE of them implemented it. ALLOCATE ceilinged (kb/Work PB151); RETRY
 /// reached <c>NumericRenderer.Align(…, 0)</c>, whose every lane passes <c>CobolRounding.Truncation</c>, so
 /// <c>RETRY 1.5 TIMES</c> emitted 1 re-attempt where GR1 requires 2 and <c>RETRY 0.5 TIMES</c> emitted 0,

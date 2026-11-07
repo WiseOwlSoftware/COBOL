@@ -20,13 +20,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// never the cross product of their words (kb/Work PB1221). Every combination of the words each grammar rule could
 /// spell is parsed, and the parser's verdict is compared with the printed set:
 /// <list type="bullet">
-/// <item>LINE — ISO §13.18.35.2 Format 1, the rendered diagram: the brace {LINE NUMBER IS | LINE NUMBERS ARE |
-/// LINES ARE}, NUMBER / NUMBERS / IS / ARE not underlined (optional within their alternative, §5.2.6.3).</item>
-/// <item>COLUMN — §13.18.14.2 Format 1: the six-way spelling brace {COLUMN NUMBER | COLUMN NUMBERS | COLUMNS |
-/// COL NUMBER | COL NUMBERS | COLS}, then the alignment word, then [IS | ARE] split by §13.18.14.3 SR4 ("The keyword ARE
+/// <item>LINE — ISO §2023:13.18.35.2 Format 1, the rendered diagram: the brace {LINE NUMBER IS | LINE NUMBERS ARE |
+/// LINES ARE}, NUMBER / NUMBERS / IS / ARE not underlined (optional within their alternative, §2023:5.2.6.3).</item>
+/// <item>COLUMN — §2023:13.18.14.2 Format 1: the six-way spelling brace {COLUMN NUMBER | COLUMN NUMBERS | COLUMNS |
+/// COL NUMBER | COL NUMBERS | COLS}, then the alignment word, then [IS | ARE] split by §2023:13.18.14.3 SR4 ("The keyword ARE
 /// may be specified only if COLUMNS, COLS, or NUMBERS is specified") and SR5 ("The keyword IS shall not be specified
 /// if COLUMNS, COLS, or NUMBERS is specified") — across the alignment word, which sits between them.</item>
-/// <item>SOURCE — §13.18.53.2: the brace {SOURCE IS | SOURCES ARE}.</item>
+/// <item>SOURCE — §2023:13.18.53.2: the brace {SOURCE IS | SOURCES ARE}.</item>
 /// </list>
 /// The whole matrix is enumerated, so a future grammar edit that re-opens any one combination fails here by name,
 /// and an accepted spelling is also checked to have parsed as the clause with ONE operand (a context-sensitive
@@ -37,14 +37,14 @@ public sealed class ReportClauseKeywordPrefixTests
     private static readonly string[] Numbers = ["", "NUMBER", "NUMBERS"];
     private static readonly string[] Connectives = ["", "IS", "ARE"];
 
-    /// <summary>§13.18.35.2 Format 1's first brace, one entry per printed alternative: (spelling, number word,
+    /// <summary>§2023:13.18.35.2 Format 1's first brace, one entry per printed alternative: (spelling, number word,
     /// connective), the last two optional words.</summary>
     private static bool LinePrinted(string spelling, string number, string connective) =>
         (spelling == "LINE" && number is "" or "NUMBER" && connective is "" or "IS")
         || (spelling == "LINE" && number is "" or "NUMBERS" && connective is "" or "ARE")
         || (spelling == "LINES" && number == "" && connective is "" or "ARE");
 
-    /// <summary>§13.18.14.2 Format 1's spelling brace (NUMBER / NUMBERS ride COLUMN and COL only) with §13.18.14.3
+    /// <summary>§2023:13.18.14.2 Format 1's spelling brace (NUMBER / NUMBERS ride COLUMN and COL only) with §2023:13.18.14.3
     /// SR4 and SR5 over the connective.</summary>
     private static bool ColumnPrinted(string spelling, string number, string connective)
     {
@@ -56,7 +56,7 @@ public sealed class ReportClauseKeywordPrefixTests
         return true;
     }
 
-    /// <summary>§13.18.53.2: {SOURCE IS | SOURCES ARE}.</summary>
+    /// <summary>§2023:13.18.53.2: {SOURCE IS | SOURCES ARE}.</summary>
     private static bool SourcePrinted(string spelling, string connective) =>
         connective == "" || (spelling == "SOURCE") == (connective == "IS");
 
@@ -117,7 +117,7 @@ public sealed class ReportClauseKeywordPrefixTests
 
     /// <summary>A printed prefix parses clean and as the clause with its one operand. Any other is NOT read as a
     /// keyword prefix: it is a parse error, or — the one other reading the standard gives it — NUMBERS is not a
-    /// keyword there. NUMBERS is a context-sensitive word of the COLUMN and LINE clauses, and ISO §8.10 makes it "a
+    /// keyword there. NUMBERS is a context-sensitive word of the COLUMN and LINE clauses, and ISO §2023:8.10 makes it "a
     /// user-defined word" wherever the general format does not permit it, so `COLS NUMBERS 5` is a two-operand
     /// multiple COLUMN clause whose first operand is a constant-name NUMBERS (refused at bind when none is declared),
     /// never the prefix `COLS NUMBERS`.</summary>

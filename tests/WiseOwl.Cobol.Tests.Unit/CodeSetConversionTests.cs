@@ -8,7 +8,7 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ISO §13.18.13.4 GR6 b — "<i>On output, each native coded character in the record is replaced for the storage
+/// ISO §2023:13.18.13.4 GR6 b — "<i>On output, each native coded character in the record is replaced for the storage
 /// medium with its associated coded character as defined in the alphabet being used</i>" — pinned on
 /// <see cref="CodeSetConversion"/>'s two separate answers (kb/Work PB1150, PB1542): MEMBERSHIP, the one screen every
 /// WRITE and REWRITE asks ('91'; '71' / '09' on a line sequential file), and the channel ENCODING, a bijection so a

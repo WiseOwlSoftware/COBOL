@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.13.2 GR3 — EC-DATA-NOT-FINITE for a STANDARD float
+      *> ISO §2023:14.6.13.2 GR3 — EC-DATA-NOT-FINITE for a STANDARD float
       *> sending operand, and its class/sign/same-usage-MOVE exemptions
       *> GR3: "When a sending operand is described with a standard
       *>   floating-point usage, and the content of the sending operand
@@ -20,12 +20,12 @@
       *>   exception of endianness, or - a sending item is processed in
       *>   a VALIDATE statement."
       *> cite.py:
-      *>   OK  §14.6.13.2 3)  (Incompatible data)  [raise sentence]
-      *>   OK  §14.6.13.2 3)  (Incompatible data)  [sign exemption]
-      *>   OK  §14.6.13.2 3)  (Incompatible data)  [same-usage MOVE]
-      *>   OK  §14.6.13.1.3 5)  (Fatal exception conditions) [USE
+      *>   OK  §2023:14.6.13.2 3)  (Incompatible data)  [raise sentence]
+      *>   OK  §2023:14.6.13.2 3)  (Incompatible data)  [sign exemption]
+      *>   OK  §2023:14.6.13.2 3)  (Incompatible data)  [same-usage MOVE]
+      *>   OK  §2023:14.6.13.1.3 5)  (Fatal exception conditions) [USE
       *>       declarative executed; Table 13: EC-DATA-NOT-FINITE Fatal]
-      *>   OK  §14.9.33.4 2) a)  (General rules) "the implicit CONTINUE
+      *>   OK  §2023:14.9.33.4 2) a)  (General rules) "the implicit CONTINUE
       *>       statement immediately follows the end of the statement
       *>       that was executing when control was transferred to the
       *>       exception processing procedure"

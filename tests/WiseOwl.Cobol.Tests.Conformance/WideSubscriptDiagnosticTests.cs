@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ A SUBSCRIPT (OR OCCURS DEPENDING COUNT) THAT LEFT <c>long</c>'S RANGE IS NAMED BY ITS VALUE (kb/Work PB2695).
-/// ISO §8.4.2.3.4 GR2 — "If the value of the subscript is not a positive integer or is less than one or is greater
+/// ISO §2023:8.4.2.3.4 GR2 — "If the value of the subscript is not a positive integer or is less than one or is greater
 /// than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist" — is
 /// raised whatever the magnitude, and <c>CobolNum.Position</c> SATURATES the occurrence number to <c>long</c> so that
 /// stays true; but the detail the fatal termination prints used to be the saturated <c>long</c>, so a
@@ -45,7 +45,7 @@ public sealed class WideSubscriptDiagnosticTests
     private static void AssertNamesTheValue(int exit, string stdout, string stderr, string ec, string expected)
     {
         Assert.Equal("BEFORE", stdout);                              // the statement raised; nothing after it ran
-        Assert.Equal(1, exit);                                       // §14.6.12 — the abnormal-termination exit
+        Assert.Equal(1, exit);                                       // §2023:14.6.12 — the abnormal-termination exit
         Assert.Contains($"{ec} (fatal)", stderr);
         Assert.Contains(expected, stderr);
         Assert.DoesNotContain(Saturated, stderr);                    // the clamp is never what the message prints
@@ -80,7 +80,7 @@ public sealed class WideSubscriptDiagnosticTests
         AssertNamesTheValue(exit, stdout, stderr, "EC-BOUND-SUBSCRIPT", expected);
     }
 
-    /// <summary>An OCCURS DEPENDING count past <c>long</c> at an element reference (§13.18.38.4 GR7).</summary>
+    /// <summary>An OCCURS DEPENDING count past <c>long</c> at an element reference (§2023:13.18.38.4 GR7).</summary>
     [Fact]
     public void OdoElementReference_WideCount_NamesTheCount()
     {
@@ -94,7 +94,7 @@ public sealed class WideSubscriptDiagnosticTests
         AssertNamesTheValue(exit, stdout, stderr, "EC-BOUND-ODO", "OCCURS DEPENDING value 100000000000000000000 is outside 1..3");
     }
 
-    /// <summary>An OCCURS DEPENDING count past <c>long</c> at the group's current extent (§13.18.38 GR8 over GR7).</summary>
+    /// <summary>An OCCURS DEPENDING count past <c>long</c> at the group's current extent (§2023:13.18.38 GR8 over GR7).</summary>
     [Fact]
     public void OdoGroupExtent_WideCount_NamesTheCount()
     {
@@ -115,7 +115,7 @@ public sealed class WideSubscriptDiagnosticTests
                     01 A PIC 9(21) VALUE 100000000000000000001.
         """;
 
-    /// <summary>A dynamic-capacity table's SENDING reference (§8.5.1.9.2: the same rule as a fixed table whose size is
+    /// <summary>A dynamic-capacity table's SENDING reference (§2023:8.5.1.9.2: the same rule as a fixed table whose size is
     /// the current capacity).</summary>
     [Fact]
     public void DynamicTable_SendingReference_NamesTheValue()
@@ -125,8 +125,8 @@ public sealed class WideSubscriptDiagnosticTests
             "subscript 100000000000000000001 is outside 1..2, the current capacity");
     }
 
-    /// <summary>A RECEIVING reference past <c>long</c> is a GROWTH request (§8.5.1.9.3), refused by the implementor
-    /// maximum (§8.5.1.9.6 2): EC-BOUND-TABLE-LIMIT names the capacity the program asked for.</summary>
+    /// <summary>A RECEIVING reference past <c>long</c> is a GROWTH request (§2023:8.5.1.9.3), refused by the implementor
+    /// maximum (§2023:8.5.1.9.6 2): EC-BOUND-TABLE-LIMIT names the capacity the program asked for.</summary>
     [Fact]
     public void DynamicTable_ReceivingReference_NamesTheRequestedCapacity()
     {
@@ -135,7 +135,7 @@ public sealed class WideSubscriptDiagnosticTests
             "OCCURS DYNAMIC growth to 100000000000000000001 exceeds the implementor maximum");
     }
 
-    /// <summary>A NEGATIVE receiving reference is §8.4.2.3.4 2)'s "not a positive integer", not a growth case.</summary>
+    /// <summary>A NEGATIVE receiving reference is §2023:8.4.2.3.4 2)'s "not a positive integer", not a growth case.</summary>
     [Fact]
     public void DynamicTable_ReceivingReference_NegativeWide_NamesTheValue()
     {
@@ -145,8 +145,8 @@ public sealed class WideSubscriptDiagnosticTests
             "subscript -100000000000000000001 is not a positive integer");
     }
 
-    /// <summary>A REPEATING report entry's sum counter is a table (§13.18.54.4 GR8 a); kb/Work PB1271), and its
-    /// subscript is §8.4.2.3.4 GR2's: <c>CobolReport.SumImage</c> takes the same <c>Occurrence</c> a table accessor does.</summary>
+    /// <summary>A REPEATING report entry's sum counter is a table (§2023:13.18.54.4 GR8 a); kb/Work PB1271), and its
+    /// subscript is §2023:8.4.2.3.4 GR2's: <c>CobolReport.SumImage</c> takes the same <c>Occurrence</c> a table accessor does.</summary>
     [Fact]
     public void ReportSumCounter_WideSubscript_NamesTheValue()
     {

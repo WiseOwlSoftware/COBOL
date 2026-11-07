@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE DYNAMIC LENGTH STRUCTURE IN A RECORD IMAGE (ISO §12.3.7.4 GR18 + GR19; docs/CONFORMANCE.md §3 determination
+/// ⛔ THE DYNAMIC LENGTH STRUCTURE IN A RECORD IMAGE (ISO §2023:12.3.7.4 GR18 + GR19; docs/CONFORMANCE.md §3 determination
 /// D-DL3; kb/Work PB1094). A dynamic-length item that names a structure occupies, in the record a file carries, its
 /// data PREFIXED by a binary length field and FOLLOWED by a binary-zero delimiter — and every expected string below is
 /// written out character by character from those two rules, never read back from the codec: GR18's table fixes the
@@ -72,7 +72,7 @@ public sealed class CobolDynStructureTests
     public void NoStructure_CodeIsZero_AndAnEmptyStructureIsRefused()
     {
         Assert.Null(CobolDynStructure.FromCode(0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new CobolDynStructure(0, false));   // §12.3.7.4: one or more of PREFIXED / DELIMITED
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CobolDynStructure(0, false));   // §2023:12.3.7.4: one or more of PREFIXED / DELIMITED
         Assert.Throws<ArgumentOutOfRangeException>(() => new CobolDynStructure(3, true));    // GR18 names a 32-bit and a 16-bit field only
     }
 

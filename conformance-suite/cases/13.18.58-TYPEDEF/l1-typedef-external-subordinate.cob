@@ -4,14 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.58.3 SR3 — "If the TYPEDEF clause is specified with
+      *> ISO §2023:13.18.58.3 SR3 — "If the TYPEDEF clause is specified with
       *> the EXTERNAL clause, the type declaration shall be at
       *> level-number 1."  T is written with BOTH clauses on a level-05
       *> entry under the open group G, so its level-number is not 1 and
       *> the source element shall be rejected.
-      *> §13.16.3 SR15 ("The TYPEDEF clause may be specified only in a
+      *> §2023:13.16.3 SR15 ("The TYPEDEF clause may be specified only in a
       *> data description entry whose level-number is 1") and
-      *> §13.18.22.3 SR1 (EXTERNAL only "in level 1 data description
+      *> §2023:13.18.22.3 SR1 (EXTERNAL only "in level 1 data description
       *> entries ... and in level 1 type declarations") forbid the same
       *> entry; this witness pins the COMBINATION SR3 names, which
       *> pb488-typedef-subordinate (TYPEDEF without EXTERNAL) does not.

@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE DRIFT TEST for the SET diagnostics' RECEIVER NAMING (kb/Work PB388's last half).
-/// <para>Every receiving brace in ISO §14.9.39.2 is printed <c>{ … } …</c>, so every SET diagnostic about a
+/// <para>Every receiving brace in ISO §2023:14.9.39.2 is printed <c>{ … } …</c>, so every SET diagnostic about a
 /// receiver is about a LIST — and the binder has that list in hand at the moment it reports. Thirteen message
 /// strings opened <c>SET …</c> anyway, and the diagnostic renderer transliterates U+2026 to ASCII, so what the
 /// programmer actually read was <c>SET . TO SELF</c>: a statement nobody wrote, naming neither the operands

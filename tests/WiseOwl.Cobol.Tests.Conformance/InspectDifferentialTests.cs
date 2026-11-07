@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// INSPECT (ISO §14.9.22): the GR8 shared comparison cycle (one ordered operand list per statement, across ALL
+/// INSPECT (ISO §2023:14.9.22): the GR8 shared comparison cycle (one ordered operand list per statement, across ALL
 /// counters), the per-operand GR9 BEFORE/AFTER regions (with the not-found asymmetry), GR4d signed-numeric
 /// de-sign/re-sign, GR12/GR17 tally/replace adjectives, GR19 format-3 ordering, GR20/GR23 CONVERTING, and the
 /// 2023-only BACKWARD gate. Differential facts pin to the committed golden (NIST NC115A/NC122A/NC216A/NC221A-green);
@@ -37,7 +37,7 @@ public sealed class InspectDifferentialTests
             STOP RUN.
         """;
 
-    // §14.9.22.4 GR8a/b + GR12b: ALL the statement's operands form ONE ordered comparison cycle — the earlier
+    // §2023:14.9.22.4 GR8a/b + GR12b: ALL the statement's operands form ONE ordered comparison cycle — the earlier
     // ALL "A" consumes the leading 'A', so LEADING "AH" never matches at its first eligible point and tallies 0.
     [Fact]
     public void Tally_SharedCycle_EarlierAllStarvesLeading()
@@ -50,7 +50,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1 " " C2.
             """));
 
-    // §14.9.22.4 GR4d: a signed numeric identifier-1 is inspected as though moved to an UNSIGNED item — the
+    // §2023:14.9.22.4 GR4d: a signed numeric identifier-1 is inspected as though moved to an UNSIGNED item — the
     // operational sign is removed, so "-" tallies 0 and the magnitude digit "5" tallies 1 in -12345.
     [Fact]
     public void Tally_SignedNumericTarget_InspectsDeSignedDigits()
@@ -63,7 +63,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1 " " C2.
             """));
 
-    // §14.9.22.4 GR4d (second sentence): the replacing cycle runs over the de-signed digits and the ORIGINAL sign
+    // §2023:14.9.22.4 GR4d (second sentence): the replacing cycle runs over the de-signed digits and the ORIGINAL sign
     // is retained on completion — -12345 with ALL "1" BY "9" becomes -92345 (displayed with its overpunch sign).
     [Fact]
     public void Replace_SignedNumericTarget_SignRetained()
@@ -74,7 +74,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY WS-S.
             """));
 
-    // §14.9.22.4 GR17d: FIRST replaces only the leftmost matched occurrence, and the rule applies to EACH
+    // §2023:14.9.22.4 GR17d: FIRST replaces only the leftmost matched occurrence, and the rule applies to EACH
     // successive FIRST phrase independently — two FIRST "X" phrases replace the first two X's, differently.
     [Fact]
     public void Replace_First_EachSuccessivePhraseReplacesOneOccurrence()
@@ -85,7 +85,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY WS-X.
             """));
 
-    // §14.9.22.4 GR9b/c: per-operand regions fixed before the first cycle. AFTER "Q" BEFORE "Z" bounds CHARACTERS
+    // §2023:14.9.22.4 GR9b/c: per-operand regions fixed before the first cycle. AFTER "Q" BEFORE "Z" bounds CHARACTERS
     // to the two characters between them; an AFTER delimiter NOT found makes the operand never eligible (count 0),
     // while a BEFORE delimiter not found behaves as if BEFORE were absent (whole item) — the GR9 asymmetry.
     [Fact]
@@ -102,7 +102,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1 " " C2 " " C3.
             """));
 
-    // §14.9.22.4 GR20/GR23: CONVERTING maps each character of literal-4 positionally to literal-5; a character
+    // §2023:14.9.22.4 GR20/GR23: CONVERTING maps each character of literal-4 positionally to literal-5; a character
     // duplicated in literal-4 ("ABA") maps by its FIRST occurrence — 'A' goes to 'X', never to 'Z'.
     [Fact]
     public void Convert_DuplicateFromCharacter_FirstOccurrenceWins()
@@ -113,7 +113,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY WS-X.
             """));
 
-    // §14.9.22.3 SR6 / §14.9.22.4 GR14: a FIGURATIVE literal-3 is expanded to the size of literal-1 — ALL "AB" BY
+    // §2023:14.9.22.3 SR6 / §2023:14.9.22.4 GR14: a FIGURATIVE literal-3 is expanded to the size of literal-1 — ALL "AB" BY
     // SPACES replaces each "AB" with two spaces. SPEC-PINNED: the legacy binds the figurative as one character and
     // silently skips the unequal-size operand, leaving the field unchanged (a known legacy non-conformance).
     [Fact]
@@ -125,7 +125,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY "[" WS-X "]".
             """), "[  C  D]");
 
-    // §14.9.22.4 GR19: a format 3 executes as TWO successive statements — the tallying pass over the ORIGINAL
+    // §2023:14.9.22.4 GR19: a format 3 executes as TWO successive statements — the tallying pass over the ORIGINAL
     // content (counts the B's), then the replacing pass (rewrites them) — never one merged pass.
     [Fact]
     public void Format3_TallyingRunsBeforeReplacing()
@@ -137,7 +137,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1 " " WS-X.
             """));
 
-    // §14.9.22.4 GR3 NOTE 1 (the spec's own example): INSPECT BACKWARD "A12C21D12EF" TALLYING CHARACTERS BEFORE
+    // §2023:14.9.22.4 GR3 NOTE 1 (the spec's own example): INSPECT BACKWARD "A12C21D12EF" TALLYING CHARACTERS BEFORE
     // "12" returns 2, not 5 — the BEFORE boundary is established in the (reversed) scan direction. BACKWARD is
     // 2023-only (E.3.3 item 34), so this compiles at --std 2023.
     [Fact]
@@ -150,7 +150,7 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1.
             """), "2", dialectLevel: 2023);
 
-    // BACKWARD was introduced by ISO/IEC 1989:2023 (§14.9.22.2; VERSION_CHANGE_REFERENCE row 77): compiling it at
+    // BACKWARD was introduced by ISO/IEC 1989:2023 (§2023:14.9.22.2; VERSION_CHANGE_REFERENCE row 77): compiling it at
     // --std 85 must be REJECTED with the edition-gate diagnostic, not silently accepted.
     [Fact]
     public void Backward_RejectedBelow2023()

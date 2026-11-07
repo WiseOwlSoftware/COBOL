@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// ⛔ THE COMMENT-ENTRY DECISION FOR THE CANDIDATES THE LOGICAL CONVERSION COULD NOT PLACE (docs/CONFORMANCE.md D-CE2;
-/// kb/Work PB4281). §6.5: "Source text and library text in fixed-form reference format are logically converted to free-form
+/// kb/Work PB4281). §2023:6.5: "Source text and library text in fixed-form reference format are logically converted to free-form
 /// reference format before the application of replacing and conditional compilation actions" (cite-checked). The
 /// conversion decides whether a line opens a COBOL-85 comment-entry paragraph from the division the text stands in, and
 /// where that division depends on a stage that runs AFTER it — a <c>&gt;&gt;IF</c> group whose branches disagree on the

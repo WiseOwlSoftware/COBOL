@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A LEVEL-66 RENAMES ... THROUGH ALIAS IS A WHOLE-GROUP OPERAND AT EVERY OPERAND POSITION (kb/Work PB3563).
-/// ISO §13.18.45.4 GR2 makes the alias "an alphanumeric group item that includes all elementary items" of its span,
-/// and §14.9.25.4 GR4 makes a move that involves a group "an alphanumeric to alphanumeric elementary move, except that
+/// ISO §2023:13.18.45.4 GR2 makes the alias "an alphanumeric group item that includes all elementary items" of its span,
+/// and §2023:14.9.25.4 GR4 makes a move that involves a group "an alphanumeric to alphanumeric elementary move, except that
 /// there is no conversion of data from one form of internal representation to another". A numeric DISPLAY leaf the
 /// alias spans therefore holds whatever characters arrive through the alias, which a native value carrier cannot —
 /// so the leaf stores its character image, exactly as the leaves of a plain group used as a whole do. The alias is
@@ -63,7 +63,7 @@ public sealed class RenamesAliasImageTests
         Assert.False(Item(d, "OUTSIDE").StoreAsImage);
     }
 
-    /// <summary>§13.18.45.4 GR1: a RENAMES without THROUGH gives data-name-1 the attributes of data-name-2 — here an
+    /// <summary>§2023:13.18.45.4 GR1: a RENAMES without THROUGH gives data-name-1 the attributes of data-name-2 — here an
     /// elementary numeric item — so an elementary numeric move through it keeps the native carrier.</summary>
     [Fact]
     public void NoThroughAlias_OfAnElementaryNumeric_IsElementary_AndKeepsItsNativeCarrier()

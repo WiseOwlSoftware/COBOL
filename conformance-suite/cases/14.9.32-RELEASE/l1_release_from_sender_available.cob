@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.32.4 GR5 — RELEASE … FROM identifier-1: "After the execution of the RELEASE
+      *> ISO §2023:14.9.32.4 GR5 — RELEASE … FROM identifier-1: "After the execution of the RELEASE
       *> statement is complete, the information in the area referenced by identifier-1 is
       *> available". The sending area is read back AFTER each RELEASE and again after the SORT.
       *> DERIVATION — every expected line follows from the rule text, nothing from the compiler.
       *>  · SEND1 / SEND2 are GR5 itself: nothing between the MOVEs and the DISPLAY writes to
       *>    WS-SEND, and GR5 requires the RELEASE to leave identifier-1's area available, so each
       *>    DISPLAY shows exactly the eight bytes the preceding MOVEs put there.
-      *>  · The SORTED lines are GR4 + §14.9.40.4 GR8 a): the FROM phrase is "equivalent to the
+      *>  · The SORTED lines are GR4 + §2023:14.9.40.4 GR8 a): the FROM phrase is "equivalent to the
       *>    execution of the following statements in the order specified" — MOVE identifier-1 TO
       *>    record-name-1, then the same RELEASE without FROM — so both records reach the sort
       *>    carrying WS-SEND's content, and ASCENDING SRT-KEY returns "the record containing the

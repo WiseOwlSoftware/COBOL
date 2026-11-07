@@ -6,16 +6,16 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.8.4.2.4 / §15.59 / §15.63 / §15.71 / §15.72 — comparison and selection at 39 ALIGNED
+      *> ISO §2023:8.8.4.2.4 / §2023:15.59 / §2023:15.63 / §2023:15.71 / §2023:15.72 — comparison and selection at 39 ALIGNED
       *> digits (fix-queue PB65). BIGV (PIC 9(24)) and SMLV (PIC 9V9(15)) align to 24+15 = 39 digits,
       *> past the Int128 intermediate: the old common-scale alignment WRAPPED silently, so
       *> IF BIGV > SMLV answered FALSE and FUNCTION MIN returned a NEGATIVE value — the content of NO
-      *> argument, against §15.63.4 r1's "the returned value is the content of the argument-1 having
+      *> argument, against §2023:15.63.4 r1's "the returned value is the content of the argument-1 having
       *> the least value". Now: comparisons ride the exact non-widening CobolNum.Compare (sign split +
       *> the overflow-means-greater magnitude trick), selection compares each argument AT ITS OWN
       *> SCALE, and only the selected value rescales — to the receiver's scale with store semantics.
       *> Derivations: BIGV > SMLV true · MIN = SMLV (2e23 vs 1e-15) · MAX into 9(24) = BIGV exactly ·
-      *> MIN into 9V9(15) = SMLV's image · ORD-MIN = 2, ORD-MAX = 1 (§15.71.4/§15.72.4 r2 ordinals).
+      *> MIN into 9V9(15) = SMLV's image · ORD-MIN = 2, ORD-MAX = 1 (§2023:15.71.4/§2023:15.72.4 r2 ordinals).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65SEL.
        DATA DIVISION.

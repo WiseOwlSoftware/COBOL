@@ -9,10 +9,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The ISO §6.5 logical conversion as ONE pass (kb/Work PB1491, PB1493): a fixed-form continuation joins the LATEST
+/// The ISO §2023:6.5 logical conversion as ONE pass (kb/Work PB1491, PB1493): a fixed-form continuation joins the LATEST
 /// LOGICAL line, comment and blank lines are logically discarded without touching a continued literal, an inline
 /// comment is removed on every line, the program-text area runs to margin R whatever the record length, and the
-/// floating comment indicator is recognized — with its §6.2.3.2 syntax rules and its 2002 introduction gate — here and
+/// floating comment indicator is recognized — with its §2023:6.2.3.2 syntax rules and its 2002 introduction gate — here and
 /// nowhere else. The goldens 85/pb1491_continued_literal_logical_line and 2002/pb1493_floating_comment_* run the same
 /// rules end to end; these pin the resultant TEXT and LINE MAP the later stages read.
 /// </summary>
@@ -27,24 +27,24 @@ public sealed class ReferenceFormatLogicalConversionTests
 
     private static string[] Codes(DiagnosticBag bag) => bag.Diagnostics.Select(d => d.Code).ToArray();
 
-    [Theory] // kb/Work PB1362 — §7.3.24.3 2) "The default reference format of a compilation group is fixed form":
+    [Theory] // kb/Work PB1362 — §2023:7.3.24.3 2) "The default reference format of a compilation group is fixed form":
     // with no directive and no selection, a non-numeric or blank sequence area and text past margin R stay fixed.
     [InlineData("ABC001 DISPLAY \"X\".\n", "DISPLAY \"X\".")]
     [InlineData("       DISPLAY \"X\".                                                     TAG00001\n", "DISPLAY \"X\".")]
     public void NoDirective_NoSelection_IsReadInFixedForm(string src, string expectedLine)
         => Assert.Equal(expectedLine, Convert(src).Text.Text.Split('\n')[0].Trim());
 
-    [Fact] // kb/Work PB1362 — the Free selection reads the same text from column 1 (the §4.2.10 3) mechanism).
+    [Fact] // kb/Work PB1362 — the Free selection reads the same text from column 1 (the §2023:4.2.10 3) mechanism).
     public void FreeSelection_ReadsFromColumnOne()
         => Assert.Equal("ABC001 DISPLAY \"X\".",
             Convert("ABC001 DISPLAY \"X\".\n", initial: InitialReferenceFormat.Free).Text.Text.Split('\n')[0]);
 
-    [Theory] // kb/Work PB1361 — §7.3.3 SR2/SR3 + §6.3.2: a directive is recognized in the program-text area OF THE
+    [Theory] // kb/Work PB1361 — §2023:7.3.3 SR2/SR3 + §2023:6.3.2: a directive is recognized in the program-text area OF THE
     // FORMAT IN EFFECT. Fixed: positions 8-72 of a source line, the sequence area holding anything; free: the line.
     // Each row: the text, then the resultant first two lines — a consumed directive leaves an empty slot and the next
     // line is read FREE (from column 1); otherwise the next line is read FIXED (from column 8).
     [InlineData("SEQ001 >>SOURCE FORMAT FREE\nDISPLAY \"F\".\n", "", "DISPLAY \"F\".")]               // letters in cols 1-6
-    // program text before `>>`: not a directive (the next line is read FIXED), and §7.3.3 SR2 names it — COBOL2691 —
+    // program text before `>>`: not a directive (the next line is read FIXED), and §2023:7.3.3 SR2 names it — COBOL2691 —
     // cutting the directive text (kb/Work PB1690)
     [InlineData("       12 >>SOURCE FORMAT FREE\n       DISPLAY \"F\".\n", "12", "DISPLAY \"F\".")]
     [InlineData("      *>>SOURCE FORMAT FREE\n     X DISPLAY \"F\".\n", "", "DISPLAY \"F\".")]           // a comment line
@@ -55,7 +55,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(second, lines[1].TrimEnd());
     }
 
-    [Theory] // kb/Work PB1361 — in free form the whole line is the program-text area (§6.4.1): a directive past column
+    [Theory] // kb/Work PB1361 — in free form the whole line is the program-text area (§2023:6.4.1): a directive past column
     // 72 switches the format, and a sequence number before `>>` makes the line program text, not a directive.
     [InlineData(74, "000100     DISPLAY \"G\".", "DISPLAY \"G\".")]
     [InlineData(0, "000100     DISPLAY \"G\".", "DISPLAY \"G\".")]
@@ -65,7 +65,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(expected, Convert(src, std: 2002).Text.Text.Split('\n')[2].Trim());
     }
 
-    [Theory] // kb/Work PB1494 — §6.3.3 / §6.2.2: a character that is not a fixed indicator is COBOL2616 and the line
+    [Theory] // kb/Work PB1494 — §2023:6.3.3 / §2023:6.2.2: a character that is not a fixed indicator is COBOL2616 and the line
     // is read as source; the NIST CCVS letters keep their CCVS meaning only under --nist (ccvsIndicators).
     [InlineData('E', false, true, "DISPLAY \"L\".")]
     [InlineData('X', false, true, "DISPLAY \"L\".")]
@@ -83,7 +83,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(line.Replace("<debug>", ReferenceFormatProcessor.DebugLineCarrier), m.Text.Split('\n')[0]);
     }
 
-    [Fact] // kb/Work PB1494 — §6.5 5): a source line's program-text area is copied. The comment-entry reading of
+    [Fact] // kb/Work PB1494 — §2023:6.5 5): a source line's program-text area is copied. The comment-entry reading of
     // AUTHOR / INSTALLATION / DATE-WRITTEN / DATE-COMPILED / SECURITY / REMARKS belongs to the IDENTIFICATION DIVISION;
     // a PROCEDURE DIVISION paragraph so named and the lines after it were silently dropped.
     public void CommentEntryParagraphs_AreOnlyInTheIdentificationDivision()
@@ -124,7 +124,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("REMARKS.", lines[7]);                            // a procedure paragraph is program text
     }
 
-    [Fact] // §6.5 8): the line a floating literal continuation indicator asks for is the literal's continuation line,
+    [Fact] // §2023:6.5 8): the line a floating literal continuation indicator asks for is the literal's continuation line,
            // whatever its first word spells (here read with COBOL2684, its opening quotation symbol missing), never a
            // comment-entry header.
     public void FreeFormFloatingContinuationLine_IsNeverACommentEntryHeader()
@@ -152,7 +152,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("DISPLAY \"IN-REMARKS\".", lines[6].Trim());
     }
 
-    [Fact] // kb/Work PB1361 + PB1690 — §7.3.3 SR2: in free form "000100 >>SOURCE ..." is NOT a directive (the sequence
+    [Fact] // kb/Work PB1361 + PB1690 — §2023:7.3.3 SR2: in free form "000100 >>SOURCE ..." is NOT a directive (the sequence
            // number is program text, so the format is not switched) and is diagnosed by name, COBOL2691; the directive
            // text is cut so the parser does not add a nameless second error.
     public void FreeFormLine_WithTextBeforeTheIndicator_IsNotADirective_AndIsDiagnosed()
@@ -163,7 +163,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal(["COBOL2691"], Codes(bag));
     }
 
-    [Theory] // §7.3.3 SR2 — a directive after program text is diagnosed in either reference format; a `>>` that is a
+    [Theory] // §2023:7.3.3 SR2 — a directive after program text is diagnosed in either reference format; a `>>` that is a
              // literal's content, a comment's, or not followed by a directive word is not a directive.
     [InlineData("000100     DISPLAY A >>DEFINE X AS 1\n", true)]
     [InlineData(">>SOURCE FORMAT FREE\nDISPLAY A >> DEFINE X AS 1\n", true)]
@@ -171,15 +171,15 @@ public sealed class ReferenceFormatLogicalConversionTests
     [InlineData("000100     DISPLAY \">>DEFINE X AS 1\".\n", false)] // literal content
     [InlineData("000100     DISPLAY A. *> >>DEFINE X AS 1\n", false)] // comment text
     [InlineData("000100     DISPLAY A >>NOTADIRECTIVE\n", false)]    // no compiler-directive word follows
-    [InlineData("000100     >>PAGE any text STOP RUN. >>TURN x\n", false)]   // comment-text of a directive LINE (§7.3.19.3 SR1)
+    [InlineData("000100     >>PAGE any text STOP RUN. >>TURN x\n", false)]   // comment-text of a directive LINE (§2023:7.3.19.3 SR1)
     public void DirectiveAfterProgramText_IsDiagnosedByName(string src, bool diagnosed)
         => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2691"));
 
-    [Theory] // §6.3.5 "Comment lines and blank lines may be interspersed among lines containing the parts of a literal".
+    [Theory] // §2023:6.3.5 "Comment lines and blank lines may be interspersed among lines containing the parts of a literal".
     [InlineData("000600* a comment with a \"quote")]
     [InlineData("000600/ a page-eject comment")]
     [InlineData("")]                                   // an EMPTY line — crashed the PB82 origin tracking before PB1491
-    [InlineData("000600")]                             // §6.3.6: only spaces between margin C and margin R
+    [InlineData("000600")]                             // §2023:6.3.6: only spaces between margin C and margin R
     [InlineData("000600     *> a floating comment line")]
     public void ContinuedLiteral_JoinsAcrossADiscardedLine(string between)
     {
@@ -190,17 +190,17 @@ public sealed class ReferenceFormatLogicalConversionTests
                    + "000800 01 Y PIC X.\n";
         var (m, bag) = Convert(src);
         var lines = m.Text.Split('\n');
-        // §6.5 6) a): appended to the LATEST LOGICAL line, the continued line space-filled to margin R (DOC-A.1-157)
+        // §2023:6.5 6) a): appended to the LATEST LOGICAL line, the continued line space-filled to margin R (DOC-A.1-157)
         Assert.Equal("01 X PIC X(80) VALUE \"AB" + new string(' ', 41) + "CD\".", lines[1]);
         Assert.Equal(2, m.Lines[1].Origin.Line);
-        Assert.Equal("", lines[2]);                    // §6.5 2): the interspersed line is discarded, its slot kept
+        Assert.Equal("", lines[2]);                    // §2023:6.5 2): the interspersed line is discarded, its slot kept
         Assert.Equal(3, m.Lines[2].Origin.Line);
         Assert.Equal("01 Y PIC X.", lines[3].Trim()); // the continuation occupies no line; Y keeps its number
         Assert.Equal(5, m.Lines[3].Origin.Line);
         Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
     }
 
-    [Fact] // §6.5 3) on a CONTINUATION line: the comment goes before the next continuation is appended to the line.
+    [Fact] // §2023:6.5 3) on a CONTINUATION line: the comment goes before the next continuation is appended to the line.
     public void InlineCommentOnAContinuationLine_IsRemovedBeforeTheNextJoin()
     {
         string src = "000100 01 X PIC X(8) VALUE\n"
@@ -210,7 +210,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("01 X PIC X(8) VALUE\"CD\".", m.Text.Split('\n')[0]);
     }
 
-    [Fact] // §6.3.4 1) / §6.5 2): no comment-text reaches a later stage — the lexer's picture mode included.
+    [Fact] // §2023:6.3.4 1) / §2023:6.5 2): no comment-text reaches a later stage — the lexer's picture mode included.
     public void CommentLines_BecomeEmpty_InBothReferenceFormats()
     {
         var (fixedForm, _) = Convert("000100 01 X PIC\n000200* comment\n000300     X(4).\n");
@@ -236,7 +236,7 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("DISPLAY \"A\"\"*>B\"", m.Text.Split('\n')[1]);
     }
 
-    [Theory] // §6.2.3.2 SR2 — COBOL2495, in either reference format; *> after a space is not diagnosed.
+    [Theory] // §2023:6.2.3.2 SR2 — COBOL2495, in either reference format; *> after a space is not diagnosed.
     [InlineData(">>SOURCE FORMAT FREE\nMOVE A TO X*> c\n", true)]
     [InlineData("000100     MOVE A TO X*> c\n", true)]
     [InlineData(">>SOURCE FORMAT FREE\nMOVE A TO X *>c\n", false)]
@@ -244,7 +244,7 @@ public sealed class ReferenceFormatLogicalConversionTests
     public void FloatingComment_NotPrecededBySeparatorSpace_IsDiagnosed(string src, bool diagnosed)
         => Assert.Equal(diagnosed, Codes(Convert(src).Bag).Contains("COBOL2495"));
 
-    [Theory] // §6.2.3.2 SR3 — COBOL2496 when a continuation completes *> or >> begun on the line it continues.
+    [Theory] // §2023:6.2.3.2 SR3 — COBOL2496 when a continuation completes *> or >> begun on the line it continues.
     [InlineData("000100     MOVE A TO X *\n000200-    > comment\n", true)]
     [InlineData("000100     MOVE A TO X >\n000200-    >IF\n", true)]
     [InlineData("000100     MOVE A TO X\n000200-    > comment\n", false)]

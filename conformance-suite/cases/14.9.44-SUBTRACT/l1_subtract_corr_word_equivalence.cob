@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.44.3 SR5 (FORMAT 3) — "The words CORR and
+      *> ISO §2023:14.9.44.3 SR5 (FORMAT 3) — "The words CORR and
       *> CORRESPONDING are equivalent."
       *> ⛔ THE RULE IS ABOUT THE TWO SPELLINGS, SO THE GOLDEN WRITES
       *> BOTH.  A fixture that spells only one of them cannot
@@ -16,16 +16,16 @@
       *> groups seeded identically, so any difference in the printed
       *> lines is a difference the standard forbids.
       *>
-      *> EXPECTED VALUES, DERIVED FROM THE RULE TEXT.  §14.7.6 pairs
+      *> EXPECTED VALUES, DERIVED FROM THE RULE TEXT.  §2023:14.7.6 pairs
       *> P with P and Q with Q — same data-name, same qualifiers up to
       *> but not including the two group operands, both members
       *> numeric (its rule 3), no OCCURS / REDEFINES / RENAMES.
-      *> §14.9.44.4 GR3: "data items in identifier-4 are subtracted
+      *> §2023:14.9.44.4 GR3: "data items in identifier-4 are subtracted
       *> from and stored in corresponding items in identifier-5".
-      *> §14.9.44.4 GR5: "The results are the same as if the user had
+      *> §2023:14.9.44.4 GR5: "The results are the same as if the user had
       *> referred to each pair of corresponding identifiers in
       *> separate SUBTRACT statements."  Hence P: 10 - 03 = 07 and
-      *> Q: 20 - 07 = 13, into PIC 9(2) receivers (§14.6.8.2 rule 4,
+      *> Q: 20 - 07 = 13, into PIC 9(2) receivers (§2023:14.6.8.2 rule 4,
       *> aligned with zero fill) -> 07 and 13 for EACH spelling.
       *> The values are chosen so the two members differ from one
       *> another, so a fixture that matched only the first pair, or
@@ -33,7 +33,7 @@
       *> The receivers are copied to unqualified items before DISPLAY
       *> only to keep the printed line free of qualification syntax;
       *> a PIC 9(2) to PIC 9(2) move is an identity transfer under
-      *> §14.6.8.2 rule 4 and adds nothing to the derivation.
+      *> §2023:14.6.8.2 rule 4 and adds nothing to the derivation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SBCORW.
        DATA DIVISION.

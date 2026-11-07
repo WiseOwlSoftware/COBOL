@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE GATE THAT HOLDS <see cref="PictureComposition"/>'s COPY OF TABLE 10 EQUAL TO THE STANDARD.
 /// <para>
-/// The composition validator's whole design bet (kb/Work PB528; data-model design D24) is that ISO §13.18.40.6's
+/// The composition validator's whole design bet (kb/Work PB528; data-model design D24) is that ISO §2023:13.18.40.6's
 /// Table 10 belongs in the compiler as DATA rather than as hand-written positional <c>if</c>s — that is what makes
 /// SR25 and SR26 need no code of their own and what makes the NEXT precedence question automatic. A 24×24 table
 /// nobody re-derives is a snapshot of what someone read once, so this re-parses the table out of
@@ -56,7 +56,7 @@ public sealed class PictureTable10DriftTests
             var code = PictureComposition.Table10Rows[r].Split(' ', StringSplitOptions.RemoveEmptyEntries);
             Assert.True(code.Length == 24, $"PictureComposition.Table10Rows[{r}] has {code.Length} cells, expected 24");
             Assert.True(spec[r].SequenceEqual(code),
-                $"ISO §13.18.40.6 Table 10 row {r} ({(PicRole)r}) no longer matches specs/ISO_COBOL_2023.md:\n"
+                $"ISO §2023:13.18.40.6 Table 10 row {r} ({(PicRole)r}) no longer matches specs/ISO_COBOL_2023.md:\n"
                 + $"  spec: {string.Join(' ', spec[r])}\n  code: {string.Join(' ', code)}");
         }
     }

@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// The four LINAGE clause operand VALUES as the runtime element executing a statement sees them (ISO §13.18.34
+/// The four LINAGE clause operand VALUES as the runtime element executing a statement sees them (ISO §2023:13.18.34
 /// GR6): page size (GR2), footing start (GR3 — <see langword="null"/> = the FOOTING phrase is absent, GR1), top
 /// margin (GR4) and bottom margin (GR5).
 /// <para>⛔ THE ABSENT FOOTING PHRASE IS ABSENT IN THE MODEL, NOT ZERO (kb/Work PB525). One integer slot cannot
@@ -20,8 +20,8 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// specified with the ADVANCING PAGE phrase. 3. During the execution of a WRITE statement that causes a page
 /// overflow condition."</i> — and every one of those times is a STATEMENT, executed by one runtime element in
 /// one activation. A file connector is not: an EXTERNAL one is a single object shared by every describing
-/// runtime element in the run unit (§13.18.22.4 GR4 a), and a RECURSIVE unit's internal one is unit-scoped
-/// across activations (§8.6.4 / §14.6.2.3.3). A connector-held evaluator closure therefore answered with
+/// runtime element in the run unit (§2023:13.18.22.4 GR4 a), and a RECURSIVE unit's internal one is unit-scoped
+/// across activations (§2023:8.6.4 / §2023:14.6.2.3.3). A connector-held evaluator closure therefore answered with
 /// whichever element/activation installed it LAST rather than the one executing the statement (kb/Work PB673;
 /// the shape it replaced is kb/Work PB168's unguarded install).</para>
 /// <para>What the connector DOES keep is the page model most recently established — GR6's <i>"When a value is
@@ -30,7 +30,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <c>_top</c> / <c>_bottom</c>. That is a page property, not an operand source.</para>
 /// </summary>
 /// <param name="Body">Page size — the number of lines that may be written or spaced on the logical page
-/// (§13.18.34 GR2, integer-1 / data-name-1).</param>
+/// (§2023:13.18.34 GR2, integer-1 / data-name-1).</param>
 /// <param name="Footing">The line number within the page body at which the footing area begins (GR3,
 /// integer-2 / data-name-2); <see langword="null"/> when the WITH FOOTING phrase is absent (GR1 — no end-of-page
 /// condition independent of page overflow). A PRESENT phrase evaluating to 0 is a GR6 b) 2 violation, which is

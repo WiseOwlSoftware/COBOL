@@ -19,14 +19,14 @@
        END FUNCTION PBF415D.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB415FP.
-      *> kb/Work PB415 — the COBOL-2014 INITIALIZE category-name FUNCTION-POINTER (ISO §14.9.20.2), at its own
-      *> introduction edition. §8.9 reserves FUNCTION-POINTER from 2014, which is the same edition that
-      *> introduced the USAGE FUNCTION-POINTER category (§13.18.60); below 2014 the word is refused
+      *> kb/Work PB415 — the COBOL-2014 INITIALIZE category-name FUNCTION-POINTER (ISO §2023:14.9.20.2), at its own
+      *> introduction edition. §2023:8.9 reserves FUNCTION-POINTER from 2014, which is the same edition that
+      *> introduced the USAGE FUNCTION-POINTER category (§2023:13.18.60); below 2014 the word is refused
       *> COBOL0900 by the initialize-category-2014 construct row.
       *>
       *> ⛔ FUNCTION-POINTER IS THE ASYMMETRIC ONE, AND THE ASYMMETRY IS THE PRINTED STANDARD (PB418 verified it
-      *> against the licensed PDF at folio 639): §14.9.20.4 GR4's SET-form list, GR6a1's sender list and GR6c's
-      *> fill table all name function-pointer, and GR5c1a alone does NOT. With §13.18.63.3 SR9 forbidding a VALUE
+      *> against the licensed PDF at folio 639): §2023:14.9.20.4 GR4's SET-form list, GR6a1's sender list and GR6c's
+      *> fill table all name function-pointer, and GR5c1a alone does NOT. With §2023:13.18.63.3 SR9 forbidding a VALUE
       *> clause on a FUNCTION-POINTER item, GR5c1b and GR5c1c are false too — so a function-pointer is NOT a
       *> receiving-operand under the VALUE phrase, and IS one under REPLACING (GR5c2), DEFAULT (GR5c3) and the
       *> bare form (GR5c4).

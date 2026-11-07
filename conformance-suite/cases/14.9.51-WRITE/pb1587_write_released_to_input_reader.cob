@@ -12,24 +12,24 @@
       *>
       *> "The successful execution of a WRITE statement releases a
       *> logical record to the operating environment."
-      *>   cite.py: OK  §14.9.51.4 12)  (General rules)
+      *>   cite.py: OK  §2023:14.9.51.4 12)  (General rules)
       *> "The sharing with read only mode restricts concurrent access
       *> to a physical file through file connectors other than this
       *> one, to input mode."
-      *>   cite.py: OK  §9.1.15 2)  (Sharing mode)
+      *>   cite.py: OK  §2023:9.1.15 2)  (Sharing mode)
       *> "If the file position indicator indicates that an optional
       *> input file is not present or that no next or previous logical
       *> record exists, the I-O status value associated with file-name-1
       *> is set to '10', the at end condition exists"
-      *>   cite.py: OK  §14.9.30.4 21)  (General rules)
+      *>   cite.py: OK  §2023:14.9.30.4 21)  (General rules)
       *> "For a sequential READ statement, if the previous READ or START
       *> statement for the file connector was unsuccessful, then the
       *> READ statement is unsuccessful and the I-O status is set to
       *> '46'"
-      *>   cite.py: OK  §14.9.30.4 21)  (General rules)
+      *>   cite.py: OK  §2023:14.9.30.4 21)  (General rules)
       *>
       *> The standard prints no buffering rule for a WRITE; GR12 is the
-      *> whole of it, and §9.1.15 2) lets the INPUT connector be open
+      *> whole of it, and §2023:9.1.15 2) lets the INPUT connector be open
       *> beside the READ ONLY writer, so what the writer released is
       *> what the reader meets. Until PB1587 a SHARING WITH READ ONLY
       *> writer held its records in its 4,096-byte input-output area

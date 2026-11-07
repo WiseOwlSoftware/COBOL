@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// ⛔ THE STATIC RANGE OF A PROCEDURE TRANSFER — which paragraphs execute UNDER a set of procedure ranges, written
 /// once over the bound procedures (kb/Work PB434).
 ///
-/// <para><b>The rule it models.</b> ISO §14.9.28.4 GR1: "The range includes all statements that are executed as
+/// <para><b>The rule it models.</b> ISO §2023:14.9.28.4 GR1: "The range includes all statements that are executed as
 /// the result of a transfer of control in the range of the PERFORM statement". A range is therefore not the text
 /// between two procedure-names: a PERFORM of another procedure from inside it, a SORT or MERGE whose INPUT or
 /// OUTPUT PROCEDURE runs from inside it, and a handler of an exception-checking PERFORM inside it all execute
@@ -23,15 +23,15 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// ever reaches under the PERFORM.</para>
 ///
 /// <para>A SYNTAX rule scoped to "under" or "within the range of" asks this model, never its own walk:
-/// §14.9.28.3 SR8 (<see cref="UntilExitPlacement"/>) does, and kb/Work PB812 records the SORT/MERGE-procedure
+/// §2023:14.9.28.3 SR8 (<see cref="UntilExitPlacement"/>) does, and kb/Work PB812 records the SORT/MERGE-procedure
 /// bans (<c>VersionConformancePass.GateSortMergeProcedures</c>) as the next reader.</para>
 /// </summary>
 internal static class ProcedureReach
 {
     /// <summary>Every procedure range a statement list transfers to AND RETURNS FROM, at any nesting depth: an
-    /// out-of-line PERFORM's range (§14.9.28.4 GR4/GR5), a SORT's INPUT and OUTPUT PROCEDURE and a MERGE's OUTPUT
-    /// PROCEDURE (§14.9.40.4 GR10/GR11, §14.9.24.4), and each handler body of an exception-checking PERFORM, which
-    /// the binder appends as its own one-paragraph pc range (§14.9.28.4 GR17).</summary>
+    /// out-of-line PERFORM's range (§2023:14.9.28.4 GR4/GR5), a SORT's INPUT and OUTPUT PROCEDURE and a MERGE's OUTPUT
+    /// PROCEDURE (§2023:14.9.40.4 GR10/GR11, §2023:14.9.24.4), and each handler body of an exception-checking PERFORM, which
+    /// the binder appends as its own one-paragraph pc range (§2023:14.9.28.4 GR17).</summary>
     public static IEnumerable<PcRange> ReturningTransfersIn(IEnumerable<BoundStatement> statements)
     {
         foreach (var s in statements)

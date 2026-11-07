@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reported as an ERROR naming the rule — never compiled into the program as a run-time refusal, and never
 /// announced as a gap in WiseOwl COBOL. PB236 separated the carrier's three jobs at the ADD/CORRESPONDING and
 /// file-name sites; the procedure-name family (PERFORM, GO TO, GO TO … DEPENDING, ALTER, RESUME AT,
-/// SORT/MERGE INPUT and OUTPUT PROCEDURE), the SET Format-3 and Format-4 operand rules, and §14.9.25.3 SR12's
+/// SORT/MERGE INPUT and OUTPUT PROCEDURE), the SET Format-3 and Format-4 operand rules, and §2023:14.9.25.3 SR12's
 /// "shall not be reference-modified" half were still shipping their verdicts as <c>BoundUnsupported</c>.
 /// <para>What that cost, measured on this tree before the fix: <c>PERFORM NO-SUCH-PARAGRAPH</c> COMPILED,
 /// produced an assembly, and aborted the run unit with an unhandled .NET exception reading "a COBOL feature
 /// that is not yet implemented was reached at run time" — the diagnosis sent to the wrong party, at the wrong
-/// time, and on an unexecuted path not sent at all. ISO §4.2.2 ¶2: "An implementation shall provide a warning
+/// time, and on an unexecuted path not sent at all. ISO §2023:4.2.2 ¶2: "An implementation shall provide a warning
 /// mechanism that optionally may be invoked by the user at compile time to indicate violations of the general
 /// formats and the explicit syntax rules of standard COBOL."</para>
 /// <para>⛔ WHY THE 1756 ASSERTION IS IN EVERY ROW. The failure this guards is not "no diagnostic" — PB236's
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// reported" would pass in exactly the state this note opened in (feedback_green_gates_arent_evidence).</para>
 /// <para>⛔ AND WHY THE LEGAL HALF IS HERE. Every rule below is a REFUSAL, and a compiler that refused these
 /// constructs outright would pass all of them. The <see cref="LegalControl"/> rows are the ones that must
-/// still COMPILE: an INVERTED <c>PERFORM P2 THRU P1</c> range (§14.9.28.4 GR6 — "there is no necessary
+/// still COMPILE: an INVERTED <c>PERFORM P2 THRU P1</c> range (§2023:14.9.28.4 GR6 — "there is no necessary
 /// relationship between procedure-name-1 and procedure-name-2"), a SECTION target, a QUALIFIED
 /// procedure-name, a level-88 <c>SET … TO TRUE</c>, a Format-3 switch set, and a plain group CORRESPONDING.
 /// </para>
@@ -65,26 +65,26 @@ P2.
 """;
 
     // ── The rules that must be ERRORS at bind time, each naming its own rule ──────────────────────────────
-    // ISO §14.9.28.3 SR12/SR13 · §8.4.2.1 + §8.4.6.1 (GO TO, ALTER, RESUME AT — those statements state no
-    // procedure-name rule of their own) · §14.9.39.3 SR5/SR6 · §14.9.25.3 SR12 with §14.9.2.3 / §14.9.44.3 SR6.
+    // ISO §2023:14.9.28.3 SR12/SR13 · §2023:8.4.2.1 + §2023:8.4.6.1 (GO TO, ALTER, RESUME AT — those statements state no
+    // procedure-name rule of their own) · §2023:14.9.39.3 SR5/SR6 · §2023:14.9.25.3 SR12 with §2023:14.9.2.3 / §2023:14.9.44.3 SR6.
     [Theory]
     // PERFORM procedure-name-1 and procedure-name-2 — two rules, one shape, BOTH arms (the two-arm defect).
-    [InlineData("PB390D01", "    PERFORM NO-SUCH-PARA.", "COBOL1639", "§14.9.28.3 SR12")]
-    [InlineData("PB390D02", "    PERFORM P1 THRU NO-SUCH-PARA.", "COBOL1639", "§14.9.28.3 SR13")]
+    [InlineData("PB390D01", "    PERFORM NO-SUCH-PARA.", "COBOL1639", "§2023:14.9.28.3 SR12")]
+    [InlineData("PB390D02", "    PERFORM P1 THRU NO-SUCH-PARA.", "COBOL1639", "§2023:14.9.28.3 SR13")]
     // The discriminating case SR12 exists for: the word IS declared, as something that is not a procedure.
     [InlineData("PB390D03", "    PERFORM WS-N.", "COBOL1639", "declared as a DATA ITEM")]
     // GO TO, both formats — the sibling carrier of the same resolution.
     [InlineData("PB390D04", "    GO TO NO-SUCH-PARA.", "COBOL1639", "GO TO 'NO-SUCH-PARA'")]
     [InlineData("PB390D05", "    GO TO P1 NO-SUCH-PARA DEPENDING ON WS-N.", "COBOL1639", "GO TO DEPENDING")]
-    // SET Format 4 (§14.9.39.3 SR6) — the switch-status condition-name, which IS a condition-name.
-    [InlineData("PB390D06", "    SET SW-ON TO TRUE.", "COBOL1757", "§14.9.39.3 SR6")]
+    // SET Format 4 (§2023:14.9.39.3 SR6) — the switch-status condition-name, which IS a condition-name.
+    [InlineData("PB390D06", "    SET SW-ON TO TRUE.", "COBOL1757", "§2023:14.9.39.3 SR6")]
     [InlineData("PB390D07", "    SET NOT-DECLARED TO TRUE.", "COBOL1639", "is not a condition-name")]
-    // SET Format 3 (§14.9.39.3 SR5) — a name that is not an external-switch mnemonic.
-    [InlineData("PB390D08", "    SET WS-N TO ON.", "COBOL1757", "§14.9.39.3 SR5")]
-    // §14.9.25.3 SR12's SECOND half, in all three spellings of the CORRESPONDING operand rule.
-    [InlineData("PB390D09", "    MOVE CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§14.9.25.3 SR12")]
-    [InlineData("PB390D10", "    ADD CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§14.9.2.3 SR6")]
-    [InlineData("PB390D11", "    SUBTRACT CORRESPONDING G1(1:3) FROM G2.", "COBOL1757", "§14.9.44.3 SR6")]
+    // SET Format 3 (§2023:14.9.39.3 SR5) — a name that is not an external-switch mnemonic.
+    [InlineData("PB390D08", "    SET WS-N TO ON.", "COBOL1757", "§2023:14.9.39.3 SR5")]
+    // §2023:14.9.25.3 SR12's SECOND half, in all three spellings of the CORRESPONDING operand rule.
+    [InlineData("PB390D09", "    MOVE CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§2023:14.9.25.3 SR12")]
+    [InlineData("PB390D10", "    ADD CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§2023:14.9.2.3 SR6")]
+    [InlineData("PB390D11", "    SUBTRACT CORRESPONDING G1(1:3) FROM G2.", "COBOL1757", "§2023:14.9.44.3 SR6")]
     public void DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning(
         string id, string body, string code, string fragment)
     {
@@ -96,7 +96,7 @@ P2.
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
-    /// <summary>The RESUME AT arm (ISO §14.9.33) — its procedure-name goes through the same ONE resolution, and
+    /// <summary>The RESUME AT arm (ISO §2023:14.9.33) — its procedure-name goes through the same ONE resolution, and
     /// it needs a declarative to be written at all, so it gets its own program rather than a row above.</summary>
     [Fact]
     public void ResumeAt_UnknownProcedure_IsACompileTimeError()
@@ -148,7 +148,7 @@ P2.
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
-    /// <summary>SEARCH's identifier-1 rules (ISO §14.9.37.3 SR1–SR3, ALL FORMATS; kb/Work PB443) — the same
+    /// <summary>SEARCH's identifier-1 rules (ISO §2023:14.9.37.3 SR1–SR3, ALL FORMATS; kb/Work PB443) — the same
     /// invariant on a statement that needs tables in its data division, so it gets its own program the way ALTER
     /// and RESUME AT do. Every one of these was a <c>BoundUnsupported</c> or nothing at all: SR2's first sentence
     /// was DECIDED and shipped as a run-time "not implemented" abort under a message miscited as SR1, and SR1,
@@ -167,11 +167,11 @@ P2.
         var (ok, errors, warnings) = Compile(SearchProgram(id, body));
         Assert.False(ok, "a violated syntax rule shall not compile: " + string.Join("\n", errors));
         Assert.Contains(errors, e => e.Contains("COBOL2075", StringComparison.Ordinal)
-                                     && e.Contains("§14.9.37.3 " + rule, StringComparison.Ordinal));
+                                     && e.Contains("§2023:14.9.37.3 " + rule, StringComparison.Ordinal));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
-    /// <summary>The SEARCH falsification half — every spelling §14.9.37.3 ADMITS, including the two a blanket
+    /// <summary>The SEARCH falsification half — every spelling §2023:14.9.37.3 ADMITS, including the two a blanket
     /// "identifier-1 takes no subscript" screen would wrongly refuse (SR3 makes the superordinate subscripting
     /// REQUIRED, so `SEARCH INNER (OX)` is the conforming form for a nested table).</summary>
     [Theory]
@@ -179,7 +179,7 @@ P2.
     [InlineData("PB443L02", "    SEARCH E1 IN G-ONE AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
     [InlineData("PB443L03", "    SEARCH INNER (OX) AT END CONTINUE WHEN NK (OX IX3) = 3 CONTINUE END-SEARCH.")]
     [InlineData("PB443L04", "    SEARCH E1 VARYING IX1 AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
-    // ⛔ THE BARE NESTED FORM IS LEGAL, and a lower bound read into SR3 would refuse it: §14.9.37.4 GR1 puts the
+    // ⛔ THE BARE NESTED FORM IS LEGAL, and a lower bound read into SR3 would refuse it: §2023:14.9.37.4 GR1 puts the
     // superordinate occurrence in the WHEN phrases ("the subscript that is used to determine the occurrence of
     // each superordinate table to search is specified by the user in the WHEN phrases"), and the CCVS suite
     // writes exactly this — NC233A's `SEARCH ALL GRP2-ENTRY … WHEN SEC (IDX-1, IDX-2)` over a table nested in
@@ -195,7 +195,7 @@ P2.
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
-    /// <summary>A program with the table shapes §14.9.37.3 SR1–SR3 are about: an indexed table inside a group,
+    /// <summary>A program with the table shapes §2023:14.9.37.3 SR1–SR3 are about: an indexed table inside a group,
     /// a NESTED indexed table, a table with NO index phrase, and a non-table.</summary>
     private static string SearchProgram(string id, string body) => $"""
 IDENTIFICATION DIVISION.
@@ -224,14 +224,14 @@ MAIN.
 
     // ── The falsification half: these are LEGAL and shall still compile clean ─────────────────────────────
     [Theory]
-    // §14.9.28.4 GR6 — an INVERTED THRU range is legal (NIST NC102A PFM-TEST-F1-10).
+    // §2023:14.9.28.4 GR6 — an INVERTED THRU range is legal (NIST NC102A PFM-TEST-F1-10).
     [InlineData("PB390L01", "    PERFORM P2 THRU P1.")]
-    // A SECTION name is a procedure-name (§8.4.2.2); so is a qualified paragraph-name.
+    // A SECTION name is a procedure-name (§2023:8.4.2.2); so is a qualified paragraph-name.
     [InlineData("PB390L02", "    PERFORM S1.")]
     [InlineData("PB390L03", "    PERFORM MAIN OF S1.")]
-    // §14.9.39.3 SR6, satisfied: a level-88 condition-name IS associated with a conditional variable.
+    // §2023:14.9.39.3 SR6, satisfied: a level-88 condition-name IS associated with a conditional variable.
     [InlineData("PB390L04", "    SET WS-FLAG-YES TO TRUE.")]
-    // §14.9.39.3 SR5, satisfied: SW-M is the SPECIAL-NAMES mnemonic of an external switch.
+    // §2023:14.9.39.3 SR5, satisfied: SW-M is the SPECIAL-NAMES mnemonic of an external switch.
     [InlineData("PB390L05", "    SET SW-M TO ON.")]
     // The CORRESPONDING operands are plain groups — no reference modifier, nothing to refuse.
     [InlineData("PB390L06", "    MOVE CORRESPONDING G1 TO G2.")]

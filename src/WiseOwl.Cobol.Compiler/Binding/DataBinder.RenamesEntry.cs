@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The RENAMES clause's ENTRY-level syntax rules (ISO §13.18.45.3; kb/Work PB1283): what its operands may BE (SR3, SR5,
+/// The RENAMES clause's ENTRY-level syntax rules (ISO §2023:13.18.45.3; kb/Work PB1283): what its operands may BE (SR3, SR5,
 /// SR6), where its window may lie (SR11) and where the entry may stand (SR2). They were all absent because
 /// data-name-2 / data-name-3 were found by name through <see cref="SubtreeCandidates"/> — whose candidate set includes
 /// the record ITSELF — and then used without being asked what they are. SR4 (operands name items of THIS record), SR7
@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding;
 public sealed partial class DataBinder
 {
 
-    /// <summary>§13.18.45.3 SR2 — "All RENAMES entries referring to data items within a given record shall immediately
+    /// <summary>§2023:13.18.45.3 SR2 — "All RENAMES entries referring to data items within a given record shall immediately
     /// follow the last data description entry of the associated record description entry." Asked by <c>BindEntries</c>,
     /// the only place the entry ORDER exists. A level-66 entry needs an open associated record in this section (a
     /// level-77 item is no record description entry, and a constant entry ends the record before it — kb/Work PB2516),
@@ -29,7 +29,7 @@ public sealed partial class DataBinder
             + (associatedRecord is null
                 ? "no record description entry it can belong to (none precedes it in this section, or a constant entry ended it)"
                 : "a level-77 item, which is not a record description entry")
-            + " (ISO §13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
+            + " (ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
             + "immediately follow the last data description entry of the associated record description entry.\")");
     }
 
@@ -38,7 +38,7 @@ public sealed partial class DataBinder
     {
         Edition.Error(DiagnosticCatalog.RenamesEntryRule,
             $"'{entryName ?? "FILLER"}': a data description entry follows the RENAMES entries of its record (ISO "
-            + "§13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
+            + "§2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
             + "follow the last data description entry of the associated record description entry.\")");
     }
 }

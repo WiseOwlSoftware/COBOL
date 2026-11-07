@@ -20,22 +20,22 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// OVERFLOW phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
-    /// <summary>STRING (ISO §14.9.43): the receiver's character image is materialized into ONE working local (its
+    /// <summary>STRING (ISO §2023:14.9.43): the receiver's character image is materialized into ONE working local (its
     /// CURRENT content — GR7 preserves every position the transfer does not touch; there is no space filling), each
     /// sending operand transfers into it via <c>StringTransfer</c> in statement order (GR3), and the
     /// final image stores back through the receiver's own store path. An operand that can occupy identifier-3's storage
     /// (GR10, Annex A.2 item 60 — undefined) is read AT ITS TRANSFER from the storage the earlier transfers stored into,
     /// as libcob <c>cob_string_append</c> does (D-STR1 to D-STR4, docs/CONFORMANCE.md), after being identified up front
-    /// like every operand (§14.6.4 7); every other operand is read once, up front. The pointer initializes from the POINTER item
+    /// like every operand (§2023:14.6.4 7); every other operand is read once, up front. The pointer initializes from the POINTER item
     /// (GR4) or 1 (GR5), advances only with the per-character moves (GR6 — the runtime kernel), and writes back —
     /// before the overflow phrases run, which may inspect it — only when the phrase was written. The overflow flag
     /// is latched across sendings by the kernel (GR8a) and dispatches ON / NOT ON OVERFLOW per GR8c/GR8e/GR9 (the
     /// 2002+ EC-OVERFLOW-STRING name, GR8b, awaits the EC model; with no phrase the nonfatal condition continues
-    /// execution, §14.6.13.1.4, so no code is needed).</summary>
+    /// execution, §2023:14.6.13.1.4, so no code is needed).</summary>
     public void EmitString(BoundStringStmt statement)
     {
         var w = ctx.Writer;
-        var s = IdentifyOperands(statement);   // §14.6.4 7) — identified once, before the first character moves (kb/Work PB1123)
+        var s = IdentifyOperands(statement);   // §2023:14.6.4 7) — identified once, before the first character moves (kb/Work PB1123)
         // ⛔ kb/Work PB2078: the same identification for an object-property identifier-3 / identifier-4 — its object and,
         // for the read pointer, its GET — before the first operation; each SET follows that receiver's own store.
         brackets.Identify(s.Into, s.Pointer);
@@ -43,13 +43,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         string ptr = $"__strPtr{id}", ptr0 = $"__strPtr0{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         // ⛔ THE OPERANDS ARE READ IN THE ORDER THEY ARE WRITTEN (kb/Work PB3261). The freeze above hoists each operand's
         // subscript and reference-modifier VALUES, but the range tests that raise EC-BOUND-SUBSCRIPT / EC-BOUND-REF-MOD run
-        // where the operand is READ — so the order of the reads is the order of identification §14.6.4 7) fixes: "the
+        // where the operand is READ — so the order of the reads is the order of identification §2023:14.6.4 7) fixes: "the
         // identifiers within a statement are evaluated in left to right order as the first operation of the execution of
-        // that statement", and §14.9.49.4 GR11 selects the declarative by the first condition in that order. Each sending
+        // that statement", and §2023:14.9.49.4 GR11 selects the declarative by the first condition in that order. Each sending
         // operand and delimiter that identifies at run time is therefore read here, in statement order, BEFORE
         // identifier-3 is read and before the POINTER item's value is taken. The transfers change only the working image,
         // so a value read here is the value the transfer would have read — except where an operand can occupy
-        // identifier-3's storage (§14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2, D-STR4
+        // identifier-3's storage (§2023:14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2, D-STR4
         // below) - except FUNCTION RANDOM and a user-defined function, which cannot run twice and are evaluated once, at
         // their transfer. The first sending follows no store, so it is never such an operand.
         var sendings = new List<StringSending>(s.Sendings.Count);
@@ -58,7 +58,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // GR3a: the sender's CONTENT transfers per the alphanumeric-to-alphanumeric move mechanics — its raw
             // character image (a numeric sender contributes its sign-carrying zoned image), not a converted value.
             // GR2: a figurative literal-1 / literal-2 is a one-character item of identifier-3's usage, so its
-            // HIGH-/LOW-VALUE comes from THAT usage's program collating sequence (§8.3.3.6.4 GR6; kb/Work PB1185).
+            // HIGH-/LOW-VALUE comes from THAT usage's program collating sequence (§2023:8.3.3.6.4 GR6; kb/Work PB1185).
             var rereads = new List<(string Local, string Read)>();
             // The FIRST sending follows no store of the statement, so nothing can reach its operands (GR10 needs a transfer
             // that stored before the operand is read): it is always read once, in order.
@@ -73,12 +73,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // GR8 are written over "the number of character positions in the data item referenced by identifier-3",
         // which for a dynamic-length receiver is its MAXIMUM size (ReceivingStore.DynamicReceivingSize) — the
         // current length made an empty item unwritable (every character an overflow). The working image is the
-        // current content widened to that size with spaces — the characters §14.9.39.4 GR39 gives any position a
+        // current content widened to that size with spaces — the characters §2023:14.9.39.4 GR39 gives any position a
         // dynamic-length item grows by — so GR7's "all other portions ... will contain data that was present
-        // before" holds for every position the content already had. The new length is §8.5.1.10.4's "length of
+        // before" holds for every position the content already had. The new length is §2023:8.5.1.10.4's "length of
         // new content": the old content's, extended through the last position this execution wrote.
-        // Place.DenotedItem is the ONE "whole item" question (§8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
-        // identifier-3 denotes no item, and §8.5.1.10.4 makes it a fixed-length item of the current length.
+        // Place.DenotedItem is the ONE "whole item" question (§2023:8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
+        // identifier-3 denotes no item, and §2023:8.5.1.10.4 makes it a fixed-length item of the current length.
         bool dynInto = s.Into.DenotedItem is { IsDynamicLength: true };
         string old = $"__strOld{id}";
         // ⛔ kb/Work PB2078: identifier-3 is stored once, so an object-property identifier-3 has its SET after that store
@@ -151,11 +151,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// (<see cref="OperandText.AsString"/>, in the receiver's character category). An operand no transfer of the
     /// statement can reach (<see cref="ReadsStorageOf(BoundOperand, Place)"/>), and every operand of the
     /// <paramref name="first"/> sending (no store precedes it), is read once, in statement order
-    /// (<see cref="ReadInOrder"/>, §14.6.4 7), whatever it reads. A reachable data-item reference is read in order as
+    /// (<see cref="ReadInOrder"/>, §2023:14.6.4 7), whatever it reads. A reachable data-item reference is read in order as
     /// well (its range tests run in statement order) and adds its (local, rendering) pair to <paramref name="rereads"/>,
     /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A reachable FUNCTION
     /// that evaluating twice changes nothing but time (<see cref="Reach.Repeatable"/>) is handled the same way: its
-    /// arguments are identified and range-tested in statement order first (§14.6.4 7, §14.9.49.4 GR11), then it is
+    /// arguments are identified and range-tested in statement order first (§2023:14.6.4 7, §2023:14.9.49.4 GR11), then it is
     /// evaluated again from the storage the earlier transfers stored (D-STR4). A reachable function that is NOT repeatable
     /// (FUNCTION RANDOM advances its sequence, a user-defined function runs a program) stays inline and is evaluated
     /// once, when its transfer begins.</summary>
@@ -169,7 +169,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         return value;
     }
 
-    /// <summary>⛔ CAN A TRANSFER OF THIS STRING REACH THIS OPERAND? (kb/Work PB1908; §14.9.43.4 GR10, Annex A.2 item
+    /// <summary>⛔ CAN A TRANSFER OF THIS STRING REACH THIS OPERAND? (kb/Work PB1908; §2023:14.9.43.4 GR10, Annex A.2 item
     /// 60). Identifier-3 is the one place a STRING stores before it ends (the POINTER item is stored last, after every
     /// transfer), so an operand needs the in-place read exactly when a data item it reads is one
     /// <see cref="StorageOverlap.MayShareStorage"/> cannot prove disjoint from identifier-3: a data-item reference
@@ -183,7 +183,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// <see cref="StorageOverlap"/> cannot prove disjoint from identifier-3 (or has a shape the walk does not know);
     /// <paramref name="Repeatable"/> says evaluating it a second time changes nothing but time. A data item, a literal and an
     /// intrinsic function other than RANDOM are repeatable; FUNCTION RANDOM returns "the next number in the current
-    /// sequence" (§15.75.3 5)) and an unwalked shape (a user-defined function runs a program) are not.</summary>
+    /// sequence" (§2023:15.75.3 5)) and an unwalked shape (a user-defined function runs a program) are not.</summary>
     private readonly record struct Reach(bool MayShare, bool Repeatable)
     {
         /// <summary>Reads nothing that can matter.</summary>
@@ -238,7 +238,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// identifier-3's storage, and <paramref name="Rereads"/> are the locals to assign again at its transfer.</summary>
     private sealed record StringSending(string Source, string Delimiter, bool ReadsReceiver, IReadOnlyList<(string Local, string Read)> Rereads);
 
-    /// <summary>UNSTRING (ISO §14.9.48): the sender's image and the delimiter values are read at initiation and
+    /// <summary>UNSTRING (ISO §2023:14.9.48): the sender's image and the delimiter values are read at initiation and
     /// AGAIN before each later receiving area wherever a store of the statement can reach them (operand overlap is
     /// undefined, GR18 — the in-place model of docs/CONFORMANCE.md D-UNS1/D-UNS2, <see cref="LiveReads"/>), the
     /// pointer initializes from the POINTER item or 1 (GR11a) and the TALLYING item receives its content AT THE
@@ -255,8 +255,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     public void EmitUnstring(BoundUnstringStmt statement)
     {
         var w = ctx.Writer;
-        // ⛔ §14.6.4 7) — every identifier of the statement is identified ONCE, left to right, as its first operation
-        // (kb/Work PB1123): §14.9.48.4 states no other timing, so `UNSTRING S INTO I UE(I)` stores into UE(1), the
+        // ⛔ §2023:14.6.4 7) — every identifier of the statement is identified ONCE, left to right, as its first operation
+        // (kb/Work PB1123): §2023:14.9.48.4 states no other timing, so `UNSTRING S INTO I UE(I)` stores into UE(1), the
         // occurrence I named before the first store changed it.
         var s = IdentifyOperands(statement);
         // ⛔ kb/Work PB2078: an object-property receiver is identified with the others — its object, and the GET of a read
@@ -268,7 +268,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
         bool hasAll = s.Delimiters.Any(d => d.All);
         w.Line($"string {src} = {SenderText(s)};");   // DA4: an operand (may be a function)
-        // §14.9.48.4 GR2 (kb/Work PB1184): "If the data item referenced by identifier-1 is a zero-length item, execution
+        // §2023:14.9.48.4 GR2 (kb/Work PB1184): "If the data item referenced by identifier-1 is a zero-length item, execution
         // of the UNSTRING statement terminates immediately." — BEFORE any initiation test, so the GR15 a) overflow
         // (a pointer of 1 is past a zero-length sender) is never evaluated, EC-OVERFLOW-UNSTRING is never set, and
         // neither the ON nor the NOT ON OVERFLOW imperative runs (GR17 acts "after completion of the transfer of
@@ -279,7 +279,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative
             // is its single character (GR7) — a NATIONAL literal when identifier-1 is national, so its HIGH-/LOW-VALUE
-            // is the national sequence's (§8.3.3.6.4 GR6; kb/Work PB1185); a field delimiter is its FULL content —
+            // is the national sequence's (§2023:8.3.3.6.4 GR6; kb/Work PB1185); a field delimiter is its FULL content —
             // trailing spaces included (GR9: the delimiter is the content of the item; the legacy's TrimEnd was a
             // deviation).
             w.Line($"string[] {dels} = {{ {string.Join(", ", s.Delimiters.Select(d => DelimiterText(s, d)))} }};");
@@ -306,7 +306,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // delimiter is an IDENTIFIER — GR9: "When neither literal-1 nor literal-2 is specified and all data items
             // referenced by identifier-2 and identifier-3 are zero-length items, it is as if the DELIMITED phrase
             // were not specified". A literal delimiter is never zero-length (SR1), so one of them settles it; an
-            // identifier is a data item OR a function-identifier (§8.4.3.1.2), and either may be zero-length.
+            // identifier is a data item OR a function-identifier (§2023:8.4.3.1.2), and either may be zero-length.
             bool sizeCanGovern = s.Delimiters.All(d => d.Value is BoundFieldOperand or BoundComputedOperand);
             for (int k = 0; k < s.Receivers.Count; k++)
             {
@@ -331,7 +331,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                     if (r.ZeroFill is { } zero)
                     {
                         // GR8: two contiguous delimiters zero-fill a NUMERIC receiver (the MOVE rules would give
-                        // the zero-length sender's SPACE, §14.9.25.4 GR1/GR2).
+                        // the zero-length sender's SPACE, §2023:14.9.25.4 GR1/GR2).
                         using (w.Block($"if ({cnt} == 0)")) move.Emit(zero);
                         using (w.Block("else")) move.Emit(r.Store);
                     }
@@ -351,7 +351,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                     w.Line($"{tly} += 1;");                                           // GR14 — per receiver acted upon
                 }
             }
-            w.Line($"if ({ptr} <= {src}.Length) {ovf} = true;   // unexamined characters remain (ISO §14.9.48.4 GR15b)");
+            w.Line($"if ({ptr} <= {src}.Length) {ovf} = true;   // unexamined characters remain (ISO §2023:14.9.48.4 GR15b)");
         }
         // GR14 / D-UNS3: the TALLYING item's content NOW (after every INTO and COUNT IN store) plus the count of areas
         // acted upon; without an overlap that is "its value at the beginning plus the count". Stored BEFORE the pointer
@@ -368,7 +368,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         EmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
     }
 
-    /// <summary>⛔ ITEM IDENTIFICATION, ONCE (ISO §14.6.4 7; kb/Work PB1123): the statement's identifiers in SOURCE order —
+    /// <summary>⛔ ITEM IDENTIFICATION, ONCE (ISO §2023:14.6.4 7; kb/Work PB1123): the statement's identifiers in SOURCE order —
     /// identifier-1, each DELIMITED BY identifier, each receiving area's INTO / DELIMITER IN / COUNT IN, then WITH
     /// POINTER and TALLYING IN — have their run-time address fragments (subscripts, reference modifiers) frozen into
     /// locals before anything is read or stored (<see cref="PlaceIdentification"/>), so a subscript that names an
@@ -396,7 +396,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         return s with { Source = source, Delimiters = delimiters, Receivers = receivers, Pointer = pointer, Tallying = tallying };
     }
 
-    /// <summary>The same item identification for STRING (§14.6.4 7; kb/Work PB1123): every sending and delimiter, the
+    /// <summary>The same item identification for STRING (§2023:14.6.4 7; kb/Work PB1123): every sending and delimiter, the
     /// receiver and the POINTER are identified before the first character moves, so a subscripted POINTER whose
     /// subscript is the receiver (<c>STRING … INTO I WITH POINTER PE(I)</c>) is not re-identified after the
     /// receiver was stored.</summary>
@@ -418,11 +418,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     private string SenderText(BoundUnstringStmt s) => OperandText.AsString(s.Source, num);
 
     /// <summary>One delimiter's value (GR7 / GR9 / GR10): a figurative takes the program collating sequence of
-    /// identifier-1's category (§8.3.3.6.4 GR6; kb/Work PB1185). The ONE rendering, as <see cref="SenderText"/>.</summary>
+    /// identifier-1's category (§2023:8.3.3.6.4 GR6; kb/Work PB1185). The ONE rendering, as <see cref="SenderText"/>.</summary>
     private string DelimiterText(BoundUnstringStmt s, BoundUnstringDelimiter d) =>
         OperandText.AsString(d.Value, num, characterCategory: s.CharacterCategory);
 
-    /// <summary>⛔ WHICH OPERANDS OF AN UNSTRING ARE READ AGAIN WHILE IT RUNS (kb/Work PB1907; ISO §14.9.48.4 GR18,
+    /// <summary>⛔ WHICH OPERANDS OF AN UNSTRING ARE READ AGAIN WHILE IT RUNS (kb/Work PB1907; ISO §2023:14.9.48.4 GR18,
     /// Annex A.2 item 61; docs/CONFORMANCE.md D-UNS1 and D-UNS2). The standard leaves an UNSTRING whose identifier-1,
     /// -2 or -3 shares storage with identifier-4, -5 or -6 undefined, and WiseOwl COBOL follows GnuCOBOL: the
     /// statement runs in place. The operands a store of the statement can reach are exactly the sender and the
@@ -486,8 +486,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
 
     /// <summary>The shared ON / NOT ON OVERFLOW dispatch (STRING GR8c/8e/GR9; UNSTRING GR16c/16e/GR17): the ON
     /// imperative runs exactly when the flag is set, the NOT imperative exactly when it is not; with neither
-    /// phrase the (nonfatal) condition lets execution continue, §14.6.13.1.4. Under enabled EC-OVERFLOW checking
-    /// (>>TURN, §7.3.25) the raise (status + the no-phrase F3 selection) precedes the phrase branch — STRING
+    /// phrase the (nonfatal) condition lets execution continue, §2023:14.6.13.1.4. Under enabled EC-OVERFLOW checking
+    /// (>>TURN, §2023:7.3.25) the raise (status + the no-phrase F3 selection) precedes the phrase branch — STRING
     /// GR8b / UNSTRING GR16b via the <see cref="EcEmitter"/> overflow emission.</summary>
     private void EmitOverflow(
         string flag, string ecName, IReadOnlyList<BoundStatement>? onOverflow, IReadOnlyList<BoundStatement>? notOnOverflow)
@@ -510,20 +510,20 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     private string ReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p), num);
 
     /// <summary>Store a full-width character image back into the STRING receiver, preserving its storage shape
-    /// (§14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes
+    /// (§2023:14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes
     /// via <c>FromImage</c>; a Tier-B view / reference window splices through its own <c>Write</c>; an
     /// alphanumeric, NATIONAL, USAGE DISPLAY boolean or image-stored receiver (a numeric item of usage display or
     /// national, which SR1 admits and which holds the characters GR6 moves into it — kb/Work PB4089) assigns the image directly
     /// (same width by construction — a national elementary item is a string of national character positions, and
-    /// §14.9.43.4 GR3 a) moves "national-to-national" with no space fill, GR7 keeping every position not written; a
+    /// §2023:14.9.43.4 GR3 a) moves "national-to-national" with no space fill, GR7 keeping every position not written; a
     /// display boolean item is a string of '0' / '1' characters; kb/Work PB1179).</summary>
     private void WriteImage(Place p, string imageExpr)
     {
         var w = ctx.Writer;
-        // A reference-modified identifier-3 is the elementary alphanumeric unique item of §8.4.3.3.4 GR6 — the
+        // A reference-modified identifier-3 is the elementary alphanumeric unique item of §2023:8.4.3.3.4 GR6 — the
         // updated image splices into it (kb/Work PB70: over a GROUP inner it used to fall into the group arm).
         if (p is RefModPlace) { w.Line(PlaceRenderer.Write(p, imageExpr)); return; }
-        // A group identifier-3 (§14.9.43.4 GR3a — the alphanumeric MOVE rules): the ONE group-image store.
+        // A group identifier-3 (§2023:14.9.43.4 GR3a — the alphanumeric MOVE rules): the ONE group-image store.
         // The ONE group VALUE writer, in the alphabet ReadImage read (SendingGroupValue): a national group — class
         // national, so legal here by SR1 — takes its national positions, never its byte image (kb/Work PB1128).
         if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupValue(p, imageExpr, "STRING INTO group")); return; }
@@ -542,7 +542,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // every other character to zero — D-B5, kb/Work PB3666), exactly as a MOVE's are. The authority is D-B5, not
         // GR3 a): that rule transfers the characters "in accordance with the MOVE statement rules for
         // alphanumeric-to-alphanumeric moves" (which do not convert), so the conversion of content the standard leaves
-        // undefined (§14.6.13.2 1)) is the implementor's choice, made once for every store into a boolean item. The
+        // undefined (§2023:14.6.13.2 1)) is the implementor's choice, made once for every store into a boolean item. The
         // image carries every untouched position (GR7), already boolean, so converting the whole image changes only
         // what this statement wrote.
         w.Line(PlaceRenderer.Write(p, p.Item.OperandPic is { Category: PicCategory.Boolean }

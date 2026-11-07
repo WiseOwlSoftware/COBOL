@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.56.2 general format — FUNCTION LOG10 ( argument-1 )
+      *> ISO §2023:15.56.2 general format — FUNCTION LOG10 ( argument-1 )
       *> The transcribed format is "<u>FUNCTION</u> <u>LOG10</u> (
       *> argument-1 )": BOTH words underlined (required), ONE argument
       *> inside required parentheses, no bracketed part anywhere - so

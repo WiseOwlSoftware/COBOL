@@ -15,29 +15,29 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// User-defined function invocation (ISO §9.4 / §8.4.3.2; M2-UDF-1 — the PHASE4_RECONCILIATION
+/// User-defined function invocation (ISO §2023:9.4 / §2023:8.4.3.2; M2-UDF-1 — the PHASE4_RECONCILIATION
 /// decision-complete design). A <c>FUNCTION user-name(args)</c> reference LOWERS at bind time onto the
 /// program-activation machinery the group already has: a caller-side result temporary cloned from the
-/// callee's RETURNING description (§8.4.3.2.4 GR1 :6963), a <see cref="BoundCallProgram"/> = CALL
+/// callee's RETURNING description (§2023:8.4.3.2.4 GR1 :6963), a <see cref="BoundCallProgram"/> = CALL
 /// "name" USING «args» RETURNING «temp» registered on a statement-scoped pending list, and the reading
 /// expression/operand over the temp. <see cref="UdfWrapCalls"/> drains the list at the BindStatement
 /// chokepoint into a <see cref="BoundSequence"/> that HOISTS each activation before the carrying
 /// statement — always a PRE-op, because a function-identifier is never a receiving operand
-/// (§8.4.3.2.3 SR1), so no store-polarity classification is needed (unlike property references).
-/// Argument evaluation order (§8.4.3.2.4 GR2 — left to right, nested function-identifiers allowed): a nested
+/// (§2023:8.4.3.2.3 SR1), so no store-polarity classification is needed (unlike property references).
+/// Argument evaluation order (§2023:8.4.3.2.4 GR2 — left to right, nested function-identifiers allowed): a nested
 /// call registers while its consumer's arguments bind, so it precedes the consumer in the sequence, and an
 /// EARLIER argument that only reads state is stored into an intermediate result item before a later argument's
 /// activation can change it (<see cref="ArgumentOrder"/>, kb/Work PB1423). A hoist is EXACT only where the reference is unconditionally
 /// evaluated exactly once per statement execution; every conditionally- or repeatedly-evaluated CONDITION
 /// window (a PERFORM UNTIL/VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object term, a non-first
 /// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
-/// (<see cref="UdfAttachPerEvaluation"/> — §8.8.4.13 r2 "if and when the conditions containing them are
+/// (<see cref="UdfAttachPerEvaluation"/> — §2023:8.8.4.13 r2 "if and when the conditions containing them are
 /// evaluated"); every repeatedly-evaluated OPERAND window — a PERFORM VARYING BY operand and an AFTER level's
-/// FROM operand, §14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
+/// FROM operand, §2023:14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
 /// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437). No window stages
 /// loud any more: an EVALUATE selection subject binds once for the statement — a <b>value</b> subject's value
-/// materialized into §14.9.25.4 GR1's intermediate result item (kb/Work PB394), a <b>condition</b> subject's
-/// TRUTH value into a one-position boolean intermediate (§14.9.13.4 GR3 e, kb/Work PB842 / PB912), and a
+/// materialized into §2023:14.9.25.4 GR1's intermediate result item (kb/Work PB394), a <b>condition</b> subject's
+/// TRUTH value into a one-position boolean intermediate (§2023:14.9.13.4 GR3 e, kb/Work PB842 / PB912), and a
 /// partial-expression object splices that one value in rather than re-binding the subject — so the statement
 /// hoist is EXACT for every subject, and the narrowed COBOL1509 residue stage was deleted with its last
 /// two callers.
@@ -57,7 +57,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <summary>THIS statement's not-yet-hoisted PRE-ops (statement-scoped: BindStatement marks the count on entry
     /// and drains only its own suffix — the property-op discipline).
     /// <para>⛔ IT IS THE SHARED <see cref="ProcedureBindState.PendingPreOps"/>, NOT A LIST OWNED HERE. A D18
-    /// function-bearing subscript registers its §15.4 temp store on the same list while this binder's arguments
+    /// function-bearing subscript registers its §2023:15.4 temp store on the same list while this binder's arguments
     /// bind (fix-queue PB17), and only ONE list in registration order sequences the store before the activation
     /// that consumes it. Every member below is therefore written against <see cref="BoundStatement"/>, not
     /// <see cref="BoundCallProgram"/>.</para></summary>
@@ -76,12 +76,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     internal PendingMark Mark => new(Pending.Mark(), ctx.Data.Procedure.PropertyOps.Mark());
 
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
-    /// REPOSITORY-declared name, which per §12.3.8.4 GR12 refers to the user function and never a same-named
-    /// intrinsic): resolve the signature, bind the arguments in the §8.4.3.2.4 GR5 manner, synthesize the
+    /// REPOSITORY-declared name, which per §2023:12.3.8.4 GR12 refers to the user function and never a same-named
+    /// intrinsic): resolve the signature, bind the arguments in the §2023:8.4.3.2.4 GR5 manner, synthesize the
     /// result temporary, register the hoisted activation, and return the temp-reading expression.</summary>
     internal BoundExpr UdfBindCall(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
-        // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002). It fires on
+        // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§9.4 / §2023:12.3.8; 0900 below 2002). It fires on
         // RECOGNITION — a below-2002 UDF reference is an edition violation independent of whether the function is
         // DEFINED (a locate miss is 1505 / EC-FUNCTION-NOT-FOUND). A bound-arm gate on the hoisted BoundCallProgram
         // loses it when the reference errors before the hoist (UdfInvocationTests.BinderGate_0900_At85), so it stays
@@ -95,8 +95,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
                 + "group contains neither a FUNCTION-ID definition specified BEFORE this source element nor a "
-                + "FUNCTION-ID … IS PROTOTYPE for it (ISO §12.3.8.4 GR11 a) / b): a definition that follows this "
-                + "element is not \"specified previously\") — declare a function prototype (ISO §11.5 / §12.3.8.3 "
+                + "FUNCTION-ID … IS PROTOTYPE for it (ISO §2023:12.3.8.4 GR11 a) / b): a definition that follows this "
+                + "element is not \"specified previously\") — declare a function prototype (ISO §2023:11.5 / §2023:12.3.8.3 "
                 + "SR10) so its signature is available for a separately-compiled or later target, or place the "
                 + "definition ahead of this element");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
@@ -104,14 +104,14 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         return UdfActivate(name, fn, argCtxs, pointer: null);
     }
 
-    /// <summary>Bind one function-identifier written with FUNCTION-POINTER-NAME-1 (ISO §8.4.3.2; kb/Work PB847 —
-    /// the consumer SET Format 8 landed without). §8.4.3.2.4 GR4: "the function prototype specified in the TO
+    /// <summary>Bind one function-identifier written with FUNCTION-POINTER-NAME-1 (ISO §2023:8.4.3.2; kb/Work PB847 —
+    /// the consumer SET Format 8 landed without). §2023:8.4.3.2.4 GR4: "the function prototype specified in the TO
     /// phrase of the USAGE clause in the definition of function-pointer-name-1 is used to determine the
     /// characteristics of the activated element and the function to be activated", and GR1 takes the result's
     /// description from that prototype's RETURNING item — so this is the prototype activation of
     /// <see cref="UdfBindCall"/> with ONE difference: the activated function is whichever one the pointer holds
     /// at run time (GR6c), NULL raising EC-FUNCTION-PTR-NULL. <paramref name="pointer"/> is the resolved
-    /// function-pointer item; the §8.4.3.2.3 SR4 category test was made by the caller.</summary>
+    /// function-pointer item; the §2023:8.4.3.2.3 SR4 category test was made by the caller.</summary>
     internal BoundExpr UdfBindPointerCall(Place pointer, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         string name = pointer.Item.CobolName ?? "function-pointer";
@@ -119,7 +119,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // declaration, so below 2002 this reference is already one edition violation deep).
         ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition, Constructs.UserFunctionInvocation2002,
             $"FUNCTION {name.ToUpperInvariant()}");
-        // The mandatory `[TO] function-prototype-name-1` operand (§13.18.60.2, unbracketed) is screened at the
+        // The mandatory `[TO] function-prototype-name-1` operand (§2023:13.18.60.2, unbracketed) is screened at the
         // declaration (COBOL1958); an item missing it has already been reported, so there is no prototype to
         // take GR4's characteristics from and nothing further to say here.
         if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
@@ -130,8 +130,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "
                 + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
                 + "definition specified before this source element nor a FUNCTION-ID … IS PROTOTYPE for it (ISO "
-                + "§12.3.8.4 GR11 a) / b)) — the prototype supplies the characteristics of the activated function "
-                + "(ISO §8.4.3.2.4 GR4) and the result's description (GR1)");
+                + "§2023:12.3.8.4 GR11 a) / b)) — the prototype supplies the characteristics of the activated function "
+                + "(ISO §2023:8.4.3.2.4 GR4) and the result's description (GR1)");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
         return UdfActivate(name, fn, argCtxs, new BoundFieldOperand(pointer));
@@ -139,7 +139,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>⛔ THE ONE PROTOTYPE ACTIVATION — both function-identifier forms that name a prototype
     /// (function-prototype-name-1 and, through its USAGE TO phrase, function-pointer-name-1) bind their
-    /// arguments, result temporary and hoisted activation HERE, so the §14.8.2 / §14.8.3 conformance and the
+    /// arguments, result temporary and hoisted activation HERE, so the §2023:14.8.2 / §2023:14.8.3 conformance and the
     /// GR5 argument manner cannot drift between them. <paramref name="pointer"/> null activates the prototype's
     /// own externalized function (GR3); non-null activates the function the pointer holds (GR6c).</summary>
     private BoundExpr UdfActivate(string name, UserFunctionSignature fn,
@@ -149,8 +149,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             // Ill-formed function definition — COBOL1507 already reported once at the unit.
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} RETURNING");
 
-        // ⛔ THE RESULT TEMPORARY HAS NO CATEGORY RESTRICTION (§8.4.3.2.4 GR1 — the temp's "description, class, and
-        // category" ARE the RETURNING item's; §14.2.2 SR5 places NO category restriction on a function's RETURNING
+        // ⛔ THE RESULT TEMPORARY HAS NO CATEGORY RESTRICTION (§2023:8.4.3.2.4 GR1 — the temp's "description, class, and
+        // category" ARE the RETURNING item's; §2023:14.2.2 SR5 places NO category restriction on a function's RETURNING
         // item; kb/Work PB1419). Every category the data model can describe — fixed-point and floating-point
         // numeric, alphanumeric/alphabetic, numeric-edited, national, boolean, index, data pointer, object
         // reference, and a group of any shape (character image, binary / packed / float leaves, strongly typed,
@@ -163,12 +163,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // learned every one of them.
 
         // Arguments: one typed operand per argument parse tree, through the SAME BindArgOperand the intrinsic
-        // path uses (the ONE argument pipeline). NO table(ALL) expansion here — §9.4 (:12529): "arguments and
+        // path uses (the ONE argument pipeline). NO table(ALL) expansion here — §2023:9.4 (:12529): "arguments and
         // returned values for user-defined functions may not use the word ALL as a subscript" (an ALL subscript
         // fails resolution and stays a loud named operand). An OMITTED argument (kb/Work PB757 — the third arm of
         // the omitted-argument model, beside CALL's and INVOKE's) is a null operand here, checked against
-        // §8.4.3.2.3 SR9 below where the formal is known.
-        // ⛔ §8.4.3.2.4 GR2 — the arguments evaluate "individually in the order specified in the list of arguments, from
+        // §2023:8.4.3.2.3 SR9 below where the formal is known.
+        // ⛔ §2023:8.4.3.2.4 GR2 — the arguments evaluate "individually in the order specified in the list of arguments, from
         // left to right": the window records each operand and the pre-ops it registered, and Freeze below stores an
         // earlier argument's value before a later argument's activation can change it (kb/Work PB1423, ArgumentOrder).
         using var order = host.ArgOrder.Open();
@@ -176,54 +176,54 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         foreach (var a in argCtxs)
             operands.Add(a.OMITTED() is not null ? null : host.Intrinsic.BindArgOperand(a, activationArgument: true));
 
-        // Positional correspondence (§14.8.2.1): one argument per USING formal, "with the exception of trailing
+        // Positional correspondence (§2023:14.8.2.1): one argument per USING formal, "with the exception of trailing
         // formal parameters that are specified with an OPTIONAL phrase in the procedure division header of the
         // activated element and omitted from the list of arguments" — the callee's program-ABI adapters answer a
-        // missing trailing slot as the omitted carrier (§8.4.3.2.4 GR7), exactly as they do for CALL.
+        // missing trailing slot as the omitted carrier (§2023:8.4.3.2.4 GR7), exactly as they do for CALL.
         if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
-                + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
+                + "formals, and only trailing OPTIONAL formals may be omitted (ISO §2023:14.8.2.1)");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arity");
         }
 
-        // ⛔ §8.4.3.2.3 SR13 — "If function-prototype-name-1 or function-pointer-name-1 is specified, the rules for
+        // ⛔ §2023:8.4.3.2.3 SR13 — "If function-prototype-name-1 or function-pointer-name-1 is specified, the rules for
         // conformance specified in 14.8.2, Parameters and 14.8.3, Returning items, apply" — asked of THE ONE argument
-        // half of §14.8.2 the Format-2 CALL asks too (ParameterConformance; kb/Work PB1418 / PB1115). This binder
+        // half of §2023:14.8.2 the Format-2 CALL asks too (ParameterConformance; kb/Work PB1418 / PB1115). This binder
         // used to re-implement CALL's argument binding privately and skip it, so a PIC X(4) identifier aliased a
         // PIC 9(4) BY REFERENCE formal and an OBJECT REFERENCE C1 ONLY argument reached an OBJECT REFERENCE C1
-        // formal with no diagnostic. §14.8.3 needs no screen here: the result temporary IS a clone of the
+        // formal with no diagnostic. §2023:14.8.3 needs no screen here: the result temporary IS a clone of the
         // RETURNING item (GR1), so the returning pair conforms by construction.
-        var site = new ActivationSite($"FUNCTION {name.ToUpperInvariant()}", "§8.4.3.2.3 SR13",
+        var site = new ActivationSite($"FUNCTION {name.ToUpperInvariant()}", "§2023:8.4.3.2.3 SR13",
             DiagnosticCatalog.FunctionArgumentConformance);
         var callArgs = new List<BoundCallArg>(operands.Count);
         for (int i = 0; i < operands.Count; i++)
         {
             if (operands[i] is not { } operand)
             {
-                // §8.4.3.2.3 SR9: "If the word OMITTED is specified, the OPTIONAL phrase shall be specified for the
-                // corresponding formal parameter." The argument then crosses as the null carrier (§14.9.4.4 GR11's
+                // §2023:8.4.3.2.3 SR9: "If the word OMITTED is specified, the OPTIONAL phrase shall be specified for the
+                // corresponding formal parameter." The argument then crosses as the null carrier (§2023:14.9.4.4 GR11's
                 // shape, which CallEmitter renders for every Omitted BoundCallArg) and GR7 holds in the function.
                 if (!fn.Formals[i].Optional)
                 {
                     ctx.Edition.Error(DiagnosticCatalog.FunctionOmittedNeedsOptional,
                         $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: OMITTED corresponds to formal "
                         + $"parameter '{fn.Formals[i].Item.CobolName}', which the function's procedure division "
-                        + "header does not describe with the OPTIONAL phrase (ISO §8.4.3.2.3 SR9)");
+                        + "header does not describe with the OPTIONAL phrase (ISO §2023:8.4.3.2.3 SR9)");
                     return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} OMITTED");
                 }
                 callArgs.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true) { Formal = fn.Formals[i].Item });
                 continue;
             }
             var formal = fn.Formals[i];
-            // §8.4.3.2.3 SR10: when the formal corresponding to argument-1 is specified with a BY VALUE phrase,
+            // §2023:8.4.3.2.3 SR10: when the formal corresponding to argument-1 is specified with a BY VALUE phrase,
             // argument-1 shall be of class numeric, object, or pointer. Checked HERE (the one place the
             // formal↔argument pairing exists); the header side's SR2 already restricted the FORMAL. The class is
-            // the ONE answer CALL's §14.9.4.3 SR22 screen asks (ParameterConformance.ValueArgumentClass) — this
+            // the ONE answer CALL's §2023:14.9.4.3 SR22 screen asks (ParameterConformance.ValueArgumentClass) — this
             // screen used to test the item's CATEGORY, and a USAGE INDEX item (category numeric in the storage
-            // model, class index by §13.18.60.4 GR10) passed it (kb/Work PB1418). Fail-open on an undecidable
+            // model, class index by §2023:13.18.60.4 GR10) passed it (kb/Work PB1418). Fail-open on an undecidable
             // class, exactly as the CALL screen does.
             if (formal.ByValue && ParameterConformance.ValueArgumentClass(operand)
                     is { } cls and not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
@@ -231,29 +231,29 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.ByValueArgumentClass,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1} is of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(operand, cls)}; an argument passed to a BY VALUE formal parameter "
-                    + "shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
+                    + "shall be of class numeric, object, or pointer (ISO §2023:8.4.3.2.3 SR10)");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} BY VALUE class");
             }
             if (UdfArg(operand, argCtxs[i], formal) is not { } arg)
             {
                 // The operand refused to bind (the segment parser or resolver already classified it — an
                 // unresolvable name, an ALL subscript) — name that ACTUAL shape, never a message claiming a legal
-                // form is illegal. Every argument FORM §8.4.3.2.3 SR8 names has an arm in UdfArg.
+                // form is illegal. Every argument FORM §2023:8.4.3.2.3 SR8 names has an arm in UdfArg.
                 string what = operand is BoundOperandError err
                     ? err.Feature
-                    : "this argument form (ISO §8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
+                    : "this argument form (ISO §2023:8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
                       + "expression, or an arithmetic expression)";
                 ctx.Edition.Error(DiagnosticCatalog.UserFunctionArgumentRule,
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
                     + "user-defined function activation");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
             }
-            // §8.4.3.2.3 SR14: with a BY REFERENCE formal and a bit data item argument, the argument "shall be
+            // §2023:8.4.3.2.3 SR14: with a BY REFERENCE formal and a bit data item argument, the argument "shall be
             // described such that it is aligned on a byte boundary", with literal-only subscripts and ref-mod
-            // leftmost position — the SAME proof CALL's §14.9.4.3 SR6 asks, so it is the same method.
+            // leftmost position — the SAME proof CALL's §2023:14.9.4.3 SR6 asks, so it is the same method.
             if (!formal.ByValue && operand is BoundFieldOperand { Place: var bitPlace } && BitLayout.IsBitItem(bitPlace.Item))
                 host.Params.ScreenBitAlignment(bitPlace, DiagnosticCatalog.FunctionBitAlignment,
-                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}", "§8.4.3.2.3 SR14");
+                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}", "§2023:8.4.3.2.3 SR14");
             host.Params.CheckArgument(formal.Item, arg, i + 1, site);
             callArgs.Add(arg);
         }
@@ -270,7 +270,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     && snapshot is BoundFieldOperand { Place: var held })
                     callArgs[i] = callArgs[i] with { Place = held, Value = null, ContentBool = null };
 
-        // The caller-side result temporary (§8.4.3.2.4 GR1 :6963 — "the description, class, and category of
+        // The caller-side result temporary (§2023:8.4.3.2.4 GR1 :6963 — "the description, class, and category of
         // the temporary data item is that specified by the description in the linkage section of the item
         // specified in the RETURNING phrase"), declared like any other item via the Roots pipeline. A GROUP
         // model deep-clones its subtree (CompilerTemps.Create's group leg) so the FieldEmitter declares the
@@ -282,13 +282,13 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name} result temporary");
 
         // The activation names the callee by its EXTERNALIZED name — the key ProgramRegistry holds it under
-        // (§8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
+        // (§2023:8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
         // Through a function-pointer the callee is whatever the pointer HOLDS when the activation runs (GR6c):
         // the pointer operand rides DynamicName and the emitter's pointer arm reads its carrier.
         // ⛔ The function lane takes the CALL's rule (DESIGN-external-repository §4.2; kb/Work PB2103): unless the activated
-        // function is a definition this compilation group compiles (§12.3.8.4 GR11 a), or §8.4.6.6's own definition), it
-        // may have been recompiled with another signature since §8.4.3.2.3 SR13 checked it here, so every operand is
-        // described for §14.9.4.4 GR3 d)'s run-time check — through a function-pointer always (GR6c: whatever it holds).
+        // function is a definition this compilation group compiles (§2023:12.3.8.4 GR11 a), or §2023:8.4.6.6's own definition), it
+        // may have been recompiled with another signature since §2023:8.4.3.2.3 SR13 checked it here, so every operand is
+        // described for §2023:14.9.4.4 GR3 d)'s run-time check — through a function-pointer always (GR6c: whatever it holds).
         bool calleeCompiledHere = pointer is null && fn.DefinitionCompiledHere;
         if (!calleeCompiledHere)
             for (int i = 0; i < callArgs.Count; i++)
@@ -303,28 +303,28 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // (MOVE source, DISPLAY, relation operands, function arguments — IntrinsicBinder.OperandOf) maps it
         // to a BoundFieldOperand, whose Place.Item carries the cloned category into Table-16 legality, the
         // relation class dispatch, and the LENGTH fold. In a genuinely NUMERIC context (COMPUTE/arithmetic)
-        // the temp behaves exactly like a same-category data item — the §14.9.25.4 GR6 unsigned-integer
+        // the temp behaves exactly like a same-category data item — the §2023:14.9.25.4 GR6 unsigned-integer
         // decode for alphanumeric/national, the GR5 de-edit for numeric-edited (NumericRenderer.FieldNum).
         return new BoundNumRef(tempPlace);
     }
 
-    /// <summary>One bound argument in its ISO §8.4.3.2.4 GR5 manner, for every argument FORM §8.4.3.2.3 SR8 names:
+    /// <summary>One bound argument in its ISO §2023:8.4.3.2.4 GR5 manner, for every argument FORM §2023:8.4.3.2.3 SR8 names:
     /// <list type="bullet">
     /// <item>c) a formal specified BY VALUE ⇒ BY VALUE for every shape — the caller snapshots the value and the
-    /// callee adopts the §14.2.3 GR10 detached copy (SR10 has already screened the class).</item>
+    /// callee adopts the §2023:14.2.3 GR10 detached copy (SR10 has already screened the class).</item>
     /// <item>a) an identifier "that is permitted as a receiving operand, other than an object property or object
     /// data item" (<see cref="IsReferenceIdentifier"/>) ⇒ BY REFERENCE over the caller's storage.</item>
     /// <item>b) "a literal, an arithmetic expression, a boolean expression, an object property, object data item, or
     /// any identifier that is not permitted as a receiving operand" ⇒ BY CONTENT: a private-copy cell (the runtime
-    /// <c>CobolArgAdapt</c> profile adaptation realizes the §14.2.3 GR9 copy-in conformance to the formal). A
-    /// CONSTANT RECORD item is such an identifier (§13.18.15.3 SR2), so the function's stores into its formal no
+    /// <c>CobolArgAdapt</c> profile adaptation realizes the §2023:14.2.3 GR9 copy-in conformance to the formal). A
+    /// CONSTANT RECORD item is such an identifier (§2023:13.18.15.3 SR2), so the function's stores into its formal no
     /// longer overwrite the structured constant (kb/Work PB1418). A boolean expression rides the same BY CONTENT
     /// boolean value channel as CALL's boolean-expression-1 (<see cref="BoundCallArg.ContentBool"/>); a figurative
-    /// constant or ALL literal is a literal wherever 'literal' appears in a rule (§8.3.3.6.3 SR1), and its crossing
-    /// fills the formal (<c>CallEmitter.ArgText</c>, §8.3.3.6.4 GR2).</item>
+    /// constant or ALL literal is a literal wherever 'literal' appears in a rule (§2023:8.3.3.6.3 SR1), and its crossing
+    /// fills the formal (<c>CallEmitter.ArgText</c>, §2023:8.3.3.6.4 GR2).</item>
     /// </list>
     /// Null = the operand itself refused to bind (the caller reports).</summary>
-    /// <remarks>Every arm records <see cref="BoundCallArg.Formal"/>: §14.2.3 GR9's second branch names "a
+    /// <remarks>Every arm records <see cref="BoundCallArg.Formal"/>: §2023:14.2.3 GR9's second branch names "a
     /// function" outright, so a UDF argument's crossing into a numeric formal is the ACTIVATING element's
     /// COMPUTE (kb/Work PB640), and this binder has always had the formal in hand.</remarks>
     private BoundCallArg? UdfArg(BoundOperand op, Core.FunctionArgumentContext a, LinkageFormal formal)
@@ -337,16 +337,16 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 : CobolPassMode.Content, f.Place, null),
             // A class-boolean value has no BY VALUE crossing (SR10 refused it above).
             BoundBoolOperand b => new BoundCallArg(CobolPassMode.Content, null, null) { ContentBool = b.Expr },
-            // ZERO into a BY VALUE formal is the numeric value 0 (§8.3.3.6.4 GR4) — the value channel's form.
+            // ZERO into a BY VALUE formal is the numeric value 0 (§2023:8.3.3.6.4 GR4) — the value channel's form.
             BoundFigurative { Kind: 'Z' } when formal.ByValue
                 => new BoundCallArg(CobolPassMode.Value, null, new BoundNumericLiteral("0")),
             BoundNumericLiteral or BoundStringLiteral or BoundFigurative or BoundAllLiteral or BoundComputedOperand
                 => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
-            // §8.4.3.10.3 SR1 a): the predefined NULL "as an argument in … a function-prototype format function
+            // §2023:8.4.3.10.3 SR1 a): the predefined NULL "as an argument in … a function-prototype format function
             // activation" — it references no storage-section item, so it crosses BY CONTENT (BY VALUE to a BY VALUE
             // formal) as the storage-free NULL carrier CallEmitter renders for every lane (kb/Work PB1630, PB1427).
             BoundPredefinedNull => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
-            // An ADDRESS-IDENTIFIER (§8.4.3.1.2 Format 9; kb/Work PB1060) is "any identifier that is not permitted as
+            // An ADDRESS-IDENTIFIER (§2023:8.4.3.1.2 Format 9; kb/Work PB1060) is "any identifier that is not permitted as
             // a receiving operand" (GR5 b) — a unique pointer item created at the reference — so it crosses BY
             // CONTENT (BY VALUE to a BY VALUE formal, SR10's class pointer) on the carrier CALL's address argument
             // uses (CallBinder.AddressArg), never by reference to storage it does not have.
@@ -357,11 +357,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         return arg is null ? null : arg with { Formal = formal.Item };
     }
 
-    /// <summary>§8.4.3.2.4 GR5 a)'s test — is argument <paramref name="a"/>, bound to <paramref name="place"/>, "an
+    /// <summary>§2023:8.4.3.2.4 GR5 a)'s test — is argument <paramref name="a"/>, bound to <paramref name="place"/>, "an
     /// identifier that is permitted as a receiving operand, other than an object property or object data item"?
     /// Each clause is asked where it is answered: the argument must BE an identifier (a sole data reference that
     /// resolves to a data item — a function-identifier, keyword-omitted or not, is "not specified as a receiving
-    /// operand" by §8.4.3.2.3 SR1); an object property and an object data item are named exceptions; and the
+    /// operand" by §2023:8.4.3.2.3 SR1); an object property and an object data item are named exceptions; and the
     /// receiving-operand prohibitions are the ONE table the receiving chokepoint reports
     /// (<see cref="ExpressionBinder.PermitsReceiving"/>).</summary>
     private bool IsReferenceIdentifier(Core.FunctionArgumentContext a, Place place) =>
@@ -381,12 +381,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// double-activates.</para>
     /// <para>⛔ IT IS ALSO WHERE AN OPERAND-EVALUATION STEP IS STAMPED (kb/Work PB892, PB1432). Everything it drains
     /// was WRITTEN INSIDE the statement now binding, so every step is marked
-    /// <see cref="BoundStatement.OperandEvaluation"/> — an activation (§14.9.33.4 GR2 a) 2.: the applicable statement
-    /// is "the statement in which the inline invocation or function invocation was specified") and a §15.4
+    /// <see cref="BoundStatement.OperandEvaluation"/> — an activation (§2023:14.9.33.4 GR2 a) 2.: the applicable statement
+    /// is "the statement in which the inline invocation or function invocation was specified") and a §2023:15.4
     /// subscript temporary store alike (GR2 a) 1.: "the one in which the exception condition was raised"; before
     /// PB1432 an unmarked store's size-error landing wrote a <c>goto</c> inside a short-circuited operand's lambda,
     /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IActivatingStatement"/> is also given THAT statement's
-    /// §7.3.25 checking profile (§14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
+    /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
     /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
     /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
     /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>
@@ -422,9 +422,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// GETs first — the statement-level order, where the property wrap is the OUTER sequence — then the pre-ops, in
     /// registration order. A property written in a FUNCTION ARGUMENT is not among those GETs: ArgumentOrder moved its
     /// GET onto the pre-op list at the argument's position (kb/Work PB1932), so it precedes the activation that
-    /// consumes its temp and follows every argument to its left (§8.4.3.2.4 GR2).
+    /// consumes its temp and follows every argument to its left (§2023:8.4.3.2.4 GR2).
     /// Every property reference a window drains is a SENDING operand (a condition or an arithmetic expression
-    /// has no receiving operand), so each one is a §8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).
+    /// has no receiving operand), so each one is a §2023:8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).
     /// <para>Called directly — not through a wrapper node — by a window whose carrier is no condition and no expression:
     /// a report-section SOURCE identifier and CODE identifier (<c>ReportWriterBinder.PerEvaluation</c>, kb/Work PB4517).</para></summary>
     internal List<BoundStatement>? DrainPerEvaluation(PendingMark mark) =>
@@ -432,7 +432,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)
     /// into the hoisted <see cref="BoundSequence"/>: every activation is a PRE-op — a function-identifier
-    /// is never a receiving operand (§8.4.3.2.3 SR1), so unlike property references there is no polarity
+    /// is never a receiving operand (§2023:8.4.3.2.3 SR1), so unlike property references there is no polarity
     /// classification and no post-ops. Runs INSIDE the property-op wrap at the BindStatement chokepoint; a
     /// property-reference ARGUMENT's GET is not in that wrap but on this list, at its argument's position
     /// (ArgumentOrder, kb/Work PB1932), so it precedes the activation that consumes its temp and follows the
@@ -440,15 +440,15 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper BEFORE the
     /// statement completed
     /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
-    /// a sole IF condition, a TIMES count — §14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
+    /// a sole IF condition, a TIMES count — §2023:14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
     /// EVALUATE subject occurrence).</summary>
     internal BoundStatement UdfWrapCalls(BoundStatement core, int mark) =>
         DrainPending(mark) is { } taken ? new BoundSequence([.. taken, core]) : core;
 
     /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
     /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
-    /// wrapper — the §8.4.3.2.4 GR1/GR6a "value is determined when the function is referenced at runtime" semantics for a
-    /// window the statement evaluates conditionally or repeatedly (§8.8.4.13 r2). The drained suffix leaves
+    /// wrapper — the §2023:8.4.3.2.4 GR1/GR6a "value is determined when the function is referenced at runtime" semantics for a
+    /// window the statement evaluates conditionally or repeatedly (§2023:8.8.4.13 r2). The drained suffix leaves
     /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
     /// the condition unchanged (zero cost for the UDF-free path).</summary>
     internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, PendingMark mark) =>
@@ -456,9 +456,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The EXPRESSION twin of <see cref="UdfAttachPerEvaluation"/>: attach the activations registered
     /// while <paramref name="e"/> bound (those past <paramref name="mark"/>) to the OPERAND as a
-    /// <see cref="BoundUdfEvaluatedExpr"/>, for a window the statement evaluates repeatedly — ISO §14.9.28.4
+    /// <see cref="BoundUdfEvaluatedExpr"/>, for a window the statement evaluates repeatedly — ISO §2023:14.9.28.4
     /// GR12's "item identification … is done each time the content … is used in a setting or augmenting
-    /// operation" (§8.4.3.2.4 GR1/GR6a). The drained suffix leaves the pending list, so the statement-level
+    /// operation" (§2023:8.4.3.2.4 GR1/GR6a). The drained suffix leaves the pending list, so the statement-level
     /// hoist never double-activates it; no pending growth returns the expression unchanged, so the UDF-free
     /// path costs nothing and the generated source is byte-identical.
     /// <para>⛔ IT REPLACED A REFUSAL, NOT A SILENCE (kb/Work PB437). These two operand positions used to call
@@ -472,20 +472,20 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
     /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges
     /// via the version-conformance pass, mirroring EXIT METHOD): inside a function definition it is the
-    /// function-return synonym — equivalent to GOBACK (the §14.9.18.4 GR5 semantics: the activation
+    /// function-return synonym — equivalent to GOBACK (the §2023:14.9.18.4 GR5 semantics: the activation
     /// terminates and the RETURNING item's value becomes the function result); outside one it violates its
     /// placement rule (the 0827 EXIT-family placement band). The optional RAISING tail stages exactly like
-    /// GOBACK RAISING (§14.9.18 GR — re-raised in the activator).</summary>
+    /// GOBACK RAISING (§2023:14.9.18 GR — re-raised in the activator).</summary>
     internal BoundStatement UdfBindExitFunction(Core.ExitStatementContext e)
     {
         // The EXIT statement's placement rule for the pre-2023 FUNCTION format, asked of the ONE bind-position
-        // probe every other EXIT format now asks (kb/Work PB403) — §14.2.2 SR10's source-element kind, not a
+        // probe every other EXIT format now asks (kb/Work PB403) — §2023:14.2.2 SR10's source-element kind, not a
         // per-verb predicate. A function PROTOTYPE definition is a function procedure division too: EXIT FUNCTION
         // means "return from this function", and the prototype's procedure division is one.
         if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitStatementPlacement,
-                "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
+                "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §2023:14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
         }
         if (e.raisingPhrase() is { } raising)

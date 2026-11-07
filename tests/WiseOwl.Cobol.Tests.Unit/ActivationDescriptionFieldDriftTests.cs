@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY FACT AN ACTIVATION DESCRIPTION CARRIES IS ASKED BY A RELATION (kb/Work PB480 / PB1576). A UNIVERSAL INVOKE
 /// carries each operand's <see cref="ActivationDescription"/> to the generated dispatch switch, which asks the standard's
-/// two relations of it (<see cref="ActivationRelations"/>: ISO §9.3.6 MATCH, §14.8.2 / §14.8.3 CONFORMANCE) and converts
+/// two relations of it (<see cref="ActivationRelations"/>: ISO §2023:9.3.6 MATCH, §2023:14.8.2 / §2023:14.8.3 CONFORMANCE) and converts
 /// a group it admitted in another shape (<see cref="UniversalGroupCarrier"/>). A field that is built and carried but
 /// read by neither is a rule the relations silently skip — the shape of the string descriptor this replaced, which
 /// carried JUSTIFIED but no relation honoured the group prefix. So each public field must be read in the relations'

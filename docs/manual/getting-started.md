@@ -59,7 +59,7 @@ item becomes a native field. To run the program on another machine, copy `hello.
 Change `DISPLAY GREETING` to `DISPLAY GREETINGS` and compile again:
 
 ```text
-  hello.cob(7,12): error COBOL1639: 'GREETINGS' is not defined — no declaration in this source element gives the name 'GREETINGS', so the statement's reference identifies no resource (ISO §8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"). Check the spelling, or declare the item.
+  hello.cob(7,12): error COBOL1639: 'GREETINGS' is not defined — no declaration in this source element gives the name 'GREETINGS', so the statement's reference identifies no resource (ISO §2023:8.4.2.1: "a statement shall contain a reference that uniquely identifies that resource"). Check the spelling, or declare the item.
 ```
 
 A message names the file, the line and column, the severity (`error` or `warning`), a diagnostic code (`COBOL`

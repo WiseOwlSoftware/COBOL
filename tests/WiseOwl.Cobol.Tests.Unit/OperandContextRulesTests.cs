@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ EVERY <c>OperandContext</c> DECLARES BOTH AXES (kb/Work PB169–PB172 — the burn-down cluster's spine).
 ///
-/// <para>An operand slot in this compiler used to acquire ISO §8.8.1.1 BY DEFAULT — by being handed to
+/// <para>An operand slot in this compiler used to acquire ISO §2023:8.8.1.1 BY DEFAULT — by being handed to
 /// <c>BindExpr</c> — instead of declaring which rule governs it, and the two questions it actually has to answer
-/// ("does §8.8.1.1's class screen apply here?" and "does §13.18.38.3 r7 admit an index-name here?") were
+/// ("does §2023:8.8.1.1's class screen apply here?" and "does §2023:13.18.38.3 r7 admit an index-name here?") were
 /// recorded in four different places. All four defects of the cluster are one site answering one axis wrongly or
 /// not at all. <c>OperandContextRules.Rules()</c> is the table; this test is what keeps it total.</para>
 ///
@@ -46,21 +46,21 @@ public sealed class OperandContextRulesTests
             var ex = Record.Exception(() => rules.Invoke(null, [member]));
             Assert.True(ex is null,
                 $"OperandContext.{member} has no row in OperandContextRules.Rules(). Every operand context must "
-                + "declare BOTH axes — whether ISO §8.8.1.1's class screen governs it, and whether "
-                + "§13.18.38.3 r7's index-name screen applies — because a context that declares neither acquires "
-                + $"§8.8.1.1 by default, which is the whole shape of kb/Work PB169–PB172. ({ex?.InnerException?.GetType().Name})");
+                + "declare BOTH axes — whether ISO §2023:8.8.1.1's class screen governs it, and whether "
+                + "§2023:13.18.38.3 r7's index-name screen applies — because a context that declares neither acquires "
+                + $"§2023:8.8.1.1 by default, which is the whole shape of kb/Work PB169–PB172. ({ex?.InnerException?.GetType().Name})");
         }
     }
 
     /// <summary>⛔ THE ROWS ARE PINNED TO THEIR CLAUSES, not merely present. A total table whose values are wrong
     /// is exactly as harmful as a missing row — and the two exempt contexts are exempt for a REASON that is
-    /// citable: CALL … BY VALUE is governed by §14.9.4.3 SR22 and an intrinsic argument by the function's own
-    /// §15.x argument rule, both NARROWER than §8.8.1.1, so quoting §8.8.1.1 at their programmer names a rule
+    /// citable: CALL … BY VALUE is governed by §2023:14.9.4.3 SR22 and an intrinsic argument by the function's own
+    /// §15.x argument rule, both NARROWER than §2023:8.8.1.1, so quoting §2023:8.8.1.1 at their programmer names a rule
     /// that was not broken (the COBOL1628 lesson). ArithmeticIndexWindow and ArithmeticIndexNameWindow are
     /// the r7 windows, so the index-name screen must NOT fire there — and CallByValue is likewise exempt because
     /// SR22 screens the operand itself.
     /// </summary>
-    /// <para>⛔ AXIS 3 IS NOT A CONSEQUENCE OF AXIS 1, and this row set is where that was measured. §13.18.60.3
+    /// <para>⛔ AXIS 3 IS NOT A CONSEQUENCE OF AXIS 1, and this row set is where that was measured. §2023:13.18.60.3
     /// SR10 admits a class-INDEX DATA item "in a SEARCH or SET statement, a relation condition, an intrinsic
     /// function argument, an inline method invocation argument, the USING phrase of a procedure division header,
     /// or the USING phrase of a CALL or INVOKE statement" — an enumeration of CONTEXTS, not a property of the
@@ -71,8 +71,8 @@ public sealed class OperandContextRulesTests
     /// <c>OperandContext</c> member could take any axis values it liked and this fact stayed green, which is the
     /// transposition hazard the fact exists to catch, one member later. The expectations still have to be
     /// written by hand — they are the CLAUSES, and deriving them from the table under test would measure
-    /// nothing — but MEMBERSHIP is now mechanical, so a new member fails here until someone reads §8.8.1.1,
-    /// §13.18.38.3 r7 and §13.18.60.3 SR10 for it.</remarks>
+    /// nothing — but MEMBERSHIP is now mechanical, so a new member fails here until someone reads §2023:8.8.1.1,
+    /// §2023:13.18.38.3 r7 and §2023:13.18.60.3 SR10 for it.</remarks>
     private static readonly Dictionary<string, (bool NumericClassScreen, bool IndexNameScreen, bool IndexDataItemAdmitted, bool BooleanOperandAdmitted)>
         ExpectedAxes = new(StringComparer.Ordinal)
         {
@@ -103,9 +103,9 @@ public sealed class OperandContextRulesTests
     {
         Assert.True(ExpectedAxes.TryGetValue(member, out var want),
             $"OperandContext.{member} has no expected-axes row in this test. A new operand context must have its "
-            + "FOUR axes read off the standard before it is trusted: does ISO §8.8.1.1's class screen govern the "
-            + "slot, does §13.18.38.3 r7 admit an index-NAME there, does §13.18.60.3 SR10 admit an index DATA "
-            + "item there, and is the slot's written shape also a boolean expression (§8.8.2), which admits a class-boolean "
+            + "FOUR axes read off the standard before it is trusted: does ISO §2023:8.8.1.1's class screen govern the "
+            + "slot, does §2023:13.18.38.3 r7 admit an index-NAME there, does §2023:13.18.60.3 SR10 admit an index DATA "
+            + "item there, and is the slot's written shape also a boolean expression (§2023:8.8.2), which admits a class-boolean "
             + "operand beside the numeric ones. The two index lists are genuinely DIFFERENT (a subscript and PERFORM VARYING are r7's "
             + "and not SR10's; an intrinsic argument and CALL USING are SR10's and not r7's), so a transposed row "
             + "is a real and silent hazard — see kb/Work PB215.");
@@ -145,7 +145,7 @@ public sealed class OperandContextRulesTests
                 .Select(m => $"{Path.GetFileName(file)}: {m.Value}"));
         }
         Assert.True(offenders.Count == 0,
-            "a §8.8.1.1 / r7 / SR10 screen is keyed on a hand-written OperandContext test instead of Rules(): "
+            "a §2023:8.8.1.1 / r7 / SR10 screen is keyed on a hand-written OperandContext test instead of Rules(): "
             + string.Join(" ;; ", offenders)
             + " — that is the two-arm shape kb/Work PB172 records (one list widened, its twin not). Read the "
             + "axis off OperandContextRules.Rules() so all three screens move together.");

@@ -5,35 +5,35 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.24.4 GR14 -> §12.4.5.3 GR3 b) — a MERGE associates
+      *> ISO §2023:14.9.24.4 GR14 -> §2023:12.4.5.3 GR3 b) — a MERGE associates
       *> each USING/GIVING file with the physical file its ASSIGN USING
       *> data item names AT THE TIME THE MERGE EXECUTES.
       *>
       *> GR14: "Additional rules affecting the execution of the MERGE
       *> statement are given in 12.4.5, File control entry, General
       *> rules 3 and 4."
-      *>   cite.py: OK  §14.9.24.4 14)  (General rules)
+      *>   cite.py: OK  §2023:14.9.24.4 14)  (General rules)
       *> 12.4.5.3 GR3: "The association occurs at the time of execution
       *> of an OPEN, SORT, or MERGE statement that referenced
       *> file-name-1"; b) "the file connector referenced by file-name-1
       *> is associated with a physical file identified by the content
       *> of the data item referenced by data-name-1 in the runtime
       *> element that executes the OPEN, SORT, or MERGE statement."
-      *>   cite.py: OK  §12.4.5.3 3)  (General rules)
-      *>   cite.py: OK  §12.4.5.3 3) b)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.3 3)  (General rules)
+      *>   cite.py: OK  §2023:12.4.5.3 3) b)  (General rules)
       *> Closing sentence: "If the association cannot be made because
       *> the content of the data item referenced by data-name-1 is not
       *> consistent ..., the OPEN, SORT, or MERGE statement is
       *> unsuccessful."  GR4 leaves the content rules to the
       *> implementor: docs/CONFORMANCE.md DOC-A.1-73 (content that is
       *> empty after space removal names no physical file -> the
-      *> association cannot be made -> '31', §9.1.13.6 item 2).
-      *> §9.1.13.1: "control is transferred to the end of the statement
+      *> association cannot be made -> '31', §2023:9.1.13.6 item 2).
+      *> §2023:9.1.13.1: "control is transferred to the end of the statement
       *> that produced the fatal exception condition unless the rules
       *> for that statement define other behavior" (WiseOwl COBOL continues
       *> the run unit; CONFORMANCE.md, SORT/MERGE implicit transfers
       *> (a)).
-      *>   cite.py: OK  §9.1.13.1   (General)
+      *>   cite.py: OK  §2023:9.1.13.1   (General)
       *>
       *> Setup (via CK, itself ASSIGN USING NC): l1c18ba.dat = AAA,
       *> l1c18bb.dat = BBB, l1c18bc.dat (I2's fixed file) = CCC.

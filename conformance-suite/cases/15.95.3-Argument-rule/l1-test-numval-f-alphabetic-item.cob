@@ -4,15 +4,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.95.3 r1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
+      *> ISO §2023:15.95.3 r1 — "Argument-1 shall be an alphanumeric or national literal or a data item of class
       *> alphanumeric or national."
       *> (cite.py --check 15.95.3 "Argument-1 shall be an alphanumeric or national literal or a data item of
-      *> class alphanumeric or national" -> OK, §15.95.3 rule 1.)
+      *> class alphanumeric or national" -> OK, §2023:15.95.3 rule 1.)
       *>
       *> CLASS ALPHABETIC IS A CLASS r1 DOES NOT NAME, and the standard treats it as distinct rather than as
-      *> a shade of alphanumeric: §8.5.2.1 Table 2 carries its own "Alphabetic | Alphabetic" row, and
-      *> §15.96.3 r1 (TRIM) shows the drafters writing "class alphabetic, alphanumeric, or national" when
-      *> they mean to include it — §15.95.3 r1 does not. A PIC A(n) item is category alphabetic and
+      *> a shade of alphanumeric: §2023:8.5.2.1 Table 2 carries its own "Alphabetic | Alphabetic" row, and
+      *> §2023:15.96.3 r1 (TRIM) shows the drafters writing "class alphabetic, alphanumeric, or national" when
+      *> they mean to include it — §2023:15.95.3 r1 does not. A PIC A(n) item is category alphabetic and
       *> therefore class alphabetic, so it is not "a data item of class alphanumeric or national".
       *>
       *> ⛔ THIS WAS AN UNENFORCEABLE EXCLUSION, NOT A FORGOTTEN ONE, AND THAT IS WHY THE FIXTURE MATTERS.
@@ -20,7 +20,7 @@
       *> no vocabulary for the distinction: CobolClass had no Alphabetic member, ClassOfCategory answered
       *> Alphanumeric for a PIC A item, and this reference bound clean and ran. kb/Work PB124 wave 5 gave the
       *> class its member and routed a PIC A item to it through PicInfo.IsAlphabetic — the datum MoveTable16
-      *> and INITIALIZE's §14.9.20 GR5c category matching had been reading all along.
+      *> and INITIALIZE's §2023:14.9.20 GR5c category matching had been reading all along.
       *>
       *> THE ADMIT SIDE IS conformance:cases/15.95.3-Argument-rule/l1_test_numval_f_class_screen, which requires a value from a
       *> numeric-edited item and from a group item. Both are class alphanumeric by Table 2, so a screen that

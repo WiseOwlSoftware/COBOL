@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 syntax rule 10 — the closed list of senders (identifier-4) a SET format 5 admits into a
+      *> ISO §2023:14.9.39.3 syntax rule 10 — the closed list of senders (identifier-4) a SET format 5 admits into a
       *> receiver (identifier-3) described with an interface-name that identifies the interface int-1.  kb/Work PB929.
       *> This program is the positive witness of the two alternatives no other golden writes into an
       *> interface-named receiver (the others are witnessed by pb389_object_reference_descriptor, a b) 1./2. and
@@ -23,7 +23,7 @@
       *>    on the object RJ holds, a PB929C instance, so PB929C's PING runs:                            PING-C
       *>    DISCRIMINATOR: a check that tested only for the identical interface (a direct match) refuses line 2.
       *>
-      *> 3. SET RI TO NULL is SR10 e) ("the predefined object reference NULL").  §13.18.60.4 GR22 makes null a
+      *> 3. SET RI TO NULL is SR10 e) ("the predefined object reference NULL").  §2023:13.18.60.4 GR22 makes null a
       *>    legal content of every object reference, so the assignment is unconditional.  The IF then observes
       *>    it, true when RI references no object:                                                     NULLOK
       *>    DISCRIMINATOR: the line runs after RI has held a real PB929C object, so it proves the SET cleared it.

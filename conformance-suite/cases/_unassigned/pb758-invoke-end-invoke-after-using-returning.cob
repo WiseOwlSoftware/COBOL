@@ -5,10 +5,10 @@
 *> portable: unverified
 *>---
       *> kb/Work PB758 / decision R58 - END-INVOKE after USING ... RETURNING is a plain syntax error.
-      *> ISO §14.9.23.2: the INVOKE format is `INVOKE ... [ USING ... ] [ RETURNING identifier-4 ]` and ends
-      *> there; ISO §14.5.1 (Table 12) gives INVOKE no explicit scope terminator (§14.5.3.2 allows a scope to be
+      *> ISO §2023:14.9.23.2: the INVOKE format is `INVOKE ... [ USING ... ] [ RETURNING identifier-4 ]` and ends
+      *> there; ISO §2023:14.5.1 (Table 12) gives INVOKE no explicit scope terminator (§2023:14.5.3.2 allows a scope to be
       *> terminated only by "its associated scope terminator as specified in Table 12"). END-INVOKE is a
-      *> user-defined word (§8.3.2.1; not in §8.9), which cannot begin a statement.
+      *> user-defined word (§2023:8.3.2.1; not in §2023:8.9), which cannot begin a statement.
       *> Control: with ` END-INVOKE` removed the same program compiles and prints 0043.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P758NEG2.

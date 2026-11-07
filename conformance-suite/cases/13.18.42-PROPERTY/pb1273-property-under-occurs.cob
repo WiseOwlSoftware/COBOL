@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1273 — ISO/IEC 1989:2023 §13.18.42.3 SR2: "The PROPERTY clause shall not be specified for data
+      *> kb/Work PB1273 — ISO/IEC 1989:2023 §2023:13.18.42.3 SR2: "The PROPERTY clause shall not be specified for data
       *> items subject to an OCCURS clause." E is subject to T's OCCURS by subordination. Before the fix only the
       *> subject's OWN OCCURS was asked, so this reached the C# backend and failed there (CS0103).
        IDENTIFICATION DIVISION.

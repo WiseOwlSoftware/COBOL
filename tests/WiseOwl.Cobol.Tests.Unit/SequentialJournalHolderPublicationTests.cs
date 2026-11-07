@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// 2.2.2.5 R1 and 2.2.2.12): <see cref="IHostMedium.PublishHolder"/> answers the publication's <see cref="RegionLockResult"/>
 /// (<c>Unavailable</c>: the host takes no lock here; <c>Held</c>: every try lost its race, which says nothing about the host),
 /// and <see cref="SequentialJournal.Begin"/> refuses with a message that names the cause that happened. The statement answers
-/// '30' for either (§9.1.13.6 item 1): the transaction cannot begin, and §14.9.27.4 GR25's <i>"If the execution of the OPEN statement
+/// '30' for either (§2023:9.1.13.6 item 1): the transaction cannot begin, and §2023:14.9.27.4 GR25's <i>"If the execution of the OPEN statement
 /// is unsuccessful, the file is not affected"</i> holds with no file, record or holder left behind (I3 of the journal's rows).
 /// A publication that loses some tries and wins one begins the transaction, as a publisher that loses a race publishes again.
 /// </summary>

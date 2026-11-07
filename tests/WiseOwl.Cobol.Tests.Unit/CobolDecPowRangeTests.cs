@@ -6,7 +6,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// <c>CobolDec.Pow</c>'s escape and range dispositions (kb/Work PB145; ISO §8.8.1.5.4 r2/r3 + §8.8.1.5.2 r2).
+/// <c>CobolDec.Pow</c>'s escape and range dispositions (kb/Work PB145; ISO §2023:8.8.1.5.4 r2/r3 + §2023:8.8.1.5.2 r2).
 /// The old code raised a SPURIOUS size error for a near-unit base past the loop bound (the guard comment's
 /// |n·log10|b|| ≥ |n|/34 is false within 10⁻³³ of 1), resolved a saturated out-of-long integer exponent's sign
 /// BY THE PARITY OF long.MaxValue (odd — so (−1) ** 10²⁰ answered −1), collapsed SDIDI-range bases through
@@ -21,16 +21,16 @@ public sealed class CobolDecPowRangeTests
     private static readonly CobolDec MinusOne = new(-1, 0);
     private const CobolRounding Mode = CobolRounding.NearestAwayFromZero;
 
-    // §8.8.1.5.4 r2: (−1) ** 10²⁰ = +1 — the exponent's exact parity, never the saturated long's.
+    // §2023:8.8.1.5.4 r2: (−1) ** 10²⁰ = +1 — the exponent's exact parity, never the saturated long's.
     [Fact]
     public void MinusOne_ToAnEvenExponentPastLongRange_IsPlusOne()
         => Assert.Equal(new CobolDec(1, 0), CobolDec.Pow(MinusOne, TenTo20, Mode));
 
-    // §8.8.1.5.4 r3: (−1) ** (−10²⁰) = 1 / ((−1) ** 10²⁰) = +1.
+    // §2023:8.8.1.5.4 r3: (−1) ** (−10²⁰) = 1 / ((−1) ** 10²⁰) = +1.
     // ⛔ COMPARED BY VALUE, NOT BY (Sig, Exp) — for the reason the TinyBase case below already carries.
     // r3's reciprocal is now spelled once, at the top of Pow, so this answer arrives through a real
     // Div(1, 1) whose pre-scaled quotient normalizes to (10³³, −33). That is the same VALUE as (1, 0), and
-    // §8.8.1.5.2 leaves the internal representation to the implementor; the structural assertion that used to
+    // §2023:8.8.1.5.2 leaves the internal representation to the implementor; the structural assertion that used to
     // stand here was pinning a representation the standard does not fix, and it was only ever satisfied
     // because r3 was NOT being evaluated on this path.
     [Fact]
@@ -38,7 +38,7 @@ public sealed class CobolDecPowRangeTests
         => Assert.Equal(0, CobolDec.Compare(new CobolDec(1, 0),
             CobolDec.Pow(MinusOne, new CobolDec(-TenTo20.Sig, 0), Mode)));
 
-    // §8.8.1.5.2 r2 sets the size error only when the value is out of range: 1.00001 ** 1000000 = e^9.99995…
+    // §2023:8.8.1.5.2 r2 sets the size error only when the value is out of range: 1.00001 ** 1000000 = e^9.99995…
     // ≈ 22025.36 is comfortably inside decimal128 (the old escape raised a spurious EC-SIZE-OVERFLOW).
     [Fact]
     public void NearUnitBase_PastTheLoopBound_ComputesInsteadOfRaising()
@@ -49,7 +49,7 @@ public sealed class CobolDecPowRangeTests
             $"got {r.ToDouble()}, expected ≈{expected}");
     }
 
-    // §8.8.1.5.2 r2's TWO names: 0.5 ** 600000 ≈ 10^−180618 is too SMALL (UNDERFLOW — the old escape said
+    // §2023:8.8.1.5.2 r2's TWO names: 0.5 ** 600000 ≈ 10^−180618 is too SMALL (UNDERFLOW — the old escape said
     // OVERFLOW), 2 ** 600000 too LARGE.
     [Fact]
     public void HalfPastTheLoopBound_IsUnderflow_NotOverflow()
@@ -65,9 +65,9 @@ public sealed class CobolDecPowRangeTests
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }
 
-    // §8.8.1.5.4 r2e over a base OUTSIDE binary64's range: 1.0E−400 ** 0.5 = 1.0E−200 EXACTLY (the old
+    // §2023:8.8.1.5.4 r2e over a base OUTSIDE binary64's range: 1.0E−400 ** 0.5 = 1.0E−200 EXACTLY (the old
     // ToDouble underflowed the base to 0 and answered a silent 0).
-    // ⛔ COMPARED BY VALUE, NOT BY (Sig, Exp). §8.8.1.5.2 leaves the SDIDI's internal representation to the
+    // ⛔ COMPARED BY VALUE, NOT BY (Sig, Exp). §2023:8.8.1.5.2 leaves the SDIDI's internal representation to the
     // implementor — 1E−200 is 1×10⁻²⁰⁰ and 10³³×10⁻²³³ alike, and the two arms that can produce it legitimately
     // produce different pairs (since owner decision D-C the ½ exponent routes through Sqrt, whose exact-integer
     // root carries its guard digits into the significand). Structural equality here was pinning a representation
@@ -87,8 +87,8 @@ public sealed class CobolDecPowRangeTests
             $"got {scaled.ToDouble()}, expected ≈√2");
     }
 
-    // §8.8.1.5.2 r2: a below-range exponent is the TOO-SMALL condition under EVERY intermediate rounding
-    // mode — INTERMEDIATE ROUNDING IS PROHIBITED included (the old Clamp path threw §14.7.4.3 r7's
+    // §2023:8.8.1.5.2 r2: a below-range exponent is the TOO-SMALL condition under EVERY intermediate rounding
+    // mode — INTERMEDIATE ROUNDING IS PROHIBITED included (the old Clamp path threw §2023:14.7.4.3 r7's
     // EC-SIZE-TRUNCATION there: two names for one physical condition).
     [Theory]
     [InlineData(CobolRounding.Prohibited)]
@@ -101,7 +101,7 @@ public sealed class CobolDecPowRangeTests
         Assert.Equal("EC-SIZE-UNDERFLOW", ex.EcName);
     }
 
-    // §8.8.1.5.2 r2's gradual underflow: 1.5E−6176 lands ON the 10⁻⁶¹⁷⁶ quantum by mode — 2 under the
+    // §2023:8.8.1.5.2 r2's gradual underflow: 1.5E−6176 lands ON the 10⁻⁶¹⁷⁶ quantum by mode — 2 under the
     // NEAREST modes (tie away / to-even-2), 1 under TRUNCATION; PROHIBITED raises the too-small name.
     [Theory]
     [InlineData(CobolRounding.NearestAwayFromZero, 2)]

@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> AN OCCURS ... DEPENDING ON OPERAND SHALL NOT BE SUBSCRIPTED (kb/Work PB885, the data-division arm).
-      *> ISO/IEC 1989:2023 §13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be
+      *> ISO/IEC 1989:2023 §2023:13.18.38.3 SR2 (all formats): "Data-name-1 and data-name-2 shall not be
       *> subscripted." The capture used to glue the reference into the name WS-TE(2) and report it "not
       *> defined"; it is now the ONE data-name-n screen, which names the subscript (COBOL2024).
        IDENTIFICATION DIVISION.

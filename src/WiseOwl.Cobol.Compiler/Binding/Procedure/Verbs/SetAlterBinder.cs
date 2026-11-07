@@ -14,9 +14,9 @@ using Core = CobolParserCore;
 /// <summary>The ALTER + SPECIAL-NAMES-switch binder (P7 Step 10n — the LAST plain verb, exactly ONE
 /// instance per unit: the lazy whole-program ALTER prepass latches <c>_alterSwFields</c> against the
 /// COMPLETE procedure table, which it reads through host edges (Paragraphs/ParaSections/CurrentSection —
-/// the §8.4.2.2 in-section-first save/mutate/restore preserved verbatim; the ALTER prepass reads the table
+/// the §2023:8.4.2.2 in-section-first save/mutate/restore preserved verbatim; the ALTER prepass reads the table
 /// through <c>ctx.Table</c> since the 10t ProcedureTableBuilder hoist). <c>SwitchCondOf</c> keeps the
-/// level-88-first caller contract (a container's switch name yields to the element's own level-88, §8.4.6.1; kb/Work PB3347). The five bound types stayed in
+/// level-88-first caller contract (a container's switch name yields to the element's own level-88, §2023:8.4.6.1; kb/Work PB3347). The five bound types stayed in
 /// <c>Binding/Bound/BoundAlterSwitches.cs</c> — BoundAlter/BoundGoToAlterable are VersionConformancePass
 /// gate anchors.</summary>
 internal sealed class SetAlterBinder(BinderContext ctx)
@@ -34,7 +34,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// every <c>ALTER proc-1 TO …</c> target paragraph and assign it its D4 field, BEFORE any GO TO binds — a GO TO
     /// in a target paragraph must bind alterable regardless of whether its ALTER appears earlier or later in the
     /// source. Runs once, on first demand (after <c>CollectParagraphs</c>, so the procedure table is complete);
-    /// each target name resolves with the ALTER site's own section context (ISO §8.4.2.2 in-section-first).</summary>
+    /// each target name resolves with the ALTER site's own section context (ISO §2023:8.4.2.2 in-section-first).</summary>
     private void AlterEnsureScan()
     {
         if (_alterSwFields is not null) return;
@@ -79,7 +79,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
 
     /// <summary>Bind a resolved single-target GO TO: in an ALTER-target paragraph it transfers to the CURRENT
     /// altered target with the WRITTEN target as the field's initial value (ANSI-85 ALTER GR — until an ALTER
-    /// executes, the written GO TO governs); otherwise it is the plain §14.9.17 Format 1 transfer.</summary>
+    /// executes, the written GO TO governs); otherwise it is the plain §2023:14.9.17 Format 1 transfer.</summary>
     public BoundStatement AlterGoTo(Core.GoToStatementContext g, int writtenTarget)
     {
         AlterEnsureScan();
@@ -97,7 +97,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     {
         // ⛔ NO MALFORMED-SHAPE ARM HERE ANY MORE (kb/Work PB412). This method used to open with
         // `if (g.dataReference() is not null) return new BoundUnsupported("GO TO DEPENDING without
-        // procedure-names …")` — a shape §14.9.17.2 prints no format for, answered by EMITTING A PROGRAM that
+        // procedure-names …")` — a shape §2023:14.9.17.2 prints no format for, answered by EMITTING A PROGRAM that
         // aborts at run time on the loud stage. `goToStatement` now spells one alternative per printed format,
         // so that shape is a syntax error in the parser and this arm was unreachable code pinning the wrong
         // stage for an illegal source construct.
@@ -115,7 +115,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// <summary>Bind <c>ALTER {proc-1 TO [PROCEED TO] proc-2}…</c> (ANSI X3.23-1985; 85-ONLY — rejected at 2002+
     /// as a deleted element). Each proc-1 shall be a paragraph consisting of a single sentence that is exactly one
     /// GO TO Format 1 (with or without a written target); execution replaces that GO TO's transfer target with
-    /// proc-2 (a section proc-2 transfers to its first paragraph, the §14.9.17 GR1 GO TO rule).</summary>
+    /// proc-2 (a section proc-2 transfers to its first paragraph, the §2023:14.9.17 GR1 GO TO rule).</summary>
     public BoundStatement BindAlter(Core.AlterStatementContext al)
     {
         // ALTER was REMOVED by ISO 2002; the edition gate moved to the post-bind VersionConformancePass
@@ -164,18 +164,18 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             && GoToFormats.Of(g) is not GoToFormat.Depending;
     }
 
-    // ── SPECIAL-NAMES external switches: SET Format 3 + the switch-status condition (ISO §12.3.7) ────────────
+    // ── SPECIAL-NAMES external switches: SET Format 3 + the switch-status condition (ISO §2023:12.3.7) ────────────
 
-    /// <summary>The switch-status condition a bare unsubscripted reference names (ISO §8.8.4.6; §8.4.4.2 Format 1
+    /// <summary>The switch-status condition a bare unsubscripted reference names (ISO §2023:8.8.4.6; §2023:8.4.4.2 Format 1
     /// SR1 — the condition-name shall be associated with a switch-name in SPECIAL-NAMES), else null. The CALLER
     /// must have tried level-88 resolution FIRST (<see cref="ConditionBinder.ConditionOf"/>): it counts a switch
-    /// THIS element declares as a candidate beside the level-88s and refuses the non-unique pair (§8.4.2.2.1 1,
-    /// §8.4.2.2.3 SR1; kb/Work PB3347), and a switch only a CONTAINER declared yields to the level-88 below.
+    /// THIS element declares as a candidate beside the level-88s and refuses the non-unique pair (§2023:8.4.2.2.1 1,
+    /// §2023:8.4.2.2.3 SR1; kb/Work PB3347), and a switch only a CONTAINER declared yields to the level-88 below.
     /// <para>A switch-status condition-name a CONTAINING element declares yields to the referring element's own item
-    /// of that spelling (§8.4.6.1: "a source element's reference to such a name, even when it is a different type of
+    /// of that spelling (§2023:8.4.6.1: "a source element's reference to such a name, even when it is a different type of
     /// user-defined word, is to the item which that source element describes"; kb/Work PB3153 review w1085d R1-1): a
-    /// bare <c>IF SWON</c> over an own <c>01 SWON PIC 1</c> is the §8.8.4.3 simple boolean condition on that item, so
-    /// <see cref="ReferenceResolver.DescribesOwnItem"/> is asked before the switch reading records its §8.3.2.2 use.
+    /// bare <c>IF SWON</c> over an own <c>01 SWON PIC 1</c> is the §2023:8.8.4.3 simple boolean condition on that item, so
+    /// <see cref="ReferenceResolver.DescribesOwnItem"/> is asked before the switch reading records its §2023:8.3.2.2 use.
     /// SET's diagnostic (<see cref="SwitchNameOf"/>) goes through here, so it names no switch for an own item.</para></summary>
     public BoundCondition? SwitchCondOf(Core.DataReferenceContext dref)
     {
@@ -188,14 +188,14 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     }
 
     /// <summary>The external switch a reference names the ON/OFF STATUS of, else null — asked for the
-    /// DIAGNOSTIC's sake rather than for a bound condition (kb/Work PB390): §14.9.39.3 SR6's discriminating
+    /// DIAGNOSTIC's sake rather than for a bound condition (kb/Work PB390): §2023:14.9.39.3 SR6's discriminating
     /// operand is a condition-name associated with a switch instead of a conditional variable, and a message
     /// can only say so if it can tell the two apart. It goes THROUGH <see cref="SwitchCondOf"/> rather than
     /// re-reading <c>SwitchConditions</c>, so "what is a switch-status condition-name" stays one predicate.</summary>
     public string? SwitchNameOf(Core.DataReferenceContext dref) =>
         SwitchCondOf(dref) is BoundSwitchCondition sw ? sw.ImplementorName : null;
 
-    /// <summary>Bind <c>SET {{mnemonic-name-1}… TO {ON|OFF}}…</c> (ISO §14.9.39 Format 3).
+    /// <summary>Bind <c>SET {{mnemonic-name-1}… TO {ON|OFF}}…</c> (ISO §2023:14.9.39 Format 3).
     /// <para>⛔ THE GROUPS ARE READ, NOT RE-DERIVED (kb/Work PB450). The grammar used to write the printed outer
     /// repetition as an inline <c>SET (dataReference+ TO (ON|OFF))+</c> group, which flattens every phrase into
     /// one receiver list and one <c>TO()</c> list — so this method reassembled the grouping by
@@ -207,7 +207,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// This used to read a second, switch-only map (the former <c>SwitchMnemonics</c>) built by a second walk of
     /// the same SPECIAL-NAMES entries, and that second walk is where an Option-2 switch clause (status phrases,
     /// no mnemonic) once entered the switch-NAME itself as a mnemonic, so <c>SET SWITCH-1 TO ON</c> bound. One
-    /// walk (<see cref="MnemonicRegistry"/>, which also carries the §12.3.4 GR1 inheritance into contained units
+    /// walk (<see cref="MnemonicRegistry"/>, which also carries the §2023:12.3.4 GR1 inheritance into contained units
     /// and the OO scopes) now answers every mnemonic question — SET's, WRITE ADVANCING's, ACCEPT/DISPLAY's and the
     /// condition binder's — so the switch/device/feature distinction is decided in one place.</para></summary>
     public BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw)
@@ -228,12 +228,12 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     // Format-4 condition-name rule; both used to ship as a run-time "not implemented" abort).
                     ctx.Validation.RejectStatementOperand($"SET '{name}' TO {(on ? "ON" : "OFF")} — "
                         + "\"mnemonic-name-1 shall be associated with an external switch, the status of which may "
-                        + "be altered\" (ISO §14.9.39.3 SR5), and "
+                        + "be altered\" (ISO §2023:14.9.39.3 SR5), and "
                         + (row is not null
                             ? $"'{name}' is the mnemonic-name of the {ImplementorNames.KindWord(row.Kind)} '{row.Name}'"
                             : ImplementorNames.Lookup(name) is { } named
                                 ? $"'{name}' is itself a {ImplementorNames.KindWord(named.Kind)}, an implementor-name "
-                                  + "(ISO §8.3.2.3.11), not a mnemonic-name — the SPECIAL-NAMES entry "
+                                  + "(ISO §2023:8.3.2.3.11), not a mnemonic-name — the SPECIAL-NAMES entry "
                                   + $"'{named.Name} IS mnemonic-name' declares the name SET takes"
                                 : $"no SPECIAL-NAMES paragraph in this source element associates '{name}' with a switch-name"));
                     bad = true;

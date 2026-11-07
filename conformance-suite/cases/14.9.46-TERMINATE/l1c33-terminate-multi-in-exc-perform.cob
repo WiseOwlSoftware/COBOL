@@ -4,11 +4,11 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.46.3 SR3 — multi-name TERMINATE in exception PERFORM
+      *> ISO §2023:14.9.46.3 SR3 — multi-name TERMINATE in exception PERFORM
       *> "A TERMINATE statement that specifies more than one report-name
       *> shall not be specified in an exception checking PERFORM
       *> statement."
-      *>   cite.py: OK  §14.9.46.3 3)  (Syntax rules)
+      *>   cite.py: OK  §2023:14.9.46.3 3)  (Syntax rules)
       *> The TERMINATE R-A R-B in imperative-statement-1 names two
       *> reports; everything else is legal (the single-name companion
       *> conformance:cases/14.9.46-TERMINATE/l1c33_terminate_single_in_exc_perform compiles

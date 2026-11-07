@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ISO §14.9.30.4 GR21's first sentence — "For a sequential READ statement, if the previous READ or START
+/// ISO §2023:14.9.30.4 GR21's first sentence — "For a sequential READ statement, if the previous READ or START
 /// statement for the file connector was unsuccessful, then the READ statement is unsuccessful and the I-O status
-/// is set to '46'" — is what makes §9.1.13.4 item 1 c)'s '10' apply only to a sequential READ "attempted for the
+/// is set to '46'" — is what makes §2023:9.1.13.4 item 1 c)'s '10' apply only to a sequential READ "attempted for the
 /// FIRST TIME on a file described as optional and the physical file is not present". The absent-OPTIONAL arm is
 /// itself an unsuccessful READ, so it arms GR21 for its own successor: test the arms in the other order and the
 /// '46' can never be reached, which is exactly what happened. All three connectors carried a private copy of the
@@ -62,7 +62,7 @@ public sealed class ReadPreconditionOrderDriftTests
 
     /// <summary>True when <paramref name="source"/> carries a LOCAL copy of the absent-OPTIONAL READ arm — an
     /// <c>OptionalAbsent</c> test that produces a READ status ('10' AtEnd or '23' RecordNotFound) rather than
-    /// delegating. START's own absent-optional rule (§14.9.41 GR5, <c>StartFail()</c>) is a different rule of a
+    /// delegating. START's own absent-optional rule (§2023:14.9.41 GR5, <c>StartFail()</c>) is a different rule of a
     /// different statement and is deliberately NOT matched.</summary>
     internal static bool HasLocalAbsentOptionalReadArm(string source) =>
         source.Split('\n').Any(line =>
@@ -72,14 +72,14 @@ public sealed class ReadPreconditionOrderDriftTests
 
     // ── the gates ────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>§14.9.30.4 GR21 before §9.1.13.4 item 1 c), in the one place the pair is written down.</summary>
+    /// <summary>§2023:14.9.30.4 GR21 before §2023:9.1.13.4 item 1 c), in the one place the pair is written down.</summary>
     [Fact]
     public void SharedSequentialGuard_TestsGr21Poison_BeforeTheAbsentOptionalArm()
     {
         string shared = ConnectorSource("FileConnector.cs");
         Assert.True(PoisonTestedBeforeAbsentOptional(shared),
-            "FileConnector.SequentialReadGuard must test LastReadUnsuccessful (§14.9.30.4 GR21 → '46') BEFORE "
-            + "OptionalAbsent (§9.1.13.4 item 1 c) → '10'). Written the other way the '10' arm arms a poison "
+            "FileConnector.SequentialReadGuard must test LastReadUnsuccessful (§2023:14.9.30.4 GR21 → '46') BEFORE "
+            + "OptionalAbsent (§2023:9.1.13.4 item 1 c) → '10'). Written the other way the '10' arm arms a poison "
             + "nothing can ever reach, and every READ after the first on an absent OPTIONAL file re-reports '10'.");
     }
 
@@ -94,7 +94,7 @@ public sealed class ReadPreconditionOrderDriftTests
                 $"{file}'s sequential READ must call FileConnector.SequentialReadGuard() — a private copy of the "
                 + "'47'/'46'/'10' chain is how kb/Work PB336 came to exist in three connectors at once.");
             Assert.False(HasLocalAbsentOptionalReadArm(src),
-                $"{file} carries a local OptionalAbsent → READ-status arm. §9.1.13.4 item 1 c) and §9.1.13.5 "
+                $"{file} carries a local OptionalAbsent → READ-status arm. §2023:9.1.13.4 item 1 c) and §2023:9.1.13.5 "
                 + "item 3 b) belong to FileConnector.SequentialReadGuard / RandomReadAbsentOptionalGuard.");
         }
     }
@@ -143,7 +143,7 @@ public sealed class ReadPreconditionOrderDriftTests
             "if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }"));
         Assert.True(HasLocalAbsentOptionalReadArm(
             "if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }"));
-        Assert.False(HasLocalAbsentOptionalReadArm("if (OptionalAbsent) return StartFail();   // '23' §14.9.41 GR5"));
+        Assert.False(HasLocalAbsentOptionalReadArm("if (OptionalAbsent) return StartFail();   // '23' §2023:14.9.41 GR5"));
         Assert.False(HasLocalAbsentOptionalReadArm("if (SequentialReadGuard() is { } pre) return Status = pre;"));
     }
 }

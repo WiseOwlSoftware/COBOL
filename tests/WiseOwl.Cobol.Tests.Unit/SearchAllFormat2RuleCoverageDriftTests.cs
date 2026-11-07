@@ -10,7 +10,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE GUARD THAT KEEPS "ONE MODEL, SEVEN PREDICATES" TRUE (kb/Work PB445). ISO §14.9.37.3 carries SEVEN
+/// ⛔ THE GUARD THAT KEEPS "ONE MODEL, SEVEN PREDICATES" TRUE (kb/Work PB445). ISO §2023:14.9.37.3 carries SEVEN
 /// consecutive FORMAT-2 syntax rules — SR7 through SR13 — and every one of them was unenforced, TOGETHER, for one
 /// structural reason: they all read either the OCCURS KEY phrase of identifier-1 or the WHEN phrase decomposed
 /// into its Format-2 operands, and neither existed as a model. <see cref="WiseOwl.Cobol.Binding.Validation"/>'s
@@ -33,7 +33,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
     /// syntax-rule one, so it claims no SR number.</summary>
     private static readonly string[] Format2Codes = ["COBOL1964", "COBOL1965", "COBOL1966"];
 
-    /// <summary>(section → rule numbers) for §14.9.37.3, scraped from the transcription. The clause prints its
+    /// <summary>(section → rule numbers) for §2023:14.9.37.3, scraped from the transcription. The clause prints its
     /// rules under three banners — ALL FORMATS, FORMAT 1, FORMAT 2 — and which banner a rule sits under is the
     /// whole question here, so the scrape tracks them rather than assuming a numeric range.</summary>
     private static Dictionary<string, List<int>> ScrapeSearchSyntaxRules()
@@ -60,9 +60,9 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
         // SHAPE BEFORE CONTENT: if the scrape silently lost the clause every assertion below passes on empty
         // sets, which is the failure mode feedback_green_gates_arent_evidence is about.
         int total = by.Values.Sum(v => v.Count);
-        Assert.True(total >= 13, $"scraped only {total} syntax rules from §14.9.37.3 — the scrape lost the clause");
+        Assert.True(total >= 13, $"scraped only {total} syntax rules from §2023:14.9.37.3 — the scrape lost the clause");
         Assert.True(by["FORMAT 2"].Count >= 7,
-            $"scraped only {by["FORMAT 2"].Count} FORMAT 2 rules from §14.9.37.3 — the section split broke");
+            $"scraped only {by["FORMAT 2"].Count} FORMAT 2 rules from §2023:14.9.37.3 — the section split broke");
         return by;
     }
 
@@ -87,7 +87,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
                                                       "SearchAllFormat2Rules.cs"));
         var missing = by["FORMAT 2"].Where(n => !Regex.IsMatch(module, $@"\bSR{n}\b")).ToList();
         Assert.True(missing.Count == 0,
-            "ISO §14.9.37.3 prints a FORMAT 2 syntax rule that SearchAllFormat2Rules.cs does not cite: "
+            "ISO §2023:14.9.37.3 prints a FORMAT 2 syntax rule that SearchAllFormat2Rules.cs does not cite: "
             + string.Join(", ", missing.Select(n => "SR" + n))
             + ". The seven rules are predicates over ONE model (the ordered OCCURS KEY phrase and the decomposed "
             + "WHEN); a new one is another predicate over the same model, not another tree walk — add it there "
@@ -104,7 +104,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
         string claimed = string.Join(" ", descriptors.Select(d => d.IsoSection));
         var unclaimed = by["FORMAT 2"].Where(n => !Regex.IsMatch(claimed, $@"\bSR{n}\b")).ToList();
         Assert.True(unclaimed.Count == 0,
-            "ISO §14.9.37.3 prints a FORMAT 2 syntax rule no PB445 diagnostic claims in its IsoSection: "
+            "ISO §2023:14.9.37.3 prints a FORMAT 2 syntax rule no PB445 diagnostic claims in its IsoSection: "
             + string.Join(", ", unclaimed.Select(n => "SR" + n))
             + ". The codes divide the rules by the OPERAND the violation is about — the table's declaration "
             + "(COBOL1964), the KEY side of a WHEN (COBOL1965), the SENDING side (COBOL1966) — so put "
@@ -116,7 +116,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
     {
         string odo = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "OdoModel.cs"));
         Assert.Contains("List<OccursKey> Keys", odo);
-        // §14.9.37.3 SR11 is a rule about the ORDER of the KEY phrase and §13.18.38.4 GR3 makes that order the
+        // §2023:14.9.37.3 SR11 is a rule about the ORDER of the KEY phrase and §2023:13.18.38.4 GR3 makes that order the
         // order of significance, so a mixed `ASCENDING KEY IS A B DESCENDING KEY IS C` phrase loses which key
         // precedes which the moment it is split per direction word. The split shape is what PB445 replaced.
         Assert.DoesNotContain("AscendingKeyNames", odo);

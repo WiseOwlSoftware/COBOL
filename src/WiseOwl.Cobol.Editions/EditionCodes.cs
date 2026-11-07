@@ -15,7 +15,7 @@ public static class EditionCodes
     /// (there is nothing to run: the targeted edition has no semantics for the construct).</summary>
     public const string Introduction = "COBOL0900";
 
-    /// <summary>Word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9). Error strict / warning
+    /// <summary>Word reserved in COBOL-YYYY used as a user-defined word (ISO §2023:8.9). Error strict / warning
     /// permissive (via the removed-construct severity seam — the reserved-word check is an interval-encoded
     /// removal of the SPELLING from the user-word space).</summary>
     public const string ReservedWord = "COBOL0901";
@@ -24,7 +24,7 @@ public static class EditionCodes
     /// severity seam; permissive preserves the pre-removal semantics).</summary>
     public const string RemovedConstruct = "COBOL0902";
 
-    /// <summary>Obsolete/archaic-element flag (ISO §4.2.12 archaic / §4.2.13 obsolete). Warning, always —
+    /// <summary>Obsolete/archaic-element flag (ISO §2023:4.2.12 archaic / §2023:4.2.13 obsolete). Warning, always —
     /// the element is still conforming in the targeted edition.</summary>
     public const string ObsoleteFlag = "COBOL0903";
 }

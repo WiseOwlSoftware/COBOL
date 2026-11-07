@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-BOUND-REF-MOD (ISO §8.4.3.3.4, spec :7089; Table 13 Fatal): a reference
+      *> EC-BOUND-REF-MOD (ISO §2023:8.4.3.3.4, spec :7089; Table 13 Fatal): a reference
       *> modification whose leftmost-position or length is out of range — here
       *> WS-X(7:2) on a 5-position item, leftmost 7 > 5 — raises the fatal
       *> EC-BOUND-REF-MOD during the MOVE's source evaluation (before the store, so
       *> WS-Y is unchanged). Under >>TURN EC-BOUND-REF-MOD CHECKING ON the USE AFTER
-      *> EXCEPTION CONDITION declarative selects (§14.9.49), reports the condition via
-      *> FUNCTION EXCEPTION-STATUS (§15.33), and RESUME AT NEXT STATEMENT (§14.9.33)
+      *> EXCEPTION CONDITION declarative selects (§2023:14.9.49), reports the condition via
+      *> FUNCTION EXCEPTION-STATUS (§2023:15.33), and RESUME AT NEXT STATEMENT (§2023:14.9.33)
       *> continues past the aborted MOVE. With checking OFF the out-of-range ref-mod
       *> clamps/space-pads (the lenient default), so this is a checking-ON observable.
       >>TURN EC-BOUND-REF-MOD CHECKING ON

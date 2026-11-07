@@ -8,21 +8,21 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <summary>
 /// ⛔ <b>THE ONE PLACE A RECEIVER'S OBJECT-PROPERTY ACCESSORS ARE PLACED</b> (kb/Work PB2078). A statement whose binder
 /// CLAIMED its receivers (<c>ProcedureBindState.ClaimInterleavedReceiver</c>) places each claimed receiver's
-/// <see cref="ReceiverBracket"/> — identifier-3's evaluation into the identified-object temporary and the §8.4.3.9.4 GR1
+/// <see cref="ReceiverBracket"/> — identifier-3's evaluation into the identified-object temporary and the §2023:8.4.3.9.4 GR1
 /// GET (the OPEN steps), the GR2 SET (the CLOSE steps) — where the statement's own rules identify and store that receiver,
 /// and nowhere else. Two timings exist, and each statement's emitter states which is its own:
 /// <list type="bullet">
 ///   <item><b>Identified as it is stored</b> — <see cref="Receive"/> opens the bracket just before the receiver's
-///     access-and-store and closes it just after: ISO §14.7.7 4) b) ("Item identification for the receiving data items is
-///     done as each data item is accessed"), §14.9.25.4 GR1 (MOVE, so every implicit move), §14.9.39.4 GR2 (SET), the
-///     PERFORM VARYING induction variable (§14.9.28.4 GR12).</item>
+///     access-and-store and closes it just after: ISO §2023:14.7.7 4) b) ("Item identification for the receiving data items is
+///     done as each data item is accessed"), §2023:14.9.25.4 GR1 (MOVE, so every implicit move), §2023:14.9.39.4 GR2 (SET), the
+///     PERFORM VARYING induction variable (§2023:14.9.28.4 GR12).</item>
 ///   <item><b>Identified at the start of the statement</b> — <see cref="Identify"/> opens the brackets of the statement's
-///     receivers before its first operation (§14.6.4 7), the default: STRING, UNSTRING, CALL), and the receiver's store is then
+///     receivers before its first operation (§2023:14.6.4 7), the default: STRING, UNSTRING, CALL), and the receiver's store is then
 ///     closed by <see cref="Receive"/> (which does not open it twice) or, for a statement whose receivers are all stored
 ///     at one moment, by <see cref="Settle"/>. The SET then still runs before the statement's own phrase bodies (ON
 ///     OVERFLOW, ON EXCEPTION), which may read the property.</item>
 /// </list>
-/// <para>A size error ends the receiver's participation: §14.7.7 4) b) leaves "only that data item … unchanged", so the
+/// <para>A size error ends the receiver's participation: §2023:14.7.7 4) b) leaves "only that data item … unchanged", so the
 /// SET does not run for a receiver whose store raised one (<paramref name="sizeErrorFlag"/>, the statement's flag).</para>
 /// <para>The scope is opened by <see cref="StatementEmitter"/> for a <see cref="BoundReceiverBrackets"/> and CLOSED
 /// loudly: a claimed bracket no <see cref="Receive"/> or <see cref="Settle"/> placed means an emitter forgot the call, and
@@ -65,7 +65,7 @@ internal sealed class ReceiverBracketEmitter(EmitContext ctx)
         return terminated;
     }
 
-    /// <summary>The statement identifies its receivers as its first operation (ISO §14.6.4 7)): emit the OPEN steps of the
+    /// <summary>The statement identifies its receivers as its first operation (ISO §2023:14.6.4 7)): emit the OPEN steps of the
     /// brackets of <paramref name="receivers"/> now, in the order given (the statement's left-to-right order), so a later
     /// change to a subscript of identifier-3 — an earlier receiver of the same statement, a BY REFERENCE argument — does not
     /// move the receiver. A receiver that is no claimed object property (a data item, null for an absent phrase) has

@@ -13,7 +13,7 @@
       *>   p756 SEND    — SEND, FROM, RETURNING, RAISING carry rules; TO carries none (both send formats).
       *> The grammar required both tokens, so each line below was a parse error. Sibling of the ON fix
       *> (DEVLOG 1041): same notation rule, different statements, found by the same measurement.
-      *> MCS is a recognize-and-name facility here (§4.2.6 ¶3 — see wave_h_facilities_inert), so the observable
+      *> MCS is a recognize-and-name facility here (§2023:4.2.6 ¶3 — see wave_h_facilities_inert), so the observable
       *> behaviour is that the statements COMPILE and are INERT; this golden pins the SYNTAX being accepted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. OPTWORDSMCS.

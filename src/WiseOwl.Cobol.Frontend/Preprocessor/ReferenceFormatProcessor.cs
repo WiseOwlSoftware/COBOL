@@ -9,14 +9,14 @@ using WiseOwl.Cobol.Frontend.Diagnostics;
 namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
-/// THE ISO §6.5 logical conversion: reads fixed-form and free-form reference format and produces the logical
+/// THE ISO §2023:6.5 logical conversion: reads fixed-form and free-form reference format and produces the logical
 /// free-form text every later stage reads. Fixed-form: columns 1-6 sequence, 7 indicator, 8-72 program text, 73+
 /// outside margin R. Free-form: no column restrictions. A compilation group starts in fixed form unless the
-/// <see cref="InitialReferenceFormat"/> selection says otherwise (§7.3.24.3 2); kb/Work PB1362).
+/// <see cref="InitialReferenceFormat"/> selection says otherwise (§2023:7.3.24.3 2); kb/Work PB1362).
 /// </summary>
 public static partial class ReferenceFormatProcessor
 {
-    /// <summary>How a fixed-form debugging line (indicator <c>D</c>) travels from the §6.5 logical conversion to the
+    /// <summary>How a fixed-form debugging line (indicator <c>D</c>) travels from the §2023:6.5 logical conversion to the
     /// lexer: the carrier, then the line's program text. COPY REPLACING and REPLACE match over that text as if the
     /// <c>D</c> were absent (the COPY rule of COBOL-85; <see cref="TextWordScanner"/> skips only this carrier), and the
     /// lexer reads the carrier as the hidden <c>DEBUG_LINE</c> marker (<c>CobolLexer.g4</c>, whose spelling this must
@@ -28,9 +28,9 @@ public static partial class ReferenceFormatProcessor
     /// <c>*&gt; DEBUG: …</c> comment take part in matching).</summary>
     public static readonly string DebugLineCarrier = CobolSourceText.CommentIndicator + (char)0xFDD0 + "DEBUG ";
 
-    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §6.5 conversion leave it) holds no
+    /// <summary>Whether a logical line (as <see cref="DebugLineCarrier"/> and the §2023:6.5 conversion leave it) holds no
     /// program text: it is empty, spaces, or the BARE carrier of a blank debugging line (which keeps its slot so
-    /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §6.5 2): a blank line is one with nothing but spaces
+    /// <c>DebuggingLineRewriter</c> can decide it; kb/Work PB4412). §2023:6.5 2): a blank line is one with nothing but spaces
     /// in its program-text area, whichever indicator it carries, so a stage that asks "is there text on this line" asks it
     /// here.</summary>
     public static bool HoldsNoProgramText(string line)
@@ -58,17 +58,17 @@ public static partial class ReferenceFormatProcessor
         "AUTHOR", "INSTALLATION", "DATE-WRITTEN", "DATE-COMPILED", "SECURITY", "REMARKS",
     };
 
-    /// <summary>The compiler-directive word this stage owns (ISO §7.3.24; the <c>source-format-directive-2002</c>
-    /// registry row's single <c>directiveWords</c> entry — FORMAT and IS are §5.2.3 optional words, not part of
+    /// <summary>The compiler-directive word this stage owns (ISO §2023:7.3.24; the <c>source-format-directive-2002</c>
+    /// registry row's single <c>directiveWords</c> entry — FORMAT and IS are §2023:5.2.3 optional words, not part of
     /// the word).</summary>
     internal const string SourceFormatWord = "SOURCE";
 
     /// <summary>
     /// Normalize a compilation group to logical free form, starting in <paramref name="initial"/> — fixed form, the
-    /// standard default (§7.3.24.3 2)), unless selected otherwise. Each
-    /// <c>&gt;&gt;SOURCE FORMAT [IS] {FIXED|FREE}</c> directive (ISO §7.3.24) switches the reference format of the
+    /// standard default (§2023:7.3.24.3 2)), unless selected otherwise. Each
+    /// <c>&gt;&gt;SOURCE FORMAT [IS] {FIXED|FREE}</c> directive (ISO §2023:7.3.24) switches the reference format of the
     /// text that FOLLOWS it, up to the next directive — the source is partitioned into homogeneous-format segments
-    /// (§7.3.24.3 GR1) and each is converted in its own format. The directive line is discarded (§6.5 logical
+    /// (§2023:7.3.24.3 GR1) and each is converted in its own format. The directive line is discarded (§2023:6.5 logical
     /// conversion, step 1) and left as a blank line so downstream source-line numbers stay aligned.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText, InitialReferenceFormat initial = InitialReferenceFormat.Fixed)
@@ -93,20 +93,20 @@ public static partial class ReferenceFormatProcessor
         InitialReferenceFormat initial = InitialReferenceFormat.Fixed)
         => NormalizeToFreeFormMapped(sourceText, gates, sourcePath, initial.InitialFixed(), out _);
 
-    /// <summary>The ONE §6.5 logical-conversion walker, for source text AND library text (§6.5 applies to both "in
+    /// <summary>The ONE §2023:6.5 logical-conversion walker, for source text AND library text (§2023:6.5 applies to both "in
     /// the order that lines of source text and library text are obtained"), also reporting the reference format it
     /// read each physical line in (<paramref name="formats"/>).</summary>
     /// <param name="gates">The compilation's reference-format diagnostics — the ONE instance the main source and every
     /// copybook share (kb/Work PB1640), or null for a conversion that reports nothing.</param>
     /// <param name="initialFixed">The format the text starts in: for a compilation group, its
-    /// <see cref="InitialReferenceFormat"/> selection (fixed form by default, §7.3.24.3 2) — kb/Work PB1362); for
-    /// library text, the format in effect for its COPY statement (§7.3.24.3 3) — kb/Work PB1067). Null DETECTS it
+    /// <see cref="InitialReferenceFormat"/> selection (fixed form by default, §2023:7.3.24.3 2) — kb/Work PB1362); for
+    /// library text, the format in effect for its COPY statement (§2023:7.3.24.3 3) — kb/Work PB1067). Null DETECTS it
     /// (<see cref="IsFixedForm"/>) — the documented <see cref="InitialReferenceFormat.Auto"/> extension, and the library
     /// text of a COPY statement read in a detected-free text (<see cref="ReferenceFormatMap.LibraryTextDefaultAt"/>).</param>
     /// <param name="ccvsIndicators">Honor the NIST CCVS column-7 conventions (S/Y debugging lines, P/J/H/E/U excluded
     /// alternates, any other letter a primary-configuration line) — the <c>--nist</c> dialect only (kb/Work PB1494);
-    /// otherwise a character that is not a fixed indicator (§6.2.2) is diagnosed.</param>
-    /// <param name="implicitOps">The §14.9.28.4 GR14 implicit PUSH ALL / POP ALL written in THIS text, at its physical
+    /// otherwise a character that is not a fixed indicator (§2023:6.2.2) is diagnosed.</param>
+    /// <param name="implicitOps">The §2023:14.9.28.4 GR14 implicit PUSH ALL / POP ALL written in THIS text, at its physical
     /// lines (<see cref="ImplicitFormatOps.For"/>) — the format state they save and restore is this walker's
     /// (kb/Work PB1066). Null or empty for every text without an exception-checking PERFORM that holds a format
     /// directive in a handler.</param>
@@ -127,7 +127,7 @@ public static partial class ReferenceFormatProcessor
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
         var lines = PhysicalLines.Read(sourceText, ccvsIndicators).Lines;
 
-        // The initial format: the one the caller selected (fixed form by default, §7.3.24.3 2)) or inherited from the
+        // The initial format: the one the caller selected (fixed form by default, §2023:7.3.24.3 2)) or inherited from the
         // COPY statement (3)), or — only under the documented Auto extension — the one IsFixedForm detects in the text
         // before the first line that could be a >>SOURCE directive in either reading (kb/Work PB1362).
         bool firstFixed = initialFixed ?? IsFixedForm(lines[..FirstSourceDirectiveCandidate(lines)]);
@@ -158,7 +158,7 @@ public static partial class ReferenceFormatProcessor
         for (int s = 0; s <= segments.Count; s++)
         {
             // A >>POP boundary KEEPS its line — DirectiveSiteProcessor consumes it after COPY — so the line closes
-            // the segment it ends, in that segment's format; a >>SOURCE line is discarded here (§6.5 step 1).
+            // the segment it ends, in that segment's format; a >>SOURCE line is discarded here (§2023:6.5 step 1).
             bool keepsLine = s < segments.Count && segments[s].KeepsLine;
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
@@ -183,19 +183,19 @@ public static partial class ReferenceFormatProcessor
 
     /// <summary>
     /// The reference-format segment boundaries of a text, found by reading it IN ORDER with the format in effect as
-    /// state (§6.5: "the reference format mode is determined" by each SOURCE FORMAT directive line as the lines are
-    /// obtained): a &gt;&gt;SOURCE line (discarded — §6.5 1)) resolved to the format it leaves in force (a malformed
+    /// state (§2023:6.5: "the reference format mode is determined" by each SOURCE FORMAT directive line as the lines are
+    /// obtained): a &gt;&gt;SOURCE line (discarded — §2023:6.5 1)) resolved to the format it leaves in force (a malformed
     /// operand selects none and carries the current one on — kb/Work PB794), and every &gt;&gt;POP that RESTORES a
-    /// different format than the one in force (it keeps its line; §7.3.20 / §7.3.22, kb/Work PB941). The format is
+    /// different format than the one in force (it keeps its line; §2023:7.3.20 / §2023:7.3.22, kb/Work PB941). The format is
     /// carried by the ONE <see cref="DirectiveStateStack"/> — this stage's share of the directive state, as the
     /// conditional-compilation driver holds the compilation variables.
     /// <para>⛔ A line is a directive line only in the program-text area OF THE FORMAT IN EFFECT
     /// (<see cref="DirectiveText"/>, kb/Work PB1361): character positions 8–72 of a source line in fixed form — the
-    /// sequence area may hold any character (§6.3.2) — and the whole line in free form. Recognizing it by a character
+    /// sequence area may hold any character (§2023:6.3.2) — and the whole line in free form. Recognizing it by a character
     /// class instead ("digits or spaces before <c>&gt;&gt;</c>") missed a fixed-form directive whose sequence area was
     /// not numeric, and took a directive preceded by program text, or written past margin R in free form, as a
     /// switch — the following text was then read in the wrong format.</para>
-    /// <para>The §7.3 compiler-directive facility's introduction gate and operand check for the ONE directive that
+    /// <para>The §2023:7.3 compiler-directive facility's introduction gate and operand check for the ONE directive that
     /// cannot be gated with its siblings are asked here: this stage CONSUMES the &gt;&gt;SOURCE FORMAT line (it must —
     /// the following segment's reference format depends on it), so the line never reaches the shared
     /// directive-recognition point in ConditionalCompilationProcessor. Same producer, same row
@@ -215,7 +215,7 @@ public static partial class ReferenceFormatProcessor
             new DirectiveValueCarrier<bool>(() => current, saved => current = saved));
         var segments = new List<(int Index, bool Fixed, bool KeepsLine)>();
         var directiveLines = new List<int>();   // every written SOURCE FORMAT / PUSH / POP line (ReferenceFormatMap.DirectiveLines)
-        // §14.9.28.4 GR14's implicit ops, as boundaries BETWEEN physical lines (see ImplicitBoundaries).
+        // §2023:14.9.28.4 GR14's implicit ops, as boundaries BETWEEN physical lines (see ImplicitBoundaries).
         var boundaries = ImplicitBoundaries(implicitOps);
         int nextBoundary = 0;
         for (int i = 0; i < lines.Length; i++)
@@ -234,7 +234,7 @@ public static partial class ReferenceFormatProcessor
             CompilerDirectiveLine d = default;
             bool readFixed = current;   // the form the directive line was read in: its column depends on it
             bool isDirective = DirectiveText(lines[i].Text, current) is { } text && CompilerDirectiveLine.TryParse(text, out d);
-            // §7.3.24.3 4): "A SOURCE FORMAT directive that is the first line of a compilation group or library text
+            // §2023:7.3.24.3 4): "A SOURCE FORMAT directive that is the first line of a compilation group or library text
             // may be in either fixed form or free form" — so `>>SOURCE FORMAT FREE` in column 1 of line 1 is a
             // directive even though the text starts in fixed form, where column 1 is the sequence area.
             if (!isDirective && i == 0 && DirectiveText(lines[0].Text, !current) is { } other
@@ -263,7 +263,7 @@ public static partial class ReferenceFormatProcessor
         return (segments, directiveLines);
     }
 
-    /// <summary>⛔ ISO §14.9.28.4 GR14's implicit PUSH ALL / POP ALL (kb/Work PB1066) as BOUNDARIES between physical lines,
+    /// <summary>⛔ ISO §2023:14.9.28.4 GR14's implicit PUSH ALL / POP ALL (kb/Work PB1066) as BOUNDARIES between physical lines,
     /// in the order they apply (<paramref name="ops"/> are at this text's PHYSICAL lines and in token order, which nests
     /// each PERFORM's pair — <see cref="ImplicitFormatOps"/>). A reference format is read PER LINE, so an op is a position
     /// between two lines, and the two ops of a pair sit on opposite sides of the lines they bracket:
@@ -271,7 +271,7 @@ public static partial class ReferenceFormatProcessor
     /// <item>the PUSH — "assumed at the end of imperative-statement-1" — after the physical line P that ends it, so it
     /// takes effect before line P + 1;</item>
     /// <item>the POP — "immediately preceding the END PERFORM phrase" — before the physical line L that holds the phrase,
-    /// so the restored format governs END-PERFORM's own line (§7.3.24.3 1: the format governs "the source text … following"
+    /// so the restored format governs END-PERFORM's own line (§2023:7.3.24.3 1: the format governs "the source text … following"
     /// the directive, and the phrase follows the POP).</item>
     /// </list>
     /// A pair whose POP boundary is not past its PUSH boundary (<c>L &lt;= P</c>: END-PERFORM on the line imperative-
@@ -302,7 +302,7 @@ public static partial class ReferenceFormatProcessor
     }
 
     /// <summary>The program-text area in which a compiler directive line is recognized, in the reference format in
-    /// effect (§7.3.3 SR3: "When the reference format is fixed-form, a compiler directive shall be written in the
+    /// effect (§2023:7.3.3 SR3: "When the reference format is fixed-form, a compiler directive shall be written in the
     /// program-text area"; SR2: "A compiler directive shall be preceded only by zero, one, or more space
     /// characters") — character positions 8 through margin R of a SOURCE line in fixed form (a comment, debugging or
     /// continuation line holds no directive), the whole line in free form — or null when the line holds none.</summary>
@@ -374,9 +374,9 @@ public static partial class ReferenceFormatProcessor
             totalLines++;
 
             // ⚠ A DETECTION HEURISTIC, not a spec rule — do not restate it as one.
-            // ISO §6.3.1: "The rightmost character position of the program-text area is a fixed position
+            // ISO §2023:6.3.1: "The rightmost character position of the program-text area is a fixed position
             // defined by the IMPLEMENTOR" (margin R). The standard does NOT mandate column 72, and characters
-            // beyond margin R are not an error — they are simply outside the program-text area (§6.3.4;
+            // beyond margin R are not an error — they are simply outside the program-text area (§2023:6.3.4;
             // comment-text likewise runs only "up to margin R"). ISO 2023 has no "identification area"; that
             // was a COBOL-85 card-image convention.
             // What this flag captures: OUR margin R is column 72 (Annex A item 158 — a REQUIRED documented
@@ -414,7 +414,7 @@ public static partial class ReferenceFormatProcessor
                             }
                         }
                         // A NON-SPACE indicator in column 7 is independent positive evidence of fixed format.
-                        // The sequence area is OPTIONAL (ISO §6.2.1 — it "may be used to label a source line"),
+                        // The sequence area is OPTIONAL (ISO §2023:6.2.1 — it "may be used to label a source line"),
                         // so a great deal of real-world COBOL leaves columns 1-6 blank and is still fixed-form.
                         // Requiring a numeric sequence area misclassified every such file as FREE-form, where a
                         // '*' in column 7 is no longer a comment indicator but a stray token — so an ordinary

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.49.4 GR5: "Within a given procedure division, a USE
+      *> ISO §2023:14.9.49.4 GR5: "Within a given procedure division, a USE
       *> statement specifying file-name-1 takes precedence over any USE
       *> statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase."
       *> GR3: "The first declarative that satisfies the selection
@@ -23,7 +23,7 @@
       *>   F1  absent, opened INPUT, named by the file-scoped USE: ONLY
       *>       the file procedure runs, although the INPUT one, written
       *>       first, also matches the mode.
-      *> '35' is the §9.1.13.6 5) value for OPEN INPUT of an absent
+      *> '35' is the §2023:9.1.13.6 5) value for OPEN INPUT of an absent
       *> non-optional file.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB370UF.

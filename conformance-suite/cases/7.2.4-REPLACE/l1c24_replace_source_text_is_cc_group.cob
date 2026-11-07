@@ -6,28 +6,28 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §7.2.4.4 GR1 — REPLACE acts on the conditionally-processed
+      *> ISO §2023:7.2.4.4 GR1 — REPLACE acts on the conditionally-processed
       *> compilation group (after >>IF selection and COPY REPLACING)
-      *> RULE §7.2.4.4 GR1: "In subsequent general rules of the REPLACE
+      *> RULE §2023:7.2.4.4 GR1: "In subsequent general rules of the REPLACE
       *>   statement, 'source text' refers to the
       *>   conditionally-processed
       *>   compilation group."
       *>   cite.py --check 7.2.4.4 "'source text' refers to the
-      *>   conditionally-processed compilation group" -> OK §7.2.4.4 1)
-      *> What that group is (§7.2.1): Step 1 incorporates library text;
+      *>   conditionally-processed compilation group" -> OK §2023:7.2.4.4 1)
+      *> What that group is (§2023:7.2.1): Step 1 incorporates library text;
       *> false-path lines of an IF directive may be omitted; Step 2
       *> processes IF directives and "the replacing actions of COPY
       *> statements"; Step 3 then applies REPLACE.
       *>   cite.py --check 7.2.1 "Step 3: The conditionally-processed
       *>   compilation group is read and the replacing actions of
-      *>   REPLACE statements are applied in order." -> OK §7.2.1
+      *>   REPLACE statements are applied in order." -> OK §2023:7.2.1
       *>   cite.py --check 7.2.1 "the replacing actions of COPY
-      *>   statements" -> OK §7.2.1 (Step 2 d))
+      *>   statements" -> OK §2023:7.2.1 (Step 2 d))
       *>   cite.py --check 7.2.4.4 "A format 1 REPLACE statement without
       *>   the ALSO phrase cancels the active REPLACE statement"
-      *>     -> OK §7.2.4.4 (7) b); the tool labels the line 7) a) 2.)
+      *>     -> OK §2023:7.2.4.4 (7) b); the tool labels the line 7) a) 2.)
       *>   cite.py --check 7.3.8.4.4 "A defined condition using the IS
-      *>   DEFINED" -> OK §7.3.8.4.4 1)
+      *>   DEFINED" -> OK §2023:7.3.8.4.4 1)
       *> Support file: l1c24ca.cpy = one line "DISPLAY CPWORD."
       *> EXPECTED OUTPUT, DERIVED:
       *>   BASE-REPLACE-KEPT  L1C24NONE is never defined, so the >>IF is

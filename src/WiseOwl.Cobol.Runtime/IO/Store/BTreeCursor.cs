@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Runtime.IO.Store;
 internal sealed partial class BTree
 {
     /// <summary>Position a cursor by <paramref name="relation"/> against <paramref name="key"/> — the whole key, or with
-    /// <paramref name="prefix"/> the leading positions of each stored key (a START's partial key, §14.9.41.4 GR17 c) to
+    /// <paramref name="prefix"/> the leading positions of each stored key (a START's partial key, §2023:14.9.41.4 GR17 c) to
     /// e): the LESS relations search <i>"in reverse order"</i>, so they land on the LAST qualifying entry). The cursor has
     /// no current entry when none qualifies. A prefix the order does not narrow (<see cref="IKeyOrder.PrefixNarrows"/>: a
     /// partial key under a locale-based sequence) is the search GR17 c) and d) state, entry by entry, from the tree's
@@ -136,7 +136,7 @@ internal sealed partial class BTree
             }
         }
 
-        /// <summary>⛔ THE SEQUENTIAL SEARCH OF §14.9.41.4 GR17 c) and d), for a prefix whose order a binary search cannot
+        /// <summary>⛔ THE SEQUENTIAL SEARCH OF §2023:14.9.41.4 GR17 c) and d), for a prefix whose order a binary search cannot
         /// narrow (<see cref="IKeyOrder.PrefixNarrows"/>: a partial key under a locale-based sequence), BOUNDED AT THE
         /// PRIMARY LEVEL (2.2.1.4, the partial-key START). The tree's high-water marks give the probe's bound B
         /// (<see cref="IKeyOrder.BoundOf"/>): an entry whose leading level-1 weights are below B has a truncation below

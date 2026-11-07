@@ -4,11 +4,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ISO/IEC 1989:2023 §13.4.5.3 syntax rule 7: "Format 2 is the file description entry for
+*> ISO/IEC 1989:2023 §2023:13.4.5.3 syntax rule 7: "Format 2 is the file description entry for
 *> a relative file or an indexed file. For an indexed file, one or more record description
 *> entries shall be associated with the file description entry."
 *> SR3's permission to omit them is a FORMATS 1 AND 2 rule; SR7 takes it back for INDEXED
-*> alone, because §12.4.5.12.3 SR2 requires the RECORD KEY operand to "reference a data
+*> alone, because §2023:12.4.5.12.3 SR2 requires the RECORD KEY operand to "reference a data
 *> item ... within a record description entry associated with the file-name specified in
 *> this file control entry" -- and there is none here.
 *> The RELATIVE twin of this same shape is LEGAL and is exercised positively by

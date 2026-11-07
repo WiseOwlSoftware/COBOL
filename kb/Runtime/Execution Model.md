@@ -40,7 +40,7 @@ signed-DISPLAY overpunch images; `CobolEdit` formats numeric-edited fields; `Cob
 STANDARD-DECIMAL; `CobolFloat` handles the COMP-1/2 IEEE bypass. See [[kb/IR/Data Flow]].
 
 ## Strings (Verbs/CobolInspect, CobolStringOps)
-Alphanumeric/national items are UTF-16 `string` at rest; one COBOL character = one UTF-16 code unit (§8.5.1.4).
+Alphanumeric/national items are UTF-16 `string` at rest; one COBOL character = one UTF-16 code unit (§2023:8.5.1.4).
 `CobolInspect` implements INSPECT (TALLYING/REPLACING/CONVERTING, ALL/LEADING/FIRST/CHARACTERS, BEFORE/AFTER,
 BACKWARD) as one comparison cycle; `CobolStringOps` implements STRING/UNSTRING (DELIMITED BY, WITH POINTER, ON
 OVERFLOW, DELIMITER/COUNT IN). Reference modification lives on `Values/Text/CobolString` (`RefMod` read, `SpliceInto`
@@ -57,7 +57,7 @@ string (`FileStatusCode`); ordering uses a typed `CobolSort.Key`, shared by inde
 
 ## Intrinsic Functions
 `CobolIntrinsics` (partials `.Text`/`.Float`/`.Exact`) plus `CobolDate` implement the full ISO §15 catalog (~70+
-functions), typed by §15.2 class: **integer**→`long`/`Int128` (FACTORIAL), **floating math**→`double` (SQRT, trig,
+functions), typed by §2023:15.2 class: **integer**→`long`/`Int128` (FACTORIAL), **floating math**→`double` (SQRT, trig,
 LOG, ANNUITY, PRESENT-VALUE, RANDOM), **exact numeric**→NumX (SUM, MEAN, MOD, INTEGER, NUMVAL) through
 `CobolNum.Store`, **alphanumeric/national**→`string` (UPPER-CASE, TRIM, CHAR, NATIONAL-OF), **boolean**→`bool`. The
 binder resolves each FUNCTION against a declarative `IntrinsicCatalog` (result category, arity, edition window); an

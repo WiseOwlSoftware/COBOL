@@ -17,7 +17,7 @@ internal readonly record struct ExactExtent(int IntegerDigits, int Scale);
 /// <summary>
 /// ⛔ <b>HOW MANY DIGITS AN ARITHMETIC EXPRESSION'S VALUE CAN HAVE, ASKED AT BIND TIME</b> (kb/Work PB3974) — the one
 /// fact the implementor's intermediate result item of an EVALUATE selection subject needs to be described FOR its
-/// value. ISO §14.9.13.4 GR3 c): "Any selection subject specified by arithmetic-expression-1 is assigned a numeric
+/// value. ISO §2023:14.9.13.4 GR3 c): "Any selection subject specified by arithmetic-expression-1 is assigned a numeric
 /// value according to the rules for evaluating an arithmetic expression", and the WHEN objects are compared with
 /// THAT value (GR4 a) 6.), so an intermediate that holds fewer digits than the expression produces compares a
 /// different number: `EVALUATE BIG * BIG WHEN BIG * BIG` over a PIC 9(18) item took WHEN OTHER through a

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.25.2 general format — FUNCTION DAY-TO-YYYYDDD ( argument-1
+      *> ISO §2023:15.25.2 general format — FUNCTION DAY-TO-YYYYDDD ( argument-1
       *> [ argument-2 [ argument-3 ] ] ). The nesting of the two brackets closes
       *> the count at three: argument-3 is the innermost optional item and nothing
       *> follows it, so a FOURTH argument is not a form this function has.

@@ -5,8 +5,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.39.3 — SET format 5 with the predefined object reference SELF as the sender.
-      *> The RECEIVER's §13.18.60.2 description picks the rule: SR10 d) for an interface-name
+      *> ISO §2023:14.9.39.3 — SET format 5 with the predefined object reference SELF as the sender.
+      *> The RECEIVER's §2023:13.18.60.2 description picks the rule: SR10 d) for an interface-name
       *> receiver, SR12 c) for an object-class-name receiver.  Both are keyed to the FACTORY /
       *> INSTANCE axis, because SELF is the FACTORY object inside a factory method and an
       *> INSTANCE object inside an instance method.  kb/Work PB451.
@@ -20,17 +20,17 @@
       *>    and c)4. "if the data item referenced by identifier-3 is described with a FACTORY
       *>    phrase, the method containing the SET statement shall be defined in the factory
       *>    definition of its containing class" — it is.  INVOKE FR "TAG" resolves the FACTORY
-      *>    roster (§9.3.6):                                                          FTAG-P
+      *>    roster (§2023:9.3.6):                                                          FTAG-P
       *>    SET JR TO SELF, with JR described with interface-name PB451J, is SR10 d)1.: "if
       *>    the SET statement is contained in a method within the factory definition of the
       *>    class, that factory definition shall be described with an IMPLEMENTS clause that
       *>    references int-1."  PB451P's FACTORY carries IMPLEMENTS PB451K, and PB451K
-      *>    INHERITS FROM PB451J, so §11.4.4 GR2 b) ("the factory object implements an
-      *>    interface that inherits int-1") makes it implement PB451J — the relation §11.4.4
+      *>    INHERITS FROM PB451J, so §2023:11.4.4 GR2 b) ("the factory object implements an
+      *>    interface that inherits int-1") makes it implement PB451J — the relation §2023:11.4.4
       *>    GR1 says the clause names.  INVOKE JR "PING":                            FPING-P
       *>
       *> 3. INVOKE PB451Q "QFMK" runs a method of PB451Q's FACTORY definition, which carries
-      *>    NO IMPLEMENTS clause at all; only its base PB451P's does.  §11.4.4 GR2 c) — "the
+      *>    NO IMPLEMENTS clause at all; only its base PB451P's does.  §2023:11.4.4 GR2 c) — "the
       *>    class containing the factory object inherits a class whose factory object
       *>    implements int-1" — is the leg that makes SR10 d)1. hold here.  PB451Q's FACTORY
       *>    overrides PING:                                                         FPING-Q
@@ -44,21 +44,21 @@
       *>    c)3. "if the data item referenced by identifier-3 is described without a FACTORY
       *>    phrase, the method containing the SET statement shall be defined in the instance
       *>    definition of its containing class" — it is.  INVOKE O2 "WHO":            WHO-P
-      *>    SET J2 TO SELF is SR10 d)2., the instance twin, over §11.8.4 GR2 b):     IPING-P
+      *>    SET J2 TO SELF is SR10 d)2., the instance twin, over §2023:11.8.4 GR2 b):     IPING-P
       *>
       *> 6-7. INVOKE OQ "QMK" runs an INSTANCE method of PB451Q on a PB451Q object.
       *>    SET PR TO SELF, PR described with the object-class-name PB451P, is SR12 c)2.'s
       *>    SUBCLASS leg: the class containing the SET (PB451Q) is a subclass of PB451P.
       *>    INVOKE PR "WHO" dispatches on the object actually held:                   WHO-Q
-      *>    SET J2 TO SELF is SR10 d)2. over §11.8.4 GR2 c) — PB451Q's OBJECT carries no
+      *>    SET J2 TO SELF is SR10 d)2. over §2023:11.8.4 GR2 c) — PB451Q's OBJECT carries no
       *>    IMPLEMENTS clause; its base PB451P's does.  INVOKE J2 "PING":           IPING-Q
       *>
       *> 8. SET OQ TO NULL is SR12 d), the fourth member of the rule's closed list of
       *>    senders — "the predefined object reference NULL" — into a receiver described
-      *>    with an object-class-name.  §13.18.60.4 GR22 makes null a legal content of
+      *>    with an object-class-name.  §2023:13.18.60.4 GR22 makes null a legal content of
       *>    every object reference ("It shall contain either null or a reference to an
       *>    object"), so the assignment is unconditional: no class relation, no FACTORY or
-      *>    ONLY axis, nothing to check.  §8.8.4.2.15 then observes it — "An operand of
+      *>    ONLY axis, nothing to check.  §2023:8.8.4.2.15 then observes it — "An operand of
       *>    class object may be compared with another operand of class object", true when
       *>    both reference the same object:                                       NULLOK
       *>    DISCRIMINATOR: the line runs after OQ has held a real PB451Q object, so it

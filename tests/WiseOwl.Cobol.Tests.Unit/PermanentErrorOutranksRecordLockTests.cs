@@ -9,18 +9,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A PERMANENT ERROR IN EFFECT OUTRANKS THE RECORD LOCK A REWRITE OR A DELETE WOULD HAVE MET, AND THE RULE IS WRITTEN IN
-/// ONE PLACE (kb/Work PB3416, the REWRITE and DELETE arms of PB3336 review R1-2). ISO §9.1.13.1: the permanent error
+/// ONE PLACE (kb/Work PB3416, the REWRITE and DELETE arms of PB3336 review R1-2). ISO §2023:9.1.13.1: the permanent error
 /// condition <i>"remains in effect for all subsequent input-output operations on the file unless an implementor-defined
 /// technique is invoked to correct the permanent error condition"</i>; this processor's technique is CLOSE
 /// (docs/CONFORMANCE.md DOC-A.1-105), which also says the replayed statement <i>"does not touch the physical file, it
 /// sets the same I-O status again"</i> and that the condition outranks every other status the statement would have taken.
 /// So a REWRITE or DELETE of a record ANOTHER file connector holds locked answers the status that began the condition,
-/// not '51' (§14.9.35.4 GR11, §14.9.10.4 GR6, §9.1.13.8 item 1), waits out no RETRY phrase, rewrites or deletes nothing
+/// not '51' (§2023:14.9.35.4 GR11, §2023:14.9.10.4 GR6, §2023:9.1.13.8 item 1), waits out no RETRY phrase, rewrites or deletes nothing
 /// and releases nobody's lock; once the CLOSE has ended the condition, the same statement is '51' again.
 /// <para>The cells are the three organizations, the holder in the same run unit and in another one (a second
 /// <see cref="FileRegistry"/>, whose record locks reach the first through the host's region locks, kb/Work PB2660, on
-/// both region hosts), and each verb the organization has (§14.9.10.3 SR1: DELETE RECORD is not for a sequential file). The
-/// producer is <see cref="FileRegistry.ReadExceedsRecordMaximum"/>, the '34' of §9.1.13.6 item 4 b), which starts the
+/// both region hosts), and each verb the organization has (§2023:14.9.10.3 SR1: DELETE RECORD is not for a sequential file). The
+/// producer is <see cref="FileRegistry.ReadExceedsRecordMaximum"/>, the '34' of §2023:9.1.13.6 item 4 b), which starts the
 /// condition on an OPEN connector exactly as a host failure's '30' does.</para>
 /// </summary>
 public sealed class PermanentErrorOutranksRecordLockTests
@@ -36,7 +36,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
         foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var place in Enum.GetValues<Place>())
                 foreach (var verb in Enum.GetValues<Verb>())
-                    if (org != FileOrg.Sequential || verb == Verb.Rewrite)   // §14.9.10.3 SR1
+                    if (org != FileOrg.Sequential || verb == Verb.Rewrite)   // §2023:14.9.10.3 SR1
                         data.Add(org, place, verb);
         return data;
     }
@@ -62,7 +62,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
         return all;
     }
 
-    /// <summary>Connector A takes record 1's lock (§14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
+    /// <summary>Connector A takes record 1's lock (§2023:14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
     /// READ says WITH LOCK) and holds it.</summary>
     private static void HoldRecordOne(FileRegistry a, FileOrg org)
     {
@@ -73,8 +73,8 @@ public sealed class PermanentErrorOutranksRecordLockTests
     }
 
     /// <summary>Make record 1 the record B's REWRITE or DELETE identifies: a sequential statement follows a successful READ
-    /// (§14.9.35.4 GR5, §14.9.10.4 GR2) and takes the record that READ made current, which B can read only IGNORING LOCK
-    /// (§14.9.30.4 GR12) while A holds it; a keyed statement names it in the key.</summary>
+    /// (§2023:14.9.35.4 GR5, §2023:14.9.10.4 GR2) and takes the record that READ made current, which B can read only IGNORING LOCK
+    /// (§2023:14.9.30.4 GR12) while A holds it; a keyed statement names it in the key.</summary>
     private static void AimAtRecordOne(FileRegistry b, FileOrg org)
     {
         if (org == FileOrg.Sequential) Assert.Equal("00", FileHarness.ReadNext(b, "B", out _, ignoringLock: true));
@@ -118,8 +118,8 @@ public sealed class PermanentErrorOutranksRecordLockTests
             Assert.Equal("00", b.Status("B"));
             HoldRecordOne(a, org);
 
-            // The control: with no condition in effect the statement meets A's lock — '51' (§14.9.35.4 GR11 / §14.9.10.4
-            // GR6 b), §9.1.13.8 item 1). A RETRY phrase re-attempts its bounded number of times (§14.7.9.3 GR4)
+            // The control: with no condition in effect the statement meets A's lock — '51' (§2023:14.9.35.4 GR11 / §2023:14.9.10.4
+            // GR6 b), §2023:9.1.13.8 item 1). A RETRY phrase re-attempts its bounded number of times (§2023:14.7.9.3 GR4)
             // and pauses between attempts only for a holder outside the run unit — the one case a wait
             // can change the answer (FileRegistry.Reattempt).
             AimAtRecordOne(b, org);
@@ -130,7 +130,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
             Assert.Equal(place == Place.SameRunUnit ? 0 : 2, pauses.Count);
             pauses.Clear();
 
-            // The condition begins (§9.1.13.6 item 4 b)); the SAME statements now answer it: no '51', no wait, no effect.
+            // The condition begins (§2023:9.1.13.6 item 4 b)); the SAME statements now answer it: no '51', no wait, no effect.
             Assert.Equal(Stuck, b.ReadExceedsRecordMaximum("B"));
             Assert.Equal(Stuck, Mutate(b, verb, FileRetryKind.None, 0));
             Assert.Equal(Stuck, b.Status("B"));
@@ -166,7 +166,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
         }
     }
 
-    /// <summary>⛔ GR5's '43' IS TESTED BEFORE GR11's '51' (§14.9.35.4 5) and 11); §14.9.10.4 2) and 6); DOC-A.1-104 (2): among
+    /// <summary>⛔ GR5's '43' IS TESTED BEFORE GR11's '51' (§2023:14.9.35.4 5) and 11); §2023:14.9.10.4 2) and 6); DOC-A.1-104 (2): among
     /// unsuccessful values the first general rule that fails supplies the status; kb/Work PB3416 review R1-1). A
     /// sequential-ACCESS REWRITE or DELETE RECORD names the record the immediately previous statement's READ made current; once
     /// an unsuccessful statement of its own (the '51') has intervened it names none, so it is the '43' of a statement with no
@@ -248,7 +248,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
 
     /// <summary>⛔ THE HOST IS ASKED NOTHING. Another run unit's record locks are a question put to the host — the presence
     /// byte, then the record's byte (<c>PhysicalFileTable.AnotherRunUnitHoldsLocks</c>, <c>HolderOf</c>; kb/Work PB2660) —
-    /// and a statement the permanent error has settled owes it none (§9.1.13.1; DOC-A.1-105: it <i>"does not touch the
+    /// and a statement the permanent error has settled owes it none (§2023:9.1.13.1; DOC-A.1-105: it <i>"does not touch the
     /// physical file"</i>). The record lock governance used to ask the presence byte before the REWRITE or DELETE replayed
     /// the condition (kb/Work PB3416). A host that counts <c>HeldByAnother</c> shows it: a healthy statement asks (the
     /// control), the same statement under the condition asks nothing and answers the status that began it, for every

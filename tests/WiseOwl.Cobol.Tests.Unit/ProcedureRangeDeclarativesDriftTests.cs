@@ -11,10 +11,10 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB433 — <b>the SECTION travels with a resolved procedure-name, and §14.9.28.3 SR11 is asked of it.</b>
+/// kb/Work PB433 — <b>the SECTION travels with a resolved procedure-name, and §2023:14.9.28.3 SR11 is asked of it.</b>
 /// "When procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the
 /// declaratives portion of the procedure division, both shall be procedure-names in the same declarative
-/// section" (ISO §14.9.28.3 SR11).
+/// section" (ISO §2023:14.9.28.3 SR11).
 ///
 /// <para><b>What the missing structure cost.</b> The resolver returned a naked pc pair, so by the time the range
 /// existed nothing could say which section either end came from and the rule was implemented NOWHERE. The loud
@@ -24,7 +24,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// declarative sections — ran and printed a wrong answer, spanning two USE procedures with different dispatch.</para>
 ///
 /// <para>These pins hold BOTH halves against one predicate and hold the structure that makes the next rule about
-/// a procedure's section (GO TO's, ALTER's, the SORT/MERGE procedure phrases, §14.9.49.3 SR3/SR4) a predicate
+/// a procedure's section (GO TO's, ALTER's, the SORT/MERGE procedure phrases, §2023:14.9.49.3 SR3/SR4) a predicate
 /// rather than a re-derivation: the ONE success constructor carries the section, and no site re-derives
 /// "declarative" from pc arithmetic.</para>
 /// </summary>
@@ -50,8 +50,8 @@ public sealed class ProcedureRangeDeclarativesDriftTests
     }
 
     /// <summary>No rule asks "is this procedure declarative?" by comparing its pc against the entry pc. That
-    /// arithmetic is a re-derivation of a fact the collection already recorded (ISO §14.3 makes the declaratives
-    /// portion a set of SECTIONS), and it was the shape RESUME AT's §14.9.33.3 SR3 check carried before PB433.</summary>
+    /// arithmetic is a re-derivation of a fact the collection already recorded (ISO §2023:14.3 makes the declaratives
+    /// portion a set of SECTIONS), and it was the shape RESUME AT's §2023:14.9.33.3 SR3 check carried before PB433.</summary>
     [Fact]
     public void NoBinderSite_ReDerivesDeclarativeFromPcArithmetic()
     {
@@ -79,7 +79,7 @@ public sealed class ProcedureRangeDeclarativesDriftTests
     public void ARangeStraddlingTheDeclarativesBoundary_IsRefused(int level)
     {
         var diagnostics = BindDiagnostics(Straddle, level);
-        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§14.9.28.3 SR11"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§2023:14.9.28.3 SR11"));
     }
 
     /// <summary>HALF 2 — the quiet one. Both names ARE in the declaratives portion, so a screen written as "one
@@ -92,7 +92,7 @@ public sealed class ProcedureRangeDeclarativesDriftTests
     public void ARangeSpanningTwoDeclarativeSections_IsRefused(int level)
     {
         var diagnostics = BindDiagnostics(TwoDeclarativeSections, level);
-        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§14.9.28.3 SR11"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§2023:14.9.28.3 SR11"));
     }
 
     /// <summary>The control, and it is the load-bearing half: a range whose two ends are procedures of the SAME

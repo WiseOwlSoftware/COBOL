@@ -6,9 +6,9 @@
 *>---
       *> kb/Work PB812 - ROLLBACK written in an INVERTED sort input procedure.
       *>   cite.py --check 14.9.36.3 "This statement shall not be specified in the input or
-      *>     output procedure of a MERGE or SORT statement." -> OK §14.9.36.3 2)
+      *>     output procedure of a MERGE or SORT statement." -> OK §2023:14.9.36.3 2)
       *> INPUT PROCEDURE IS IN-B THRU IN-A names an inverted range: IN-A stands before IN-B,
-      *> which §14.9.28.4 GR6 permits. The ROLLBACK in IN-A is written in the input
+      *> which §2023:14.9.28.4 GR6 permits. The ROLLBACK in IN-A is written in the input
       *> procedure, so SR2 refuses it, AT the ROLLBACK statement (the diagnostic used to carry
       *> no source position). A numeric Start..End interval over this pair is empty, which
       *> is how the statement once escaped the ban; PcRange.Spans is the lexical test.

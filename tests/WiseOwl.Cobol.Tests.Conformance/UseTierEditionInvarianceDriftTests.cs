@@ -8,13 +8,13 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ THE DRIFT GUARD ON A DETERMINATION: the Format-1 USE selection tiers of ISO/IEC 1989:2023 §14.9.49.4 —
+/// ⛔ THE DRIFT GUARD ON A DETERMINATION: the Format-1 USE selection tiers of ISO/IEC 1989:2023 §2023:14.9.49.4 —
 /// GR3 a)/GR5 (file-name scope) and GR3 b)/GR6 b)–e) (open-mode scope) — are the SAME at 85, 2002, 2014 and
 /// 2023, so the generated selector must be TEXTUALLY IDENTICAL at all four (kb/Work PB344).
 ///
 /// <para><b>Why this test exists.</b> Annex E.2 item 19 a)/b) reads as if the open-mode tier were a 2023
 /// change, and it was once implemented as a <c>&lt;=2014</c> guard. It is not one: Annex E is INFORMATIVE,
-/// §E.1 scopes it to "a list of the substantive changes between the previous COBOL standard and this Working
+/// §2023:E.1 scopes it to "a list of the substantive changes between the previous COBOL standard and this Working
 /// Draft International Standard" — ONE prior edition, so it says nothing about 1985 or 2002 — and item 19's
 /// own justification classes the prior state as defective TEXT, "The previous COBOL Standard was not clear or
 /// missing processing of some I-O exceptions", each sub-item adding "This appears to be an error in previous
@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// SQ138A, SQ148A — SQ137A's own remark is "INPUT DECLARATIVE NOT EXECUTED").</para>
 ///
 /// <para><b>Why it is not a golden.</b> The tier pair is rendered by THREE selectors —
-/// <c>DispatchEmitter.__IoCheck</c>, <c>EcEmitter.__IoCheckEc</c> and the §14.9.49.4 GR4 b) outward GLOBAL
+/// <c>DispatchEmitter.__IoCheck</c>, <c>EcEmitter.__IoCheckEc</c> and the §2023:14.9.49.4 GR4 b) outward GLOBAL
 /// walk <c>ProgramEmitter.__RunGlobalUse</c> — and only the first two are reachable from an observable output
 /// difference in a single program. Comparing the EMITTED TEXT covers all three at once, and it fails on the
 /// re-introduction of ANY per-edition condition, in any of them, whether or not a golden happens to exercise
@@ -146,7 +146,7 @@ public sealed class UseTierEditionInvarianceDriftTests
         foreach (int edition in editions[1..])
             foreach (string sel in selectors)
                 Assert.True(byEdition[baseline][sel] == byEdition[edition][sel],
-                    $"{sel} differs between --std {baseline} and --std {edition}: the §14.9.49.4 GR3/GR5/GR6 "
+                    $"{sel} differs between --std {baseline} and --std {edition}: the §2023:14.9.49.4 GR3/GR5/GR6 "
                     + $"tiers are EDITION-INVARIANT (kb/Work PB344).\n--- {baseline} ---\n"
                     + byEdition[baseline][sel] + $"\n--- {edition} ---\n" + byEdition[edition][sel]);
     }

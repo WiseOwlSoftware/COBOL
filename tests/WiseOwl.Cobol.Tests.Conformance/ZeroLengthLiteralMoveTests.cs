@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ <b>THE ZERO-LENGTH-LITERAL SUBSTITUTION — ISO §14.9.25.4 GR2, GR3 and GR1's zero-length-ITEM clause</b>
+/// ⛔ <b>THE ZERO-LENGTH-LITERAL SUBSTITUTION — ISO §2023:14.9.25.4 GR2, GR3 and GR1's zero-length-ITEM clause</b>
 /// (kb/Work PB425). GR2: "If literal-1 is an alphanumeric or national zero-length literal and the receiving
 /// operand is other than a dynamic-length elementary item, literal-1 is treated as if it were the figurative
 /// constant SPACE." GR3 says the same for "a boolean zero-length literal" and the figurative constant ZERO.
@@ -17,10 +17,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// which is why a large corpus never contradicted it — and stops coinciding exactly where it is not: a NUMERIC
 /// or NUMERIC-EDITED receiver under GR2 (<c>MOVE "" TO PIC 9(3)</c> stored 000 where <c>MOVE SPACE</c> stores
 /// the space fill) and an ALPHANUMERIC / NATIONAL one under GR3 (<c>MOVE B"" TO PIC X(3)</c> stored spaces where
-/// figurative ZERO stores "000", §8.3.3.6.4 GR4 over §14.9.25.4 Table 17).</para>
+/// figurative ZERO stores "000", §2023:8.3.3.6.4 GR4 over §2023:14.9.25.4 Table 17).</para>
 ///
 /// <para><b>Both directions are pinned here, because the fix is only correct if it moves the VALUE without
-/// moving the DIAGNOSTIC.</b> §14.9.25.3 SR5/SR6/SR7 are SYNTAX rules over a closed list of figurative constants
+/// moving the DIAGNOSTIC.</b> §2023:14.9.25.3 SR5/SR6/SR7 are SYNTAX rules over a closed list of figurative constants
 /// WRITTEN in the source, and a zero-length literal is not one of them: <c>MOVE "" TO PIC 9(3)</c> must still
 /// compile at every edition (where <c>MOVE SPACE TO PIC 9(3)</c> is COBOL0819, kb/Work PB3605), and <c>MOVE B"" TO PIC 9(3)</c>
 /// must still be refused on the BOOLEAN row of Table 16 rather than accepted as figurative ZERO.</para>
@@ -50,10 +50,10 @@ public sealed class ZeroLengthLiteralMoveTests
 
     /// <summary>GR2 across EVERY receiver category Table 16 admits for an alphanumeric sender — alphabetic,
     /// alphanumeric, alphanumeric-edited, boolean, national, numeric and numeric-edited. The values are the
-    /// figurative SPACE's, sized by §8.3.3.6.4 GR2 and then EDITED by §14.9.25.4 GR6 where the receiver edits
+    /// figurative SPACE's, sized by §2023:8.3.3.6.4 GR2 and then EDITED by §2023:14.9.25.4 GR6 where the receiver edits
     /// (<c>PIC XX/XX</c> takes its own insertion character). A BOOLEAN receiver takes DETERMINATION D-B2's
-    /// boolean zero — the standard gives figurative SPACE no boolean character value (§8.3.3.6.4 GR5) while
-    /// Table 17 gives it category boolean, and §14.6.8.6 fills a boolean receiver with zeros.</summary>
+    /// boolean zero — the standard gives figurative SPACE no boolean character value (§2023:8.3.3.6.4 GR5) while
+    /// Table 17 gives it category boolean, and §2023:14.6.8.6 fills a boolean receiver with zeros.</summary>
     [Fact]
     public void Gr2_AlphanumericZeroLengthLiteral_IsTheFigurativeSpace_AtEveryReceiverCategory()
     {
@@ -107,9 +107,9 @@ public sealed class ZeroLengthLiteralMoveTests
 
     /// <summary>⭐ THE EQUIVALENCE GR2 STATES, measured as one: whatever <c>MOVE SPACE TO x</c> produces,
     /// <c>MOVE "" TO x</c> produces — the two are the SAME statement, so no implementation may distinguish
-    /// them. The written SPACE is refused into a numeric or numeric-edited item at every edition (§14.9.25.3 SR5;
+    /// them. The written SPACE is refused into a numeric or numeric-edited item at every edition (§2023:14.9.25.3 SR5;
     /// kb/Work PB3605), so its side moves into the item's full-width reference-modified view, an alphanumeric item
-    /// over the same character positions (§8.4.3.3.4 GR6 c)), and the two images are compared.</summary>
+    /// over the same character positions (§2023:8.4.3.3.4 GR6 c)), and the two images are compared.</summary>
     [Fact]
     public void Gr2_AndMoveSpace_AreTheSameStatement()
     {
@@ -137,7 +137,7 @@ public sealed class ZeroLengthLiteralMoveTests
 
     /// <summary>GR3 across every receiver category Table 16 admits for a boolean sender — alphanumeric,
     /// alphanumeric-edited, boolean and national. The alphanumeric legs are the measurable ones: figurative
-    /// ZERO's alphanumeric character value is '0' (§8.3.3.6.4 GR4; Table 17 gives ZERO against an alphanumeric
+    /// ZERO's alphanumeric character value is '0' (§2023:8.3.3.6.4 GR4; Table 17 gives ZERO against an alphanumeric
     /// receiving operand the category alphanumeric), so <c>MOVE B"" TO PIC X(3)</c> is "000", not spaces.</summary>
     [Fact]
     public void Gr3_BooleanZeroLengthLiteral_IsTheFigurativeZero()
@@ -164,7 +164,7 @@ public sealed class ZeroLengthLiteralMoveTests
 
     /// <summary>GR2/GR3's own exclusion — "the receiving operand is other than a dynamic-length elementary
     /// item" — so a DYNAMIC LENGTH receiver keeps the zero-length value and its current length is 0
-    /// (§8.5.1.10.4). ⭐ And it is PER RECEIVER, which one statement with both kinds of receiver proves: the
+    /// (§2023:8.5.1.10.4). ⭐ And it is PER RECEIVER, which one statement with both kinds of receiver proves: the
     /// dynamic-length item is emptied and the numeric one takes the substituted SPACE, from one MOVE.</summary>
     [Fact]
     public void DynamicLengthReceiver_IsExcluded_PerReceiver()
@@ -183,9 +183,9 @@ public sealed class ZeroLengthLiteralMoveTests
 
     // ── GR1's zero-length-ITEM clause — the runtime half of the same substitution ─────────────────────────────
 
-    /// <summary>§14.9.25.4 GR1 — "If identifier-1 is a zero-length item, it is as if literal-1 were specified as
+    /// <summary>§2023:14.9.25.4 GR1 — "If identifier-1 is a zero-length item, it is as if literal-1 were specified as
     /// a zero-length literal", which lands in GR2. A DYNAMIC LENGTH sending item at current length zero
-    /// (§8.5.4 item 4) therefore stores the figurative SPACE into a numeric receiver, exactly as the written
+    /// (§2023:8.5.4 item 4) therefore stores the figurative SPACE into a numeric receiver, exactly as the written
     /// <c>MOVE ""</c> does; the same item at a non-zero length still converts normally, which is the half that
     /// proves the runtime test is a test and not a constant.</summary>
     [Fact]
@@ -210,7 +210,7 @@ public sealed class ZeroLengthLiteralMoveTests
         Assert.Equal("EMPTY-NU=[   ]\nEMPTY-NE=[   ]\nFULL-NU=[077]\nFULL-NE=[ 77]", Run(src, 2014));
     }
 
-    /// <summary>The same GR1 route through a FUNCTION-IDENTIFIER sender (§8.5.4 item 6 — "an intrinsic
+    /// <summary>The same GR1 route through a FUNCTION-IDENTIFIER sender (§2023:8.5.4 item 6 — "an intrinsic
     /// function that returns a zero-length value"). It works because GR1's OTHER sentence is honoured first:
     /// "the … function-identifier is evaluated only once", so <c>MoveBinder</c> freezes the result into the
     /// implementor's intermediate result item and the emitted length test reads THAT, never a second call.</summary>
@@ -230,12 +230,12 @@ public sealed class ZeroLengthLiteralMoveTests
         Assert.Equal("EMPTY=[   ]\nFULL=[012]", Run(src, 2014));
     }
 
-    // ── GR1's antecedent is CONDITIONAL — §8.5.4 decides which senders can satisfy it ────────────────────────
+    // ── GR1's antecedent is CONDITIONAL — §2023:8.5.4 decides which senders can satisfy it ────────────────────────
 
-    /// <summary>⛔ A NUMERIC function-identifier sender is NOT a §8.5.4 zero-length item, so GR1 never reaches
-    /// it and nothing about it may be frozen or re-described. §8.5.4 item 6 is "an intrinsic function that
-    /// returns a zero-length value", and §15.4 puts a numeric returned value in "a temporary elementary data
-    /// item" whose characteristics §15.4.1 leaves to the implementor — a number, with at least one digit
+    /// <summary>⛔ A NUMERIC function-identifier sender is NOT a §2023:8.5.4 zero-length item, so GR1 never reaches
+    /// it and nothing about it may be frozen or re-described. §2023:8.5.4 item 6 is "an intrinsic function that
+    /// returns a zero-length value", and §2023:15.4 puts a numeric returned value in "a temporary elementary data
+    /// item" whose characteristics §2023:15.4.1 leaves to the implementor — a number, with at least one digit
     /// position, never length zero.
     /// <para><b>Freezing on the SHAPE alone was a wrong answer, not a wasted temp.</b> The sender was hoisted
     /// into the implementor's numeric intermediate (<c>SendingValueTemp.FunctionValuePic</c>, 21 integer + 9
@@ -253,12 +253,12 @@ public sealed class ZeroLengthLiteralMoveTests
         Assert.Equal("FRAC=[0.123456789012345]", Run(src, 2014));
     }
 
-    /// <summary>⛔ A reference-modified sender is a §8.5.4 zero-length item only "when that has been permitted
+    /// <summary>⛔ A reference-modified sender is a §2023:8.5.4 zero-length item only "when that has been permitted
     /// by use of the compiler directive REF-MOD-ZERO-LENGTH" (item 9) — the trailing qualifier IS the rule,
-    /// because outside such a region §7.3.23.3 GR1 raises EC-BOUND-REF-MOD instead of producing a zero-length
+    /// because outside such a region §2023:7.3.23.3 GR1 raises EC-BOUND-REF-MOD instead of producing a zero-length
     /// item, so GR1's antecedent can never be satisfied there. Inside one, GR1 hands the slice to GR2 and the
     /// PIC 9(3) receiver takes the figurative SPACE's fill; the SAME reference modification at a non-zero
-    /// length is an ordinary alphanumeric-to-numeric elementary move (§14.9.25.4 GR5 / Table 16), which is what
+    /// length is an ordinary alphanumeric-to-numeric elementary move (§2023:14.9.25.4 GR5 / Table 16), which is what
     /// proves the runtime test is a test.</summary>
     [Fact]
     public void Gr1_ReferenceModifiedSender_IsAZeroLengthItemOnlyWhereTheDirectivePermitsIt()
@@ -281,7 +281,7 @@ public sealed class ZeroLengthLiteralMoveTests
 
     // ── The DIAGNOSTICS stay the LITERAL's ────────────────────────────────────────────────────────────────────
 
-    /// <summary>⛔ The value is the figurative's; the diagnostics are the literal's. §14.9.25.3 SR5 prohibits
+    /// <summary>⛔ The value is the figurative's; the diagnostics are the literal's. §2023:14.9.25.3 SR5 prohibits
     /// "the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or
     /// ALL symbolic-character) to either a numeric item or a numeric-edited item" — a CLOSED LIST of things
     /// written in the source; for SPACE the prohibition holds at every edition (kb/Work PB3605). A zero-length
@@ -294,17 +294,17 @@ public sealed class ZeroLengthLiteralMoveTests
     public void ZeroLengthLiteral_IntoNumeric_IsNotRefusedBySr5(int edition)
     {
         var zl = EditionHarness.Compile(Prog("ZLM08", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE \"\" TO R-NUM."), edition);
-        Assert.True(zl.Ok, "MOVE \"\" TO a numeric item is permitted — ISO §14.9.25.3 SR5 names only "
-            + "figurative constants written in the source; §14.9.25.4 GR2 substitutes a value: "
+        Assert.True(zl.Ok, "MOVE \"\" TO a numeric item is permitted — ISO §2023:14.9.25.3 SR5 names only "
+            + "figurative constants written in the source; §2023:14.9.25.4 GR2 substitutes a value: "
             + string.Join("\n", zl.Diagnostics));
         var fig = EditionHarness.Compile(Prog("ZLM09", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE SPACE TO R-NUM."), edition);
-        Assert.False(fig.Ok, "the WRITTEN figurative SPACE is refused by §14.9.25.3 SR5 at every edition");
+        Assert.False(fig.Ok, "the WRITTEN figurative SPACE is refused by §2023:14.9.25.3 SR5 at every edition");
         EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "COBOL0819");
-        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "§14.9.25.3 SR5");
+        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "§2023:14.9.25.3 SR5");
     }
 
     /// <summary>The Table 16 row read is the WRITTEN literal's category, never the substituted figurative's:
-    /// §14.9.25.3 SR10 / Table 16 gives a BOOLEAN sending operand "No" against a numeric and against an
+    /// §2023:14.9.25.3 SR10 / Table 16 gives a BOOLEAN sending operand "No" against a numeric and against an
     /// alphabetic receiving operand, and a NATIONAL one "No" against an alphanumeric receiver — refusals that
     /// would all evaporate if the screens saw figurative SPACE / ZERO instead.</summary>
     [Theory]
@@ -314,13 +314,13 @@ public sealed class ZeroLengthLiteralMoveTests
     public void ZeroLengthLiteral_KeepsItsOwnTable16Row(string pid, string ws, string proc)
     {
         var (ok, diagnostics) = EditionHarness.Compile(Prog(pid, ws, proc), 2014);
-        Assert.False(ok, "the zero-length literal's OWN category decides Table 16 (ISO §14.9.25.3 SR10)");
+        Assert.False(ok, "the zero-length literal's OWN category decides Table 16 (ISO §2023:14.9.25.3 SR10)");
         EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0819");
     }
 
     // ── GR1 IS ONE STATEMENT WITH GR2/GR3 — for EVERY receiver the rule's set contains (kb/Work PB943) ──────────
 
-    /// <summary>⛔ <b>THE DRIFT TEST FOR THE RECEIVER FILTER.</b> §14.9.25.4 GR1 — "If identifier-1 is a
+    /// <summary>⛔ <b>THE DRIFT TEST FOR THE RECEIVER FILTER.</b> §2023:14.9.25.4 GR1 — "If identifier-1 is a
     /// zero-length item, it is as if literal-1 were specified as a zero-length literal" — makes
     /// <c>MOVE zero-length-item TO R</c> and <c>MOVE zero-length-literal TO R</c> the SAME statement for every
     /// receiving operand GR2/GR3 name: "other than a dynamic-length elementary item". So instead of an expected
@@ -332,19 +332,19 @@ public sealed class ZeroLengthLiteralMoveTests
     /// character one). A new sender shape or receiver category is one line here, and the test cannot pass by
     /// accident: a receiver the route skips shows the group move's or the empty value's image instead.</summary>
     [Theory]
-    // an ALPHANUMERIC group (§8.5.4 item 1; §13.18.29.4 GR3) — Table 16 exempts it, so every category is admitted
+    // an ALPHANUMERIC group (§2023:8.5.4 item 1; §2023:13.18.29.4 GR3) — Table 16 exempts it, so every category is admitted
     [InlineData("ZLG1", "01 G. 05 GE PIC X OCCURS 0 TO 4 DEPENDING ON N.", "\"\"",
         "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
     // the same, of NATIONAL leaves — its storage image is bytes, two per national position (D-N1)
     [InlineData("ZLG2", "01 G. 05 GE PIC N USAGE NATIONAL OCCURS 0 TO 4 DEPENDING ON N.", "\"\"",
         "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
-    // a BIT group — an elementary BOOLEAN sender (§13.18.29.4 GR1 b)); GR3's ZERO; Table 16's Boolean row
+    // a BIT group — an elementary BOOLEAN sender (§2023:13.18.29.4 GR1 b)); GR3's ZERO; Table 16's Boolean row
     [InlineData("ZLG3", "01 G GROUP-USAGE BIT. 05 GE PIC 1 OCCURS 0 TO 8 DEPENDING ON N.", "B\"\"",
         "X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN")]
     // a NATIONAL group — an elementary NATIONAL sender (GR2 b)); GR2's SPACE; Table 16's National row
     [InlineData("ZLG4", "01 G GROUP-USAGE NATIONAL. 05 GE PIC N OCCURS 0 TO 4 DEPENDING ON N.", "N\"\"",
         "1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
-    // a DYNAMIC LENGTH item at length zero (§8.5.4 item 4)
+    // a DYNAMIC LENGTH item at length zero (§2023:8.5.4 item 4)
     [InlineData("ZLG5", "01 G PIC X DYNAMIC LENGTH LIMIT 9.", "\"\"",
         "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
     public void Gr1_ZeroLengthItem_IsTheWrittenLiteral_AtEveryReceiverOfGr2sSet(
@@ -364,6 +364,6 @@ public sealed class ZeroLengthLiteralMoveTests
         for (int i = 0; i < pics.Length; i++)
             Assert.True(lines[2 * i][1..] == lines[2 * i + 1][1..],
                 $"PIC {pics[i]}: the zero-length item stored {lines[2 * i]} but the zero-length literal GR1 says "
-                + $"it is AS IF stored {lines[2 * i + 1]} (ISO §14.9.25.4 GR1 → GR2/GR3)");
+                + $"it is AS IF stored {lines[2 * i + 1]} (ISO §2023:14.9.25.4 GR1 → GR2/GR3)");
     }
 }

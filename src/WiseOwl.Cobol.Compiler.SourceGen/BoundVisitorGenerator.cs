@@ -142,7 +142,7 @@ public sealed class BoundVisitorGenerator : IIncrementalGenerator
     ///
     /// <para><b>Why this exists (fix-queue PB26).</b> The former <c>EcBinder.DirectIntrinsic</c> hand-listed ~17 statement
     /// kinds and defaulted to <c>false</c>, so the EC-ARGUMENT-FUNCTION ambient gate was emitted for a statement
-    /// only if someone had remembered to add its arm. <b>ISO §15.3 item 14 attaches that condition to the FUNCTION
+    /// only if someone had remembered to add its arm. <b>ISO §2023:15.3 item 14 attaches that condition to the FUNCTION
     /// REFERENCE, with no statement-kind qualification anywhere</b> — so the identical reference raised in COMPUTE
     /// and was silent in STRING. A hand-maintained list where a structure belongs; this is the structure, and a
     /// statement kind added tomorrow is covered without an edit.</para>

@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ISO §8.4.6.3 2)'s COMMON-program exception is written ONCE, in <see cref="ProgramNameScope"/>, and BOTH scope
+/// ⛔ ISO §2023:8.4.6.3 2)'s COMMON-program exception is written ONCE, in <see cref="ProgramNameScope"/>, and BOTH scope
 /// implementations ask it (kb/Work PB1460): the bind-time AS NESTED table (<c>BinderDriver.NestedCallablesOf</c>) and
 /// the run-time resolver (<c>ProgramTable.ResolveVisible</c>). The bind-time table used to admit every COMMON child
 /// of every ancestor, so a CALL the resolver would never satisfy compiled clean.

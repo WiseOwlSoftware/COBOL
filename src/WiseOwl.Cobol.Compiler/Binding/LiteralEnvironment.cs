@@ -5,20 +5,20 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
-/// The compile-time context a §8.8.3 concatenation expression folds in (kb/Work PB1406): the two things an
+/// The compile-time context a §2023:8.8.3 concatenation expression folds in (kb/Work PB1406): the two things an
 /// operand's value depends on besides its own spelling.
 /// <list type="bullet">
-/// <item><b>The HIGH-VALUE / LOW-VALUE characters.</b> §8.3.3.6.4 GR6/GR7 make them the extremes of the collating
+/// <item><b>The HIGH-VALUE / LOW-VALUE characters.</b> §2023:8.3.3.6.4 GR6/GR7 make them the extremes of the collating
 /// sequence in effect, and that sequence is a property of WHERE the figurative is written: inside the SPECIAL-NAMES
-/// paragraph it is the NATIVE sequence selected by the clause's NATIONAL phrase (§12.3.7.4 GR10), everywhere else
-/// the program collating sequence of the operand's class (§12.3.7.4 GR8/GR9; the native pins when none is declared —
+/// paragraph it is the NATIVE sequence selected by the clause's NATIONAL phrase (§2023:12.3.7.4 GR10), everywhere else
+/// the program collating sequence of the operand's class (§2023:12.3.7.4 GR8/GR9; the native pins when none is declared —
 /// the <c>FigurativeConstants.FillChar</c> posture).</item>
-/// <item><b>The words that stand for a literal.</b> §13.10.3 SR2 lets a constant-name stand wherever a format
-/// specifies a literal of its class and category, and §12.3.7.4 GR11 a) makes a symbolic-character a figurative
-/// constant — the §8.8.3.1 format writes literal-1 / literal-2, so both are operands. They resolve through the
+/// <item><b>The words that stand for a literal.</b> §2023:13.10.3 SR2 lets a constant-name stand wherever a format
+/// specifies a literal of its class and category, and §2023:12.3.7.4 GR11 a) makes a symbolic-character a figurative
+/// constant — the §2023:8.8.3.1 format writes literal-1 / literal-2, so both are operands. They resolve through the
 /// program's own tables: a symbolic-character as the table stands at the fold, a constant-name through
 /// <c>ConstantEntryBinder.FindConstant</c>, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause
-/// orders a constant entry before its references; §13.10.3 SR4/SR5 forbid only circular dependence).</item>
+/// orders a constant entry before its references; §2023:13.10.3 SR4/SR5 forbid only circular dependence).</item>
 /// </list>
 /// ⛔ The constructor is private: an environment is obtained from one of the three NAMED contexts below, so a
 /// fold site cannot forget the national table or the word tables — the PB1406 defect was six fold sites (two in
@@ -30,7 +30,7 @@ internal sealed class LiteralEnvironment
     private readonly DataBinder? _data;
     private readonly AlphabetDef? _collate;
     private readonly NationalAlphabetDef? _natCollate;
-    /// <summary>True inside the SPECIAL-NAMES paragraph, where §12.3.7.4 GR10 makes HIGH-VALUE / LOW-VALUE the NATIVE
+    /// <summary>True inside the SPECIAL-NAMES paragraph, where §2023:12.3.7.4 GR10 makes HIGH-VALUE / LOW-VALUE the NATIVE
     /// extremes — "in the native national collating sequence, when the NATIONAL phrase is specified, or in the native
     /// alphanumeric collating sequence otherwise". Both native sequences are the 65,536 UTF-16 code units in code-unit
     /// order, so the phrase selects the same pair (<see cref="WiseOwl.Cobol.Runtime.NativeCollatingSequence"/>, owner
@@ -58,19 +58,19 @@ internal sealed class LiteralEnvironment
     public static LiteralEnvironment Program(DataBinder data) =>
         new(data, data.State.Configuration.Collating, data.State.Configuration.NationalCollating, false, false);
 
-    /// <summary>A literal written INSIDE the SPECIAL-NAMES paragraph (§12.3.7.4 GR10's native extremes — see
+    /// <summary>A literal written INSIDE the SPECIAL-NAMES paragraph (§2023:12.3.7.4 GR10's native extremes — see
     /// <see cref="_inSpecialNames"/>); <paramref name="refusesSymbolicCharacters"/>
-    /// is true for the literals §12.3.7.3 SR11 governs ("Literal-1, literal-2, literal-3, literal-4, literal-5,
+    /// is true for the literals §2023:12.3.7.3 SR11 governs ("Literal-1, literal-2, literal-3, literal-4, literal-5,
     /// literal-6, and literal-9 shall specify neither a symbolic-character figurative constant nor a zero-length
     /// literal").</summary>
     public static LiteralEnvironment SpecialNames(DataBinder data, bool refusesSymbolicCharacters) =>
         new(data, null, null, true, refusesSymbolicCharacters);
 
-    /// <summary>True where §12.3.7.3 SR11 forbids a symbolic-character operand.</summary>
+    /// <summary>True where §2023:12.3.7.3 SR11 forbids a symbolic-character operand.</summary>
     public bool RefusesSymbolicCharacters { get; }
 
     /// <summary>The HIGH-VALUE character a figurative of class <paramref name="cat"/> stands for here
-    /// (§8.3.3.6.4 GR6).</summary>
+    /// (§2023:8.3.3.6.4 GR6).</summary>
     public char HighValue(PicCategory cat) => _inSpecialNames
         ? WiseOwl.Cobol.Runtime.NativeCollatingSequence.HighValue
         : cat is PicCategory.National && _natCollate is { } nat ? nat.HighValue
@@ -78,17 +78,17 @@ internal sealed class LiteralEnvironment
         : WiseOwl.Cobol.Runtime.NativeCollatingSequence.HighValue;
 
     /// <summary>The LOW-VALUE character a figurative of class <paramref name="cat"/> stands for here
-    /// (§8.3.3.6.4 GR7).</summary>
+    /// (§2023:8.3.3.6.4 GR7).</summary>
     public char LowValue(PicCategory cat) => _inSpecialNames ? WiseOwl.Cobol.Runtime.NativeCollatingSequence.LowValue
         : cat is PicCategory.National && _natCollate is { } nat ? nat.LowValue
         : cat is not (PicCategory.National or PicCategory.Boolean) && _collate is { } alnum ? alnum.LowValue
         : '\0';
 
-    /// <summary>The constant-name <paramref name="word"/> names here, or null (§13.10.3 SR2).</summary>
+    /// <summary>The constant-name <paramref name="word"/> names here, or null (§2023:13.10.3 SR2).</summary>
     public ConstantDef? Constant(string word) => _data?.Constants.FindConstant(word);
 
     /// <summary>What <paramref name="word"/> stands for at a position that admits BOTH a literal and a system-name
-    /// (§13.10.3 SR2; ASSIGN's device-name-1 / literal-1, kb/Work PB2500): the constant it names, a refused constant
+    /// (§2023:13.10.3 SR2; ASSIGN's device-name-1 / literal-1, kb/Work PB2500): the constant it names, a refused constant
     /// entry, or no constant at all. <see cref="Unscoped"/> defines none, so every word is
     /// <see cref="ConstantReadingKind.NotAConstant"/> there.</summary>
     public ConstantReading ReadConstant(string word) => _data?.ReadConstant(word) ?? ConstantReading.NotAConstant;
@@ -98,8 +98,8 @@ internal sealed class LiteralEnvironment
     public bool IsSymbolicCharacter(string word) => _data is not null
         && (_inSpecialNames ? _data.SpecialNames.IsSymbolicCharacterName(word) : _data.SpecialNames.NamesSymbolic(word));
 
-    /// <summary>The ONE character a bound symbolic-character stands for (§12.3.7.4 GR11 b/c), or null when
+    /// <summary>The ONE character a bound symbolic-character stands for (§2023:12.3.7.4 GR11 b/c), or null when
     /// <paramref name="word"/> names none that is bound. A resolution: <paramref name="site"/>'s source element
-    /// records the word as used as a symbolic-character (§8.3.2.2; kb/Work PB3153).</summary>
+    /// records the word as used as a symbolic-character (§2023:8.3.2.2; kb/Work PB3153).</summary>
     public string? SymbolicValue(Antlr4.Runtime.RuleContext site, string word) => _data?.SpecialNames.SymbolicOf(site, word)?.Value;
 }

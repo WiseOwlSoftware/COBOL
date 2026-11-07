@@ -4,8 +4,8 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO/IEC 1989:2023 §13.18.60.2 - USAGE FUNCTION-POINTER is a COBOL-2014 usage. kb/Work PB848 made TO an
-      *> optional word in the three pointer usages (not underlined on the printed folio 503, §5.2.3), so
+      *> ISO/IEC 1989:2023 §2023:13.18.60.2 - USAGE FUNCTION-POINTER is a COBOL-2014 usage. kb/Work PB848 made TO an
+      *> optional word in the three pointer usages (not underlined on the printed folio 503, §2023:5.2.3), so
       *> `USAGE FUNCTION-POINTER PBF848N` is conforming at 2014+; this pins that the TO-less spelling does not
       *> leak below the edition that introduced the usage - the introduction gate still names it.
        IDENTIFICATION DIVISION.

@@ -5,10 +5,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB815 + PB814 — the procedure-division-header RAISING phrase (ISO §14.2.1) as the tuple it is printed
+/// kb/Work PB815 + PB814 — the procedure-division-header RAISING phrase (ISO §2023:14.2.1) as the tuple it is printed
 /// as, `{ exception-name-1 | [FACTORY OF] object-class-name-1 | interface-name-1 } …`, partitioned ONCE
-/// (<c>RaisingPhrase.Partition</c>) for program and METHOD-ID headers, and consumed by the GOBACK §14.9.18.3 SR4 /
-/// EXIT §14.9.14.3 SR5 identifier check. The end-to-end run (every alternative, both header arms, the
+/// (<c>RaisingPhrase.Partition</c>) for program and METHOD-ID headers, and consumed by the GOBACK §2023:14.9.18.3 SR4 /
+/// EXIT §2023:14.9.14.3 SR5 identifier check. The end-to-end run (every alternative, both header arms, the
 /// declaratives that catch each object) is the golden <c>2002/pb815_raising_factory_interface</c>; these cases pin
 /// the REJECTIONS each syntax rule owns and the two arms the golden does not reach — EXIT PROGRAM and the
 /// per-method header state.
@@ -28,9 +28,9 @@ public sealed class RaisingPhraseTupleTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>§14.2.2 SR9: "Interface-name-1 shall be the name of an interface specified in the REPOSITORY
+    /// <summary>§2023:14.2.2 SR9: "Interface-name-1 shall be the name of an interface specified in the REPOSITORY
     /// paragraph." The interface is DEFINED in the group but this program's REPOSITORY does not declare it, so
-    /// it is not an interface-name in this position (§8.4.6.4) — 0858.</summary>
+    /// it is not an interface-name in this position (§2023:8.4.6.4) — 0858.</summary>
     [Fact]
     public void HeaderRaising_InterfaceNotInRepository_0858()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -45,7 +45,7 @@ public sealed class RaisingPhraseTupleTests
             END INTERFACE IRPT1.
             """), "COBOL0858");
 
-    /// <summary>§14.2.1 prints `[ FACTORY OF ]` on the object-class-name-1 line only (§14.2.2 SR8 names that
+    /// <summary>§2023:14.2.1 prints `[ FACTORY OF ]` on the object-class-name-1 line only (§2023:14.2.2 SR8 names that
     /// operand a class) — `RAISING FACTORY OF &lt;interface&gt;` is not a printed spelling.</summary>
     [Fact]
     public void HeaderRaising_FactoryOfInterface_0858()
@@ -65,7 +65,7 @@ public sealed class RaisingPhraseTupleTests
             END INTERFACE IRPT2.
             """), "COBOL0858");
 
-    /// <summary>§14.2.2 SR8 on the FACTORY alternative, METHOD-ID arm: the class is not in the method's
+    /// <summary>§2023:14.2.2 SR8 on the FACTORY alternative, METHOD-ID arm: the class is not in the method's
     /// REPOSITORY scope — 0858 through the SAME partition the program arm uses.</summary>
     [Fact]
     public void MethodHeaderRaising_FactoryOfUndeclaredClass_0858()
@@ -108,13 +108,13 @@ public sealed class RaisingPhraseTupleTests
             END CLASS C{{pid}}.
             """;
 
-    /// <summary>§14.9.14.3 SR5 a), the EXIT PROGRAM arm of the shared check: the header's FACTORY phrase and
+    /// <summary>§2023:14.9.14.3 SR5 a), the EXIT PROGRAM arm of the shared check: the header's FACTORY phrase and
     /// identifier-1's agree (OF omitted on the header — it is an optional word).</summary>
     [Fact]
     public void ExitProgramRaising_FactoryOnBothEnds_Compiles()
         => Compiles(ExitProgramRaising("RPT4", "FACTORY CRPT4", "FACTORY OF CRPT4"));
 
-    /// <summary>§14.9.14.3 SR5 a): "the presence or absence of the FACTORY phrase shall be the same" — the header
+    /// <summary>§2023:14.9.14.3 SR5 a): "the presence or absence of the FACTORY phrase shall be the same" — the header
     /// lists the class WITH FACTORY, identifier-1 is an INSTANCE reference of it.</summary>
     [Fact]
     public void ExitProgramRaising_FactoryPresenceDiffers_4211()
@@ -122,13 +122,13 @@ public sealed class RaisingPhraseTupleTests
         var errors = ErrorsOf(ExitProgramRaising("RPT5", "FACTORY OF CRPT5", "CRPT5")
             .Replace("SET F TO CRPT5.", "INVOKE CRPT5 \"NEW\" RETURNING F."));
         EditionHarness.AssertHasDiagnostic(errors, "COBOL4211");
-        Assert.Contains(errors, e => e.Contains("§14.9.14.3 SR5a", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("§2023:14.9.14.3 SR5a", StringComparison.Ordinal));
     }
 
     /// <summary>A method IS a source element: each method's GOBACK is checked against ITS OWN header. The
     /// header state used to be loaded in the roster-registration loop, so both methods here were checked
     /// against M2's (empty) header and M1's legal `GOBACK RAISING EXCEPTION EC-USER-RPT6` drew COBOL0717
-    /// (§14.9.18.3 SR2).</summary>
+    /// (§2023:14.9.18.3 SR2).</summary>
     [Fact]
     public void MethodRaising_EachMethodChecksItsOwnHeader()
         => Compiles("""

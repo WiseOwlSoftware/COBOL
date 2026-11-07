@@ -15,14 +15,14 @@
       *>   LINAGE-COUNTER is implicitly incremented to exceed the value
       *>   specified by integer-1 or the data item referenced by
       *>   data-name-1."
-      *>                       -> OK  §13.18.34.4 7) c) 1.
+      *>                       -> OK  §2023:13.18.34.4 7) c) 1.
       *>   python scripts/spec/cite.py --check 14.9.51.4 "This occurs
       *>   when the associated LINAGE-COUNTER is equal to or exceeds the
-      *>   page size."           -> OK  §14.9.51.4 26)  (arm a)
+      *>   page size."           -> OK  §2023:14.9.51.4 26)  (arm a)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If, during the
       *>   successful execution of a WRITE statement with the NOT
       *>   END-OF-PAGE phrase, the end-of-page condition does not occur"
-      *>                       -> OK  §14.9.51.4 28)
+      *>                       -> OK  §2023:14.9.51.4 28)
       *> The counter passes the page size while it is reset, which is
       *> GR26 a)'s trigger, so GR28's NOT arm is not taken. The phrase
       *> itself is legal beside ADVANCING PAGE: SR18 bars the
@@ -32,7 +32,7 @@
       *>   END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the
       *>   LINAGE clause shall be specified in the file description
       *>   entry associated with the write file."
-      *>                       -> OK  §14.9.51.3 19)
+      *>                       -> OK  §2023:14.9.51.3 19)
       *> docs/CONFORMANCE.md §4 "DETERMINATION -- WRITE ADVANCING PAGE
       *> on a logical page is a page overflow".
       *>

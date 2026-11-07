@@ -5,12 +5,12 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// The Report Writer subsystem (ISO/IEC 1989:2023 §13.14–§13.18 report description clauses; §14.9.21 INITIATE /
-/// §14.9.16 GENERATE / §14.9.46 TERMINATE; §8.4.3.15 report counters; §14.9.49 Format 2 USE BEFORE REPORTING) —
+/// The Report Writer subsystem (ISO/IEC 1989:2023 §2023:13.14–§2023:13.18 report description clauses; §2023:14.9.21 INITIATE /
+/// §2023:14.9.16 GENERATE / §2023:14.9.46 TERMINATE; §2023:8.4.3.15 report counters; §2023:14.9.49 Format 2 USE BEFORE REPORTING) —
 /// the spec-pinned conformance net (REPORT_WRITER_DESIGN §8). Every expected value derives from the
 /// cited GR, NOT from the former legacy engine: the NIST RW goldens compare only the CCVS print file, never the RWCS
 /// report file, and the LEGACY'S REPORT-FILE CONTENT IS DEMONSTRABLY WRONG in two places this net pins as fixed
-/// (a §13.18.53.4 GR1 numeric SOURCE byte-copied left-justified instead of MOVEd through the printable PICTURE;
+/// (a §2023:13.18.53.4 GR1 numeric SOURCE byte-copied left-justified instead of MOVEd through the printable PICTURE;
 /// a blank <c>SOURCE LINE-COUNTER</c>). Counter behavior surfaces through MOVE-to-stdout; report CONTENT
 /// surfaces by reading the report file back through a second line-sequential SELECT on the same ASSIGN target.
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class ReportWriterConformanceTests
     /// <summary>⛔ THE WHOLE CLASS COMPILES AT --std 2023, AND THE OBSERVATION MECHANISM IS WHY (kb/Work PB688).
     /// Report Writer itself is a COBOL-85 subsystem, but every fact here is asserted by reading the report file
     /// back through a second SELECT with <c>ORGANIZATION LINE SEQUENTIAL</c> — and that organization is a
-    /// COBOL-2023 introduction (ISO §12.4.5.10.3 GR2; the Foreword lists "Line Sequential file organization"
+    /// COBOL-2023 introduction (ISO §2023:12.4.5.10.3 GR2; the Foreword lists "Line Sequential file organization"
     /// among the main changes over ISO/IEC 1989:2014), so below 2023 the read-back is COBOL0900. It cannot be
     /// swapped for a record-sequential read either: WiseOwl COBOL frames a report file as line-delimited text
     /// whatever the file's ORGANIZATION, while the record-sequential connector reads fixed-size records — so a
@@ -95,7 +95,7 @@ public sealed class ReportWriterConformanceTests
             STOP RUN.
         """;
 
-    // ── INITIATE (§14.9.21.4 GR1) ────────────────────────────────────────────────────────────────────────────
+    // ── INITIATE (§2023:14.9.21.4 GR1) ────────────────────────────────────────────────────────────────────────────
 
     [Fact]   // GR1b/GR1c: INITIATE sets LINE-COUNTER to 0 and PAGE-COUNTER to 1.
     public void Initiate_Gr1_CountersZeroAndOne()
@@ -113,9 +113,9 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """), "LC=000 PC=001");
 
-    // ── GENERATE placement + page advance (§14.9.16.4 GR4–GR6 / §13.18.35.4 GR4–GR6) ───────────────────────
+    // ── GENERATE placement + page advance (§2023:14.9.16.4 GR4–GR6 / §2023:13.18.35.4 GR4–GR6) ───────────────────────
 
-    [Fact]   // §13.18.35.4 GR5b3 + GR4 exemption: the chronologically FIRST body group takes NO page-fit test
+    [Fact]   // §2023:13.18.35.4 GR5b3 + GR4 exemption: the chronologically FIRST body group takes NO page-fit test
              // and, relative, lands at FIRST DETAIL (default = HEADING default = 1) — its PLUS 2 is IGNORED.
     public void FirstGenerate_Gr5b3_LandsAtFirstDetail_RelativeValueIgnored()
         => AssertSpec(Program("""
@@ -132,7 +132,7 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """), "LC=001");
 
-    [Fact]   // §13.18.35.4 GR4c page-fit (trial = LINE-COUNTER + Σ relative values vs LAST DETAIL) + §14.9.16.4
+    [Fact]   // §2023:13.18.35.4 GR4c page-fit (trial = LINE-COUNTER + Σ relative values vs LAST DETAIL) + §2023:14.9.16.4
              // GR6d/e + GR5b3: PAGE 5 (LAST DETAIL defaults 5), LINE PLUS 2 ⇒ lines 1,3,5; the fourth GENERATE
              // (trial 5+2=7 > 5) page-advances: PAGE-COUNTER 2, the body lands at FIRST DETAIL 1.
     public void PageFit_Gr4c_TrialSumOverflow_AdvancesAndResets()
@@ -153,7 +153,7 @@ public sealed class ReportWriterConformanceTests
                 DISPLAY "LC=" LC-V " PC=" PC-V.
             """), "LC=001 PC=001\nLC=003 PC=001\nLC=005 PC=001\nLC=001 PC=002");
 
-    // ── §13.18.53.4 GR1 content (the two legacy report-file bugs, pinned FIXED) ─────────────────────────────
+    // ── §2023:13.18.53.4 GR1 content (the two legacy report-file bugs, pinned FIXED) ─────────────────────────────
 
     [Fact]   // GR1: SOURCE is the sending operand of an implicit MOVE to the printable item — a PIC 9(3) item
              // sourcing a PIC 9(6) value 1 prints "001" (right-aligned numeric MOVE), NOT the legacy's "000"
@@ -170,7 +170,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "001");
 
-    [Fact]   // §13.18.35.4 GR6 + §13.18.53.4 GR3 (the load-bearing ordering): LINE-COUNTER is set to the line's
+    [Fact]   // §2023:13.18.35.4 GR6 + §2023:13.18.53.4 GR3 (the load-bearing ordering): LINE-COUNTER is set to the line's
              // number BEFORE the line composes, so a detail's SOURCE LINE-COUNTER prints its OWN line number.
     public void Source_Gr6_LineCounterComposesAfterCounterUpdate()
         => AssertSpec(Program("""
@@ -185,7 +185,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "03\n04");
 
-    [Fact]   // §13.18.35.4 GR6 on a PAGE HEADING (the RW103A shape): the PH's SOURCE LINE-COUNTER prints the
+    [Fact]   // §2023:13.18.35.4 GR6 on a PAGE HEADING (the RW103A shape): the PH's SOURCE LINE-COUNTER prints the
              // PH's own absolute line, and the first detail of each page lands at FIRST DETAIL.
     public void PageHeading_Gr6_SourcesItsOwnLine()
         => AssertSpec(Program("""
@@ -205,9 +205,9 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "PH 2\nDE 3\nDE 4\nPH 2\nDE 3");
 
-    // ── First-GENERATE sequence + heading/footing presentation (§14.9.16.4 GR4/GR6; §13.18.57.4 GR6) ───────
+    // ── First-GENERATE sequence + heading/footing presentation (§2023:14.9.16.4 GR4/GR6; §2023:13.18.57.4 GR6) ───────
 
-    [Fact]   // §14.9.16.4 GR4a/GR4b + GR6f: the report heading prints ONCE, before the first page's heading;
+    [Fact]   // §2023:14.9.16.4 GR4a/GR4b + GR6f: the report heading prints ONCE, before the first page's heading;
              // a page advance reprints the PH (GR6f) but never the RH.
     public void FirstGenerate_Gr4_RhOncePhPerPage()
         => AssertSpec(Program("""
@@ -227,9 +227,9 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "RH-1\nPH-1\nDE-1\nDE-1\nPH-1\nDE-1");
 
-    [Fact]   // §14.9.16.4 GR6a + §13.18.35.4 GR5b4: the page footing prints at the page advance (before the
+    [Fact]   // §2023:14.9.16.4 GR6a + §2023:13.18.35.4 GR5b4: the page footing prints at the page advance (before the
              // physical advance), placed at FOOTING + integer-2 (relative) — and again on the LAST page at
-             // TERMINATE (§13.18.57.4 GR6f), immediately followed by the report footing (§14.9.46.4 GR3c).
+             // TERMINATE (§2023:13.18.57.4 GR6f), immediately followed by the report footing (§2023:14.9.46.4 GR3c).
     public void PageAdvance_Gr6a_PfThenNewPage_TerminatePfRf()
         => AssertSpec(Program("""
             RD R-1 PAGE LIMIT IS 8 LINES HEADING 1 FIRST DETAIL 2 LAST DETAIL 4 FOOTING 6.
@@ -249,7 +249,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "DE-1\nDE-1\nDE-1\nPF-1\nDE-1\nPF-1\nRF-1");
 
-    // ── TERMINATE (§14.9.46.4 GR2/GR3) ───────────────────────────────────────────────────────────────────────
+    // ── TERMINATE (§2023:14.9.46.4 GR2/GR3) ───────────────────────────────────────────────────────────────────────
 
     [Fact]   // GR2: with NO GENERATE between INITIATE and TERMINATE, NO report group is processed — the report
              // file stays empty (PH/RF defined but never printed); the sole effect is active → inactive.
@@ -274,10 +274,10 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """), "EMPTY");
 
-    // ── CONTROL hierarchy (§13.18.16.4 GR3/GR4; §14.9.16.4 GR4c/GR5a; §14.9.46.4 GR3a/b) ────────────────────
+    // ── CONTROL hierarchy (§2023:13.18.16.4 GR3/GR4; §2023:14.9.16.4 GR4c/GR5a; §2023:14.9.46.4 GR3a/b) ────────────────────
 
-    [Fact]   // §14.9.16.4 GR4c (CH on the first GENERATE) + GR5a (break: CF then CH) + §13.18.16.4 GR4a (the CF
-             // composes with the PRIOR control value restored; the CH with the new) + §14.9.46.4 GR3b (TERMINATE
+    [Fact]   // §2023:14.9.16.4 GR4c (CH on the first GENERATE) + GR5a (break: CF then CH) + §2023:13.18.16.4 GR4a (the CF
+             // composes with the PRIOR control value restored; the CH with the new) + §2023:14.9.46.4 GR3b (TERMINATE
              // prints the final CF as a most-major break, with the last group's values).
     public void ControlBreak_Gr4a_CfSeesPriorValue_ChSeesNew()
         => AssertSpec(Program("""
@@ -300,7 +300,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack), "CH 1\nDE 1\nCF 1\nCH 2\nDE 2\nCF 2");
 
-    // ── SUM counters (§13.18.54.4 GR2/GR3/GR7) ──────────────────────────────────────────────────────────────
+    // ── SUM counters (§2023:13.18.54.4 GR2/GR3/GR7) ──────────────────────────────────────────────────────────────
 
     [Fact]   // GR7c1 (accumulate on every GENERATE) + GR2 (reset at the end of the group it prints in) + the
              // GR7 ordering (the CF printed at a break shows the ENDED group's total — accumulation of the
@@ -352,17 +352,17 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack5), "D1\nD2\nCF 05");
 
-    // ── PRESENT WHEN (§13.18.41 Format 1; P10 Step 13 — a COBOL-2002 clause) ────────────────────────────────
+    // ── PRESENT WHEN (§2023:13.18.41 Format 1; P10 Step 13 — a COBOL-2002 clause) ────────────────────────────────
     // These two used to compile at --std 2002 through their own AssertSpec2002 helper, to say "PRESENT WHEN is
     // 2002 surface". They now share the class's 2023 compiler, because the READ-BACK the whole class observes
     // through is a 2023 organization (see the WiseOwl.Cobol field): a program carrying it is not expressible at 2002
     // at all, so the helper's name was the only thing asserting the edition. 2002-and-later coverage of PRESENT
     // WHEN itself is the constructs.json (construct × edition) matrix's job, not this net's.
 
-    [Fact]   // §13.18.41.4 GR3g / §13.18.54.4 GR10: a SUM entry absent under its PRESENT WHEN is neither
+    [Fact]   // §2023:13.18.41.4 GR3g / §2023:13.18.54.4 GR10: a SUM entry absent under its PRESENT WHEN is neither
              // printed nor reset for that instance of the report group — the counter carries its accumulation
              // forward; the next PRESENT instance prints the carried total and resets (no RESET phrase ⇒
-             // reset where printed, §13.18.54.4 GR2). Addends 5 (absent), 3, 2 print blank, 08, 02.
+             // reset where printed, §2023:13.18.54.4 GR2). Addends 5 (absent), 3, 2 print blank, 08, 02.
     public void PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets()
         => AssertSpec(Program("""
             RD R-1 PAGE LIMIT IS 20 LINES.
@@ -385,7 +385,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack5), "D:\nD: 08\nD: 02");
 
-    // ── USE BEFORE REPORTING (§14.9.49 Format 2 GR8) ────────────────────────────────────────────────────────
+    // ── USE BEFORE REPORTING (§2023:14.9.49 Format 2 GR8) ────────────────────────────────────────────────────────
 
     [Fact]   // GR8: the declarative is invoked just before the named report group is produced — a MOVE in it is
              // visible to the group's SOURCE items (the PD stores 0; the declarative overrides to 7).
@@ -435,10 +435,10 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "DE 7");
 
-    [Fact]   // §14.9.49.4 GR8 invokes THE DECLARATIVE, and §14.9.49.3 SR1 makes that "the remainder of the
+    [Fact]   // §2023:14.9.49.4 GR8 invokes THE DECLARATIVE, and §2023:14.9.49.3 SR1 makes that "the remainder of the
              // section": BR-P1 and BR-P2 both run, so the group sees 7. The Format-2 hook is a SEPARATE selection
              // path from the F1/F3 dispatchers and it took the same truncated range — a handler end derived from
-             // paragraph shape stopped at BR-EX and the group would see 3 (kb/Work PB367). §14.9.14.4 GR7 sends
+             // paragraph shape stopped at BR-EX and the group would see 3 (kb/Work PB367). §2023:14.9.14.4 GR7 sends
              // BR-LAST's EXIT SECTION to the return mechanism after the section's last paragraph, so BR-TAIL —
              // which would set 9 and STOP the run — never runs.
     public void UseBeforeReporting_UseProcedureIsTheWholeSection()
@@ -496,17 +496,17 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "DE 7");
 
-    [Fact]   // §14.9.49.4 GR8 — "The declarative is invoked just before the named report group is produced" —
+    [Fact]   // §2023:14.9.49.4 GR8 — "The declarative is invoked just before the named report group is produced" —
              // for ALL SEVEN report-group types, not just the detail one (kb/Work PB367b: the engine installs the
              // hook per group and invokes it as the first act of every presentation path, but only the DETAIL
              // path had a witness, so the RH / PH / CH / CF / PF / RF invocations were unverified in both
              // directions). Each declarative writes its OWN digit into WS-F and each group SOURCEs WS-F, so a
              // group can only print its own digit if ITS declarative ran immediately before IT was produced —
              // a hook wired to the wrong group, or invoked once for the whole page, prints a neighbour's digit.
-             // The ORDER is the standard's own: §14.9.16.4 GR4 a)–d) (the chronologically first GENERATE prints
+             // The ORDER is the standard's own: §2023:14.9.16.4 GR4 a)–d) (the chronologically first GENERATE prints
              // the report heading, then a page heading, then each control heading, then the detail) followed by
-             // §14.9.46.4 GR3 b)/c) (TERMINATE prints each control footing, then the report footing) with
-             // §13.18.57.4 GR6 f) placing the page footing as "the last report group on each page" and adding
+             // §2023:14.9.46.4 GR3 b)/c) (TERMINATE prints each control footing, then the report footing) with
+             // §2023:13.18.57.4 GR6 f) placing the page footing as "the last report group on each page" and adding
              // that "If a report footing is defined and is not on a page by itself, the page footing on the last
              // page is immediately followed by the report footing".
     public void UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative()
@@ -592,7 +592,7 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "RH 1\nPH 2\nCH 3\nDE 4\nCF 5\nPF 6\nRF 7");
 
-    [Fact]   // §14.9.49.4 GR9 a) and b) — the two logical points that fix WHEN the declarative runs relative to
+    [Fact]   // §2023:14.9.49.4 GR9 a) and b) — the two logical points that fix WHEN the declarative runs relative to
              // the rest of a GENERATE, and which had no witness at all (kb/Work PB367b).
              // GR9 a) "After any control break processing, if the associated report group is a detail and the
              // associated report description has a CONTROL clause": BR-DE writes 09 into WS-SEEN and no control
@@ -603,11 +603,11 @@ public sealed class ReportWriterConformanceTests
              // (WS-AMT 1 → 5), which is observable precisely because of the ordering GR9 b) asserts. The control
              // footing printed at the break still shows 01 — the increments belonging to that instance were all
              // applied before its declarative ran — and the breaking GENERATE's own increment, which
-             // §14.9.16.4 GR5 a) places after the break processing, therefore picks up the 5 the declarative
-             // wrote, so the TERMINATE footing (§14.9.46.4 GR3 b) shows 05. Had the declarative run before the
+             // §2023:14.9.16.4 GR5 a) places after the break processing, therefore picks up the 5 the declarative
+             // wrote, so the TERMINATE footing (§2023:14.9.46.4 GR3 b) shows 05. Had the declarative run before the
              // increments of its own instance, the break footing would read 05 as well.
              // ⚠ The DIRECT observable for GR9 b) — a declarative reading its group's own sum counter
-             // (§13.18.54.4 GR5 + GR12) — is not available: a named sum counter is rejected as undefined in the
+             // (§2023:13.18.54.4 GR5 + GR12) — is not available: a named sum counter is rejected as undefined in the
              // procedure division (COBOL1639). That is a separate defect, reported with kb/Work PB367b.
     public void UseBeforeReporting_Gr9ab_AfterBreakProcessingAndAfterSumIncrement()
         => AssertSpec("""
@@ -669,18 +669,18 @@ public sealed class ReportWriterConformanceTests
 
     [Fact]   // THE DETERMINATION kb/Work PB367b records: a USE BEFORE REPORTING declarative runs BEFORE the
              // group's PRESENT WHEN conditions are evaluated, so it can decide its own group's presence.
-             // The standard fixes neither event relative to the other — §14.9.49.4 GR9 d) performs the
+             // The standard fixes neither event relative to the other — §2023:14.9.49.4 GR9 d) performs the
              // declarative "Before the processing of any LINE clauses defined for the report group" and
-             // §13.18.41.4 GR2 evaluates condition-1 "before the processing of any LINE clauses for the report
-             // group", the SAME boundary — and both precede the page fit test (§14.9.49.4 GR9 c) and
-             // §13.18.41.4 GR3 d), which disregards absent lines). The order is therefore the implementor's, and
+             // §2023:13.18.41.4 GR2 evaluates condition-1 "before the processing of any LINE clauses for the report
+             // group", the SAME boundary — and both precede the page fit test (§2023:14.9.49.4 GR9 c) and
+             // §2023:13.18.41.4 GR3 d), which disregards absent lines). The order is therefore the implementor's, and
              // this one is chosen because the reverse makes a declarative's execution depend on data the
-             // declarative is itself there to set: condition-1 is any condition (§13.18.41.2), typically over
+             // declarative is itself there to set: condition-1 is any condition (§2023:13.18.41.2), typically over
              // exactly the items GR8's "just before the named report group is produced" exists to let the
              // procedure prepare. Under the reverse order a level-01 PRESENT WHEN would silently suppress the
              // procedure that would have made the group present, and no rule would let the program say so.
              // WS-ON starts 0 — absent, "as though the entire report group description were omitted"
-             // (§13.18.41.4 GR2 b) — and only BR-DE makes it 1, so the printed line IS the determination.
+             // (§2023:13.18.41.4 GR2 b) — and only BR-DE makes it 1, so the printed line IS the determination.
     public void UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated()
         => AssertSpec("""
             IDENTIFICATION DIVISION.
@@ -728,7 +728,7 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "DE 4");
 
-    // ── Counter referencing rules (§8.4.3.15) ───────────────────────────────────────────────────────────────
+    // ── Counter referencing rules (§2023:8.4.3.15) ───────────────────────────────────────────────────────────────
 
     [Fact]   // SR3: LINE-COUNTER shall not be referenced as a receiving operand — a bind-time rejection, never a
              // silently-dropped receiver.
@@ -745,7 +745,7 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
                 STOP RUN.
             """));
-        Assert.False(ok, "MOVE … TO LINE-COUNTER must be rejected (ISO §8.4.3.15.3 SR3)");
+        Assert.False(ok, "MOVE … TO LINE-COUNTER must be rejected (ISO §2023:8.4.3.15.3 SR3)");
         Assert.Contains("LINE-COUNTER", detail);
     }
 }

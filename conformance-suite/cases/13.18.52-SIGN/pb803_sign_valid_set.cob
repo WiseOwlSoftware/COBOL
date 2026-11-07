@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.52.4 GR5 — a signed numeric item whose SIGN clause omits SEPARATE CHARACTER
+      *> ISO §2023:13.18.52.4 GR5 — a signed numeric item whose SIGN clause omits SEPARATE CHARACTER
       *> (Annex A.1 item 178; kb/Work PB803, owner decision 2026-09-09).
       *>
-      *> THE RULE, both halves.  §13.18.52.4 GR5: "If the SEPARATE CHARACTER phrase is not
+      *> THE RULE, both halves.  §2023:13.18.52.4 GR5: "If the SEPARATE CHARACTER phrase is not
       *> specified, then:  a) The operational sign is presumed to be associated with the leading
       *> (or, respectively, trailing) digit position of the data item to which it applies.
       *> b) The implementor defines what constitutes valid signs for data items."
       *> a) is NORMATIVE and carries no latitude: the sign is associated with a DIGIT position, so
-      *> it adds no character position.  b) is the whole of A.1 item 178, and §8.8.4.4.4 GR3 n)1.a
+      *> it adds no character position.  b) is the whole of A.1 item 178, and §2023:8.8.4.4.4 GR3 n)1.a
       *> delegates the NUMERIC class condition to it: "the condition is true if the presence or
       *> absence of an operational sign in the content of the data item ... is in agreement with the
       *> data description ... and if the content, except for the operational sign, consists entirely
@@ -21,7 +21,7 @@
       *> SIGN clause."
       *>
       *> ⛔ GR5 AND GR6 ARE MUTUALLY EXCLUSIVE BY THEIR OWN ANTECEDENTS, so every leg below writes a
-      *> SIGN clause WITHOUT SEPARATE.  A `SIGN IS TRAILING SEPARATE` leg would pin §13.18.52.4 GR6,
+      *> SIGN clause WITHOUT SEPARATE.  A `SIGN IS TRAILING SEPARATE` leg would pin §2023:13.18.52.4 GR6,
       *> a different rule with no implementor latitude at all ("The operational signs for positive
       *> and negative are the basic special characters '+' and '-'").
       *>
@@ -45,7 +45,7 @@
       *> Every ACCEPTED leg also prints the algebraic value, so the class test and the value are
       *>   pinned to agree: `12{` is +120 and `12}` is -120 -- table position 0 is the digit 0, not
       *>   a sign-only character.  A REFUSED leg prints no value: what a numeric operation makes of
-      *>   incompatible content is §14.6.13.2's question, not this rule's, and pinning it here would
+      *>   incompatible content is §2023:14.6.13.2's question, not this rule's, and pinning it here would
       *>   file one determination under another's number.
       *> The L legs repeat the set at the LEADING position, which is GR5 a)'s "or, respectively":
       *>   the same table, read at the other end of the item.  ⛔ THEIR VALUES ARE 323 / -323 / 023,

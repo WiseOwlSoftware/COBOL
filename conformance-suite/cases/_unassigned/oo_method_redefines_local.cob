@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §11.7 / §13.18.44 — REDEFINES in a METHOD's LOCAL-STORAGE (M2-OO-1h step 3). A subordinate (02)
+      *> ISO §2023:11.7 / §2023:13.18.44 — REDEFINES in a METHOD's LOCAL-STORAGE (M2-OO-1h step 3). A subordinate (02)
       *> REDEFINES over a method record leaf (PARTS over FULL), and a 01-level Tier-B REDEFINES (NCHARS X(4) over
       *> NUM 9(4)) whose string backing is a METHOD LOCAL. Targets resolve within the method's own scope.
        IDENTIFICATION DIVISION.

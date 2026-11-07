@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB412 — MORE THAN ONE PROCEDURE-NAME AND NO DEPENDING PHRASE. §14.9.17.2 prints exactly two general
+*> kb/Work PB412 — MORE THAN ONE PROCEDURE-NAME AND NO DEPENDING PHRASE. §2023:14.9.17.2 prints exactly two general
 *> formats (canonical PDF page 660 / printed folio 630, rendered at 190 dpi because the diagram is
 *> load-bearing): Format 1 is `GO TO procedure-name-1` — ONE procedure-name, UNBRACKETED, and no DEPENDING —
 *> and Format 2 is `GO TO { procedure-name-1 } … DEPENDING ON identifier-1`, whose DEPENDING is underlined and

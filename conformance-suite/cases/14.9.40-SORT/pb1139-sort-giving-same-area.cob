@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1139 - TWO GIVING FILES OF ONE SORT IN THE SAME SAME AREA CLAUSE ARE REFUSED.
       *>   cite.py --check 14.9.40.3 "File-names associated with the GIVING phrase shall not be specified in the same
-      *>     SAME AREA clause." -> OK §14.9.40.3 10)
+      *>     SAME AREA clause." -> OK §2023:14.9.40.3 10)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139H.
        ENVIRONMENT DIVISION.

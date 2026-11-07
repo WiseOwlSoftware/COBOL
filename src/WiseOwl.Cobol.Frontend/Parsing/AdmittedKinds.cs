@@ -15,8 +15,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// its converse). The parse at the token knows what it expects: the tokens its configurations take, with their
 /// predicates evaluated there, and the context words the refusing text predicates tested
 /// (<c>CobolErrorStrategy.ResimulationWalk.AdmittedAt</c>). This names both sides in the standard's terms — keywords and
-/// context words, the literal categories of §8.3.3.1 ("alphanumeric, boolean, national, or numeric", with the integer
-/// literal of §8.3.3.3.2 among the numeric ones), a figurative constant — so every position of every general format is
+/// context words, the literal categories of §2023:8.3.3.1 ("alphanumeric, boolean, national, or numeric", with the integer
+/// literal of §2023:8.3.3.3.2 among the numeric ones), a figurative constant — so every position of every general format is
 /// named the same way, and a format added tomorrow is named the day it is added, with no table of statements or
 /// clauses.
 /// <para>⚠ WHAT THE PARSE EXPECTS, NOT WHAT THE STANDARD PRINTS. The grammar parses a superset of each general format
@@ -26,17 +26,17 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// word, and never "the general format admits only".</para>
 /// <para>⛔ EXCEPT FOR THE WORDS THE TARGETED EDITION DOES NOT HAVE (kb/Work PB4174). The grammar is the superset of the
 /// four editions, so its expected set holds the 2002 boolean operators at COBOL-85 and the 2023 shift operators below
-/// 2023 — words ISO §8.9 has not reserved there, which §8.3.2.1 makes user-defined words. A keyword is named only where
+/// 2023 — words ISO §2023:8.9 has not reserved there, which §2023:8.3.2.1 makes user-defined words. A keyword is named only where
 /// <c>theEditionPrints</c> says a general format of the compile edition can print it
-/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §8.9 table or the §8.10 row's <c>Introduced</c> edition
+/// (<c>CobolParserCoreBase.PrintsKeyword</c>: not a word the §2023:8.9 table or the §2023:8.10 row's <c>Introduced</c> edition
 /// proves a LATER edition introduced); the symbols and literal categories carry no edition and are named as the parse
 /// takes them.</para>
-/// <para>⛔ A NOISE WORD IS NOT AN ALTERNATIVE (kb/Work PB4225). ISO §8.3.2.4.3: "Within each format, uppercase words that
+/// <para>⛔ A NOISE WORD IS NOT AN ALTERNATIVE (kb/Work PB4225). ISO §2023:8.3.2.4.3: "Within each format, uppercase words that
 /// are not underlined are called optional words and may be specified at the user's option with no effect on the
 /// semantics of the format." A word after which the parse admits exactly what it admitted without the word
 /// (<c>aWordChangesNothing</c>: the IS of <c>USAGE [IS] usage</c>) is left out of the expected words, unless it is all
 /// there is to name.</para>
-/// <para>Five shapes, one rule (ISO §5.2.1: the elements of a general format are written in its sequence):</para>
+/// <para>Five shapes, one rule (ISO §2023:5.2.1: the elements of a general format are written in its sequence):</para>
 /// <list type="bullet">
 ///   <item><b>A closed position</b>: everything it expects can be named — no user-defined word, no separator period
 ///         (the construct cannot end here), no statement (a position where a statement may begin expects EVERY
@@ -48,7 +48,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///         statement may begin there and that the token cannot, and lists nothing else the position takes: a position
 ///         that follows an operand also takes what would lengthen it (<c>IF W-N = 1 5</c>: AND, OR, an operator), which
 ///         the parser has already left behind. A statement "begins with the first word of the statement name"
-///         (§14.5.3.1), the names are Table 12's (§14.5.1), and neither a literal nor a user-defined word is one.</item>
+///         (§2023:14.5.3.1), the names are Table 12's (§2023:14.5.1), and neither a literal nor a user-defined word is one.</item>
 ///   <item><b>A literal at an open position that takes an operand</b> (a user-defined word or some literal): the
 ///         literals it expects are named, or that it expects none (<c>SET W-N TO "A"</c> expects a numeric literal,
 ///         never an alphanumeric one; <c>CALL "P" RETURNING 5</c> no literal).</item>
@@ -74,7 +74,7 @@ internal static class AdmittedKinds
     /// is not named. <paramref name="aUserWordIsPrinted"/> is false where every user-defined word the position takes stands
     /// where a format specifies a literal and the compile edition has no constant-name to write there (kb/Work PB4435):
     /// the word is then no alternative to name. <paramref name="aWordChangesNothing"/> says whether a word, written there, leaves the parse
-    /// admitting exactly what it admitted without it (the optional word of §8.3.2.4.3, kb/Work PB4225), and such a word
+    /// admitting exactly what it admitted without it (the optional word of §2023:8.3.2.4.3, kb/Work PB4225), and such a word
     /// is no alternative to name. <paramref name="whatTheConstructBeforeCouldTake"/> is what the construct the parser
     /// completed just before the token could still take, or null where none was (the operand arm says an operand is due
     /// only where nothing of it is missing from <paramref name="admitted"/>, kb/Work PB4426). <paramref name="anOperandIsDue"/> is true when the sentence says that the element before
@@ -111,7 +111,7 @@ internal static class AdmittedKinds
             return null;   // nothing the position expects can be named, so nothing is said
         if (!named.Open)
             return $"{written} is not expected here: expected {Join([.. named.Words, .. named.Literals, .. named.Symbols])} "
-                   + "(ISO §5.2.1).";
+                   + "(ISO §2023:5.2.1).";
         if (admitted.Contains(CobolLexer.DOT) && aPeriodLetsTheSentenceFollow())
             return null;
         // A literal's category is the fault only where the position takes an operand: a user-defined word or a literal of
@@ -119,16 +119,16 @@ internal static class AdmittedKinds
         // no operand at all, and saying "no literal" would call it one.
         if (IsLiteral(token.Type) && (admitted.Contains(CobolLexer.IDENTIFIER) || named.Literals.Count > 0))
             return named.Literals.Count == 0
-                ? $"{written} is not expected here: no literal is expected at this position (ISO §5.2.1)."
+                ? $"{written} is not expected here: no literal is expected at this position (ISO §2023:5.2.1)."
                 : $"{written} is not expected here: of the literals, only {Join(named.Literals)} is expected at this "
-                  + "position (ISO §5.2.1).";
+                  + "position (ISO §2023:5.2.1).";
         if (token.Type == CobolLexer.IDENTIFIER && !admitted.Contains(CobolLexer.IDENTIFIER) && named.Literals.Count > 0)
             return $"{written} is not expected here: no user-defined word is expected at this position, and of the "
-                   + $"literals only {Join(named.Literals)} (ISO §5.2.1).";
+                   + $"literals only {Join(named.Literals)} (ISO §2023:5.2.1).";
         // A statement position takes neither a literal nor a user-defined word: a statement begins with the first word of
-        // its statement name (§14.5.3.1; the names are Table 12's, §14.5.1), and that is a reserved word.
-        // A figurative constant is a literal too (§8.3.3.1: "A literal is defined by a reserved word that references a
-        // figurative constant or is a character-string"), the `ALL literal-1` format of §8.3.3.6.2 included.
+        // its statement name (§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1), and that is a reserved word.
+        // A figurative constant is a literal too (§2023:8.3.3.1: "A literal is defined by a reserved word that references a
+        // figurative constant or is a character-string"), the `ALL literal-1` format of §2023:8.3.3.6.2 included.
         // ⛔ THE SENTENCE SAYS WHAT THE TOKEN IS NOT, NEVER WHAT THE POSITION TAKES (kb/Work PB4224, review R1-1). A statement
         // position that directly follows an operand (an IF condition, an EVALUATE selection object) also takes what would
         // lengthen it (AND, OR, an operator, THRU), which the parse has already left behind: the parser stands after the
@@ -139,13 +139,13 @@ internal static class AdmittedKinds
         if (named.Statement && (literal || token.Type == CobolLexer.IDENTIFIER))
             return $"{written} is not expected here: a statement may begin at this position, and a statement begins with the "
                    + $"first word of its statement name, which {(literal ? "a literal" : "a user-defined word")} is not "
-                   + "(ISO §14.5.3.1; the names are Table 12's, §14.5.1).";
+                   + "(ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
         // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the position takes a user-defined word or a
         // literal, and a keyword of the next phrase (the TIMES of `OCCURS 0 TO TIMES`, the WHEN of `DISPLAY WHEN OTHER`)
         // was written instead: the element before it is incomplete, and what it needs is the position's own. Not at a
         // position where a statement may begin, which the arm above words, and said only when the position takes an
         // operand at all (a keyword where nothing but words are due is the phrase out of its sequence, not a missing one).
-        // The user-defined word is ONE element: the context-sensitive words `cobolWord` also takes (§8.10: a user-defined
+        // The user-defined word is ONE element: the context-sensitive words `cobolWord` also takes (§2023:8.10: a user-defined
         // word at the position) are spellings of it, not alternatives to list. Where it can only be a constant-name and the
         // edition has none (COBOL-85, kb/Work PB4435), it is not named at all.
         // ⛔ SAID ONLY OF A POSITION THAT TAKES NOTHING BUT AN OPERAND (kb/Work PB4426). A punctuation mark or an operator in
@@ -172,13 +172,13 @@ internal static class AdmittedKinds
             anOperandIsDue = true;
             return $"{written} is not expected here: expected "
                    + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
-                   + "(ISO §5.2.1).";
+                   + "(ISO §2023:5.2.1).";
         }
         return null;
     }
 
     /// <summary>The context-sensitive words the <c>cobolWord</c> rule takes as user-defined words besides
-    /// <c>IDENTIFIER</c> (ISO §8.10, §8.3.2.1): FIRST(<c>cobolWord</c>) without it. Where a position admits a user-defined
+    /// <c>IDENTIFIER</c> (ISO §2023:8.10, §2023:8.3.2.1): FIRST(<c>cobolWord</c>) without it. Where a position admits a user-defined
     /// word they are that element, never an alternative of their own.</summary>
     private static IntervalSet UserWordSpellings => _userWordSpellings ??= BuildUserWordSpellings();
 
@@ -214,9 +214,9 @@ internal static class AdmittedKinds
         => _familyFirsts ??= [.. Families.Select(f => (UnguardedFirst(CobolParserCore._ATN, f.Rule),
                CobolParserCore._ATN.NextTokens(CobolParserCore._ATN.ruleToStartState[f.Rule])))];
 
-    /// <summary>The figurative-constant words, each a literal (ISO §8.3.3.1: "A literal is defined by a reserved word
+    /// <summary>The figurative-constant words, each a literal (ISO §2023:8.3.3.1: "A literal is defined by a reserved word
     /// that references a figurative constant or is a character-string …"): FIRST(<c>figurativeConstant</c>) but its ALL
-    /// prefix, and ZERO_ARITH, the ZERO the token rewriter marks arithmetic (§8.8.1.1: an arithmetic expression may be
+    /// prefix, and ZERO_ARITH, the ZERO the token rewriter marks arithmetic (§2023:8.8.1.1: an arithmetic expression may be
     /// "the figurative constant ZERO (ZEROS, ZEROES)"), which a ZERO written at the refused token becomes
     /// (<see cref="Refusal"/>). A position that takes some of them, not the whole family,
     /// names each as a figurative constant among its literals.</summary>
@@ -225,7 +225,7 @@ internal static class AdmittedKinds
     private static IntervalSet? _figurativeWords;
 
     /// <summary>Every token a figurative constant opens with: <see cref="FigurativeWords"/> and ALL, the required word of
-    /// Format 6, <c>ALL literal-1</c> (ISO §8.3.3.6.2). ALL is no figurative word to NAME (a position that takes it names
+    /// Format 6, <c>ALL literal-1</c> (ISO §2023:8.3.3.6.2). ALL is no figurative word to NAME (a position that takes it names
     /// the literal), but a figurative constant to RECOGNISE in the token written.</summary>
     private static IntervalSet FigurativeStarts => _figurativeStarts ??= BuildFigurativeStarts();
 
@@ -285,7 +285,7 @@ internal static class AdmittedKinds
         {
             if (type is CobolLexer.IDENTIFIER or CobolLexer.DOT or TokenConstants.EOF || !ListedByName(type)) continue;
             if (LiteralTokens.CategoryOf(type) is { } kind) Add(literals, Article(kind));
-            // The one character-string that is neither a word nor a literal (ISO §8.3.1: "A character-string is a
+            // The one character-string that is neither a word nor a literal (ISO §2023:8.3.1: "A character-string is a
             // character or a sequence of contiguous characters that forms a COBOL word, a literal, or a picture
             // character-string"): PICMODE's token, which a separator period after PIC leaves unwritten (kb/Work PB4233).
             else if (type == CobolLexer.PIC_STRING) Add(symbols, "a picture character-string");

@@ -5,23 +5,23 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.8.4.7.2 Format 1 — every path of the sign-condition diagram (IS, NOT, 3 keywords)
+      *> ISO §2023:8.8.4.7.2 Format 1 — every path of the sign-condition diagram (IS, NOT, 3 keywords)
       *>
-      *> THE FORMAT. §8.8.4.7.2 Format 1 (expression):
+      *> THE FORMAT. §2023:8.8.4.7.2 Format 1 (expression):
       *>   arithmetic-expression-1 IS [ NOT ] { POSITIVE | NEGATIVE | ZERO }
       *> IS is not underlined (optional word); NOT is optional; exactly one keyword.
-      *> §8.8.4.7.3 SR1: "Arithmetic-expression-1 shall be any single numeric data item
+      *> §2023:8.8.4.7.3 SR1: "Arithmetic-expression-1 shall be any single numeric data item
       *> described with a usage other than a standard floating-point usage, or any form of
       *> arithmetic expression."
-      *> §8.8.4.7.4 GR1: a) POSITIVE "true if the value is greater than zero";
+      *> §2023:8.8.4.7.4 GR1: a) POSITIVE "true if the value is greater than zero";
       *> b) NEGATIVE "true if the value is less than zero"; c) ZERO "true if the value is
-      *> zero". NOT: §8.8.4.10.1 "A condition is negated by use of the logical operator
+      *> zero". NOT: §2023:8.8.4.10.1 "A condition is negated by use of the logical operator
       *> 'NOT', which reverses the truth value of the condition to which it is applied."
-      *>   cite.py: OK  §8.8.4.7.2   (General format)  [arithmetic-expression-1 IS [ NOT ] ...]
-      *>   cite.py: OK  §8.8.4.7.3 1)  (Syntax rules)
-      *>   cite.py: OK  §8.8.4.7.4 1) a)  (General rules)  [a), and b) and c): cite.py
+      *>   cite.py: OK  §2023:8.8.4.7.2   (General format)  [arithmetic-expression-1 IS [ NOT ] ...]
+      *>   cite.py: OK  §2023:8.8.4.7.3 1)  (Syntax rules)
+      *>   cite.py: OK  §2023:8.8.4.7.4 1) a)  (General rules)  [a), and b) and c): cite.py
       *>            labels all three list items "1) a)" - PB1554]
-      *>   cite.py: OK  §8.8.4.10.1   (General)
+      *>   cite.py: OK  §2023:8.8.4.10.1   (General)
       *> (cite.py ignores operator symbols, PB1554; the expressions below are quoted here
       *> from the source, not from a citation.)
       *>

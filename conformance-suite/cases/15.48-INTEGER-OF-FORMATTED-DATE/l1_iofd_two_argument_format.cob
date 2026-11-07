@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
+      *> ISO §2023:15.48.2 general format — FUNCTION INTEGER-OF-FORMATTED-DATE
       *> ( argument-1 argument-2 ): exactly two arguments, both required.
       *>
       *> THE FORMAT IS THE RULE. FUNCTION and INTEGER-OF-FORMATTED-DATE are both
@@ -14,24 +14,24 @@
       *> argument, no repetition. The reject side covers BOTH halves the format
       *> asserts: negative/l1-iofd-arity1 and l1-iofd-arity3 for the argument count,
       *> and negative/l1-iofd-no-function-word for the underlined required word,
-      *> whose one permission (§8.4.3.2.3 SR2, the REPOSITORY paragraph) is
+      *> whose one permission (§2023:8.4.3.2.3 SR2, the REPOSITORY paragraph) is
       *> exercised in the accepting direction by
       *> 2014/l1_repository_bare_intrinsic_names.
-      *> §8.3.5 r2 makes the comma "a separator that may be used anywhere the
+      *> §2023:8.3.5 r2 makes the comma "a separator that may be used anywhere the
       *> separator space is used", so the format's one space admits a comma too.
       *>
-      *> EXPECTED VALUES, from §15.48.4 r1 — "The returned value is the integer
+      *> EXPECTED VALUES, from §2023:15.48.4 r1 — "The returned value is the integer
       *> date form equivalent of the date represented by argument-2 when analyzed
-      *> according to argument-1" — over §15.5.2's integer date form ("a number of
+      *> according to argument-1" — over §2023:15.5.2's integer date form ("a number of
       *> days succeeding December 31, 1600" on "a starting date of Monday,
       *> January 1, 1601"). 1995-02-15 is 143,950 days after 1601-01-01, hence
-      *> integer date 143951; the leap years counted are the §15.5.1 Note's
+      *> integer date 143951; the leap years counted are the §2023:15.5.1 Note's
       *> (÷4, except a century, except a century ÷400).
       *> THE SAME DAY IS SPELLED THREE WAYS, so what is pinned is the analysis, not
-      *> one string: the basic calendar format "YYYYMMDD" (§15.3.1.2, eight
-      *> characters), the extended calendar format "YYYY-MM-DD" (§15.3.1.2, ten
+      *> one string: the basic calendar format "YYYYMMDD" (§2023:15.3.1.2, eight
+      *> characters), the extended calendar format "YYYY-MM-DD" (§2023:15.3.1.2, ten
       *> characters with the two hyphens present in the data), and the basic
-      *> ordinal format "YYYYDDD" (§15.3.1.4, seven characters) — 1995-02-15 is
+      *> ordinal format "YYYYDDD" (§2023:15.3.1.4, seven characters) — 1995-02-15 is
       *> ordinal day 46 of 1995 (31 + 15). All three must return 143951.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IFD01.

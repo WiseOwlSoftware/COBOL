@@ -5,14 +5,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.13.3 SR1 — "The words THROUGH and THRU are
+      *> ISO §2023:14.9.13.3 SR1 — "The words THROUGH and THRU are
       *> equivalent."  Every EVALUATE below is written TWICE, differing
       *> only in that one spelling of the range-expression word, so any
       *> difference between the two columns of a line is a violation.
-      *> Range determination is NOT §14.9.13.4's own: GR2 routes it to
-      *> §14.7.8, THROUGH phrase.  §14.7.8 1) fixes the NUMERIC range —
+      *> Range determination is NOT §2023:14.9.13.4's own: GR2 routes it to
+      *> §2023:14.7.8, THROUGH phrase.  §2023:14.7.8 1) fixes the NUMERIC range —
       *> both endpoints and all algebraic values between — so 2 THRU 4
-      *> hits N=2,3,4 only, and THAT is a spec obligation.  §14.7.8 2)
+      *> hits N=2,3,4 only, and THAT is a spec obligation.  §2023:14.7.8 2)
       *> does not fix the alphanumeric one: with no IN alphabet-name
       *> phrase "the collating sequence is defined by the implementor".
       *> So "B" THRU "D" with W-A="C" is IMPLEMENTOR-DEFINED; this
@@ -21,10 +21,10 @@
       *> documented latitude, not a spec obligation.  What SR1 mandates
       *> about that line is only that the THRU and THROUGH columns
       *> AGREE.
-      *> The NOT line rests on §14.9.13.4 GR4 a) 5. instead, whose NOT
+      *> The NOT line rests on §2023:14.9.13.4 GR4 a) 5. instead, whose NOT
       *> form is the explicit conditional  subject < left-part OR
       *> subject > right-part  (and its operands are numeric anyway).
-      *> Selection / WHEN OTHER per §14.9.13.4 GR4 b)-d), GR5 a)-b).
+      *> Selection / WHEN OTHER per §2023:14.9.13.4 GR4 b)-d), GR5 a)-b).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1EVT01.
        DATA DIVISION.

@@ -85,7 +85,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,16): error COBOL1639") && d.Contains("'Q-ONE'"));
         Assert.Contains(lines, d => d.Contains("pb4383a.cob(10,22): error COBOL1639") && d.Contains("'Q-TWO'"));
         Assert.DoesNotContain(lines, d => d.Contains("pb4383a.cob(9,"));
-        // DISPLAY of an index-name operand (the §13.18.38.3 r7 screen, COBOL1637) on the continuation line: the operand's position.
+        // DISPLAY of an index-name operand (the §2023:13.18.38.3 r7 screen, COBOL1637) on the continuation line: the operand's position.
         Write("pb4383b.cob", DataHead + "           DISPLAY W\n               IX.\n           STOP RUN.\n");
         (ok, lines) = Compile("pb4383b.cob");
         Assert.False(ok);
@@ -107,27 +107,27 @@ public sealed class DiagnosticPositionTests : IDisposable
     }
 
     /// <summary>kb/Work PB4406 (the post-resolution half of PB4383): the screens that run AFTER a reference resolved — the
-    /// expression mapping's (§13.18.38.3 r7 index-name, §8.8.1.1 class, LINAGE-COUNTER, a keyword-omitted function), the
-    /// receiving chokepoint's bars, the arithmetic resultant's category (§14.9.2.3 …) and a literal's refusal — name the
+    /// expression mapping's (§2023:13.18.38.3 r7 index-name, §2023:8.8.1.1 class, LINAGE-COUNTER, a keyword-omitted function), the
+    /// receiving chokepoint's bars, the arithmetic resultant's category (§2023:14.9.2.3 …) and a literal's refusal — name the
     /// OPERAND'S own line and column. The statement is on line 12 of the program below, its continuation on line 13.</summary>
     [Theory]
-    [InlineData("           COMPUTE N = 1\n               + IX.", 13, 18, "COBOL1637")]    // §13.18.38.3 r7: index-name inside an arithmetic expression
-    [InlineData("           COMPUTE N = 1\n               + W.", 13, 18, "COBOL0844")]     // §8.8.1.1: alphanumeric item
-    [InlineData("           COMPUTE N = 1\n               + G.", 13, 18, "COBOL0844")]     // §8.8.1.1: group item
-    [InlineData("           COMPUTE N = 1\n               + IDX.", 13, 18, "COBOL0844")]   // §13.18.60.3 SR10: index data item
-    [InlineData("           COMPUTE N = 1\n               + UPPER-CASE(\"B\").", 13, 18, "COBOL1543")]   // §8.4.3.2.3: undeclared keyword-omitted function
-    [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL5997")]      // §8.4.3.14: no LINAGE clause
-    [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §8.3.3.3.3 r3: exponent range
-    [InlineData("           ADD 1 TO N\n               W.", 13, 16, "COBOL1675")]            // §14.9.2.3: resultant category
-    [InlineData("           ADD 1 TO N\n               NE.", 13, 16, "COBOL1675")]           // §14.9.2.3: numeric-edited barred in place
+    [InlineData("           COMPUTE N = 1\n               + IX.", 13, 18, "COBOL1637")]    // §2023:13.18.38.3 r7: index-name inside an arithmetic expression
+    [InlineData("           COMPUTE N = 1\n               + W.", 13, 18, "COBOL0844")]     // §2023:8.8.1.1: alphanumeric item
+    [InlineData("           COMPUTE N = 1\n               + G.", 13, 18, "COBOL0844")]     // §2023:8.8.1.1: group item
+    [InlineData("           COMPUTE N = 1\n               + IDX.", 13, 18, "COBOL0844")]   // §2023:13.18.60.3 SR10: index data item
+    [InlineData("           COMPUTE N = 1\n               + UPPER-CASE(\"B\").", 13, 18, "COBOL1543")]   // §2023:8.4.3.2.3: undeclared keyword-omitted function
+    [InlineData("           COMPUTE N = 1\n               + LINAGE-COUNTER.", 13, 18, "COBOL5997")]      // §2023:8.4.3.14: no LINAGE clause
+    [InlineData("           COMPUTE N = 1\n               + 1.0E+9000.", 13, 18, "COBOL1661")]          // §2023:8.3.3.3.3 r3: exponent range
+    [InlineData("           ADD 1 TO N\n               W.", 13, 16, "COBOL1675")]            // §2023:14.9.2.3: resultant category
+    [InlineData("           ADD 1 TO N\n               NE.", 13, 16, "COBOL1675")]           // §2023:14.9.2.3: numeric-edited barred in place
     [InlineData("           ADD 1 TO N\n               G.", 13, 16, "COBOL1675")]            // group resultant
     [InlineData("           SUBTRACT 1 FROM N\n               IDX.", 13, 16, "COBOL1675")]   // index data item resultant
-    [InlineData("           MULTIPLY 2 BY N\n               W.", 13, 16, "COBOL1675")]       // §14.9.26.3 SR1
-    [InlineData("           DIVIDE 2 INTO N GIVING N REMAINDER\n               W.", 13, 16, "COBOL1675")]   // §14.9.12.3 SR2
-    [InlineData("           MOVE 1 TO N\n               LINE-COUNTER.", 13, 16, "COBOL2197")]          // §8.4.3.15.3
-    [InlineData("           ADD 1 TO N\n               LINAGE-COUNTER.", 13, 16, "COBOL2026")]         // §8.4.3.14.3
+    [InlineData("           MULTIPLY 2 BY N\n               W.", 13, 16, "COBOL1675")]       // §2023:14.9.26.3 SR1
+    [InlineData("           DIVIDE 2 INTO N GIVING N REMAINDER\n               W.", 13, 16, "COBOL1675")]   // §2023:14.9.12.3 SR2
+    [InlineData("           MOVE 1 TO N\n               LINE-COUNTER.", 13, 16, "COBOL2197")]          // §2023:8.4.3.15.3
+    [InlineData("           ADD 1 TO N\n               LINAGE-COUNTER.", 13, 16, "COBOL2026")]         // §2023:8.4.3.14.3
     [InlineData("           ADD 1 TO N\n               ADDRESS OF W.", 13, 16, "COBOL3979")]           // a data-address-identifier as a receiver
-    [InlineData("           ADD \"A\" TO\n               N.", 12, 16, "COBOL0844")]                   // §8.8.1.1: the literal, not the verb
+    [InlineData("           ADD \"A\" TO\n               N.", 12, 16, "COBOL0844")]                   // §2023:8.8.1.1: the literal, not the verb
     public void PostResolutionScreen_NamesTheOperandsOwnLineAndColumn(string statement, int line, int column, string code)
     {
         Write("pb4406.cob",
@@ -143,7 +143,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// <summary>kb/Work PB4485: the 2002 Annex F.2 item 108 gate (qualified-index-name-2002) and item 16 gate
     /// (class-condition-alphabet-name-2002) report at the WRITTEN WORD they gate — the qualified index-name, the
     /// alphabet-name — never at the SEARCH / SET / PERFORM / IF statement they sit in, which carries several operands
-    /// (ISO §8.4.2.2.3 SR6 names the qualified form; the gate fires once per written reference). Each program is
+    /// (ISO §2023:8.4.2.2.3 SR6 names the qualified form; the gate fires once per written reference). Each program is
     /// compiled at COBOL-85, where the construct is below its edition. The statement under test starts on line 14
     /// at column 12, so a report at (14,12) is the statement's position and the failure this test pins.</summary>
     [Theory]
@@ -168,9 +168,9 @@ public sealed class DiagnosticPositionTests : IDisposable
     }
 
     /// <summary>kb/Work PB4485 (review R1-1): EVERY report <c>NameResolution.ResolveIndexName</c> makes about a written
-    /// index-name reference stands at that word, not only the edition gate — the ISO §8.4.2.2.3 SR6 "not defined"
+    /// index-name reference stands at that word, not only the edition gate — the ISO §2023:8.4.2.2.3 SR6 "not defined"
     /// (the qualifier names no table declaring the index-name), the SR1 ambiguity (two tables declare the same index-name,
-    /// the bare reference names neither), and the §13.7.3 SR4 e) refusal of a linkage table's index-name. Default
+    /// the bare reference names neither), and the §2023:13.7.3 SR4 e) refusal of a linkage table's index-name. Default
     /// edition, so the 2002 gate is silent and the position under test is the resolution diagnostic's own. The statement
     /// under test starts on line 13 at column 12, so a report at (13,12) is the statement's position.</summary>
     [Theory]
@@ -191,7 +191,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("pb4485r.cob(13,12): error COBOL1639"));   // the statement first token
     }
 
-    [Fact] // kb/Work PB4485 (review R1-1): the §13.7.3 SR4 e) refusal of a linkage table's index-name stands at the word
+    [Fact] // kb/Work PB4485 (review R1-1): the §2023:13.7.3 SR4 e) refusal of a linkage table's index-name stands at the word
     public void LinkageIndexNameRefusal_NamesTheWordNotTheStatement()
     {
         Write("pb4485l.cob",
@@ -215,7 +215,7 @@ public sealed class DiagnosticPositionTests : IDisposable
             Write(name, Head + $"       01 V PIC X{pictureTail} VALUE \"A\"B.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
             var (ok, lines) = Compile(name);
             Assert.False(ok);
-            string d = Assert.Single(lines, l => l.Contains("COBOL2633"));   // §8.3.5 5): anchored on the literal
+            string d = Assert.Single(lines, l => l.Contains("COBOL2633"));   // §2023:8.3.5 5): anchored on the literal
             return d[d.IndexOf($"{name}(", StringComparison.Ordinal)..d.IndexOf(')')];
         }
         Assert.Equal(At("s.cob", " ").Replace("s.cob", ""), At("c.cob", ",").Replace("c.cob", ""));
@@ -227,7 +227,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("d.cob", Head + "       01 V PIC 9 VALUE 123.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         var (ok, lines) = Compile("d.cob");
         Assert.False(ok);
-        AssertPositioned(lines, "d.cob", 6, "error COBOL1625");   // §13.18.63.3 SR2: 123 is no value of PIC 9
+        AssertPositioned(lines, "d.cob", 6, "error COBOL1625");   // §2023:13.18.63.3 SR2: 123 is no value of PIC 9
     }
 
     [Fact] // COPY: the lines AFTER a COPY are the main file's own; the copied text names the copybook
@@ -294,17 +294,17 @@ public sealed class DiagnosticPositionTests : IDisposable
         AssertPositioned(lines, "n.cob", 8, "error COBOL1639");
     }
 
-    [Fact] // and without --nist the same line is NOT discarded: its indicator area holds 'R' (§6.3.3; kb/Work PB1803)
+    [Fact] // and without --nist the same line is NOT discarded: its indicator area holds 'R' (§2023:6.3.3; kb/Work PB1803)
     public void ArchiveMarker_OutsideNist_IsDiagnosedAtItsOwnLine()
     {
         Write("m.cob", "*HEADER,COBOL,PB82N\n" + Head + "       PROCEDURE DIVISION.\n           STOP RUN.\n");
-        var (ok, lines) = Compile("m.cob", format: InitialReferenceFormat.Fixed);   // the standard default (§7.3.24.3 2))
+        var (ok, lines) = Compile("m.cob", format: InitialReferenceFormat.Fixed);   // the standard default (§2023:7.3.24.3 2))
         Assert.False(ok);
         AssertPositioned(lines, "m.cob", 1, "error COBOL2616");
     }
 
     /// <summary>⛔ kb/Work PB1688 / PB1801 — a diagnostic names the PHYSICAL COLUMN, in every producer arm of the source
-    /// map. The fixed-form logical conversion (§6.5) keeps only the program-text area (positions 8 to margin R), joins a
+    /// map. The fixed-form logical conversion (§2023:6.5) keeps only the program-text area (positions 8 to margin R), joins a
     /// continuation line's text onto the latest logical line, and the line-entry stage expands a TAB; COPY and REPLACE
     /// splice text of other lengths into a line. The resultant column the parser and the binder hold is none of the
     /// user's columns, so each arm is pinned at the column the programmer's editor shows: `char_neg_typedef85` used to
@@ -385,11 +385,11 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
     }
 
-    /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §8.1.3.2 4)): four UTF-16 units, two
+    /// <summary>Two supplementary-plane letters (Annex B extended letters, ISO §2023:8.1.3.2 4)): four UTF-16 units, two
     /// character positions.</summary>
     private const string Wide = "\U0001000D\U0001000E";
 
-    /// <summary>⛔ kb/Work PB2983 — ONE column unit for every diagnostic: the CHARACTER POSITION (ISO §6.1 1) a), §6.3.1).
+    /// <summary>⛔ kb/Work PB2983 — ONE column unit for every diagnostic: the CHARACTER POSITION (ISO §2023:6.1 1) a), §2023:6.3.1).
     /// The parser counts UTF-16 units and the reference-format gates counted positions, so on a line holding a
     /// supplementary-plane character a parser diagnostic named a column two to the right of the gate's for the same place.
     /// Each producer arm of the source map is pinned: a plain fixed-form line, a line that also holds a TAB, a continuation
@@ -452,8 +452,8 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.Contains(lines, d => d.Contains("sup.cpy(1,24): error COBOL1941"));
     }
 
-    /// <summary>⛔ kb/Work PB3031 — text a stage WRITES is counted in character positions too (ISO §6.1 1) a), §6.3.1): a
-    /// REPLACE replacement (§7.2.4.4 2)) and COPY ... REPLACING text (§7.2.3.4 8)) holding supplementary-plane letters is
+    /// <summary>⛔ kb/Work PB3031 — text a stage WRITES is counted in character positions too (ISO §2023:6.1 1) a), §2023:6.3.1): a
+    /// REPLACE replacement (§2023:7.2.4.4 2)) and COPY ... REPLACING text (§2023:7.2.3.4 8)) holding supplementary-plane letters is
     /// two units per letter, one position per letter, so the parser's error at a word after them names the position the
     /// programmer counts. The replacement ends in a second TO, which the parser rejects: the word "X" stands at position
     /// 17 of its line, the two letters, a blank, TO and a blank fill positions 17-22, and the second TO stands at 23.</summary>
@@ -476,11 +476,11 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// indicator on every line the gates fire on. A TAB written in positions 1-7 fills through position 8 (DOC-A.1-157), so
     /// the indicator area of such a line holds a space and the line is no continuation line (the hyphen after the tab
     /// stands in position 9, program text), and a supplementary-plane character in the sequence area is one position, so
-    /// it does not move the indicator either (ISO §6.3.1: "The indicator area is the 7th character position of a line").</summary>
+    /// it does not move the indicator either (ISO §2023:6.3.1: "The indicator area is the 7th character position of a line").</summary>
     [Fact]
     public void FixedForm_IndicatorGates_NameColumn7_WhateverTheSequenceAreaHolds()
     {
-        // six supplementary-plane characters in the sequence area; the hyphen indicator continues a NATIONAL literal (§6.3.5 2))
+        // six supplementary-plane characters in the sequence area; the hyphen indicator continues a NATIONAL literal (§2023:6.3.5 2))
         string sequence = string.Concat(Enumerable.Repeat("\U0001D400", 6));
         Write("seq.cob", Head + $"       PROCEDURE DIVISION.\n           DISPLAY N\"A\n{sequence}-    \"B\".\n           STOP RUN.\n");
         var (ok, lines) = Compile("seq.cob", format: InitialReferenceFormat.Fixed);
@@ -511,7 +511,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Assert.False(ok);
         Assert.Contains(lines, d => d.Contains("DBG.CPY(2,7): error COBOL3473"));
         Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
-        // without the clause the same line is a comment (§6.3.5 2)), the literal is joined and the program is accepted
+        // without the clause the same line is a comment (§2023:6.3.5 2)), the literal is joined and the program is accepted
         Write("dbgoff.cob", unit(""));
         (ok, lines) = Compile("dbgoff.cob", edition: 85, format: InitialReferenceFormat.Fixed);
         Assert.True(ok, string.Join("\n", lines));

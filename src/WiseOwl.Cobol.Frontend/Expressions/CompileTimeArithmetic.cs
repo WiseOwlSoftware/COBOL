@@ -7,7 +7,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Frontend.Expressions;
 
 /// <summary>
-/// THE mode of arithmetic in which a compile-time arithmetic expression is evaluated (ISO/IEC 1989:2023 §7.3.6.3
+/// THE mode of arithmetic in which a compile-time arithmetic expression is evaluated (ISO/IEC 1989:2023 §2023:7.3.6.3
 /// GR2), SELECTED ONCE PER EDITION by <see cref="For"/> — the one selection every consumer of the shared
 /// <see cref="CompileTimeExpressionEvaluator"/> (a constant entry's <c>AS</c>, <c>&gt;&gt;DEFINE</c>,
 /// <c>&gt;&gt;IF</c>/<c>&gt;&gt;EVALUATE</c>) reaches, because the evaluator asks it and nothing else does
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// from 2023 it is the implementor's documented choice, <see cref="SystemDecimal"/> (docs/CONFORMANCE.md
 /// DOC-A.1-29). The edition boundary is written once, in <see cref="DialectBehaviors"/>
 /// (<see cref="DialectBehavior.CompileTimeArithmeticImplementorDefined"/>). COBOL-85 has no compile-time arithmetic
-/// expression (the §7.3 directives and the constant entry are 2002 introductions); an expression reached there only
+/// expression (the §2023:7.3 directives and the constant entry are 2002 introductions); an expression reached there only
 /// after its introduction gate has refused it takes the pre-2023 mode.</para>
 /// <para>Values travel in the mode-independent carrier (<see cref="CtNumeric"/>); a mode governs only what happens
 /// to a value that ENTERS an arithmetic expression and each operation on such values.</para>
@@ -30,12 +30,12 @@ public abstract class CompileTimeArithmetic
     private CompileTimeArithmetic() { }
 
     /// <summary>Standard arithmetic — the mode ISO/IEC 1989:2002 and 2014 prescribe for compile-time arithmetic
-    /// expressions (Annex E.2 items 6 and 21), on the SDIDI decimal engine (§8.8.1.5: 34 significant digits, the
+    /// expressions (Annex E.2 items 6 and 21), on the SDIDI decimal engine (§2023:8.8.1.5: 34 significant digits, the
     /// decimal128 range) with the standard-decimal default intermediate rounding, NEAREST-AWAY-FROM-ZERO
-    /// (§11.9.11.2 GR3 a) — a compile-time expression has no OPTIONS paragraph to name another).</summary>
+    /// (§2023:11.9.11.2 GR3 a) — a compile-time expression has no OPTIONS paragraph to name another).</summary>
     public static readonly CompileTimeArithmetic Standard = new StandardMode();
 
-    /// <summary>The COBOL-2023 implementor-defined mode (§7.3.6.3 GR2; docs/CONFORMANCE.md DOC-A.1-29): .NET
+    /// <summary>The COBOL-2023 implementor-defined mode (§2023:7.3.6.3 GR2; docs/CONFORMANCE.md DOC-A.1-29): .NET
     /// <see cref="decimal"/> — at most 28 digits after the point, magnitude below about 7.9×10²⁸, an inexact result
     /// rounded to nearest with a tie to the even digit.</summary>
     public static readonly CompileTimeArithmetic SystemDecimal = new SystemDecimalMode();
@@ -55,7 +55,7 @@ public abstract class CompileTimeArithmetic
     public abstract CobolDec? Enter(CobolDec value);
 
     /// <summary>One binary operation (<c>+ - * /</c>) on two values <see cref="Enter"/> produced, or
-    /// <see langword="null"/> when the result leaves this mode's range. A zero divisor is the caller's §7.3.6.2 SR1c
+    /// <see langword="null"/> when the result leaves this mode's range. A zero divisor is the caller's §2023:7.3.6.2 SR1c
     /// screen and never reaches here.</summary>
     public abstract CobolDec? Apply(char op, CobolDec left, CobolDec right);
 
@@ -65,7 +65,7 @@ public abstract class CompileTimeArithmetic
 
         public override string RangeDescription =>
             "the standard-arithmetic range (the standard-decimal intermediate data item: 34 significant digits, "
-            + "magnitude up to 9.99E+6144 — ISO §8.8.1.5.2, prescribed for compile-time arithmetic before COBOL-2023 "
+            + "magnitude up to 9.99E+6144 — ISO §2023:8.8.1.5.2, prescribed for compile-time arithmetic before COBOL-2023 "
             + "by Annex E.2 items 6 and 21)";
 
         public override CobolDec? Enter(CobolDec value) => Guard(() => CobolDec.FromParsed(value.Sig, value.Exp, Rounding));
@@ -79,7 +79,7 @@ public abstract class CompileTimeArithmetic
             _ => throw new ArgumentOutOfRangeException(nameof(op), op, "not a compile-time arithmetic operator"),
         });
 
-        /// <summary>The SDIDI's §8.8.1.5.2 r2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
+        /// <summary>The SDIDI's §2023:8.8.1.5.2 r2 range check raises <see cref="CobolSizeError"/> (EC-SIZE-OVERFLOW /
         /// EC-SIZE-UNDERFLOW); at compile time that is the caller's range diagnostic, never a run-time condition.</summary>
         private static CobolDec? Guard(Func<CobolDec> operation)
         {
@@ -94,7 +94,7 @@ public abstract class CompileTimeArithmetic
             NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent;
 
         public override string RangeDescription =>
-            "the .NET decimal evaluation range (96-bit, 28–29 significant digits — the documented §7.3.6.2 SR2 "
+            "the .NET decimal evaluation range (96-bit, 28–29 significant digits — the documented §2023:7.3.6.2 SR2 "
             + "implementor limit)";
 
         public override CobolDec? Enter(CobolDec value) =>

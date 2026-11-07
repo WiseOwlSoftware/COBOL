@@ -5,21 +5,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.49.4 GR11: "The exception condition that is used to
+      *> ISO §2023:14.9.49.4 GR11: "The exception condition that is used to
       *> determine which USE statement to select is the first one that
       *> occurs in the order of evaluation of the statement that causes
-      *> the exception to exist." For a MOVE the order is §14.9.25.4
+      *> the exception to exist." For a MOVE the order is §2023:14.9.25.4
       *> GR1's: identifier-1's "reference modifier, subscript, or
       *> function-identifier is evaluated only once, immediately before
       *> data is moved to the first of the receiving operands", and
       *> "Item identification for identifier-2 is performed immediately
       *> before the data is moved to the respective data item". This is
       *> pb370_move_first_condition's question asked of an OBJECT
-      *> PROPERTY receiver (§8.4.3.9; kb/Work PB370), whose
+      *> PROPERTY receiver (§2023:8.4.3.9; kb/Work PB370), whose
       *> identification evaluates identifier-3 - its subscript, a
       *> function in that subscript - and, for a reference-modified
       *> property, invokes its get method for the part the MOVE keeps
-      *> (§8.4.3.3.4 GR5). All of it comes after the sender. Every leg
+      *> (§2023:8.4.3.3.4 GR5). All of it comes after the sender. Every leg
       *> makes both operands raise a fatal condition, so the
       *> declarative that runs names the operand evaluated first.
       *>   K  MOVE X (1:L) TO P OF R (FUNCTION SQRT (NEG)): identifier-3's

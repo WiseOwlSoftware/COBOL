@@ -5,15 +5,15 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.4.3 SR5 — "If the BY REFERENCE phrase is specified or implied for an identifier-2 and
+      *> ISO §2023:14.9.4.3 SR5 — "If the BY REFERENCE phrase is specified or implied for an identifier-2 and
       *> identifier-2 is not an address-identifier, it is a receiving operand."
       *> (cite.py --check 14.9.4.3 "If the BY REFERENCE phrase is specified or implied for an identifier-2
-      *> and identifier-2 is not an address-identifier, it is a receiving operand." -> OK, §14.9.4.3
+      *> and identifier-2 is not an address-identifier, it is a receiving operand." -> OK, §2023:14.9.4.3
       *> Syntax rules 5.)
       *>
       *> DERIVED BEFORE MEASURING. "Receiving operand" is an observable property, not a label: the callee
       *> stores into the formal parameter and the store reaches the CALLER's storage, because a BY
-      *> REFERENCE argument's formal "occupies the same storage area as the argument" (§14.2.3 GR8). SR5's condition has
+      *> REFERENCE argument's formal "occupies the same storage area as the argument" (§2023:14.2.3 GR8). SR5's condition has
       *> two halves and both are pinned here:
       *>   · "specified"  — CALL … USING BY REFERENCE WS-REF ;
       *>   · "or IMPLIED" — CALL … USING WS-BARE, a bare argument, whose mode is BY REFERENCE by default.

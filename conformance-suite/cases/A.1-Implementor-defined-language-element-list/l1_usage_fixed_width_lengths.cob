@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.4 GR13 + GR21 — USAGE BINARY-SHORT / BINARY-LONG / BINARY-DOUBLE and
+      *> ISO §2023:13.18.60.4 GR13 + GR21 — USAGE BINARY-SHORT / BINARY-LONG / BINARY-DOUBLE and
       *> FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED: representation and length of the data item
       *> (Annex A.1 item 207; docs/CONFORMANCE.md DOC-A.1-207).
       *>
@@ -35,7 +35,7 @@
       *>     FLOAT-LONG and FLOAT-EXTENDED are both binary64 (8 bytes). GR13 constrains this
       *>     only by NESTING, which the equal-width choice satisfies trivially — see SL / LE.
       *> SL - GR13's first nesting sentence, probed at the binary32 integer boundary
-      *>     (§13.18.60.4 NOTE 1: "The largest positive integer value with a nonzero trailing
+      *>     (§2023:13.18.60.4 NOTE 1: "The largest positive integer value with a nonzero trailing
       *>     digit that can be represented [in binary32] is +(2**24 - 1), or 16 777 213").
       *>     That value moved to FLOAT-LONG and compared back shall be EQUAL.
       *> LE - GR13's second nesting sentence, probed at the binary64 integer boundary (NOTE 2:
@@ -45,9 +45,9 @@
       *> BE - the REPRESENTATION half of GR21, for the float family: big-endian IEEE 754
       *>     interchange bytes. 1.5 in binary32 is sign 0, biased exponent 127 = X"7F",
       *>     significand 0.5 -> X"3FC00000"; most significant byte first the group image holds
-      *>     X"3F" then X"C0". FUNCTION ORD is 1-based (§15.70.1), so 63+1 = 64 and
+      *>     X"3F" then X"C0". FUNCTION ORD is 1-based (§2023:15.70.1), so 63+1 = 64 and
       *>     192+1 = 193. A little-endian implementation answers "1 1" (X"00" X"00"). The
-      *>     bytes are read through a group move to an alphanumeric item, which §14.9.25.4 GR4
+      *>     bytes are read through a group move to an alphanumeric item, which §2023:14.9.25.4 GR4
       *>     makes a byte transfer ("treated exactly as if it were an alphanumeric to
       *>     alphanumeric elementary move"). XF is X(5) = 4 (the FLOAT-SHORT leaf) + 1, so the
       *>     receiver size ALSO pins the float width independently of the BYTE-LENGTH fold.

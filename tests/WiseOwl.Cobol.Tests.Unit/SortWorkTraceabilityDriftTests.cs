@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// traceability inventory rows for those rules kept naming the old members, with notes about a record list and an
 /// index sort that no longer existed, and no row named SortWork.cs. A verdict is re-verified by reading the code its
 /// row names, so a row that names only the delegator leaves the rule's real code unchecked. The rules are the ones
-/// SortWork.cs cites itself (<c>§14.9.24.4 GRn</c>, <c>§14.9.40.4 GRn</c>), so a rule the file takes on later is
+/// SortWork.cs cites itself (<c>§2023:14.9.24.4 GRn</c>, <c>§2023:14.9.40.4 GRn</c>), so a rule the file takes on later is
 /// covered without editing this test.
 /// </summary>
 public sealed class SortWorkTraceabilityDriftTests

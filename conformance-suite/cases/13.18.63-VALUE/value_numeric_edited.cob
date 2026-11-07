@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> Numeric-edited VALUE rework, COBOL-2023 (ISO §13.18.63 SR6/SR11; Annex E.2
+      *> Numeric-edited VALUE rework, COBOL-2023 (ISO §2023:13.18.63 SR6/SR11; Annex E.2
       *> item 28 + E.3.3 item 43). VCR 35: a figurative ZERO on a numeric-edited item
       *> is now treated as the numeric literal zero and EDITED per PICTURE (no longer
       *> the left-justified "0000000") — and BLANK WHEN ZERO now effects the init

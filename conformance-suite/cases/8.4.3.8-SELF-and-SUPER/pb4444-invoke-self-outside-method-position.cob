@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.4.3.8.3 SR1 - "This identifier format may be
+      *> ISO §2023:8.4.3.8.3 SR1 - "This identifier format may be
       *> specified only in a method definition." SELF written as the
       *> receiver of an INVOKE in a PROGRAM is refused at every edition
       *> that has the format (COBOL-2002 introduced it), and kb/Work

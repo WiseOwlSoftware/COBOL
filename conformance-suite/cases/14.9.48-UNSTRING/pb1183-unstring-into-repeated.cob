@@ -4,9 +4,9 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.48.2 general format — ONE INTO, then the repeated receiver group (kb/Work PB1183):
+      *> ISO §2023:14.9.48.2 general format — ONE INTO, then the repeated receiver group (kb/Work PB1183):
       *>   INTO { identifier-4 [ DELIMITER IN identifier-5 ] [ COUNT IN identifier-6 ] } …
-      *>   cite.py --check 14.9.48.2 "INTO" -> OK §14.9.48.2 (General format)
+      *>   cite.py --check 14.9.48.2 "INTO" -> OK §2023:14.9.48.2 (General format)
       *> The ellipsis follows the BRACED group, so it repeats the receivers and never the INTO keyword.
       *> `INTO A INTO B` is a spelling no edition prints; the grammar's old `unstringIntoPhrase+` compiled
       *> it at every --std and ran A=[AB  ] B=[CD5E]. The second INTO is a syntax error at every edition.

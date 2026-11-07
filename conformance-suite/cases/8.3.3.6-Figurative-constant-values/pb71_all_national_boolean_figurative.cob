@@ -6,12 +6,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB71. ISO §8.3.3.6.3 SR2: for the figurative `ALL literal-1`,
+      *> kb/Work PB71. ISO §2023:8.3.3.6.3 SR2: for the figurative `ALL literal-1`,
       *> "Literal-1 shall be an alphanumeric, boolean, or national literal";
-      *> §8.3.3.6.4 GR2 repeats it to the width of the associated item;
-      *> §14.9.25.4 GR7 / Table 17 give the figurative literal-1's category, and
-      *> §14.9.25.3 Table 16 admits National→National and Boolean→Boolean;
-      *> §8.3.3.5.2 / §8.3.3.4.2 make NX"…" / BX"…" (Format 2, hexadecimal) the
+      *> §2023:8.3.3.6.4 GR2 repeats it to the width of the associated item;
+      *> §2023:14.9.25.4 GR7 / Table 17 give the figurative literal-1's category, and
+      *> §2023:14.9.25.3 Table 16 admits National→National and Boolean→Boolean;
+      *> §2023:8.3.3.5.2 / §2023:8.3.3.4.2 make NX"…" / BX"…" (Format 2, hexadecimal) the
       *> SAME class as N"…" / B"…". Before this: `ALL N"…"` had no grammar arm
       *> (COBOL0001), `ALL B"…"` parsed and DIED AT RUN TIME (the figurative
       *> binder had two arms of four), and a VALUE clause refused NX"…" / BX"…"
@@ -46,24 +46,24 @@
            IF BR = B"101010" DISPLAY "T3 [" BR "]" ELSE DISPLAY "T3 WRONG [" BR "]" END-IF.
            MOVE ALL BX"5" TO BR.
            IF BR = B"010101" DISPLAY "T4 [" BR "]" ELSE DISPLAY "T4 WRONG [" BR "]" END-IF.
-      *> 5 — the figurative as a relation operand (§8.8.4.2.2 Format 2, a boolean relation; §8.8.2 lists
+      *> 5 — the figurative as a relation operand (§2023:8.8.4.2.2 Format 2, a boolean relation; §2023:8.8.2 lists
       *> "the figurative constant ALL literal, where literal is a boolean literal" as a boolean expression).
            MOVE ALL B"1" TO BR.
            IF BR = ALL B"1" DISPLAY "T5 ALL-ONES" ELSE DISPLAY "T5 WRONG" END-IF.
            IF NR = ALL N"Q" DISPLAY "T6 ALL-Q" ELSE DISPLAY "T6 WRONG" END-IF.
-      *> 7-11 — VALUE clauses (§13.18.63 SR5/SR10 — a national / boolean literal or a figurative constant).
+      *> 7-11 — VALUE clauses (§2023:13.18.63 SR5/SR10 — a national / boolean literal or a figurative constant).
            DISPLAY "T7 [" NV "]".
            DISPLAY "T8 [" NX2 "]".
            DISPLAY "T9 [" BV "]".
            DISPLAY "T10 [" BX2 "]".
            DISPLAY "T11 [" BX3 "]".
-      *> 12 — a length-unspecified context takes the literal once (§8.3.3.6.4 GR3c).
+      *> 12 — a length-unspecified context takes the literal once (§2023:8.3.3.6.4 GR3c).
            DISPLAY "T12 [" ALL N"Q" "][" ALL B"01" "]".
       *> 13 — the alphanumeric control (ALL X"…" — the PB4 arm) is untouched.
            MOVE ALL X"51" TO AR.
            DISPLAY "T13 [" AR "]".
-      *> 14-18 — literal-1 "may be a concatenation expression" (§8.3.3.6.3 SR2): ALL binds the WHOLE
-      *> concatenation (§8.8.3.3 GR2 folds it to one literal), in every class, in a MOVE, a VALUE and a relation.
+      *> 14-18 — literal-1 "may be a concatenation expression" (§2023:8.3.3.6.3 SR2): ALL binds the WHOLE
+      *> concatenation (§2023:8.8.3.3 GR2 folds it to one literal), in every class, in a MOVE, a VALUE and a relation.
            MOVE ALL "AB" & "C" TO AR7.
            DISPLAY "T14 [" AR7 "]".
            MOVE ALL N"Q" & N"R" TO NR5.

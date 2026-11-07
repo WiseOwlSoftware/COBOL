@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// ⛔ THE IMAGE OF A VARIABLE-LENGTH GROUP IS ITS STORAGE (kb/Work PB3441; CONFORMANCE.md A.1 items 57 and 63): for every
 /// shape of variable-length group, in a declared record and in a cell-backed (EXTERNAL) one, the characters DISPLAY shows,
-/// <c>FUNCTION LENGTH</c> (ISO §15.50.4 rule 7), <c>FUNCTION BYTE-LENGTH</c> (§15.14.4 rule 6) and the bytes CONVERT's ANY
-/// source takes (§15.19.3 rule 7, §15.19.4 rule 2: the digits of the bits of argument-1; <c>--permissive</c>, because a
+/// <c>FUNCTION LENGTH</c> (ISO §2023:15.50.4 rule 7), <c>FUNCTION BYTE-LENGTH</c> (§2023:15.14.4 rule 6) and the bytes CONVERT's ANY
+/// source takes (§2023:15.19.3 rule 7, §2023:15.19.4 rule 2: the digits of the bits of argument-1; <c>--permissive</c>, because a
 /// group is not a legal ANY source under strict conformance) are one number of positions, and the hexadecimal digits are
 /// those of the displayed characters. The group image once held a dynamic-length NATIONAL item one character a position
 /// (and the elements of a national table the same) while a FIXED national member was its UTF-16BE byte pairs, so DISPLAY

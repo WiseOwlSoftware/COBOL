@@ -2,35 +2,35 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime;
 
-/// <summary>The kind of one positional atom of a group's ISO §8.5.1.12 layout.</summary>
+/// <summary>The kind of one positional atom of a group's ISO §2023:8.5.1.12 layout.</summary>
 public enum GroupAtomKind
 {
     /// <summary>An elementary item that is neither a table nor dynamic-length — plain material.</summary>
     Fixed,
-    /// <summary>A dynamic-length elementary item (§8.5.1.10) — zero bytes for position purposes (§8.5.1.12.3).</summary>
+    /// <summary>A dynamic-length elementary item (§2023:8.5.1.10) — zero bytes for position purposes (§2023:8.5.1.12.3).</summary>
     DynamicLength,
     /// <summary>A table with a fixed number of occurrences.</summary>
     Table,
-    /// <summary>An OCCURS DEPENDING table, at its maximum length (§14.8.2.2: "the maximum length is used").</summary>
+    /// <summary>An OCCURS DEPENDING table, at its maximum length (§2023:14.8.2.2: "the maximum length is used").</summary>
     OdoTable,
-    /// <summary>A dynamic-capacity table (§8.5.1.9) — one element long for position purposes (§8.5.1.12.3).</summary>
+    /// <summary>A dynamic-capacity table (§2023:8.5.1.9) — one element long for position purposes (§2023:8.5.1.12.3).</summary>
     DynamicTable,
 }
 
-/// <summary>One positional atom of a group's §8.5.1.12 layout: the group FLATTENED left to right (REDEFINES subtrees
+/// <summary>One positional atom of a group's §2023:8.5.1.12 layout: the group FLATTENED left to right (REDEFINES subtrees
 /// dropped, scalar subordinate groups flattened, a table kept whole), as the compiler's
 /// <c>VariableLengthCompatibility</c> builds it from the data description and the generated code carries it across a
 /// universal dispatch (<see cref="ActivationDescription.Atoms"/>).</summary>
-/// <param name="Kind">Which of the §8.5.1.12 roles the atom plays.</param>
-/// <param name="Bytes">Its contribution to the relative BYTE position under §8.5.1.12.3's conventions (a dynamic-length
-/// item zero, a dynamic-capacity table one element) — the quantity §8.5.1.12.2's correspondence is stated in.</param>
+/// <param name="Kind">Which of the §2023:8.5.1.12 roles the atom plays.</param>
+/// <param name="Bytes">Its contribution to the relative BYTE position under §2023:8.5.1.12.3's conventions (a dynamic-length
+/// item zero, a dynamic-capacity table one element) — the quantity §2023:8.5.1.12.2's correspondence is stated in.</param>
 /// <param name="Chars">Its contribution in CHARACTER positions — the carrier's geometry (<see cref="CobolVarGroup"/>), where
 /// a national character is two bytes.</param>
-/// <param name="ElementBytes">A table's one-occurrence byte length under §8.5.1.12.3's collapse conventions; zero
-/// otherwise. §8.5.1.12.3 sentence 2 compares it directly only for an ELEMENTARY element: a group element's length for
+/// <param name="ElementBytes">A table's one-occurrence byte length under §2023:8.5.1.12.3's collapse conventions; zero
+/// otherwise. §2023:8.5.1.12.3 sentence 2 compares it directly only for an ELEMENTARY element: a group element's length for
 /// the pair is measured by the walk over <paramref name="Element"/> (kb/Work PB2689).</param>
 /// <param name="ElementChars">A table's one-occurrence character length; zero otherwise.</param>
-/// <param name="Element">A table's element atoms when the element is a GROUP (§8.5.1.12.3's "their elements are
+/// <param name="Element">A table's element atoms when the element is a GROUP (§2023:8.5.1.12.3's "their elements are
 /// compatible" recurses into them); null for an elementary element and for every non-table atom.</param>
 public sealed record GroupAtom(GroupAtomKind Kind, int Bytes, int Chars, int ElementBytes = 0, int ElementChars = 0,
     GroupAtom[]? Element = null)
@@ -38,34 +38,34 @@ public sealed record GroupAtom(GroupAtomKind Kind, int Bytes, int Chars, int Ele
     /// <summary>A table of any kind.</summary>
     public bool IsTable => Kind is GroupAtomKind.Table or GroupAtomKind.OdoTable or GroupAtomKind.DynamicTable;
 
-    /// <summary>A variable-length data item (§8.5.1.11.1) — a component of the <see cref="CobolVarGroup"/> carrier;
+    /// <summary>A variable-length data item (§2023:8.5.1.11.1) — a component of the <see cref="CobolVarGroup"/> carrier;
     /// every other atom's characters lie in the carrier's fixed run.</summary>
     public bool IsComponent => Kind is GroupAtomKind.DynamicLength or GroupAtomKind.DynamicTable;
 }
 
-/// <summary>Why two groups are not compatible (§8.5.1.12.1 rules 1–3) — the facts a diagnostic names; the compiler
+/// <summary>Why two groups are not compatible (§2023:8.5.1.12.1 rules 1–3) — the facts a diagnostic names; the compiler
 /// renders them with item names, the run time with positions.</summary>
 public enum GroupMismatchKind
 {
     /// <summary>A dynamic-length item with no dynamic-length item at its relative byte position in the other group
-    /// (§8.5.1.12.1 rule 3 / §8.5.1.12.2).</summary>
+    /// (§2023:8.5.1.12.1 rule 3 / §2023:8.5.1.12.2).</summary>
     DynamicLengthUnpaired,
-    /// <summary>A dynamic-capacity table opposite an atom that starts at its position but is not a table (§8.5.1.12.1
-    /// rule 1 / §8.5.1.12.2).</summary>
+    /// <summary>A dynamic-capacity table opposite an atom that starts at its position but is not a table (§2023:8.5.1.12.1
+    /// rule 1 / §2023:8.5.1.12.2).</summary>
     DynamicTableOppositeNonTable,
-    /// <summary>A dynamic-capacity table at a position the other group has no atom starting at (§8.5.1.12.1 rule 1 /
-    /// §8.5.1.12.2).</summary>
+    /// <summary>A dynamic-capacity table at a position the other group has no atom starting at (§2023:8.5.1.12.1 rule 1 /
+    /// §2023:8.5.1.12.2).</summary>
     DynamicTableUnpaired,
-    /// <summary>Two corresponding tables whose element byte lengths, as the pair measures them, differ (§8.5.1.12.3
+    /// <summary>Two corresponding tables whose element byte lengths, as the pair measures them, differ (§2023:8.5.1.12.3
     /// sentence 2; <see cref="GroupMismatch.FirstLength"/> and <see cref="GroupMismatch.SecondLength"/>).</summary>
     ElementBytesDiffer,
-    /// <summary>Two corresponding tables whose elements are not compatible (§8.5.1.12.3 sentence 2) — the reason is
+    /// <summary>Two corresponding tables whose elements are not compatible (§2023:8.5.1.12.3 sentence 2) — the reason is
     /// <see cref="GroupMismatch.Inner"/>.</summary>
     ElementsIncompatible,
     /// <summary>The inner reason of <see cref="ElementsIncompatible"/> when one element is elementary and the other a
     /// group.</summary>
     ElementShapeDiffers,
-    /// <summary>A dynamic-length item beyond the shorter group's last byte (§8.5.1.12.2's last sentence grants the
+    /// <summary>A dynamic-length item beyond the shorter group's last byte (§2023:8.5.1.12.2's last sentence grants the
     /// space-filled latitude to tables only).</summary>
     DynamicLengthBeyondEnd,
 }
@@ -78,7 +78,7 @@ public enum GroupMismatchKind
 /// <param name="Position">The relative byte position the reason is stated at.</param>
 /// <param name="Inner">For <see cref="GroupMismatchKind.ElementsIncompatible"/>, the elements' reason.</param>
 /// <param name="FirstLength">For <see cref="GroupMismatchKind.ElementBytesDiffer"/>, the first table's element byte
-/// length as the pair measures it (§8.5.1.12.3 — not its one-occurrence atom when the element holds a dynamic-capacity
+/// length as the pair measures it (§2023:8.5.1.12.3 — not its one-occurrence atom when the element holds a dynamic-capacity
 /// table); zero otherwise.</param>
 /// <param name="SecondLength">The other table's element byte length, likewise.</param>
 public sealed record GroupMismatch(GroupMismatchKind Kind, bool OnFirst, int Atom, int OtherAtom, long Position,
@@ -95,25 +95,25 @@ public sealed class GroupCharTally
 }
 
 /// <summary>
-/// ⛔ THE ONE ISO §8.5.1.12 VARIABLE-LENGTH-GROUP COMPATIBILITY WALK (kb/Work PB204, PB480), over two groups' atom
-/// layouts. The compiler asks it with the atoms it builds from two data descriptions (every bind-time §14.8.2.2 /
-/// §14.8.3.2 / §14.9.25.3 SR9 / relation-condition question, through <c>VariableLengthCompatibility</c>); the run
+/// ⛔ THE ONE ISO §2023:8.5.1.12 VARIABLE-LENGTH-GROUP COMPATIBILITY WALK (kb/Work PB204, PB480), over two groups' atom
+/// layouts. The compiler asks it with the atoms it builds from two data descriptions (every bind-time §2023:14.8.2.2 /
+/// §2023:14.8.3.2 / §2023:14.9.25.3 SR9 / relation-condition question, through <c>VariableLengthCompatibility</c>); the run
 /// time asks it with the atoms two independently compiled descriptions carry across a universal dispatch
 /// (<see cref="ActivationRelations"/>) and to reshape one group's carrier into the other's
 /// (<see cref="CobolVarGroup.Reshape"/>). One walk, so the two phases cannot disagree about which pair is compatible.
 /// <para>THE THREE RULES are ONE positional walk because they are three statements about the SAME left-to-right byte
 /// accounting:</para>
 /// <list type="number">
-/// <item>§8.5.1.12.1 rule 1 + §8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is a
+/// <item>§2023:8.5.1.12.1 rule 1 + §2023:8.5.1.12.2 sentence 2 — for each dynamic-capacity table in either group there is a
 /// corresponding table in the other: "Two tables correspond if at least one of them is a dynamic-capacity table and they
 /// occupy the same relative byte positions within their groups".</item>
-/// <item>§8.5.1.12.1 rule 2 + §8.5.1.12.3 sentence 2 — "Two corresponding tables match when the byte length of their
+/// <item>§2023:8.5.1.12.1 rule 2 + §2023:8.5.1.12.3 sentence 2 — "Two corresponding tables match when the byte length of their
 /// elements is equal and their elements are compatible" (the element compatibility recurses HERE).</item>
-/// <item>§8.5.1.12.1 rule 3 + §8.5.1.12.2 sentence 1 — "Two dynamic-length elementary items correspond if they start at
-/// the same relative byte positions within their groups"; §8.5.1.12.3 sentence 1 then makes them match "regardless of
+/// <item>§2023:8.5.1.12.1 rule 3 + §2023:8.5.1.12.2 sentence 1 — "Two dynamic-length elementary items correspond if they start at
+/// the same relative byte positions within their groups"; §2023:8.5.1.12.3 sentence 1 then makes them match "regardless of
 /// their definitions".</item>
 /// </list>
-/// <para>The atoms carry §8.5.1.12.3's two collapse conventions already (<see cref="GroupAtom.Bytes"/>); the one the walk
+/// <para>The atoms carry §2023:8.5.1.12.3's two collapse conventions already (<see cref="GroupAtom.Bytes"/>); the one the walk
 /// applies itself is sentence 3 — "If one of the corresponding tables is not a dynamic-capacity table, that table is
 /// treated as though it were a dynamic-capacity table" and the dynamic one is "considered to be the same length as the
 /// corresponding table" — a fact about a PAIR, which no atom can hold. Fixed material between the variable-length items
@@ -122,7 +122,7 @@ public sealed class GroupCharTally
 /// </summary>
 public static class GroupCompatibility
 {
-    /// <summary>Null when <paramref name="a"/> and <paramref name="b"/> are compatible per §8.5.1.12, else the reason.
+    /// <summary>Null when <paramref name="a"/> and <paramref name="b"/> are compatible per §2023:8.5.1.12, else the reason.
     /// <paramref name="pairs"/>, when not null, receives every CORRESPONDING pair the walk matched — dynamic-length
     /// items and tables — as (<paramref name="a"/> index, <paramref name="b"/> index), left to right;
     /// <paramref name="tally"/>, when not null, the pair-relative character lengths.</summary>
@@ -130,9 +130,9 @@ public static class GroupCompatibility
         GroupCharTally? tally = null) => Walk(a, b, pairs, tally, out _, out _);
 
     /// <summary>The walk itself. <paramref name="lengthA"/> / <paramref name="lengthB"/> receive the two groups'
-    /// pair-relative BYTE lengths — each group's length under §8.5.1.12.3's conventions as they apply to THIS pair
+    /// pair-relative BYTE lengths — each group's length under §2023:8.5.1.12.3's conventions as they apply to THIS pair
     /// (sentences 3 and 4 decide a corresponding table's length from the pair, not from either table alone) — and are
-    /// meaningful only when the walk returns null. They are what §8.5.1.12.3 sentence 2's "the byte length of their
+    /// meaningful only when the walk returns null. They are what §2023:8.5.1.12.3 sentence 2's "the byte length of their
     /// elements" means for two group elements (<see cref="Elements"/>).</summary>
     private static GroupMismatch? Walk(GroupAtom[] a, GroupAtom[] b, List<(int First, int Second)>? pairs,
         GroupCharTally? tally, out long lengthA, out long lengthB)
@@ -153,7 +153,7 @@ public static class GroupCompatibility
                 return Tail(a, ia, pa, pb, tally, first: true, out lengthA);
             }
             // The two sides are walked to the SAME relative byte position before any correspondence is decided:
-            // §8.5.1.12.2 states BOTH correspondences as "the same relative byte positions within their groups".
+            // §2023:8.5.1.12.2 states BOTH correspondences as "the same relative byte positions within their groups".
             if (pa < pb)
             {
                 if (tally is not null) tally.First += a[ia].Chars;
@@ -182,13 +182,13 @@ public static class GroupCompatibility
                 ia++; ib++;
                 continue;
             }
-            // Rules 1 and 2 (§8.5.1.12.2 sentence 2 + §8.5.1.12.3 sentences 2-4).
+            // Rules 1 and 2 (§2023:8.5.1.12.2 sentence 2 + §2023:8.5.1.12.3 sentences 2-4).
             bool xDyn = x.Kind is GroupAtomKind.DynamicTable, yDyn = y.Kind is GroupAtomKind.DynamicTable;
             if (xDyn || yDyn)
             {
                 if (!x.IsTable || !y.IsTable)
                     return new GroupMismatch(GroupMismatchKind.DynamicTableOppositeNonTable, xDyn, xDyn ? ia : ib, -1, pa);
-                // §8.5.1.12.3 sentence 2: "Two corresponding tables match when the byte length of their elements is
+                // §2023:8.5.1.12.3 sentence 2: "Two corresponding tables match when the byte length of their elements is
                 // equal and their elements are compatible". The element lengths compared are the ones the element walk
                 // MEASURES for the pair (kb/Work PB2689): an element holding a dynamic-capacity table has no static
                 // length for this purpose, because sentence 3 makes that table "the same length as the corresponding
@@ -201,7 +201,7 @@ public static class GroupCompatibility
                         FirstLength: ex, SecondLength: ey);
                 if (inner is not null)
                     return new GroupMismatch(GroupMismatchKind.ElementsIncompatible, true, ia, ib, pa, inner);
-                // §8.5.1.12.3 sentence 3: when only ONE of the pair is a dynamic-capacity table, the dynamic one "is
+                // §2023:8.5.1.12.3 sentence 3: when only ONE of the pair is a dynamic-capacity table, the dynamic one "is
                 // considered to be the same length as the corresponding table"; when BOTH are, sentence 4 makes each
                 // "the length of a single element of that table" — the element length the pair just measured.
                 bool both = xDyn && yDyn;
@@ -242,7 +242,7 @@ public static class GroupCompatibility
     /// other group's atoms are spent at <paramref name="shorter"/> bytes. An atom that still starts INSIDE the shorter
     /// group (<c>p &lt; shorter</c>: the shorter group's last atom covers it) is opposite material that started
     /// earlier, exactly as in <see cref="Skip"/>, so a variable-length item there fails rule 1 or 3. Past the shorter
-    /// group's last byte §8.5.1.12.2's last sentence grants exactly one latitude — a dynamic-capacity table there "is
+    /// group's last byte §2023:8.5.1.12.2's last sentence grants exactly one latitude — a dynamic-capacity table there "is
     /// treated as if it corresponds to a space-filled fixed-length table" — and grants it to TABLES ONLY: a trailing
     /// dynamic-LENGTH item still needs a real counterpart (rule 3), so it fails. <paramref name="length"/> receives
     /// the longer group's byte length.</summary>
@@ -270,7 +270,7 @@ public static class GroupCompatibility
         return null;
     }
 
-    /// <summary>§8.5.1.12.3 sentence 2 for a pair of corresponding tables: whether "their elements are compatible", and
+    /// <summary>§2023:8.5.1.12.3 sentence 2 for a pair of corresponding tables: whether "their elements are compatible", and
     /// (<paramref name="xBytes"/> / <paramref name="yBytes"/>) "the byte length of their elements" the caller compares.
     /// A group element recurses into the SAME relation, which measures the two elements' lengths for the pair; an
     /// elementary element has no atoms of its own and is its one-occurrence length. <paramref name="chars"/>, when not
@@ -290,7 +290,7 @@ public static class GroupCompatibility
             : null;
     }
 
-    /// <summary>⛔ THE GROUP'S §8.5.1.12 LAYOUT as the carrier reads it — flat <c>(kind, chars, elementChars)</c>
+    /// <summary>⛔ THE GROUP'S §2023:8.5.1.12 LAYOUT as the carrier reads it — flat <c>(kind, chars, elementChars)</c>
     /// triples in CHARACTER positions, the kinds being <see cref="CobolVarGroup"/>'s <c>Layout*</c> constants (kb/Work
     /// PB965): consecutive fixed material merged into one run, a fixed table its whole width, an OCCURS DEPENDING table
     /// its maximum, a dynamic-capacity table one element, a dynamic-length item nothing. Derived from the atoms, so the
@@ -341,7 +341,7 @@ public static class GroupCompatibility
 
     /// <summary>The atoms of a group that states no layout of its own — one run of plain material of
     /// <paramref name="positions"/> character positions (a group whose description carries no atoms: one with a USAGE
-    /// BIT leaf, whose shared-byte runs make a character position non-positional, §8.5.1.6.3).</summary>
+    /// BIT leaf, whose shared-byte runs make a character position non-positional, §2023:8.5.1.6.3).</summary>
     public static GroupAtom[] FixedRun(int positions) =>
         s_fixedRuns.GetOrAdd(positions, static n => [new GroupAtom(GroupAtomKind.Fixed, n, n)]);
 
@@ -357,7 +357,7 @@ public static class GroupCompatibility
     /// last fixed run may be shorter — every component, every table and every fixed run before it at the same character
     /// position and of the same kind and extent — and every pair of tables has elements of the same storage, recursively
     /// (an elementary element is the one fixed run of its characters). That is the condition under which each component
-    /// of the formal IS the area's component at the same ordinal, so §14.2.3 GR8's "the formal parameter occupies the same
+    /// of the formal IS the area's component at the same ordinal, so §2023:14.2.3 GR8's "the formal parameter occupies the same
     /// storage area as the argument" holds per component; a shorter formal simply describes fewer of the positions. Unlike
     /// <see cref="SameShape"/> it ignores how fixed material is divided into elementary items: storage, not description.</summary>
     public static bool LaysOver(GroupAtom[] formal, GroupAtom[] area) => Overlays(formal, area, prefix: true);
@@ -379,7 +379,7 @@ public static class GroupCompatibility
     }
 
     /// <summary>True when <paramref name="atoms"/> hold a variable-length component — a dynamic-length item or a
-    /// dynamic-capacity table, at any depth (§8.5.1.12.1's definition of a variable-length group).</summary>
+    /// dynamic-capacity table, at any depth (§2023:8.5.1.12.1's definition of a variable-length group).</summary>
     public static bool HasComponent(GroupAtom[] atoms) =>
         atoms.Any(x => x.IsComponent || x.Element is { } e && HasComponent(e));
 

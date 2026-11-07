@@ -8,15 +8,15 @@
       *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1192RB.
-      *> ISO/IEC 1989:2023 §9.1.13.5 item 4 and §14.9.51.4 GR29 b) /
+      *> ISO/IEC 1989:2023 §2023:9.1.13.5 item 4 and §2023:14.9.51.4 GR29 b) /
       *> GR33 b) — the externally-defined boundary of a RELATIVE file,
       *> tested AT THE WRITE (kb/Work PB1192).
       *>
-      *> §9.1.13.5 4): "I-O status = 24. An attempt is made to write
+      *> §2023:9.1.13.5 4): "I-O status = 24. An attempt is made to write
       *> outside the externally-defined boundaries of a physical
       *> relative or indexed file. The implementor specifies the
       *> manner in which these boundaries are defined."
-      *> §14.9.51.4 GR33 b): "When an attempt is made to write outside
+      *> §2023:14.9.51.4 GR33 b): "When an attempt is made to write outside
       *> the externally defined boundaries of the file, the I-O status
       *> associated with the write file connector is set to '24'."
       *> GR29 b): "If the relative key data item contains a value that

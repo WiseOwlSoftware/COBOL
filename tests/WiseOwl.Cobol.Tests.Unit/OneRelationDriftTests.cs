@@ -15,8 +15,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE CONFORMANCE QUESTION HAS ONE ASKER: THE RELATION OVER TWO DESCRIPTIONS (kb/Work PB3101; OO_DESIGN D6
-/// item 7). ISO §9.3.5.3 item 6 writes the description identity once (the eight clauses) and the standard asks it from five
-/// places — the §9.3.6 match, §14.8.2.3.2 rule 2, §9.3.8.2.3 rule 3, §11.7.3 SR3 and §13.7.3 SR2. The compiler answered
+/// item 7). ISO §2023:9.3.5.3 item 6 writes the description identity once (the eight clauses) and the standard asks it from five
+/// places — the §2023:9.3.6 match, §2023:14.8.2.3.2 rule 2, §2023:9.3.8.2.3 rule 3, §2023:11.7.3 SR3 and §2023:13.7.3 SR2. The compiler answered
 /// them twice, in two currencies: a <c>DataItem</c> comparator family re-derived each rule from the items' fields while the
 /// run-time relation (<c>ActivationRelations</c>) read the <c>ActivationDescription</c> the compiler builds from the same
 /// fields, and the two disagreed exactly where one copy was corrected and the other was not (a reference-modified argument,
@@ -27,14 +27,14 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// compares two items' description fields against each other (<c>a.Usage != b.Usage</c>,
 /// <c>Equals(a.Clause, b.Clause)</c>, …): that comparison belongs to the relation, and a second copy here is the shape
 /// this note removed. The builder (<c>ActivationDescriptions.cs</c>) reads the fields of ONE item at a time and is the
-/// one place they enter a description. (§8.5.3.1's type-declaration equivalence, <c>StrongTypeModel</c>, is a different
+/// one place they enter a description. (§2023:8.5.3.1's type-declaration equivalence, <c>StrongTypeModel</c>, is a different
 /// rule over two type declarations and lives outside this layer.)</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class OneRelationDriftTests
 {
-    /// <summary>The description facts an item carries that the identity of §9.3.5.3 item 6 / §14.8.2.3.2 rule 2 /
-    /// §9.3.8.2.3 rule 3 is made of — its category, usage, PICTURE identity, ANY LENGTH, and the entry clauses.</summary>
+    /// <summary>The description facts an item carries that the identity of §2023:9.3.5.3 item 6 / §2023:14.8.2.3.2 rule 2 /
+    /// §2023:9.3.8.2.3 rule 3 is made of — its category, usage, PICTURE identity, ANY LENGTH, and the entry clauses.</summary>
     private static readonly HashSet<string> DescriptionFacts = new(StringComparer.Ordinal)
     {
         "Category", "Usage", "Clause", "IsAnyLength", "Justified", "BlankWhenZero", "SignKind", "Digits", "Scale",

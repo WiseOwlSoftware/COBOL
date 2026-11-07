@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1166 - the LOCALE phrase of the PICTURE clause identity
-      *> (§14.8.3.3 "Additionally" 1)), the REJECT half.
+      *> (§2023:14.8.3.3 "Additionally" 1)), the REJECT half.
       *>   cite.py --check 14.8.3.3 "Locale specifications in the PICTURE
       *>     clauses match if and only if"                          OK 1)
       *>   cite.py --check 8.5.3.1 "where the external identification is

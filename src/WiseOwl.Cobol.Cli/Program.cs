@@ -27,7 +27,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
-        // ⛔ BEFORE ANYTHING IS WRITTEN. Diagnostics carry ISO citations — `(ISO §11.10.3 SR5–6)` — and on a
+        // ⛔ BEFORE ANYTHING IS WRITTEN. Diagnostics carry ISO citations — `(ISO §2023:11.10.3 SR5–6)` — and on a
         // default Windows console (cp437) the section sign left this process as the single byte 0x15 and the
         // en dash as '-', in every redirected capture and every CI log, because this entry point never set an
         // encoding while WiseOwl.Cobol.Runtime's did (kb/Work PB899 — the two-arm dispatch with one arm fixed). One
@@ -103,7 +103,7 @@ internal static class Program
         };
         // kb/Work PB803 (owner decision 2026-09-09): the DISPLAY over-punch convention, Annex A.1 items 177/178.
         // A REPRESENTATION option, orthogonal to --std/--permissive — every edition grants the same latitude
-        // (ISO §13.18.52.4 GR4 / GR5 b). An unknown value is refused by the parser exactly as --std's is: a CLI
+        // (ISO §2023:13.18.52.4 GR4 / GR5 b). An unknown value is refused by the parser exactly as --std's is: a CLI
         // argument error, never a COBOL#### source diagnostic (nothing about the SOURCE is wrong).
         var signEncodingOption = new Option<string?>("--sign-encoding")
         {
@@ -118,7 +118,7 @@ internal static class Program
         });
 
         // kb/Work PB3505 (owner decision PB3467): the form DISPLAY gives a numeric operand, Annex A.1 item 56. ISO
-        // §14.9.11.4 GR1 leaves the device conversion to the implementor; the default follows GnuCOBOL 3.2.0 (the
+        // §2023:14.9.11.4 GR1 leaves the device conversion to the implementor; the default follows GnuCOBOL 3.2.0 (the
         // decimal point, a leading sign) and `digits` keeps the digit image. A REPRESENTATION option, orthogonal to
         // --std/--permissive, refused by the parser when unknown exactly as --sign-encoding's value is.
         var numericDisplayOption = new Option<string?>("--numeric-display")
@@ -134,8 +134,8 @@ internal static class Program
                 result.AddError($"--numeric-display must be one of {string.Join(", ", NumericDisplayFormOption.OptionSpellings)} (got {v}).");
         });
 
-        // kb/Work PB1362: the reference format the source starts in. ISO §7.3.24.3 2) makes FIXED form the default;
-        // free form and the structural auto-detection are the implementor-defined selection mechanism §4.2.10 3)
+        // kb/Work PB1362: the reference format the source starts in. ISO §2023:7.3.24.3 2) makes FIXED form the default;
+        // free form and the structural auto-detection are the implementor-defined selection mechanism §2023:4.2.10 3)
         // requires for a nonstandard behavior (docs/CONFORMANCE.md DOC-A.1-158). A >>SOURCE FORMAT directive in the
         // text switches the format whichever one it started in. An unknown value is a CLI argument error.
         var sourceFormatOption = new Option<string?>("--source-format")
@@ -151,7 +151,7 @@ internal static class Program
                     + $"{string.Join(", ", InitialReferenceFormatOption.OptionSpellings)} (got {v}).");
         });
 
-        // kb/Work PB1525: ISO §4.2.10 — "An implementation shall provide a warning mechanism that optionally may be
+        // kb/Work PB1525: ISO §2023:4.2.10 — "An implementation shall provide a warning mechanism that optionally may be
         // invoked by the user at compile time to indicate use of a nonstandard extension in a compilation group."
         // This is that mechanism. It is a pure opt-in: without it a compile prints exactly what it printed before.
         var flagExtensionsOption = new Option<bool>("--flag-extensions")
@@ -160,7 +160,7 @@ internal static class Program
                 + "construct ISO/IEC 1989 does not define (ISO 4.2.10). The register is docs/CONFORMANCE.md 3.2.",
         };
 
-        // kb/Work PB2100: ISO §8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to
+        // kb/Work PB2100: ISO §2023:8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to
         // update the external repository when a compilation unit is compiled." This is that mechanism
         // (DESIGN-external-repository §9.1): on (the default) writes every published unit's signature into the module, off
         // writes its index and unit identities only. An unknown value is a CLI argument error.
@@ -175,7 +175,7 @@ internal static class Program
 
         // kb/Work PB2103: the external repository the compilation reads (DESIGN-external-repository §9.3; Annex A.1 item 66):
         // a REPOSITORY specifier the compilation group cannot answer is looked for in the --repository directories in the
-        // order given (by default the output directory), then in the --reference assemblies in order (ISO §12.3.8.4 GR10 c) /
+        // order given (by default the output directory), then in the --reference assemblies in order (ISO §2023:12.3.8.4 GR10 c) /
         // GR11 c)). A place that does not exist is REPO-10 (a bind diagnostic, with every other).
         var repositoryOption = new Option<string[]>("--repository")
         {
@@ -194,7 +194,7 @@ internal static class Program
             AllowMultipleArgumentsPerToken = false,
             HelpName = "FILE.dll",
         };
-        // ISO §8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to flag differences
+        // ISO §2023:8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to flag differences
         // in prototypes and definitions in the compilation group from the information in the external repository."
         // (DESIGN-external-repository §9.2, REPO-9.)
         var repositoryCheckOption = new Option<string?>("--repository-check")
@@ -361,7 +361,7 @@ internal static class Program
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
             ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck));
 
-        // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §7.3.12.4 GR1, DOC-A.1-53,
+        // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §2023:7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.
         foreach (var transfer in result.CompileOutput)
             (transfer.Stream == WiseOwl.Cobol.Frontend.Diagnostics.CompileOutputStream.Error ? Console.Error : Console.Out)

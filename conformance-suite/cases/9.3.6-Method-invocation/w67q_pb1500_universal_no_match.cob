@@ -5,15 +5,15 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1500 - ISO §9.3.6 METHOD RESOLUTION through a universal
+      *> kb/Work PB1500 - ISO §2023:9.3.6 METHOD RESOLUTION through a universal
       *> object reference. The match rules are conditions of resolution:
       *> rule 1 "The number of invocation parameters shall be equal to the
       *> number of parameters defined in the invoked method" (RETURNING
       *> present on both sides or neither), rule 3 c) "is the same class
       *> and category". A method that does not match is not bound; the
-      *> search continues up the INHERITS chain (§9.3.6 2)), and when no
+      *> search continues up the INHERITS chain (§2023:9.3.6 2)), and when no
       *> class matches, "6) otherwise, the EC-OO-METHOD exception
-      *> condition is set to exist" (§14.9.23.4 GR7 b)). The declarative
+      *> condition is set to exist" (§2023:14.9.23.4 GR7 b)). The declarative
       *> on EC-OO-METHOD therefore selects each non-matching INVOKE and
       *> RESUME AT NEXT STATEMENT continues the run unit; the one matching
       *> INVOKE binds and runs. W67QNMD inherits T from W67QNMC, so its
@@ -55,7 +55,7 @@
       *>   the matching invocation is bound and runs
            INVOKE U "T" USING N3 X3.
            DISPLAY "AFTER-MATCH".
-      *>   §9.3.6 2): the subclass declares no T; the inherited T does
+      *>   §2023:9.3.6 2): the subclass declares no T; the inherited T does
       *>   not match either, so the search ends at step 6)
            INVOKE W67QNMD "NEW" RETURNING U.
            INVOKE U "T" USING N3.

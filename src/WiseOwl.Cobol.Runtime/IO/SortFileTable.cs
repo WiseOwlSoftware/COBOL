@@ -10,11 +10,11 @@ namespace WiseOwl.Cobol.Runtime.IO;
 internal enum ProcedurePhase { None, Input, Output }
 
 /// <summary>The per-SD store of one executing SORT/MERGE statement: its records — <see cref="Work"/>, the bounded
-/// external merge sort that keeps release order as the stability anchor ISO §14.9.40.4 GR3 requires (kb/Work PB3339) —
+/// external merge sort that keeps release order as the stability anchor ISO §2023:14.9.40.4 GR3 requires (kb/Work PB3339) —
 /// and the statement's procedure phase. ⛔ It holds no record collection of its own (<c>SortWorkBoundDriftTests</c>).</summary>
 internal sealed class SortStore(SortMemory memory)
 {
-    /// <summary>The statement's records, keys and GR5 sequences (the §14.6.6 r5 snapshots), from
+    /// <summary>The statement's records, keys and GR5 sequences (the §2023:14.6.6 r5 snapshots), from
     /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> — a keyless, empty work
     /// until then.</summary>
     public SortWork Work { get; private set; } = new(memory, [], null, null);
@@ -33,40 +33,40 @@ internal sealed class SortStore(SortMemory memory)
     /// <summary>The managed-slot values of the most recently RETURNed record (<see cref="StoredFrame.Carried"/>) — null
     /// when it holds none.</summary>
     public object?[]? LastReturnedSlots;
-    /// <summary>Which procedure of the executing SORT/MERGE statement is running — the state §14.9.32.4 GR1
+    /// <summary>Which procedure of the executing SORT/MERGE statement is running — the state §2023:14.9.32.4 GR1
     /// ("within the range of an input procedure being executed by a SORT statement that references the
-    /// file-name") and §14.9.34.4 GR1 ("within the range of an output procedure being executed by a MERGE or
+    /// file-name") and §2023:14.9.34.4 GR1 ("within the range of an output procedure being executed by a MERGE or
     /// SORT statement that references file-name-1") test. The store exists only between
     /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> and <see cref="CobolSort.Close"/>, so
     /// "no store" is "no statement executing".</summary>
     public ProcedurePhase Phase;
-    /// <summary>The statement's §14.9.40.4 GR17 registration (kb/Work PB1177) — set by
-    /// <c>CobolSort.RegisterFormat1Sort</c> for EVERY format 1 SORT, null for a MERGE, whose rules (§14.9.24.4) carry no
+    /// <summary>The statement's §2023:14.9.40.4 GR17 registration (kb/Work PB1177) — set by
+    /// <c>CobolSort.RegisterFormat1Sort</c> for EVERY format 1 SORT, null for a MERGE, whose rules (§2023:14.9.24.4) carry no
     /// such sentence. Its presence is what makes the store an ACTIVE FORMAT 1 SORT to <see cref="SortFileTable.ActiveFormat1Sort"/>.</summary>
     public Format1SortRegistration? Format1;
-    /// <summary>§14.9.34.4 GR3's latch: the at end condition has occurred for this file in the current output
+    /// <summary>§2023:14.9.34.4 GR3's latch: the at end condition has occurred for this file in the current output
     /// procedure, so a further RETURN is EC-SORT-MERGE-RETURN.</summary>
     public bool AtEndReached;
 }
 
-/// <summary>A format 1 SORT statement's §14.9.40.4 GR17 registration (kb/Work PB1177): "If a USE procedure invoked while
+/// <summary>A format 1 SORT statement's §2023:14.9.40.4 GR17 registration (kb/Work PB1177): "If a USE procedure invoked while
 /// a format 1 SORT statement is active does not complete normally, the SORT statement is terminated."
 /// <paramref name="UseScope"/> is the declarative scope (the emitted <c>__useActive</c>) of the program instance or method
 /// invocation that executes the statement — null when that scope has no EC-model declaratives — and tells the statement's
 /// OWN USE procedures from every other one the rule reaches (a CALLed or INVOKEd element's, a containing program's
 /// GLOBAL one): only an own procedure's RESUME AT procedure-name names a procedure the statement's landing can transfer
 /// to. <paramref name="Ordinal"/> orders the registrations of the run unit, so the INNERMOST active SORT is the one
-/// terminated when a SORT runs inside another's procedure (§14.9.40.4 GR10/GR13 make that EC-SORT-MERGE-ACTIVE, whose
+/// terminated when a SORT runs inside another's procedure (§2023:14.9.40.4 GR10/GR13 make that EC-SORT-MERGE-ACTIVE, whose
 /// results are undefined when it is not checked).</summary>
 internal sealed record Format1SortRegistration(object? UseScope, long Ordinal);
 
 /// <summary>⛔ THE RUN UNIT'S SORT-MERGE FILE STORES, keyed by COBOL file-name (kb/Work PB1570; the owner is
 /// <see cref="RunUnit.SortFiles"/>). A sort-merge file's store exists only while a SORT/MERGE statement of THIS run
-/// unit executes (ISO §14.9.40 GR9 phases; §9 sort-merge file model), and the -ACTIVE rules (§14.9.40.4 GR10 / GR13,
-/// §14.9.24.4 GR8) name the procedures of "an executing SORT/MERGE statement" — a statement of the same run unit:
+/// unit executes (ISO §2023:14.9.40 GR9 phases; §9 sort-merge file model), and the -ACTIVE rules (§2023:14.9.40.4 GR10 / GR13,
+/// §2023:14.9.24.4 GR8) name the procedures of "an executing SORT/MERGE statement" — a statement of the same run unit:
 /// "A run unit is an independent entity that may be executed without communicating with, or being coordinated with,
 /// any other run unit except that it may communicate via messages with other run units, process files, and set and
-/// test switches" (§14.6.1), and a sort-merge file is none of those. The table used to be one process-wide static
+/// test switches" (§2023:14.6.1), and a sort-merge file is none of those. The table used to be one process-wide static
 /// <c>Dictionary</c> on <see cref="CobolSort"/>, so two run units in one process (the <see cref="RunUnit.Run"/> /
 /// <see cref="RunUnit.Begin"/> host shape, or two concurrent hosts) shared and mutated each other's sort files, an
 /// abandoned statement's store outlived its run unit, and one run unit's procedure phase could raise
@@ -118,7 +118,7 @@ public sealed class SortFileTable
     internal long NextOrdinal() => ++_ordinals;
 
     /// <summary>The run unit's ACTIVE FORMAT 1 SORT — the innermost executing statement that registered as one
-    /// (<see cref="SortStore.Format1"/>), with its file-name — else null: the statement §14.9.40.4 GR17 terminates when a
+    /// (<see cref="SortStore.Format1"/>), with its file-name — else null: the statement §2023:14.9.40.4 GR17 terminates when a
     /// USE procedure invoked while it is active does not complete normally. A store exists only while its statement
     /// executes, so a registered store IS an active SORT.</summary>
     internal (string Name, Format1SortRegistration Registration)? ActiveFormat1Sort()
@@ -134,14 +134,14 @@ public sealed class SortFileTable
     /// (<paramref name="name"/>) has ended in EXIT PROGRAM or GOBACK — see <see cref="CobolSort.UseProcedureExited"/>.</summary>
     internal void TerminateOnActivationReturn(string name) => _exitTerminated = name;
 
-    /// <summary>⛔ §14.9.40.4 GR17 AT AN ACTIVATION'S RETURN (kb/Work PB1177): when a USE procedure of the returning
-    /// element ended in EXIT PROGRAM or GOBACK — a completion that is not normal (§14.6.13.1.2 1)) — while a format 1
+    /// <summary>⛔ §2023:14.9.40.4 GR17 AT AN ACTIVATION'S RETURN (kb/Work PB1177): when a USE procedure of the returning
+    /// element ended in EXIT PROGRAM or GOBACK — a completion that is not normal (§2023:14.6.13.1.2 1)) — while a format 1
     /// SORT whose range activated the element was active, that statement is terminated now, in the activator: the
     /// return has done what a return does (the BY REFERENCE copy-out, the RETURNING delivery), and the
     /// <see cref="SortTerminationSignal"/> unwinds the rest of the range to the statement's landing as a completion
     /// that is not normal. Asked by every emitted activating site AFTER the return has been picked up completely - the
     /// RETURNING delivery and the propagation pickup of a <c>GOBACK ... RAISING</c> the same activation staged
-    /// (§14.9.18.4 GR1 b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
+    /// (§2023:14.9.18.4 GR1 b); kb/Work PB3246): a CALL or function activation and an INVOKE (both
     /// <c>CallEmitter.EmitActivationReturned</c>), and the host boundary (<c>ProgramTable.CallFromHost</c>).</summary>
     internal void AfterActivationReturn() => TerminateAfterActivation(TakeActivationReturnTermination());
 

@@ -10,11 +10,11 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 
 using Core = CobolParserCore;
 
-/// <summary>The conditional phrases of ISO §14.5.1 Table 12 that come as a <c>[NOT]</c> pair (and SEARCH's AT END),
+/// <summary>The conditional phrases of ISO §2023:14.5.1 Table 12 that come as a <c>[NOT]</c> pair (and SEARCH's AT END),
 /// one value per phrase keyword: the grammar spells all of them in ONE rule, <c>conditionalPhraseHead</c>.</summary>
 public enum ConditionalPhraseFamily
 {
-    /// <summary><c>[NOT] ON SIZE ERROR</c> — ADD, COMPUTE, DIVIDE, MULTIPLY, SUBTRACT (§14.7.5).</summary>
+    /// <summary><c>[NOT] ON SIZE ERROR</c> — ADD, COMPUTE, DIVIDE, MULTIPLY, SUBTRACT (§2023:14.7.5).</summary>
     SizeError,
 
     /// <summary><c>[NOT] ON EXCEPTION</c> — ACCEPT, CALL, DELETE (file), DISPLAY, RECEIVE, SEND.</summary>
@@ -34,7 +34,7 @@ public enum ConditionalPhraseFamily
 }
 
 /// <summary>One written conditional phrase: its <see cref="ConditionalPhraseFamily"/> and whether it is the NOT twin.
-/// Two phrases are "the same phrase" in §14.5.3.3's sense ("If all permitted occurrences of a phrase have already been
+/// Two phrases are "the same phrase" in §2023:14.5.3.3's sense ("If all permitted occurrences of a phrase have already been
 /// specified …") exactly when their kinds are equal.</summary>
 public readonly record struct ConditionalPhraseKind(ConditionalPhraseFamily Family, bool Negated)
 {
@@ -104,7 +104,7 @@ public static class ConditionalPhrases
     public static IEnumerable<ConditionalPhraseKind> KindsOf(Core.ConditionalPhrasesContext? phrases) =>
         phrases is null ? [] : phrases.conditionalPhrase().Select(KindOf);
 
-    /// <summary>The written phrase of <paramref name="kind"/>, or null. §14.5.3.3 lets each be written at most once, so
+    /// <summary>The written phrase of <paramref name="kind"/>, or null. §2023:14.5.3.3 lets each be written at most once, so
     /// there is never a second.</summary>
     public static Core.ConditionalPhraseContext? Find(Core.ConditionalPhrasesContext? phrases, ConditionalPhraseKind kind) =>
         phrases?.conditionalPhrase().FirstOrDefault(p => KindOf(p) == kind);
@@ -120,7 +120,7 @@ public static class ConditionalPhrases
 }
 
 /// <summary>
-/// ⛔ ISO §14.5.3.3's PHRASE ASSOCIATION, DECIDED HERE AND NOWHERE ELSE (kb/Work PB3830): "Any phrase encountered is the
+/// ⛔ ISO §2023:14.5.3.3's PHRASE ASSOCIATION, DECIDED HERE AND NOWHERE ELSE (kb/Work PB3830): "Any phrase encountered is the
 /// next phrase of the most-recently preceding unterminated statement with which that phrase may be syntactically
 /// associated. If all permitted occurrences of a phrase have already been specified for a given statement, a subsequent
 /// occurrence of that phrase is not syntactically associated with that statement."
@@ -130,10 +130,10 @@ public static class ConditionalPhrases
 /// preceding") and takes the phrase exactly when <see cref="Associates"/> says it may; otherwise its loop ends, its
 /// statement ends, and the next enclosing owner is asked. A phrase may be syntactically associated with a statement when
 /// it belongs to one of the statement's printed general formats TOGETHER WITH everything the statement already wrote
-/// — the phrases (READ's AT END and INVALID KEY are two formats, §14.9.30.2) AND the other syntax elements that only
+/// — the phrases (READ's AT END and INVALID KEY are two formats, §2023:14.9.30.2) AND the other syntax elements that only
 /// some of its formats print (<see cref="Selector"/>: READ NEXT, PREVIOUS or ADVANCING ON LOCK is Format 1 only and
-/// KEY IS Format 2 only, §14.9.30.2; WRITE ADVANCING is Format 1 only, §14.9.51.2; a COMPUTE boolean-expression that
-/// is no arithmetic expression is Format 2, which prints no SIZE ERROR phrase, §14.9.8.2) — and is not one of the
+/// KEY IS Format 2 only, §2023:14.9.30.2; WRITE ADVANCING is Format 1 only, §2023:14.9.51.2; a COMPUTE boolean-expression that
+/// is no arithmetic expression is Format 2, which prints no SIZE ERROR phrase, §2023:14.9.8.2) — and is not one of the
 /// phrases already written.
 /// <see cref="Owners"/> holds the general formats, one row per owning grammar rule. (Branch review R1-1 of PB3830: a
 /// table of phrase brackets alone let an inner <c>READ g NEXT</c> take the enclosing READ's NOT INVALID KEY.)</para>
@@ -166,7 +166,7 @@ public static class ConditionalPhraseAssociation
     /// <para>⛔ The test is on what the SOURCE wrote, never on which alternative the parser took:
     /// <see cref="AlsoPrinted"/> answers true for a written element that ALSO reads as syntax of the formats the
     /// selector would rule out, and such an element selects nothing. (Branch review R2-1 of PB3830: a sole figurative
-    /// ZERO parses through COMPUTE's <c>booleanExpression</c> alternative but is a §8.8.1.1 arithmetic expression, so
+    /// ZERO parses through COMPUTE's <c>booleanExpression</c> alternative but is a §2023:8.8.1.1 arithmetic expression, so
     /// <c>COMPUTE X = ZERO ON SIZE ERROR …</c> was refused and a nested one's phrase moved outward.)</para></summary>
     public sealed record Selector(int Rule, string Words)
     {
@@ -185,7 +185,7 @@ public static class ConditionalPhraseAssociation
 
         /// <summary>The syntax elements that PROVE a statement is written in this format, for a format told apart from
         /// the owner's other formats by the CATEGORY of a name rather than by syntax: ACCEPT Format 3 and DISPLAY Format 2
-        /// write <c>screen-name-1</c> exactly where Format 1 writes <c>identifier-1</c> (§14.9.1.2, §14.9.11.2), and
+        /// write <c>screen-name-1</c> exactly where Format 1 writes <c>identifier-1</c> (§2023:14.9.1.2, §2023:14.9.11.2), and
         /// whether a word names a screen is a declaration fact the parser does not see. Empty: the format needs no
         /// proof. Non-empty and none written: the format is only PRESUMED, and a phrase joins the statement by it only
         /// when no enclosing open statement may take the phrase (<see cref="Associates"/>) — so
@@ -214,13 +214,13 @@ public static class ConditionalPhraseAssociation
     private static readonly Selector ReadAdvancingOnLock = new(Core.RULE_readAdvancingOnLock, "ADVANCING ON LOCK");
     private static readonly Selector ReadKey = new(Core.RULE_readKey, "KEY IS");
     private static readonly Selector WriteAdvancing = new(Core.RULE_writeBeforeAfter, "BEFORE or AFTER ADVANCING");
-    // A sole figurative ZERO parses as a booleanExpression yet is a Format 1 arithmetic expression (§8.8.1.1), so it
+    // A sole figurative ZERO parses as a booleanExpression yet is a Format 1 arithmetic expression (§2023:8.8.1.1), so it
     // selects neither COMPUTE format: ComputeFormats is the one reading, shared with ArithmeticBinder's re-route.
     private static readonly Selector BooleanCompute = new(Core.RULE_booleanExpression, "a boolean-expression")
     {
         AlsoPrinted = static e => ComputeFormats.SoleFigurativeZero((Core.BooleanExpressionContext)e) is not null,
     };
-    // ACCEPT Format 3 / DISPLAY Format 2 (screen) against the device formats (§14.9.1.2, §14.9.11.2). The screen format
+    // ACCEPT Format 3 / DISPLAY Format 2 (screen) against the device formats (§2023:14.9.1.2, §2023:14.9.11.2). The screen format
     // writes ONE operand, screen-name-1 — a word, never a literal, a function-identifier or an inline invocation — and
     // none of FROM, UPON or NO ADVANCING, which only Format 1 prints; the positioning phrase only the screen format prints.
     private static readonly Selector AcceptFrom = new(Core.RULE_acceptSource, "FROM");
@@ -249,32 +249,32 @@ public static class ConditionalPhraseAssociation
     }
 
     /// <summary>⛔ THE OWNERS: every grammar rule that writes <c>conditionalPhrases</c>, with its general formats' phrase
-    /// brackets (the §14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
+    /// brackets (the §2023:14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
     public static readonly FrozenDictionary<int, IReadOnlyList<Format>> Owners = new Dictionary<int, IReadOnlyList<Format>>
     {
-        // §14.9.2 / §14.9.44 / §14.9.26 / §14.9.12 / §14.9.8: every format prints [| ON SIZE ERROR | NOT ON SIZE ERROR |].
+        // §2023:14.9.2 / §2023:14.9.44 / §2023:14.9.26 / §2023:14.9.12 / §2023:14.9.8: every format prints [| ON SIZE ERROR | NOT ON SIZE ERROR |].
         [Core.RULE_addStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_subtractStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_multiplyStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_divideStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
-        // §14.9.8.2: Format 1 (arithmetic-compute) prints the pair; Format 2 (boolean-compute) prints no phrase, so a
+        // §2023:14.9.8.2: Format 1 (arithmetic-compute) prints the pair; Format 2 (boolean-compute) prints no phrase, so a
         // COMPUTE whose right side is a boolean-expression and no arithmetic expression owns none. A right side both
         // formats print — a sole identifier (parsed as Format 1) or a sole figurative ZERO (parsed as Format 2,
         // BooleanCompute.AlsoPrinted) — may be either format, so it owns the pair, and ArithmeticBinder re-routes it
         // by the receiver's class, naming the phrase COBOL1511 when the statement proves to be Format 2.
         [Core.RULE_computeStatement] = [Pair(ConditionalPhraseFamily.SizeError) with { Unprinted = [BooleanCompute] }],
-        // §14.9.4.2 Formats 1 and 2: [| ON EXCEPTION | NOT ON EXCEPTION |]; the 85–2014 format's [ ON OVERFLOW ] alone
+        // §2023:14.9.4.2 Formats 1 and 2: [| ON EXCEPTION | NOT ON EXCEPTION |]; the 85–2014 format's [ ON OVERFLOW ] alone
         // (ISO/IEC 1989:2002 §14.8.4.1 Format 1 — no NOT ON OVERFLOW at any edition), removed at 2023 (Annex E.2 1c).
         [Core.RULE_callStatement] =
         [
             Pair(ConditionalPhraseFamily.Exception),
             Positive(ConditionalPhraseFamily.Overflow, Constructs.CallOnOverflowRemoved2023),
         ],
-        // §14.9.31.2, §14.9.38.2, §14.9.10.2 Format 2 (file).
+        // §2023:14.9.31.2, §2023:14.9.38.2, §2023:14.9.10.2 Format 2 (file).
         [Core.RULE_messagingReceiveStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_messagingSendStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_deleteFileStatement] = [Pair(ConditionalPhraseFamily.Exception)],
-        // §14.9.1.2 / §14.9.11.2: only the screen format (ACCEPT Format 3, DISPLAY Format 2) prints the pair, beside an
+        // §2023:14.9.1.2 / §2023:14.9.11.2: only the screen format (ACCEPT Format 3, DISPLAY Format 2) prints the pair, beside an
         // independent positioning phrase that proves it; written without one, the format is presumed (kb/Work PB1528).
         [Core.RULE_acceptStatement] =
         [
@@ -288,36 +288,36 @@ public static class ConditionalPhraseAssociation
                 ProvedBy = [ScreenPosition],
             },
         ],
-        // §14.9.30.2: Format 1 (sequential) { NEXT | PREVIOUS } … [ ADVANCING ON LOCK | … ] [| AT END | NOT AT END |];
+        // §2023:14.9.30.2: Format 1 (sequential) { NEXT | PREVIOUS } … [ ADVANCING ON LOCK | … ] [| AT END | NOT AT END |];
         // Format 2 (random) … [ KEY IS … ] [| INVALID KEY | NOT INVALID KEY |]. NEXT is the default alternative of
-        // Format 1's braces (§5.2.6.3), so a READ that writes none of the selectors may be either format.
+        // Format 1's braces (§2023:5.2.6.3), so a READ that writes none of the selectors may be either format.
         [Core.RULE_readStatement] =
         [
             Pair(ConditionalPhraseFamily.AtEnd) with { Unprinted = [ReadKey] },
             Pair(ConditionalPhraseFamily.InvalidKey) with { Unprinted = [ReadDirection, ReadAdvancingOnLock] },
         ],
-        // §14.9.51.2: Format 1 (sequential) ADVANCING and the END-OF-PAGE pair, Format 2 (random) the INVALID KEY pair
+        // §2023:14.9.51.2: Format 1 (sequential) ADVANCING and the END-OF-PAGE pair, Format 2 (random) the INVALID KEY pair
         // and no ADVANCING.
         [Core.RULE_writeStatement] =
         [
             Pair(ConditionalPhraseFamily.EndOfPage),
             Pair(ConditionalPhraseFamily.InvalidKey) with { Unprinted = [WriteAdvancing] },
         ],
-        // §14.9.35.2, §14.9.10.2 Format 1 (record), §14.9.41.2.
+        // §2023:14.9.35.2, §2023:14.9.10.2 Format 1 (record), §2023:14.9.41.2.
         [Core.RULE_rewriteStatement] = [Pair(ConditionalPhraseFamily.InvalidKey)],
         [Core.RULE_deleteStatement] = [Pair(ConditionalPhraseFamily.InvalidKey)],
         [Core.RULE_startStatement] = [Pair(ConditionalPhraseFamily.InvalidKey)],
-        // §14.9.34.2: AT END [ NOT AT END ], SR4 either order.
+        // §2023:14.9.34.2: AT END [ NOT AT END ], SR4 either order.
         [Core.RULE_returnStatement] = [Pair(ConditionalPhraseFamily.AtEnd)],
-        // §14.9.43.2, §14.9.48.2.
+        // §2023:14.9.43.2, §2023:14.9.48.2.
         [Core.RULE_stringStatement] = [Pair(ConditionalPhraseFamily.Overflow)],
         [Core.RULE_unstringStatement] = [Pair(ConditionalPhraseFamily.Overflow)],
-        // §14.9.37.2, both formats: [ AT END imperative-statement-1 ] and no NOT AT END.
+        // §2023:14.9.37.2, both formats: [ AT END imperative-statement-1 ] and no NOT AT END.
         [Core.RULE_searchStatement] = [Positive(ConditionalPhraseFamily.AtEnd)],
         [Core.RULE_searchAllStatement] = [Positive(ConditionalPhraseFamily.AtEnd)],
     }.ToFrozenDictionary();
 
-    /// <summary>§14.5.3.3: whether the phrase <paramref name="next"/> is the next phrase of the statement that owns
+    /// <summary>§2023:14.5.3.3: whether the phrase <paramref name="next"/> is the next phrase of the statement that owns
     /// <paramref name="phrases"/> — the parse-time predicate's whole decision.</summary>
     public static bool Associates(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo edition)
     {
@@ -332,7 +332,7 @@ public static class ConditionalPhraseAssociation
         return true;
     }
 
-    /// <summary>The §14.5.3.3 test proper: <paramref name="next"/> is not yet written, and one of the owner's general
+    /// <summary>The §2023:14.5.3.3 test proper: <paramref name="next"/> is not yet written, and one of the owner's general
     /// formats printed at <paramref name="edition"/> (at ANY edition when null — the superset reading) admits it together
     /// with every phrase already written, prints every <see cref="Selector"/> the statement wrote, and — under
     /// <see cref="Reading.Proved"/> — is proved by what the statement wrote (<see cref="Format.ProvedBy"/>).</summary>
@@ -388,7 +388,7 @@ public static class ConditionalPhraseAssociation
     /// The COBOL2269 (statement-format-shape) message for a syntax error AT a conditional phrase that no statement
     /// open there may take, or null when <paramref name="offending"/> opens no such phrase. Read from the parser state:
     /// the candidates are the statements still open at <paramref name="context"/> and the ones that ended just before
-    /// the phrase (the rightmost descendants — the parse ended them BECAUSE the phrase did not fit, §14.5.3.3 2) c) /
+    /// the phrase (the rightmost descendants — the parse ended them BECAUSE the phrase did not fit, §2023:14.5.3.3 2) c) /
     /// 4) b)). The message names the innermost candidate whose formats print the phrase's family and says why it may not
     /// take this one: already written ("If all permitted occurrences of a phrase have already been specified …"), or
     /// printed by no format beside the phrases already written, or printed by none of its formats at all.
@@ -417,22 +417,22 @@ public static class ConditionalPhraseAssociation
             .SelectMany(f => f.Unprinted).Where(s => Writes(ownerContext, s))
             .Select(s => s.Words).Distinct().ToList();
         string why = written.Contains(kind)
-            ? $"this {name} statement already has its {kind.Words} phrase, and ISO §14.5.3.3: \"If all permitted "
+            ? $"this {name} statement already has its {kind.Words} phrase, and ISO §2023:14.5.3.3: \"If all permitted "
               + "occurrences of a phrase have already been specified for a given statement, a subsequent occurrence of "
               + "that phrase is not syntactically associated with that statement\""
             : selectors.Count > 0
                 ? $"this {name} statement specifies {string.Join(" and ", selectors)}, and no general format of the "
                   + $"{name} statement that prints it also prints the {kind.Words} phrase, so the phrase may not be "
-                  + "syntactically associated with this statement (ISO §14.5.3.3)"
+                  + "syntactically associated with this statement (ISO §2023:14.5.3.3)"
             : Prints(OwnerRule(owner), kind)
                 ? $"no general format of the {name} statement prints the {kind.Words} phrase beside the "
                   + string.Join(" and ", written.Select(w => w.Words)) + " phrase, so it may not be syntactically "
-                  + "associated with this statement (ISO §14.5.3.3)"
+                  + "associated with this statement (ISO §2023:14.5.3.3)"
                 : $"no general format of the {name} statement prints a {kind.Words} phrase, so it may not be "
-                  + "syntactically associated with this statement (ISO §14.5.3.3)";
+                  + "syntactically associated with this statement (ISO §2023:14.5.3.3)";
         return $"{name} {kind.Words}: {why}; and no other statement open here may take it. A phrase is the next phrase "
             + "of the most-recently preceding unterminated statement with which it may be syntactically associated "
-            + "(ISO §14.5.3.3), and its imperative-statement ends at the next phrase of any containing statement.";
+            + "(ISO §2023:14.5.3.3), and its imperative-statement ends at the next phrase of any containing statement.";
     }
 
     /// <summary>The conditional phrase the default-channel tokens from <paramref name="index"/> spell, or null.</summary>

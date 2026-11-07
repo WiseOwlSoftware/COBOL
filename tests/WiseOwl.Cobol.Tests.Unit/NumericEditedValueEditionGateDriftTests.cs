@@ -15,14 +15,14 @@ using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ONE RULE, EVERY FORMAT: ISO §13.18.63.3 SR6's edition reaches every general format of the VALUE clause
+/// ⛔ ONE RULE, EVERY FORMAT: ISO §2023:13.18.63.3 SR6's edition reaches every general format of the VALUE clause
 /// that can carry a numeric literal on a numeric-edited subject.
 ///
 /// <para>SR6 — "If the item is of category numeric-edited, then, subject to Syntax rules 2 and 3, literals in
 /// formats 1, 2, and 4 of the VALUE clause may be numeric when they shall be converted to their numeric-edited
 /// forms according to the rules for the MOVE statement" — is the only rule that admits a numeric literal on a
-/// numeric-edited subject, and Annex E.3.3 item 43 dates it as a COBOL-2023 addition. §13.18.63.4 GR19 and
-/// §14.9.39.4 GR6 carry it onto the format-3 (condition-name) spelling as well; the determination is on
+/// numeric-edited subject, and Annex E.3.3 item 43 dates it as a COBOL-2023 addition. §2023:13.18.63.4 GR19 and
+/// §2023:14.9.39.4 GR6 carry it onto the format-3 (condition-name) spelling as well; the determination is on
 /// kb/Work PB921.</para>
 ///
 /// <para><b>Why a property and not only a golden.</b> The rule was written down TWICE — its literal-FORM half in
@@ -37,7 +37,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class NumericEditedValueEditionGateDriftTests
 {
-    /// <summary>Every general format of the VALUE clause that §13.18.63.3 SR6 reaches, each carrying a numeric
+    /// <summary>Every general format of the VALUE clause that §2023:13.18.63.3 SR6 reaches, each carrying a numeric
     /// literal on a numeric-edited subject — the exact construct Annex E.3.3 item 43 introduced. The literal zero
     /// is a numeric literal like any other (kb/Work PB3566): SR6's last sentence ("the integer and decimal forms
     /// of the literal zero may also be specified for either format") separates the fixed-point from the
@@ -65,7 +65,7 @@ public sealed class NumericEditedValueEditionGateDriftTests
         foreach (int edition in (int[])[85, 2002, 2014])
             Assert.True(Bind(label + edition, src, edition).Any(d => d.Contains("COBOL0900", StringComparison.Ordinal)),
                 $"{label} at --std {edition}: a numeric literal on a numeric-edited subject drew no COBOL0900. "
-                + "ISO §13.18.63.3 SR6's permission is a COBOL-2023 addition (Annex E.3.3 item 43), so every "
+                + "ISO §2023:13.18.63.3 SR6's permission is a COBOL-2023 addition (Annex E.3.3 item 43), so every "
                 + "format it reaches shall be refused below that edition — this format's arm stopped consulting "
                 + "the one screen (kb/Work PB921).");
     }
@@ -80,7 +80,7 @@ public sealed class NumericEditedValueEditionGateDriftTests
 
     /// <summary>The operands SR6's edition does NOT gate, at the LOWEST edition — the screen's complement: the
     /// figurative constant ZERO or ZEROES (no numeric literal; Annex E.2 item 28 changed only its stored image at
-    /// 2023) and §13.18.63.3 SR7's alphanumeric/national edited image, which was always the pre-2023 spelling.
+    /// 2023) and §2023:13.18.63.3 SR7's alphanumeric/national edited image, which was always the pre-2023 spelling.
     /// None of these may be refused at COBOL-85.</summary>
     [Theory]
     [InlineData("EDITED-IMAGE", "       01  X  PIC ZZ9.99 VALUE \" 10.00\".\r\n")]

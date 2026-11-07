@@ -3,11 +3,11 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE ONE PLACE THE OPERATING ENVIRONMENT'S SHARE MODE IS DECIDED — ISO §9.1.15's <b>file lock</b>, as a
+/// ⛔ THE ONE PLACE THE OPERATING ENVIRONMENT'S SHARE MODE IS DECIDED — ISO §2023:9.1.15's <b>file lock</b>, as a
 /// derivation from the connector's sharing mode, rather than as a boolean at four stream sites (kb/Work PB740).
 /// </summary>
 /// <remarks>
-/// <para>§9.1.15 names two audiences for one sharing mode, and they need two different mechanisms:</para>
+/// <para>§2023:9.1.15 names two audiences for one sharing mode, and they need two different mechanisms:</para>
 /// <list type="number">
 /// <item><description><b>Other file connectors of this run unit.</b> <i>"Multiple paths of access may exist in
 /// the same runtime element, contained elements, separate runtime elements within the same run unit, or runtime
@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// IS that gate. Nothing may add a second, stricter one — which is precisely what the operating environment's
 /// share mode had become: two clause-less connectors the arbiter PERMITS to share one file (OPEN INPUT, then
 /// OPEN EXTEND) were refused by the host and answered '30', a status no row of Table 19 and no item of
-/// §9.1.13.9 can produce.</description></item>
+/// §2023:9.1.13.9 can produce.</description></item>
 /// <item><description><b>Other run units.</b> <i>"The successful opening of a file establishes a file lock for
 /// the applicable sharing rules, thereby preventing other run units from opening that file with incompatible
 /// sharing rules."</i> — THAT is the OS share mode's job, and the only one it can do, because a host share mode
@@ -35,10 +35,10 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// sibling. (While the implementor default of a connector with no sharing specification was <i>undetermined</i> a
 /// widening was owed, because that connector's table row was unknown; kb/Work PB322 determined it and the
 /// widening, with the handle rebuild it needed, was deleted.)</para>
-/// <para>⛔ THE IMPLEMENTOR DEFAULT IS NOT DECIDED HERE. §9.1.15: <i>"If no specification is made in either
+/// <para>⛔ THE IMPLEMENTOR DEFAULT IS NOT DECIDED HERE. §2023:9.1.15: <i>"If no specification is made in either
 /// location, the implementor defines the sharing mode in which the file is opened"</i>. This compiler's
 /// determination is a function of the open mode (<see cref="FileRegistry.ImplementorDefaultSharing"/>, kb/Work
-/// PB322, Annex A.1 items 77 and 131), and it always names one of §9.1.15's three modes, so a clause-less
+/// PB322, Annex A.1 items 77 and 131), and it always names one of §2023:9.1.15's three modes, so a clause-less
 /// connector reaches this class as READ ONLY (INPUT) or NO OTHER (every other mode) and the file lock it
 /// establishes against other run units is the one that mode's rule gives — no separate posture for "undetermined"
 /// exists.</para>
@@ -48,7 +48,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// <c>LOCK_SH</c> (everything else), so rule 2's <i>"restricts … to input mode"</i> — admit a reader, refuse a
 /// writer — cannot be said in it; and on every host a share mode refuses an open by its ACCESS, so it cannot
 /// refuse the truncation of an OPEN OUTPUT that a sharing sibling's access admits. Against other RUN UNITS —
-/// §9.1.15's own audience, <i>"preventing other run units from opening that file with incompatible sharing
+/// §2023:9.1.15's own audience, <i>"preventing other run units from opening that file with incompatible sharing
 /// rules"</i> — the rest is <see cref="RunUnitFileLock"/>, which publishes the connector's Table 19 column and
 /// tests the columns its request row refuses; the posture here is deliberately NOT widened to
 /// <see cref="FileShare.None"/> to compensate, which would refuse the reader rule 2 admits.</para>
@@ -65,7 +65,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// </remarks>
 public static class FileLockPosture
 {
-    /// <summary>The §9.1.15 file lock a sharing mode establishes against OTHER RUN UNITS — the share mode a
+    /// <summary>The §2023:9.1.15 file lock a sharing mode establishes against OTHER RUN UNITS — the share mode a
     /// connector's own handle carries when it is alone on the physical file.
     /// <para>The mapping is the three rules read literally. 1) <i>"The sharing with no other mode specifies
     /// exclusive access to a physical file"</i> ⇒ <see cref="FileShare.None"/>. 2) <i>"The sharing with read
@@ -80,15 +80,15 @@ public static class FileLockPosture
     /// while a connector that wrote no clause at all refused the same write.</para></summary>
     public static FileShare OfSharingMode(FileSharing sharing) => sharing switch
     {
-        FileSharing.NoOther => FileShare.None,        // §9.1.15 1) — exclusive access
-        FileSharing.ReadOnly => FileShare.Read,       // §9.1.15 2) — others restricted to input mode
-        FileSharing.AllOther => FileShare.ReadWrite,  // §9.1.15 3) — others may specify input, I-O or extend
-        _ => throw new ArgumentOutOfRangeException(nameof(sharing), $"{sharing} is not an ISO §9.1.15 sharing mode"),
+        FileSharing.NoOther => FileShare.None,        // §2023:9.1.15 1) — exclusive access
+        FileSharing.ReadOnly => FileShare.Read,       // §2023:9.1.15 2) — others restricted to input mode
+        FileSharing.AllOther => FileShare.ReadWrite,  // §2023:9.1.15 3) — others may specify input, I-O or extend
+        _ => throw new ArgumentOutOfRangeException(nameof(sharing), $"{sharing} is not an ISO §2023:9.1.15 sharing mode"),
     };
 
     /// <summary>⛔ THE SECOND POSTURE: the file lock of a connector whose first attempt the host refused although Table 19
     /// admitted the OPEN (kb/Work PB3482). <c>SHARING WITH READ ONLY</c> <i>"restricts concurrent access to a physical
-    /// file through file connectors other than this one, to input mode"</i> (§9.1.15 2)), and an INPUT connector can still
+    /// file through file connectors other than this one, to input mode"</i> (§2023:9.1.15 2)), and an INPUT connector can still
     /// OWE WRITES: a connector under an active APPLY COMMIT clause that changed a record, was CLOSEd and re-OPENed INPUT
     /// keeps a handle open for writing until the COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md
     /// 2.2.1.10), and Table 19 prints <i>Normal open</i> for a READ ONLY request beside it. A host share mode
@@ -110,14 +110,14 @@ public static class FileLockPosture
     };
 
     /// <summary>⛔ THE SHARE MODE OF A HANDLE THAT IS NO CONNECTOR'S: the one opened for a dead owner's rollback (kb/Work PB4097;
-    /// <c>KeyedConnector.SettleDeadOwnersBeside</c>), read/write, for the length of that step. It establishes no §9.1.15 file lock
+    /// <c>KeyedConnector.SettleDeadOwnersBeside</c>), read/write, for the length of that step. It establishes no §2023:9.1.15 file lock
     /// (no OPEN took it) and must coexist with every connector's handle the table admits beside a reader, so it admits every
     /// reader and writer: <see cref="FileShare.ReadWrite"/>. The handle is refused, as any handle is, by a share mode that excludes
     /// a writer, which is the host's own answer that no owner can have died beside it.</summary>
     internal static FileShare ForSettling => FileShare.ReadWrite;
 
-    /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §9.1.4 open modes): INPUT reads, OUTPUT
-    /// and EXTEND write, I-O does both (§14.9.35 GR3 — REWRITE replaces the record a READ retrieved, through the
+    /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §2023:9.1.4 open modes): INPUT reads, OUTPUT
+    /// and EXTEND write, I-O does both (§2023:14.9.35 GR3 — REWRITE replaces the record a READ retrieved, through the
     /// one connector).
     /// <para>⛔ THIS IS THE OPEN MODE'S FLOOR, NOT NECESSARILY A CONNECTOR'S ANSWER, and the distinction is
     /// load-bearing (kb/Work PB771). An organization whose physical format is rewritten WHOLE has to read the
@@ -131,21 +131,21 @@ public static class FileLockPosture
         FileOpenMode.Input => FileAccess.Read,
         FileOpenMode.Output or FileOpenMode.Extend => FileAccess.Write,
         FileOpenMode.IO => FileAccess.ReadWrite,
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), $"{mode} is not an ISO §9.1.4 open mode"),
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), $"{mode} is not an ISO §2023:9.1.4 open mode"),
     };
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit a handle of this run unit — or of any
-    /// other — WRITING to the same physical file? Only <c>SHARING WITH ALL OTHER</c> does (§9.1.15 3)). The
+    /// other — WRITING to the same physical file? Only <c>SHARING WITH ALL OTHER</c> does (§2023:9.1.15 3)). The
     /// sequential organization's question about another WRITER, and only that one; four places ask it:
     /// <c>HostFile.OpenConnectorWriteStream</c> (true: the <see cref="SharedAppendStream"/>, which lands each
-    /// release at the physical end as it stands at that moment, §14.9.51.4 GR19, kb/Work PB739; false: the plain
+    /// release at the physical end as it stands at that moment, §2023:14.9.51.4 GR19, kb/Work PB739; false: the plain
     /// append of the only writable handle there is), <c>SequentialConnector.ReleaseRecord</c>'s ordinal (counted
     /// off the medium rather than minted, kb/Work PB2692), the <c>OPEN EXTEND</c> that seeds the mint only when it
     /// is false, and <c>SequentialConnector.EnsureReaderCoherent</c> (a reader re-anchors at every frame when
     /// another run unit's writer may exist, kb/Work PB2692).
     /// <para>⛔ IT DOES NOT DECIDE THE RELEASE (kb/Work PB1587, PB3415). <c>SequentialConnector.ReleaseRecord</c>'s
-    /// flush asks <see cref="AdmitsAnotherRunUnit"/>: §14.9.51.4 GR12 releases the record to the operating
-    /// environment at the WRITE, and §9.1.15 2) admits an INPUT connector beside a <c>SHARING WITH READ ONLY</c>
+    /// flush asks <see cref="AdmitsAnotherRunUnit"/>: §2023:14.9.51.4 GR12 releases the record to the operating
+    /// environment at the WRITE, and §2023:9.1.15 2) admits an INPUT connector beside a <c>SHARING WITH READ ONLY</c>
     /// writer, so that writer flushes every record too; only <c>SHARING WITH NO OTHER</c> keeps the buffered
     /// load.</para>
     /// <para>A bit test rather than <c>HasFlag</c>: <c>SequentialConnector.ReleaseRecord</c> asks this once per
@@ -153,13 +153,13 @@ public static class FileLockPosture
     public static bool AdmitsAnotherWriter(FileShare share) => (share & FileShare.Write) != 0;
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit ANY other run unit's connector — reader or
-    /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§9.1.15 1),
+    /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§2023:9.1.15 1),
     /// <i>"The sharing with no other mode specifies exclusive access to a physical file"</i>). The predicate an engine
     /// that writes the file AT EVERY STATEMENT needs (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work
-    /// PB3333): such a writer must serialize against the INPUT reader that §9.1.15 2) admits beside a
+    /// PB3333): such a writer must serialize against the INPUT reader that §2023:9.1.15 2) admits beside a
     /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. Two places ask it:
     /// <c>KeyedConnector.TakeFileLock</c> (the keyed store engine's coherence, its statements under the store mutex)
-    /// and <c>SequentialConnector.ReleaseRecord</c>'s flush (§14.9.51.4 GR12: that same INPUT reader must find in
+    /// and <c>SequentialConnector.ReleaseRecord</c>'s flush (§2023:14.9.51.4 GR12: that same INPUT reader must find in
     /// the physical file every record a WRITE answered '00' for, kb/Work PB1587). It does NOT replace
     /// <see cref="AdmitsAnotherWriter"/>, which the sequential organization still asks for what another WRITER may
     /// do — its append stream, its ordinal and its reader's re-anchoring (finding R2-7).</summary>

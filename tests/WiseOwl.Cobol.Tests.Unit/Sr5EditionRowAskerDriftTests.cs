@@ -7,13 +7,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ §14.9.25.3 SR5's EDITION ROWS ARE ONE BODY, ASKED OF EVERY ASKER OF THE MOVE RULES (kb/Work PB879, PB3755).
+/// ⛔ §2023:14.9.25.3 SR5's EDITION ROWS ARE ONE BODY, ASKED OF EVERY ASKER OF THE MOVE RULES (kb/Work PB879, PB3755).
 /// HIGH-VALUE, LOW-VALUE, QUOTE and a non-digit ALL literal into a numeric or numeric-edited item were valid through 2014
 /// and are removed at 2023 (the rows <c>move-alphanumeric-figurative-removed-2023</c>, <c>move-quote-numeric-obsolete-2014</c>
 /// and <c>move-all-digit-integer-obsolete-2023</c>), and the rows are asked wherever "the same as for a MOVE statement" is
-/// the rule: the written MOVE and every implicit FROM / INTO move, INITIALIZE REPLACING's hypothetical MOVE (§14.9.20.3
+/// the rule: the written MOVE and every implicit FROM / INTO move, INITIALIZE REPLACING's hypothetical MOVE (§2023:14.9.20.3
 /// SR4) and a figurative argument BY CONTENT into the formal parameter of a CALL, an INVOKE or a user-defined function
-/// (§14.8.2.3.3 rule 2 d)). The rows lived in <c>VersionConformancePass</c> with two askers, a bound MOVE and a bound
+/// (§2023:14.8.2.3.3 rule 2 d)). The rows lived in <c>VersionConformancePass</c> with two askers, a bound MOVE and a bound
 /// INITIALIZE, and a third asker (the activation arm) compiled a 2023-removed form clean until PB3755. Two facts keep a
 /// fourth from doing the same: the rows are spelled in ONE place, and every file that asks the BY CONTENT activation
 /// verdict also asks the rows.
@@ -46,7 +46,7 @@ public sealed class Sr5EditionRowAskerDriftTests
             offenders.AddRange(files.Where(f => rx.IsMatch(Read(f))).Select(f => $"{row} in {f}"));
         }
         Assert.True(offenders.Count == 0,
-            "§14.9.25.3 SR5's edition rows are asked through FigurativeAssociation.GateSr5 (kb/Work PB3755); a second reader "
+            "§2023:14.9.25.3 SR5's edition rows are asked through FigurativeAssociation.GateSr5 (kb/Work PB3755); a second reader "
             + "is a second copy of the rule, which is how the activation arm came to have none: "
             + string.Join(", ", offenders));
         string body = Read(BodyFile);
@@ -83,7 +83,7 @@ public sealed class Sr5EditionRowAskerDriftTests
         Assert.Contains(askers, f => f.EndsWith("/OoBinder.cs", StringComparison.Ordinal));
         Assert.True(missing.Count == 0,
             "these files ask ParameterConformance.ContentConformanceReason (a BY CONTENT argument against its formal) but never "
-            + "ParameterConformance.GateFigurativeEdition, so a figurative argument they bind skips §14.9.25.3 SR5's edition "
+            + "ParameterConformance.GateFigurativeEdition, so a figurative argument they bind skips §2023:14.9.25.3 SR5's edition "
             + "rows (kb/Work PB3755): " + string.Join(", ", missing));
     }
 }

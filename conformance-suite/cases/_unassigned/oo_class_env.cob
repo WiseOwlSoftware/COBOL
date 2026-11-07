@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 1989:2023 §10.6 (class definition structure): the CLASS-level ENVIRONMENT DIVISION applies to the
+      *> ISO 1989:2023 §2023:10.6 (class definition structure): the CLASS-level ENVIRONMENT DIVISION applies to the
       *> factory and object definitions. The DEVLOG-738 latent-bug pin (fixed P9 close): when the OBJECT
       *> paragraph carries its OWN environment division, the former singular env read SHADOWED the class-level
       *> one - here the class-level SPECIAL-NAMES CURRENCY SIGN "U" must still reach the OBJECT half's PICTURE

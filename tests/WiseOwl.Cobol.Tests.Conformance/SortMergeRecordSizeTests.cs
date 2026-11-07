@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The record-size syntax rules between a sort-merge file and the files of a SORT or MERGE statement's USING and
-/// GIVING phrases (kb/Work PB995): ISO §14.9.40.3 SR5 and SR11, §14.9.24.3 SR3 and SR12. One program per leg, ONE
+/// GIVING phrases (kb/Work PB995): ISO §2023:14.9.40.3 SR5 and SR11, §2023:14.9.24.3 SR3 and SR12. One program per leg, ONE
 /// statement in it, so each leg proves one rule arm drew exactly one refusal, and its legal twin drew none.
 ///
 /// <para>⛔ WHY FACTS AND NOT ONLY CORPUS ENTRIES: the negative corpus matches its <c>.err</c> as a substring of the
@@ -64,34 +64,34 @@ public sealed class SortMergeRecordSizeTests
         errors.Count(e => e.Contains("COBOL1757", StringComparison.Ordinal) && e.Contains(rule, StringComparison.Ordinal));
 
     // (SD, USING files, GIVING) → the rule that must refuse it, or null when the statement is legal.
-    // Sizes are in bytes; the key (two bytes) always lies inside the SD's smallest record (§14.9.40.3 SR6 g).
+    // Sizes are in bytes; the key (two bytes) always lies inside the SD's smallest record (§2023:14.9.40.3 SR6 g).
     [Theory]
     // SORT, USING bounded by the SD (SR5)
-    [InlineData(false, null, 6, new[] { 7 }, null, 8, "§14.9.40.3 SR5")]      // fixed SD 6, USING 7 > 6
+    [InlineData(false, null, 6, new[] { 7 }, null, 8, "§2023:14.9.40.3 SR5")]      // fixed SD 6, USING 7 > 6
     [InlineData(false, null, 6, new[] { 6 }, null, 8, null)]                    // equal is legal
     [InlineData(false, null, 6, new[] { 3 }, null, 8, null)]                    // a smaller USING record is legal
-    [InlineData(false, 3, 6, new[] { 2 }, null, 8, "§14.9.40.3 SR5")]          // variable SD 3..6: USING 2 < smallest
-    [InlineData(false, 3, 6, new[] { 7 }, null, 8, "§14.9.40.3 SR5")]          // variable SD 3..6: USING 7 > largest
+    [InlineData(false, 3, 6, new[] { 2 }, null, 8, "§2023:14.9.40.3 SR5")]          // variable SD 3..6: USING 2 < smallest
+    [InlineData(false, 3, 6, new[] { 7 }, null, 8, "§2023:14.9.40.3 SR5")]          // variable SD 3..6: USING 7 > largest
     [InlineData(false, 3, 6, new[] { 3 }, null, 8, null)]                       // the smallest edge is legal
     [InlineData(false, 3, 6, new[] { 6 }, null, 8, null)]                       // the largest edge is legal
     // SORT, SD bounded by GIVING (SR11)
-    [InlineData(false, null, 6, new[] { 6 }, null, 5, "§14.9.40.3 SR11")]      // fixed GIVING 5 < SD 6
+    [InlineData(false, null, 6, new[] { 6 }, null, 5, "§2023:14.9.40.3 SR11")]      // fixed GIVING 5 < SD 6
     [InlineData(false, null, 6, new[] { 6 }, null, 6, null)]                    // equal is legal
-    [InlineData(false, 3, 6, new[] { 4 }, 4, 8, "§14.9.40.3 SR11")]            // variable GIVING 4..8: SD smallest 3 < 4
-    [InlineData(false, 3, 6, new[] { 4 }, 2, 5, "§14.9.40.3 SR11")]            // variable GIVING 2..5: SD largest 6 > 5
+    [InlineData(false, 3, 6, new[] { 4 }, 4, 8, "§2023:14.9.40.3 SR11")]            // variable GIVING 4..8: SD smallest 3 < 4
+    [InlineData(false, 3, 6, new[] { 4 }, 2, 5, "§2023:14.9.40.3 SR11")]            // variable GIVING 2..5: SD largest 6 > 5
     [InlineData(false, 3, 6, new[] { 4 }, 3, 6, null)]                          // equal ranges are legal
     [InlineData(false, 3, 6, new[] { 4 }, 2, 9, null)]                          // a containing range is legal
     // MERGE, every USING file (SR3) and GIVING (SR12)
-    [InlineData(true, null, 6, new[] { 6, 7 }, null, 8, "§14.9.24.3 SR3")]    // the SECOND USING file is larger
+    [InlineData(true, null, 6, new[] { 6, 7 }, null, 8, "§2023:14.9.24.3 SR3")]    // the SECOND USING file is larger
     [InlineData(true, null, 6, new[] { 6, 6 }, null, 8, null)]
-    [InlineData(true, 3, 6, new[] { 6, 2 }, null, 8, "§14.9.24.3 SR3")]
-    [InlineData(true, null, 6, new[] { 6, 6 }, null, 5, "§14.9.24.3 SR12")]
-    [InlineData(true, 3, 6, new[] { 6, 4 }, 4, 8, "§14.9.24.3 SR12")]
+    [InlineData(true, 3, 6, new[] { 6, 2 }, null, 8, "§2023:14.9.24.3 SR3")]
+    [InlineData(true, null, 6, new[] { 6, 6 }, null, 5, "§2023:14.9.24.3 SR12")]
+    [InlineData(true, 3, 6, new[] { 6, 4 }, 4, 8, "§2023:14.9.24.3 SR12")]
     [InlineData(true, 3, 6, new[] { 6, 4 }, 3, 6, null)]
     public void RecordSizeRules_RefuseExactlyTheirViolations(
         bool merge, int? sdMin, int sdMax, int[] usingMax, int? giveMin, int giveMax, string? rule)
     {
-        // A USING / GIVING variable file keeps integer-3 > integer-2 (§13.18.43.3 SR5): the table never states one
+        // A USING / GIVING variable file keeps integer-3 > integer-2 (§2023:13.18.43.3 SR5): the table never states one
         // whose range is a single size, so a variable GIVING min of null means "fixed".
         var usings = usingMax.Select(m => ((int?)null, m)).ToArray();
         string id = $"PB995T{(merge ? "M" : "S")}{sdMin}{sdMax}{string.Join("", usingMax)}{giveMin}{giveMax}";

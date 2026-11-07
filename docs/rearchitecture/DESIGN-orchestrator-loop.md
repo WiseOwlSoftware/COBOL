@@ -128,7 +128,7 @@ Fable is never selected: the supervisor refuses any model name other than `opus`
 Fable only with explicit approval per dispatch, which an unattended loop cannot obtain).
 
 > ⛔ **The landing is a script (owner 2026-10-11, kb/Work PB3015, PB3023; the design is `DESIGN-test-build-ci.md`
-> §3.17, the SSOT for it).** The supervisor's LANDING LANE (`land_lane.py`, section 4.9; kb/Work PB3103) runs
+> §2023:3.17, the SSOT for it).** The supervisor's LANDING LANE (`land_lane.py`, section 4.9; kb/Work PB3103) runs
 > `scripts/orchestrator/enqueue.py land` for every WAITING TO LAND branch, in harm order, beside whatever unit runs: it merges `origin/main` into the branch, runs the gate on both hosts under
 > the shared gate slot, stamps the DEVLOG entry, runs the DEVLOG-entry, oracle and R3 partition checks, opens the
 > branch's pull request and adds it to GitHub's merge queue (main moving during the gate is merged in again, without a
@@ -462,7 +462,7 @@ split with a claim undecided. One session's stop must never abort another sessio
 ### 4.7 No landing lease: GitHub's merge queue orders main (kb/Work PB2537, PB3023, PB3024)
 
 Main takes only pull requests the merge queue tested (the ruleset binds administrators; `DESIGN-test-build-ci.md`
-§3.17), so landings never race for it: `enqueue.py land` merges `origin/main` in, gates, merges main in again when it
+§2023:3.17), so landings never race for it: `enqueue.py land` merges `origin/main` in, gates, merges main in again when it
 moved during the gate (no second gate: the merge group runs the whole population on the current main), and queues one
 pull request; every branch waiting to land is enqueued the moment it is ready (the landing lane, section 4.9). **A past decision, kept for its
 reason:** under the direct-push landing (before 2026-10-11) the push itself was serialized but a landing's ~50 minutes

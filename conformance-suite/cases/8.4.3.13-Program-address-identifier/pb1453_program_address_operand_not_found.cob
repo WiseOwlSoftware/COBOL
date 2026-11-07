@@ -13,29 +13,29 @@
       *> codes by FatalRaiseSelectionTests; a corpus golden must exit 0.)
       *>
       *> THE RULES.
-      *> §8.4.3.13.4 GR4: "If the runtime system cannot locate the
+      *> §2023:8.4.3.13.4 GR4: "If the runtime system cannot locate the
       *>   program, the EC-PROGRAM-NOT-FOUND exception condition is set
       *>   to exist and the value of the address-identifier is the
       *>   predefined address NULL."
-      *>   OK  §8.4.3.13.4 4)  (General rules)
-      *> §14.6.13.1.1: "when the general rules for a statement indicate
+      *>   OK  §2023:8.4.3.13.4 4)  (General rules)
+      *> §2023:14.6.13.1.1: "when the general rules for a statement indicate
       *>   that a specific exception condition exists, it is raised only
       *>   if checking for that exception condition is enabled." The
       *>   raise belongs to the DETECTION inside the statement, so the
       *>   statement kind does not matter.
-      *>   OK  §14.6.13.1.1  (General)
-      *> §14.6.13.1.3 5): with checking enabled and an applicable USE
+      *>   OK  §2023:14.6.13.1.1  (General)
+      *> §2023:14.6.13.1.3 5): with checking enabled and an applicable USE
       *>   statement "the associated declarative is executed"; NOTE 1 (after 4))
       *>   "The user is able to continue by using a RESUME statement".
-      *>   OK  §14.6.13.1.3 5)  (Fatal exception conditions)
-      *> §14.9.33.4 GR2 a) 1. and 3.: NEXT STATEMENT transfers to an
+      *>   OK  §2023:14.6.13.1.3 5)  (Fatal exception conditions)
+      *> §2023:14.9.33.4 GR2 a) 1. and 3.: NEXT STATEMENT transfers to an
       *>   implicit CONTINUE that "immediately follows the end of the
       *>   statement that was executing"; "the applicable statement is
       *>   the one in which the exception condition was raised", and for
       *>   a contained statement "the lowest level statement, not the
       *>   containing statement"; NOTE 1: a condition raised while
       *>   evaluating the condition of an IF resumes "after the END-IF".
-      *>   OK  §14.9.33.4 2) a)  (General rules)
+      *>   OK  §2023:14.9.33.4 2) a)  (General rules)
       *>
       *> DERIVATION.
       *> CTRL-IF NOT-NULL -- PB1453A is a program of this run unit, so

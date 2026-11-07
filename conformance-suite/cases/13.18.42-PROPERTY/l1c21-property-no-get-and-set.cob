@@ -4,14 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.42.2 format — WITH NO names exactly ONE of GET / SET
+      *> ISO §2023:13.18.42.2 format — WITH NO names exactly ONE of GET / SET
       *> General format: PROPERTY [ WITH NO { GET | SET } ] [ IS FINAL ]
       *>   cite.py --check 13.18.42.2 "PROPERTY" -> OK (General format)
       *> The { GET | SET } braces carry no choice indicators, so "one of
       *> the alternatives contained within the braces shall be
-      *> explicitly specified" (§5.2.6.3; cite.py --check 5.2.6.3 -> OK
-      *> §5.2.6.3 (Braces)) — ONE, not both; choice indicators, which
-      *> would permit several, are absent (§5.2.6.4). "WITH NO GET SET"
+      *> explicitly specified" (§2023:5.2.6.3; cite.py --check 5.2.6.3 -> OK
+      *> §2023:5.2.6.3 (Braces)) — ONE, not both; choice indicators, which
+      *> would permit several, are absent (§2023:5.2.6.4). "WITH NO GET SET"
       *> is therefore not a legal phrase. The rest of the program is
       *> valid (a factory property in a class that is never used), so
       *> the only reason to reject is the general format. The violation

@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.35.4 GR22 GR23 — indexed REWRITE by prime key
+      *> ISO §2023:14.9.35.4 GR22 GR23 — indexed REWRITE by prime key
       *> GR22: "If the access mode of the REWRITE file connector is
       *>   sequential, the record to be replaced is specified by the
       *>   value of the prime record key. When the REWRITE statement is
@@ -23,22 +23,22 @@
       *>   the rewrite file connector is set to the invalid key
       *>   condition, '23'."
       *> cite.py --check:
-      *>   OK  §14.9.35.4 22)  (General rules)
-      *>   OK  §14.9.35.4 23)  (General rules)
-      *>   OK  §14.9.35.4 14)  (General rules)  unsuccessful: "no
+      *>   OK  §2023:14.9.35.4 22)  (General rules)
+      *>   OK  §2023:14.9.35.4 23)  (General rules)
+      *>   OK  §2023:14.9.35.4 14)  (General rules)  unsuccessful: "no
       *>       logical record updating takes place, the content of the
       *>       record area is unaffected"
-      *>   OK  §14.9.35.4 13)  "The file position indicator in the
+      *>   OK  §2023:14.9.35.4 13)  "The file position indicator in the
       *>       rewrite file connector is not affected"
-      *>   OK  §14.9.35.4 5)  sequential access: the previous I-O
+      *>   OK  §2023:14.9.35.4 5)  sequential access: the previous I-O
       *>       statement shall be a successful READ (else '43') -- both
       *>       sequential REWRITEs below directly follow a successful
       *>       READ, so '21' is the only possible failure
-      *>   OK  §14.9.35.3 2)  INVALID KEY is forbidden only for
+      *>   OK  §2023:14.9.35.3 2)  INVALID KEY is forbidden only for
       *>       sequential organization and relative sequential access,
       *>       so it is legal on this indexed sequential file
-      *>   OK  §9.1.14 2)  INVALID KEY phrase -> its imperative runs
-      *>   OK  §9.1.14 2)  (second list) success -> NOT INVALID KEY
+      *>   OK  §2023:9.1.14 2)  INVALID KEY phrase -> its imperative runs
+      *>   OK  §2023:9.1.14 2)  (second list) success -> NOT INVALID KEY
       *> Setup: XS (ACCESS SEQUENTIAL) holds K001A01V01, K002A02V02;
       *>        XD (ACCESS DYNAMIC)    holds K001B01V01, K002B02V02.
       *> Derivation of every expected line:

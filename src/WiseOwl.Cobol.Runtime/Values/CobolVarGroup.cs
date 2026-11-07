@@ -5,36 +5,36 @@ using System.Runtime.CompilerServices;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// ⛔ THE ACTIVATION-BOUNDARY CARRIER OF A VARIABLE-LENGTH GROUP (ISO §8.5.1.12; kb/Work PB204).
+/// ⛔ THE ACTIVATION-BOUNDARY CARRIER OF A VARIABLE-LENGTH GROUP (ISO §2023:8.5.1.12; kb/Work PB204).
 /// <para>A fixed-length group crosses a CALL / INVOKE boundary as ONE string — its record image — because
-/// §14.2.3 GR8 makes the formal "occupy the same storage area as the argument" and that storage has a fixed
+/// §2023:14.2.3 GR8 makes the formal "occupy the same storage area as the argument" and that storage has a fixed
 /// window. A VARIABLE-LENGTH group has no such window, so a flat string cannot be inverted: the receiver
 /// cannot tell where a dynamic member's content ends and the next fixed member begins. This carrier is the
-/// §8.5.1.12 model made into a wire form, and nothing more:</para>
+/// §2023:8.5.1.12 model made into a wire form, and nothing more:</para>
 /// <list type="bullet">
 /// <item><see cref="Fixed"/> — the group's image with every variable-length component contributing NOTHING.
-/// §8.5.1.12.3 says "all dynamic-length elementary items are considered to be of zero length" and makes a
+/// §2023:8.5.1.12.3 says "all dynamic-length elementary items are considered to be of zero length" and makes a
 /// matched dynamic-capacity table "the length of a single element", which is exactly the byte accounting under
 /// which compatible groups have the SAME relative positions. So both sides lay this string out identically as
-/// far as their fixed material agrees, and any tail difference is the §14.8.2.2 rule-1 size latitude, absorbed
+/// far as their fixed material agrees, and any tail difference is the §2023:14.8.2.2 rule-1 size latitude, absorbed
 /// by the ordinary width window.</item>
 /// <item><see cref="Dynamic"/> — each variable-length component's CURRENT content, in declaration order:
 /// a dynamic-length elementary item's characters, a dynamic-capacity table's occurrences concatenated at its
-/// current capacity. §8.5.1.12.2's positional correspondence puts the two sides' components in the same order,
+/// current capacity. §2023:8.5.1.12.2's positional correspondence puts the two sides' components in the same order,
 /// one for one, which is why an ordinal array is a faithful carrier and not an encoding trick. The receiving
-/// table recovers its capacity by dividing by its own element width — legitimate because §8.5.1.12.3 makes
+/// table recovers its capacity by dividing by its own element width — legitimate because §2023:8.5.1.12.3 makes
 /// corresponding tables match only when "the byte length of their elements is equal".</item>
 /// </list>
-/// <para>NESTING is flattened by the emitted composer, because §8.5.1.12 is stated over relative byte positions
+/// <para>NESTING is flattened by the emitted composer, because §2023:8.5.1.12 is stated over relative byte positions
 /// and is blind to the declaration tree: a nested variable-length group contributes its own fixed run and its
 /// own dynamic components inline, and <see cref="Slice"/> hands it back exactly that window on the way in.</para>
 /// <para>⛔ ONE SHAPE IS NOT FLATTENED — A DYNAMIC-CAPACITY TABLE WHOSE ELEMENTS ARE THEMSELVES VARIABLE-LENGTH GROUPS
 /// (kb/Work PB2496). Its occurrence count is a run-time quantity and each occurrence holds components of its own, so
 /// splicing the occurrences' components into this list would make the ordinal of every LATER component depend on the
 /// table's current capacity, and the positional correspondence the ordinal list rests on would be lost. The table is
-/// ONE component, and its occurrences' own carriers ride beside it in <see cref="Elements"/>: §14.6.9.2 moves it
+/// ONE component, and its occurrences' own carriers ride beside it in <see cref="Elements"/>: §2023:14.6.9.2 moves it
 /// "Correspondingly numbered elements … according to the rules of the MOVE statement" (each occurrence a group MOVE
-/// of its own) and §14.6.9.3 compares it element by element, so the element carriers are exactly what both
+/// of its own) and §2023:14.6.9.3 compares it element by element, so the element carriers are exactly what both
 /// operations take.</para>
 /// <para>⛔ NOT a general-purpose serializer, and never persisted: it exists only between the argument
 /// evaluation and the formal's copy-in (and back at the copy-out), the same lifetime the string image has.</para>
@@ -47,9 +47,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// carriers in occurrence order up to its current capacity, and null for every other component.</param>
 /// <param name="Created">Null unless the carrier describes STORAGE; otherwise one entry per component of
 /// <paramref name="Dynamic"/>: for a dynamic-capacity table with the INITIALIZED phrase, the element a statement creates in
-/// it at a 1-based occurrence number (its <c>CobolDynTable</c>'s creation seed, §8.5.1.9.5's INITIALIZED default) as a
+/// it at a 1-based occurrence number (its <c>CobolDynTable</c>'s creation seed, §2023:8.5.1.9.5's INITIALIZED default) as a
 /// carrier in the table's ELEMENT shape, and null for every other component (kb/Work PB2690) — a table without the phrase
-/// included, whose created content §8.5.1.9.5 leaves undefined (<c>CobolDynTable.CreatedAs</c>). The storage builders state
+/// included, whose created content §2023:8.5.1.9.5 leaves undefined (<c>CobolDynTable.CreatedAs</c>). The storage builders state
 /// it (the emitted <c>AsVarImage</c>, <c>StorageCell.VarGroupAt</c>) and the structural rebuilds of the same storage keep
 /// it (<see cref="Slice"/>, <see cref="Concat"/>, <see cref="SplitTail"/>, <see cref="JoinTail"/>); a conversion's result
 /// (<see cref="Reshape"/>, <see cref="Overlay"/>) is a value and states none. The builders state it only for a BY
@@ -59,21 +59,21 @@ namespace WiseOwl.Cobol.Runtime;
 public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup[]?[]? Elements = null,
     Func<int, CobolVarGroup>?[]? Created = null)
 {
-    /// <summary>The empty carrier — an absent / OMITTED argument's value (ISO §14.9.4.4 GR11 hands out a
+    /// <summary>The empty carrier — an absent / OMITTED argument's value (ISO §2023:14.9.4.4 GR11 hands out a
     /// carrier whose accessors raise; this is the shape those accessors return when checking is off).</summary>
     public static readonly CobolVarGroup Empty = new("", []);
 
     /// <summary>Component <paramref name="i"/>, or the zero-length string when the sending side carried fewer
-    /// components than this side declares. A SHORTER sender is the §14.8.2.2 rule-1 direction the standard
+    /// components than this side declares. A SHORTER sender is the §2023:14.8.2.2 rule-1 direction the standard
     /// permits (the formal may be described with fewer bytes than the argument, and the reverse is diagnosed at
     /// bind), so a missing component is a zero-length value, never an index fault.</summary>
     public string Dyn(int i) => (uint)i < (uint)Dynamic.Length ? Dynamic[i] : "";
 
     /// <summary>Whether component <paramref name="i"/> was CARRIED at all — distinct from its being carried
-    /// EMPTY, and the distinction is normative (kb/Work PB393). ISO §14.9.25.4 GR9b space-fills the receiving
-    /// group's excess part, and its step 2 sends a dynamic-capacity table there to §14.6.9.4, where "the current
+    /// EMPTY, and the distinction is normative (kb/Work PB393). ISO §2023:14.9.25.4 GR9b space-fills the receiving
+    /// group's excess part, and its step 2 sends a dynamic-capacity table there to §2023:14.6.9.4, where "the current
     /// capacity of the dynamic table is unaffected, and each element of the dynamic table is space-filled" —
-    /// whereas a table whose SENDER carried a zero-capacity table is recreated at capacity zero by §14.6.9.2's
+    /// whereas a table whose SENDER carried a zero-capacity table is recreated at capacity zero by §2023:14.6.9.2's
     /// "recreates or overwrites the receiving table with a copy of the sending table". Both arrive as a
     /// zero-length component string; only this tells them apart.</summary>
     public bool HasDyn(int i) => (uint)i < (uint)Dynamic.Length;
@@ -97,8 +97,8 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>⛔ THE OCCURRENCE CARRIERS A NESTED RECEIVER STORES (kb/Work PB2496): component <paramref name="i"/>'s
     /// <see cref="ElementsAt"/>, or the empty list when the component was carried EMPTY (a sender whose table had no
-    /// occurrence, §14.6.9.2's recreation at capacity zero). The caller asks <see cref="HasDyn"/> first: an absent
-    /// component is §14.6.9.4's space fill. Every carrier of a nested table is built with its occurrence carriers
+    /// occurrence, §2023:14.6.9.2's recreation at capacity zero). The caller asks <see cref="HasDyn"/> first: an absent
+    /// component is §2023:14.6.9.4's space fill. Every carrier of a nested table is built with its occurrence carriers
     /// (the emitted composer, <see cref="Reshape"/>, <see cref="Overlay"/>): a fixed-length group meets one through the
     /// pair's two shapes (<see cref="Reshape"/> over its image, kb/Work PB2690), so a nested component that holds
     /// characters but no occurrence is a carrier built wrongly, never a legal pair.</summary>
@@ -106,7 +106,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     public CobolVarGroup[] ElementCarriersAt(int i) =>
         ElementsAt(i) ?? (Dyn(i).Length == 0 ? [] : throw new InvalidOperationException(
             $"internal error: component {i} of a variable-length group carrier is a table of variable-length elements "
-            + "carried as characters, with no occurrence carriers (ISO §14.6.9.2 over §8.5.1.12.3)"));
+            + "carried as characters, with no occurrence carriers (ISO §2023:14.6.9.2 over §2023:8.5.1.12.3)"));
 
     /// <summary>The window a NESTED variable-length group occupies inside this carrier:
     /// <paramref name="fixedWidth"/> character positions of <see cref="Fixed"/> starting at
@@ -120,7 +120,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             fixedWidth);
         // ⛔ The window carries only what was ACTUALLY carried, never dynCount padded with empties: a nested
         // group must be able to answer <see cref="HasDyn"/> the same way its parent can, or GR9b step 2's
-        // §14.6.9.4 space fill degrades into §14.6.9.2's recreate-at-zero one level down (kb/Work PB393).
+        // §2023:14.6.9.4 space fill degrades into §2023:14.6.9.2's recreate-at-zero one level down (kb/Work PB393).
         var d = new string[Math.Clamp(Dynamic.Length - dynAt, 0, dynCount)];
         for (int k = 0; k < d.Length; k++) d[k] = Dyn(dynAt + k);
         CobolVarGroup[]?[]? e = null;
@@ -140,7 +140,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>The carrier of a fixed-OCCURS table of variable-length group elements (kb/Work PB244): each
     /// occurrence's fixed run and components, in occurrence order — the same flattening a nested scalar group
-    /// gets, repeated. §8.5.1.12.2 puts each occurrence's dynamic-length items at their own relative byte
+    /// gets, repeated. §2023:8.5.1.12.2 puts each occurrence's dynamic-length items at their own relative byte
     /// positions, so the multiplicity is the table's compile-time <c>OCCURS</c> count.</summary>
     public static CobolVarGroup Concat(CobolVarGroup[] occurrences)
     {
@@ -166,8 +166,8 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>This carrier with the group's TRAILING fixed material cut off the fixed run and appended as one
     /// more variable-length component (kb/Work PB244). The group's OCCURS DEPENDING table is the trailing storage
-    /// of its record (§13.18.38.3 SR22) and rides the fixed run of the activation-boundary carrier, where
-    /// §14.8.2.2 gives it the maximum length; in a RECORD's contiguous layout it is the last variable-length
+    /// of its record (§2023:13.18.38.3 SR22) and rides the fixed run of the activation-boundary carrier, where
+    /// §2023:14.8.2.2 gives it the maximum length; in a RECORD's contiguous layout it is the last variable-length
     /// component instead, because the record's own length — not a constant — says how many occurrences it holds.
     /// <paramref name="tailAt"/> is where the table starts in the fixed run.</summary>
     public CobolVarGroup SplitTail(int tailAt) =>
@@ -180,10 +180,10 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         Dynamic.Length == 0 ? this
         : new(CobolString.Store(Fixed, tailAt) + Dynamic[^1], Dynamic[..^1], Elements?[..^1], Created?[..^1]);
 
-    // ── The §8.5.1.12 LAYOUT of a group (kb/Work PB965) ───────────────────────────────────────────────────────────
+    // ── The §2023:8.5.1.12 LAYOUT of a group (kb/Work PB965) ───────────────────────────────────────────────────────────
     //
     // A group's layout is a FLAT sequence of (kind, chars, elementChars) triples in CHARACTER positions, left to
-    // right, that GroupCompatibility.Layout derives from the group's §8.5.1.12 atoms (REDEFINES subtrees dropped, scalar
+    // right, that GroupCompatibility.Layout derives from the group's §2023:8.5.1.12 atoms (REDEFINES subtrees dropped, scalar
     // subordinate groups flattened, a table kept whole, consecutive fixed material merged). It answers the STORAGE
     // question (GroupCompatibility.LaysOver: can this description be laid over that area) and words a message; the
     // correspondence of a PAIR is the atoms' (GroupCompatibility.Walk, Reshape, Overlay), which carry every table's
@@ -193,26 +193,26 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     public const int LayoutFixed = 0;
     /// <summary>Layout atom kind: a table with a fixed number of occurrences; chars = its whole width.</summary>
     public const int LayoutTable = 1;
-    /// <summary>Layout atom kind: an OCCURS DEPENDING table; chars = its maximum width (§13.18.38.3 SR22 makes
+    /// <summary>Layout atom kind: an OCCURS DEPENDING table; chars = its maximum width (§2023:13.18.38.3 SR22 makes
     /// it the last atom, so its current extent is "the rest of the image").</summary>
     public const int LayoutOdoTable = 2;
-    /// <summary>Layout atom kind: a dynamic-capacity table (§8.5.1.9); chars = ONE element's width.</summary>
+    /// <summary>Layout atom kind: a dynamic-capacity table (§2023:8.5.1.9); chars = ONE element's width.</summary>
     public const int LayoutDynamicTable = 3;
-    /// <summary>Layout atom kind: a dynamic-length elementary item (§8.5.1.10); chars = 0.</summary>
+    /// <summary>Layout atom kind: a dynamic-length elementary item (§2023:8.5.1.10); chars = 0.</summary>
     public const int LayoutDynamicLength = 4;
 
     // ── A FIXED-LENGTH group meeting a variable-length group's carrier (kb/Work PB2690) ───────────────────────────
     //
-    // ISO §8.5.1.12.1 admits the pair ("either both operands may be variable-length groups or only one of the operands
-    // may be a variable-length group"), and §8.5.1.12.3 sentence 3 says how: a table corresponding to the other group's
+    // ISO §2023:8.5.1.12.1 admits the pair ("either both operands may be variable-length groups or only one of the operands
+    // may be a variable-length group"), and §2023:8.5.1.12.3 sentence 3 says how: a table corresponding to the other group's
     // dynamic-capacity table "is treated as though it were a dynamic-capacity table whose capacity is either its fixed
-    // number of occurrences or the value of the DEPENDING operand, as applicable" (§14.6.9.1 states the same conversion for
-    // the operation). So a fixed-length group is its record image with no components, in its OWN shape (its §8.5.1.12
+    // number of occurrences or the value of the DEPENDING operand, as applicable" (§2023:14.6.9.1 states the same conversion for
+    // the operation). So a fixed-length group is its record image with no components, in its OWN shape (its §2023:8.5.1.12
     // atoms; a group with no table states none and is one fixed run of its width, GroupCompatibility.FixedRun), and it is
     // paired with the variable-length group by the same two-shape conversions a MOVE and a comparison use: Reshape and
     // Overlay. The activation boundaries (CALL, INVOKE, RETURNING) call the four members below, so there is ONE
     // correspondence for a fixed-length group and it carries the element layout of every table (a fixed table opposite a
-    // dynamic-capacity table of variable-length elements is paired element by element, §14.6.9.2).
+    // dynamic-capacity table of variable-length elements is paired element by element, §2023:14.6.9.2).
 
     /// <summary>A FIXED-length group's record image as a carrier in its own shape: no components, the whole image its
     /// fixed run.</summary>
@@ -220,27 +220,27 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>The carrier of a FIXED-length group's record image <paramref name="image"/> (of shape
     /// <paramref name="imageShape"/>) in the VARIABLE-length group shape <paramref name="to"/> — the fixed group's table
-    /// crossing at its fixed (or DEPENDING) occurrence count (§8.5.1.12.3 sentence 3), a table of fixed-length elements
+    /// crossing at its fixed (or DEPENDING) occurrence count (§2023:8.5.1.12.3 sentence 3), a table of fixed-length elements
     /// cut at its element width, each occurrence a carrier of its own.</summary>
     public static CobolVarGroup FromImage(string image, GroupAtom[] imageShape, GroupAtom[] to) =>
         Reshape(OfImage(image), imageShape, to);
 
     /// <summary>A variable-length carrier <paramref name="v"/> (of shape <paramref name="from"/>) as the record image of
     /// <paramref name="width"/> characters of the FIXED-length group of shape <paramref name="imageShape"/>: each
-    /// dynamic-capacity table fitted to the fixed table it corresponds to, as §14.6.9.2 fits a dynamic sender into a
+    /// dynamic-capacity table fitted to the fixed table it corresponds to, as §2023:14.6.9.2 fits a dynamic sender into a
     /// non-dynamic receiver (superfluous elements are not moved, missing ones are space filled), and the fixed material
-    /// space-filled or truncated at the right (§14.9.25.4 GR9b).</summary>
+    /// space-filled or truncated at the right (§2023:14.9.25.4 GR9b).</summary>
     public static string ToImage(CobolVarGroup v, GroupAtom[] from, GroupAtom[] imageShape, int width) =>
         CobolString.Store(Reshape(v, from, imageShape).Fixed, width);
 
     /// <summary>⛔ A FIXED-LENGTH VIEW'S STORE BACK INTO A VARIABLE-LENGTH GROUP'S STORAGE — the BY REFERENCE write-back
     /// of a fixed-length group FORMAL whose argument is the variable-length group <paramref name="current"/> (of shape
-    /// <paramref name="currentShape"/>). §14.2.3 GR8: "the activated runtime element operates as if the formal parameter
+    /// <paramref name="currentShape"/>). §2023:14.2.3 GR8: "the activated runtime element operates as if the formal parameter
     /// occupies the same storage area as the argument", so the store reaches only the storage the formal overlays
     /// (<see cref="Overlay"/>): each of its tables is written OVER the argument's current occurrences, and the argument's
     /// material past the formal's last character survives. A formal whose table has a FIXED occurrence count states no
     /// capacity of its own, so a store reaching the argument's dynamic-capacity table past its capacity creates the
-    /// occurrence (§8.5.1.9.3, <see cref="OverlaidTable"/>) and one that does not leaves the capacity as it was. The image
+    /// occurrence (§2023:8.5.1.9.3, <see cref="OverlaidTable"/>) and one that does not leaves the capacity as it was. The image
     /// stored back is the one <see cref="ToImage"/> showed of the argument's storage, with the callee's stores in it;
     /// <paramref name="received"/> is what the callee referenced as a receiving item in it (<see cref="Overlay"/>).</summary>
     public static CobolVarGroup OverlayImage(CobolVarGroup current, GroupAtom[] currentShape, string image,
@@ -249,16 +249,16 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>The inverse crossing: a variable-length formal's carrier <paramref name="view"/> (of shape
     /// <paramref name="viewShape"/>) stored back over the storage of a FIXED-length group argument whose record image is
-    /// <paramref name="current"/> (of shape <paramref name="imageShape"/>) — §14.2.3 GR8 through <see cref="Overlay"/>.
+    /// <paramref name="current"/> (of shape <paramref name="imageShape"/>) — §2023:14.2.3 GR8 through <see cref="Overlay"/>.
     /// The image keeps its width, so the fixed group cannot grow a table past its fixed extent (the callee's missing
-    /// occurrences are space filled, §14.6.9.2), and the argument's material the formal does not describe survives.</summary>
+    /// occurrences are space filled, §2023:14.6.9.2), and the argument's material the formal does not describe survives.</summary>
     public static string OverlaidImage(string current, GroupAtom[] imageShape, CobolVarGroup view, GroupAtom[] viewShape) =>
         CobolString.Store(Overlay(OfImage(current), view, imageShape, viewShape, received: null).Fixed, current.Length);
 
     /// <summary>⛔ ONE VARIABLE-LENGTH GROUP'S CARRIER IN THE SHAPE OF ANOTHER, COMPATIBLE ONE (kb/Work PB480). Two
-    /// variable-length groups are compatible when their variable-length items correspond and match (ISO §8.5.1.12.1),
+    /// variable-length groups are compatible when their variable-length items correspond and match (ISO §2023:8.5.1.12.1),
     /// which leaves them free to differ in everything else: the shape and, after the last variable-length item, the
-    /// length of their fixed material, and — §8.5.1.12.3 sentence 3 — a dynamic-capacity table in one where the other
+    /// length of their fixed material, and — §2023:8.5.1.12.3 sentence 3 — a dynamic-capacity table in one where the other
     /// has a table of a FIXED number of occurrences ("treated as though it were a dynamic-capacity table whose capacity is
     /// either its fixed number of occurrences or the value of the DEPENDING operand"). So the carrier of
     /// <paramref name="from"/>'s layout is not, in general, the carrier of <paramref name="to"/>'s: this rebuilds it,
@@ -266,24 +266,24 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// carrier of its record image in its own shape (<see cref="OfImage"/>), so it is either side of the pair:
     /// <list type="bullet">
     ///   <item>the fixed material between two corresponding items lands at the same relative position, fitted to the
-    ///     receiving shape's material there (the last run is §14.8.2.2 rule 1's prefix: truncated or space-filled);</item>
+    ///     receiving shape's material there (the last run is §2023:14.8.2.2 rule 1's prefix: truncated or space-filled);</item>
     ///   <item>a corresponding pair of components (dynamic-length items, dynamic-capacity tables) carries the content
     ///     whole;</item>
     ///   <item>a dynamic-capacity table opposite a fixed table: the fixed table's occurrences become the component, and a
-    ///     component becomes the fixed table fitted to its width — §14.6.9.2's rule for a non-dynamic receiving table
+    ///     component becomes the fixed table fitted to its width — §2023:14.6.9.2's rule for a non-dynamic receiving table
     ///     (superfluous elements not moved, missing ones space filled), as <see cref="ToImage"/> applies it;</item>
     ///   <item>a dynamic-capacity table beyond the shorter group's last character corresponds to "a space-filled
-    ///     fixed-length table" (§8.5.1.12.2): it gets no component (<see cref="HasDyn"/> false).</item>
+    ///     fixed-length table" (§2023:8.5.1.12.2): it gets no component (<see cref="HasDyn"/> false).</item>
     /// <item>a corresponding pair of tables at least one of which holds VARIABLE-LENGTH ELEMENTS (kb/Work PB2496):
-    ///   each occurrence is reshaped from the one element's shape into the other's, §14.6.9.2's "Correspondingly
+    ///   each occurrence is reshaped from the one element's shape into the other's, §2023:14.6.9.2's "Correspondingly
     ///   numbered elements are moved according to the rules of the MOVE statement"; a fixed table's occurrences are
     ///   its characters cut at its element width, each a fixed-length element's carrier.</item>
     /// <item>⛔ a carrier of STORAGE (one stating <see cref="Created"/>: a BY REFERENCE argument, which only the activation
-    ///   boundary builds so, kb/Work PB2690) is not a MOVE's sender but the storage a formal VIEWS (§14.2.3 GR8: the formal
+    ///   boundary builds so, kb/Work PB2690) is not a MOVE's sender but the storage a formal VIEWS (§2023:14.2.3 GR8: the formal
     ///   "occupies the same storage area as the argument"), so a fixed table opposite its INITIALIZED dynamic-capacity table
-    ///   shows each occurrence past the capacity as the table would hold it once a store there created it (§8.5.1.9.3) —
-    ///   §8.5.1.9.5's "INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT" — where a MOVE's remaining elements are "space
-    ///   filled" (§14.6.9.2 2)). The §8.5.1.9.5 NOTE licenses the view ("functionally identical to one where the intermediate
+    ///   shows each occurrence past the capacity as the table would hold it once a store there created it (§2023:8.5.1.9.3) —
+    ///   §2023:8.5.1.9.5's "INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT" — where a MOVE's remaining elements are "space
+    ///   filled" (§2023:14.6.9.2 2)). The §2023:8.5.1.9.5 NOTE licenses the view ("functionally identical to one where the intermediate
     ///   occurrences are physically allocated and, if specified, initialized"), and <see cref="Overlay"/> recognises a store
     ///   by a difference from that same image (determination D-VGB). A table without the phrase states no creation (its
     ///   created content is "undefined") and shows the space fill, which no store of a numeric value matches.</item>
@@ -311,7 +311,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             var create = a.IsComponent && !b.IsComponent ? v.CreatedAt(src.Ordinal[pa]) : null;
             if (IsNested(a) || IsNested(b))
             {
-                // The element-by-element move (§14.6.9.2): every occurrence the sender has, in the receiver's element shape.
+                // The element-by-element move (§2023:14.6.9.2): every occurrence the sender has, in the receiver's element shape.
                 var moved = src.Occurrences(v, pa) is { } occ ? Reshaped(occ, ElementShape(a), ElementShape(b)) : null;
                 if (!b.IsComponent)
                 {
@@ -350,7 +350,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     }
 
     /// <summary>Each of <paramref name="occurrences"/> rebuilt from the element shape <paramref name="from"/> in
-    /// <paramref name="to"/> — §14.6.9.2's element-by-element move (or, for occurrences of storage, the view of each).</summary>
+    /// <paramref name="to"/> — §2023:14.6.9.2's element-by-element move (or, for occurrences of storage, the view of each).</summary>
     private static CobolVarGroup[] Reshaped(CobolVarGroup[] occurrences, GroupAtom[] from, GroupAtom[] to)
     {
         var outp = new CobolVarGroup[occurrences.Length];
@@ -375,19 +375,19 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         CobolString.Store(create is null ? "" : create(n).Fixed, elementChars);
 
     /// <summary>⛔ A VIEW'S STORE BACK INTO THE STORAGE IT VIEWS — the BY REFERENCE write-back of
-    /// <see cref="Reshape"/> (ISO §14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies
+    /// <see cref="Reshape"/> (ISO §2023:14.2.3 GR8: "the activated runtime element operates as if the formal parameter occupies
     /// the same storage area as the argument"). <paramref name="current"/> is the argument's carrier, of
     /// <paramref name="currentShape"/>; <paramref name="view"/> the formal's, of <paramref name="viewShape"/>. A store
     /// through the formal reaches only the argument storage it overlays:
     /// <list type="bullet">
     ///   <item>each run of fixed material the formal covers replaces the argument's leading characters there, and the
-    ///     argument's material past it survives (the §14.8.2.2 rule 1 prefix);</item>
+    ///     argument's material past it survives (the §2023:14.8.2.2 rule 1 prefix);</item>
     ///   <item>a corresponding pair of components replaces the argument's component whole — both are variable, so the
     ///     formal's length or capacity IS the argument's;</item>
     ///   <item>a FIXED table of the formal opposite the argument's dynamic-capacity table is written OVER the argument's
     ///     current occurrences and creates the ones past its capacity that the callee stored into
-    ///     (<see cref="OverlaidTable"/>, §8.5.1.9.3), each the element the table creates (<see cref="Created"/>,
-    ///     §8.5.1.9.5) with the callee's stores in it, and a component of the formal opposite the argument's fixed table is
+    ///     (<see cref="OverlaidTable"/>, §2023:8.5.1.9.3), each the element the table creates (<see cref="Created"/>,
+    ///     §2023:8.5.1.9.5) with the callee's stores in it, and a component of the formal opposite the argument's fixed table is
     ///     fitted to it — it cannot grow;</item>
     ///   <item>a pair of tables at least one of which holds VARIABLE-LENGTH ELEMENTS (kb/Work PB2496) takes the same rules
     ///     one level down: each occurrence of the view overlays the argument's occurrence of the same number, because the
@@ -400,7 +400,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// dynamic-capacity table's one-element reservation in place, <see cref="Geometry.StorageAt"/>) the activated element
     /// referenced as a receiving item, and, per occurrence of each of the view's dynamic-capacity tables, that occurrence's
     /// own (<see cref="ReceivingReferences"/>, kept by the fresh area the view was copied into), or is null when nothing
-    /// recorded them: a store into an occurrence past the capacity creates it whatever image it stored (§8.5.1.9.3;
+    /// recorded them: a store into an occurrence past the capacity creates it whatever image it stored (§2023:8.5.1.9.3;
     /// <see cref="OverlaidTable"/>), at every level.</summary>
     public static CobolVarGroup Overlay(CobolVarGroup current, CobolVarGroup view, GroupAtom[] currentShape,
         GroupAtom[] viewShape, ReceivingReferences? received)
@@ -457,9 +457,9 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// the same number. <paramref name="resize"/> — the view's table is variable too — makes its capacity the argument's;
     /// otherwise the view is a FIXED table written over the argument's current occurrences, creating those past its
     /// capacity that it stored into (<see cref="GrownCount"/>, <see cref="OverlaidTable"/>'s determination). Either way an
-    /// occurrence the argument lacked is CREATED in the argument's table (§8.5.1.9.3: "a new element is automatically
+    /// occurrence the argument lacked is CREATED in the argument's table (§2023:8.5.1.9.3: "a new element is automatically
     /// created") and the view's element is stored over it, exactly as an occurrence the argument had is overlaid: the
-    /// element the table creates (<paramref name="create"/>, §8.5.1.9.5's INITIALIZED default), or, without the phrase,
+    /// element the table creates (<paramref name="create"/>, §2023:8.5.1.9.5's INITIALIZED default), or, without the phrase,
     /// <see cref="SpaceFilled"/>. So a table nested in the created element grows only as far as the callee referenced it,
     /// never to the formal's fixed count (kb/Work PB2690 branch review round 1 of wave 1078 A, the created-occurrence arm
     /// of finding R1-1). <paramref name="table"/> is the view's table's receiving-reference record, per occurrence.</summary>
@@ -477,10 +477,10 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>The element a dynamic-capacity table WITHOUT the INITIALIZED phrase creates, in its element shape
     /// <paramref name="shape"/>, as the base a view's element is stored over (<see cref="OverlaidOccurrences"/>):
-    /// §8.5.1.9.5 leaves its content "undefined", and the determination D-VGB shows it as the space fill
+    /// §2023:8.5.1.9.5 leaves its content "undefined", and the determination D-VGB shows it as the space fill
     /// (<see cref="Reshape"/>), so its fixed material is spaces and each component is carried EMPTY. A table nested in it
     /// then holds exactly the occurrences the view's store creates, and the store into storage raises it to its FROM
-    /// minimum (<c>CobolDynTable.FromCurrentImage</c>), the capacity the created element's table starts at (§8.5.1.9.1).</summary>
+    /// minimum (<c>CobolDynTable.FromCurrentImage</c>), the capacity the created element's table starts at (§2023:8.5.1.9.1).</summary>
     private static CobolVarGroup SpaceFilled(GroupAtom[] shape)
     {
         var geometry = GeometryOf(shape);
@@ -524,19 +524,19 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// <paramref name="now"/> is the formal's table (a whole number of <paramref name="elementChars"/>-wide occurrences),
     /// <paramref name="was"/> the argument's current occurrences. Its leading occurrences overlay the argument's
     /// (<see cref="Overlaid"/>); an occurrence PAST the argument's capacity that the callee stored into is created —
-    /// §14.2.3 GR8 makes the formal occupy the argument's storage, so the store is a receiving reference to the dynamic
-    /// table with a subscript that "exceeds the current capacity of the table", and §8.5.1.9.3 then creates "a new
+    /// §2023:14.2.3 GR8 makes the formal occupy the argument's storage, so the store is a receiving reference to the dynamic
+    /// table with a subscript that "exceeds the current capacity of the table", and §2023:8.5.1.9.3 then creates "a new
     /// element" and raises the capacity "to the value given by the subscript" (intermediate occurrences too).
     /// <para>THE STORE IS THE CALLEE'S RECEIVING REFERENCE (kb/Work PB2690): the formal's fresh area records every position a
     /// store through it reached (<paramref name="received"/>, positions of the formal's table; <see cref="ReceivingReferences"/>),
     /// so the capacity becomes the highest occurrence the callee referenced as a receiving item, whatever image it stored
     /// there — the INITIALIZED default or spaces included.</para>
-    /// <para>⚠ DETERMINATION D-VGB (docs/CONFORMANCE.md §3; the rest is §8.5.1.12.3 sentence 3, which makes the pair the same
+    /// <para>⚠ DETERMINATION D-VGB (docs/CONFORMANCE.md §3; the rest is §2023:8.5.1.12.3 sentence 3, which makes the pair the same
     /// length only "for purposes of determining compatibility"): the view showed each occurrence the argument lacks as the
-    /// table creates it (<see cref="Reshape"/>: its <paramref name="create"/> image, §8.5.1.9.5's INITIALIZED default, when
-    /// the table writes the phrase; otherwise the space fill, since §8.5.1.9.5 leaves that content "undefined"), so the
+    /// table creates it (<see cref="Reshape"/>: its <paramref name="create"/> image, §2023:8.5.1.9.5's INITIALIZED default, when
+    /// the table writes the phrase; otherwise the space fill, since §2023:8.5.1.9.5 leaves that content "undefined"), so the
     /// created occurrences of an INITIALIZED table keep the default in every item the callee did not store, and the
-    /// intermediate ones are the default whole, as §8.5.1.9.5 requires. A callee that only READS the occurrences past the
+    /// intermediate ones are the default whole, as §2023:8.5.1.9.5 requires. A callee that only READS the occurrences past the
     /// capacity leaves it alone. A store that reached the area by a path that records no reference — a further activation's
     /// boundary copy of the whole group back into it (<c>CallEmitter.BoundaryCopyWrite</c>), which would otherwise make a
     /// store into one occurrence a reference to all of them — is still recognised by its EFFECT: an occurrence whose image
@@ -597,7 +597,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>The pair plans already worked out, keyed by the two atom arrays' REFERENCES (weakly: a plan lives as long as
     /// both arrays do). The compiler states each distinct array once, as a static field (<c>GroupAtomTable</c>, kb/Work
-    /// PB2690), so a statement or a boundary that runs again meets the same two references and skips the §8.5.1.12 walk.</summary>
+    /// PB2690), so a statement or a boundary that runs again meets the same two references and skips the §2023:8.5.1.12 walk.</summary>
     private static readonly ConditionalWeakTable<GroupAtom[], ConditionalWeakTable<GroupAtom[], List<(int First, int Second)>>>
         s_pairPlans = new();
 
@@ -617,7 +617,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         if (GroupCompatibility.Walk(a, b, pairs) is { } why)
             throw new InvalidOperationException(
                 $"internal error: a variable-length group carrier was taken across an incompatible pair ({why.Kind}) — "
-                + "the §8.5.1.12 relation should have refused it");
+                + "the §2023:8.5.1.12 relation should have refused it");
         plans.TryAdd(b, pairs);
         return pairs;
     }
@@ -679,7 +679,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         public int FixedChars(int from, int to) => _fixedAt[to] - _fixedAt[from];
 
         /// <summary>Where atom <paramref name="i"/> starts in the group's STORAGE — its fixed run with each dynamic-capacity
-        /// table's one-element reservation in place (§8.5.1.12.3: such a table counts "the length of a single element";
+        /// table's one-element reservation in place (§2023:8.5.1.12.3: such a table counts "the length of a single element";
         /// <c>StorageCell.RunOf</c> cuts the reservations out of a cell's image): the positions a receiving reference is
         /// recorded in (<see cref="ReceivingReferences"/>).</summary>
         public int StorageAt(int i)
@@ -698,7 +698,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
                 ? !v.HasDyn(Ordinal[i]) ? null
                   : v.ElementsAt(Ordinal[i]) is not null && !IsNested(_atoms[i])
                       ? NotImplemented.Value<string>("a table of variable-length elements inside a variable-length group "
-                          + "whose layout cannot be stated (a USAGE BIT leaf; ISO §14.6.9.3; kb/Work PB2496)")
+                          + "whose layout cannot be stated (a USAGE BIT leaf; ISO §2023:14.6.9.3; kb/Work PB2496)")
                   : v.Dynamic[Ordinal[i]]
                 : FixedSlice(v, i, i + 1);
 
@@ -716,8 +716,8 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         }
 
         /// <summary>Atoms [<paramref name="from"/>, end) of <paramref name="v"/> as the characters they occupy in the
-        /// group's contiguous image (§8.5.1.11.2): fixed material, each component's content, each nested table's
-        /// occurrences at their own extents — what the end of a §8.8.4.2.17 comparison compares with the other group's
+        /// group's contiguous image (§2023:8.5.1.11.2): fixed material, each component's content, each nested table's
+        /// occurrences at their own extents — what the end of a §2023:8.8.4.2.17 comparison compares with the other group's
         /// end, and with spaces where that one has ended.</summary>
         public string Contiguous(CobolVarGroup v, int from)
         {
@@ -738,7 +738,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>⛔ A FILE RECORD'S CONTIGUOUS IMAGE, DECOMPOSED — the READ / RETURN half of a variable-length
     /// record (docs/CONFORMANCE.md §3 determination D-FRA; kb/Work PB981, PB1053). A WRITE sends the record "as
-    /// though it were in fact contiguous with its neighbors" (ISO §8.5.1.11.2) — the group's <c>CurrentImage()</c>
+    /// though it were in fact contiguous with its neighbors" (ISO §2023:8.5.1.11.2) — the group's <c>CurrentImage()</c>
     /// — so the characters alone carry no marker of where a dynamic member ends. Two sources can say where:
     /// <list type="bullet">
     /// <item><paramref name="recorded"/> — the record's own EXTENT TABLE's lengths (<see cref="RecordExtents"/>,
@@ -755,13 +755,13 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// <para><paramref name="fixedForm"/> marks the record as the FIXED FORM a file of fixed-length records holds
     /// (<see cref="CobolContiguousLayout.ToFixedForm"/>, D-FRA (vi)): every member filled its field to its maximum,
     /// so the take step finds each at that width, and each then drops the space padding.</para>
-    /// <para><paramref name="fixedAt"/>[k] is component k's offset in the FIXED run (the §8.5.1.12.3
+    /// <para><paramref name="fixedAt"/>[k] is component k's offset in the FIXED run (the §2023:8.5.1.12.3
     /// zero-length accounting <see cref="Fixed"/> uses), <paramref name="unit"/>[k] its unit width in
-    /// characters, <paramref name="maxUnits"/>[k] its maximum size in units (§8.5.1.10.1's maximum size / the
+    /// characters, <paramref name="maxUnits"/>[k] its maximum size in units (§2023:8.5.1.10.1's maximum size / the
     /// table's maximum capacity). A record SHORTER than the fixed run leaves every component empty and the
-    /// fixed run short — <c>FromVarImage</c> space-fills it, as §14.9.30.4 GR15 fills a short line. A recorded
+    /// fixed run short — <c>FromVarImage</c> space-fills it, as §2023:14.9.30.4 GR15 fills a short line. A recorded
     /// component longer than the receiving item's maximum is carried whole here and truncated on the right by
-    /// the item's own receiving store (§8.5.1.10.4 — "If the maximum length is reached, the value is truncated on
+    /// the item's own receiving store (§2023:8.5.1.10.4 — "If the maximum length is reached, the value is truncated on
     /// the right as necessary").</para>
     /// <para><paramref name="spaceUnit"/>[k] is the image characters of one position of component k's SPACE - one for an
     /// alphanumeric item (and every component when null), two for a national item, whose space is the national space the
@@ -785,11 +785,11 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             pos += take;
             // THE FIXED FORM (D-FRA (vi); CobolContiguousLayout.ToFixedForm): the member filled its whole field, and
             // a space in a fixed-size field is padding, never data. ISO's own LINE SEQUENTIAL record does the same
-            // (§14.9.51.4 GR21 — spaces to the right of the rightmost non-space are not transferred). Every component
+            // (§2023:14.9.51.4 GR21 — spaces to the right of the rightmost non-space are not transferred). Every component
             // of a FILE record is a dynamic-length ELEMENTARY item — a dynamic-capacity table "may be defined in any
-            // place, other than the file section" (§8.5.1.9.1 3), COBOL1526 — so the trim never meets a table whose
+            // place, other than the file section" (§2023:8.5.1.9.1 3), COBOL1526 — so the trim never meets a table whose
             // blank elements are data; `fixedForm` is passed for a file record and nothing else. A STRUCTURED
-            // component (§12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
+            // component (§2023:12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
             // so a trailing space is data, not padding (`data` is non-null for it).
             if (fixedForm && data is null) dyn[k] = TrimTrailingSpaces(dyn[k], spaceUnit?[k] ?? 1);
         }
@@ -799,7 +799,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     /// <summary>⛔ THE ONE STEP OF THE RECORD WALK (kb/Work PB981, PB1025, PB1094): how many characters component
     /// <paramref name="k"/> occupies in <paramref name="record"/> at <paramref name="pos"/>, and — for a component
-    /// laid out by a DYNAMIC LENGTH STRUCTURE (<paramref name="structure"/>[k], §12.3.7.4 GR18/GR19) — its DATA in
+    /// laid out by a DYNAMIC LENGTH STRUCTURE (<paramref name="structure"/>[k], §2023:12.3.7.4 GR18/GR19) — its DATA in
     /// <paramref name="data"/> (null for a plain component, whose data IS the characters). Three sources, in order:
     /// the record's own extent table (<paramref name="recorded"/>); for a structured component in the fixed form of a
     /// fixed-length file, its whole maximum extent; for one with no table, the structure itself
@@ -881,7 +881,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         return data[..end];
     }
 
-    /// <summary>⛔ ISO §8.8.4.2.17 — THE COMPARISON OF TWO COMPATIBLE GROUPS, ONE OR BOTH OF WHICH IS A
+    /// <summary>⛔ ISO §2023:8.8.4.2.17 — THE COMPARISON OF TWO COMPATIBLE GROUPS, ONE OR BOTH OF WHICH IS A
     /// VARIABLE-LENGTH GROUP (kb/Work PB1467, PB2496): it "proceeds from left to right as described under 8.8.4.2.7,
     /// Comparison of alphanumeric operands except that — when corresponding tables are encountered, they are
     /// compared as described in 14.6.9.3, Comparing two tables — when corresponding dynamic-length elementary items
@@ -892,18 +892,18 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// fixed-length group is its record image with no components), and the pair's correspondence
     /// (<see cref="GroupCompatibility.Walk"/>, the same walk that decided the pair compatible) gives the corresponding
     /// items. The material between two of them lies at the same relative positions in both groups, so it is compared
-    /// stretch by stretch; each corresponding pair is then compared as one §8.8.4.2.7 comparison, the shorter side
-    /// extended with spaces — exactly both "except" clauses for a dynamic-length item (§8.5.1.10.4, "treated as a
+    /// stretch by stretch; each corresponding pair is then compared as one §2023:8.8.4.2.7 comparison, the shorter side
+    /// extended with spaces — exactly both "except" clauses for a dynamic-length item (§2023:8.5.1.10.4, "treated as a
     /// fixed-length data item whose length is the dynamic-length elementary item's current length") and for two tables
     /// of elementary or fixed-length elements, whose element-by-element comparison "until … the last element of the
     /// table with the smallest current capacity has been compared", then "each successive remaining element of the
-    /// larger table with spaces" (§14.6.9.3), is the comparison of their concatenated occurrences. A table of
+    /// larger table with spaces" (§2023:14.6.9.3), is the comparison of their concatenated occurrences. A table of
     /// VARIABLE-LENGTH elements is compared element by element in fact, each pair of elements by this same rule and
     /// each remaining element against spaces. After the last pair the two groups' remaining material is compared as it
     /// lies in their contiguous images — a dynamic-capacity table beyond the shorter group's end against spaces, the
-    /// "space-filled fixed-length table" §8.5.1.12.2 makes correspond to it.</para>
+    /// "space-filled fixed-length table" §2023:8.5.1.12.2 makes correspond to it.</para>
     /// <para><paramref name="collation"/> is the alphanumeric program collating sequence when it is not native
-    /// (§8.8.4.2.7), null otherwise.</para></summary>
+    /// (§2023:8.8.4.2.7), null otherwise.</para></summary>
     /// <returns>&lt;0, 0 or &gt;0 as <paramref name="a"/> is less than, equal to or greater than <paramref name="b"/>.</returns>
     public static int Compare(CobolVarGroup a, GroupAtom[] aShape, CobolVarGroup b, GroupAtom[] bShape,
         CobolCollation? collation = null)
@@ -926,7 +926,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
         return CompareRun(ga.Contiguous(a, prevA), gb.Contiguous(b, prevB), collation);
     }
 
-    /// <summary>§14.6.9.3 over two tables of which at least one holds VARIABLE-LENGTH elements: correspondingly
+    /// <summary>§2023:14.6.9.3 over two tables of which at least one holds VARIABLE-LENGTH elements: correspondingly
     /// numbered elements compared as two compatible groups (<see cref="Compare"/>), then each remaining element of the
     /// larger table against spaces — an element compared with the empty carrier, every part of which is spaces.</summary>
     private static int CompareElements(CobolVarGroup[] a, GroupAtom[] aShape, CobolVarGroup[] b, GroupAtom[] bShape,
@@ -945,7 +945,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     private static int CompareRun(string a, string b, CobolCollation? collation) =>
         collation is null ? CobolString.Compare(a, b) : CobolString.Compare(a, b, collation);
 
-    /// <summary>⛔ THE ONE FIXED-RUN RULE (ISO §8.5.1.12.3): a variable-length group's FIXED RUN (<see cref="Fixed"/>) is
+    /// <summary>⛔ THE ONE FIXED-RUN RULE (ISO §2023:8.5.1.12.3): a variable-length group's FIXED RUN (<see cref="Fixed"/>) is
     /// its <paramref name="window"/> — its storage positions, in which a dynamic-length item occupies none and a
     /// dynamic-capacity table reserves one element (<c>CellComponents</c>) — with each table's reservation cut out:
     /// <paramref name="dynFixedAt"/>[k] is component k's position in the window and <paramref name="dynTable"/>[k] its
@@ -966,7 +966,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     }
 
     /// <summary>The inverse of <see cref="RunOf"/>: <paramref name="run"/>, padded or truncated to the run's width
-    /// (§14.9.25.4 GR9's fixed part), laid around the tables' reservations, which keep <paramref name="window"/>'s
+    /// (§2023:14.9.25.4 GR9's fixed part), laid around the tables' reservations, which keep <paramref name="window"/>'s
     /// characters at those positions.</summary>
     public static string WindowOf(string run, string window, ReadOnlySpan<int> dynFixedAt, ReadOnlySpan<int> dynTable)
     {

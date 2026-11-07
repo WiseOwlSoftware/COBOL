@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> AN ABSOLUTE NEXT GROUP OF A PAGE FOOTING AT ITS OWN LAST LINE (kb/Work PB957).
-      *> ISO/IEC 1989:2023 §13.18.37.3 SR6 c): "If the current report group is a page footing, integer-1
+      *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR6 c): "If the current report group is a page footing, integer-1
       *> shall be greater than the minimum last line number of the report group." The footing's last line
       *> is 17 and integer-1 is 17.
       *> Drawn on COBOL2284 (report-next-group-clause-rule).

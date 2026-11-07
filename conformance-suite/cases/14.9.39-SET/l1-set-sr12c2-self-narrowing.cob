@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.39.3 SR12 c)2. — with the predefined object
+      *> ISO §2023:14.9.39.3 SR12 c)2. — with the predefined object
       *> reference SELF as identifier-4 and an object-class-name
       *> receiver, "the class containing the SET statement shall be
       *> the same class or a subclass of the class specified in the

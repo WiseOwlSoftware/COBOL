@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1413 — ISO §8.8.2 Table 4 permits exactly one symbol after a boolean shift operator, "Identifier
+      *> kb/Work PB1413 — ISO §2023:8.8.2 Table 4 permits exactly one symbol after a boolean shift operator, "Identifier
       *> or literal", and rule 5 makes it "an integer operand"; rule 2 then requires the expression to end there
       *> (or go on with a boolean operator or ')'). `A B-SHIFT-L 1 + 1` puts an arithmetic operator after the count,
       *> so it is not a boolean expression at all — COBOL1719, the Table 3 / Table 4 invalid-pair diagnostic. It

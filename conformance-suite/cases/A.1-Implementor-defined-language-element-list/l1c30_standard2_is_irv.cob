@@ -5,17 +5,17 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.4 GR7 c) — STANDARD-2 references the 646 IRV
+      *> ISO §2023:12.3.7.4 GR7 c) — STANDARD-2 references the 646 IRV
       *> THE RULE (Annex A.1 item 182, documented choice):
       *>   cite.py --check 12.3.7.4 "When the STANDARD-2 phrase is
       *>     specified, the referenced coded character set shall be as
       *>     specified in ISO/IEC 646; the implementor shall specify
       *>     whether the International Reference Version or a national
-      *>     version is referenced" -> OK §12.3.7.4 7)  (GR7 c))
+      *>     version is referenced" -> OK §2023:12.3.7.4 7)  (GR7 c))
       *>   cite.py --check 12.3.7.4 "the value of figurative constant
       *>     symbolic-character-1 is the representation of the coded
       *>     character at ordinal position integer-1"
-      *>     -> OK §12.3.7.4 11)  (GR11 b), the IN arm)
+      *>     -> OK §2023:12.3.7.4 11)  (GR11 b), the IN arm)
       *> DOCUMENTED CHOICE (docs/CONFORMANCE.md DOC-A.1-182): STANDARD-2
       *> ALWAYS references the ISO/IEC 646 International Reference
       *> Version, never a national version; its 128 characters are

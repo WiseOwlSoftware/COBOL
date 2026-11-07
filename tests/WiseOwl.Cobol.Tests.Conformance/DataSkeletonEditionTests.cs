@@ -15,9 +15,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <see cref="NoDataSkeleton_StagesAt0899"/> compiles every shape that was ever in it and fails if any of them
 /// returns to a COBOL0899 "not yet implemented" posture. The two theories that used to enumerate the staged
 /// rows are gone with the last row: USAGE OBJECT REFERENCE left at the Phase-3 OO spine, USAGE POINTER at Phase
-/// 4b, the BINARY-CHAR family at Phase 4 M2-DATA-1, NATIONAL (§8.5.2.10) and BOOLEAN (§8.5.2.5) data at Phase 4a
+/// 4b, the BINARY-CHAR family at Phase 4 M2-DATA-1, NATIONAL (§2023:8.5.2.10) and BOOLEAN (§2023:8.5.2.5) data at Phase 4a
 /// M2-DATA-3/4, the FLOAT-SHORT trio at Phase 6a, the PICTURE symbol E with kb/Work PB66, NATIONAL-EDITED with
-/// PB492, and — last — the national-FORM numeric / numeric-edited / boolean shapes of ISO §13.18.60.3 SR12 with
+/// PB492, and — last — the national-FORM numeric / numeric-edited / boolean shapes of ISO §2023:13.18.60.3 SR12 with
 /// kb/Work PB646. Each kept the introduction edge instead: it compiles at 2002+ and 0900s at 85, one positive
 /// fact per construct below. A construct that is ever staged loud again re-adds its own row and its own theory.
 /// </para>
@@ -39,7 +39,7 @@ public sealed class DataSkeletonEditionTests
     /// <summary>⛔ THE SUCCESSOR TO THE STAGED-ROW THEORIES, and the reason deleting them is not a loss of
     /// coverage: EVERY shape that ever sat in the staged set compiles at 2023 with no COBOL0899 in its
     /// errors OR its warnings. A re-staged data construct fails here even if nobody remembers to re-add a row.
-    /// <para>The last member to leave was the national FORM of ISO §13.18.60.3 SR12 — "An elementary data item
+    /// <para>The last member to leave was the national FORM of ISO §2023:13.18.60.3 SR12 — "An elementary data item
     /// with usage national shall be described with a picture character-string that describes a boolean,
     /// national, national-edited, numeric, or numeric-edited data item" — whose numeric, numeric-edited and
     /// boolean shapes were refused BY NAME as a "Phase 4a residue" (kb/Work PB646). A GREEN theory row asserted
@@ -71,7 +71,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertNoDiagnostic(warnings, "COBOL0899");
     }
 
-    /// <summary>The national FORM of §13.18.60.3 SR12 keeps the introduction edge the rest of the set keeps
+    /// <summary>The national FORM of §2023:13.18.60.3 SR12 keeps the introduction edge the rest of the set keeps
     /// (kb/Work PB646, registry row national-data-2002): each shape compiles at every 2002+ edition and is
     /// rejected at 85 with COBOL0900 NAMING COBOL-2002 — never the historical silent DISPLAY misbind, and
     /// never the COBOL0899 staging this row used to assert.</summary>
@@ -94,7 +94,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine (ISO §13.18.60.4 / §8.5.2.14): a
+    /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine (ISO §2023:13.18.60.4 / §2023:8.5.2.14): a
     /// universal (class-less) reference item compiles at every 2002+ edition — a nullable <c>object?</c> field,
     /// COBOL initial state NULL — and stays introduction-gated at 85 (the <c>{is2002()}?</c> grammar hook +
     /// the W1.5 0900 edition-naming hint). The former recognized-but-unimplemented 0899 posture is retired.</summary>
@@ -114,7 +114,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>PICTURE is prohibited with USAGE OBJECT REFERENCE (§13.18.60.4 — the item is picture-less);
+    /// <summary>PICTURE is prohibited with USAGE OBJECT REFERENCE (§2023:13.18.60.4 — the item is picture-less);
     /// the conflict diagnoses COBOL0812, never an incoherent picture-with-reference classification.</summary>
     [Fact]
     public void UsageObjectReference_WithPicture_Rejects0812()
@@ -126,7 +126,7 @@ public sealed class DataSkeletonEditionTests
     }
 
     /// <summary>The floating-point numeric-edited PICTURE went LIVE with data-model design D21 (kb/Work PB66; ISO
-    /// §13.18.40.4 GR13 b — a significand character-string and an exponent +9{1..4} joined by E; §14.6.8.4 the
+    /// §2023:13.18.40.4 GR13 b — a significand character-string and an exponent +9{1..4} joined by E; §2023:14.6.8.4 the
     /// store): it compiles at every 2002+ edition and stays introduction-gated at 85 (COBOL0900 naming
     /// COBOL-2002 — registry row pic-external-float-2002). The former 0899 not-implemented posture is retired.</summary>
     [Theory]
@@ -149,9 +149,9 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>NATIONAL-EDITED went LIVE with kb/Work PB492 (ISO §8.5.2.11 / §13.18.40.4 GR10 — "at least one
+    /// <summary>NATIONAL-EDITED went LIVE with kb/Work PB492 (ISO §2023:8.5.2.11 / §2023:13.18.40.4 GR10 — "at least one
     /// symbol 'N', and at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'";
-    /// §13.18.40.5 Table 7 gives the category SIMPLE INSERTION): every one of those shapes compiles at every
+    /// §2023:13.18.40.5 Table 7 gives the category SIMPLE INSERTION): every one of those shapes compiles at every
     /// 2002+ edition and stays introduction-gated at 85 (COBOL0900 naming COBOL-2002 — registry row
     /// national-edited-2002). The former 0899 not-implemented posture is retired, and so is the COBOL0808 that
     /// refused the character-1 leg by quoting a Table-10 reading GR10 contradicts.</summary>
@@ -178,7 +178,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §13.18.60.4 GR12): a PICTURE-less
+    /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §2023:13.18.60.4 GR12): a PICTURE-less
     /// fixed-width binary item compiles at every 2002+ edition (a native 1/2/4/8-byte integer) and stays
     /// introduction-gated at 85 (COBOL0900 naming COBOL-2002). The former 0899 not-implemented posture is
     /// retired.</summary>
@@ -201,8 +201,8 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>NATIONAL data went LIVE at Phase 4a M2-DATA-3 (ISO §8.5.2.10 / §13.18.40.4 GR9 /
-    /// §13.18.60.4 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
+    /// <summary>NATIONAL data went LIVE at Phase 4a M2-DATA-3 (ISO §2023:8.5.2.10 / §2023:13.18.40.4 GR9 /
+    /// §2023:13.18.60.4 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
     /// char per national position (D-N1) — and stays introduction-gated at 85 (COBOL0900 naming COBOL-2002).
     /// The former 0899 not-implemented posture is retired.</summary>
     [Theory]
@@ -221,8 +221,8 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>BOOLEAN data went LIVE at Phase 4a M2-DATA-4 (ISO §8.5.2.5 / §13.18.40.4 GR8/GR14 R14 /
-    /// §13.18.60.4 SR5): a PIC 1 item (display- or bit-form — the same one-'0'/'1'-character-per-position
+    /// <summary>BOOLEAN data went LIVE at Phase 4a M2-DATA-4 (ISO §2023:8.5.2.5 / §2023:13.18.40.4 GR8/GR14 R14 /
+    /// §2023:13.18.60.4 SR5): a PIC 1 item (display- or bit-form — the same one-'0'/'1'-character-per-position
     /// representation, D-B1) compiles at every 2002+ edition and stays introduction-gated at 85. The former
     /// 0899 not-implemented posture is retired.</summary>
     [Theory]
@@ -241,7 +241,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
-    /// <summary>The bare and full USAGE spellings bind IDENTICALLY (ISO §13.18.60 general format — the USAGE
+    /// <summary>The bare and full USAGE spellings bind IDENTICALLY (ISO §2023:13.18.60 general format — the USAGE
     /// word is optional): bare <c>BINARY-CHAR SIGNED</c> historically string-glued to "BINARY-CHARSIGNED" and
     /// silently misbound to DISPLAY; now both PICTURE-less spellings COMPILE cleanly at 2002+ (Phase 4
     /// M2-DATA-1) — restoring the parity the string-glue bug broke.</summary>
@@ -254,7 +254,7 @@ public sealed class DataSkeletonEditionTests
         Assert.True(okFull, "USAGE IS BINARY-CHAR SIGNED must compile: " + string.Join("\n", fullErrors));
     }
 
-    /// <summary>PICTURE is prohibited with the BINARY-CHAR family (ISO §13.16.3 SR8 — the item is picture-less);
+    /// <summary>PICTURE is prohibited with the BINARY-CHAR family (ISO §2023:13.16.3 SR8 — the item is picture-less);
     /// the conflict diagnoses COBOL0870, never an incoherent picture-with-binary classification (mirrors the
     /// USAGE OBJECT REFERENCE 0812 rule).</summary>
     [Fact]
@@ -265,7 +265,7 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0870");
     }
 
-    /// <summary>A symbol outside the §13.18.40.3 SR2 PICTURE whitelist is an invalid PICTURE (COBOL0808) at
+    /// <summary>A symbol outside the §2023:13.18.40.3 SR2 PICTURE whitelist is an invalid PICTURE (COBOL0808) at
     /// EVERY edition — previously it fell through the classifier to "pure numeric, zero digits".</summary>
     [Theory]
     [InlineData(85)]
@@ -276,15 +276,15 @@ public sealed class DataSkeletonEditionTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("DSKQ" + edition, "01 WS-Q PIC 9Q9."), edition);
-        Assert.False(ok, $"PIC 9Q9 must be rejected at --std {edition} (ISO §13.18.40.3 SR2)");
+        Assert.False(ok, $"PIC 9Q9 must be rejected at --std {edition} (ISO §2023:13.18.40.3 SR2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0808");
         EditionHarness.AssertHasDiagnostic(errors, "invalid PICTURE symbol");
     }
 
-    /// <summary>A class definition went LIVE with the Phase-3 OO spine part 2 (ISO §11.2/§11.3 — the ClassUnit
+    /// <summary>A class definition went LIVE with the Phase-3 OO spine part 2 (ISO §2023:11.2/§2023:11.3 — the ClassUnit
     /// collection + pass-1 class symbol table): a class-only compilation unit COMPILES clean at every 2002+
     /// edition (the emitted module carries the class and an empty Main — a class translation unit with no
-    /// program is legal, §10.6), and stays grammar-gated at 85 (the <c>{is2002()}?</c> hook + the W1.5 0900
+    /// program is legal, §2023:10.6), and stays grammar-gated at 85 (the <c>{is2002()}?</c> hook + the W1.5 0900
     /// mapping). The former recognized-but-unimplemented 0899 posture (and before that the SILENT DROP the W2
     /// loud-guard sweep caught) is retired.</summary>
     [Fact]
@@ -298,7 +298,7 @@ public sealed class DataSkeletonEditionTests
         foreach (int edition in new[] { 2002, 2014, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(cls, edition);
-            Assert.True(ok, $"a class-only compilation unit must compile at --std {edition} (ISO §10.6): "
+            Assert.True(ok, $"a class-only compilation unit must compile at --std {edition} (ISO §2023:10.6): "
                 + string.Join("\n", errors));
         }
         var (ok85, _, _) = EditionHarness.CompileFull(cls, 85);
@@ -307,7 +307,7 @@ public sealed class DataSkeletonEditionTests
 
     /// <summary>The zero-regression leg: the COBOL-85 corpus symbol/usage repertoire still compiles clean at
     /// every edition — the whitelist and the explicit usage map must not reject anything the '85 classifier
-    /// accepted (ISO §13.18.40.4 / §13.18.60).</summary>
+    /// accepted (ISO §2023:13.18.40.4 / §2023:13.18.60).</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2023)]

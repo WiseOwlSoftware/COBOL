@@ -7,14 +7,14 @@
 *>---
       *> kb/Work PB1216 - pointer lifetime for a METHOD: a method is a
       *> runtime element, so its LOCAL-STORAGE ends with the activation
-      *> (§8.6.4, §8.6.5, §13.18.5.4 4) as in pb1216_ls_and_cancel_
+      *> (§2023:8.6.4, §2023:8.6.5, §2023:13.18.5.4 4) as in pb1216_ls_and_cancel_
       *> pointer_lifetime) while the OBJECT's WORKING-STORAGE (instance
-      *> data; a method has none, §13.5.3 SR1) persists with the object
-      *> (§8.6.4 static item; §11.7).  The object-data leg allocates
+      *> data; a method has none, §2023:13.5.3 SR1) persists with the object
+      *> (§2023:8.6.4 static item; §2023:11.7).  The object-data leg allocates
       *> a BASED item of the OBJECT's working-storage and returns its
-      *> address: §8.4.3.11.3 SR1 forbids ADDRESS OF an item "defined
+      *> address: §2023:8.4.3.11.3 SR1 forbids ADDRESS OF an item "defined
       *> in the working-storage or file section of an object", so
-      *> ALLOCATE (§14.9.3), whose storage lives until FREE, is the
+      *> ALLOCATE (§2023:14.9.3), whose storage lives until FREE, is the
       *> conforming way to hand the invoker an address into instance
       *> data (kb/Work PB1062).
       *> DERIVATION. METHOD-LS: HANDLED, [....] (W4 unchanged after the

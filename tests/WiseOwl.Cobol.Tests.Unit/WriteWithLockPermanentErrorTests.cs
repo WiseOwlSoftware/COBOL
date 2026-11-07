@@ -7,16 +7,16 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1880 item 4 — a WRITE ... WITH LOCK under a permanent error in effect. ISO §9.1.13.1: the condition
+/// kb/Work PB1880 item 4 — a WRITE ... WITH LOCK under a permanent error in effect. ISO §2023:9.1.13.1: the condition
 /// "remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique
 /// is invoked" (DOC-A.1-105: CLOSE), and the record lock a WRITE requests is set only "when the execution of the
-/// WRITE statement is successful" (§14.9.51.4 GR11). So a WRITE WITH LOCK the condition refuses must answer the
-/// status that began it, store nothing and lock nothing, and the answer must come BEFORE the §12.4.5.9.4 GR7 lock
+/// WRITE statement is successful" (§2023:14.9.51.4 GR11). So a WRITE WITH LOCK the condition refuses must answer the
+/// status that began it, store nothing and lock nothing, and the answer must come BEFORE the §2023:12.4.5.9.4 GR7 lock
 /// ceiling is judged: a connector that holds its maximum number of locks answers '54' to a healthy WRITE WITH LOCK,
 /// and '34' while the permanent error is in effect (<c>FileRegistry.WriteSharedInStatement</c> pre-flights nothing:
 /// the organization replays the condition first, then asks the commit gate).
 /// <para>The condition is started through <see cref="CobolFile.ReadExceedsRecordMaximum"/> — the entry the generated
-/// code uses for the §9.1.13.6 item 4 b) '34' of a READ — so every organization (sequential, relative, indexed) gets
+/// code uses for the §2023:9.1.13.6 item 4 b) '34' of a READ — so every organization (sequential, relative, indexed) gets
 /// a real producer through the facade, and the replay is asked of each organization's own WRITE precondition. The
 /// COBOL-level witness is <c>pb1880_write_with_lock_under_permanent_error</c>.</para>
 /// </summary>
@@ -26,7 +26,7 @@ public sealed class WriteWithLockPermanentErrorTests
     private const int Dynamic = 2;   // KeyedAccess.Dynamic
     private const string Stuck = FileStatusCode.PermanentBoundary;   // '34'
 
-    /// <summary>Hold the connector's maximum number of record locks (§12.4.5.9.4 GR7; fifteen in this implementation).</summary>
+    /// <summary>Hold the connector's maximum number of record locks (§2023:12.4.5.9.4 GR7; fifteen in this implementation).</summary>
     private static void HoldTheMaximumNumberOfLocks(string name)
     {
         for (int i = 1; i <= 15; i++)
@@ -53,7 +53,7 @@ public sealed class WriteWithLockPermanentErrorTests
         Assert.Equal(FileStatusCode.ConnectorLockLimit,
             CobolFile.WriteShared(name, image, -1, FileRecordLock.WithLock, kind, amount, page: null));   // the control
 
-        Assert.Equal(Stuck, CobolFile.ReadExceedsRecordMaximum(name));   // the producer: §9.1.13.6 item 4 b)
+        Assert.Equal(Stuck, CobolFile.ReadExceedsRecordMaximum(name));   // the producer: §2023:9.1.13.6 item 4 b)
         beforeWrite();
         Assert.Equal(Stuck, CobolFile.WriteShared(name, image, -1, FileRecordLock.WithLock, kind, amount, page: null));
         Assert.Equal(Stuck, CobolFile.Status(name));
@@ -62,7 +62,7 @@ public sealed class WriteWithLockPermanentErrorTests
         beforeWrite();
         Assert.Equal(Stuck, CobolFile.WriteShared(name, image, -1, FileRecordLock.WithNoLock, kind, amount, page: null));
 
-        CobolFile.Close(name);   // the technique; it also gives back the fifteen locks (§9.1.16)
+        CobolFile.Close(name);   // the technique; it also gives back the fifteen locks (§2023:9.1.16)
         Assert.Equal(FileStatusCode.Success, CobolFile.Status(name));
         Assert.Equal(absent, readBackStatus());   // nothing was stored while the condition held: the organization's own "absent" answer
     }
@@ -129,7 +129,7 @@ public sealed class WriteWithLockPermanentErrorTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>The lock itself: a relative WRITE WITH LOCK the permanent error refuses takes NO record lock (§14.9.51.4
+    /// <summary>The lock itself: a relative WRITE WITH LOCK the permanent error refuses takes NO record lock (§2023:14.9.51.4
     /// GR11 — only a successful WRITE sets it), and the control — the same WRITE after the CLOSE, which succeeds — does:
     /// another connector's lock request for that record answers '51'. The first assertion would also hold if the
     /// identity "2" were not the lock the WRITE takes, so the control pins that it is.</summary>
@@ -147,7 +147,7 @@ public sealed class WriteWithLockPermanentErrorTests
             }
             CobolFile.OpenOutput("RA", host, assignDynamic: false, page: null);
             CobolFile.SetRelativeKey("RA", 0);
-            Assert.Equal(Stuck, CobolFile.WriteShared("RA", "AAAAA", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // §14.9.51.4 GR29 b)
+            Assert.Equal(Stuck, CobolFile.WriteShared("RA", "AAAAA", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // §2023:14.9.51.4 GR29 b)
             CobolFile.SetRelativeKey("RA", 2);
             Assert.Equal(Stuck, CobolFile.WriteShared("RA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));   // would be '00' and lock record 2
             Assert.False(CobolFile.IsLockedByOther("RB", "2"));

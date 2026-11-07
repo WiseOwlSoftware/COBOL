@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.2: the USAGE OBJECT REFERENCE general format stacks THREE alternatives
+      *> ISO §2023:13.18.60.2: the USAGE OBJECT REFERENCE general format stacks THREE alternatives
       *> in one bracket pair — interface-name-1 alone, [FACTORY OF] ACTIVE-CLASS, and
       *> [FACTORY OF] object-class-name-1 [ONLY].  ONLY belongs to the THIRD alternative and
-      *> to no other, and §13.18.60.4 GR22 c) states the interface reading with no subordinate
+      *> to no other, and §2023:13.18.60.4 GR22 c) states the interface reading with no subordinate
       *> rules at all ("If interface-name-1 is specified, the object referenced by this data
       *> item shall implement interface-1") while the ONLY reading, GR22 d)2., is stated only
       *> for an object-class-name.  The grammar cannot tell an interface-name from an

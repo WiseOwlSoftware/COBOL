@@ -20,21 +20,21 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The logical
       *>   page size is the sum of the values referenced by each phrase
       *>   except the FOOTING phrase"
-      *>   -> OK  §13.18.34.4 1)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 1)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Integer-3 or
       *>   the value of the data item referenced by data-name-3 specifies
       *>   the number of lines in the top margin on the logical page"
-      *>   -> OK  §13.18.34.4 4)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 4)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Integer-4 or
       *>   the value of the data item referenced by data-name-4 specifies
       *>   the number of lines in the bottom margin on the logical page"
-      *>   -> OK  §13.18.34.4 5)  (General rules)
+      *>   -> OK  §2023:13.18.34.4 5)  (General rules)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "Each logical
       *>   page is contiguous to the next with no additional spacing
-      *>   provided."   -> OK  §13.18.34.4 8)  (General rules)
+      *>   provided."   -> OK  §2023:13.18.34.4 8)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "the device is
       *>   repositioned to the first line that may be written on the next
-      *>   logical page"   -> OK  §14.9.51.4 26)  (General rules)
+      *>   logical page"   -> OK  §2023:14.9.51.4 26)  (General rules)
       *>
       *> THE LOGICAL PAGE BOTH FILES DECLARE. LINAGE IS 2 LINES LINES AT
       *> TOP 3 LINES AT BOTTOM 2. By GR1 the logical page size is the sum
@@ -49,11 +49,11 @@
       *> OUTPUT (LINAGE-COUNTER = 1).
       *>
       *> FILE A — WRITE ... AFTER ADVANCING 1 LINE, three times.
-      *> §14.9.51.4 GR25 f) presents the line AFTER the advance and GR7
+      *> §2023:14.9.51.4 GR25 f) presents the line AFTER the advance and GR7
       *> c) 2 adds the advance to the counter, so:
       *>   W1: counter 1 -> 2, AAAA on page-1 body line 2  = A05.
       *>   W2: the counter would reach 3, past the page size, which is
-      *>       §14.9.51.4 GR26 a)'s page overflow; with the AFTER phrase
+      *>       §2023:14.9.51.4 GR26 a)'s page overflow; with the AFTER phrase
       *>       "the device is repositioned to the first line that may be
       *>       written on the next logical page and the logical record is
       *>       presented on that line" — page-2 body line 1 = A11 — and
@@ -67,11 +67,11 @@
       *> FILE B — the LINE SEQUENTIAL arm, plain WRITE, three times. The
       *> page geometry is the same, and so is the file: a WRITE without
       *> the ADVANCING phrase acts "as if the user has specified AFTER
-      *> ADVANCING 1 LINE" (§14.9.51.4 GR25; kb/Work PB1027)
+      *> ADVANCING 1 LINE" (§2023:14.9.51.4 GR25; kb/Work PB1027)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "If the ADVANCING
       *>   phrase is not used, automatic advancing shall be provided by
       *>   the implementor to act as if the user has specified AFTER
-      *>   ADVANCING 1 LINE"   -> OK  §14.9.51.4 25)
+      *>   ADVANCING 1 LINE"   -> OK  §2023:14.9.51.4 25)
       *> so file B is file A byte for byte: AAAA on page-1 body line 2 =
       *> B05, BBBB on page-2 body line 1 = B11 (GR26 a) overflow), CCCC on
       *> page-2 body line 2 = B12. (Before PB1027 a plain WRITE presented
@@ -82,12 +82,12 @@
       *> file emitted its record and a bare newline, so no margin ever
       *> reached its medium.
       *>
-      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE. §14.9.51.4 GR4 —
+      *> ⛔ WHY EACH WRITE IS PRECEDED BY ITS OWN MOVE. §2023:14.9.51.4 GR4 —
       *>   python scripts/spec/cite.py --check 14.9.51.4 "The logical
       *>   record released by the successful execution of the WRITE
       *>   statement is no longer available in the record area unless the
       *>   file-name associated with record-name-1 is specified in a SAME
-      *>   RECORD AREA clause."   -> OK  §14.9.51.4 4)  (General rules)
+      *>   RECORD AREA clause."   -> OK  §2023:14.9.51.4 4)  (General rules)
       *> Neither file is named in a SAME RECORD AREA clause, so the record
       *> area is unavailable after each WRITE and a second WRITE of the
       *> same item would release bytes the standard does not define.

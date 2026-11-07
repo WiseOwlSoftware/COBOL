@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// A line presented while an earlier write's line is still OPEN is presented at the SAME vertical position as that
 /// line - an overprint from column 1, never a continuation of its text (kb/Work PB1840; ISO/IEC 1989:2023
-/// §14.9.51.4 GR25 c), e), f), g), h)). An AFTER write presents after its advance (GR25 f)), so its line is open
+/// §2023:14.9.51.4 GR25 c), e), f), g), h)). An AFTER write presents after its advance (GR25 f)), so its line is open
 /// when the next statement runs; a BEFORE write presents before its advance (GR25 e)), so no advance lies between
 /// the two lines and the second lands on the first's vertical position, exactly as GR25 c)'s zero advance puts
 /// it. The device representation of "the same vertical position" is the bare carriage return of ADVANCING 0
@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para>The tests assert the BYTES of the print file and the I-O status of every WRITE. The refused-WRITE tests
 /// (kb/Work PB3353, the owner's exception-path rule) pin that a statement which presents nothing - '44' outside the
 /// RECORD IS VARYING bounds (GR14, GR15), '71' for a character outside the line sequential character set (GR23),
-/// and a LINAGE violation at the page transition (§13.18.34.4 GR6 b) 2) - neither writes the overprint return nor
+/// and a LINAGE violation at the page transition (§2023:13.18.34.4 GR6 b) 2) - neither writes the overprint return nor
 /// closes the open line, and that the BEFORE write that follows overprints exactly once.</para>
 /// </summary>
 public sealed class OpenLineOverprintTests
@@ -201,7 +201,7 @@ public sealed class OpenLineOverprintTests
             """), "\r\n\u0004\0\0\0AAAA\r\u0003\0\0\0BBB\r\n", "FS=00\nFS=44\nFS=00\nCLOSE=00");
 
     [Fact]
-    // The same, with a USE declarative on the file: the '44' runs it (§9.1.13.7 / §14.9.51.4 GR15) and the bytes
+    // The same, with a USE declarative on the file: the '44' runs it (§2023:9.1.13.7 / §2023:14.9.51.4 GR15) and the bytes
     // are the same.
     public void RecordSequential_RefusedBeforeWrite_WithADeclarative_LeavesTheOpenLineUntouched()
         => Assert2(Cn85, "OLEX2", Source("OLEX2", "", "RECORD IS VARYING IN SIZE FROM 2 TO 4 CHARACTERS DEPENDING ON VL",
@@ -223,7 +223,7 @@ public sealed class OpenLineOverprintTests
             """), "\r\nAAAA\rBBBB\r\n", "FS=00\nFS=71\nFS=00\nCLOSE=00");
 
     [Fact]
-    // §13.18.34.4 GR6 b) 2: the BEFORE write whose page transition re-reads a LINAGE operand that now violates the
+    // §2023:13.18.34.4 GR6 b) 2: the BEFORE write whose page transition re-reads a LINAGE operand that now violates the
     // rule has ALREADY presented its line (GR25 e) puts the presentation first): BBBB overprints AAAA, the status
     // is '90' and the rest of the statement is abandoned - there is no advance. The line is still open, so CLOSE
     // ends it. LINAGE-COUNTER is 0 and the latch makes the next WRITE unsuccessful too, presenting nothing.
@@ -245,7 +245,7 @@ public sealed class OpenLineOverprintTests
             """), "\r\nAAAA\rBBBB\r\n", "FS=00\nUSE=90\nFS=90\nUSE=90\nFS=90\nCLOSE=00");
 
     [Fact]
-    // The '44' refusal again with a USE declarative and NO FILE STATUS item (§9.1.13.7: the declarative is then the
+    // The '44' refusal again with a USE declarative and NO FILE STATUS item (§2023:9.1.13.7: the declarative is then the
     // only exception procedure): it runs, the open line stays untouched, the next BEFORE write overprints once.
     public void RecordSequential_RefusedBeforeWrite_DeclarativeWithoutFileStatus_LeavesTheOpenLineUntouched()
         => Assert2(Cn85, "OLEX6", Source("OLEX6", "", "RECORD IS VARYING IN SIZE FROM 2 TO 4 CHARACTERS DEPENDING ON VL",
@@ -256,7 +256,7 @@ public sealed class OpenLineOverprintTests
             """, fileStatus: false), "\r\n\u0004\0\0\0AAAA\r\u0003\0\0\0BBB\r\n", "USE\nCLOSE");
 
     [Fact]
-    // ... and with NEITHER a declarative nor a FILE STATUS item: a fatal exception condition (status '44', §9.1.13.1)
+    // ... and with NEITHER a declarative nor a FILE STATUS item: a fatal exception condition (status '44', §2023:9.1.13.1)
     // that nothing handles ends the run unit abnormally (the runtime's EC-I-O-LOGIC-ERROR termination, which names
     // the status, the file and the statement). The refused WRITE is the one that ends it, so the statement after
     // it never runs.
@@ -336,7 +336,7 @@ public sealed class OpenLineOverprintTests
     /// <summary>A LINAGE IS 4 file with FOOTING AT 3 and four WRITEs: AFTER 1 (counter 1 -> 2, outside the footing
     /// area), BEFORE 1 over it (counter 2 -> 3: within the footing area, GR26 b)), AFTER 0 (no advance, counter 3,
     /// still printing within the footing area, GR26 b)) and BEFORE 3 over that (counter 3 + 3 is past the page size
-    /// 4: the page overflow, GR26 a), and the counter is 1 on the next page, §13.18.34.4 GR7 c) 1). With
+    /// 4: the page overflow, GR26 a), and the counter is 1 on the next page, §2023:13.18.34.4 GR7 c) 1). With
     /// <paramref name="phrases"/> each WRITE carries both end-of-page phrases and the AT END-OF-PAGE one shows the
     /// counter; with <paramref name="fileStatus"/> each WRITE shows its status after it.</summary>
     private static string EopProc(bool phrases, bool fileStatus)
@@ -384,7 +384,7 @@ public sealed class OpenLineOverprintTests
             EopBytes, "EOP\nEOP\nOVF\nCLOSE");
 
     /// <summary>Checking for the two end-of-page exception conditions is enabled, which is what makes a successful
-    /// end-of-page WRITE reach a USE declarative (§14.9.51.4 GR27 c), d); the fatal-only STANDARD ERROR declarative
+    /// end-of-page WRITE reach a USE declarative (§2023:14.9.51.4 GR27 c), d); the fatal-only STANDARD ERROR declarative
     /// never sees a successful write): the pb854 pattern.</summary>
     private const string EopTurn = ">>TURN EC-I-O-EOP EC-I-O-EOP-OVERFLOW CHECKING ON\n";
 

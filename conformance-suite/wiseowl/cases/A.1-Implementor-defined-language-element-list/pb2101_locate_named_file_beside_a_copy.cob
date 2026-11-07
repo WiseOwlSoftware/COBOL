@@ -7,7 +7,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.4.4 GR3 b) and Annex A.1 item 14 (docs/CONFORMANCE.md
+      *> ISO §2023:14.9.4.4 GR3 b) and Annex A.1 item 14 (docs/CONFORMANCE.md
       *> DOC-A.1-14, DESIGN-external-repository §7.4, kb/Work PB2101): the
       *> locator reads the file NAMED after the program first, and when that
       *> file carries the program nothing else is read.

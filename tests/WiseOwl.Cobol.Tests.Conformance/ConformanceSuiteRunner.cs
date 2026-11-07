@@ -21,12 +21,12 @@ internal readonly record struct SuiteResult(string Verdict, string Reason);
 ///   <item><b>PASS</b>: an accepted test compiled, ran, and its standard output, normalized
 ///     (<see cref="CutRunner.Normalize"/>), equals its expected output for the profile's Annex A.1 values; a flagged
 ///     test's control compiled and, with the warning mechanism invoked (<c>--flag-extensions</c>, the adapter's
-///     <c>flag</c>; ISO §4.2.2), a diagnostic was reported at its marked line.</item>
+///     <c>flag</c>; ISO §2023:4.2.2), a diagnostic was reported at its marked line.</item>
 ///   <item><b>FAIL</b>: the output differs; an accepted test did not translate; a flagged test's control compiled
 ///     but no diagnostic was reported at the marked line. Whether a flagged program also translates is not judged,
-///     and neither is a program's exit status (§3.2: it is not standard).</item>
+///     and neither is a program's exit status (§2023:3.2: it is not standard).</item>
 ///   <item><b>NOT APPLICABLE</b>: the profile lacks the edition, a module or element the test requires, or the test
-///     uses a word the profile reserves beyond the standard (ISO §4.2.10); or the flagged test's control did not
+///     uses a word the profile reserves beyond the standard (ISO §2023:4.2.10); or the flagged test's control did not
 ///     compile.</item>
 ///   <item><b>NO VERDICT</b>: the compiler threw (in-process, an exception is the crash the adapter's crash exit
 ///     codes name), the program never finished (<see cref="HarnessNonObservationException"/>: a run past the one
@@ -146,7 +146,7 @@ internal static class ConformanceSuiteRunner
             if (!result.Success) return new(Fail, $"{what} did not translate ({result.Status}): {FirstLines(result.Errors)}");
         }
 
-        var (_, stdout, _) = CutRunner.RunExit(dll, work);   // the exit status is not judged (§3.2)
+        var (_, stdout, _) = CutRunner.RunExit(dll, work);   // the exit status is not judged (§2023:3.2)
         string key = string.Join(".", test.ImplementorDefined.Order().Select(item =>
             ConformanceSuite.Profile.ImplementorDefined.TryGetValue(item, out string? value)
                 ? $"{item}={value}"
@@ -166,7 +166,7 @@ internal static class ConformanceSuiteRunner
         if (compiled is null) return new(NoVerdict, $"the compiler, on its control {control.Id}, crashed: {crash}");
         if (!compiled.Success)
             return new(NotApplicable, $"its control {control.Id} did not compile ({compiled.Status}), so the compiler "
-                + "lacks what the test needs (§3.2)");
+                + "lacks what the test needs (§2023:3.2)");
 
         var (flagged, flagCrash) = Compile(flagOptions);
         if (flagged is null) return new(NoVerdict, $"the compiler crashed: {flagCrash}");
@@ -206,7 +206,7 @@ internal static class ConformanceSuiteRunner
     }
 
     /// <summary>The compile of <paramref name="source"/> the adapter's <c>compile</c> (or, with <paramref name="flag"/>,
-    /// its <c>flag</c>: the §4.2.10 warning mechanism invoked) makes: the edition, the test's reference format, the
+    /// its <c>flag</c>: the §2023:4.2.10 warning mechanism invoked) makes: the edition, the test's reference format, the
     /// source's own directory as the copy library, and a WiseOwl test's WiseOwl compile options.</summary>
     private static CompilerDriver.Options Options(string source, string dll, string edition, string sourceFormat,
         bool flag, IReadOnlyDictionary<string, string> wiseOwlOptions)

@@ -5,27 +5,27 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.43.4 7) and 12) — VARYING min/max bounds; DEPENDING item untouched by I-O verbs
+      *> ISO §2023:13.18.43.4 7) and 12) — VARYING min/max bounds; DEPENDING item untouched by I-O verbs
       *> GR7: "Format 2 is used to specify variable-length records. Integer-2 specifies the minimum
       *>   number of bytes to be contained in any record of the file. Integer-3 specifies the maximum
       *>   number of bytes in any record of the file."
-      *>   cite.py: OK  §13.18.43.4 7)  (General rules)
+      *>   cite.py: OK  §2023:13.18.43.4 7)  (General rules)
       *> GR12: "If data-name-1 is specified, the execution of a DELETE, RELEASE, REWRITE, START, or
       *>   WRITE statement or the unsuccessful execution of a READ or RETURN statement does not alter
       *>   the content of the data item referenced by data-name-1."
-      *>   cite.py: OK  §13.18.43.4 12)  (General rules)
+      *>   cite.py: OK  §2023:13.18.43.4 12)  (General rules)
       *> Supporting rules:
       *>   GR13 a) the size written is "the content of the data item referenced by data-name-1"
-      *>     cite.py: OK  §13.18.43.4 13)  (General rules)
+      *>     cite.py: OK  §2023:13.18.43.4 13)  (General rules)
       *>   GR14 a) out-of-range size: "If a REWRITE or WRITE statement is being executed, the
       *>     EC-I-O-LOGIC-ERROR exception condition is set to exist, and the execution of the REWRITE or
-      *>     WRITE statement is unsuccessful."  cite.py: OK  §13.18.43.4 14)  (General rules)
-      *>   §9.1.13.7 4) a) I-O status 44: "an attempt is made to write or rewrite a record that is
+      *>     WRITE statement is unsuccessful."  cite.py: OK  §2023:13.18.43.4 14)  (General rules)
+      *>   §2023:9.1.13.7 4) a) I-O status 44: "an attempt is made to write or rewrite a record that is
       *>     larger than the largest or smaller than the smallest record allowed by the RECORD IS VARYING
-      *>     clause"   cite.py: OK  §9.1.13.7 4) a)  (Logic error condition with unsuccessful completion)
+      *>     clause"   cite.py: OK  §2023:9.1.13.7 4) a)  (Logic error condition with unsuccessful completion)
       *>   GR15 "after the successful execution of a READ or RETURN statement for the file, the contents
       *>     of the data item referenced by data-name-1 will indicate the number of bytes in the record
-      *>     just read"   cite.py: OK  §13.18.43.4 15)  (General rules)
+      *>     just read"   cite.py: OK  §2023:13.18.43.4 15)  (General rules)
       *> Every file is VARYING IN SIZE FROM 5 TO 20.  Checking is off, so an EC only fails the statement.
       *> EXPECTED OUTPUT, derived (GR7 = the 44/00 outcomes at the bounds; GR12 = the L= value printed
       *> after each DELETE/RELEASE/REWRITE/START/WRITE and each unsuccessful READ/RETURN):

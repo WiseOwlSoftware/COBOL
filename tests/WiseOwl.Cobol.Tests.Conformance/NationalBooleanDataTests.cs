@@ -5,14 +5,14 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// NATIONAL (ISO §8.5.2.10, PIC N / USAGE NATIONAL) and BOOLEAN (§8.5.2.5, PIC 1 / USAGE BIT) declaration and
+/// NATIONAL (ISO §2023:8.5.2.10, PIC N / USAGE NATIONAL) and BOOLEAN (§2023:8.5.2.5, PIC 1 / USAGE BIT) declaration and
 /// clause facts — Phase 4a M2-DATA-3/4. The declaration band: COBOL0881 for the illegal USAGE×PICTURE shapes
-/// (§13.18.60.4 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOL0898 for
-/// VALUE category mismatches (§13.18.63 SR5 :23232 / SR10 :23254) and boolean THROUGH (SR29 :23327),
+/// (§2023:13.18.60.4 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOL0898 for
+/// VALUE category mismatches (§2023:13.18.63 SR5 :23232 / SR10 :23254) and boolean THROUGH (SR29 :23327),
 /// COBOL0899 for the NAMED staged legs (national-edited pictures, national-form numerics/boolean, FD national
 /// records) and the loud byte-addressed guards (D-N2: REDEFINES / EXTERNAL cells refuse a 2-byte national leaf).
-/// The positive half locks JUSTIFIED (§13.18.32 SR3/GR1-2 :19264–19273), level-88 boolean conditions, national
-/// relation ordering (§8.8.4.2.9/10 :9692–9715), and the group character image (a national/boolean leaf is
+/// The positive half locks JUSTIFIED (§2023:13.18.32 SR3/GR1-2 :19264–19273), level-88 boolean conditions, national
+/// relation ordering (§2023:8.8.4.2.9/10 :9692–9715), and the group character image (a national/boolean leaf is
 /// string-stored, so groups containing them MOVE/DISPLAY in char space).
 /// </summary>
 public sealed class NationalBooleanDataTests
@@ -29,7 +29,7 @@ public sealed class NationalBooleanDataTests
             STOP RUN.
         """;
 
-    // ── COBOL0881 — the illegal USAGE × PICTURE declaration shapes (ISO §13.18.60.4) ────────────────────
+    // ── COBOL0881 — the illegal USAGE × PICTURE declaration shapes (ISO §2023:13.18.60.4) ────────────────────
 
     public static TheoryData<string, string, string> IllegalUsageShapes() => new()
     {
@@ -37,11 +37,11 @@ public sealed class NationalBooleanDataTests
         { "NBDAT01", "01 WS-A PIC N(4) USAGE DISPLAY.", "PIC N with explicit USAGE DISPLAY (SR20)" },
         // SR5 (:22722): USAGE BIT ⇒ the PICTURE shall be a boolean picture.
         { "NBDAT02", "01 WS-B PIC X(4) USAGE BIT.", "USAGE BIT with an alphanumeric PICTURE (SR5)" },
-        // A picture-less ELEMENTARY USAGE NATIONAL/BIT entry has no legal shape (§13.18.40 GR9/GR8 — the
+        // A picture-less ELEMENTARY USAGE NATIONAL/BIT entry has no legal shape (§2023:13.18.40 GR9/GR8 — the
         // category needs its picture; unlike BINARY-CHAR there is no picture-less factory).
         { "NBDAT03", "01 WS-C USAGE NATIONAL.", "picture-less elementary USAGE NATIONAL" },
         { "NBDAT04", "01 WS-D USAGE BIT.", "picture-less elementary USAGE BIT" },
-        // SR12 (:22744) + §13.18.40.3 SR30 (:20395): USAGE NATIONAL never combines with an alphabetic/
+        // SR12 (:22744) + §2023:13.18.40.3 SR30 (:20395): USAGE NATIONAL never combines with an alphabetic/
         // alphanumeric PICTURE.
         { "NBDAT05", "01 WS-E PIC A(4) USAGE NATIONAL.", "USAGE NATIONAL with an alphabetic PICTURE (SR12/SR30)" },
     };
@@ -51,11 +51,11 @@ public sealed class NationalBooleanDataTests
     public void IllegalUsagePictureShape_Rejects0881(string pid, string wsEntry, string shape)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, wsEntry), 2002);
-        Assert.False(ok, $"{shape} must be rejected (ISO §13.18.60.4)");
+        Assert.False(ok, $"{shape} must be rejected (ISO §2023:13.18.60.4)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0881");
     }
 
-    // ── COBOL0898 — VALUE clause category mismatches (ISO §13.18.63 SR5/SR10, both directions) ──────────
+    // ── COBOL0898 — VALUE clause category mismatches (ISO §2023:13.18.63 SR5/SR10, both directions) ──────────
 
     public static TheoryData<string, string, string, string> IllegalValueShapes() => new()
     {
@@ -78,11 +78,11 @@ public sealed class NationalBooleanDataTests
     public void IllegalValueShape_Rejects0898(string pid, string wsEntry, string shape, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, wsEntry), 2002);
-        Assert.False(ok, $"{shape} must be rejected (ISO §13.18.63)");
+        Assert.False(ok, $"{shape} must be rejected (ISO §2023:13.18.63)");
         EditionHarness.AssertHasDiagnostic(errors, code);
     }
 
-    // ── §13.18.60.3 SR12 — ALL FIVE PICTURE SHAPES COMPILE at every national-bearing edition ─────────
+    // ── §2023:13.18.60.3 SR12 — ALL FIVE PICTURE SHAPES COMPILE at every national-bearing edition ─────────
 
     /// <summary>⛔ THIS SET USED TO PIN A REFUSAL, and that is why it is written this way now (kb/Work PB646;
     /// the same correction kb/Work PB492 made for national-edited and kb/Work PB327 made for the FD record
@@ -92,7 +92,7 @@ public sealed class NationalBooleanDataTests
     /// theory enumerates all five, so a shape cannot be dropped from the permission without this failing.</summary>
     public static TheoryData<string, string, string> Sr12Shapes() => new()
     {
-        { "NBDAT13", "01 WS-M PIC N(3).", "national (§13.18.40.4 GR9)" },
+        { "NBDAT13", "01 WS-M PIC N(3).", "national (§2023:13.18.40.4 GR9)" },
         { "NBDAT14", "01 WS-N PIC NNBNN.", "national-edited (GR10)" },
         { "NBDAT16", "01 WS-P PIC 9(3) USAGE NATIONAL.", "national-form numeric" },
         { "NBDAT17", "01 WS-Q PIC ZZ9 USAGE NATIONAL.", "national-form numeric-edited" },
@@ -109,7 +109,7 @@ public sealed class NationalBooleanDataTests
         foreach (int edition in new[] { 2002, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid + edition, wsEntry), edition);
-            Assert.True(ok, $"{shape} is admitted by ISO §13.18.60.3 SR12 and shall compile at --std {edition}"
+            Assert.True(ok, $"{shape} is admitted by ISO §2023:13.18.60.3 SR12 and shall compile at --std {edition}"
                 + $" — got: {string.Join(" | ", errors)}");
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog(pid + "85", wsEntry), 85);
@@ -120,9 +120,9 @@ public sealed class NationalBooleanDataTests
     /// <summary>An FD record with a national leaf COMPILES AND ROUND-TRIPS, and its disk image is the UTF-16BE
     /// pair serialization (kb/Work PB327 — this test USED to pin the refusal, the shape
     /// feedback_green_test_can_hold_a_gap_open warns about: a green test pinning a loud stage reads as a
-    /// decision). §13.18.60.4 GR8 leaves a national character's storage size to the implementor and D-N1 pins
+    /// decision). §2023:13.18.60.4 GR8 leaves a national character's storage size to the implementor and D-N1 pins
     /// TWO bytes, high-order first, so `05 F-N PIC N(4). 05 F-X PIC X(4).` is a TWELVE-byte record — the same
-    /// geometry §14.9.30.4 GR14/GR15 count in bytes and §12.4.5.12.4 GR4 places keys in. The assertion reads the
+    /// geometry §2023:14.9.30.4 GR14/GR15 count in bytes and §2023:12.4.5.12.4 GR4 places keys in. The assertion reads the
     /// record back through the alphanumeric member and through a REDEFINES of the national one, so a
     /// one-byte-per-position layout (F-X would land at byte 4) is excluded by position, not by width.</summary>
     [Fact]
@@ -161,14 +161,14 @@ public sealed class NationalBooleanDataTests
                 CLOSE F.
                 STOP RUN.
             """;
-        // 2023, not 2002: the observation uses FUNCTION CONVERT (§15.19, introduced by ISO/IEC 1989:2023 —
+        // 2023, not 2002: the observation uses FUNCTION CONVERT (§2023:15.19, introduced by ISO/IEC 1989:2023 —
         // COBOL1502). The SUBJECT is edition-independent (national data is 2002), and the 2002 arm of the
         // record layout is covered by `conformance:cases/14.9.27-OPEN/pb327_national_fd_record`.
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
         // The record is 4 national positions (8 bytes) + 4 alphanumeric (4 bytes) = 12 bytes; F-X therefore
         // starts at byte 8, and reading "pqrs" back proves it. HEX is the UTF-16BE serialization of N"WXYZ":
-        // U+0057 U+0058 U+0059 U+005A → 00570058 0059005A (§15.19.4 r4 hexes the source's own bits).
+        // U+0057 U+0058 U+0059 U+005A → 00570058 0059005A (§2023:15.19.4 r4 hexes the source's own bits).
         Assert.Equal("N=[WXYZ] X=[pqrs]\nHEX=00570058", stdout);
     }
 
@@ -176,9 +176,9 @@ public sealed class NationalBooleanDataTests
     /// serialization (kb/Work PB231 — RESIDUE-11 discharged; these two tests USED to pin the refusal, which is
     /// exactly the shape feedback_green_test_can_hold_a_gap_open warns about: a green test pinning a loud stage
     /// reads as a decision).
-    /// <para>The derivation: §13.18.44.4 GR1 associates the storage of the two entries over "an area sufficient
+    /// <para>The derivation: §2023:13.18.44.4 GR1 associates the storage of the two entries over "an area sufficient
     /// to contain the number of bits required by the data item referenced by the subject of the entry", and
-    /// §13.18.60.4 GR8 leaves a national character's size to the implementor — WiseOwl COBOL pins TWO bytes,
+    /// §2023:13.18.60.4 GR8 leaves a national character's size to the implementor — WiseOwl COBOL pins TWO bytes,
     /// UTF-16BE (D-N1). So <c>01 A PIC N(4).</c> is an EIGHT-byte area and <c>01 B REDEFINES A PIC X(8).</c>
     /// overlays it exactly. N"AB" is U+0041 U+0042, whose bytes are 00 41 00 42 — the high-order byte FIRST, so
     /// B's second character is "A" and its fourth is "B". Reading them positionally is the assertion: a
@@ -194,16 +194,16 @@ public sealed class NationalBooleanDataTests
             DISPLAY "B2=[" B(2:1) "] B4=[" B(4:1) "] LEN=" FUNCTION LENGTH(B).
             """);
         var (ok, output, detail) = new WiseOwlCobolCompiler(2002).CompileAndRun(src);
-        Assert.True(ok, $"REDEFINES over a national item is legal source — §13.18.44.3 restricts data-name-2 "
+        Assert.True(ok, $"REDEFINES over a national item is legal source — §2023:13.18.44.3 restricts data-name-2 "
             + $"only by class object/pointer, strong typing and variable length (SR14/SR17), never by a "
             + $"national usage: {detail}");
         Assert.Contains("B2=[A] B4=[B] LEN=8", output, StringComparison.Ordinal);
     }
 
     /// <summary>An EXTERNAL group containing a national leaf is ORDINARY cell-backed storage (kb/Work PB231 —
-    /// the same discharge as the REDEFINES twin above, through the same gate: §13.18.22 conditions EXTERNAL on
+    /// the same discharge as the REDEFINES twin above, through the same gate: §2023:13.18.22 conditions EXTERNAL on
     /// nothing subordinate at all, and the run-unit cell is a byte area in which a national position takes its
-    /// two §13.18.60.4 GR8 bytes). The alphanumeric leaf after it proves the DISPLACEMENT: GX starts at byte 8,
+    /// two §2023:13.18.60.4 GR8 bytes). The alphanumeric leaf after it proves the DISPLACEMENT: GX starts at byte 8,
     /// not byte 4, so writing GN cannot disturb it.</summary>
     [Fact]
     public void ExternalGroup_WithNationalLeaf_IsCellBacked()
@@ -222,10 +222,10 @@ public sealed class NationalBooleanDataTests
         Assert.Contains("GN=[WXYZ] GX=[abcd]", output, StringComparison.Ordinal);
     }
 
-    // ── COBOL0844 — boolean relation misuse (ISO §8.8.4.2) ───────────────────────────────────────────────
+    // ── COBOL0844 — boolean relation misuse (ISO §2023:8.8.4.2) ───────────────────────────────────────────────
 
-    /// <summary>Boolean operands compare with Format 2 EQUALITY only (§8.8.4.2 F2 :9566–9581); an ordering
-    /// operator on a boolean operand is COBOL0844 (§8.8.4.2.2 — F1 SR2/SR3 exclude class boolean
+    /// <summary>Boolean operands compare with Format 2 EQUALITY only (§2023:8.8.4.2 F2 :9566–9581); an ordering
+    /// operator on a boolean operand is COBOL0844 (§2023:8.8.4.2.2 — F1 SR2/SR3 exclude class boolean
     /// :9608–9610).</summary>
     [Fact]
     public void BooleanOrderingRelation_Rejects0844()
@@ -234,7 +234,7 @@ public sealed class NationalBooleanDataTests
             IF BW < B"1" DISPLAY "LT=YES" END-IF.
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "an ordering relation on boolean operands must be rejected (ISO §8.8.4.2.2)");
+        Assert.False(ok, "an ordering relation on boolean operands must be rejected (ISO §2023:8.8.4.2.2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL5995");
     }
 
@@ -247,18 +247,18 @@ public sealed class NationalBooleanDataTests
             IF BW = AX DISPLAY "EQ=YES" END-IF.
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "a boolean-vs-alphanumeric relation must be rejected (ISO §8.8.4.2 F2)");
+        Assert.False(ok, "a boolean-vs-alphanumeric relation must be rejected (ISO §2023:8.8.4.2 F2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL5995");
     }
 
     // ── Positive facts ──────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>ISO §13.18.32.4 GR2, the RECEIVER-LARGER direction, over EVERY usage the rule names its fill for
+    /// <summary>ISO §2023:13.18.32.4 GR2, the RECEIVER-LARGER direction, over EVERY usage the rule names its fill for
     /// (kb/Work PB737 added the third): "the data is aligned at the rightmost character position or boolean
     /// position in the data item with zero fill for the leftmost boolean positions and space fill for the
     /// leftmost character positions", then "For data items … described as usage national, national zeros …
     /// national spaces"; "For data items … described as usage bit, bit zeros shall be used for zero fill".
-    /// JUSTIFIED is legal on both categories by §13.18.32.3 SR3. The "!" sentinel keeps the national right end
+    /// JUSTIFIED is legal on both categories by §2023:13.18.32.3 SR3. The "!" sentinel keeps the national right end
     /// observable. The DISPLAY-usage half of GR2 is pinned by `conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023` leg A.
     /// <para>BB is the USAGE BIT arm — the sentence a PIC 1(4) DISPLAY-carrier receiver does NOT exercise, since
     /// GR2 names the fill per USAGE, not per category. Expected `0011` by the same derivation as BJ: a two-
@@ -284,19 +284,19 @@ public sealed class NationalBooleanDataTests
         Assert.Equal("NJ=  AB!\nBJ=0011\nBB=0011", stdout);
     }
 
-    /// <summary>kb/Work PB737 — ISO §13.18.32.4 GR1, the SENDER-LARGER direction, over the usages the rule names:
+    /// <summary>kb/Work PB737 — ISO §2023:13.18.32.4 GR1, the SENDER-LARGER direction, over the usages the rule names:
     /// "When the receiving data item is described with the JUSTIFIED clause and the sending operand is larger
     /// than the receiving data item, the leftmost character positions or boolean positions of the sending operand
     /// shall be truncated." The DISPLAY-alphanumeric half is pinned by
     /// `conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023` leg B and by
     /// `AcceptDifferentialTests.Day_JustifiedReceiver_RightJustifiesAndLeftTruncates`; the rule's OWN wording
-    /// names boolean positions as well, and a national receiver is legal under §13.18.32.3 SR3, so both were
+    /// names boolean positions as well, and a national receiver is legal under §2023:13.18.32.3 SR3, so both were
     /// implemented-but-unevidenced until this test.
     /// <para>Derivation, stated before the program was run. Five sending positions into three receiving
     /// positions truncates the LEFTMOST two in every case: N"ABCDE" → NJ = national CDE; B"11001" → BJ = 001;
     /// the same into a USAGE BIT receiver (BB) = 001, because GR1 truncates boolean POSITIONS irrespective of
     /// the carrier; "ABCDE" into an alphabetic PIC A(3) JUSTIFIED (AJ) = CDE. Truncation on the RIGHT — the
-    /// non-JUSTIFIED §14.6.8.5/§14.6.8.6 rule — would give ABC/110/110/ABC, so each leg discriminates.</para>
+    /// non-JUSTIFIED §2023:14.6.8.5/§2023:14.6.8.6 rule — would give ABC/110/110/ABC, so each leg discriminates.</para>
     /// </summary>
     [Fact]
     public void JustifiedRight_SenderLarger_TruncatesLeftmostAcrossUsages()
@@ -321,9 +321,9 @@ public sealed class NationalBooleanDataTests
         Assert.Equal("NJ=CDE!\nBJ=001\nBB=001\nAJ=CDE!", stdout);
     }
 
-    /// <summary>A level-88 condition with a boolean-literal VALUE (ISO §13.18.63 SR10 + §8.8.4.5): the
+    /// <summary>A level-88 condition with a boolean-literal VALUE (ISO §2023:13.18.63 SR10 + §2023:8.8.4.5): the
     /// condition holds exactly when the parent equals the boolean value — the boolean equality relation
-    /// (§8.8.4.2.8, by VALUE regardless of usage).</summary>
+    /// (§2023:8.8.4.2.8, by VALUE regardless of usage).</summary>
     [Fact]
     public void Level88_BooleanValue_ConditionTrueAndFalse()
     {
@@ -340,7 +340,7 @@ public sealed class NationalBooleanDataTests
         Assert.Equal("ON=NO\nON=YES", stdout);
     }
 
-    /// <summary>National relation ordering and the space-extension rule (ISO §8.8.4.2.9/10 :9692–9715): the
+    /// <summary>National relation ordering and the space-extension rule (ISO §2023:8.8.4.2.9/10 :9692–9715): the
     /// shorter operand right-extends with national spaces (so N(4) "AB␠␠" = N"AB"), and ordering follows the
     /// national program collating sequence (D-N3 — the UTF-16 ordinal default; the ALPHANUMERIC program
     /// collating sequence never applies).</summary>
@@ -358,15 +358,15 @@ public sealed class NationalBooleanDataTests
     }
 
     /// <summary>An ALPHANUMERIC group containing a national leaf carries that leaf's STORAGE BYTES — two per
-    /// character position, high-order first (§13.18.60.4 GR8; D-N1) — so its image is 2n wide, not n
+    /// character position, high-order first (§2023:13.18.60.4 GR8; D-N1) — so its image is 2n wide, not n
     /// (kb/Work PB327; this test used to assert one character per position, and that assertion is what kept
     /// `FUNCTION LENGTH(G)` and the group's own image disagreeing: measured before the fix,
     /// `01 G. 05 A PIC X(2). 05 N PIC N(3).` answered LENGTH 8 while `MOVE G TO R` moved 5 characters).
-    /// <para>The standard states the consequence itself, at §13.18.29.4 GR2's NOTE: "Without the GROUP-USAGE
+    /// <para>The standard states the consequence itself, at §2023:13.18.29.4 GR2's NOTE: "Without the GROUP-USAGE
     /// NATIONAL clause, the content of such a group item would be treated as category alphanumeric, possibly
     /// leading to corruption or invalid handling of data." The remedy it names — GROUP-USAGE NATIONAL — is the
     /// AsNat() carrier face, exercised by `pb79_group_usage_national`. A DISPLAY-form boolean leaf is one
-    /// character per boolean position either way (§13.18.60.4 GR7 / D-B1), which is why GB is unchanged.</para>
+    /// character per boolean position either way (§2023:13.18.60.4 GR7 / D-B1), which is why GB is unchanged.</para>
     /// <para>Observed through CONVERT … HEX rather than raw, because the UTF-16BE high bytes of Latin characters
     /// are NUL and no golden in this corpus carries one (a NUL in expected output would poison the
     /// scripted-write corruption check).</para></summary>
@@ -391,7 +391,7 @@ public sealed class NationalBooleanDataTests
             MOVE FUNCTION CONVERT(H ANY ANUM HEX) TO HX.
             DISPLAY "H=" HX.
             """);
-        // 2023 for FUNCTION CONVERT (§15.19; COBOL1502) — see the sibling test above.
+        // 2023 for FUNCTION CONVERT (§2023:15.19; COBOL1502) — see the sibling test above.
         var (ok, stdout, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
         // G is 3 national positions (6 bytes) + 3 DISPLAY boolean positions (3 bytes) + 2 alphanumeric = 11

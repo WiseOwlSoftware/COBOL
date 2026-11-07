@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// DISPLAY … UPON mnemonic-name-1 (ISO/IEC 1989:2023 §14.9.11.3 SR2 / §14.9.11.4 GR8; review finding V6). The legacy
+/// DISPLAY … UPON mnemonic-name-1 (ISO/IEC 1989:2023 §2023:14.9.11.3 SR2 / §2023:14.9.11.4 GR8; review finding V6). The legacy
 /// silently DROPPED the UPON phrase — every DISPLAY went to the standard device regardless of the named device, and an
 /// undeclared / input-only mnemonic compiled clean. Fixed: the mnemonic resolves through SPECIAL-NAMES; SR2 rejects an
 /// undeclared name or a device not capable of receiving data (COBOL0817); SYSERR routes to standard error while
@@ -34,7 +34,7 @@ public sealed class DisplayUponTests
             STOP RUN.
         """;
 
-    [Fact]   // §14.9.11.4 GR8 default + UPON SYSOUT / CONSOLE → the standard display device (standard output).
+    [Fact]   // §2023:14.9.11.4 GR8 default + UPON SYSOUT / CONSOLE → the standard display device (standard output).
     public void Upon_OutputDevices_And_Default_GoToStdout()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Prog("""
@@ -46,7 +46,7 @@ public sealed class DisplayUponTests
         Assert.Equal("A-DEFAULT\nB-SYSOUT\nC-CONSOLE", stdout);
     }
 
-    [Fact]   // §14.9.11.3 SR2 device routing: UPON SYSERR writes the standard-error stream, NOT standard output.
+    [Fact]   // §2023:14.9.11.3 SR2 device routing: UPON SYSERR writes the standard-error stream, NOT standard output.
     public void Upon_Syserr_GoesToStderr_NotStdout()
     {
         var (ok, stdout, detail) = WiseOwlCobol.CompileAndRun(Prog("""
@@ -59,7 +59,7 @@ public sealed class DisplayUponTests
         Assert.DoesNotContain("ON-ERR", stdout);
     }
 
-    /// <summary>ISO §14.9.11.4 GR2 — "The implementor shall define, for each device, the size of a data transfer" —
+    /// <summary>ISO §2023:14.9.11.4 GR2 — "The implementor shall define, for each device, the size of a data transfer" —
     /// measured on EVERY output device, not only the standard one. The determination (docs/CONFORMANCE.md DOC-A.1-58,
     /// Annex A.1 item 58) is UNBOUNDED for all three device-names, so GR4's arm ("If the device is capable of receiving
     /// data of the same size as the data item being transferred, then the data item is transferred") is always the one
@@ -97,19 +97,19 @@ public sealed class DisplayUponTests
                 STOP RUN.
             """);
         Assert.True(ok, stderr);
-        // §8.3.3.6.4 GR2: ALL "0123456789" associated with a 2,000-position item repeats until it fills it — 200 copies.
+        // §2023:8.3.3.6.4 GR2: ALL "0123456789" associated with a 2,000-position item repeats until it fills it — 200 copies.
         string line = string.Concat(Enumerable.Repeat("0123456789", 200));
         Assert.Equal(string.Join("\n", line, line, line), stdout);   // the default device, SYSOUT, CONSOLE
         Assert.Equal(line, stderr);                                    // SYSERR: the standard-error device
     }
 
-    [Fact]   // §14.9.11.3 SR2: mnemonic-name-1 shall be declared in SPECIAL-NAMES — an undeclared name is rejected
+    [Fact]   // §2023:14.9.11.3 SR2: mnemonic-name-1 shall be declared in SPECIAL-NAMES — an undeclared name is rejected
              // (COBOL0817), not silently dropped.
     public void Upon_UndeclaredMnemonic_Rejected0817()
         => EditionHarness.AssertHasDiagnostic(
             EditionHarness.GetDiagnostics(Prog("            DISPLAY \"X\" UPON NO-SUCH-DEV"), 2023), "COBOL0817");
 
-    [Fact]   // §14.9.11.3 SR2: the device shall be capable of RECEIVING data — SYSIN is input-only (the ACCEPT side),
+    [Fact]   // §2023:14.9.11.3 SR2: the device shall be capable of RECEIVING data — SYSIN is input-only (the ACCEPT side),
              // so DISPLAY UPON an SYSIN-bound mnemonic is rejected (COBOL0817).
     public void Upon_InputOnlyDevice_Rejected0817()
         => EditionHarness.AssertHasDiagnostic(

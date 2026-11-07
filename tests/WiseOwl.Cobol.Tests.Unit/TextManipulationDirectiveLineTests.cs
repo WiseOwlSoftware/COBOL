@@ -11,9 +11,9 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1352 — a compiler directive line inside the text that COPY REPLACING and REPLACE act on. §7.3.4 1): "A
+/// kb/Work PB1352 — a compiler directive line inside the text that COPY REPLACING and REPLACE act on. §2023:7.3.4 1): "A
 /// compiler directive line is not affected by the replacing action of a COPY statement or a REPLACE statement";
-/// §7.2.3.4 9) c) 5. / §7.2.4.4 8) c) 5.: "Each occurrence of a compiler directive line is treated as a single
+/// §2023:7.2.3.4 9) c) 5. / §2023:7.2.4.4 8) c) 5.: "Each occurrence of a compiler directive line is treated as a single
 /// space". Library text is replaced before its own <c>&gt;&gt;DEFINE</c> / <c>&gt;&gt;IF</c> lines are processed,
 /// and REPLACE runs before the stages that read <c>&gt;&gt;TURN</c> / <c>&gt;&gt;PROPAGATE</c> / <c>&gt;&gt;PAGE</c>,
 /// so both passes meet directive lines. Every case runs the real merged driver.
@@ -37,7 +37,7 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
 
     private static void Clean(DiagnosticBag bag) => Assert.False(bag.HasErrors, string.Join("\n", bag.Diagnostics));
 
-    [Fact] // §7.3.4 1): REPLACING ==AS 1== does not rewrite the copybook's own >>DEFINE, so its >>IF stays true.
+    [Fact] // §2023:7.3.4 1): REPLACING ==AS 1== does not rewrite the copybook's own >>DEFINE, so its >>IF stays true.
     public void CopyReplacing_DoesNotRewriteTheCopybooksDefine()
     {
         Copybook("cbdef.cpy", " >>DEFINE VV AS 1\n >>IF VV = 1\n DISPLAY \"TRUE-ARM\"\n >>ELSE\n DISPLAY \"FALSE-ARM\"\n >>END-IF\n");
@@ -47,7 +47,7 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
         Assert.DoesNotContain("FALSE-ARM", text);
     }
 
-    [Fact] // §7.3.16.4 1): the >>IF line's condition is not a text-word sequence REPLACING can reach.
+    [Fact] // §2023:7.3.16.4 1): the >>IF line's condition is not a text-word sequence REPLACING can reach.
     public void CopyReplacing_DoesNotRewriteAnIfCondition()
     {
         Copybook("cbif.cpy", " >>IF V = 1\n DISPLAY \"V-TRUE\"\n >>ELSE\n DISPLAY \"V-FALSE\"\n >>END-IF\n");
@@ -65,11 +65,11 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
         Assert.Contains("DISPLAY W1", text);
         Assert.DoesNotContain("SHOW-IT", text);
         Assert.Contains(">>TURN EC-ALL CHECKING OFF", text);
-        // The directive stays alone on its line (§7.3.3 SR2) after the replacement.
+        // The directive stays alone on its line (§2023:7.3.3 SR2) after the replacement.
         Assert.Contains(text.Split('\n'), l => l.Trim() == ">>TURN EC-ALL CHECKING OFF");
     }
 
-    [Fact] // §7.3.4 1): a word inside a directive line left for a later stage is never a REPLACE target.
+    [Fact] // §2023:7.3.4 1): a word inside a directive line left for a later stage is never a REPLACE target.
     public void Replace_DoesNotRewriteALaterStagesDirective()
     {
         var (text, bag) = Run(" REPLACE ==CHECKING== BY ==CHEKING==.\n PROCEDURE DIVISION.\n >>TURN EC-ALL CHECKING OFF\n");
@@ -78,7 +78,7 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
         Assert.DoesNotContain("CHEKING", text);
     }
 
-    [Fact] // §7.3.19.4 1) + §7.2.3.4 10): COPY inside >>PAGE comment-text is documentation, not a COPY statement.
+    [Fact] // §2023:7.3.19.4 1) + §2023:7.2.3.4 10): COPY inside >>PAGE comment-text is documentation, not a COPY statement.
     public void CopyInPageCommentText_IsNotACopyStatement()
     {
         Copybook("cbpage.cpy", " >>PAGE COPY FOO.\n 01 PG-A PIC X.\n");
@@ -87,7 +87,7 @@ public sealed class TextManipulationDirectiveLineTests : IDisposable
         Assert.Contains("PG-B", text);
     }
 
-    [Fact] // §7.3.3 SR2: a '>>' that is not preceded only by spaces heads no directive line — it stays text-words.
+    [Fact] // §2023:7.3.3 SR2: a '>>' that is not preceded only by spaces heads no directive line — it stays text-words.
     public void DoubleAngleAfterText_IsNotADirectiveLine()
     {
         var (text, bag) = Run(" REPLACE ==>>PAGE== BY ==ZZ==.\n PROCEDURE DIVISION.\n DISPLAY A >>PAGE\n");

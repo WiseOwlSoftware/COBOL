@@ -4,10 +4,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.38.2 prints "FUNCTION FORMATTED-CURRENT-DATE ( argument-1 )" — ONE argument, unbracketed and
-      *> without an ellipsis, so the format admits neither a second argument nor a repetition. §15.38.3 supplies
-      *> rules for argument-1 only, and §15.38 gives the function no offset-from-UTC argument at all (unlike
-      *> §15.40.2 FORMATTED-DATETIME and §15.41.2 FORMATTED-TIME, whose formats print one in brackets). A
+      *> ISO §2023:15.38.2 prints "FUNCTION FORMATTED-CURRENT-DATE ( argument-1 )" — ONE argument, unbracketed and
+      *> without an ellipsis, so the format admits neither a second argument nor a repetition. §2023:15.38.3 supplies
+      *> rules for argument-1 only, and §2023:15.38 gives the function no offset-from-UTC argument at all (unlike
+      *> §2023:15.40.2 FORMATTED-DATETIME and §2023:15.41.2 FORMATTED-TIME, whose formats print one in brackets). A
       *> two-argument reference does not match the general format and shall be rejected.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1NFCDAR.

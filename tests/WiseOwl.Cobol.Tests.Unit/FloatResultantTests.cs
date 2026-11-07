@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// The float arm of the arithmetic store (kb/Work PB1196) and the checked binary64 intermediate (kb/Work PB1147,
 /// PB1581). Every expected value is derived from the rule and the binary formats' grids, never from a run:
-/// §14.7.4.3 r3–r10 pick between the two representable neighbors of an inexact value (TRUNCATION the one nearer
+/// §2023:14.7.4.3 r3–r10 pick between the two representable neighbors of an inexact value (TRUNCATION the one nearer
 /// zero, TOWARD-GREATER the larger, the NEAREST-* modes the nearer with their own tie rule), r7 makes PROHIBITED an
-/// exactness test, and §14.7.5 case 3 makes a value past the format's largest finite magnitude — after the mode's
+/// exactness test, and §2023:14.7.5 case 3 makes a value past the format's largest finite magnitude — after the mode's
 /// rounding — the size error condition.
 /// </summary>
 public sealed class FloatResultantTests
@@ -170,7 +170,7 @@ public sealed class FloatResultantTests
         Assert.True(double.IsNaN(FloatResultant.FromReal(double.NaN, CobolRounding.Truncation, Single)));
     }
 
-    // ── The checked binary64 intermediate (§14.7.5 cases 2 and 5) ─────────────────────────────────────────────
+    // ── The checked binary64 intermediate (§2023:14.7.5 cases 2 and 5) ─────────────────────────────────────────────
 
     private static string Ec(Action body) => Assert.Throws<CobolSizeError>(body).EcName;
 
@@ -194,7 +194,7 @@ public sealed class FloatResultantTests
         Assert.Equal(0.0, CobolIntrinsics.PowNativeRealChecked(0, 2, SizeChecks.Range));
     }
 
-    /// <summary>kb/Work PB4092 — §14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled":
+    /// <summary>kb/Work PB4092 — §2023:14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled":
     /// a checked operator raises the range conditions it is GIVEN and takes the not-enabled disposition (DOC-A.1-70, the
     /// IEEE value) for the rest. A zero divisor is not one of them: it is raised whatever is taken.</summary>
     [Fact]

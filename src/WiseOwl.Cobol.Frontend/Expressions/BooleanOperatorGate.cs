@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.Frontend.Expressions;
 /// <summary>
 /// ⭐ THE boolean-operator INTRODUCTION gate — ONE rule, asked once per SITE that hosts a top-level boolean expression,
 /// in BOTH lanes. B-AND / B-OR / B-XOR / B-NOT are a COBOL-2002 introduction (ISO §8.7.2) and the four boolean SHIFT
-/// operators a COBOL-2023 one (§8.8.2 rule 8; Annex E.2 item 3), each checked through the ONE
-/// <see cref="ConstructRegistry"/> funnel so the code and the §4.2 severity are the registry's.
-/// <para><b>Why it lives in the frontend.</b> A compile-time boolean expression (ISO §7.3.7.2 — "formed in accordance
+/// operators a COBOL-2023 one (§2023:8.8.2 rule 8; Annex E.2 item 3), each checked through the ONE
+/// <see cref="ConstructRegistry"/> funnel so the code and the §2023:4.2 severity are the registry's.
+/// <para><b>Why it lives in the frontend.</b> A compile-time boolean expression (ISO §2023:7.3.7.2 — "formed in accordance
 /// with 8.8.2") is evaluated by the conditional-compilation stage, before any compiler pass exists, from a directive
 /// FRAGMENT parse the compilation-unit walk never reaches. The gate used to be a private body of
 /// <c>VersionConformancePass</c>, so <c>&gt;&gt;DEFINE G AS B"1100" B-SHIFT-L 1</c> compiled clean at 2002 and 2014

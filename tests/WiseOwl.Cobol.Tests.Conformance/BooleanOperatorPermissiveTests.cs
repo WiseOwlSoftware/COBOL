@@ -6,9 +6,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// kb/Work PB1669 — under <c>--permissive</c> at 2002 and later the boolean operators B-AND / B-OR / B-XOR / B-NOT are
-/// reserved words (ISO §8.9) that migration mode still admits as the user-defined words an older program declared
-/// (§8.3.2.1 rule 1: "Reserved words shall not be used as user-defined words"). The standard spelling must not be
-/// rejected for it: §8.8.2 rule 6 ("The permissible combinations of operands, operators, and parentheses in a boolean
+/// reserved words (ISO §2023:8.9) that migration mode still admits as the user-defined words an older program declared
+/// (§2023:8.3.2.1 rule 1: "Reserved words shall not be used as user-defined words"). The standard spelling must not be
+/// rejected for it: §2023:8.8.2 rule 6 ("The permissible combinations of operands, operators, and parentheses in a boolean
 /// expression are specified in Table 4") marks "(" a permissible symbol after every binary boolean operator and after
 /// B-NOT, so <c>IF BZ B-OR (BW)</c> is a boolean condition. What tells it from the legacy table <c>B-OR (1)</c> is
 /// whether the PROGRAM DECLARES the word, and the lexer — which decides at lex time whether a '(' opens a subscript —
@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public sealed class BooleanOperatorPermissiveTests
 {
     // Expected values, derived (BW = 1, BZ = 0, BR = result): C1 0 OR 1 = T; C2 NOT (1 XOR 0) = F; C3 1 AND (0 OR 0) = F;
-    // K1 0 OR (1 AND 1) = 1 (§8.8.4.3.4 GR1: true when the value is 1).
+    // K1 0 OR (1 AND 1) = 1 (§2023:8.8.4.3.4 GR1: true when the value is 1).
     private const string Operators = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1669A.

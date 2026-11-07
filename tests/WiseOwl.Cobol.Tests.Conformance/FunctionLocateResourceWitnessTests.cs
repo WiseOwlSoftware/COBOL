@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The witness for Annex A.1 item 89 — "Function-identifier (object time resources that are checked)" — and the
-/// determination <c>docs/CONFORMANCE.md</c> DOC-A.1-89 records for it. ISO/IEC 1989:2023 §8.4.3.2.4 6) (cite.py OK):
+/// determination <c>docs/CONFORMANCE.md</c> DOC-A.1-89 records for it. ISO/IEC 1989:2023 §2023:8.4.3.2.4 6) (cite.py OK):
 /// b) "the runtime system attempts to locate the function being activated ... If the function is not found, the
 /// EC-FUNCTION-NOT-FOUND exception condition is set to exist, the function is not activated, and execution continues
 /// as specified in General rule 6f"; c) "If the function is located but the resources necessary to execute the
@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// loaded and its <c>__CobolModule.EnsureRegistered()</c> has run; a <c>&lt;name&gt;.dll</c> beside the application that
 /// cannot be loaded (here a foreign, non-PE image) has therefore NOT been located, so the condition is
 /// EC-FUNCTION-NOT-FOUND and never EC-PROGRAM-RESOURCES. Both names are enabled and both are named in the USE
-/// statement, so whichever the runtime sets is the one EXCEPTION-STATUS reports (§15.33.3 1)), and RESUME AT NEXT
-/// STATEMENT (§14.9.33.4 2) a)) lets the run continue past the fatal condition.</para>
+/// statement, so whichever the runtime sets is the one EXCEPTION-STATUS reports (§2023:15.33.3 1)), and RESUME AT NEXT
+/// STATEMENT (§2023:14.9.33.4 2) a)) lets the run continue past the fatal condition.</para>
 /// <para>The control case compiles a REAL function module of the same shape into the same directory and shows the
 /// sibling-module lookup locates and runs it, so the foreign-image result is caused by the image, not by a lookup
 /// that never looks. A third case covers a module that loads but whose registrar throws: also not located.</para>

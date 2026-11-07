@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// OCCURS DEPENDING ON (ISO/IEC 1989:2023 §13.18.38 Format 2): allocation at the MAXIMUM occurrence count
-/// (§8.5.1.8 — "the physical capacity is fixed at compile time; the logical capacity may vary"), the GR7
+/// OCCURS DEPENDING ON (ISO/IEC 1989:2023 §2023:13.18.38 Format 2): allocation at the MAXIMUM occurrence count
+/// (§2023:8.5.1.8 — "the physical capacity is fixed at compile time; the logical capacity may vary"), the GR7
 /// current-count rule, and the GR8 group-operand extents — every quadrant plus the SEARCH / SEARCH ALL bound
-/// (§14.9.37.4 GR4/GR9), STRING/UNSTRING senders (§14.9.43 GR3a / §14.9.48 GR11), and VALUE-at-maximum
-/// initialization (§13.18.63.4 GR6). Differentially pinned to the committed golden, which is NIST-85 green on the
+/// (§2023:14.9.37.4 GR4/GR9), STRING/UNSTRING senders (§2023:14.9.43 GR3a / §2023:14.9.48 GR11), and VALUE-at-maximum
+/// initialization (§2023:13.18.63.4 GR6). Differentially pinned to the committed golden, which is NIST-85 green on the
 /// ODO acceptance programs NC235A/NC247A — these facts are reductions of those programs' test paragraphs.
 /// </summary>
 public sealed class OdoDifferentialTests
@@ -41,7 +41,7 @@ public sealed class OdoDifferentialTests
         01 OUT-19 PIC X(19).
         """;
 
-    [Fact] // §13.18.38 GR8b (sending side): depending item INSIDE the sending group → the current-count extent.
+    [Fact] // §2023:13.18.38 GR8b (sending side): depending item INSIDE the sending group → the current-count extent.
     public void Gr8b_GroupSend_DependingInside_UsesCurrentCount()
         => AssertMatchesGolden(Program("ODOT1", OdoRecord, """
                 MOVE "123456789" TO TAIL-GRP.
@@ -50,8 +50,8 @@ public sealed class OdoDifferentialTests
                 DISPLAY OUT-19.
             """));
 
-    [Fact] // §13.18.38 GR8a: depending item OUTSIDE the operand group → the current-count part is used in BOTH
-           // directions; INSPECT (§14.9.22, item identification §14.6.4 step 6) sees only the live occurrences.
+    [Fact] // §2023:13.18.38 GR8a: depending item OUTSIDE the operand group → the current-count part is used in BOTH
+           // directions; INSPECT (§2023:14.9.22, item identification §2023:14.6.4 step 6) sees only the live occurrences.
     public void Gr8a_Inspect_DependingOutside_CurrentCountBothWays()
         => AssertMatchesGolden(Program("ODOT2", OdoRecord + "\n01 N1 PIC 9.", """
                 MOVE "123456789" TO TAIL-GRP.
@@ -65,7 +65,7 @@ public sealed class OdoDifferentialTests
                 DISPLAY N1.
             """));
 
-    [Fact] // §13.18.38 GR8b (receiving side): depending item INSIDE the receiving group → "the maximum length of
+    [Fact] // §2023:13.18.38 GR8b (receiving side): depending item INSIDE the receiving group → "the maximum length of
            // the group will be used" — all MAX occurrences receive (NC247A MOV-TEST-F1-6 reduction).
     public void Gr8b_GroupReceive_DependingInside_UsesMaximumLength()
         => AssertMatchesGolden(Program("ODOT3", """
@@ -84,7 +84,7 @@ public sealed class OdoDifferentialTests
                 DISPLAY D-GRP.
             """));
 
-    [Fact] // §13.18.38 GR8a (receiving side): depending item OUTSIDE the receiving group → only the current-count
+    [Fact] // §2023:13.18.38 GR8a (receiving side): depending item OUTSIDE the receiving group → only the current-count
            // part is used; character positions past the count are NOT modified.
     public void Gr8a_GroupReceive_DependingOutside_PastCountUnchanged()
         => AssertMatchesGolden(Program("ODOT4", OdoRecord, """
@@ -95,7 +95,7 @@ public sealed class OdoDifferentialTests
                 DISPLAY TAIL-GRP.
             """));
 
-    [Fact] // §8.5.1.8 + §8.4.2.3.4 GR2: the array is allocated at the MAXIMUM occurrence count — an occurrence in
+    [Fact] // §2023:8.5.1.8 + §2023:8.4.2.3.4 GR2: the array is allocated at the MAXIMUM occurrence count — an occurrence in
            // (current..max] is legal to reference (bound is MAX, not the current count). Writing ITM(9) with the
            // count at 3, then raising the count, surfaces the stored value (NC247A INIT-WRK-AREA fills all 9).
     public void Allocation_AtMaximumOccurrences_HighSubscriptIsAddressable()
@@ -107,7 +107,7 @@ public sealed class OdoDifferentialTests
                 DISPLAY TAIL-GRP.
             """));
 
-    [Fact] // §14.9.37.4 GR4 + §13.18.38 GR7: a serial SEARCH of an occurs-depending table reaches AT END past the
+    [Fact] // §2023:14.9.37.4 GR4 + §2023:13.18.38 GR7: a serial SEARCH of an occurs-depending table reaches AT END past the
            // CURRENT count, not the maximum (NC247A SCH-TEST-F1-1/-F1-2 reduction).
     public void SerialSearch_AtEnd_PastCurrentCount()
         => AssertMatchesGolden(Program("ODOT6", OdoRecord, """
@@ -126,7 +126,7 @@ public sealed class OdoDifferentialTests
                 END-SEARCH.
             """));
 
-    [Fact] // §14.9.37.4 GR9: SEARCH ALL of an occurs-depending table is bounded by the last element of the
+    [Fact] // §2023:14.9.37.4 GR9: SEARCH ALL of an occurs-depending table is bounded by the last element of the
            // table — the CURRENT depending count (NC247A SCH-TEST-F2-3/-4 reduction).
     public void SearchAll_BoundedByCurrentCount()
         => AssertMatchesGolden(Program("ODOT7", OdoRecord, """
@@ -143,7 +143,7 @@ public sealed class OdoDifferentialTests
                 END-SEARCH.
             """));
 
-    [Fact] // §14.9.43.4 GR3a + §13.18.38 GR8: a STRING sending group with an ODO tail contributes its
+    [Fact] // §2023:14.9.43.4 GR3a + §2023:13.18.38 GR8: a STRING sending group with an ODO tail contributes its
            // current-count content under DELIMITED BY SIZE (NC247A STR-TEST-GF-2 reduction).
     public void String_OdoGroupSender_CurrentExtent()
         => AssertMatchesGolden(Program("ODOT8", OdoRecord, """
@@ -155,7 +155,7 @@ public sealed class OdoDifferentialTests
                 DISPLAY OUT-19.
             """));
 
-    [Fact] // §14.9.48.4 GR11 + §13.18.38 GR8: the UNSTRING sending item's size is its current-count extent —
+    [Fact] // §2023:14.9.48.4 GR11 + §2023:13.18.38 GR8: the UNSTRING sending item's size is its current-count extent —
            // receiver-sized segmentation stops at the live data (NC247A UST-TEST-GF-2 reduction).
     public void Unstring_OdoRecordSource_CurrentExtent()
         => AssertMatchesGolden(Program("ODOT9", OdoRecord + "\n01 W10 PIC X(10).\n01 W20 PIC X(20).", """

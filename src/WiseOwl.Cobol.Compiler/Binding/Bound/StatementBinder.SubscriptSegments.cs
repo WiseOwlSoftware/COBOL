@@ -11,20 +11,20 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <para><b>The problem.</b> <c>MOVE W-E(FUNCTION INTEGER(3)) TO W-R</c> and
 /// <c>MOVE W-A(FUNCTION INTEGER(3):2) TO W-R</c> are LEGAL SOURCE that compiled clean and threw
 /// <c>NotImplementedCobolFeatureException</c> at run time — the PB7/DA7 wrong-stage family. The chain, every
-/// link mechanically checked: <b>§8.4.3.1.2</b> Format 1 makes a function-identifier an identifier →
-/// <b>§15.4</b> "the evaluation of a function produces a returned value in a temporary elementary data item" →
-/// <b>§15.2</b> items 5–6 put integer and numeric functions "of the class and category numeric" →
-/// <b>§8.8.1.1</b> "an arithmetic expression may be an identifier referencing a numeric data item" →
-/// <b>§8.4.2.3.2</b> + <b>§8.4.2.3.4 GR1b</b> admit <c>arithmetic-expression-1</c> as a subscript, and
-/// <b>§8.4.3.3.3 SR4</b> as a leftmost-position/length.</para>
+/// link mechanically checked: <b>§2023:8.4.3.1.2</b> Format 1 makes a function-identifier an identifier →
+/// <b>§2023:15.4</b> "the evaluation of a function produces a returned value in a temporary elementary data item" →
+/// <b>§2023:15.2</b> items 5–6 put integer and numeric functions "of the class and category numeric" →
+/// <b>§2023:8.8.1.1</b> "an arithmetic expression may be an identifier referencing a numeric data item" →
+/// <b>§2023:8.4.2.3.2</b> + <b>§2023:8.4.2.3.4 GR1b</b> admit <c>arithmetic-expression-1</c> as a subscript, and
+/// <b>§2023:8.4.3.3.3 SR4</b> as a leftmost-position/length.</para>
 ///
-/// <para>⚠ <b>§8.4.3.2.3 SR11/SR12 do NOT bar it.</b> They bar functions where an <i>integer</i> or
+/// <para>⚠ <b>§2023:8.4.3.2.3 SR11/SR12 do NOT bar it.</b> They bar functions where an <i>integer</i> or
 /// <i>unsigned integer</i> is REQUIRED, and a subscript is neither: GR1b sets EC-BOUND-SUBSCRIPT when the
 /// expression does not evaluate to an integer, a RUN-TIME condition that would be pointless if the position
 /// required one syntactically (SR14 confirms it from the other side, having to impose that restriction
 /// <i>specially</i> for a BY REFERENCE bit item).</para>
 ///
-/// <para><b>The decision.</b> Materialize what §15.4 already describes, rather than teaching the resolver's direct
+/// <para><b>The decision.</b> Materialize what §2023:15.4 already describes, rather than teaching the resolver's direct
 /// position walk to read function calls, which would make it a THIRD expression compiler beside
 /// <c>ExpressionBinder</c> and <c>IntrinsicRenderer</c>. The position's PARSE NODE — its
 /// <c>arithmeticExpression</c>, where the grammar parsed it — binds through the ONE
@@ -46,8 +46,8 @@ public sealed partial class StatementBinder
     /// <summary>The description of the temporary that holds a materialized segment's ORDINAL POSITION — an
     /// integer, because the integrality rule has already been asked by the time anything is stored in it.
     /// <para>⛔ <b>WHY THE TEST RUNS BEFORE THE STORE, NOT AT THE POSITION READ</b> (kb/Work PB1890). GR1b says a
-    /// subscript whose expression "does not result in an integer" SETS EC-BOUND-SUBSCRIPT, and §8.4.3.3.4 rule 5)c)
-    /// says the same for a ref-mod position. This temp used to be the §15.4 function-value item (21 integer + 9
+    /// subscript whose expression "does not result in an integer" SETS EC-BOUND-SUBSCRIPT, and §2023:8.4.3.3.4 rule 5)c)
+    /// says the same for a ref-mod position. This temp used to be the §2023:15.4 function-value item (21 integer + 9
     /// fraction digits, TRUNCATION) with the test left to the position read, so a value whose fraction lay past the
     /// 9th digit was an integer by the time it was asked: <c>T(IX + 0.0000000001)</c> and <c>T(F)</c> with
     /// <c>F COMP-2 2.0000000001</c> selected occurrence 2 with checking on. No fixed fraction width is exact for an
@@ -69,7 +69,7 @@ public sealed partial class StatementBinder
     /// <summary>Materialize one position the resolver's direct walk cannot read — a function-bearing subscript or
     /// ref-mod bound, a division, an exponentiation, a decimal literal (the D18 route; the
     /// <c>SubscriptBinder.MaterializeSegment</c> hook), given the position's own <c>arithmeticExpression</c> parse
-    /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §15.4 temporary the value
+    /// node (kb/Work PB2151: the node is bound where the grammar parsed it). Returns the §2023:15.4 temporary the value
     /// lands in, or <see langword="null"/> to leave the caller's loud posture untouched. A position that is not an
     /// arithmetic expression never arrives: the resolver refuses it by name (COBOL2363, kb/Work PB1030).
     ///
@@ -86,17 +86,17 @@ public sealed partial class StatementBinder
     private DataItem? BindPositionTemporary(Frontend.Generated.CobolParserCore.ArithmeticExpressionContext expr,
         SegmentPosition position, int line)
     {
-        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §13.18.38.3 r7 lists five contexts in
+        // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §2023:13.18.38.3 r7 lists five contexts in
         // which an index-name may be referenced — "as a subscript; in the VARYING phrase of a PERFORM statement;
         // in the VARYING phrase of a SEARCH statement; in the SET statement; as an operand in a relation
         // condition" — and a REFERENCE-MODIFICATION position is not among them. This site hard-coded
         // BindIndexWindowExpr for BOTH positions under the comment "a SUBSCRIPT is an r7 window", which is true
-        // of the position it names and false of the other one it serves: `W(IX:2)` was wrongly admitted. §8.4.3.3.3
+        // of the position it names and false of the other one it serves: `W(IX:2)` was wrongly admitted. §2023:8.4.3.3.3
         // SR4 makes both ref-mod bounds plain arithmetic expressions, so they bind under Arithmetic, where the
         // r7 screen fires.
         var value = position == SegmentPosition.Subscript
             ? Expr.BindIndexNameWindowExpr(expr)   // a SUBSCRIPT: r7 yes, SR10 no (kb/Work R29, PB215)
-            : Expr.BindExpr(expr);             // a ref-mod bound is NOT (§8.4.3.3.3 SR4)
+            : Expr.BindExpr(expr);             // a ref-mod bound is NOT (§2023:8.4.3.3.3 SR4)
         if (value is BoundExprError err)
         {
             // Refused: the expression binder reported it. Unbuilt: an operand of the segment is a deferred shape, so
@@ -116,7 +116,7 @@ public sealed partial class StatementBinder
         return temp;
     }
 
-    /// <summary>⛔ THE ODO LENGTH BEFORE THE REFERENCE MODIFIER (ISO §14.6.4 steps 6 and 7; the
+    /// <summary>⛔ THE ODO LENGTH BEFORE THE REFERENCE MODIFIER (ISO §2023:14.6.4 steps 6 and 7; the
     /// <c>ReferenceResolver.FreezeOdoExtent</c> hook; kb/Work PB1123). The reference modifier's position was
     /// materialized above as pre-ops from <paramref name="preOpMark"/> on, and a pre-op that activates a function can
     /// change the DEPENDING ON object, so the object's value is copied into a compiler temp as a pre-op INSERTED at

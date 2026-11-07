@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE ARGUMENT-1 VALUE DOMAINS OF THE binary64 FAMILY, HELD TO THE STANDARD AND TO THE EXACT OPERAND (kb/Work
-/// PB952). ISO §15.3 rule 14 sets EC-ARGUMENT-FUNCTION for "an incorrect value for that argument", and the seven
+/// PB952). ISO §2023:15.3 rule 14 sets EC-ARGUMENT-FUNCTION for "an incorrect value for that argument", and the seven
 /// §15.x.3 rules that state such a value domain for a <c>Float: true</c> catalog row are ONE catalog column
 /// (<see cref="IntrinsicSig.Domain"/>) screened by ONE runtime seam on the argument's own carrier BEFORE the
 /// binary64 conversion — because a correctly-rounded conversion moves a value across the bound (ASIN(1 + 10^-18)
@@ -106,18 +106,18 @@ public sealed class IntrinsicArgumentDomainDriftTests
         {
             // 1 + 10^-30 and -(1 + 10^-30) at scale 30 — both round to ±1.0 in binary64.
             Assert.Equal(1.0, CobolFloat.ScaledToDouble(Ten30 + 1, 30));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(Ten30 + 1, 30, Unit, "ASIN", "§15.10.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(-(Ten30 + 1), 30, Unit, "ACOS", "§15.8.3 rule 2"));
-            Assert.Equal(1.0, CobolIntrinsics.DomainScaled(Ten30, 30, Unit, "ASIN", "§15.10.3 rule 2"));
-            Assert.Equal(-1.0, CobolIntrinsics.DomainScaled(-Ten30, 30, Unit, "ASIN", "§15.10.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(Ten30 + 1, 30, Unit, "ASIN", "§2023:15.10.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(-(Ten30 + 1), 30, Unit, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.Equal(1.0, CobolIntrinsics.DomainScaled(Ten30, 30, Unit, "ASIN", "§2023:15.10.3 rule 2"));
+            Assert.Equal(-1.0, CobolIntrinsics.DomainScaled(-Ten30, 30, Unit, "ASIN", "§2023:15.10.3 rule 2"));
             // -0.999…9 (30 nines) is legal for PRESENT-VALUE and rounds to the ILLEGAL -1.0.
-            Assert.Equal(-1.0, CobolIntrinsics.DomainScaled(-(Ten30 - 1), 30, CobolIntrinsics.ArgumentDomain.AboveMinusOne, "PRESENT-VALUE", "§15.74.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(-Ten30, 30, CobolIntrinsics.ArgumentDomain.AboveMinusOne, "PRESENT-VALUE", "§15.74.3 rule 2"));
+            Assert.Equal(-1.0, CobolIntrinsics.DomainScaled(-(Ten30 - 1), 30, CobolIntrinsics.ArgumentDomain.AboveMinusOne, "PRESENT-VALUE", "§2023:15.74.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(-Ten30, 30, CobolIntrinsics.ArgumentDomain.AboveMinusOne, "PRESENT-VALUE", "§2023:15.74.3 rule 2"));
             // zero: admitted by NonNegative, refused by Positive; a trailing-P (negative) scale is a multiple of ten.
-            Assert.Equal(0.0, CobolIntrinsics.DomainScaled(0, 3, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§15.84.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(0, 3, CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§15.55.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(1, -2, Unit, "ACOS", "§15.8.3 rule 2"));
-            Assert.Equal(0.0, CobolIntrinsics.DomainScaled(0, -2, Unit, "ACOS", "§15.8.3 rule 2"));
+            Assert.Equal(0.0, CobolIntrinsics.DomainScaled(0, 3, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§2023:15.84.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(0, 3, CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§2023:15.55.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainScaled(1, -2, Unit, "ACOS", "§2023:15.8.3 rule 2"));
+            Assert.Equal(0.0, CobolIntrinsics.DomainScaled(0, -2, Unit, "ACOS", "§2023:15.8.3 rule 2"));
         });
     }
 
@@ -128,9 +128,9 @@ public sealed class IntrinsicArgumentDomainDriftTests
         Assert.Equal(0.0, tinyNegative.ToDouble());
         UnderChecking(true, () =>
         {
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDec(tinyNegative, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§15.84.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDec(new CobolDec(0, 0), CobolIntrinsics.ArgumentDomain.Positive, "LOG10", "§15.56.3 rule 2"));
-            Assert.Equal(0.5, CobolIntrinsics.DomainDec(new CobolDec(5, -1), CobolIntrinsics.ArgumentDomain.ClosedUnit, "ACOS", "§15.8.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDec(tinyNegative, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§2023:15.84.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDec(new CobolDec(0, 0), CobolIntrinsics.ArgumentDomain.Positive, "LOG10", "§2023:15.56.3 rule 2"));
+            Assert.Equal(0.5, CobolIntrinsics.DomainDec(new CobolDec(5, -1), CobolIntrinsics.ArgumentDomain.ClosedUnit, "ACOS", "§2023:15.8.3 rule 2"));
         });
     }
 
@@ -139,10 +139,10 @@ public sealed class IntrinsicArgumentDomainDriftTests
     {
         UnderChecking(true, () =>
         {
-            Assert.True(double.IsNegative(CobolIntrinsics.DomainReal(-0.0, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§15.84.3 rule 2")));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(-0.0, CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§15.55.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(double.NaN, CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§15.10.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(Math.BitIncrement(1.0), CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§15.10.3 rule 2"));
+            Assert.True(double.IsNegative(CobolIntrinsics.DomainReal(-0.0, CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§2023:15.84.3 rule 2")));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(-0.0, CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§2023:15.55.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(double.NaN, CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§2023:15.10.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainReal(Math.BitIncrement(1.0), CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§2023:15.10.3 rule 2"));
         });
     }
 
@@ -151,7 +151,7 @@ public sealed class IntrinsicArgumentDomainDriftTests
     {
         UnderChecking(false, () =>
         {
-            double arg = CobolIntrinsics.DomainScaled(Ten30 + 1, 30, CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§15.10.3 rule 2");
+            double arg = CobolIntrinsics.DomainScaled(Ten30 + 1, 30, CobolIntrinsics.ArgumentDomain.ClosedUnit, "ASIN", "§2023:15.10.3 rule 2");
             Assert.True(double.IsNaN(arg));
             Assert.Equal(0.0, CobolIntrinsics.RealResult(CobolIntrinsics.Asin(arg)));
         });

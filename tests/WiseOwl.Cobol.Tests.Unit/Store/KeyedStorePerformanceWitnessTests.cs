@@ -35,19 +35,19 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 ///   each, read exactly the path (d), + 1 (page 2) under the mutex; by the unique alternate key, its tree's path and the
 ///   prime tree's, + 1 when the prefix seek of a (key value, release ordinal) composite crosses into the next leaf.</item>
 ///   <item>The READ NEXT walk of PB2129's and PB2755's scenarios: each statement reads at most d pages (+ 1), the walk reads
-///   each page of the tree once, and the READ that meets the end answers '10' (ISO §14.9.30.4 GR24 a), the AT END
+///   each page of the tree once, and the READ that meets the end answers '10' (ISO §2023:14.9.30.4 GR24 a), the AT END
 ///   condition) within the same bound; along the alternate key WITH DUPLICATES each READ answers '02' exactly when the
-///   next record carries the same key value (§14.9.30.4 GR27 a)).</item>
+///   next record carries the same key value (§2023:14.9.30.4 GR27 a)).</item>
 ///   <item>The exception paths cost no more than the success and write NOTHING when they change nothing: a WRITE refused
-///   '22' — the prime key or a unique alternate key a record holds (§14.9.51.4 GR42 b) and c); GR33 a) for RELATIVE) — and
-///   §14.9.51.4 GR15's <i>"the write operation does not take place"</i>; a READ and a DELETE refused '23' (§9.1.13.5 3)
-///   a)); a WRITE the medium refuses answers '30' (§9.1.13.6 1)), and after the CLOSE the next run unit's WRITE is within
+///   '22' — the prime key or a unique alternate key a record holds (§2023:14.9.51.4 GR42 b) and c); GR33 a) for RELATIVE) — and
+///   §2023:14.9.51.4 GR15's <i>"the write operation does not take place"</i>; a READ and a DELETE refused '23' (§2023:9.1.13.5 3)
+///   a)); a WRITE the medium refuses answers '30' (§2023:9.1.13.6 1)), and after the CLOSE the next run unit's WRITE is within
 ///   its row and the refused record is not in the file; the permanent error then answers every later statement on the
-///   connector (§9.1.13.1) — WRITE, READ, READ NEXT, START, REWRITE and DELETE, one case each in both sharing modes —
+///   connector (§2023:9.1.13.1) — WRITE, READ, READ NEXT, START, REWRITE and DELETE, one case each in both sharing modes —
 ///   reading, writing and syncing NOTHING, not even the coherent entry's page 2 (docs/CONFORMANCE.md DOC-A.1-105: such a
 ///   statement <i>"does not touch the physical file"</i>), and outranks another run unit's lock; a READ that
-///   meets another run unit's record lock answers '51' (§9.1.13.8 1)) writing nothing, a RETRY repeats only that bounded
-///   statement (§14.7.9.3 GR1), and a RETRY whose wait sees the lock released succeeds (§14.7.9.3 GR4).</item>
+///   meets another run unit's record lock answers '51' (§2023:9.1.13.8 1)) writing nothing, a RETRY repeats only that bounded
+///   statement (§2023:14.7.9.3 GR1), and a RETRY whose wait sees the lock released succeeds (§2023:14.7.9.3 GR4).</item>
 /// </list>
 /// </summary>
 public abstract class KeyedStorePerformanceWitnessTests
@@ -79,7 +79,7 @@ public abstract class KeyedStorePerformanceWitnessTests
 
     /// <summary>One physical file: its host path (the connectors' handles and locks), its pages, its shape, the order its
     /// records are loaded in, and the alternate key values WITH DUPLICATES it already holds (a WRITE that adds one answers
-    /// '02', §9.1.13.2 2)).</summary>
+    /// '02', §2023:9.1.13.2 2)).</summary>
     private protected sealed class Cell(Shape shape, Order order, FileSharing sharing) : IDisposable
     {
         public readonly string Host = FileHarness.Tmp($"pb3336-{shape}-{order}-{sharing}");
@@ -101,7 +101,7 @@ public abstract class KeyedStorePerformanceWitnessTests
         }
 
         /// <summary>The status a successful WRITE of record n answers: '02' when the alternate key WITH DUPLICATES of
-        /// record n duplicates one the file holds (§9.1.13.2 2), "a duplicate key is detected"), '00' otherwise.</summary>
+        /// record n duplicates one the file holds (§2023:9.1.13.2 2), "a duplicate key is detected"), '00' otherwise.</summary>
         public string Written(int n) => AlternateKeys > 0 && !_duplicated.Add(n % 97) ? "02" : "00";
 
         public void Register(FileRegistry reg, string name)
@@ -493,7 +493,7 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
         Assert.InRange(walk.PagesRead, treePages, treePages + (long)(N + 1) * entry);
 
         // Along the alternate key WITH DUPLICATES: its tree's walk and one prime lookup per record; '02' exactly when the
-        // next record in that key's order carries the same value (§14.9.30.4 GR27 a)).
+        // next record in that key's order carries the same value (§2023:14.9.30.4 GR27 a)).
         if (cell.AlternateKeys > 0)
         {
             Assert.Equal("00", reader.StartIndexed("R", 0, ">=", Rec(97), StartKeyLength.OfWidth(8)));
@@ -560,7 +560,7 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
         Assert.Equal(0, cost.PagesWritten);
         Assert.Equal(0, cost.Syncs);
 
-        // A WRITE the medium refuses at its first page write: '30' (§9.1.13.6 1)); the CLOSE ends the permanent error
+        // A WRITE the medium refuses at its first page write: '30' (§2023:9.1.13.6 1)); the CLOSE ends the permanent error
         // (DOC-A.1-105's technique). Its replay on every verb is A_replayed_permanent_error_touches_nothing.
         view.RefuseWrite = _ => new IOException("the medium is full");
         Assert.Equal("30", Write(writer, "W", cell, cell.Keys[N]));
@@ -649,8 +649,8 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
         return data;
     }
 
-    /// <summary>⛔ A REPLAYED PERMANENT ERROR TOUCHES NOTHING. After a WRITE the medium refuses ('30', §9.1.13.6 1)),
-    /// §9.1.13.1 keeps the condition <i>"in effect for all subsequent input-output operations on the file"</i>, and the
+    /// <summary>⛔ A REPLAYED PERMANENT ERROR TOUCHES NOTHING. After a WRITE the medium refuses ('30', §2023:9.1.13.6 1)),
+    /// §2023:9.1.13.1 keeps the condition <i>"in effect for all subsequent input-output operations on the file"</i>, and the
     /// technique this processor provides (docs/CONFORMANCE.md DOC-A.1-105) says such a statement <i>"does not touch the
     /// physical file, it sets the same I-O status again"</i>: the verb answers '30', with the page cache cold, reading,
     /// writing and syncing nothing — not the coherent entry's page 2, so it takes no store mutex either
@@ -707,7 +707,7 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
     /// control REWRITEs m records of the loaded file and B, beside it, REWRITEs others. A's ROLLBACK writes at most
     /// m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping (the WRITE row's ledger
     /// path copy, FREE batch, page 2 and claim, which one statement pays once) — never a cost that grows with the file —
-    /// and leaves every record of B's byte-identical (§14.9.36.4 GR3, the run unit's OWN changes). A's COMMIT after m more
+    /// and leaves every record of B's byte-identical (§2023:14.9.36.4 GR3, the run unit's OWN changes). A's COMMIT after m more
     /// changes reads its UNDO tree once (u + its leaves: one walk lists every R and V holding, finding R5-2) besides the
     /// promotion's own reads, never a page per holding.</summary>
     [Fact]
@@ -719,7 +719,7 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
         var (a, _) = cell.Open("A", FileOpenMode.IO, commit: true);
         var (b, _) = cell.Open("B", FileOpenMode.IO);
         int[] ours = cell.Keys[100..(100 + M)], theirs = cell.Keys[200..220];
-        // A REWRITE whose alternate key WITH DUPLICATES meets another record's value answers '02' (§9.1.13.2 2)).
+        // A REWRITE whose alternate key WITH DUPLICATES meets another record's value answers '02' (§2023:9.1.13.2 2)).
         foreach (int n in theirs) Assert.Matches("^0[02]$", Rewrite(b, "B", cell, n, Changed(n)));
         foreach (int n in ours) Assert.Matches("^0[02]$", Rewrite(a, "A", cell, n, Changed(n)));
 
@@ -805,7 +805,7 @@ public abstract class KeyedStoreStatementWitnessTests(KeyedStorePerformanceWitne
             Assert.Equal(Rec(n), image);
             Assert.Equal(2, pauses.Count);
 
-            // A permanent error in effect OUTRANKS the lock (§9.1.13.1; DOC-A.1-105, "The condition outranks every other
+            // A permanent error in effect OUTRANKS the lock (§2023:9.1.13.1; DOC-A.1-105, "The condition outranks every other
             // status the later statement would have taken"): with A holding n again, B's medium refuses a WRITE ('30'), and
             // B's READ and DELETE of n then answer '30', not '51' — no RETRY pause, no page read.
             b.Unlock("B", records: true);

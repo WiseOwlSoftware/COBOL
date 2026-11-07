@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ <b>ISO §14.9.25.4 GR4's ELEMENTARY-VS-GROUP DECISION — ONE rule over BOTH operands — and its
+/// ⛔ <b>ISO §2023:14.9.25.4 GR4's ELEMENTARY-VS-GROUP DECISION — ONE rule over BOTH operands — and its
 /// no-conversion clause</b> (kb/Work PB430). GR4: "Any move in which the sending operand is either a literal or
 /// an elementary item AND the receiving item is an elementary item is an elementary move", and "Any move that is
 /// not an elementary move, and does not reference a variable-length group, is treated exactly as if it were an
@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// INTERNAL REPRESENTATION TO ANOTHER."
 ///
 /// <para><b>The decision is not purely structural, and the compiler answered it differently on the two sides.</b>
-/// §13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item" —
+/// §2023:13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item" —
 /// makes a level-66 THROUGH alias a GROUP item, although it is modelled here as ONE composed elementary
-/// alphanumeric view; §13.18.45.4 GR1 makes the alias WITHOUT THROUGH take the renamed item's attributes, so the
+/// alphanumeric view; §2023:13.18.45.4 GR1 makes the alias WITHOUT THROUGH take the renamed item's attributes, so the
 /// control arm is genuinely elementary. Every case below is asserted against its STRUCTURAL TWIN — the plain
 /// group or plain elementary item that the rule makes it the same kind of thing as — so the test states an
 /// equivalence the standard requires, not a rendering this implementation happens to produce.</para>
@@ -41,8 +41,8 @@ public sealed class Gr4ElementaryVsGroupDecisionTests
             STOP RUN.
         """;
 
-    /// <summary>A RENAMES … THROUGH alias SENDER is a group item (§13.18.45.4 GR2), so the move is not
-    /// elementary and the receiver's EDITING — which §14.9.25.4 GR6 confines to valid elementary moves — does
+    /// <summary>A RENAMES … THROUGH alias SENDER is a group item (§2023:13.18.45.4 GR2), so the move is not
+    /// elementary and the receiver's EDITING — which §2023:14.9.25.4 GR6 confines to valid elementary moves — does
     /// not apply: the characters are moved alphanumeric-to-alphanumeric and space-filled on the right. Its
     /// structural twin, a plain two-leaf group of the same content, must give the same answer.</summary>
     [Fact]
@@ -68,7 +68,7 @@ public sealed class Gr4ElementaryVsGroupDecisionTests
     }
 
     /// <summary>⛔ THE CONTROL, and it is what makes the fix a discrimination rather than a blanket:
-    /// §13.18.45.4 GR1 — "When the THROUGH phrase is not specified, all of the data attributes of data-name-2
+    /// §2023:13.18.45.4 GR1 — "When the THROUGH phrase is not specified, all of the data attributes of data-name-2
     /// become the data attributes of data-name-1" — so the alias of an ELEMENTARY item is elementary, the move
     /// IS an elementary move, and PIC ZZ9 edits the alphanumeric sender's unsigned integer value.</summary>
     [Fact]
@@ -89,7 +89,7 @@ public sealed class Gr4ElementaryVsGroupDecisionTests
     }
 
     /// <summary>⛔ THE OTHER ARM OF THE SAME DISPATCH (feedback_two_arm_dispatch). GR4's first sentence needs
-    /// BOTH operands elementary, so a THROUGH alias RECEIVER makes the move non-elementary too — and §14.9.25.4
+    /// BOTH operands elementary, so a THROUGH alias RECEIVER makes the move non-elementary too — and §2023:14.9.25.4
     /// GR6 a) drops a signed sender's operational sign only in a valid ELEMENTARY move, so the alias receiver
     /// keeps the DISPLAY overpunch exactly as its structural twin does.</summary>
     [Fact]
@@ -115,7 +115,7 @@ public sealed class Gr4ElementaryVsGroupDecisionTests
 
     /// <summary>⛔ "THERE IS NO CONVERSION OF DATA FROM ONE FORM OF INTERNAL REPRESENTATION TO ANOTHER", asked
     /// in BOTH directions of the same clause. A PACKED-DECIMAL elementary item sent INTO a group must deposit
-    /// the same bytes it contributes when it is sent AS PART OF a group — §13.18.60.4 leaves that representation
+    /// the same bytes it contributes when it is sent AS PART OF a group — §2023:13.18.60.4 leaves that representation
     /// to the implementor (docs/CONFORMANCE.md items 205–215), and whatever it is, the two directions must
     /// agree. They did not: the elementary-sender arm rendered the item's zoned DISPLAY digits, which is the
     /// conversion the clause forbids and also occupies four character positions where the representation

@@ -7,13 +7,13 @@ using CobolClass = WiseOwl.Cobol.Runtime.CobolClass;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The CODED CHARACTER SET an alphabet references (ISO §12.3.7.4 GR7 + Table 6; kb/Work PB110) and the runtime
-/// membership test of the alphabet-name class condition (§8.8.4.4.4 GR3 a; kb/Work PB109): the ordinal↔character
+/// The CODED CHARACTER SET an alphabet references (ISO §2023:12.3.7.4 GR7 + Table 6; kb/Work PB110) and the runtime
+/// membership test of the alphabet-name class condition (§2023:8.8.4.4.4 GR3 a; kb/Work PB109): the ordinal↔character
 /// correspondence per phrase (the CONFORMANCE.md determinations) and the three membership kinds.
 /// </summary>
 public sealed class CodedCharacterSetTests
 {
-    /// <summary>§13.18.13.4 GR6's medium classification (kb/Work PB1542): an identity set SMALLER than the one-byte
+    /// <summary>§2023:13.18.13.4 GR6's medium classification (kb/Work PB1542): an identity set SMALLER than the one-byte
     /// record channel — STANDARD-1 / STANDARD-2 (GR7 c) and the ASCII code-name — carries its identity table so
     /// the connector can refuse what the set lacks; the whole-channel identity sets carry nothing; EBCDIC carries
     /// its 256-entry page; a literal-phrase alphabet and UTF-8 / UCS-4 stay the A.3 item 27 non-support.</summary>
@@ -101,7 +101,7 @@ public sealed class CodedCharacterSetTests
         Assert.Equal("B", natSet.CharAt(3 + 66 - 1));        // code 66: 65 specified codes below it... position = 2 + (66 - 1)
     }
 
-    /// <summary>§12.3.7.4 GR8 over the whole native repertoire (owner decision kb/Work R52; kb/Work PB1093): the
+    /// <summary>§2023:12.3.7.4 GR8 over the whole native repertoire (owner decision kb/Work R52; kb/Work PB1093): the
     /// highest position of a literal-phrase sequence belongs to the largest UNSPECIFIED code unit (GR7 k3 puts the
     /// tail above the specified block) — U+FFFF in either class — and only a definition that specifies every code
     /// unit falls through to GR8's own tie rule, where "the last character specified" wins an ALSO group at the
@@ -129,7 +129,7 @@ public sealed class CodedCharacterSetTests
         Assert.Equal('\0', tie.LowValue);
     }
 
-    /// <summary>kb/Work PB1557 — an alphabet that specifies EVERY native character (legal: §12.3.7.3 SR14 b4/c4
+    /// <summary>kb/Work PB1557 — an alphabet that specifies EVERY native character (legal: §2023:12.3.7.3 SR14 b4/c4
     /// bound the count by the native set's size with "shall not exceed") has 65,536 positions, one more than a
     /// 16-bit counter holds. The builders counted it in one and handed <see cref="CollatingTable.Build"/> a
     /// NextFree of 0, so the table claimed no specified block and every ordinal of its set "did not exist". The
@@ -155,7 +155,7 @@ public sealed class CodedCharacterSetTests
         Assert.Equal("\0", set.CharAt(CollatingTable.Repertoire));                // position 65535
         Assert.Null(set.CharAt(CollatingTable.Repertoire + 1));
 
-        // The runtime carrier reads the same count: CHAR(66) → U+FFBE and ORD of it → 66 (§15.15.4 r1 / §15.70.1).
+        // The runtime carrier reads the same count: CHAR(66) → U+FFBE and ORD of it → 66 (§2023:15.15.4 r1 / §2023:15.70.1).
         var runtime = table.Collation(national: true);
         Assert.Equal(0xFFBE, runtime.CharAt(65));
         Assert.Equal(65, runtime.Weight((char)0xFFBE));
@@ -164,7 +164,7 @@ public sealed class CodedCharacterSetTests
         Assert.Throws<ArgumentOutOfRangeException>(() => CollatingTable.Build(pos, order, order, 0));
     }
 
-    /// <summary>The runtime membership kinds (§8.8.4.4.4 GR3 a — kb/Work PB109): Ascii = the 128 ISO 646 characters;
+    /// <summary>The runtime membership kinds (§2023:8.8.4.4.4 GR3 a — kb/Work PB109): Ascii = the 128 ISO 646 characters;
     /// ScalarValues = well-formed UTF-16 (an unpaired surrogate is not a character of UCS-4/UTF-8); AllNative is total;
     /// a zero-length operand is FALSE (GR1).</summary>
     [Fact]

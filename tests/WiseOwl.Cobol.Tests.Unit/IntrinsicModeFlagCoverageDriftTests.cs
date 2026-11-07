@@ -13,9 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Several runtime intrinsic bodies take a behaviour decision as a PARAMETER — <c>commaMode</c> (§15.67.3 r5 /
-/// §15.68.3 r4 d / §15.69.3 r4, the DECIMAL-POINT IS COMMA separator roles), <c>digitCap</c> (§15.93.4 /
-/// §15.94.4 / §15.95.4 r1 b)'s mode-keyed sub-notes) and <c>anycase</c> (§15.68.3 r4 f). The arm that COMPUTES
+/// Several runtime intrinsic bodies take a behaviour decision as a PARAMETER — <c>commaMode</c> (§2023:15.67.3 r5 /
+/// §2023:15.68.3 r4 d / §2023:15.69.3 r4, the DECIMAL-POINT IS COMMA separator roles), <c>digitCap</c> (§2023:15.93.4 /
+/// §2023:15.94.4 / §2023:15.95.4 r1 b)'s mode-keyed sub-notes) and <c>anycase</c> (§2023:15.68.3 r4 f). The arm that COMPUTES
 /// each of them lives in the compiler (<c>IntrinsicRenderer.CommaFlag</c> / <c>DigitCapFlag</c> /
 /// <c>AnycaseFlag</c>, reading <c>ctx.Data.DecimalPointIsComma</c>, <c>ArithmeticModes.NumvalDigitCap</c> and the
 /// bound call's ANYCASE phrase), and a unit test that passes the value as a LITERAL exercises the runtime scan
@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⚠ WHAT THIS GATE CLAIMS, EXACTLY. It is a COVERAGE gate, not a semantics gate: a witness is an ENABLED
 /// positive golden WITH a sibling <c>.out</c> (so it runs and is compared, not merely compiled) in which the
 /// construct and the function reference appear in ONE top-level source-unit scope — a container and its
-/// contained programs counting as one scope, because §11.9.4 / §8.3.2 make the configuration and OPTIONS
+/// contained programs counting as one scope, because §2023:11.9.4 / §2023:8.3.2 make the configuration and OPTIONS
 /// inheritable downward and <c>2023/pb60_nested_configuration_inheritance</c> is exactly that shape. An OPTIONS
 /// override inside a containee is not modelled here; the witness golden's own <c>.out</c> is what proves the
 /// semantics. Comment text is stripped before the search, so a golden that merely MENTIONS a clause in its
@@ -49,11 +49,11 @@ public sealed class IntrinsicModeFlagCoverageDriftTests
     /// The key is the flag's spelling in <c>IntrinsicRenderer</c>'s interpolated call text.</summary>
     private static readonly (string Flag, string Construct, string Rule, Regex Match)[] Flags =
     [
-        ("CommaFlag", "DECIMAL-POINT IS COMMA", "§15.67.3 r5 / §15.68.3 r4 d / §15.69.3 r4",
+        ("CommaFlag", "DECIMAL-POINT IS COMMA", "§2023:15.67.3 r5 / §2023:15.68.3 r4 d / §2023:15.69.3 r4",
             new Regex(@"DECIMAL-POINT\s+IS\s+COMMA", RegexOptions.IgnoreCase)),
-        ("DigitCapFlag", "ARITHMETIC IS STANDARD[-DECIMAL]", "§15.93.4 / §15.94.4 / §15.95.4 r1 b) 2-4",
+        ("DigitCapFlag", "ARITHMETIC IS STANDARD[-DECIMAL]", "§2023:15.93.4 / §2023:15.94.4 / §2023:15.95.4 r1 b) 2-4",
             new Regex(@"ARITHMETIC\s+IS\s+STANDARD", RegexOptions.IgnoreCase)),
-        ("AnycaseFlag", "ANYCASE", "§15.68.3 r4 f",
+        ("AnycaseFlag", "ANYCASE", "§2023:15.68.3 r4 f",
             new Regex(@"\bANYCASE\b", RegexOptions.IgnoreCase)),
     ];
 
@@ -218,7 +218,7 @@ public sealed class IntrinsicModeFlagCoverageDriftTests
             + "       END PROGRAM C.\n";
         Assert.Contains(UnitScopes(oneUnit), s => ScopeWitnesses(s, "TEST-NUMVAL", dpc));
 
-        // A CONTAINED program inherits its container's clause and IS one scope with it (§11.9.4 / §8.3.2).
+        // A CONTAINED program inherits its container's clause and IS one scope with it (§2023:11.9.4 / §2023:8.3.2).
         const string contained =
             "       PROGRAM-ID. OUTER.\n"
             + "           DECIMAL-POINT IS COMMA.\n"

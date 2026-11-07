@@ -13,7 +13,7 @@
       *> kb/Work R43 / PB1198 — the asynchronous messaging (MCS) facility
       *> is DECLINED. Annex A.3 item 4: "The asynchronous messaging
       *> facility is dependent on the capability of a processor to allow
-      *> run units to communicate with each other." §4.2.6 lets an
+      *> run units to communicate with each other." §2023:4.2.6 lets an
       *> implementor decline it ("Language elements that pertain to
       *> specific processor-dependent elements for which support is not
       *> claimed need not be implemented") and makes the compile-time
@@ -28,7 +28,7 @@
       *> neither the ON EXCEPTION nor the NOT ON EXCEPTION imperative
       *> runs, the receiving area keeps its VALUE, and control reaches
       *> the next statement. A conforming MCS would print OK or EXC at
-      *> each statement (§14.9.31.4 GR4/GR5, §14.9.38.4 GR2/GR3), so this
+      *> each statement (§2023:14.9.31.4 GR4/GR5, §2023:14.9.38.4 GR2/GR3), so this
       *> .out is the posture docs/CONFORMANCE.md §4 item 1 documents, and
       *> it discriminates a silently half-implemented facility from the
       *> declined one.

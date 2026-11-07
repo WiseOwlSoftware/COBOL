@@ -5,7 +5,7 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The ACCEPT system sources (ISO/IEC 1989:2023 §14.9.1): the Format 1 hardware-device read (an 80-character
+/// The ACCEPT system sources (ISO/IEC 1989:2023 §2023:14.9.1): the Format 1 hardware-device read (an 80-character
 /// card-image transfer from standard input, GR1–GR5) and the Format 2 temporal readings (DATE / DAY /
 /// DAY-OF-WEEK / TIME as the conceptual unsigned-integer values of GR7–GR12). The COMPILED program calls these;
 /// the emitter then stores the result per the statement's rules (device = aligned-left by size, GR3/GR4;
@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public static class AcceptSource
 {
-    /// <summary>The Format 1 transfer size (ISO §14.9.1.4 GR2 — implementor-defined per device): one
+    /// <summary>The Format 1 transfer size (ISO §2023:14.9.1.4 GR2 — implementor-defined per device): one
     /// 80-character card-image record, the NIST-proven convention.</summary>
     public const int RecordSize = 80;
 
@@ -21,11 +21,11 @@ public static class AcceptSource
     /// injectable <see cref="IClock"/> (DESIGN-runtime-library §2.7 — the former process-global mutable
     /// <c>Func&lt;DateTime&gt; Now</c> seam is deleted). The default <see cref="SystemClock"/> consults the
     /// <c>WISEOWL_COBOL_CLOCK</c> environment variable so a test run can pin the clock ACROSS PROCESSES — the
-    /// deterministic-clock path — falling back to the local system clock (§14.9.1.4 GR7: "the hardware clock
+    /// deterministic-clock path — falling back to the local system clock (§2023:14.9.1.4 GR7: "the hardware clock
     /// provides the current date and time"). An in-process test sets <c>RunUnit.Current.Clock</c> instead.</summary>
     private static DateTime Now() => RunUnit.Current.Clock.Now().DateTime;
 
-    /// <summary>DATE — the conceptual 6-digit unsigned integer YYMMDD (ISO §14.9.1.4 GR7).</summary>
+    /// <summary>DATE — the conceptual 6-digit unsigned integer YYMMDD (ISO §2023:14.9.1.4 GR7).</summary>
     public static long Date()
     {
         DateTime n = Now();
@@ -33,7 +33,7 @@ public static class AcceptSource
     }
 
     /// <summary>DATE YYYYMMDD — the conceptual 8-digit unsigned integer with a four-digit year
-    /// (ISO §14.9.1.4 GR8; COBOL-2002+, edition-gated at bind time).</summary>
+    /// (ISO §2023:14.9.1.4 GR8; COBOL-2002+, edition-gated at bind time).</summary>
     public static long DateYYYYMMDD()
     {
         DateTime n = Now();
@@ -41,7 +41,7 @@ public static class AcceptSource
     }
 
     /// <summary>DAY — the conceptual 5-digit unsigned integer YYDDD, DDD the day of year 001–366
-    /// (ISO §14.9.1.4 GR9 — the Julian-style date).</summary>
+    /// (ISO §2023:14.9.1.4 GR9 — the Julian-style date).</summary>
     public static long Day()
     {
         DateTime n = Now();
@@ -49,7 +49,7 @@ public static class AcceptSource
     }
 
     /// <summary>DAY YYYYDDD — the conceptual 7-digit unsigned integer with a four-digit year
-    /// (ISO §14.9.1.4 GR10; COBOL-2002+, edition-gated at bind time).</summary>
+    /// (ISO §2023:14.9.1.4 GR10; COBOL-2002+, edition-gated at bind time).</summary>
     public static long DayYYYYDDD()
     {
         DateTime n = Now();
@@ -57,7 +57,7 @@ public static class AcceptSource
     }
 
     /// <summary>TIME — the conceptual 8-digit unsigned integer HHMMSScc on the 24-hour clock: hours 00–23,
-    /// minutes, seconds, and HUNDREDTHS of a second (ISO §14.9.1.4 GR11 — a system unable to provide fractional
+    /// minutes, seconds, and HUNDREDTHS of a second (ISO §2023:14.9.1.4 GR11 — a system unable to provide fractional
     /// seconds would supply 00; this one derives them from the millisecond reading).</summary>
     public static long Time()
     {
@@ -66,11 +66,11 @@ public static class AcceptSource
     }
 
     /// <summary>DAY-OF-WEEK — the conceptual 1-digit unsigned integer where 1 IS MONDAY … 7 is Sunday
-    /// (ISO §14.9.1.4 GR12); .NET's <c>DayOfWeek</c> starts at Sunday=0, hence the +6 mod 7 remap.</summary>
+    /// (ISO §2023:14.9.1.4 GR12); .NET's <c>DayOfWeek</c> starts at Sunday=0, hence the +6 mod 7 remap.</summary>
     public static long DayOfWeek() => ((int)Now().DayOfWeek + 6) % 7 + 1;
 
     /// <summary>
-    /// The Format 1 device transfer (ISO §14.9.1.4 GR1–GR5): read 80-character card-image records from standard
+    /// The Format 1 device transfer (ISO §2023:14.9.1.4 GR1–GR5): read 80-character card-image records from standard
     /// input until <paramref name="width"/> characters are available, and return EXACTLY <paramref name="width"/>
     /// characters. An input line shorter than 80 characters is space-padded to the full record (the card image);
     /// a line LONGER than 80 characters is consecutive records, each padded (GR2 — the transfer size is one
@@ -80,7 +80,7 @@ public static class AcceptSource
     /// unoccupied positions); end-of-input leaves the unfilled remainder as spaces. A zero-length receiver
     /// still consumes one record and ignores ALL of its characters (GR4b's closing sentence).
     /// The standard input IS the device for both the FROM-omitted default (GR5) and the CONSOLE / SYSIN
-    /// mnemonics (§12.3.7 — the implementor's device set; stdin redirection is the process-level seam).
+    /// mnemonics (§2023:12.3.7 — the implementor's device set; stdin redirection is the process-level seam).
     /// </summary>
     public static string Device(int width)
     {
@@ -110,7 +110,7 @@ public static class AcceptSource
     }
 
     /// <summary>The Format 1 device transfer into a FIXED-POINT numeric receiver under the DECIMAL device form
-    /// (<c>--numeric-display decimal</c>, the default; kb/Work PB3513): ISO §14.9.1.4 GR1's implementor-defined conversion
+    /// (<c>--numeric-display decimal</c>, the default; kb/Work PB3513): ISO §2023:14.9.1.4 GR1's implementor-defined conversion
     /// is <see cref="CobolNum.ParseDeviceDecimal"/>, the inverse of DISPLAY's. The transfer is the receiver's own
     /// <paramref name="size"/> characters when the item is stored as characters (GR3 / GR4 — a DISPLAY or NATIONAL item,
     /// its digit positions plus a SIGN SEPARATE position, so the leftmost <paramref name="size"/> characters of a longer
@@ -121,16 +121,16 @@ public static class AcceptSource
         CobolNum.ParseDeviceDecimal(Device(receiver.ByteForm == NumericByteForm.Zoned ? size : RecordSize), receiver, commaMode);
 
     /// <summary>The Format 1 device transfer into a FLOATING-POINT receiver (COMP-1 / COMP-2 / FLOAT-*) — the
-    /// ISO §14.9.1.4 GR1 conversion ("Any conversion of data required between the device and the data item
+    /// ISO §2023:14.9.1.4 GR1 conversion ("Any conversion of data required between the device and the data item
     /// referenced by identifier-1 is defined by the implementor"), documented as CONFORMANCE.md §7 DOC-A.1-1
-    /// (kb/Work PB887). A float item has no character positions to size a window by (§13.16.3 SR8 — the PICTURE clause
+    /// (kb/Work PB887). A float item has no character positions to size a window by (§2023:13.16.3 SR8 — the PICTURE clause
     /// shall not be specified for a float-short / float-long / float-extended item), so the transfer is EXACTLY ONE record (GR2 — DOC-A.1-5, <see cref="RecordSize"/>), and its
     /// characters are read as the INVERSE of the DISPLAY conversion (DOC-A.1-56 — the invariant-culture
-    /// shortest-round-trip image), which is the §15.69 NUMVAL-F argument format: optional sign, digits with an
+    /// shortest-round-trip image), which is the §2023:15.69 NUMVAL-F argument format: optional sign, digits with an
     /// optional period decimal point, an optional <c>E</c>±exponent, leading/trailing spaces ignored. A record
     /// that does not conform (TEST-NUMVAL-F non-zero — an all-space record included) converts to ZERO and sets
     /// no exception condition, the float twin of the fixed-point arm's "a non-digit contributes no digit". The
-    /// value is converted ONCE into the receiver's own format (ISO §14.6.8.3 rule 2, kb/Work PB1110): the correctly
+    /// value is converted ONCE into the receiver's own format (ISO §2023:14.6.8.3 rule 2, kb/Work PB1110): the correctly
     /// rounded binary64 <see cref="CobolIntrinsics.NumvalFDouble"/> returns, or for a binary32 receiver
     /// (<paramref name="single"/>) the correctly rounded binary32 <see cref="CobolIntrinsics.NumvalFSingle"/> returns,
     /// widened exactly so the emitter's <c>(float)</c> cast is not a second rounding.</summary>
@@ -141,10 +141,10 @@ public static class AcceptSource
         return single ? CobolIntrinsics.NumvalFSingle(record) : CobolIntrinsics.NumvalFDouble(record);
     }
 
-    /// <summary>The Format 1 device transfer into a BOOLEAN receiver (ISO §14.9.1.4 GR1 — conversion between
+    /// <summary>The Format 1 device transfer into a BOOLEAN receiver (ISO §2023:14.9.1.4 GR1 — conversion between
     /// the device and the data item is implementor-defined): each transferred character <c>'1'</c> converts to
     /// boolean one and EVERY other character (a <c>'0'</c>, a pad space, any other device character) to
-    /// boolean zero, so the receiver's §13.18.40.4 GR14 <c>'0'</c>/<c>'1'</c> representation invariant holds
+    /// boolean zero, so the receiver's §2023:13.18.40.4 GR14 <c>'0'</c>/<c>'1'</c> representation invariant holds
     /// for any input. SR1 does not exclude a boolean receiver, so this path is conforming source. The conversion is
     /// the ONE rule of <see cref="CobolBool.FromCharacters"/> (D-B5), the one every other store into a boolean item applies.</summary>
     public static string DeviceBoolean(int width) => CobolBool.FromCharacters(Device(width));

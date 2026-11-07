@@ -6,10 +6,10 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1216 - pointer lifetime for RECURSIVE (static WS, per-
-      *> activation LS) and INITIAL programs. Rules: §13.18.5.4 4),
-      *> §8.6.5, §8.6.4 as in pb1216_ls_and_cancel_pointer_lifetime;
-      *> §8.6.4 also: "An initial item persists while the program is in
-      *> active state".  OK  §8.6.4
+      *> activation LS) and INITIAL programs. Rules: §2023:13.18.5.4 4),
+      *> §2023:8.6.5, §2023:8.6.4 as in pb1216_ls_and_cancel_pointer_lifetime;
+      *> §2023:8.6.4 also: "An initial item persists while the program is in
+      *> active state".  OK  §2023:8.6.4
       *> DERIVATION. RWS-LIVE [WWWW]: a RECURSIVE program's WORKING-
       *>   STORAGE is one static copy, alive until CANCEL. RWS-CANCELLED:
       *>   HANDLED, [....] (storage ended at CANCEL). RWS-AGAIN [WWWW]: a

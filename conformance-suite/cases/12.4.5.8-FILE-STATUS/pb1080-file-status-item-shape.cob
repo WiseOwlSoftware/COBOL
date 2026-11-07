@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1080 — ISO §12.4.5.8.3 SR1 "Data-name-1 shall not be subject to any OCCURS clauses" and SR2
+      *> kb/Work PB1080 — ISO §2023:12.4.5.8.3 SR1 "Data-name-1 shall not be subject to any OCCURS clauses" and SR2
       *> "Data-name-1 shall reference a two-character data item of the category alphanumeric, defined in the
       *> working-storage, local-storage, or linkage section". Each FILE STATUS item below breaks one: a table
       *> element (died at OPEN), PIC 99 (crashed the C# backend), PIC X(3) (a padded status), an FD record

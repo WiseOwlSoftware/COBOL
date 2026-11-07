@@ -9,18 +9,18 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// The MOVE figurative-constant edition matrix (roadmap Phase 2 W2 track A — VCR rows 1 / 92 / 128).
-/// ISO/IEC 1989:2023 §14.9.25.3 SR5: a digit-only <c>ALL "literal"</c> (or ALL symbolic-character representing a
+/// ISO/IEC 1989:2023 §2023:14.9.25.3 SR5: a digit-only <c>ALL "literal"</c> (or ALL symbolic-character representing a
 /// digit) may move to an INTEGER numeric item — the sole surviving figurative→numeric MOVE, itself obsolete at
 /// 2023 (the SR5 NOTE; Annex F.2 item 2 → COBOL0903); "in all other cases" the move of an alphanumeric
 /// figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal") to a numeric or numeric-edited item
 /// is prohibited — NEWLY removed by 2023 (Annex E.2 item 1 bullet 1: permitted through ISO 2014 → COBOL0902,
 /// error strict / warning permissive, silent below 2023) for every member of the list EXCEPT SPACE, which was
 /// already prohibited (ISO/IEC 1989:2002 clause 14.8.24.2 SR5: "The figurative constant SPACE shall not be moved to a
-/// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOL0819 at every edition (kb/Work PB3605). Value semantics: §8.3.3.6.4 GR2 (character-by-character
-/// repetition to the associated size) + §14.9.25.4 GR6d3b (a figurative sending operand takes the RECEIVER's
+/// numeric or numeric-edited item"; VCR row 7.41) and is refused COBOL0819 at every edition (kb/Work PB3605). Value semantics: §2023:8.3.3.6.4 GR2 (character-by-character
+/// repetition to the associated size) + §2023:14.9.25.4 GR6d3b (a figurative sending operand takes the RECEIVER's
 /// digit count, fraction digits included). Pre-removal semantics of the prohibited shapes are a provisional
 /// adjudication (ratified owner decision 1): the fill characters become the receiver's character
-/// image, so IS NUMERIC is false and numeric reads decode deterministically (§14.6.13.2).
+/// image, so IS NUMERIC is false and numeric reads decode deterministically (§2023:14.6.13.2).
 /// </summary>
 public sealed class MoveEditionDifferentialTests
 {
@@ -66,10 +66,10 @@ public sealed class MoveEditionDifferentialTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
-    // ═══ Item 1 — the ALL-digit value semantics (§8.3.3.6.4 GR2 + §14.9.25.4 GR6d3b) ══════════════════════════
+    // ═══ Item 1 — the ALL-digit value semantics (§2023:8.3.3.6.4 GR2 + §2023:14.9.25.4 GR6d3b) ══════════════════════════
 
     [Fact]
-    // §14.9.25.4 GR6d3b: the figurative takes the receiver's digit count and is "replicated in this item, from
+    // §2023:14.9.25.4 GR6d3b: the figurative takes the receiver's digit count and is "replicated in this item, from
     // left to right" — ALL "5" → PIC 9(3) stores 555 (was the BoundAllLiteral runtime-loud latent bug).
     public void AllDigitToInteger_FillsEveryDigitPosition_Sr5_Gr6d3b()
         => AssertSpec(Program("MVEDA1", "01 W-INT PIC 9(3).",
@@ -83,8 +83,8 @@ public sealed class MoveEditionDifferentialTests
             "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), "R[5.5]");
 
     [Fact]
-    // §8.3.3.6.4 GR2 repetition with right truncation — ALL "57" → PIC 9(3) stores 575. A multi-character ALL
-    // associated with a numeric item is §8.3.3.6.3 SR3's, removed by ISO 2002 (the gate below); at 85 it is the
+    // §2023:8.3.3.6.4 GR2 repetition with right truncation — ALL "57" → PIC 9(3) stores 575. A multi-character ALL
+    // associated with a numeric item is §2023:8.3.3.6.3 SR3's, removed by ISO 2002 (the gate below); at 85 it is the
     // '85 OBSOLETE element and admitted with exactly this repeat-truncate value (kb/Work PB422's determination,
     // VCR Table 7 row 7.13 — a derived edge; the golden twin is 85/pb422_all_multichar_numeric_85).
     public void AllDigitMultiCharacter_RepeatTruncate_At85_Sr3ObsoleteElement()
@@ -107,8 +107,8 @@ public sealed class MoveEditionDifferentialTests
     [Fact]
     // Annex E.2 item 1 bullet 1: MOVE of a non-digit ALL literal to a numeric item was permitted through 2014.
     // Pre-removal semantics (legacy-adjudicated, provisional): the receiver's character image is filled with the
-    // literal's characters at its fixed width (§8.3.3.6.4 GR2; §14.6.8 fixed-width alignment) and the item is then
-    // NOT NUMERIC (§8.8.4.4 — its content is not digits). (SPACE witnessed this until kb/Work PB3605: SPACE into a
+    // literal's characters at its fixed width (§2023:8.3.3.6.4 GR2; §2023:14.6.8 fixed-width alignment) and the item is then
+    // NOT NUMERIC (§2023:8.8.4.4 — its content is not digits). (SPACE witnessed this until kb/Work PB3605: SPACE into a
     // numeric item was never permitted, so it has no pre-removal semantics.)
     public void NonDigitAllToNumeric_ImageFill_NotNumeric_At85_E2Item1()
         => AssertSpec(Program("MVEDB1", "01 W-INT PIC 9(3).", """
@@ -121,21 +121,21 @@ public sealed class MoveEditionDifferentialTests
             """), "R[XXX]\nC[NOT-NUMERIC]");
 
     [Fact]
-    // QUOTE fill (§8.3.3.6.4 GR8: one or more quotation marks) — the former legacy engine's RUNTIME confirms three
+    // QUOTE fill (§2023:8.3.3.6.4 GR8: one or more quotation marks) — the former legacy engine's RUNTIME confirms three
     // quotes but its front end rejects the compile (CBL0906, stricter than ISO 2014), so the value is pinned.
     public void QuoteToNumeric_ImageFill_At85_E2Item1()
         => AssertSpec(Program("MVEDB2", "01 W-INT PIC 9(3).",
             "    MOVE QUOTE TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[\"\"\"]");
 
     [Fact]
-    // A non-digit-filled numeric read in a numeric context decodes deterministically to 0 (§14.6.13.2 — incompatible
+    // A non-digit-filled numeric read in a numeric context decodes deterministically to 0 (§2023:14.6.13.2 — incompatible
     // data; a non-digit contributes no digit), so ADD 1 yields 001.
     public void NonDigitFilledNumeric_DecodesZeroInArithmetic_1461312()
         => AssertSpec(Program("MVEDB3", "01 W-INT PIC 9(3).",
             "    MOVE ALL \"X\" TO W-INT.\n    ADD 1 TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[001]");
 
     [Fact]
-    // A NUMERIC-EDITED receiver is string-backed: the ALL literal fills its width (§8.3.3.6.4 GR2).
+    // A NUMERIC-EDITED receiver is string-backed: the ALL literal fills its width (§2023:8.3.3.6.4 GR2).
     public void NonDigitAllToNumericEdited_FillsWidth_At85_E2Item1()
         => AssertSpec(Program("MVEDB4", "01 W-ED PIC ZZ9.",
             "    MOVE ALL \"X\" TO W-ED.\n    DISPLAY \"R[\" W-ED \"]\"."), "R[XXX]");
@@ -198,7 +198,7 @@ public sealed class MoveEditionDifferentialTests
         "    MOVE HIGH-VALUE TO W-NUM.");
 
     [Fact]
-    // §14.9.25.3 SR5 prohibits the move at 2023 — an error under the strict (default) axis.
+    // §2023:14.9.25.3 SR5 prohibits the move at 2023 — an error under the strict (default) axis.
     public void HighValueToNumeric_Error0902_At2023Strict_Sr5()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(HighValueToNumericSource("MVEDD1"), 2023);
@@ -273,7 +273,7 @@ public sealed class MoveEditionDifferentialTests
     [Theory]
     [InlineData(85)]
     [InlineData(2023)]
-    // §14.9.20.3 SR4 makes INITIALIZE REPLACING's implicit MOVE ask the whole MOVE question, so the SPACE arm reaches
+    // §2023:14.9.20.3 SR4 makes INITIALIZE REPLACING's implicit MOVE ask the whole MOVE question, so the SPACE arm reaches
     // it through the same chain: REPLACING NUMERIC DATA BY SPACE is refused at every edition too (kb/Work PB3605).
     public void InitializeReplacingNumericBySpace_Refused_AtEveryEdition_Sr5(int edition)
     {
@@ -290,7 +290,7 @@ public sealed class MoveEditionDifferentialTests
     [InlineData("MOVE SPACE TO W-G.")]
     [InlineData("MOVE SPACE TO W-A.")]
     // The SPACE arm's scope boundary at 85: an alphanumeric or alphabetic receiver, a reference-modified view of a
-    // numeric item (an alphanumeric item, §8.4.3.3.4 GR6) and a group (§14.9.25.4 GR4) are none of them numeric.
+    // numeric item (an alphanumeric item, §2023:8.4.3.3.4 GR6) and a group (§2023:14.9.25.4 GR4) are none of them numeric.
     public void SpaceToNonNumeric_NotRefused_At85(string statement)
     {
         var source = Program("MVEDS3", "01 W-X PIC X(3).\n01 W-A PIC A(3).\n01 W-N PIC 9(3).\n01 W-G.\n   05 W-GN PIC 9(3).",
@@ -317,7 +317,7 @@ public sealed class MoveEditionDifferentialTests
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    // §8.3.3.6.3 SR3: an ALL literal LONGER THAN ONE character shall not be associated with a numeric or
+    // §2023:8.3.3.6.3 SR3: an ALL literal LONGER THAN ONE character shall not be associated with a numeric or
     // numeric-edited item. It is NOT an SR5 row (SR5's digit-only exception has no length qualifier), so the
     // diagnostic names SR3 and its own edge — removed 2002, not 2023 (kb/Work PB422; VCR Table 7 row 7.13).
     public void MultiCharacterDigitAll_Error0902_From2002_Sr3(int edition)
@@ -326,8 +326,8 @@ public sealed class MoveEditionDifferentialTests
         var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
-        EditionHarness.AssertHasDiagnostic(errors, "§8.3.3.6.3 SR3");
-        EditionHarness.AssertNoDiagnostic(errors, "§14.9.25.3 SR5");
+        EditionHarness.AssertHasDiagnostic(errors, "§2023:8.3.3.6.3 SR3");
+        EditionHarness.AssertNoDiagnostic(errors, "§2023:14.9.25.3 SR5");
     }
 
     [Theory]
@@ -335,7 +335,7 @@ public sealed class MoveEditionDifferentialTests
     [InlineData("IF ALL \"57\" NOT = W-INT DISPLAY \"NE\" END-IF.")]
     [InlineData("EVALUATE W-INT WHEN ALL \"57\" DISPLAY \"EQ\" END-EVALUATE.")]
     [InlineData("PERFORM UNTIL W-INT = ALL \"57\" MOVE 575 TO W-INT END-PERFORM.")]
-    // §8.3.3.6.4 GR2's NOTE 1 — "compared with it" is an association too, so SR3 reaches every relation (the
+    // §2023:8.3.3.6.4 GR2's NOTE 1 — "compared with it" is an association too, so SR3 reaches every relation (the
     // one relation checkpoint, either operand order): accepted at 85, 0902 from 2002, a warning under
     // --permissive with the comparison still evaluated.
     public void MultiCharacterAll_ComparedWithNumeric_Sr3(string statement)
@@ -348,11 +348,11 @@ public sealed class MoveEditionDifferentialTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
             Assert.False(ok);
-            EditionHarness.AssertHasDiagnostic(errors, "§8.3.3.6.3 SR3");
+            EditionHarness.AssertHasDiagnostic(errors, "§2023:8.3.3.6.3 SR3");
         }
         var (okP, _, wP) = EditionHarness.CompileFull(source, 2023, permissive: true);
         Assert.True(okP);
-        EditionHarness.AssertHasDiagnostic(wP, "§8.3.3.6.3 SR3");
+        EditionHarness.AssertHasDiagnostic(wP, "§2023:8.3.3.6.3 SR3");
     }
 
     [Theory]
@@ -361,7 +361,7 @@ public sealed class MoveEditionDifferentialTests
     [InlineData("IF W-INT(1:2) = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
     [InlineData("IF W-GRP = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
     // SR3's scope boundary: a ONE-character ALL literal, an alphanumeric item, a reference-modified view of a
-    // numeric item (operated upon as alphanumeric, §8.4.3.3.4 GR2) and a group are none of them SR3's.
+    // numeric item (operated upon as alphanumeric, §2023:8.4.3.3.4 GR2) and a group are none of them SR3's.
     public void Sr3ScopeBoundary_NotRefused_At2023(string statement)
     {
         var source = Program("MVEDD9",
@@ -373,7 +373,7 @@ public sealed class MoveEditionDifferentialTests
             """, "    " + statement);
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
         Assert.True(ok, string.Join(Environment.NewLine, errors));
-        EditionHarness.AssertNoDiagnostic(warnings, "§8.3.3.6.3 SR3");
+        EditionHarness.AssertNoDiagnostic(warnings, "§2023:8.3.3.6.3 SR3");
     }
 
     [Fact]
@@ -386,14 +386,14 @@ public sealed class MoveEditionDifferentialTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
     }
 
-    // ═══ Exemptions (§14.9.25.3 SR5 scope boundaries) ══════════════════════════════════════════════════════════
+    // ═══ Exemptions (§2023:14.9.25.3 SR5 scope boundaries) ══════════════════════════════════════════════════════════
 
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    // ZERO is the NUMERIC figurative (§8.3.3.6.4 GR4; Table 17) — SR5's prohibition names only the alphanumeric
+    // ZERO is the NUMERIC figurative (§2023:8.3.3.6.4 GR4; Table 17) — SR5's prohibition names only the alphanumeric
     // figuratives, so MOVE ZERO TO a numeric item is clean at every edition.
     public void ZeroToNumeric_ExemptEverywhere_Gr4(int edition)
     {
@@ -405,7 +405,7 @@ public sealed class MoveEditionDifferentialTests
     }
 
     [Fact]
-    // A GROUP receiver is a §14.9.25.4 GR4 character copy (no numeric conversion) — SR5 does not reach it, even
+    // A GROUP receiver is a §2023:14.9.25.4 GR4 character copy (no numeric conversion) — SR5 does not reach it, even
     // when the group's leaves are numeric: clean at 2023 strict.
     public void GroupReceiver_Exempt_At2023_Gr4()
     {
@@ -478,8 +478,8 @@ public sealed class MoveEditionDifferentialTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0902");
     }
 
-    /// <summary>§14.9.25.3 SR1 — "The class of identifier-1 or identifier-2 shall not be index" — is
-    /// version-INVARIANT (§13.18.60 GR10 admits only SET/SEARCH/relation references), never an Annex-E
+    /// <summary>§2023:14.9.25.3 SR1 — "The class of identifier-1 or identifier-2 shall not be index" — is
+    /// version-INVARIANT (§2023:13.18.60 GR10 admits only SET/SEARCH/relation references), never an Annex-E
     /// removal row: COBOL0809 error at EVERY edition, on the receiver AND the sender arm, and it stays an
     /// ERROR under --permissive (the review caught the 0902 row mislabeling this "permitted through 2014").</summary>
     [Theory]
@@ -505,11 +505,11 @@ public sealed class MoveEditionDifferentialTests
     }
 
     /// <summary>The ref-mod round-trip-loss fix: a MOVE into a reference-modified slice of a numeric-DISPLAY
-    /// item deposits CHARACTERS (§8.4.3.3.4 — the unique result is elementary alphanumeric; §8.4.3.3.4 GR5 the
+    /// item deposits CHARACTERS (§2023:8.4.3.3.4 — the unique result is elementary alphanumeric; §2023:8.4.3.3.4 GR5 the
     /// slice is a subset of the item's character positions). Before the fix the spliced image round-tripped
     /// through the backing long and silently lost the spaces (printed [003]/NUM); the item is now image-backed
     /// at bind time for EVERY sender kind. Pinned (no legacy cross-check: the greenfield value matches the
-    /// spec derivation; §14.6.13.2 gives the deterministic NOT-NUMERIC verdict).</summary>
+    /// spec derivation; §2023:14.6.13.2 gives the deterministic NOT-NUMERIC verdict).</summary>
     [Fact]
     public void RefModSlice_FigurativeAndLiteralSenders_PreserveCharacters()
         => AssertSpec(Program("MVRFM1", "01 N PIC 9(3) VALUE 123.\n01 M PIC 9(3) VALUE 456.", """
@@ -520,7 +520,7 @@ public sealed class MoveEditionDifferentialTests
                 DISPLAY "[" M "]".
             """), "[  3]\nNOTNUM\n[AB6]\n");
 
-    /// <summary>The ref-mod receiver is ALPHANUMERIC (§8.4.3.3.4), so a figurative MOVE into a slice is legal
+    /// <summary>The ref-mod receiver is ALPHANUMERIC (§2023:8.4.3.3.4), so a figurative MOVE into a slice is legal
     /// at EVERY edition — no 0902 even at 2023 strict (the SR5 exemption the gate honors).</summary>
     [Fact]
     public void RefModSlice_FigurativeMove_Legal_At2023Strict()
@@ -530,7 +530,7 @@ public sealed class MoveEditionDifferentialTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
-    /// <summary>HIGH-VALUE / LOW-VALUE pre-removal fills (§8.3.3.6.4 GR6/GR7 — the highest/lowest ordinal
+    /// <summary>HIGH-VALUE / LOW-VALUE pre-removal fills (§2023:8.3.3.6.4 GR6/GR7 — the highest/lowest ordinal
     /// character repeated to the receiver's width), pinned by COMPARISON (the fill bytes are unprintable):
     /// the stored image equals the same figurative, and IS NUMERIC is false. Pinned, no legacy cross-check —
     /// legacy CBL0906 compile-rejects these at every standard (documented non-conformance vs E.2 item 1).</summary>

@@ -6,8 +6,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
 /// ⛔ THE CHARACTER IMAGE OF A NUMERIC FUNCTION'S RETURNED VALUE IS THE LITERAL FORM IN THE PROGRAM'S DECIMAL
-/// SEPARATOR (kb/Work PB2507). §14.9.11.4 GR1 leaves the device conversion to the implementor (CONFORMANCE.md
-/// DOC-A.1-92 fixes the form: the literal form of the value, exactly the result's scale), and §12.3.7.4 GR14 a)
+/// SEPARATOR (kb/Work PB2507). §2023:14.9.11.4 GR1 leaves the device conversion to the implementor (CONFORMANCE.md
+/// DOC-A.1-92 fixes the form: the literal form of the value, exactly the result's scale), and §2023:12.3.7.4 GR14 a)
 /// makes the comma "the character written in numeric literals to represent the decimal separator" under
 /// DECIMAL-POINT IS COMMA, so the image carries the comma — which is GnuCOBOL 3.2's separator for these values too
 /// (the precedence order of CLAUDE.md rule 1: the standard leaves the choice, GnuCOBOL decides).
@@ -18,8 +18,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 ///
 /// <para>The corpus goldens (85/pb2507_function_result_decimal_comma and the two 2023 ones) pin every DISPLAY lane.
 /// What only a C# host can reach is the one text channel a STRICT program cannot: a noninteger function value moved to
-/// a character receiver is refused by §14.9.25.3 SR10 (COBOL0819), and <c>--permissive</c> accepts it "as the
-/// function's literal text" — with TWO receivers the value is first FROZEN in the §15.4 temporary
+/// a character receiver is refused by §2023:14.9.25.3 SR10 (COBOL0819), and <c>--permissive</c> accepts it "as the
+/// function's literal text" — with TWO receivers the value is first FROZEN in the §2023:15.4 temporary
 /// (<c>SendingValueTemp.Materialize</c>), whose image must be spelled as the un-frozen call is. And the control: a
 /// program WITHOUT the clause keeps the period on every lane, so the fix is the clause's, not a new default.</para>
 /// </summary>
@@ -57,7 +57,7 @@ public sealed class FunctionTextDecimalPointTests
     [Fact]
     public void UnderDecimalPointIsComma_TheFrozenTemporaryAndTheCallAgree_OnTheComma()
     {
-        // One receiver renders the call; two receivers freeze it into the §15.4 temporary first. The temporary
+        // One receiver renders the call; two receivers freeze it into the §2023:15.4 temporary first. The temporary
         // is a 9-fraction-digit working item, so its literal form carries nine digits (PB1007) — in the comma. DISPLAY of the
         // call is the device form of ABS(N)'s temporary, a copy of N's signed item holding the magnitude (PB3514): +1,50.
         Assert.Equal("[1,50        ]\n[1,500000000 ][1,500000000 ]\n+1,50\n", Run(comma: true));

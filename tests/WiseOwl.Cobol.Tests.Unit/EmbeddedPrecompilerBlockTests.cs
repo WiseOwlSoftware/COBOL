@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ AN EMBEDDED PRECOMPILER BLOCK IS REFUSED BY NAME, ONCE PER BLOCK, AND THE PARSE GOES ON AFTER IT (kb/Work PB4341).
 /// ISO/IEC 1989 defines no EXEC construct: <c>EXEC SQL … END-EXEC</c> is the input of a vendor's precompiler, which ISO
-/// §4.2.14 lets an implementation require ("This permits an implementation to require components outside the COBOL
+/// §2023:4.2.14 lets an implementation require ("This permits an implementation to require components outside the COBOL
 /// implementation, such as precompilers"), and this implementation has none. The block drew
 /// <c>COBOL0001: cannot parse construct near 'SQL'</c>, the message of a typo, and a block in WORKING-STORAGE or at the
 /// head of a paragraph's sentences failed in a decision so high in the parse that its recovery lost the rest of the
@@ -28,7 +28,7 @@ public sealed class EmbeddedPrecompilerBlockTests
     /// must not resume the parse as a statement; the MOVE row is the second arm (the block read as the receiving list
     /// until the SQL text's SELECT failed). ⛔ The rows from the IF ... ELSE on are a block that is the only statement of a
     /// construct's branch (kb/Work PB4341, review R1-1), which the recovery consumed as nothing, so the construct lacked its
-    /// statement (ISO §14.9.19.3 1)) and drew a false COBOL0306 at END-IF, a false COBOL2073 at WHEN OTHER (after
+    /// statement (ISO §2023:14.9.19.3 1)) and drew a false COBOL0306 at END-IF, a false COBOL2073 at WHEN OTHER (after
     /// <c>WHEN 1</c>, whose prediction read "1 IS EXEC" as a class condition), or lost the blocks after it.</summary>
     [Theory]
     [InlineData("EXEC SQL SELECT A INTO :W-A FROM T END-EXEC.", "SQL")]
@@ -80,7 +80,7 @@ public sealed class EmbeddedPrecompilerBlockTests
         Assert.Contains("'W-N'", errors[3]);
     }
 
-    /// <summary>⛔ A block read as one token stays one when the §8.9 reservation gate parses the source again (kb/Work
+    /// <summary>⛔ A block read as one token stays one when the §2023:8.9 reservation gate parses the source again (kb/Work
     /// PB655: at COBOL-85, ALLOCATE is a user word this program declares, so the first pass's tokens are retyped and the
     /// source is parsed again): the block is reported once, by the pass that describes the source.</summary>
     [Fact]
@@ -92,7 +92,7 @@ public sealed class EmbeddedPrecompilerBlockTests
         Assert.Contains($"{Code}:", errors[0]);
     }
 
-    /// <summary>⛔ A source that writes EXEC as a COBOL word anywhere (here a data item, which no edition's §8.9 list
+    /// <summary>⛔ A source that writes EXEC as a COBOL word anywhere (here a data item, which no edition's §2023:8.9 list
     /// reserves) is read as COBOL throughout, as the standard reads it: no EXEC of it opens a block, so the text after
     /// <c>EXEC SQL</c> draws the COBOL reading's own diagnostics and no COBOL5818. Where every EXEC opens a block, each is
     /// one (the rows above). The program whose EXEC, SQL and END-EXEC are data items compiles and runs at all four
@@ -108,7 +108,7 @@ public sealed class EmbeddedPrecompilerBlockTests
     /// <summary>⛔ A block left without its END-EXEC is its own fault, COBOL5842 at its EXEC, and the blocks of the source
     /// that close stay one COBOL5818 each (kb/Work PB4381: the first EXEC that opened no block made the whole source read
     /// as COBOL, and every well-formed block drew COBOL0001 near 'SQL' again). The sentence ends at the separator period
-    /// (ISO §8.3.5 rule 3), so the unterminated block is taken through the text before it, and the MOVE fault after the
+    /// (ISO §2023:8.3.5 rule 3), so the unterminated block is taken through the text before it, and the MOVE fault after the
     /// blocks is still reported.</summary>
     [Fact]
     public void ABlockWithoutItsEndExec_IsItsOwnDiagnostic_AndTheClosedBlocksStayBlocks()
@@ -139,7 +139,7 @@ public sealed class EmbeddedPrecompilerBlockTests
 
     /// <summary>⛔ A source that declares EXEC as a data item and also holds a block left without its END-EXEC is read as
     /// COBOL throughout: the declaration is an EXEC that opens no block (a reserved word, PIC, follows it), so neither
-    /// COBOL5818 nor COBOL5842 is drawn (ISO §8.9 reserves no EXEC).</summary>
+    /// COBOL5818 nor COBOL5842 is drawn (ISO §2023:8.9 reserves no EXEC).</summary>
     [Fact]
     public void ADeclaredExec_KeepsTheWholeSourceCobol_EvenWithAnUnterminatedBlock()
     {
@@ -150,7 +150,7 @@ public sealed class EmbeddedPrecompilerBlockTests
 
     /// <summary>⛔ A declaration that takes a LIST of user-defined words puts a user-defined word after a declared EXEC with no
     /// END-EXEC in its sentence, the shape of a block left unterminated (kb/Work PB4381, review R1-1): an index-name EXEC
-    /// (<c>INDEXED BY EXEC IDX</c>) and a symbolic character EXEC (<c>SYMBOLIC CHARACTERS EXEC BEL</c>). EXEC is reserved by no edition (ISO §8.9), so each is legal COBOL, and the
+    /// (<c>INDEXED BY EXEC IDX</c>) and a symbolic character EXEC (<c>SYMBOLIC CHARACTERS EXEC BEL</c>). EXEC is reserved by no edition (ISO §2023:8.9), so each is legal COBOL, and the
     /// source is accepted: the parse, not a list of declaration positions, tells the word from the block.</summary>
     [Theory]
     [InlineData("""
@@ -184,7 +184,7 @@ public sealed class EmbeddedPrecompilerBlockTests
 
     /// <summary>⛔ A semicolon inside a block is SQL text, whatever channel the lexer put it on (kb/Work PB4384): the lexer
     /// puts a semicolon with no space after it on the HIDDEN channel so that the separator screen can judge it (ISO
-    /// §8.3.5 rule 2), and the reading moved only default-channel tokens, so <c>A;B</c> drew COBOL2631 inside the block.
+    /// §2023:8.3.5 rule 2), and the reading moved only default-channel tokens, so <c>A;B</c> drew COBOL2631 inside the block.
     /// The block draws its COBOL5818 and nothing else, with the semicolon followed by a space and not.</summary>
     [Theory]
     [InlineData("EXEC SQL SELECT A;B INTO :W-A FROM T END-EXEC.")]
@@ -199,7 +199,7 @@ public sealed class EmbeddedPrecompilerBlockTests
     }
 
     /// <summary>⛔ The period of a qualified SQL name is text of the block, not the end of its sentence (kb/Work PB4341,
-    /// review R1-2): "The COBOL character period, when followed by a space, is a separator" (ISO §8.3.5 rule 3), and the
+    /// review R1-2): "The COBOL character period, when followed by a space, is a separator" (ISO §2023:8.3.5 rule 3), and the
     /// block's scan ended at ANY period, so <c>T.A</c> or <c>:W-REC.W-X</c> left the block unrecognized, with the PB4341
     /// symptom (COBOL0001 near 'SQL') and the rest of the program lost. Each block is now one COBOL5818, the MOVE fault
     /// after them is reported, and nothing else: the separator screen skips the block's text (another language, whose

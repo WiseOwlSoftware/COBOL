@@ -5,18 +5,18 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.7.5.2 SR11 — <> means NOT EQUAL
+      *> ISO §2023:8.7.5.2 SR11 — <> means NOT EQUAL
       *> SR11: "<> is an abbreviation for NOT EQUAL."
       *> cite.py --check 8.7.5.2 "<> is an abbreviation for NOT EQUAL"
-      *>   prints "OK  §8.7.5.2 8)": cite.py's text match cannot tell
+      *>   prints "OK  §2023:8.7.5.2 8)": cite.py's text match cannot tell
       *>   SR11 from SR8 ("NOT = is an abbreviation for NOT EQUAL."),
       *>   whose words are identical; the SR11 line was read directly
-      *>   in specs/ISO_COBOL_2023.md §8.7.5.2 as "11\) <> is an abbreviation
+      *>   in specs/ISO_COBOL_2023.md §2023:8.7.5.2 as "11\) <> is an abbreviation
       *>   for NOT EQUAL."
-      *>   OK  §8.8.4.12.4 1)  (General rule)  abbreviated combined
+      *>   OK  §2023:8.8.4.12.4 1)  (General rule)  abbreviated combined
       *>       relation: "the last stated relational operator were
       *>       inserted in place of the omitted relational operator"
-      *> §8.7.5.1 Format 2 lists "IS <>" with IS optional.
+      *> §2023:8.7.5.1 Format 2 lists "IS <>" with IS optional.
       *> Accepted from 2014, the edition that introduced <>: the 2002
       *> text's clause 8.7.5.2 ends its abbreviation rules at <= and
       *> the 2009 committee draft's Annex D.3 (2002->2014 changes) item

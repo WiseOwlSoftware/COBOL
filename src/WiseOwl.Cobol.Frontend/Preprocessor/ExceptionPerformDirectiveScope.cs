@@ -8,12 +8,12 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The implicit PUSH ALL / POP ALL of ISO/IEC 1989:2023 §14.9.28.4 GR14 as ordinary directive-stack ops (kb/Work
+/// The implicit PUSH ALL / POP ALL of ISO/IEC 1989:2023 §2023:14.9.28.4 GR14 as ordinary directive-stack ops (kb/Work
 /// PB1004, PB1066): "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of imperative-statement-1.
 /// Immediately preceding the END PERFORM phrase, there is an implicit POP ALL …".
 ///
 /// <para>⛔ ONE MECHANISM. The two ops go through the SAME <see cref="DirectiveStateStack"/> as a written
-/// <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> (§7.3.22.4 GR2 / §7.3.20.4 GR3), so EVERY directive state the
+/// <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> (§2023:7.3.22.4 GR2 / §2023:7.3.20.4 GR3), so EVERY directive state the
 /// stack carries is saved at the end of imperative-statement-1 and restored before END-PERFORM — in ALL THREE places
 /// that state lives: the post-COPY line-scoped timelines (TURN, REF-MOD-ZERO-LENGTH, FLAG-02/14 bound options —
 /// <see cref="DirectiveResults.WithStackOps"/>); the reference-format normalizer's SOURCE FORMAT

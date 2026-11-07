@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <see cref="SetAmount.Land(Int128, int, out Int128)"/>, the exact-lane landing every SET-family amount and the
 /// START … WITH LENGTH count go through, over the whole SIGN of the scale. A positive scale is a fraction (the
 /// divisibility test is the integrality test); a NEGATIVE scale is a trailing-P amount whose VALUE is the stored
-/// digits × 10^|scale| (ISO §13.18.40.4 GR14: "The symbol 'P' specifies the location of an assumed decimal point when
+/// digits × 10^|scale| (ISO §2023:13.18.40.4 GR14: "The symbol 'P' specifies the location of an assumed decimal point when
 /// that point is not within the number that appears in the data item"). kb/Work PB2697: the negative half used to
 /// hand back the stored digits, so <c>SET IX UP BY N</c> with <c>N PIC 9PP VALUE 100</c> moved the index by 1.
 /// </summary>

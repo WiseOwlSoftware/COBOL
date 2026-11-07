@@ -5,11 +5,11 @@
 *> portable: unverified
 *>---
       *> GROUP INDICATE ON AN ENTRY WITH NO COLUMN CLAUSE (kb/Work PB1245 -- COBOL2519).
-      *> ISO/IEC 1989:2023 §13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
+      *> ISO/IEC 1989:2023 §2023:13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a
       *> SOURCE or VALUE clause."
       *>   cite.py --check 13.18.28.3 "in an elementary entry that also contains a COLUMN clause and a
-      *>     SOURCE or VALUE clause"  -> OK  §13.18.28.3 1)  (Syntax rule)
+      *>     SOURCE or VALUE clause"  -> OK  §2023:13.18.28.3 1)  (Syntax rule)
       *> WX has a SOURCE clause but no COLUMN clause, so it is not a printable item; it compiled and ran.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1245NC.

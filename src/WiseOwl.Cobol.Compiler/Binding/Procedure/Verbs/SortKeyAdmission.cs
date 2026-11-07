@@ -8,17 +8,17 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// syntax rules, in its own words.</summary>
 internal enum SortKeyRules
 {
-    /// <summary>SORT Format 1 (file) — §14.9.40.3 SR6.</summary>
+    /// <summary>SORT Format 1 (file) — §2023:14.9.40.3 SR6.</summary>
     FileSort,
-    /// <summary>SORT Format 2 (table) — §14.9.40.3 SR14.</summary>
+    /// <summary>SORT Format 2 (table) — §2023:14.9.40.3 SR14.</summary>
     TableSort,
-    /// <summary>MERGE — §14.9.24.3 SR4.</summary>
+    /// <summary>MERGE — §2023:14.9.24.3 SR4.</summary>
     Merge,
 }
 
 /// <summary>⛔ THE ONE KEY-ADMISSIBILITY PREDICATE of the sort-merge verbs (kb/Work PB1173, PB1052): which data items
 /// may be a KEY, asked of the DATA DESCRIPTION alone, by the three statements that name keys. The rule is printed
-/// three times — §14.9.40.3 SR6 (SORT Format 1), §14.9.40.3 SR14 (Format 2) and §14.9.24.3 SR4 (MERGE) — and each
+/// three times — §2023:14.9.40.3 SR6 (SORT Format 1), §2023:14.9.40.3 SR14 (Format 2) and §2023:14.9.24.3 SR4 (MERGE) — and each
 /// copy lists the same four shapes in slightly different words, so the statements used to enforce whichever one
 /// they remembered: the file verbs asked only whether the key had a character image (which happens to catch a
 /// dynamic-length item, and with the wrong diagnosis), the table sort asked nothing at all, and a BOOLEAN key, a
@@ -32,26 +32,26 @@ internal enum SortKeyRules
 ///     has no such arm HERE: its keys lie inside the table, whose own OCCURS is the point, and SR14 e) — an OCCURS
 ///     BETWEEN the key and data-name-2 — is asked of the walk to data-name-2 (<c>SortBinder.KeyUnderInnerOccurs</c>).</item>
 ///   <item><b>Class</b> — SR6 c) / SR4 c): "Key data items shall not be of the class boolean, message-tag, object, or
-///     pointer"; SR14 c): "boolean, object, or pointer" — and the table form refuses a message-tag key too, on §8.8.4.2.14's
+///     pointer"; SR14 c): "boolean, object, or pointer" — and the table form refuses a message-tag key too, on §2023:8.8.4.2.14's
 ///     equality-only comparison (kb/Work PB4740). The class is the OPERAND's (<see cref="DataItem.OperandPic"/>,
-///     the ONE operand-category reader), so a bit GROUP is the boolean operand §13.18.29.4 GR1b makes it.</item>
+///     the ONE operand-category reader), so a bit GROUP is the boolean operand §2023:13.18.29.4 GR1b makes it.</item>
 ///   <item><b>Shape</b> — SR6 d) / SR4 d): a variable-length group, an occurs-depending-on data item, a
 ///     dynamic-length elementary item, or an item subordinate to a dynamic-capacity table; SR14 d): a variable-length
-///     group or an occurs-depending GROUP item (§13.18.38.4 GR8 — a group with an entry subordinate to it that
+///     group or an occurs-depending GROUP item (§2023:13.18.38.4 GR8 — a group with an entry subordinate to it that
 ///     specifies the DEPENDING phrase). A group holding an occurs-depending table is refused by every statement: its
 ///     length is not fixed, and the file verbs' SR6 e) takes "the same byte positions" as the key in every record.</item>
 /// </list></summary>
 internal static class SortKeyAdmission
 {
     /// <summary>The syntax rule that prints the key rules of <paramref name="rules"/>, as a diagnostic cites it
-    /// ("ISO §14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
+    /// ("ISO §2023:14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
     /// read by this predicate and by <c>SortBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
     /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
     public static string Clause(SortKeyRules rules) => rules switch
     {
-        SortKeyRules.FileSort => "ISO §14.9.40.3 SR6",
-        SortKeyRules.TableSort => "ISO §14.9.40.3 SR14",
-        _ => "ISO §14.9.24.3 SR4",
+        SortKeyRules.FileSort => "ISO §2023:14.9.40.3 SR6",
+        SortKeyRules.TableSort => "ISO §2023:14.9.40.3 SR14",
+        _ => "ISO §2023:14.9.24.3 SR4",
     };
 
     /// <summary>The refusal text for <paramref name="key"/> under <paramref name="rules"/> — the violated rule quoted
@@ -85,13 +85,13 @@ internal static class SortKeyAdmission
             PicCategory.MessageTag => "message-tag",
             _ => null,
         };
-        // SR14 c) does not list message-tag, but a key is ORDERED and §8.8.4.2.14 defines the message-tag comparison for
+        // SR14 c) does not list message-tag, but a key is ORDERED and §2023:8.8.4.2.14 defines the message-tag comparison for
         // equality alone ("may be compared with another operand of class message-tag"; a tag has no order), so the table
         // form is refused on that ground (kb/Work PB4740 review R1-3).
         if (cls == "message-tag" && rules == SortKeyRules.TableSort)
             return $"{verb} key '{name}' is of class message-tag, which has no ordering: a message-tag operand "
                 + "\"may be compared with another operand of class message-tag\" for equality only, and a sort key "
-                + "is ordered (ISO §8.8.4.2.14; " + clause + ")";
+                + "is ordered (ISO §2023:8.8.4.2.14; " + clause + ")";
         if (cls is not null)
             return $"{verb} key '{name}' is of class {cls}: \"Key data items shall not be of "
                 + (rules == SortKeyRules.TableSort ? "class boolean, object, or pointer" : "the class boolean, message-tag, object, or pointer")
@@ -102,9 +102,9 @@ internal static class SortKeyAdmission
         if (key.IsDynamicLength)
             shape = rules == SortKeyRules.TableSort ? null : "a dynamic-length elementary item";   // SR14 d) names groups only
         else if (key.IsGroup && DataItem.HasVariableLengthSubordinate(key))
-            shape = "a variable-length group (ISO §8.5.1.12.1)";
+            shape = "a variable-length group (ISO §2023:8.5.1.12.1)";
         else if (key.IsGroup && DataItem.DescendantsOf(key).Any(d => d.OccursSpec is { Depending: not null }))
-            shape = "an occurs-depending group item (ISO §13.18.38.4 GR8)";
+            shape = "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)";
         if (shape is not null)
             return $"{verb} key '{name}' is {shape}: \"A key data item shall not "
                 + (rules switch

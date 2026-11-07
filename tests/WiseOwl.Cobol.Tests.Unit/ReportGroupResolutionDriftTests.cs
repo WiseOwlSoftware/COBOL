@@ -14,9 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A REPORT-GROUP REFERENCE RESOLVES THROUGH ONE FUNNEL (<c>ReportGroupResolution</c> — kb/Work PB365), AND
 /// THIS KEEPS IT TRUE. Two statements name a report group by name — <c>GENERATE data-name-1</c> (ISO
-/// §14.9.16.3 SR1) and <c>USE BEFORE REPORTING identifier-1</c> (§14.9.49.3 SR9) — and both were written as
+/// §2023:14.9.16.3 SR1) and <c>USE BEFORE REPORTING identifier-1</c> (§2023:14.9.49.3 SR9) — and both were written as
 /// <c>foreach (report) if (report.Groups.FirstOrDefault(name-matches) is {} g) …</c>, a loop that returns on
-/// the first match where §8.4.2.2 requires exactly one. Both arms were wrong; both were fixed by DELETING the
+/// the first match where §2023:8.4.2.2 requires exactly one. Both arms were wrong; both were fixed by DELETING the
 /// search and calling the funnel (feedback_two_arm_dispatch, feedback_one_rule_one_place).
 ///
 /// <para>The guard is source-form on the shape that was the bug: no compiler source may search
@@ -37,7 +37,7 @@ public sealed class ReportGroupResolutionDriftTests
     };
 
     /// <summary>The <c>Groups</c>-by-name search shape: any use of <c>.Groups</c> in the same expression as a
-    /// name comparison (<c>Equals(</c> — the OrdinalIgnoreCase form §8.3.2.2 requires). Object-identity uses
+    /// name comparison (<c>Equals(</c> — the OrdinalIgnoreCase form §2023:8.3.2.2 requires). Object-identity uses
     /// such as <c>Groups.Contains(group)</c> are NOT a name search and do not match.</summary>
     private static readonly Regex NameSearch = new(
         @"\.Groups\b[^;]{0,200}?\bEquals\(", RegexOptions.Singleline | RegexOptions.Compiled);
@@ -68,7 +68,7 @@ public sealed class ReportGroupResolutionDriftTests
             .ToList();
         Assert.True(offenders.Count == 0,
             "report-group name search(es) outside the funnel — resolve through "
-            + "ReportGroupResolution.Resolve so the §8.4.2.2.1 / §8.4.2.2.3 SR1 ambiguity rule and the "
+            + "ReportGroupResolution.Resolve so the §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1 ambiguity rule and the "
             + "IN/OF report-name qualifier are written down ONCE (kb/Work PB365):\n  "
             + string.Join("\n  ", offenders));
     }
@@ -81,7 +81,7 @@ public sealed class ReportGroupResolutionDriftTests
                  {
                      Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),
                      Path.Combine("Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"),
-                     // The DATA-division site: the SUM clause's UPON data-name-2 (ISO §13.18.54.3 SR7),
+                     // The DATA-division site: the SUM clause's UPON data-name-2 (ISO §2023:13.18.54.3 SR7),
                      // resolved in ResolveReports once every report group is described (kb/Work PB482).
                      Path.Combine("Binding", "ReportSectionBinder.cs"),
                  })

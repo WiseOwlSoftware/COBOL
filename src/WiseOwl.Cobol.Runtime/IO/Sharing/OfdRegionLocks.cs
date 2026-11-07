@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE HOST PRIMITIVE UNDER ISO §9.1.15's FILE LOCK WHERE <see cref="FileShare"/> CANNOT CARRY IT — Linux
+/// ⛔ THE HOST PRIMITIVE UNDER ISO §2023:9.1.15's FILE LOCK WHERE <see cref="FileShare"/> CANNOT CARRY IT — Linux
 /// <b>open-file-description</b> byte-range locks (<c>fcntl</c> <c>F_OFD_SETLK</c> / <c>F_OFD_GETLK</c>, kernel 3.15),
 /// and nothing else (kb/Work PB833). The policy that uses it — WHICH columns a connector publishes and tests — is
 /// <see cref="RunUnitFileLock"/>'s, spoken to this host by <see cref="OfdColumnLockHost"/>; this class is only the

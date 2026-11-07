@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
-/// The eight ISO/IEC 1989:2023 ROUNDED MODE rounding methods (§14.9.4 / §11.9.6).
+/// The eight ISO/IEC 1989:2023 ROUNDED MODE rounding methods (§2023:14.9.4 / §2023:11.9.6).
 ///
 /// The numeric values are deliberately identical to the legacy <c>PicRuntime.Round*</c> integer
 /// constants so that the data-model migration can cast between the two without a lookup table while
@@ -25,7 +25,7 @@ public enum CobolRounding
     /// <summary>NEAREST-TOWARD-ZERO — round to nearest; a tie rounds toward zero.</summary>
     NearestTowardZero = 4,
     /// <summary>PROHIBITED — rounding is not permitted; an inexact result raises the SIZE ERROR condition
-    /// (EC-SIZE-TRUNCATION) and leaves the receiver unchanged (ISO §14.9.4).</summary>
+    /// (EC-SIZE-TRUNCATION) and leaves the receiver unchanged (ISO §2023:14.9.4).</summary>
     Prohibited = 5,
     /// <summary>TOWARD-GREATER — round toward positive infinity (ceiling).</summary>
     TowardGreater = 6,

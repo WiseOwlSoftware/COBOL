@@ -8,13 +8,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// The report writer's HELD-BACK PRINT LINE is a property of the FILE CONNECTOR, not of one report (kb/Work PB1247).
-/// ISO §13.18.35.4 GR3 lets a relative line with an integer-2 of zero overwrite the preceding line's characters, and a
+/// ISO §2023:13.18.35.4 GR3 lets a relative line with an integer-2 of zero overwrite the preceding line's characters, and a
 /// print stream cannot rewrite a line it has emitted, so <c>CobolReport</c> keeps its most recent line unwritten.
 /// The connector holds at most ONE such line (<see cref="FileConnector.HeldLineDrain"/>): a producer that is about to
 /// write claims the device first (<see cref="FileRegistry.HoldLine"/>), which writes out a DIFFERENT holder's line —
 /// produced earlier, so it must reach the medium first — and every CLOSE writes the holder's line before the file
 /// closes. These facts reach the arms a golden barely can: a second producer on one file (several reports on one
-/// file, §13.18.46 REPORTS ARE — conformance:cases/13.18.12-CODE/pb1050_reports_share_file drives it end to end, kb/Work PB1050) and
+/// file, §2023:13.18.46 REPORTS ARE — conformance:cases/13.18.12-CODE/pb1050_reports_share_file drives it end to end, kb/Work PB1050) and
 /// the re-claim by the same holder.
 /// </summary>
 public sealed class ReportHeldLineTests

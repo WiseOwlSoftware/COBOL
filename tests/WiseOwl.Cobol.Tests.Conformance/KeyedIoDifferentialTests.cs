@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// RELATIVE + INDEXED file organizations (ISO §9.1.7.3/.4): the keyed verbs' status machine and transfer of
-/// control — WRITE/READ/REWRITE/DELETE/START with the §9.1.14 INVALID KEY contract, the RRN MOVE-backs
-/// (§14.9.51 GR29a / §14.9.30 GR25), and the keyed status family ('21' '22' '23', §9.1.13.5). Pinned to the
+/// RELATIVE + INDEXED file organizations (ISO §2023:9.1.7.3/.4): the keyed verbs' status machine and transfer of
+/// control — WRITE/READ/REWRITE/DELETE/START with the §2023:9.1.14 INVALID KEY contract, the RRN MOVE-backs
+/// (§2023:14.9.51 GR29a / §2023:14.9.30 GR25), and the keyed status family ('21' '22' '23', §2023:9.1.13.5). Pinned to the
 /// former legacy engine (NIST RL/IX-green) — each compiler runs in its own temp directory, so the connectors'
 /// on-disk stores never cross engines. Every test carries its governing ISO paragraph.
 /// </summary>
@@ -15,9 +15,9 @@ public sealed class KeyedIoDifferentialTests
 {
     private static void AssertMatchesGolden(string source) => DifferentialGolden.Assert(source);
 
-    /// <summary>§14.9.51 GR29a: sequential-access relative WRITE releases consecutive RRNs from 1 and MOVEs each
-    /// into the RELATIVE KEY item; §14.9.30 GR25: each sequential READ MOVEs the RRN of the record made
-    /// available; §14.9.30 GR24a: exhaustion sets '10' and takes AT END.</summary>
+    /// <summary>§2023:14.9.51 GR29a: sequential-access relative WRITE releases consecutive RRNs from 1 and MOVEs each
+    /// into the RELATIVE KEY item; §2023:14.9.30 GR25: each sequential READ MOVEs the RRN of the record made
+    /// available; §2023:14.9.30 GR24a: exhaustion sets '10' and takes AT END.</summary>
     [Fact]
     public void Relative_SequentialWriteReadBack_StoresRrnInKeyItem()
         => AssertMatchesGolden("""
@@ -59,7 +59,7 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.51 GR33a: random WRITE of an occupied slot → '22' + INVALID KEY; §14.9.30 GR29: random READ
+    /// <summary>§2023:14.9.51 GR33a: random WRITE of an occupied slot → '22' + INVALID KEY; §2023:14.9.30 GR29: random READ
     /// of a nonexistent slot → '23' + INVALID KEY; an existing slot reads back its record.</summary>
     [Fact]
     public void Relative_RandomWriteAndRead_InvalidKeyStatuses()
@@ -100,8 +100,8 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.35 GR21: random REWRITE of an absent slot → '23'; §14.9.10 GR4: random DELETE of an absent
-    /// slot → '23'; §9.1.14: NOT INVALID KEY runs only on SUCCESSFUL completion.</summary>
+    /// <summary>§2023:14.9.35 GR21: random REWRITE of an absent slot → '23'; §2023:14.9.10 GR4: random DELETE of an absent
+    /// slot → '23'; §2023:9.1.14: NOT INVALID KEY runs only on SUCCESSFUL completion.</summary>
     [Fact]
     public void Relative_RandomRewriteDelete_StatusAndNotInvalidContract()
         => AssertMatchesGolden("""
@@ -156,8 +156,8 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.51 GR42b: duplicate prime key → '22'; §14.9.30 GR32: random READ by RECORD KEY (absent →
-    /// '23'); §14.9.35 GR23: random REWRITE replaces by prime key; §14.9.10 GR3: DELETE by prime key.</summary>
+    /// <summary>§2023:14.9.51 GR42b: duplicate prime key → '22'; §2023:14.9.30 GR32: random READ by RECORD KEY (absent →
+    /// '23'); §2023:14.9.35 GR23: random REWRITE replaces by prime key; §2023:14.9.10 GR3: DELETE by prime key.</summary>
     [Fact]
     public void Indexed_RandomCrudByPrimeKey()
         => AssertMatchesGolden("""
@@ -214,8 +214,8 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.51 GR38/GR42a: sequential-access indexed WRITEs must release strictly ascending prime keys
-    /// — an out-of-order key → '21' + INVALID KEY, and the record is NOT written (§9.1.14 — the file is not
+    /// <summary>§2023:14.9.51 GR38/GR42a: sequential-access indexed WRITEs must release strictly ascending prime keys
+    /// — an out-of-order key → '21' + INVALID KEY, and the record is NOT written (§2023:9.1.14 — the file is not
     /// affected); the sequential read-back proves it.</summary>
     [Fact]
     public void Indexed_SequentialWrite_AscendingKeyOrder21()
@@ -261,7 +261,7 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.41 GR8–GR9: relative START positions the FPI at the first RRN satisfying the comparison
+    /// <summary>§2023:14.9.41 GR8–GR9: relative START positions the FPI at the first RRN satisfying the comparison
     /// (forward for >=); subsequent sequential READs walk from there; an unsatisfiable comparison → '23' +
     /// INVALID KEY (GR9c).</summary>
     [Fact]
@@ -311,7 +311,7 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§14.9.41 SR6b/GR17: a START operand that is a SHORTER item beginning at the key's leftmost
+    /// <summary>§2023:14.9.41 SR6b/GR17: a START operand that is a SHORTER item beginning at the key's leftmost
     /// character position is a GENERIC (partial) key — the comparison takes only that many leftmost characters;
     /// GR16: the key becomes the key of reference for subsequent sequential READs.</summary>
     [Fact]
@@ -364,7 +364,7 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§9.1.14 (final rule item 2): with only a NOT INVALID KEY phrase, an invalid-key completion
+    /// <summary>§2023:9.1.14 (final rule item 2): with only a NOT INVALID KEY phrase, an invalid-key completion
     /// ('22') takes NEITHER branch — the NOT phrase runs exclusively on successful completion, and the FILE
     /// STATUS item still records the condition.</summary>
     [Fact]
@@ -401,10 +401,10 @@ public sealed class KeyedIoDifferentialTests
                 STOP RUN.
             """);
 
-    /// <summary>§12.4.5.12.3 SR2 / §12.4.5.6 SR2 + §8.4.2.2: the RECORD KEY / ALTERNATE RECORD KEY operands may
+    /// <summary>§2023:12.4.5.12.3 SR2 / §2023:12.4.5.6 SR2 + §2023:8.4.2.2: the RECORD KEY / ALTERNATE RECORD KEY operands may
     /// be IN/OF-QUALIFIED — identically named key items under different areas of the record are legal and
     /// disambiguated by qualification (the IX215A shape; a glued GetText lookup could never resolve them).
-    /// START's key operand resolves through the same qualified reference machinery (§14.9.41 SR6 then matches
+    /// START's key operand resolves through the same qualified reference machinery (§2023:14.9.41 SR6 then matches
     /// by storage position).</summary>
     [Fact]
     public void Indexed_QualifiedRecordAndAlternateKeys_ResolveByQualifier()

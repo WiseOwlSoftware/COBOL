@@ -28,13 +28,13 @@ internal sealed class OdoResolvePass : IBindPass
     /// each Format-2 table's data-name-1 and enforce the structural syntax rules the GR8 character-prefix model
     /// relies on, each with its ISO citation — SR16 bounds, SR17 integer data-name-1, SR2 unsubscripted
     /// data-name-1, SR1(b)/SR10 no "complex ODO" (an occurs-depending table never nests under another OCCURS, at
-    /// EVERY edition — the legacy comment claiming 2002+ legality was wrong), §13.18.44 SR no ODO inside an
+    /// EVERY edition — the legacy comment claiming 2002+ legality was wrong), §2023:13.18.44 SR no ODO inside an
     /// explicit REDEFINES, SR22 trailing table, SR20 data-name-1 placement. Violations are bind-time rejections
     /// (<c>Edition.Error</c> fails the compile) — never a silently mis-sized table (SSOT §1.4).
     /// </summary>
     public void Run(DataBinder binder)
     {
-        // §13.18.38.3 SR10 / §8.4.2.3.3 SR3 (kb/Work PB1260): "as long as the number of subscripts required does not
+        // §2023:13.18.38.3 SR10 / §2023:8.4.2.3.3 SR3 (kb/Work PB1260): "as long as the number of subscripts required does not
         // exceed seven" — a table nested under seven others needs eight. Reported ONCE, at the first entry that
         // exceeds it (an eighth dimension), not again for everything beneath it.
         // ⛔ THE DEPTH IS A PROPERTY OF THE COMPOSED ENTRY (kb/Work PB1629; the CompositionForest's contract): a TYPE or
@@ -52,7 +52,7 @@ internal sealed class OdoResolvePass : IBindPass
             binder.Edition.Error(DiagnosticCatalog.TableNestingTooDeep,
                 $"table '{table.CobolName ?? table.ClrName}' is nested under seven other OCCURS entries: a reference to "
                 + "it needs eight subscripts, and \"as long as the number of subscripts required does not exceed "
-                + "seven\" (ISO §13.18.38.3 SR10) — at most seven subscripts may be specified (§8.4.2.3.3 SR3)"
+                + "seven\" (ISO §2023:13.18.38.3 SR10) — at most seven subscripts may be specified (§2023:8.4.2.3.3 SR3)"
                 + DataBinder.ViaReference(table));
         }
 
@@ -61,11 +61,11 @@ internal sealed class OdoResolvePass : IBindPass
             if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
             using var _ = binder.Edition.At(item);
             string subject = item.CobolName ?? item.ClrName;
-            // ⛔ A TYPE DECLARATION IS SCREENED, NOT PLACED (kb/Work PB2548). Its OCCURS DEPENDING ON phrase is source (§4.3),
+            // ⛔ A TYPE DECLARATION IS SCREENED, NOT PLACED (kb/Work PB2548). Its OCCURS DEPENDING ON phrase is source (§2023:4.3),
             // so every rule that is a fact of the declaration alone — SR16's bounds, the counter's own SR17/SR2 when it
-            // resolves — is asked of it; a use site is asked again through its clone. But §13.18.57.4 GR1 makes a TYPE
+            // resolves — is asked of it; a use site is asked again through its clone. But §2023:13.18.57.4 GR1 makes a TYPE
             // clause "as though the data description … had been coded in place", so data-name-1 is looked up where the
-            // description is PLACED (§8.4.2.2.1 rule 5: the groups superordinate to the subject): a name the declaration
+            // description is PLACED (§2023:8.4.2.2.1 rule 5: the groups superordinate to the subject): a name the declaration
             // and the program do not define may be a sibling of the use site, and an unused library type whose counter
             // each user supplies is legal source. A name the declaration does not define is therefore NOT an error here — the clone
             // that places it reports it (COBOL0851) — and the rules that read the PLACEMENT (SR18/SR21's GLOBAL and
@@ -76,28 +76,28 @@ internal sealed class OdoResolvePass : IBindPass
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingBoundsInvalid, $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
-                    + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38.3 SR16)");
+                    + "be greater than or equal to zero and less than integer-2 (ISO §2023:13.18.38.3 SR16)");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
-            // §8.4.2.2.1 rule 5 makes the groups superordinate to both the data-name and the subject IMPLICIT
+            // §2023:8.4.2.2.1 rule 5 makes the groups superordinate to both the data-name and the subject IMPLICIT
             // qualifiers of a data-name referenced in a data description entry clause. That is also what binds a
-            // TYPEDEF clone's internal DEPENDING to the clone's own sibling (review DEVLOG 664 fix #4; §13.18.57.4
+            // TYPEDEF clone's internal DEPENDING to the clone's own sibling (review DEVLOG 664 fix #4; §2023:13.18.57.4
             // GR1 — the type is "coded in place"). (This comment used to justify the own-record preference by
-            // "§13.18.38.3 SR20, data-name-1 lies within the same record"; SR20 forbids data-name-1 a byte position
+            // "§2023:13.18.38.3 SR20, data-name-1 lies within the same record"; SR20 forbids data-name-1 a byte position
             // between the OCCURS entry and the end of its record and places no counter anywhere, kb/Work PB978.)
             // Otherwise the scope-aware set (M2-OO-1h): a method table's data-name-1 resolves in the owning
-            // method's scope first (§11.7.4 GR5), then a visible object/program item.
-            // A data-name-1 the capture REFUSED (§13.18.38.3 SR2 — subscripted, or not a data-name at all) was
+            // method's scope first (§2023:11.7.4 GR5), then a visible object/program item.
+            // A data-name-1 the capture REFUSED (§2023:13.18.38.3 SR2 — subscripted, or not a data-name at all) was
             // reported there; one fault, one verdict (kb/Work PB885).
             if (binder.State.Clauses.RefusedClauseOperands.Contains(depName)) continue;
-            // ⛔ THE SET IS COUNTED (kb/Work PB978) — one survivor, or §8.4.2.2.3 SR1's ambiguity through the ONE
+            // ⛔ THE SET IS COUNTED (kb/Work PB978) — one survivor, or §2023:8.4.2.2.3 SR1's ambiguity through the ONE
             // verdict; never the first declared, which the unqualified fallback here used to take (`cands[0]`): with
             // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
             string writtenDep = DataBinder.WrittenQualified(depName, spec.DependingQualifiers);
             string depFace = $"OCCURS DEPENDING ON data-name-1 of '{subject}'";
             var tier = binder.EntryClauseCandidates(item, depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
-            // elsewhere in the program is not where a use site will find it (§8.4.2.2.1 rule 5 qualifies from the
+            // elsewhere in the program is not where a use site will find it (§2023:8.4.2.2.1 rule 5 qualifies from the
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055
             // review: an unused template beside two unrelated CNTs drew COBOL1639).
             if (declaration) tier = tier.Where(c => ReferenceEquals(c.Root, item.Root));
@@ -117,11 +117,11 @@ internal sealed class OdoResolvePass : IBindPass
             // involves the reference's own entry, or anything outside the copy, is the PLACEMENT's and is reported here.
             bool DeclarationFact(params DataItem[] involved) =>
                 item.IsCopiedUnder(placedAt) && Array.TrueForAll(involved, i => i.IsCopiedUnder(placedAt));
-            // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
+            // A name the report section declares is not undefined (kb/Work PB1046): §2023:13.8.6.2.3 bars this clause, of a
             // section other than the report section, from referring to a report item. Asked for a reference that reaches no
             // data item or several (a declaration's is asked by each clone, below), before the ambiguity, which it leaves
             // standing unless a report entry of a NEARER source element hides the data items (kb/Work PB3767's order, kept by the lookup itself since PB4196,
-            // ISO §8.4.6.2.1 3) a)).
+            // ISO §2023:8.4.6.2.1 3) a)).
             if (!declaration && tier.Count != 1
                 && binder.ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;
@@ -134,15 +134,15 @@ internal sealed class OdoResolvePass : IBindPass
                 if (nonData is { DeclarationRefused: true }) continue;
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
-                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §8.4.2.1: \"a statement "
+                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §2023:8.4.2.1: \"a statement "
                           + "shall contain a reference that uniquely identifies that resource\")"
                         : spec.DependingQualifiers.Count > 0
-                        ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
+                        ? "is not defined under the given qualifiers (ISO §2023:8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
-                        : "is not defined (ISO §13.18.38 Format 2)") + via);
+                        : "is not defined (ISO §2023:13.18.38 Format 2)") + via);
                 continue;
             }
-            // The ambiguity (§8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that
+            // The ambiguity (§2023:8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that
             // holds this table: the declaration reports it, and the legal reference asks the same verdict silently (so
             // --permissive's first-declared reading still binds the clone's counter) instead of reporting it again.
             bool ambiguityIsDeclarationFact = tier.Count > 1 && item.IsCopiedUnder(placedAt)
@@ -150,7 +150,7 @@ internal sealed class OdoResolvePass : IBindPass
             if (binder.UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact)
                 is not { } dep) continue;
 
-            // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
+            // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §2023:13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
             // integer (SR17), not subscripted (SR2), and outside the range from the table's first byte to its record's
             // last (SR20). Every OccursSpec.Depending consumer — the GR8 group-operand slice
             // (PlaceBuilder.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
@@ -165,11 +165,11 @@ internal sealed class OdoResolvePass : IBindPass
             var (notInteger, subscripted, inTableRange) = admission;
             if (admission.Admitted) spec.Depending = dep;
 
-            // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
+            // SR17: data-name-1 shall describe an integer — §2023:5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
+                    + "shall describe an integer (ISO §2023:13.18.38.3 SR17)" + via);
 
             // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
             // or the table's current extent would depend on a counter that a program sharing the record cannot see
@@ -188,7 +188,7 @@ internal sealed class OdoResolvePass : IBindPass
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectSubscripted, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
-                    + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
+                    + "data-name-1 shall not be subscripted (ISO §2023:13.18.38.3 SR2)" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
             // DEPENDING phrase is absent, and no OCCURS subject may have an occurs-depending table beneath it. The
@@ -198,10 +198,10 @@ internal sealed class OdoResolvePass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNested, $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
-                    + "absent (ISO §13.18.38.3 SR1(b)/SR10)" + via);
+                    + "absent (ISO §2023:13.18.38.3 SR1(b)/SR10)" + via);
 
-            // §13.18.44 SR: neither the redefined item nor a redefinition may include an occurs-depending table.
-            // (The FD multi-record shared AREA is §9.1.2 record sharing — synthesized with no written REDEFINES
+            // §2023:13.18.44 SR: neither the redefined item nor a redefinition may include an occurs-depending table.
+            // (The FD multi-record shared AREA is §2023:9.1.2 record sharing — synthesized with no written REDEFINES
             // clause — and is exempt: only an explicitly-written REDEFINES anywhere in the class trips this.)
             for (DataItem? a = item; a is not null; a = a.Parent)
                 if (InRedefinesArea(a))
@@ -215,7 +215,7 @@ internal sealed class OdoResolvePass : IBindPass
                         continue;
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableInRedefinesArea, $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
-                        + "table (ISO §13.18.44.3 SR5)" + via);
+                        + "table (ISO §2023:13.18.44.3 SR5)" + via);
                     break;
                 }
 
@@ -232,7 +232,7 @@ internal sealed class OdoResolvePass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNotLast, $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
-                        + "(ISO §13.18.38.3 SR22)" + via);
+                        + "(ISO §2023:13.18.38.3 SR22)" + via);
                     break;
                 }
             }
@@ -243,46 +243,46 @@ internal sealed class OdoResolvePass : IBindPass
             if (inTableRange && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectInTableRange, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
-                    + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
+                    + "position to the last byte position of its record (ISO §2023:13.18.38.3 SR20)"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
                         : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area") + via);
         }
     }
 
     /// <summary>Is <paramref name="a"/> a REDEFINES entry, or a member of a REDEFINES class that holds one — the entries
-    /// §13.18.44.3 SR5 forbids to include an occurs-depending table. The FD multi-record shared area (§9.1.2) is a class
+    /// §2023:13.18.44.3 SR5 forbids to include an occurs-depending table. The FD multi-record shared area (§2023:9.1.2) is a class
     /// with no written REDEFINES, so it is not one.</summary>
     private static bool InRedefinesArea(DataItem a) =>
         a.RedefinesTargetName is not null || (a.Class is { } cls && cls.Members.Any(mm => mm.RedefinesTargetName is not null));
 
-    /// <summary>The §13.18.38.3 SR18 / SR21 screen of data-name-1's ATTRIBUTES against the table's record (kb/Work
+    /// <summary>The §2023:13.18.38.3 SR18 / SR21 screen of data-name-1's ATTRIBUTES against the table's record (kb/Work
     /// PB1261); null when they agree.
     /// <para>SR18 — "If the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause,
     /// data-name-1, if specified, shall be a global name and shall reference a data item that is described in the
     /// same data division". The entry containing the OCCURS clause is never level 1 (SR1 a)), so it is subordinate to
-    /// its record, and to the FD of a file-section record: §13.18.27.3 SR1 admits GLOBAL on both.
-    /// <see cref="DataBinder.IsGlobalRecord"/> is "a global name" for data-name-1 (§8.4.6.2.2).</para>
+    /// its record, and to the FD of a file-section record: §2023:13.18.27.3 SR1 admits GLOBAL on both.
+    /// <see cref="DataBinder.IsGlobalRecord"/> is "a global name" for data-name-1 (§2023:8.4.6.2.2).</para>
     /// <para>SR21 — "If the OCCURS clause is specified in a data description entry included in a record description
     /// entry containing the EXTERNAL clause, data-name-1 shall reference a data item possessing the external
     /// attribute that is described in the same data division". The TABLE's side is the record entry's own clause
-    /// (or the EXTERNAL type it is "subject to the same rules" as, §13.18.22.4 GR3); data-name-1's is the
+    /// (or the EXTERNAL type it is "subject to the same rules" as, §2023:13.18.22.4 GR3); data-name-1's is the
     /// <see cref="HasExternalAttribute"/> attribute.</para></summary>
     private static string? DependingAttributeFault(DataBinder binder, DataItem table, DataItem dep)
     {
         if (binder.IsGlobalRecord(table.Root) && !binder.IsGlobalRecord(dep.Root))
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
-                + "data-name-1, if specified, shall be a global name\" (ISO §13.18.38.3 SR18)";
+                + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)";
         if ((table.Root.HasExternalClause || table.Root.ExternalFromType) && !HasExternalAttribute(binder, dep.Root))
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"data-name-1 shall reference a data item possessing the external attribute "
-                + "that is described in the same data division\" (ISO §13.18.38.3 SR21)";
+                + "that is described in the same data division\" (ISO §2023:13.18.38.3 SR21)";
         return null;
     }
 
-    /// <summary>Does <paramref name="record"/> possess the external attribute? ISO §8.6.3: a working-storage record
+    /// <summary>Does <paramref name="record"/> possess the external attribute? ISO §2023:8.6.3: a working-storage record
     /// "is given the external attribute by the presence of the EXTERNAL clause in its data description entry" (or
-    /// by an EXTERNAL type, §13.18.22.4 GR3), and "If the EXTERNAL clause is included in the file description entry,
+    /// by an EXTERNAL type, §2023:13.18.22.4 GR3), and "If the EXTERNAL clause is included in the file description entry,
     /// its records and their subordinate data items attain the external attribute".</summary>
     private static bool HasExternalAttribute(DataBinder binder, DataItem record) =>
         record.HasExternalClause || record.ExternalFromType || binder.State.Files.Declared.Any(f => f.IsExternal && f.Records.Contains(record));

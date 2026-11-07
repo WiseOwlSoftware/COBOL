@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §12.3.7.3 SR20/SR21 + §8.1.2 (A.1 items 43, 44) — non-COBOL
+      *> ISO §2023:12.3.7.3 SR20/SR21 + §2023:8.1.2 (A.1 items 43, 44) — non-COBOL
       *>   currency symbols
       *> Item 43 rule: "If the character specified as the currency
       *>   symbol is not a character
@@ -18,28 +18,28 @@
       *>     character and any other
       *>   character in the computer's compile-time coded character set
       *>     is defined by the
-      *>   implementor"  -> OK  §12.3.7.3 20)  (Syntax rules)
+      *>   implementor"  -> OK  §2023:12.3.7.3 20)  (Syntax rules)
       *>   cite.py --check 12.3.7.3 "No two CURRENCY SIGN clauses within
       *>     a single source
       *>   unit shall specify equivalent currency symbols unless they
       *>     specify identical
-      *>   currency strings"  -> OK  §12.3.7.3 21)  (Syntax rules)
+      *>   currency strings"  -> OK  §2023:12.3.7.3 21)  (Syntax rules)
       *>   cite.py --check 12.3.7.3 "If the PICTURE SYMBOL phrase is
       *>     specified, literal-7
       *>   is the currency string and literal-8 is the associated
       *>     currency symbol."
-      *>   -> OK  §12.3.7.3 23)  (Syntax rules)
+      *>   -> OK  §2023:12.3.7.3 23)  (Syntax rules)
       *> Item 44 rule: "the implementor shall specify any such
       *>   additional characters that
       *> are prohibited from use as a currency symbol"
       *>   cite.py --check 8.1.2 "the implementor shall specify any such
       *>     additional
       *>   characters that are prohibited from use as a currency symbol"
-      *>   -> OK  §8.1.2 3)  (Computer's coded character set)
+      *>   -> OK  §2023:8.1.2 3)  (Computer's coded character set)
       *>   cite.py --check 12.3.7.3 "Literal-8 may be any character from
       *>     the computer's
       *>   coded character set except for the following"  -> OK
-      *>     §12.3.7.3 27)
+      *>     §2023:12.3.7.3 27)
       *> Implementor definitions (docs/CONFORMANCE.md): DOC-A.1-43 -
       *>   equivalent to exactly
       *> the characters with the same .NET invariant uppercase mapping

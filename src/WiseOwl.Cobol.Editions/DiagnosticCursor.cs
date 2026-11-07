@@ -22,7 +22,7 @@ public readonly record struct DiagnosticCursor(int Line, int Column)
 }
 
 /// <summary>⛔ THE TEXT OF AN EXPANSION, AND WHO ANSWERS FOR IT (kb/Work PB4469, PB4483). A parameterized class's expansion is the
-/// skeleton's tokens with the formals replaced (ISO §12.3.8.4 GR5), and the group that asked for it binds that text to type its callers.
+/// skeleton's tokens with the formals replaced (ISO §2023:12.3.8.4 GR5), and the group that asked for it binds that text to type its callers.
 /// A sink reads the region of the cursor to know which text a diagnostic is about. Two kinds of text, two rules:
 /// <list type="bullet">
 /// <item><b>A skeleton written in this group</b> (<see cref="ReportedAt"/> unset) is the user's own text: the group reports it at the

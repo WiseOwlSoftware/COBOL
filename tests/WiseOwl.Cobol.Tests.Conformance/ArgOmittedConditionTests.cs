@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// kb/Work PB971 — the METHOD arm of the *-ARG-OMITTED rule, which the goldens cannot reach: ISO §14.9.23.4 GR10
+/// kb/Work PB971 — the METHOD arm of the *-ARG-OMITTED rule, which the goldens cannot reach: ISO §2023:14.9.23.4 GR10
 /// ("If a parameter for which the omitted-argument condition is true is referenced in an invoked method, except as
 /// an argument or in the omitted-argument condition, the EC-OO-ARG-OMITTED exception condition is set to exist")
 /// is Table 13 Fatal, and a method's own DECLARATIVES are not implemented yet (COBOL0899), so the observable is
-/// §14.6.13.1.3 item 7 — checking enabled, no applicable USE in the source unit: abnormal run-unit termination,
+/// §2023:14.6.13.1.3 item 7 — checking enabled, no applicable USE in the source unit: abnormal run-unit termination,
 /// naming EC-OO-ARG-OMITTED. The program and function arms are the goldens
 /// <c>2002/pb971_program_arg_omitted</c> and <c>2002/pb971_function_arg_omitted</c>.
 /// </summary>
@@ -66,7 +66,7 @@ public sealed class ArgOmittedConditionTests
     private const string Turn = "      >>TURN EC-OO-ARG-OMITTED CHECKING ON";
 
     /// <summary>The two exemptions raise nothing — the omitted-argument condition and the formal forwarded as an
-    /// ARGUMENT (§8.8.4.8.4 GR1c keeps it omitted in the callee) — and the first REAL reference is the fatal
+    /// ARGUMENT (§2023:8.8.4.8.4 GR1c keeps it omitted in the callee) — and the first REAL reference is the fatal
     /// EC-OO-ARG-OMITTED: the statement is interrupted (no "X=" line) and the run unit ends (no "AFTER SHOW").</summary>
     [Fact]
     public void ElementaryReference_RaisesEcOoArgOmitted_AfterTheExemptions()
@@ -76,7 +76,7 @@ public sealed class ArgOmittedConditionTests
                    CALL "F971A" USING X
                    DISPLAY "X=[" X "]".
         """), 2002);
-        Assert.False(ok, "a fatal condition with checking enabled and no USE ends the run unit (§14.6.13.1.3 #7)");
+        Assert.False(ok, "a fatal condition with checking enabled and no USE ends the run unit (§2023:14.6.13.1.3 #7)");
         string all = stdout + detail;
         Assert.Contains("X-OMITTED", all);
         Assert.Contains("F-OMITTED", all);
@@ -103,7 +103,7 @@ public sealed class ArgOmittedConditionTests
         Assert.DoesNotContain("STORED", all);
     }
 
-    /// <summary>Checking OFF (§14.6.13.1.1): no condition is raised; the omitted formal reads its initial state and
+    /// <summary>Checking OFF (§2023:14.6.13.1.1): no condition is raised; the omitted formal reads its initial state and
     /// execution continues — GR10 leaves the content undefined, and this is the documented implementor choice.</summary>
     [Fact]
     public void CheckingOff_IsLenient()

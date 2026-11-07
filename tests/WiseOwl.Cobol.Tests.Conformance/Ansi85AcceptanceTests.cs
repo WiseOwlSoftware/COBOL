@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ISO/IEC 1989:2002 that formerly had no grammar at all (generic parse errors at EVERY edition, the G1
 /// co-equal-diagnostic violation). These facts pin the ACCEPTED 85 leg (parse + correct run semantics — RERUN /
 /// ENTER / segment-numbers are inert; USE FOR DEBUGGING is MODELED at 85, the procedure-trigger leg, VCR 7.17)
-/// and the per-word §8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
+/// and the per-word §2023:8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
 /// four constructs.json matrix rows and the negative corpus (rerun / enter / use-for-debugging /
-/// segment-numbers). No ISO-2023 § exists for any of them — the registry rows cite the §8.9 ABSENCE pinpoints.
+/// segment-numbers). No ISO-2023 § exists for any of them — the registry rows cite the §2023:8.9 ABSENCE pinpoints.
 /// </summary>
 public sealed class Ansi85AcceptanceTests
 {
@@ -121,7 +121,7 @@ public sealed class Ansi85AcceptanceTests
     // ── ENTER (row 7.16): comment-equivalent when only COBOL is supported (BoundNop) ──
 
     /// <summary>The classic paired idiom — ENTER LINKAGE … ENTER COBOL. Both operands are SYSTEM-names
-    /// (deliberately not cobolWord): 'COBOL' is an '85 §8.9 reserved word, and a cobolWord slot would
+    /// (deliberately not cobolWord): 'COBOL' is an '85 §2023:8.9 reserved word, and a cobolWord slot would
     /// false-reject the conforming switch-back with 0901.</summary>
     [Fact]
     public void Enter_LinkageAndCobol_InertAt85() => AssertRuns("""
@@ -210,7 +210,7 @@ public sealed class Ansi85AcceptanceTests
 
     /// <summary>WITH the switch, a DEBUG-* register reference is a legal '85 use of the now-MODELED facility — it
     /// resolves to the DEBUG-ITEM register (an alphanumeric view), so the program COMPILES; never a deferred
-    /// COBOL0899 nor a false §8.9 "reserved word as user-defined word" COBOL0901.</summary>
+    /// COBOL0899 nor a false §2023:8.9 "reserved word as user-defined word" COBOL0901.</summary>
     [Fact]
     public void UseForDebugging_SwitchPresent_DebugRegisters_Resolve()
     {
@@ -347,13 +347,13 @@ public sealed class Ansi85AcceptanceTests
         EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL1571");
     }
 
-    // ── §8.9 user-word continuity: each word frees exactly at its ReservedWords.Table edition ──
+    // ── §2023:8.9 user-word continuity: each word frees exactly at its ReservedWords.Table edition ──
 
     [Theory]
     [InlineData("RERUN", 2002)]
     [InlineData("ENTER", 2002)]
     [InlineData("DEBUGGING", 2014)]
-    [InlineData("EVERY", 2002)]          // not on the 2002 §8.9 list (kb/Work PB4297)
+    [InlineData("EVERY", 2002)]          // not on the 2002 §2023:8.9 list (kb/Work PB4297)
     [InlineData("CLOCK-UNITS", 2002)]
     [InlineData("REFERENCES", 2002)]
     [InlineData("PROCEDURES", 2002)]
@@ -371,7 +371,7 @@ public sealed class Ansi85AcceptanceTests
                 DISPLAY {word}.
                 STOP RUN.
             """;
-        // 0901 at 85 strict (the '85 reservation, §8.3.2.1 rule 1)…
+        // 0901 at 85 strict (the '85 reservation, §2023:8.3.2.1 rule 1)…
         var (ok85, errors85, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok85);
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL0901");

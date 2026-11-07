@@ -14,7 +14,7 @@ public enum CompileOutputStream
     Error,
 }
 
-/// <summary>One line the compilation transfers to its operator at compile time (ISO §7.3.12.4 GR1, kb/Work PB1538).</summary>
+/// <summary>One line the compilation transfers to its operator at compile time (ISO §2023:7.3.12.4 GR1, kb/Work PB1538).</summary>
 /// <param name="Stream">The compiler stream the line is written to.</param>
 /// <param name="Text">The line, without its terminator.</param>
 public readonly record struct CompileOutputLine(CompileOutputStream Stream, string Text);

@@ -4,14 +4,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> ⛔ A LINE CLAUSE MAY NOT NEST INSIDE A LINE CLAUSE (kb/Work PB565). ISO/IEC 1989:2023 §13.18.35.3 SR4:
+*> ⛔ A LINE CLAUSE MAY NOT NEST INSIDE A LINE CLAUSE (kb/Work PB565). ISO/IEC 1989:2023 §2023:13.18.35.3 SR4:
 *> "Within a given report group description entry, an entry that contains a LINE clause shall not have a
 *> subordinate entry that also contains a LINE clause."
 *>
-*> The rule is what makes §13.18.38.4 GR10's vertical pair exhaustive rather than overlapping: GR10c is "the
+*> The rule is what makes §2023:13.18.38.4 GR10's vertical pair exhaustive rather than overlapping: GR10c is "the
 *> entry also contains a relative LINE clause" and GR10d is "the entry is a group entry having subordinate
 *> entries with relative LINE clauses", and SR4 guarantees an entry is at most one of the two. Without it a
-*> repeating entry could carry a LINE clause AND have subordinate ones, and §13.18.38.4 GR12's "integer-3 lines
+*> repeating entry could carry a LINE clause AND have subordinate ones, and §2023:13.18.38.4 GR12's "integer-3 lines
 *> vertically beneath the preceding occurrence" would have two different lines to measure from.
 *>
 *> It is a rule of EVERY edition — the single-operand LINE clause is COBOL-85 syntax — so this program is

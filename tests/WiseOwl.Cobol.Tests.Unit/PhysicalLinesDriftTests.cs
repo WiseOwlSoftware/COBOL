@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE LINE-ENTRY STAGE IS THE ONLY PLACE A TEXT BECOMES LINES (kb/Work PB1800). Before it, six places split or
 /// indexed the raw text on their own, so a TAB (DOC-A.1-157), the terminator set (DOC-A.1-156), the 255-position
-/// limit (§6.1 3) a)) and the CCVS archive markers (PB1803) each had to be written into every splitter — and were
+/// limit (§2023:6.1 3) a)) and the CCVS archive markers (PB1803) each had to be written into every splitter — and were
 /// written into none. <c>PhysicalLines</c> reads lines; everything after it sees no tab and no CR LF, so a later
 /// stage that spells <c>'\t'</c> or <c>'\r'</c> is dead code that looks like a rule, and a raw-text consumer that
 /// splits on its own is the next place a determination is forgotten. Source-form guards, because no behavioral test

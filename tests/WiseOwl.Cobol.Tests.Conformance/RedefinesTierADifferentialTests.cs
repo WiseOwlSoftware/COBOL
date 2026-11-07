@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// REDEFINES Tier A (ISO/IEC 1989:2023 §13.18.44; DESIGN §4.2): a same-storage-type pun — identical PIC, or
+/// REDEFINES Tier A (ISO/IEC 1989:2023 §2023:13.18.44; DESIGN §4.2): a same-storage-type pun — identical PIC, or
 /// numeric-over-numeric of the same digit count (a 12-digit DISPLAY long reinterpreted at a different implied scale).
 /// One stored field; every other name is a pass-through carrying its own scale/profile, so the shared unscaled value
 /// reinterprets for free (NO byte[]). A write through any view is visible through every other (one backing). Pinned

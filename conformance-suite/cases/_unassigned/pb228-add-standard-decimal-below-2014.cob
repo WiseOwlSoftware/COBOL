@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.2.4 GR1-GR3 second paragraphs exist only when
+      *> ISO §2023:14.9.2.4 GR1-GR3 second paragraphs exist only when
       *> standard-decimal arithmetic is in effect, and STANDARD-DECIMAL
       *> is a COBOL-2014 keyword of the ARITHMETIC clause: below 2014
       *> the clause is refused with 0900 (and at 85 the OPTIONS

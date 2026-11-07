@@ -7,7 +7,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.22.4 GR1 GR5 GR7 GR8a1 GR9c2 GR11 GR16 — INSPECT
+      *> ISO §2023:14.9.22.4 GR1 GR5 GR7 GR8a1 GR9c2 GR11 GR16 — INSPECT
       *> general rules over fixed inputs; every DISPLAY line is keyed
       *> to the rule it pins. Derivations (spec text is the oracle):
       *>

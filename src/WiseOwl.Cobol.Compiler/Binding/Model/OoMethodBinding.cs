@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// </summary>
 public sealed class OoMethodBinding
 {
-    /// <summary>The ordered PD USING formals (§14.9.23.4 GR3 — positional correspondence; every formal is
+    /// <summary>The ordered PD USING formals (§2023:14.9.23.4 GR3 — positional correspondence; every formal is
     /// BY REFERENCE, the header BY VALUE phrase being an unparsed grammar extension).</summary>
     public List<OoFormal> Formals { get; } = [];
 
@@ -32,23 +32,23 @@ public sealed class OoMethodBinding
         return name;
     }
 
-    /// <summary>The PD RETURNING item (a LINKAGE 01/77 — §14.2.3 GR6: callee-allocated; the method's C# return
-    /// value delivers it, §14.9.23.4 GR8), or null for a void method.</summary>
+    /// <summary>The PD RETURNING item (a LINKAGE 01/77 — §2023:14.2.3 GR6: callee-allocated; the method's C# return
+    /// value delivers it, §2023:14.9.23.4 GR8), or null for a void method.</summary>
     public DataItem? Returning { get; set; }
 
-    /// <summary>The §9.3.6 description of each formal, with its OPTIONAL and BY VALUE phrases, in <see cref="Formals"/>
+    /// <summary>The §2023:9.3.6 description of each formal, with its OPTIONAL and BY VALUE phrases, in <see cref="Formals"/>
     /// order, each null for a formal with no universal crossing form: what the universal dispatch switch's case compares an
-    /// argument with (§14.9.23.4 GR7 b), c)). Built by the binder's one description builder (<c>ActivationDescriptions</c>), the
+    /// argument with (§2023:14.9.23.4 GR7 b), c)). Built by the binder's one description builder (<c>ActivationDescriptions</c>), the
     /// builder the invoking side's descriptions come from too, at the end of the bind (<c>BackendAnswers</c>; kb/Work PB2403)
     /// for a method of one of the group's class units that has a case in that switch (not an override, no BY VALUE formal); null for
     /// any other method.</summary>
     public IReadOnlyList<WiseOwl.Cobol.Runtime.ActivationDescription?>? FormalDescriptions { get; set; }
 
-    /// <summary>The §9.3.6 description of the <see cref="Returning"/> item, written with <see cref="FormalDescriptions"/>; null
+    /// <summary>The §2023:9.3.6 description of the <see cref="Returning"/> item, written with <see cref="FormalDescriptions"/>; null
     /// when the method has none, the item has no crossing form, or the method is not described.</summary>
     public WiseOwl.Cobol.Runtime.ActivationDescription? ReturningDescription { get; set; }
 
-    /// <summary>The classes and interfaces of the method's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §14.6.13.1.5
+    /// <summary>The classes and interfaces of the method's PROCEDURE DIVISION header RAISING phrase, resolved (ISO §2023:14.6.13.1.5
     /// items 1 and 3; <see cref="RaisingObject"/>), written at the end of the bind for a method of one of the group's class units;
     /// empty otherwise.</summary>
     public IReadOnlyList<RaisingObject> RaisingObjects { get; set; } = [];
@@ -57,7 +57,7 @@ public sealed class OoMethodBinding
     /// entry): each becomes a capturable C# LOCAL of the emitted method.</summary>
     public List<DataItem> LinkageRoots { get; } = [];
 
-    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§8.6.4).</summary>
+    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§2023:8.6.4).</summary>
     public List<DataItem> LocalRoots { get; } = [];
 
     /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
@@ -69,13 +69,13 @@ public sealed class OoMethodBinding
 
     /// <summary>The first pc of the method's slice: its declarative sections occupy
     /// <c>[DeclStartPc .. EntryPc−1]</c> (empty — DeclStartPc == EntryPc — for a method with none), reached only
-    /// through the method's USE selection or an explicit PERFORM (ISO §14.9.49.3 SR4; §14.2.3 GR1). The emitted
+    /// through the method's USE selection or an explicit PERFORM (ISO §2023:14.9.49.3 SR4; §2023:14.2.3 GR1). The emitted
     /// <c>__MDispatch</c> carries cases for <c>[DeclStartPc .. EndPc]</c>; the activation runs
     /// <c>[EntryPc .. EndPc]</c> (kb/Work PB1010).</summary>
     public int DeclStartPc { get; set; } = -1;
 
     /// <summary>The method's contiguous sub-range of the class's appended Format-3 (exception-checking) PERFORM
-    /// handler pc-space (ISO §14.9.28.4 GR17; design SSOT §9.10). The class's handler pcs
+    /// handler pc-space (ISO §2023:14.9.28.4 GR17; design SSOT §9.10). The class's handler pcs
     /// <c>[F3HandlerBasePc .. F3HandlerBasePc+H−1]</c> partition into per-method sub-ranges in method order — a
     /// method's handlers are all appended while that method's paragraphs bind (<c>StatementBinder.BindMethodRoster</c>'s
     /// pc-order second loop). <see cref="HandlerCount"/> == 0 for a method with no F3 PERFORM (the byte-identical

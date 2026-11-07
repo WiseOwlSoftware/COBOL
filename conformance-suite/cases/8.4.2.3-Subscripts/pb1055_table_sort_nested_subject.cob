@@ -10,14 +10,14 @@
       *>
       *> THE RULES, --check validated:
       *>   cite.py --check 14.9.40.3 "Data-name-2 shall have an OCCURS clause in its data description entry.
-      *>     Subscripting shall be specified in accordance with 8.4.2.3, Subscripts." -> OK §14.9.40.3 13)
+      *>     Subscripting shall be specified in accordance with 8.4.2.3, Subscripts." -> OK §2023:14.9.40.3 13)
       *>   cite.py --check 8.4.2.3.3 "As the subject of a SORT statement that references a table where the rightmost
       *>     subscript is not the word ALL. If the rightmost subscript is the word ALL, the number of subscripts is
       *>     equal to one less than the number of OCCURS clauses in the description of the table element being
-      *>     referenced." -> OK §8.4.2.3.3 5) e)
+      *>     referenced." -> OK §2023:8.4.2.3.3 5) e)
       *>   cite.py --check 8.4.2.3.3 "as the rightmost or only subscript of a table in the table format of a SORT
       *>     statement. This is equivalent to omitting the rightmost or only subscript in this context." -> OK
-      *>     §8.4.2.3.3 6)
+      *>     §2023:8.4.2.3.3 6)
       *> So the subject names the table to sort by one subscript for each ENCLOSING table, written outermost first and
       *> none for the sorted level, which a rightmost ALL may stand for: SORT E(2) over E inside ROW OCCURS 2 sorts
       *> the E of ROW(2) and nothing else. (kb/Work PB1055: the statement used to bind to a deferral that aborted the

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.38.4 GR7: "At the time the subject of entry is referenced … the value of the data item
+      *> ISO §2023:13.18.38.4 GR7: "At the time the subject of entry is referenced … the value of the data item
       *> referenced by data-name-1 shall fall within the bounds from integer-1 through integer-2. If the value
       *> of the data item does not fall within the specified bounds, the EC-BOUND-ODO exception condition is
       *> set to exist." BOTH ends are bounds — this golden exercises the LOWER one.

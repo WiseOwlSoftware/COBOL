@@ -37,7 +37,7 @@ body:
     id: citation
     attributes:
       label: Clause and rule
-      description: The section and syntax/general rule, for example `§13.18.40.3 SR1`.
+      description: The section and syntax/general rule, for example `§2023:13.18.40.3 SR1`.
     validations:
       required: true
   - type: textarea

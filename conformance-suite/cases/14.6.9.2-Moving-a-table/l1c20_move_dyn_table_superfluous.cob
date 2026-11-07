@@ -5,39 +5,39 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.6.9.2 GR1 — MOVE of a dynamic-capacity table into a
+      *> ISO §2023:14.6.9.2 GR1 — MOVE of a dynamic-capacity table into a
       *> fixed or occurs-depending table of lower capacity: the
       *> superfluous elements are not moved and no exception exists.
       *>
       *> THE RULES.
-      *> §14.6.9.2: "A dynamic-capacity table may be moved as part of a
+      *> §2023:14.6.9.2: "A dynamic-capacity table may be moved as part of a
       *>   variable-length group to or from another table" ... "If the
       *>   receiving table is not a dynamic-capacity table: 1) If the
       *>   sending table has a higher current capacity than the
       *>   receiving table, superfluous elements are not moved and no
       *>   exception exists,"
-      *>   OK  §14.6.9.2   (Moving a table)
-      *>   OK  §14.6.9.2 1)  (Moving a table)
-      *> §14.6.9.1: a fixed table is "a dynamic capacity table that has
+      *>   OK  §2023:14.6.9.2   (Moving a table)
+      *>   OK  §2023:14.6.9.2 1)  (Moving a table)
+      *> §2023:14.6.9.1: a fixed table is "a dynamic capacity table that has
       *>   a current capacity equal to the fixed number of elements";
       *>   an occurs-depending table one "that has a current capacity
       *>   equal to the value of the corresponding DEPENDING operand".
-      *>   OK  §14.6.9.1   (General)  [both sentences]
-      *> §8.5.1.12.2 / §8.5.1.12.3: the groups are compatible - the
+      *>   OK  §2023:14.6.9.1   (General)  [both sentences]
+      *> §2023:8.5.1.12.2 / §2023:8.5.1.12.3: the groups are compatible - the
       *>   tables "occupy the same relative byte positions within
       *>   their groups" (byte 3) and "the byte length of their
       *>   elements is equal" (3).
-      *>   OK  §8.5.1.12.2   (Positional correspondence)
-      *>   OK  §8.5.1.12.3   (Matching)
-      *> §14.9.39.4 GR30 a): SET SC TO 3 makes the new capacity 3.
-      *>   OK  §14.9.39.4 30)  (General rules)
+      *>   OK  §2023:8.5.1.12.2   (Positional correspondence)
+      *>   OK  §2023:8.5.1.12.3   (Matching)
+      *> §2023:14.9.39.4 GR30 a): SET SC TO 3 makes the new capacity 3.
+      *>   OK  §2023:14.9.39.4 30)  (General rules)
       *> "no exception exists" is observed with every EC checked
       *> (>>TURN EC-ALL CHECKING ON): FUNCTION EXCEPTION-STATUS stays
       *> spaces (31 characters between the brackets).
       *>
       *> DERIVATION.
       *> S: S-H "HH", SE(1..4) "AAA" "BBB" "CCC" "DDD" (capacity 4 by
-      *>   implicit creation, §8.5.1.9.3).
+      *>   implicit creation, §2023:8.5.1.9.3).
       *> R=[HHAAABBB]    R's table is fixed at 2: elements 1-2 are moved
       *>                 (MOVE rules, element by element), 3-4 are
       *>                 superfluous and not moved; R has no room

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// ⛔ THE ONE SCREEN OF A PROCEDURE DIVISION HEADER'S FORMAL PARAMETERS AND RETURNING ITEM (kb/Work PB1145) — the rules
-/// of ISO §14.2.2 SR1 / SR5 / SR6 and the §14.2.1 using-phrase format, asked once for every source element that has
+/// of ISO §2023:14.2.2 SR1 / SR5 / SR6 and the §2023:14.2.1 using-phrase format, asked once for every source element that has
 /// such a header: <c>LinkageBinder.CallBindLinkage</c> (program and function) and <c>OoDataBinder.BindMethodData</c>
 /// (method) each used to carry a private, DIFFERENT subset — the program arm checked REDEFINES / BASED on USING items
 /// only, the method arm neither, and neither recorded which names it had already seen, so
@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Binding;
 /// "shall not contain a BASED clause or a REDEFINES clause" (<see cref="AdmitFormal"/>).</item>
 /// <item><b>SR5</b> — the RETURNING item's entry shall not contain a BASED or REDEFINES clause; <b>SR6</b> — it shall
 /// not be the same as a formal (<see cref="CheckReturning"/>).</item>
-/// <item><b>§14.2.1</b> — OPTIONAL is printed only in the BY REFERENCE alternative (<see cref="OptionalNeedsByReference"/>).</item>
+/// <item><b>§2023:14.2.1</b> — OPTIONAL is printed only in the BY REFERENCE alternative (<see cref="OptionalNeedsByReference"/>).</item>
 /// </list>
 /// One instance screens one header; the level-01/77-in-the-LINKAGE-SECTION half of SR1 / SR5 is the caller's, because
 /// it is decided by the lookup that FINDS the item.
@@ -30,7 +30,7 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     private readonly HashSet<DataItem> _formals = new(ReferenceEqualityComparer.Instance);
 
     private void Refuse(string requirement, string rule) =>
-        edition.Error(DiagnosticCatalog.ProcedureHeaderParameter, $"{where}: {requirement} (ISO §14.2.2 {rule})");
+        edition.Error(DiagnosticCatalog.ProcedureHeaderParameter, $"{where}: {requirement} (ISO §2023:14.2.2 {rule})");
 
     /// <summary>Screen one formal parameter (data-name-1) against SR1. Returns false when the parameter shall not be
     /// admitted as a formal — a repeated one, whose second occurrence would be a second formal of the same item.
@@ -71,19 +71,19 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
                 + "data-name-1\"", "SR6");
     }
 
-    /// <summary>§14.2.2 SR2 — "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class
+    /// <summary>§2023:14.2.2 SR2 — "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class
     /// numeric, message-tag, object, or pointer." The class numeric (fixed-point or floating-point) and the managed
-    /// classes (object and the three pointer categories) are the carried legs of the §14.2.3 GR10 detached value copy;
+    /// classes (object and the three pointer categories) are the carried legs of the §2023:14.2.3 GR10 detached value copy;
     /// class message-tag is the MCS module (not modeled, so undeclarable). Asked of every BY VALUE formal by BOTH
     /// header arms — the program/function arm and the method arm (kb/Work PB1051) — so the class set is written once.
     /// <para>⛔ THE CLASS IS ASKED OF THE ONE TABLE-2 CLASSIFIER (kb/Work PB3222), never spelled as a PicCategory list:
-    /// <see cref="IntrinsicArgumentRules.ClassOfItem"/> is ISO §8.5.2.1's class of a data item, the same answer the
-    /// argument side takes (<c>CallBinder.ValueClassScreen</c>, §14.9.4.3 SR22; <c>UdfBinder</c>'s function-argument screen). The list
+    /// <see cref="IntrinsicArgumentRules.ClassOfItem"/> is ISO §2023:8.5.2.1's class of a data item, the same answer the
+    /// argument side takes (<c>CallBinder.ValueClassScreen</c>, §2023:14.9.4.3 SR22; <c>UdfBinder</c>'s function-argument screen). The list
     /// this replaced read the STORAGE category, and a USAGE INDEX item carries category numeric for its storage model
     /// (<c>PicInfo.IndexItem</c>) while Table 2 puts it in class index, so an index formal passed as BY VALUE; it also
     /// re-diagnosed a recovery profile (no class) that every other screen over the table fails open on.</para>
     /// <para>The refusal names the class through <see cref="IntrinsicArgumentRules.ClassNameOf(DataItem)"/>: a
-    /// strongly-typed group is refused because its class is its type-name (§8.5.2.1), and the message says so rather
+    /// strongly-typed group is refused because its class is its type-name (§2023:8.5.2.1), and the message says so rather
     /// than the "alphanumeric" <see cref="IntrinsicArgumentRules.ClassOfItem"/> answers for a function argument.</para></summary>
     public void ByValueClass(string written, DataItem item)
     {
@@ -91,14 +91,14 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
         if (cls is null or CobolClass.MessageTag or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
         edition.Error(DiagnosticCatalog.ByValueFormalClass,
             $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
-            + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");
+            + "be of class numeric, message-tag, object, or pointer (ISO §2023:14.2.2 SR2)");
     }
 
-    /// <summary>§14.2.1's using-phrase prints OPTIONAL only inside the BY REFERENCE alternative
+    /// <summary>§2023:14.2.1's using-phrase prints OPTIONAL only inside the BY REFERENCE alternative
     /// (<c>{ [BY REFERENCE] { [OPTIONAL] data-name-1 }… | BY VALUE { data-name-1 }… }…</c>): after a BY VALUE phrase,
     /// <c>OPTIONAL LY</c> continues the BY VALUE alternative, which has no OPTIONAL.</summary>
     public void OptionalNeedsByReference(string written) =>
         edition.Error(DiagnosticCatalog.ProcedureHeaderParameter,
             $"{where}: formal parameter '{written}' is written OPTIONAL after a BY VALUE phrase — the OPTIONAL word "
-            + "belongs to the BY REFERENCE alternative of the using-phrase only (ISO §14.2.1)");
+            + "belongs to the BY REFERENCE alternative of the using-phrase only (ISO §2023:14.2.1)");
 }

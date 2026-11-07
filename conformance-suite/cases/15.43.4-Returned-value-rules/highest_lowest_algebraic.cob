@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.43 HIGHEST-ALGEBRAIC / §15.58 LOWEST-ALGEBRAIC — the greatest / lowest algebraic value the
+      *> ISO §2023:15.43 HIGHEST-ALGEBRAIC / §2023:15.58 LOWEST-ALGEBRAIC — the greatest / lowest algebraic value the
       *> argument's PICTURE can represent, a compile-time fold. S99→+99/-99; S9(4)→+9999; 99V9(3)→+99.999/0
       *> (unsigned ⇒ LOWEST 0, Annex D.32); $**,**9.99 (numeric-edited)→+99999.99/0 (no sign in the mask).
        IDENTIFICATION DIVISION.

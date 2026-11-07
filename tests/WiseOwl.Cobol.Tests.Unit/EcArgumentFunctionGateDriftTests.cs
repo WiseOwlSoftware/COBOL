@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE EC-ARGUMENT-FUNCTION AMBIENT GATE MUST NOT DEPEND ON WHICH STATEMENT ENCLOSES THE FUNCTION REFERENCE
-/// (fix-queue PB26). <b>ISO §15.3 item 14</b> attaches the condition to the reference — "If the evaluation of an
+/// (fix-queue PB26). <b>ISO §2023:15.3 item 14</b> attaches the condition to the reference — "If the evaluation of an
 /// argument results in an incorrect value for that argument or for the returned value according to the rules
 /// specified in the function definition … the EC-ARGUMENT-FUNCTION exception condition is set to exist" — with no
 /// statement-kind qualification anywhere in it.

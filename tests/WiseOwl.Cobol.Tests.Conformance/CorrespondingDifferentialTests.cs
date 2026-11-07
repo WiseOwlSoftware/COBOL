@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// MOVE/ADD/SUBTRACT CORRESPONDING (ISO/IEC 1989:2023 §14.7.6 + §14.9.25 F2 / §14.9.2 F3 / §14.9.44 F3): the six
+/// MOVE/ADD/SUBTRACT CORRESPONDING (ISO/IEC 1989:2023 §2023:14.7.6 + §2023:14.9.25 F2 / §2023:14.9.2 F3 / §2023:14.9.44 F3): the six
 /// pair-selection rules, D1-declaration-order expansion, the one statement rounded-phrase applied per pair, the
 /// STATEMENT-level aggregated SIZE ERROR (one dispatch after all pairs, erring receiver unchanged, NOT suppressed),
 /// and item identification — group subscripts included — at statement START. Differential facts pin the
@@ -63,7 +63,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY EXTRA.
             """));
 
-    // ── Rules 1/4: FILLER, an OCCURS child, and a REDEFINES child do not correspond (§14.7.6 r1/r4). ────────────
+    // ── Rules 1/4: FILLER, an OCCURS child, and a REDEFINES child do not correspond (§2023:14.7.6 r1/r4). ────────────
     [Fact]
     public void MoveCorresponding_ExcludesFillerOccursAndRedefinesChildren()
         => AssertMatchesGolden(Program("""
@@ -86,7 +86,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY OVR OF DST-G.
             """));
 
-    // ── Rule 2 (§14.7.6 r2 + Table 16 §14.9.25.3 SR10): a numeric NONINTEGER → alphanumeric move is invalid, so
+    // ── Rule 2 (§2023:14.7.6 r2 + Table 16 §2023:14.9.25.3 SR10): a numeric NONINTEGER → alphanumeric move is invalid, so
     //    the namesake pair does NOT correspond — a silent skip, not an error. SPEC-PINNED: the legacy matcher has
     //    no rule-2 filter and would move FRAC. ─────────────────────────────────────────────────────────────────
     [Fact]
@@ -104,7 +104,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY WNUM OF DST-G.
             """), "AB\n42");
 
-    // ── Rule 3 (§14.7.6 r3): ADD/SUBTRACT pairs require BOTH items numeric — an alphanumeric namesake silently
+    // ── Rule 3 (§2023:14.7.6 r3): ADD/SUBTRACT pairs require BOTH items numeric — an alphanumeric namesake silently
     //    does not correspond. SPEC-PINNED: the legacy matcher has no rule-3 filter. ──────────────────────────────
     [Fact]
     public void AddCorresponding_Rule3_NonNumericNamesakeIsNotAPair()
@@ -121,7 +121,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY AMT OF DST-G.
             """), "A\n42");
 
-    // ── The ONE statement rounded-phrase applies to EVERY implied pair statement (§14.9.2.2 F3 / §14.7.4). ──────
+    // ── The ONE statement rounded-phrase applies to EVERY implied pair statement (§2023:14.9.2.2 F3 / §2023:14.7.4). ──────
     [Fact]
     public void AddCorresponding_RoundedAppliesToEachPair()
     {
@@ -137,13 +137,13 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY AMT1 OF DST-G.
                 DISPLAY AMT2 OF DST-G.
             """);
-        // 1.0+1.25 = 2.25 → 2.3 and 1.0+2.34 = 3.34 → 3.3, each rounded NEAREST-AWAY-FROM-ZERO (§14.7.4.3 r1).
+        // 1.0+1.25 = 2.25 → 2.3 and 1.0+2.34 = 3.34 → 3.3, each rounded NEAREST-AWAY-FROM-ZERO (§2023:14.7.4.3 r1).
         AssertOutput(src, "2.3\n3.3");
         AssertMatchesGolden(src);
     }
 
-    // ── SIZE ERROR is STATEMENT-level (§14.7.6, "after all of the implied statements are completed"): one flag
-    //    across the pairs, the erring pair's receiver UNCHANGED (§14.7.5) while later pairs still store, ONE
+    // ── SIZE ERROR is STATEMENT-level (§2023:14.7.6, "after all of the implied statements are completed"): one flag
+    //    across the pairs, the erring pair's receiver UNCHANGED (§2023:14.7.5) while later pairs still store, ONE
     //    dispatch of the ON imperative, and the NOT phrase ignored. SPEC-PINNED to the governing §§. ─────────────
     [Fact]
     public void AddCorresponding_SizeError_AggregatedAcrossPairs()
@@ -162,7 +162,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY ACC OF DST-G.
             """), "SE\n5\n30");
 
-    // ── SUBTRACT direction (§14.9.44.4 GR3/GR5: id-5 ← id-5 − id-4 — GR5's reduction to separate `SUBTRACT a
+    // ── SUBTRACT direction (§2023:14.9.44.4 GR3/GR5: id-5 ← id-5 − id-4 — GR5's reduction to separate `SUBTRACT a
     //    FROM b` statements settles it) and the CORR abbreviation (SR5: CORR ≡ CORRESPONDING). SPEC-PINNED. ──────
     [Fact]
     public void SubtractCorr_TargetMinusSource_CorrToken()
@@ -177,7 +177,7 @@ public sealed class CorrespondingDifferentialTests
             """), "07");
 
     // ── Qualified source group + SUBSCRIPTED receiving group (the NC209A shapes — D1/D2 themselves may be
-    //    qualified table elements; the exclusions apply only to items WITHIN them, §14.7.6). ─────────────────────
+    //    qualified table elements; the exclusions apply only to items WITHIN them, §2023:14.7.6). ─────────────────────
     [Fact]
     public void MoveCorresponding_QualifiedGroup_SubscriptedReceiver()
         => AssertMatchesGolden(Program("""
@@ -206,7 +206,7 @@ public sealed class CorrespondingDifferentialTests
             """));
 
     // ── Item identification — the group operands' subscripts included — happens ONCE at statement START, never
-    //    per implied statement (§14.7.6: "Any item identification … is done at the start of the execution of the
+    //    per implied statement (§2023:14.7.6: "Any item identification … is done at the start of the execution of the
     //    statement"). Pair 1 overwrites the subscript item of the SOURCE group; pair 2 must still read the row
     //    identified before any pair ran. SPEC-PINNED: the legacy re-resolves the group per pair. ─────────────────
     [Fact]

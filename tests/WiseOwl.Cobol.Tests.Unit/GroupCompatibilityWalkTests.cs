@@ -6,15 +6,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE §8.5.1.12 WALK MEASURES A PAIR, NOT EITHER GROUP ALONE (kb/Work PB2689).
-/// <para>ISO §8.5.1.12.3: "Two corresponding tables match when the byte length of their elements is equal and their
+/// ⛔ THE §2023:8.5.1.12 WALK MEASURES A PAIR, NOT EITHER GROUP ALONE (kb/Work PB2689).
+/// <para>ISO §2023:8.5.1.12.3: "Two corresponding tables match when the byte length of their elements is equal and their
 /// elements are compatible", and "If one of the corresponding tables is not a dynamic-capacity table ... the
 /// dynamic-capacity table is considered to be the same length as the corresponding table". So when two corresponding
 /// tables' elements are groups, the element lengths compared are the ones the element walk measures for the pair — an
 /// element holding <c>OCCURS DYNAMIC</c> opposite one holding <c>OCCURS 2</c> is 2 bytes there, although its
 /// one-occurrence atom is 1. The walk compared the atoms' static <see cref="GroupAtom.ElementBytes"/> first and refused
 /// the pair.</para>
-/// <para>§8.5.1.12.2's latitude for unequal lengths covers a dynamic-capacity table "beyond the last character of the
+/// <para>§2023:8.5.1.12.2's latitude for unequal lengths covers a dynamic-capacity table "beyond the last character of the
 /// shorter group" only. Once the shorter group's atoms were spent the walk stopped checking positions, so a
 /// dynamic-capacity table that still started INSIDE the shorter group's last item was accepted with no corresponding
 /// table.</para>
@@ -75,7 +75,7 @@ public sealed class GroupCompatibilityWalkTests
     [Fact]
     public void ADynamicTableBeyondTheShorterGroupsLastCharacter_KeepsItsLatitude()
     {
-        // §8.5.1.12.2: it "is treated as if it corresponds to a space-filled fixed-length table".
+        // §2023:8.5.1.12.2: it "is treated as if it corresponds to a space-filled fixed-length table".
         GroupAtom[] g1 = [Fx(2)];
         GroupAtom[] g2 = [Fx(2), new(GroupAtomKind.DynamicTable, 1, 1, 1, 1)];
         Assert.Null(GroupCompatibility.Walk(g1, g2));

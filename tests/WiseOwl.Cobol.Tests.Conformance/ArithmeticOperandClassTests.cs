@@ -5,11 +5,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ ISO §8.8.1.1 — THE CLASS OF AN ARITHMETIC OPERAND (DA6). "An arithmetic expression may be an identifier
+/// ⛔ ISO §2023:8.8.1.1 — THE CLASS OF AN ARITHMETIC OPERAND (DA6). "An arithmetic expression may be an identifier
 /// referencing a <b>numeric data item</b>, a numeric literal, the figurative constant ZERO (ZEROS, ZEROES) …".
-/// No group item is a numeric data item — ISO §8.5.2.1 gives an alphanumeric group class alphanumeric, a bit group
+/// No group item is a numeric data item — ISO §2023:8.5.2.1 gives an alphanumeric group class alphanumeric, a bit group
 /// class boolean, a national group class national and a strongly-typed group its type-name — so a group item, an
-/// elementary alphanumeric or national item, and a reference-modified slice (§8.4.3.3.4) are NOT permissible
+/// elementary alphanumeric or national item, and a reference-modified slice (§2023:8.4.3.3.4) are NOT permissible
 /// arithmetic operands. The refusal names the operand's own class (kb/Work PB1400; pinned below by
 /// <see cref="TheRefusal_NamesTheSection8521ClassOfTheOperand"/>).
 /// <para>
@@ -60,8 +60,8 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal(outAlnum.Trim(), outNum.Trim());   // the consistency that was missing
     }
 
-    /// <summary>Every alphanumeric shape §8.8.1.1 bars is rejected under STRICT conformance, and the rule is
-    /// EDITION-INVARIANT — §8.8.1.1 is unchanged at 85/2002/2014/2023, so there is no introduction axis and no
+    /// <summary>Every alphanumeric shape §2023:8.8.1.1 bars is rejected under STRICT conformance, and the rule is
+    /// EDITION-INVARIANT — §2023:8.8.1.1 is unchanged at 85/2002/2014/2023, so there is no introduction axis and no
     /// gate. Rejecting only the group shape would have left the elementary and reference-modified shapes accepted,
     /// which is the same inconsistency in a new place.</summary>
     [Theory]
@@ -77,7 +77,7 @@ public sealed class ArithmeticOperandClassTests
                 "       01 G.\n          05 A PIC X(4) VALUE \"1234\".\n"
                 + "       01 X PIC X(4) VALUE \"0012\".\n       01 R PIC 9(6).",
                 "           " + stmt), edition);
-            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §8.8.1.1");
+            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §2023:8.8.1.1");
             EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
@@ -85,7 +85,7 @@ public sealed class ArithmeticOperandClassTests
     /// <summary>⛔ THE FALSE-POSITIVE GUARD, and the reason this rule cannot live at the expression leaf. The
     /// grammar production is named <c>arithmeticExpression</c> but is REUSED as the generic argument expression, so
     /// an intrinsic argument travels the same spine. An argument's legality comes from the FUNCTION's own §15.x
-    /// argument rule, which for the string functions admits alphanumeric data — §8.8.1.1 does not govern it.
+    /// argument rule, which for the string functions admits alphanumeric data — §2023:8.8.1.1 does not govern it.
     /// <para>A first attempt enforced the rule unconditionally inside the leaf and produced 79 conformance failures,
     /// every one of them a legal call like these. These stay legal under STRICT conformance, with no
     /// <c>--permissive</c> needed.</para></summary>
@@ -136,11 +136,11 @@ public sealed class ArithmeticOperandClassTests
     /// class-tier BASED group, a bare COBOL word that is not a C# name at all (CS0103) — so the promise was
     /// never kept and the two shapes DIVERGED, which is the half of the defect a reject-only fixture cannot
     /// express. They agree now because neither is rendered by the fast path any more: both route to D18, where
-    /// <c>NumericRenderer.FieldNum</c> reads the group's §8.5.2.1 alphanumeric IMAGE through the ONE sending
+    /// <c>NumericRenderer.FieldNum</c> reads the group's §2023:8.5.2.1 alphanumeric IMAGE through the ONE sending
     /// reader.
     /// <para>Expected values, computed from the images: <c>WG</c> is "02" → occurrence 2 of "ABCD" = 'B';
     /// the BASED <c>BG</c> is the same "02" → 'B' (the convergence); the occurs-depending <c>OG</c> sends
-    /// only its §13.18.38.4 GR8 CURRENT-count part, "00" + one occurrence "3" = "003" → occurrence 3 =
+    /// only its §2023:13.18.38.4 GR8 CURRENT-count part, "00" + one occurrence "3" = "003" → occurrence 3 =
     /// 'C' (the MAXIMUM image would be "0030 0" and a different number, so this line also pins GR8 reaching the
     /// subscript path); and <c>W(WG:2)</c> is "ABCDE"(2:2) = "BC".</para>
     /// <para>The STRICT half is pinned at every edition by <c>pb201-subscript-group-item</c>,
@@ -171,8 +171,8 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal(got.Split('\n')[0]["WS=".Length..], got.Split('\n')[1]["BASED=".Length..]);
     }
 
-    /// <summary>The index DATA item, the arm the private category switch never had (kb/Work PB170). §8.5.2.1
-    /// Table 2 puts it in class INDEX and §13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement,
+    /// <summary>The index DATA item, the arm the private category switch never had (kb/Work PB170). §2023:8.5.2.1
+    /// Table 2 puts it in class INDEX and §2023:13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement,
     /// a relation condition, an intrinsic function argument" — has no arithmetic-operand and no subscript entry,
     /// so BOTH shapes below are illegal. Measured on 02c72682: both compiled clean under STRICT, and
     /// <c>COMPUTE N = IDX + 1</c> returned the occurrence number. The receiving-side twin
@@ -189,7 +189,7 @@ public sealed class ArithmeticOperandClassTests
         foreach (string stmt in new[] { "COMPUTE N = IDX + 1.", "MOVE E(IDX) TO R." })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, "           SET IDX TO 2.\n           " + stmt), edition);
-            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §13.18.60.3 SR10 / §8.8.1.1");
+            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §2023:13.18.60.3 SR10 / §2023:8.8.1.1");
             EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
@@ -211,12 +211,12 @@ public sealed class ArithmeticOperandClassTests
     /// control above used to be <c>01 E PIC ZZ9 VALUE 7</c> and asserted it de-edited).
     /// <para>
     /// The old reading took de-editing to make a numeric-edited item a legal arithmetic operand. It does not:
-    /// §8.8.1.1 admits "an identifier referencing a <b>numeric data item</b>", §8.5.2.13 calls this a
-    /// "<b>numeric-edited</b> data item" — a distinct defined term — and §8.5.2.1 Table 2 puts that category in
+    /// §2023:8.8.1.1 admits "an identifier referencing a <b>numeric data item</b>", §2023:8.5.2.13 calls this a
+    /// "<b>numeric-edited</b> data item" — a distinct defined term — and §2023:8.5.2.1 Table 2 puts that category in
     /// class ALPHANUMERIC (usage display) or NATIONAL, never numeric. Every de-editing rule in the standard is a
-    /// MOVE/editing rule (§14.9.25.4 GR6d1), and GR6d1 has to GRANT de-editing for the MOVE, which would be
+    /// MOVE/editing rule (§2023:14.9.25.4 GR6d1), and GR6d1 has to GRANT de-editing for the MOVE, which would be
     /// unnecessary if it were generally available. The sibling `IntrinsicArgumentRules` 'n' screen had already
-    /// refuted this same reading, so the two rested on readings of §8.8.1.1 that could not both be right.
+    /// refuted this same reading, so the two rested on readings of §2023:8.8.1.1 that could not both be right.
     /// </para>
     /// <para>⚠ Both external oracles were consulted before landing: NO NIST program depends on it (the whole
     /// NIST corpus stayed green through the flip), and GnuCOBOL's own suite exercises de-editing only under
@@ -228,12 +228,12 @@ public sealed class ArithmeticOperandClassTests
         var (ok, output, detail) = EditionHarness.CompileAndRun(Program(
             "       01 N PIC 9(4) VALUE 12.\n       01 E PIC ZZ9 VALUE 7.\n       01 R PIC 9(6).",
             "           COMPUTE R = N + E + 1.\n           DISPLAY \"R=\" R."), 2023);
-        Assert.False(ok, $"a numeric-edited arithmetic operand must be rejected (ISO §8.8.1.1); got: {output}");
+        Assert.False(ok, $"a numeric-edited arithmetic operand must be rejected (ISO §2023:8.8.1.1); got: {output}");
         Assert.Contains("COBOL0844", detail + output);
     }
 
     /// <summary>⛔ ONE SOURCE DEFECT, ONE DIAGNOSTIC (kb/Work PB220). The token renderer's fast path used to run
-    /// its §8.8.1.1 screen INSIDE the token loop, and the loop's exits to the D18 materializer are
+    /// its §2023:8.8.1.1 screen INSIDE the token loop, and the loop's exits to the D18 materializer are
     /// ORDER-DEPENDENT: a later token with no case arm — <c>**</c> — abandons the fast path AFTER the earlier
     /// name was screened, and D18 then re-binds the same operand through the expression binder, which screens it
     /// again. Measured before the fix: <b>two</b> COBOL0844s for one <c>E(XE ** 2)</c>, in BOTH lanes
@@ -257,8 +257,8 @@ public sealed class ArithmeticOperandClassTests
         Assert.Equal(permissive, ok);   // the leniency still decides acceptance; only the COUNT changed
     }
 
-    /// <summary>⛔ §13.18.38.3 r7 GETS ONE LANE POSTURE PER SLOT KIND, AND BOTH ROUTES TO THE SAME SLOT AGREE
-    /// (kb/Work PB219). A reference-modification bound is an ARITHMETIC position (§8.4.3.3.3 SR4), so it takes
+    /// <summary>⛔ §2023:13.18.38.3 r7 GETS ONE LANE POSTURE PER SLOT KIND, AND BOTH ROUTES TO THE SAME SLOT AGREE
+    /// (kb/Work PB219). A reference-modification bound is an ARITHMETIC position (§2023:8.4.3.3.3 SR4), so it takes
     /// R29's disposition: strict rejects with the r7 citation, <c>--permissive</c> warns and computes the
     /// occurrence number. Before this, the token renderer's fast path carried R16's IDENTIFIER-slot posture
     /// (an unconditional Error) while its OWN D18 route carried R29's — so under <c>--permissive</c>
@@ -304,19 +304,19 @@ public sealed class ArithmeticOperandClassTests
             Program(ws, "           MOVE E(XE) TO R."), 2023);
         Assert.False(moveOk, "control: the MOVE form is rejected");
         Assert.False(contentOk,
-            "BY CONTENT commits a Probe's Place; the §8.8.1.1 position screen must still apply to it — "
+            "BY CONTENT commits a Probe's Place; the §2023:8.8.1.1 position screen must still apply to it — "
             + string.Join(" ;; ", contentErrors));
         EditionHarness.AssertHasDiagnostic(contentErrors, "COBOL0844");
         EditionHarness.AssertHasDiagnostic(moveErrors, "COBOL0844");
     }
 
-    /// <summary>⛔ THE REFUSAL NAMES THE CLASS §8.5.2.1 GIVES THE OPERAND (kb/Work PB1400). The refusal of a group as an
-    /// arithmetic operand was always right; the reason it gave was not — "group item … (class alphanumeric, ISO §8.5)"
-    /// for EVERY group, and "class alphanumeric" for every reference-modified operand. ISO §8.5.2.1: "a bit group item
-    /// has class and category boolean — a national group item has class and category national"; §8.5.2.5 3) and
-    /// §8.5.2.10 3) reach a group "explicitly or implicitly described with a GROUP-USAGE clause", so the SUBORDINATE
+    /// <summary>⛔ THE REFUSAL NAMES THE CLASS §2023:8.5.2.1 GIVES THE OPERAND (kb/Work PB1400). The refusal of a group as an
+    /// arithmetic operand was always right; the reason it gave was not — "group item … (class alphanumeric, ISO §2023:8.5)"
+    /// for EVERY group, and "class alphanumeric" for every reference-modified operand. ISO §2023:8.5.2.1: "a bit group item
+    /// has class and category boolean — a national group item has class and category national"; §2023:8.5.2.5 3) and
+    /// §2023:8.5.2.10 3) reach a group "explicitly or implicitly described with a GROUP-USAGE clause", so the SUBORDINATE
     /// group of each is the same class; "the class and the category of a strongly-typed group item are the type-name";
-    /// §8.4.3.3.4 GR6 keeps a reference-modified national item class national. GROUP-USAGE is COBOL-2002 (the 85
+    /// §2023:8.4.3.3.4 GR6 keeps a reference-modified national item class national. GROUP-USAGE is COBOL-2002 (the 85
     /// refusal of the clause is <c>negative/pb79-group-usage-85</c>), and the text is edition-invariant from there.</summary>
     [Theory]
     [InlineData(2002)]
@@ -334,20 +334,20 @@ public sealed class ArithmeticOperandClassTests
             + "       01 T1.\n          05 TE PIC 9 OCCURS 5.\n       01 R PIC 9(4).";
         (string Stmt, string Reason)[] cases =
         [
-            ("COMPUTE R = GB + 1.", "group item 'GB' of class boolean (ISO §8.5.2.1)"),
-            ("COMPUTE R = GBS + 1.", "group item 'GBS' of class boolean (ISO §8.5.2.1)"),
-            ("COMPUTE R = GN + 1.", "group item 'GN' of class national (ISO §8.5.2.1)"),
-            ("COMPUTE R = GNS + 1.", "group item 'GNS' of class national (ISO §8.5.2.1)"),
-            ("COMPUTE R = GA + 1.", "group item 'GA' of class alphanumeric (ISO §8.5.2.1)"),
+            ("COMPUTE R = GB + 1.", "group item 'GB' of class boolean (ISO §2023:8.5.2.1)"),
+            ("COMPUTE R = GBS + 1.", "group item 'GBS' of class boolean (ISO §2023:8.5.2.1)"),
+            ("COMPUTE R = GN + 1.", "group item 'GN' of class national (ISO §2023:8.5.2.1)"),
+            ("COMPUTE R = GNS + 1.", "group item 'GNS' of class national (ISO §2023:8.5.2.1)"),
+            ("COMPUTE R = GA + 1.", "group item 'GA' of class alphanumeric (ISO §2023:8.5.2.1)"),
             ("COMPUTE R = SG + 1.", "group item 'SG' of class TT, the type-name of a strongly-typed group item"),
-            ("COMPUTE R = NN(1:1) + 1.", "a reference-modified operand of class national (ISO §8.4.3.3.4 GR6)"),
+            ("COMPUTE R = NN(1:1) + 1.", "a reference-modified operand of class national (ISO §2023:8.4.3.3.4 GR6)"),
             // The subscript route (ReferenceResolver) spells the class through the same Table-2 spelling.
-            ("MOVE TE (NE) TO R.", "item 'NE' of class alphanumeric (numeric-edited) (ISO §8.5.2.1 Table 2)"),
+            ("MOVE TE (NE) TO R.", "item 'NE' of class alphanumeric (numeric-edited) (ISO §2023:8.5.2.1 Table 2)"),
         ];
         foreach (var (stmt, reason) in cases)
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program(ws, "           " + stmt), edition);
-            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §8.8.1.1");
+            Assert.False(ok, $"[std {edition}] '{stmt}' must be rejected — ISO §2023:8.8.1.1");
             EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
             EditionHarness.AssertHasDiagnostic(errors, reason);
         }

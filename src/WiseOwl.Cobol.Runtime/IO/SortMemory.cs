@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// ⛔ THE SORT-MERGE STORE'S MEMORY LIMIT AND WORK DIRECTORY (kb/Work PB3339; docs/CONFORMANCE.md §3 D-SWK). The
-/// standard says what a sort-merge file does, never where its records live (§13.4.6.1: the SD entry "furnishes
+/// standard says what a sort-merge file does, never where its records live (§2023:13.4.6.1: the SD entry "furnishes
 /// information concerning the physical structure pertaining to a sort or merge file"), so the storage is the
 /// implementor's, and WiseOwl COBOL follows GnuCOBOL 3.2 (CLAUDE.md rule 1): a SORT or MERGE keeps at most
 /// <see cref="LimitBytes"/> of records in memory and writes what exceeds it as sorted runs in
@@ -20,7 +20,7 @@ internal sealed record SortMemory(long LimitBytes, string Directory)
 {
     /// <summary>The environment variable that sets <see cref="LimitBytes"/>: a byte count with an optional <c>K</c>,
     /// <c>M</c> or <c>G</c> suffix (powers of 1024, case-insensitive) — GnuCOBOL's <c>COB_SORT_MEMORY</c> vocabulary.
-    /// ⛔ <c>WISEOWL_COBOL_</c>, never <c>COBOL_</c>: that prefix is the §12.3.7 external-switch family
+    /// ⛔ <c>WISEOWL_COBOL_</c>, never <c>COBOL_</c>: that prefix is the §2023:12.3.7 external-switch family
     /// (<see cref="SwitchStore.Prefix"/>; the reason <see cref="FileRegistry.KeyCheckVariable"/> gives).</summary>
     public const string MemoryVariable = "WISEOWL_COBOL_SORT_MEMORY";
 

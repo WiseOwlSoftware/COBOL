@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.3 SR2 - "SYNC is an abbreviation for SYNCHRONIZED." An
+      *> ISO §2023:13.18.55.3 SR2 - "SYNC is an abbreviation for SYNCHRONIZED." An
       *> abbreviation is the SAME clause spelled shorter, so it has to meet
       *> the SAME edition gate: SYNCHRONIZED on a GROUP item is a COBOL-2023
       *> introduction (ISO Annex E.3.2 item 6 / VCR row 43) and below 2023 it

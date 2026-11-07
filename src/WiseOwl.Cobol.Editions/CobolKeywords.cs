@@ -3,9 +3,9 @@
 namespace WiseOwl.Cobol.Editions;
 
 /// <summary>
-/// ⛔ THE ONE COMPARISON OF A WRITTEN WORD WITH A KEYWORD — a reserved word, a compiler-directive word (§8.12), a phrase
+/// ⛔ THE ONE COMPARISON OF A WRITTEN WORD WITH A KEYWORD — a reserved word, a compiler-directive word (§2023:8.12), a phrase
 /// word of a directive or of a text-manipulation statement — on the BASIC LETTERS ALONE (kb/Work PB4240, PB4312, PB4420;
-/// DESIGN-frontend-grammar §3.13). ISO §8.1.3.2 3) a): "COBOL basic letters appearing elsewhere within the compilation
+/// DESIGN-frontend-grammar §3.13). ISO §2023:8.1.3.2 3) a): "COBOL basic letters appearing elsewhere within the compilation
 /// group are treated in a case-insensitive manner"; 4) opens "Extended letters in user-defined words are subject to the
 /// following rules", so the Annex C fold of an extended letter (4) b)) governs USER-DEFINED WORDS only. A keyword is
 /// basic letters, digits and hyphens, so a word that holds any other character is not that keyword: <c>DİSPLAY</c>

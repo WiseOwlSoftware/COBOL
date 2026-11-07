@@ -9,28 +9,28 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ THE ONE HOME OF THE PROTOTYPE SOURCE-UNIT RULES (kb/Work PB894). ISO §10.6 writes the rules once for all
+/// ⛔ THE ONE HOME OF THE PROTOTYPE SOURCE-UNIT RULES (kb/Work PB894). ISO §2023:10.6 writes the rules once for all
 /// three prototype kinds — "The following restrictions apply to program prototypes, function prototypes, and
-/// method prototypes" (§10.6.2 SR4) — so they are screened once here and every prototype-bearing construct asks:
+/// method prototypes" (§2023:10.6.2 SR4) — so they are screened once here and every prototype-bearing construct asks:
 /// <list type="bullet">
-/// <item><b>§10.6.2 SR4 a)–f)</b> — the BODY of a prototype (<see cref="ScreenBody"/>, COBOL2272). Called by
+/// <item><b>§2023:10.6.2 SR4 a)–f)</b> — the BODY of a prototype (<see cref="ScreenBody"/>, COBOL2272). Called by
 /// <c>BinderDriver.MakeUnit</c> for a PROGRAM-ID or FUNCTION-ID prototype and by <c>OoClassTable</c> for an
 /// interface's method prototypes. Before PB894 only the method arm had any of it — two of the six restrictions,
 /// the data division checked against three of its five non-linkage sections — and a FUNCTION prototype carrying
 /// WORKING-STORAGE or procedure statements compiled clean and the statements silently vanished (a prototype emits
 /// no body).</item>
-/// <item><b>§10.6.1's source-unit formats</b> are NOT here any more: every unit kind — the two prototype kinds and
+/// <item><b>§2023:10.6.1's source-unit formats</b> are NOT here any more: every unit kind — the two prototype kinds and
 /// the program and function definitions — is screened by the ONE table in <see cref="SourceUnitShape"/>
 /// (COBOL2274; kb/Work PB1507).</item>
-/// <item><b>§10.6.2 SR1</b> — prototypes precede every other source unit of the compilation group
+/// <item><b>§2023:10.6.2 SR1</b> — prototypes precede every other source unit of the compilation group
 /// (<see cref="ScreenOrder"/>, COBOL2273).</item>
 /// </list>
-/// §10.6.2 SR2 / SR3 (the prototype-and-definition signature pair) live beside the tables that pair them,
+/// §2023:10.6.2 SR2 / SR3 (the prototype-and-definition signature pair) live beside the tables that pair them,
 /// <c>BinderDriver.CheckPrototypeSignaturePairs</c>, because they need the bound LINKAGE descriptions.
 /// </summary>
 internal static class PrototypeUnitRules
 {
-    /// <summary>§10.6.2 SR4 a)–f) over the four parts a prototype may carry. <paramref name="what"/> names the
+    /// <summary>§2023:10.6.2 SR4 a)–f) over the four parts a prototype may carry. <paramref name="what"/> names the
     /// prototype in the message (<c>PROGRAM-ID 'P' IS PROTOTYPE</c>, <c>interface 'I', method 'M'</c>).</summary>
     internal static void ScreenBody(string what, Core.OptionsParagraphContext? options,
         Core.EnvironmentDivisionContext? environment, Core.DataDivisionContext? data,
@@ -40,7 +40,7 @@ internal static class PrototypeUnitRules
         {
             using var _ = edition.At(at);
             edition.Error(DiagnosticCatalog.PrototypeBody,
-                $"{what}: {requirement} (ISO §10.6.2 SR4 {rule})");
+                $"{what}: {requirement} (ISO §2023:10.6.2 SR4 {rule})");
         }
 
         // a) "The identification division shall not contain an ARITHMETIC clause."
@@ -89,7 +89,7 @@ internal static class PrototypeUnitRules
         || e.localeClause() is not null || e.symbolicCharactersClause() is not null
         || e.unrecognizedClause() is not null;
 
-    /// <summary>§10.6.2 SR1: "Within a compilation group, function-prototypes and program-prototypes shall precede
+    /// <summary>§2023:10.6.2 SR1: "Within a compilation group, function-prototypes and program-prototypes shall precede
     /// all other types of source units." Walked over the group's children in source order, so a class or
     /// interface definition counts as an "other type" exactly like a program or function definition.</summary>
     internal static void ScreenOrder(Core.CompilationGroupContext group, EditionContext edition)
@@ -106,7 +106,7 @@ internal static class PrototypeUnitRules
                 edition.Error(DiagnosticCatalog.PrototypeOrder,
                     "a program or function prototype follows another kind of source unit: within a compilation "
                     + "group, function-prototypes and program-prototypes shall precede all other types of source "
-                    + "units (ISO §10.6.2 SR1)");
+                    + "units (ISO §2023:10.6.2 SR1)");
             }
             else if (child is ParserRuleContext)
                 sawOther = true;

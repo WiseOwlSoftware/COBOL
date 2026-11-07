@@ -5,17 +5,17 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.4 GR7c: for an INVOKE through a UNIVERSAL object reference, "the rules for conformance
+      *> ISO §2023:14.9.23.4 GR7c: for an INVOKE through a UNIVERSAL object reference, "the rules for conformance
       *> specified in 14.8.2, Parameters and 14.8.3, Returning items apply. If a violation of these rules is
       *> detected, the EC-OO-UNIVERSAL exception condition is set to exist IF CHECKING FOR IT IS ENABLED IN
       *> BOTH the activated method and the activating runtime element, the method invocation is not successful,
       *> and execution continues as specified in General rule 7g."
       *>
-      *> The returning item is PIC 9(6) against the method's PIC 9(4) — a MOVE could deliver it, so §9.3.6
-      *> match rule 7 BINDS the method; the same-PICTURE rule of §14.8.3.3 is then the violation that
-      *> §14.9.23.4 GR7c detects at run time because the receiver is universal (kb/Work PB1500: an ARGUMENT
+      *> The returning item is PIC 9(6) against the method's PIC 9(4) — a MOVE could deliver it, so §2023:9.3.6
+      *> match rule 7 BINDS the method; the same-PICTURE rule of §2023:14.8.3.3 is then the violation that
+      *> §2023:14.9.23.4 GR7c detects at run time because the receiver is universal (kb/Work PB1500: an ARGUMENT
       *> whose description differs is not
-      *> a violation of a bound method - it resolves no method, §9.3.6 6), EC-OO-METHOD - see
+      *> a violation of a bound method - it resolves no method, §2023:9.3.6 6), EC-OO-METHOD - see
       *> 2002/w67q_pb1500_universal_no_match). Checking is enabled ONCE at the top of the compilation
       *> group, so it covers both the activating program and the method: enabled in BOTH, so the condition IS
       *> set, the declarative selects, and RESUME AT NEXT STATEMENT keeps the run unit alive.

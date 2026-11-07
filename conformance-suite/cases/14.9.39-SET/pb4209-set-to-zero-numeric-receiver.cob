@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.39.3 SR4: "If identifier-1 references a numeric data item,
-      *> index-name-2 shall be specified." (cite.py: OK  §14.9.39.3 4)). The
+      *> index-name-2 shall be specified." (cite.py: OK  §2023:14.9.39.3 4)). The
       *> bare ZERO is arithmetic-expression-1, not index-name-2, so the
       *> statement is refused. kb/Work PB4209: the refusal quotes the sender AS
       *> THE PROGRAMMER WROTE IT. The token rewriter gives a bare ZERO in an

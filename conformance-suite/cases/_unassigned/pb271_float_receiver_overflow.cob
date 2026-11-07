@@ -6,14 +6,14 @@
 *> portable: unverified
 *>---
       *> kb/Work PB271 — the STORE BEHAVIOUR of a MOVE past a float receiver's range, with EC-DATA-OVERFLOW
-      *> checking OFF (the default: §14.6.13.1.1 — "By default, checking is not enabled for any exception
+      *> checking OFF (the default: §2023:14.6.13.1.1 — "By default, checking is not enabled for any exception
       *> condition … if checking for an exception condition is not enabled, the exception condition will not be
       *> raised").  ec_data_overflow.cob pins the same MOVEs with checking ON; this pins what a default build
       *> does, because that is the half a program actually sees.
       *>
-      *> §14.9.25.4 GR6 d)4.a makes the receiving item's content UNDEFINED in this case, so the value below is a
+      *> §2023:14.9.25.4 GR6 d)4.a makes the receiving item's content UNDEFINED in this case, so the value below is a
       *> DETERMINATION and not a derivation: WiseOwl COBOL performs the ISO/IEC 60559 conversion and keeps its
-      *> result, which is ±Infinity.  For FLOAT-SHORT/-LONG/-EXTENDED the same value is the §14.6.8.3 rule 1
+      *> result, which is ±Infinity.  For FLOAT-SHORT/-LONG/-EXTENDED the same value is the §2023:14.6.8.3 rule 1
       *> implementor choice ("the implementor specifies any exception conditions that might be set to exist
       *> during data conversion") — here, none with checking off.
       *>

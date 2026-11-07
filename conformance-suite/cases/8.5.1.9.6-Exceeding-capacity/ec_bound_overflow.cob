@@ -5,13 +5,13 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-BOUND-OVERFLOW (ISO §8.5.1.9.6 GR1; Table 13 Nonfatal): a dynamic-capacity
-      *> table (OCCURS DYNAMIC, §8.5.1.9 — COBOL-2014) whose IMPLICIT growth (a receiving
+      *> EC-BOUND-OVERFLOW (ISO §2023:8.5.1.9.6 GR1; Table 13 Nonfatal): a dynamic-capacity
+      *> table (OCCURS DYNAMIC, §2023:8.5.1.9 — COBOL-2014) whose IMPLICIT growth (a receiving
       *> subscript) first crosses its expected capacity (TO integer-5) sets the nonfatal
       *> EC-BOUND-OVERFLOW under CHECKING ON. GR1's "if the change in capacity was implicit
       *> and the expected capacity had already been exceeded before the operation, no
       *> exception shall exist" makes it the FIRST crossing only. Observed via
-      *> FUNCTION EXCEPTION-STATUS (§15.33); SET LAST EXCEPTION TO OFF clears it (§14.9.39
+      *> FUNCTION EXCEPTION-STATUS (§2023:15.33); SET LAST EXCEPTION TO OFF clears it (§2023:14.9.39
       *> Format 13). The growth proceeds regardless (nonfatal), so with checking OFF the
       *> observable result is identical.
       >>TURN EC-BOUND-OVERFLOW CHECKING ON

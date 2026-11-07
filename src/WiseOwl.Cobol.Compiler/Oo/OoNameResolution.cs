@@ -14,13 +14,13 @@ using WiseOwl.Cobol.Binding.Model;
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN object-class-name OR interface-name (kb/Work PB365).
 ///
-/// <para><b>The rule it owns is ISO §8.4.6.4, Scope of object-class-names and interface-names</b>: "The
+/// <para><b>The rule it owns is ISO §2023:8.4.6.4, Scope of object-class-names and interface-names</b>: "The
 /// object-class-name of an object class referenced within a source element shall be either the name of the
 /// containing object class definition or declared in the REPOSITORY paragraph of that or a containing source
 /// element", and the same sentence for interface-names. Every per-statement rule that says "shall be the name
-/// of a class specified in the REPOSITORY paragraph" — §11.3.3 SR2 (CLASS-ID INHERITS), §11.4.3 SR1 (FACTORY
-/// IMPLEMENTS), §11.6.3 SR2 (INTERFACE-ID INHERITS), §11.8.3 SR1 (OBJECT IMPLEMENTS), §14.2.2 SR8/SR9 (the
-/// PROCEDURE DIVISION header's RAISING phrase), §14.9.49.3 SR16/SR17 (USE Format 4) — is an INSTANCE of it, so
+/// of a class specified in the REPOSITORY paragraph" — §2023:11.3.3 SR2 (CLASS-ID INHERITS), §2023:11.4.3 SR1 (FACTORY
+/// IMPLEMENTS), §2023:11.6.3 SR2 (INTERFACE-ID INHERITS), §2023:11.8.3 SR1 (OBJECT IMPLEMENTS), §2023:14.2.2 SR8/SR9 (the
+/// PROCEDURE DIVISION header's RAISING phrase), §2023:14.9.49.3 SR16/SR17 (USE Format 4) — is an INSTANCE of it, so
 /// they are one mechanism and not seven.</para>
 ///
 /// <para><b>What it replaced.</b> Every one of those sites called <c>OoClassTable.Find</c> /
@@ -31,10 +31,10 @@ using WiseOwl.Cobol.Binding.Model;
 /// not name a class of the compilation group". Widening a set is silent by construction: nothing downstream can
 /// notice a reference that should not have resolved.</para>
 ///
-/// <para><b>The scope is computed from the parse tree, not plumbed.</b> §12.3.3 SR1 forbids a configuration
+/// <para><b>The scope is computed from the parse tree, not plumbed.</b> §2023:12.3.3 SR1 forbids a configuration
 /// section in a contained program, SR2 in a method definition, and SR3 the REPOSITORY paragraph in a factory or
 /// instance definition — so the source elements that CAN carry a REPOSITORY are the outermost program, the
-/// function definition, the class definition and the interface definition, and §12.3.4 GR1 spreads each one's
+/// function definition, the class definition and the interface definition, and §2023:12.3.4 GR1 spreads each one's
 /// entries to "each directly or indirectly contained source unit". An ancestor walk from the reference site
 /// therefore IS the rule, with no state to thread and nothing to keep in sync; a new reference site gets the
 /// right scope by construction (CLAUDE.md rule 5 — the shape that makes the next case automatic).</para>
@@ -47,11 +47,11 @@ public static class OoNameResolution
 
     /// <summary>A resolution outcome. <see cref="Class"/> and <see cref="Interface"/> are mutually exclusive:
     /// classes and interfaces share ONE name namespace (<see cref="OoClassTable"/> rejects a collision as
-    /// COBOL0820, ISO §8.3.2.2), so at most one can be set.
+    /// COBOL0820, ISO §2023:8.3.2.2), so at most one can be set.
     /// <para><see cref="IsFormal"/> is the third outcome, and sets neither: the name is a PARAMETER-NAME of the
-    /// parameterized definition the reference is written in (§11.3.4 GR6 / §11.6.4 GR4 — "may be specified within
+    /// parameterized definition the reference is written in (§2023:11.3.4 GR6 / §2023:11.6.4 GR4 — "may be specified within
     /// this class definition only where an object-class-name or an interface-name is permitted"). It names whatever
-    /// class or interface each expansion passes (§12.3.8.4 GR5 / GR8), so the definition itself knows no symbol for
+    /// class or interface each expansion passes (§2023:12.3.8.4 GR5 / GR8), so the definition itself knows no symbol for
     /// it — only that the reference is legal (kb/Work PB2051). It is not <see cref="Ok"/>: a site that needs the
     /// symbol has nothing to read, and asks <see cref="IsFormal"/> first when the definition is bound as itself.</para></summary>
     public readonly record struct Result(OoClassSymbol? Class, OoInterfaceSymbol? Interface, bool IsFormal = false)
@@ -62,12 +62,12 @@ public static class OoNameResolution
     /// <summary>Resolve <paramref name="name"/> as an object-class-name / interface-name visible from
     /// <paramref name="site"/>, reporting through <paramref name="descriptor"/> when it is not. The message
     /// distinguishes the two failures, because their fixes differ: a name that is DEFINED in the group but not
-    /// declared in scope needs a REPOSITORY entry (§8.4.6.4); a name that is defined nowhere needs a
+    /// declared in scope needs a REPOSITORY entry (§2023:8.4.6.4); a name that is defined nowhere needs a
     /// definition.</summary>
     /// <param name="where">The reference site, e.g. <c>"declarative section 'EO-SEC': USE AFTER EXCEPTION OBJECT"</c>.</param>
     /// <param name="code">The REFERENCING construct's own diagnostic code — each site keeps the code its
     /// goldens pin; what the funnel owns is the SET and the message, not the code.</param>
-    /// <param name="ruleCitation">The referencing construct's own syntax rule, e.g. <c>"ISO §14.9.49.3 SR16/SR17"</c>.</param>
+    /// <param name="ruleCitation">The referencing construct's own syntax rule, e.g. <c>"ISO §2023:14.9.49.3 SR16/SR17"</c>.</param>
     public static Result Resolve(OoClassTable? table, EditionContext edition, RuleContext? site, string name,
         Want want, string where, string code, string ruleCitation)
     {
@@ -76,14 +76,14 @@ public static class OoNameResolution
 
         // A PARAMETERIZED definition is a skeleton, not a class or interface, so it is never in the table and a
         // reference to it can never resolve (kb/Work PB759). Say which rule, rather than "not defined": the
-        // definition IS in the source. ISO §12.3.8.4 GR1 (class) and GR7 (interface) confine the name to the
+        // definition IS in the source. ISO §2023:12.3.8.4 GR1 (class) and GR7 (interface) confine the name to the
         // REPOSITORY paragraph, where its only use is as an EXPANDS operand.
         if (table?.IsParameterized(name) == true)
         {
             edition.Error(code, $"{where} '{name}': '{name}' is a parameterized class or interface (its "
                 + "CLASS-ID / INTERFACE-ID paragraph has a USING clause), which may be specified only in the "
                 + "REPOSITORY paragraph — reference an expansion of it, declared with the EXPANDS phrase "
-                + $"({ruleCitation}; ISO §12.3.8.4 GR1/GR7)");
+                + $"({ruleCitation}; ISO §2023:12.3.8.4 GR1/GR7)");
             return default;
         }
 
@@ -101,12 +101,12 @@ public static class OoNameResolution
         };
         string notDeclared = "it is not the name of the containing class or interface definition and is not "
             + "declared in the REPOSITORY paragraph of this source element or a containing one "
-            + $"({ruleCitation}; ISO §8.4.6.4)";
+            + $"({ruleCitation}; ISO §2023:8.4.6.4)";
         edition.Error(code,
             cls is { Origin: OoSymbolOrigin.Standard }
                 // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
-                // (§12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
-                ? $"{where} '{name}': '{name}' is the standard class BASE (ISO §16.1), but {notDeclared} — "
+                // (§2023:12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
+                ? $"{where} '{name}': '{name}' is the standard class BASE (ISO §2023:16.1), but {notDeclared} — "
                   + $"add `CLASS {name}` to the REPOSITORY paragraph"
             : definedInGroup
                 ? $"{where} '{name}': {kind} of that name is defined in this compilation group, but {notDeclared}"
@@ -116,13 +116,13 @@ public static class OoNameResolution
     }
 
     /// <summary>The NON-DIAGNOSING half, for the sites that PARTITION on "is this word a class-name here?" —
-    /// the PROCEDURE DIVISION / METHOD-ID RAISING word that may instead be an exception-name (§14.2.2 SR7 vs
+    /// the PROCEDURE DIVISION / METHOD-ID RAISING word that may instead be an exception-name (§2023:14.2.2 SR7 vs
     /// SR8/SR9), and INVOKE's receiver, which may instead be an identifier. The partition uses the SAME scoped
     /// set: a class the source element cannot reference is not a class-name in that position.
     /// <para>A name that resolves is a USE of the word as that type in the referring source element, which that
-    /// element's §8.3.2.2 census records (<see cref="OoClassTable.RecordReferenceUse"/>, kb/Work PB3132): the one thing
+    /// element's §2023:8.3.2.2 census records (<see cref="OoClassTable.RecordReferenceUse"/>, kb/Work PB3132): the one thing
     /// this half reports, and only for a word the element has made two types. A parameter-name is recorded as the
-    /// type its own definition's REPOSITORY specifier declares it (§11.3.3 SR8 / §11.6.3 SR4 require that specifier),
+    /// type its own definition's REPOSITORY specifier declares it (§2023:11.3.3 SR8 / §2023:11.6.3 SR4 require that specifier),
     /// which is how the binder that binds the definition as itself declares the word (an object-class-name or an
     /// interface-name; <c>OoExpansion</c>'s kb/Work PB1744 scope is where it is a parameter-name), so the definition's
     /// own references to its formal agree with its declaration of it.</para></summary>
@@ -142,14 +142,14 @@ public static class OoNameResolution
     {
         var scope = table.RepositoryScopeFor(site);
         // A parameter-name of the enclosing parameterized definition, in a position of the kind its own REPOSITORY
-        // specifier declares (§11.3.3 SR8 / §11.6.3 SR4 make that declaration mandatory, and OoExpansion reports its
+        // specifier declares (§2023:11.3.3 SR8 / §2023:11.6.3 SR4 make that declaration mandatory, and OoExpansion reports its
         // absence). Asked FIRST: inside the definition the word names the formal even when some class of the group is
-        // spelled the same, since every expansion replaces it (§12.3.8.4 GR5 / GR8; kb/Work PB2051).
+        // spelled the same, since every expansion replaces it (§2023:12.3.8.4 GR5 / GR8; kb/Work PB2051).
         if (scope.IsFormal(name)
             && (want is Want.Class or Want.Either && scope.DeclaresClass(name)
                 || want is Want.Interface or Want.Either && scope.DeclaresInterface(name)))
             return new Result(null, null, IsFormal: true);
-        // A specifier with `AS literal-n` names the definition whose EXTERNALIZED name is the literal (§12.3.8.4 GR2,
+        // A specifier with `AS literal-n` names the definition whose EXTERNALIZED name is the literal (§2023:12.3.8.4 GR2,
         // kb/Work PB974); without it the declared word names the definition of that name.
         // The group's definition wins a tie with the repository (DESIGN-external-repository §8.4): the identity the specifier
         // states (`lit ?? word`) is asked of the external repository only when no definition of the group claims it.
@@ -166,15 +166,15 @@ public static class OoNameResolution
 }
 
 /// <summary>
-/// The set of object-class-names and interface-names ONE source element may reference (ISO §8.4.6.4): its own
-/// REPOSITORY declarations plus every containing source element's (§12.3.4 GR1), plus the name of the
-/// containing class or interface definition itself — §12.3.8.3 SR5/SR8 say the self-naming specifier "is
+/// The set of object-class-names and interface-names ONE source element may reference (ISO §2023:8.4.6.4): its own
+/// REPOSITORY declarations plus every containing source element's (§2023:12.3.4 GR1), plus the name of the
+/// containing class or interface definition itself — §2023:12.3.8.3 SR5/SR8 say the self-naming specifier "is
 /// ignored", so the definition's own name is in scope whether or not it is declared.
 /// </summary>
 public sealed class IdentityScope
 {
     /// <summary>The scope of a reference outside every source element that can declare one. It admits nothing:
-    /// §8.4.6.4 offers no third source for a visible name.</summary>
+    /// §2023:8.4.6.4 offers no third source for a visible name.</summary>
     public static readonly IdentityScope Empty = new([], [], []);
 
     // Declared name → the EXTERNALIZED name the specifier's `AS literal-n` gives, or null when it wrote none (the
@@ -196,7 +196,7 @@ public sealed class IdentityScope
     public bool DeclaresInterface(string name) => _interfaces.ContainsKey(name);
 
     /// <summary>Whether <paramref name="name"/> is a parameter-name of the parameterized class or interface
-    /// definition this scope lies in (§11.3.2 / §11.6.2 `USING parameter-name-1`). Only the written skeleton has
+    /// definition this scope lies in (§2023:11.3.2 / §2023:11.6.2 `USING parameter-name-1`). Only the written skeleton has
     /// one: an expansion's re-parsed text has its USING clause dropped and every formal replaced (kb/Work PB759).</summary>
     public bool IsFormal(string name) => _formals.Contains(name);
 
@@ -210,7 +210,7 @@ public sealed class IdentityScope
 
     /// <summary>Build the scope visible at <paramref name="site"/> by walking its parse-tree ancestors: every
     /// REPOSITORY paragraph on the way out contributes (the reference's own source element first, then each
-    /// containing one — §12.3.4 GR1), and a class / interface definition contributes its own name.
+    /// containing one — §2023:12.3.4 GR1), and a class / interface definition contributes its own name.
     /// <paramref name="variables"/> is the group's &gt;&gt;DEFINE timeline, for a FROM constant-name written as a
     /// specifier's AS operand. The AS literals are read in the spelling of <paramref name="dialectLevel"/>, the
     /// edition's (kb/Work PB2840).</summary>
@@ -226,8 +226,8 @@ public sealed class IdentityScope
             {
                 case Core.ClassDefinitionContext cd:
                     // className()[0] is the class's OWN name; the rest are the INHERITS operands
-                    // (§11.3.2's `[ INHERITS FROM { object-class-name-2 } … ]`), which are REFERENCES.
-                    // §12.3.8.3 SR5/SR8: a specifier naming the containing definition "is ignored" — its own name
+                    // (§2023:11.3.2's `[ INHERITS FROM { object-class-name-2 } … ]`), which are REFERENCES.
+                    // §2023:12.3.8.3 SR5/SR8: a specifier naming the containing definition "is ignored" — its own name
                     // resolves to it, whatever an inner entry wrote.
                     if (cd.classIdParagraph()?.className().FirstOrDefault() is { } cn) classes[cn.GetText()] = null;
                     foreach (var p in cd.classIdParagraph()?.ooParameterName() ?? []) formals.Add(p.GetText());
@@ -250,11 +250,11 @@ public sealed class IdentityScope
         Dictionary<string, string?> interfaces, DirectiveTimeline<CompilationVariableEvent> variables, int dialectLevel)
     {
         // The source element's OWN specifiers are collected before a containing element's (the ancestor walk runs
-        // outward), so TryAdd keeps the innermost declaration — §12.3.4 GR1 spreads a container's entries to
+        // outward), so TryAdd keeps the innermost declaration — §2023:12.3.4 GR1 spreads a container's entries to
         // contained units, and a contained unit's own specifier for the same name is the one in force there.
         // The literal is read by the PURE ExternalizedName.Peek: DataBinder.BindSpecifierExternalizedName reports
         // on it, once, and a rejected literal resolves by the declared word — its own fallback. A constant-name operand
-        // (§13.10.3 SR2; kb/Work PB2588) is read off the parse tree, because no DATA DIVISION is bound yet; it is the
+        // (§2023:13.10.3 SR2; kb/Work PB2588) is read off the parse tree, because no DATA DIVISION is bound yet; it is the
         // same constant entry the binder's screen reads, so the two agree on the name.
         foreach (var re in SpecifierEntries(env))
         {
@@ -266,10 +266,10 @@ public sealed class IdentityScope
         }
     }
 
-    /// <summary>The class-specifiers and interface-specifiers (§12.3.8.2) of the REPOSITORY paragraph directly
+    /// <summary>The class-specifiers and interface-specifiers (§2023:12.3.8.2) of the REPOSITORY paragraph directly
     /// in <paramref name="env"/> — with or without an EXPANDS phrase, whose object-class-name-1 / interface-name-2
     /// is DECLARED exactly as a plain specifier's is (kb/Work PB759). The one walk this scope and
-    /// <see cref="OoExpansion"/> (a parameterized definition's own formals, §11.3.3 SR8 / §11.6.3 SR4) share.</summary>
+    /// <see cref="OoExpansion"/> (a parameterized definition's own formals, §2023:11.3.3 SR8 / §2023:11.6.3 SR4) share.</summary>
     internal static IEnumerable<Core.RepositoryEntryContext> SpecifierEntries(Core.EnvironmentDivisionContext? env)
         => RepositoryEntries(env).Where(r => r.CLASS() is not null || r.INTERFACE() is not null);
 

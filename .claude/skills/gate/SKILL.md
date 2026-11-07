@@ -68,7 +68,7 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   count) beat 16 and 8 in both, so no `xunit.runner.json` caps it. A re-gate of an unchanged tree answers from its
   GREEN record (`REUSED`, kb/Work PB3536). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
   PB3023, MANDATORY-PRACTICES L1, L2) reads this record; CI's merge group is the first run of the merged tree, of Linux
-  and of Release (PB4323 §5.1).
+  and of Release (PB4323 §2023:5.1).
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):
   `python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]` departs from it in the slot directory every
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting

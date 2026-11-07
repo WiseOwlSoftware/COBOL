@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.23.3 SR4 d): "If identifier-1 references an object
+      *> ISO §2023:14.9.23.3 SR4 d): "If identifier-1 references an object
       *> reference described with the ACTIVE-CLASS phrase and without the
       *> FACTORY phrase, literal-1 shall be the name of a method contained in
       *> the instance interface of the class containing the INVOKE

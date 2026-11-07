@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §13.18.63.3 SR17 — "The words VALUE and VALUES are
+      *> ISO §2023:13.18.63.3 SR17 — "The words VALUE and VALUES are
       *> equivalent." — printed in the FORMAT 2 (table) block; SR24
       *> ("Syntax rules 10 and 17 above apply") imports it into
       *> FORMAT 3, the condition-name format, so both are exercised.
@@ -18,14 +18,14 @@
       *> assertion cannot pass VACUOUSLY — two tables both left as
       *> spaces would compare equal just as well.
       *>
-      *> §5.2.3 (Optional words) makes IS and ARE optional — they are
-      *> shown "in uppercase and not underlined" in the §13.18.63.2
+      *> §2023:5.2.3 (Optional words) makes IS and ARE optional — they are
+      *> shown "in uppercase and not underlined" in the §2023:13.18.63.2
       *> figures — so all four heads below are legal COBOL. G-C vs
       *> G-D differ in EXACTLY the one word the rule is about; G-A vs
       *> G-B are the pair the figure prints.
       *>
       *> DERIVED EXPECTATIONS — from the rule text, not from a run:
-      *>  T1 §13.18.63.4 GR12 initializes the element named by
+      *>  T1 §2023:13.18.63.4 GR12 initializes the element named by
       *>     subscript-1 (= 1) to "AB"; GR13 reuses the literal until
       *>     the element named by subscript-2 (= 3) is initialized, so
       *>     all three elements hold "AB"  =>  "ABABAB".
@@ -36,7 +36,7 @@
       *>     shape where a "VALUES means a list, VALUE means one
       *>     literal" misreading would show, so the equivalence is
       *>     asserted on it too.
-      *>  C-IN / C-OUT §8.8.4.5.3 GR3 — the test is true if one of the
+      *>  C-IN / C-OUT §2023:8.8.4.5.3 GR3 — the test is true if one of the
       *>     values of the condition-name equals its conditional
       *>     variable. CV = 3 is one of {1,2,3} => T; 7 is not => F.
       *>     The FALSE leg is what stops an always-true condition-name

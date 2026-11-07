@@ -4,14 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §11.7.3 SR8 — IS FINAL on a METHOD-ID inside an
+      *> ISO §2023:11.7.3 SR8 — IS FINAL on a METHOD-ID inside an
       *> INTERFACE-ID (a method prototype).
       *> Rule: "The FINAL clause shall not be specified in a method
       *> prototype."
-      *> cite.py: OK  §11.7.3 8)  (Syntax rules)
+      *> cite.py: OK  §2023:11.7.3 8)  (Syntax rules)
       *> "Method definitions within an interface definition define
       *> method prototypes."
-      *> cite.py: OK  §9.3.7   (Method prototypes)
+      *> cite.py: OK  §2023:9.3.7   (Method prototypes)
       *> The interface inherits nothing and PING is its only prototype;
       *> no OVERRIDE is written, so only SR8 is violated.  Diagnostic
       *> COBOL4212 with the prototype message head.

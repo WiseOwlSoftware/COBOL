@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <para>
 /// ⛔ THE COPIES DISAGREED, AND BOTH DISAGREEMENTS WERE DEFECTS (fix-queue PB50 + PB54). Exactly one of the
 /// three applied <see cref="ZeroTokenRewriter"/>, which is what turns a figurative <c>ZERO</c> adjacent to an
-/// arithmetic operator into the <c>ZERO_ARITH</c> token <c>arithmeticExpression</c> can match (§8.8.1.1 admits
+/// arithmetic operator into the <c>ZERO_ARITH</c> token <c>arithmeticExpression</c> can match (§2023:8.8.1.1 admits
 /// "the figurative constant ZERO" as an arithmetic operand). The two that did not:
 /// </para>
 /// <list type="bullet">
@@ -29,16 +29,16 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// everything unrenderable here, so the arm was not the cause — this omission was.</item>
 /// <item><b>Keyword-omitted arguments</b> — <c>MIN(ZERO + 5, 2)</c> returned <b>0</b> while
 /// <c>FUNCTION MIN(ZERO + 5, 2)</c> returned 2, because the un-rewritten <c>ZERO</c> ended one argument and
-/// <c>+ 5</c> began another. A SILENT WRONG ANSWER, and §8.4.3.2 SR2 makes the two spellings the same reference
+/// <c>+ 5</c> began another. A SILENT WRONG ANSWER, and §2023:8.4.3.2 SR2 makes the two spellings the same reference
 /// (PB54).</item>
 /// </list>
 /// <para>
 /// ⚠ <paramref name="rewriteZero"/> IS AN EXPLICIT ARGUMENT, NOT A DEFAULT, so a new fragment has to answer the
 /// question rather than inherit an answer by omission — which is exactly how the two defects above arose. It is
-/// safe for an argument-list fragment despite §8.4.3.2.3 SR6: the rewriter keys on adjacency to an arithmetic
+/// safe for an argument-list fragment despite §2023:8.4.3.2.3 SR6: the rewriter keys on adjacency to an arithmetic
 /// operator or a PLAIN paren, and a fragment's text is the content BETWEEN its delimiters, so a bare <c>ZERO</c>
-/// argument has no adjacent operator and keeps the figurative identity §8.3.3.6.4 GR4 requires the BINDER to
-/// resolve by the function's §15.3 argument type (the PB48 rule).
+/// argument has no adjacent operator and keeps the figurative identity §2023:8.3.3.6.4 GR4 requires the BINDER to
+/// resolve by the function's §2023:15.3 argument type (the PB48 rule).
 /// </para>
 /// </remarks>
 public static class FragmentParse
@@ -48,12 +48,12 @@ public static class FragmentParse
     /// <param name="prime">The lexer-region prime for this fragment (<c>PrimeDirectiveExpr</c>, or null for the
     /// DEFAULT mode, where no list region is open and a sign before digits is the arithmetic operator).</param>
     /// <param name="rewriteZero">Apply <see cref="ZeroTokenRewriter"/> to the token stream — required wherever
-    /// the fragment's grammar can contain an ARITHMETIC EXPRESSION, since §8.8.1.1 admits the figurative ZERO as
+    /// the fragment's grammar can contain an ARITHMETIC EXPRESSION, since §2023:8.8.1.1 admits the figurative ZERO as
     /// an operand and only the rewrite makes it matchable.</param>
     /// <param name="retypes">The post-lex token decisions of the tree this text came from
     /// (<c>CompilationUnitContext.TokenRetypes</c>) — so the fragment reads every word exactly as the tree does: a
-    /// §8.9 word the program declared where the edition frees it (kb/Work PB655) and a <c>&gt;&gt;COBOL-WORDS</c>
-    /// synonym or de-reserved word (ISO §7.3.10.4) are the same tokens here as there.</param>
+    /// §2023:8.9 word the program declared where the edition frees it (kb/Work PB655) and a <c>&gt;&gt;COBOL-WORDS</c>
+    /// synonym or de-reserved word (ISO §2023:7.3.10.4) are the same tokens here as there.</param>
     public static T? Parse<T>(string text, EditionInfo edition, TokenRetypes retypes, System.Action<CobolLexer>? prime,
         bool rewriteZero, System.Func<CobolParserCore, T> rule) where T : class
     {
@@ -77,7 +77,7 @@ public static class FragmentParse
     }
 
     /// <summary>Re-parse an already-LEXED token run through <paramref name="rule"/>, or null on any syntax error —
-    /// the entry for a fragment whose SOURCE is a parse-tree slice rather than text: the §12.3.8.4 GR5/GR8
+    /// the entry for a fragment whose SOURCE is a parse-tree slice rather than text: the §2023:12.3.8.4 GR5/GR8
     /// EXPANSION of a parameterized class or interface (kb/Work PB759), which is the definition's own tokens with
     /// each formal parameter-name replaced by its actual. The tokens were lexed, zero-rewritten and
     /// <c>&gt;&gt;COBOL-WORDS</c>-retyped by the frontend's one pass, so none of those steps repeats here; the
@@ -105,7 +105,7 @@ public static class FragmentParse
     /// <summary>⛔ Re-parse SOURCE TEXT that already went through text manipulation as a COMPILATION UNIT, under the words map and
     /// the edition it was written under — the entry for a parameterized definition a skeleton published to the external repository
     /// (DESIGN-external-repository §10.5; kb/Work PB2104). It is the whole-group parse of the frontend in miniature: the lexer is
-    /// primed with the <c>&gt;&gt;COBOL-WORDS</c> decisions, the figurative ZERO next to a sign is settled, and the §8.9 reservation
+    /// primed with the <c>&gt;&gt;COBOL-WORDS</c> decisions, the figurative ZERO next to a sign is settled, and the §2023:8.9 reservation
     /// gate and the ZERO-sign round run to their fixpoint (<see cref="ReservationGateRewriter.ParseToFixpoint"/>), after which the
     /// text is lexed again if the declarations the parse found change which '(' open a subscript (<see cref="TokenRetypes.LexesDifferentlyFrom"/>)
     /// — so the tokens are the ones the defining group's parse produced. Null on any lexical or syntax error: a recorded skeleton

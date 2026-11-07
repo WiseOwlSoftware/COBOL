@@ -5,9 +5,9 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// ⛔ ONLY THE DECLARING ELEMENT CLAIMS A CELL FOR ITS STORAGE (ISO §13.18.27.4 GR2: "A statement in a program contained
+/// ⛔ ONLY THE DECLARING ELEMENT CLAIMS A CELL FOR ITS STORAGE (ISO §2023:13.18.27.4 GR2: "A statement in a program contained
 /// directly or indirectly within a program that describes a global name may reference that name without describing it
-/// again"; §14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the formal
+/// again"; §2023:14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the formal
 /// parameter occupies the same storage area as the argument"). A contained program's <c>ADDRESS OF</c> head or BY
 /// REFERENCE operand that names a container's GLOBAL item is claimed by the CONTAINER, which scans its contained programs
 /// (<c>PtrBindBasedAndAddressablesPass</c>); the contained program reaches the cell through its GLOBAL bridge.
@@ -51,7 +51,7 @@ public sealed class ContainedGlobalStorageClaimTests
 
     [Theory]
     [InlineData("X")]          // unqualified: R2's X is the only one visible in CGSC-IN (R1 is the container's local)
-    [InlineData("X OF R2")]    // qualified through the one §8.4.2.2 machinery
+    [InlineData("X OF R2")]    // qualified through the one §2023:8.4.2.2 machinery
     [InlineData("R2")]         // the GLOBAL record itself
     public void AddressOfAContainersGlobal_IsTheContainersCell(string head)
     {
@@ -141,7 +141,7 @@ public sealed class ContainedGlobalStorageClaimTests
     [Fact]
     public void AContainedProgramsOwnRecord_HidesTheGlobal_AndIsItsOwnToClaim()
     {
-        // §8.4.6.2.1 3): CGSS-IN's own R3's X is the nearer declaration, so ADDRESS OF X is R3's, claimed by CGSS-IN;
+        // §2023:8.4.6.2.1 3): CGSS-IN's own R3's X is the nearer declaration, so ADDRESS OF X is R3's, claimed by CGSS-IN;
         // ADDRESS OF R2 still names the container's GLOBAL record, claimed by the container.
         var (ok, stdout, detail) = EditionHarness.CompileAndRun("""
                    IDENTIFICATION DIVISION.

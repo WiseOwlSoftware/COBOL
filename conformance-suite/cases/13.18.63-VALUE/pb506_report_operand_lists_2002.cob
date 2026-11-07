@@ -7,8 +7,8 @@
 *> portable: unverified
 *>---
       *> THE EARLIEST EDITION AT WHICH THE OPERAND LIST CAN EXIST (kb/Work PB506).
-      *> ISO §13.18.63.3 SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) carry no version proviso, and Annex E lists no
-      *> 2014→2023 change to either; what IS edition-bound is the REPETITION VEHICLE they require — §13.15.4 GR3's
+      *> ISO §2023:13.18.63.3 SR35 (VALUE) and §2023:13.18.53.3 SR6 (SOURCE) carry no version proviso, and Annex E lists no
+      *> 2014→2023 change to either; what IS edition-bound is the REPETITION VEHICLE they require — §2023:13.15.4 GR3's
       *> "a LINE or COLUMN clause with more than one operand" — and the multiple COLUMN clause, the COLUMNS/ARE
       *> spellings and the SOURCES spelling are all COBOL-2002 introductions (COBOL0900 below 2002; the
       *> version-matrix rows report-multi-column-2002 and report-multi-source-2002 pin those gates).  So COBOL-2002
@@ -17,7 +17,7 @@
       *> report section, with the two lists and all five VALUE-initialization shapes.
       *>
       *> WHY THIS PROGRAM DOES NOT READ THE REPORT FILE BACK, and the 2023 twin does.  The read-back needs
-      *> ORGANIZATION IS LINE SEQUENTIAL, which is itself a COBOL-2023 introduction (§12.4.5.10.3 GR2 — the
+      *> ORGANIZATION IS LINE SEQUENTIAL, which is itself a COBOL-2023 introduction (§2023:12.4.5.10.3 GR2 — the
       *> Foreword lists it among the main changes over ISO/IEC 1989:2014), so it cannot appear in a COBOL-2002
       *> program at all (the kb/Work PB688 precedent, which removed exactly this read-back from an 85 fixture).
       *> The CONTENT assertions therefore live in conformance-suite/cases/13.18.53-SOURCE/pb506_report_value_operand_list, and what

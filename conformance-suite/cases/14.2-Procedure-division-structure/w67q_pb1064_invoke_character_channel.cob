@@ -6,22 +6,22 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1064 - the INVOKE lane of the PB992 character channel.
-      *> ISO §14.2.3 GR8: "If the argument is passed by reference, the
+      *> ISO §2023:14.2.3 GR8: "If the argument is passed by reference, the
       *> activated runtime element operates as if the formal parameter
       *> occupies the same storage area as the argument." A method is an
-      *> activated runtime element (§14.9.23.4 GR7 e) -> §14.2.3), so the
+      *> activated runtime element (§2023:14.9.23.4 GR7 e) -> §2023:14.2.3), so the
       *> CHARACTERS a method leaves in a BY REFERENCE formal are the
-      *> argument's characters. §14.9.25.4 GR4: a group moved to an
+      *> argument's characters. §2023:14.9.25.4 GR4: a group moved to an
       *> elementary item "is treated exactly as if it were an alphanumeric
       *> to alphanumeric elementary move, except that there is no
       *> conversion" - so a group of spaces moved to a PIC 9(3) formal
       *> leaves three spaces, and the caller's N shows them: [   ], never
       *> a converted [000]. The same holds for a signed item (12AB), for
       *> characters that travel INTO the method (ABC, displayed there and
-      *> back), for the RETURNING content (§14.9.23.4 GR8 places the
-      *> result into identifier-4, and §14.6.5 makes the result "the
+      *> back), for the RETURNING content (§2023:14.9.23.4 GR8 places the
+      *> result into identifier-4, and §2023:14.6.5 makes the result "the
       *> content of the data item" the RETURNING phrase names: XYZ), for a
-      *> universal receiver (§14.9.23.3 SR6, BY REFERENCE implied) and for
+      *> universal receiver (§2023:14.9.23.3 SR6, BY REFERENCE implied) and for
       *> a packed-decimal formal, whose storage takes the group's bytes
       *> X"123C" - the packed representation of +123.
        IDENTIFICATION DIVISION.

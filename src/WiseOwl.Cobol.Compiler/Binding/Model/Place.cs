@@ -27,17 +27,17 @@ public abstract record Place
     /// <summary>⛔ <b>THE DATA ITEM THIS REFERENCE DENOTES</b> — <see langword="null"/> when the reference denotes
     /// a data item that NO data description entry declares (kb/Work PB602). It is the OTHER half of
     /// <see cref="Item"/>, and the standard itself writes the two questions as two clauses of one sentence:
-    /// ISO §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the data attributes of data-name-1
+    /// ISO §2023:13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the data attributes of data-name-1
     /// <i>and the storage area occupied by data-name-2 becomes the storage area occupied by data-name-1</i>" — so
     /// a level-66 alias has ANOTHER item's attributes and ANOTHER item's storage while being a data item of its
     /// own. <see cref="Item"/> answers the attributes/storage half; this answers the identity half.
-    /// <para><b>Ask it for every rule of the form "shall BE the data item …".</b> §14.9.41.3 SR5 ("For relative
+    /// <para><b>Ask it for every rule of the form "shall BE the data item …".</b> §2023:14.9.41.3 SR5 ("For relative
     /// files, data-name-1, if specified, shall be the data item specified in the RELATIVE KEY clause in the
     /// associated file control entry") and SR6's record-key arm are identities over DATA ITEMS. Asked of
     /// <see cref="Item"/>, `START RLF KEY IS = WS-RK(1:2)` passed the screen and positioned the file on the
     /// relative record number the key's first two characters spell — a silent wrong answer — and a non-THROUGH
     /// `66 RK-ALIAS RENAMES WS-RK.` passed it too.</para>
-    /// <para><b>And for "is this a WHOLE item" too, which is the same question negated.</b> §8.4.3.3.4 GR5:
+    /// <para><b>And for "is this a WHOLE item" too, which is the same question negated.</b> §2023:8.4.3.3.4 GR5:
     /// "Reference modification creates a unique data item that is a subset of the data item referenced by
     /// identifier-1" — a unique item no entry declares, so a reference-modified place denotes nothing declarable
     /// and answers <see langword="null"/>. That is what the hand-written <c>p is not RefModPlace</c> beside a
@@ -54,7 +54,7 @@ public abstract record Place
     /// <summary>The data item the reference's own NAME denotes, when that is not the item whose attributes and
     /// storage this place carries — set by the ONE resolver, and today exactly the non-THROUGH level-66 RENAMES
     /// alias (kb/Work PB602).
-    /// <para>ISO §13.18.45.4 GR1: "When the THROUGH phrase is not specified, all of the data attributes of
+    /// <para>ISO §2023:13.18.45.4 GR1: "When the THROUGH phrase is not specified, all of the data attributes of
     /// data-name-2 become the data attributes of data-name-1 and the storage area occupied by data-name-2 becomes
     /// the storage area occupied by data-name-1." The attributes and the storage are shared, so the alias resolves
     /// to the renamed item's OWN place and every attribute, layout and codegen consumer keeps the answer it had;
@@ -82,11 +82,11 @@ public abstract record Place
     /// <summary>⛔ <b>DOES THE OPERAND THIS PLACE REFERENCES HAVE A CHARACTER IMAGE?</b> (kb/Work PB189) — the
     /// capability question asked of the REFERENCED OPERAND, never of the declaring entry. The two differ for
     /// exactly one shape: a subscripted element of a DYNAMIC-capacity table. The dynamic axis belongs to the
-    /// TABLE (§8.5.1.12.1 — "a group item whose data description has at least one dynamic-length elementary item
+    /// TABLE (§2023:8.5.1.12.1 — "a group item whose data description has at least one dynamic-length elementary item
     /// or dynamic-capacity table as a subordinate item"), so the table entry's own
     /// <see cref="DataItem.IsImageCapable"/> is false, while ONE occurrence of it has no such subordinate and is an
     /// ordinary fixed-length item whose record struct carries <c>AsImage()</c>/<c>FromImage()</c> (emitted for
-    /// <see cref="DataItem.ElementImageCapable"/>). A consumer that asked the entry refused a legal §14.9.11.4 GR4
+    /// <see cref="DataItem.ElementImageCapable"/>). A consumer that asked the entry refused a legal §2023:14.9.11.4 GR4
     /// operand (DISPLAY T(3)) at run time although the image sat on the element's struct.
     /// <para>Decorators forward (the decoration never changes which occurrence is referenced);
     /// <see cref="DynTablePlace"/> overrides. Every image guard — <c>PlaceRenderer.GroupImage</c>,
@@ -160,7 +160,7 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place
 }
 
 /// <summary>
-/// A subscripted OCCURS DYNAMIC element (ISO/IEC 1989:2023 §8.5.1.9.2/.9.3; data-model D9). Unlike a fixed table
+/// A subscripted OCCURS DYNAMIC element (ISO/IEC 1989:2023 §2023:8.5.1.9.2/.9.3; data-model D9). Unlike a fixed table
 /// (whose <c>CobolTable.At</c> <c>ref T</c> serves BOTH directions), a dynamic table has direction-specific accessors:
 /// <c>RefSending(occ)</c> on a read (an out-of-range occurrence is benign scratch) and <c>RefReceiving(occ)</c> on a
 /// write (an occurrence past the current capacity GROWS the table). The <see cref="Path"/>'s trailing
@@ -179,7 +179,7 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 
     /// <summary>A subscripted reference to the dynamic-capacity table entry itself denotes ONE OCCURRENCE, whose
     /// capability is the element shape's (<see cref="DataItem.ElementImageCapable"/>) — the dynamic axis is the
-    /// table's, not the occurrence's (kb/Work PB189; §8.5.1.12.1). A member path beneath the element asks its
+    /// table's, not the occurrence's (kb/Work PB189; §2023:8.5.1.12.1). A member path beneath the element asks its
     /// own item as usual.</summary>
     public override bool ImageCapable => ElementItem.IsDynamicTable ? ElementItem.ElementImageCapable : ElementItem.IsImageCapable;
 
@@ -192,12 +192,12 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 /// A Tier-B REDEFINES view (DESIGN §4.2): a typed <c>(offset, width)</c> character window over the class's
 /// ONE <see cref="string"/> backing field. Reading yields the window's character image (a substring); writing splices
 /// a new image back into the backing, preserving its full width — so a write through any view is visible through every
-/// other view of the class (one stored backing, ISO §13.18.44). The window carries the VIEW's <see cref="DataItem"/>,
+/// other view of the class (one stored backing, ISO §2023:13.18.44). The window carries the VIEW's <see cref="DataItem"/>,
 /// so its category/scale/profile drive interpretation: a numeric-DISPLAY view is flagged
 /// <see cref="DataItem.StoreAsImage"/>, so the numeric pipeline decodes/encodes the window exactly as for a
 /// whole-group numeric leaf. <paramref name="Backing"/> is the structural path to the class's stored backing field;
 /// <paramref name="Offset"/> is the 0-based window offset — a typed position (a constant, or the
-/// <see cref="PositionOffset"/> <c>classOffset + Σ (idx − 1) × stride</c> for a view inside an OCCURS, ISO §13.18.44).
+/// <see cref="PositionOffset"/> <c>classOffset + Σ (idx − 1) × stride</c> for a view inside an OCCURS, ISO §2023:13.18.44).
 /// Rendered by <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
 public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Width, DataItem ViewItem) : Place
@@ -224,7 +224,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
     /// characters instead of its bytes. Only <c>PlaceRenderer</c>'s Read/Write pair reads this, so a NEW coding
     /// is one record here plus one arm there, and the byte-window channel cannot grow a coding that some surface
     /// silently ignores. The WIDTH stays the member's <see cref="DataItem.ByteWidth"/> in every coding, because
-    /// the backing is byte-addressed (§13.18.44.4 GR1's "area sufficient to contain the number of bits
+    /// the backing is byte-addressed (§2023:13.18.44.4 GR1's "area sufficient to contain the number of bits
     /// required").</para></summary>
     public WindowCoding? Coding { get; init; }
 
@@ -254,7 +254,7 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
     /// cursor — and before this factory each carried its own copy of the offset law, which is exactly how the BIT
     /// unit came to be missing from all three at once.
     /// <para>The law: a member's window starts at <paramref name="byteOffset"/> characters into the class
-    /// backing, or — when the member is a bit item, whose positions §13.18.44.4 GR1 and §8.5.1.6.3 both count in
+    /// backing, or — when the member is a bit item, whose positions §2023:13.18.44.4 GR1 and §2023:8.5.1.6.3 both count in
     /// BITS — at <c>8 × (the caller's RUNTIME byte displacement) + <see cref="DataItem.ClassBitOffset"/> +
     /// Σ (index − 1) × the per-occurrence bit extent</c>. The displacement is passed separately from the byte
     /// expression because the item's own in-class position is already carried in bits by
@@ -279,17 +279,17 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
                                      AccessPath? cell = null, Position? dynOrdinal = null)
     {
         // ⛔ THE WINDOW IS THE MEMBER'S STORAGE EXTENT, NOT ITS CHARACTER-POSITION COUNT (kb/Work PB231).
-        // §13.18.44.4 GR1 states the association over "an area sufficient to contain the number of BITS
-        // required by the data item referenced by the subject of the entry" and §14.9.3.4 GR3 the allocated
+        // §2023:13.18.44.4 GR1 states the association over "an area sufficient to contain the number of BITS
+        // required by the data item referenced by the subject of the entry" and §2023:14.9.3.4 GR3 the allocated
         // area as "the number of BYTES required to hold an item as described by data-name-1" — both storage
-        // units. ByteWidth IS ImageWidth for every leaf kind but NATIONAL, whose §13.18.60.4 GR8 size this
+        // units. ByteWidth IS ImageWidth for every leaf kind but NATIONAL, whose §2023:13.18.60.4 GR8 size this
         // implementation pins at two bytes per position (D-N1), so this read is byte-identical everywhere
         // else and is the whole of RESIDUE-11's geometry here.
         dynOrdinal ??= new PositionConstant(item.ClassDynOrdinal);
         var window = new RedefViewPlace(backing, byteOffset, item.ByteWidth, item)
             { Cell = cell, DynOrdinal = cell is null ? null : dynOrdinal };
         // ⛔ A POINTER-CLASS MEMBER'S VALUE IS NOT IN THE BYTES (kb/Work PB231 — the pointer third): it is the
-        // managed slot of the SAME area at the SAME byte offset, so its bytes stay reserved (§14.9.3.4 GR3's
+        // managed slot of the SAME area at the SAME byte offset, so its bytes stay reserved (§2023:14.9.3.4 GR3's
         // byte quantity, and every following member's offset, are unaffected) and its value rides
         // StorageCell.SlotAt. `cell` is null exactly for a REDEFINES class, which cannot hold such a member on
         // conforming source — see SlotWindow.CarriedBySlot — and its class is Rejected before any place is
@@ -303,14 +303,14 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
                     + "backing StorageCell — a managed slot has nowhere to live (the implementor-defined D-SLOT "
                     + "representation, DOC-A.1-210 and DOC-A.1-216; kb/Work PB231). Such a class must be Rejected at classification, never given a byte window.");
         // ⛔ A DYNAMIC-LENGTH MEMBER'S CONTENT IS NOT IN THE BYTES EITHER (kb/Work PB1026): it rides the cell's
-        // dynamic slot (§8.5.1.10.3's "located elsewhere"), and a group over such members reads and writes as its
-        // contiguous image (§8.5.1.11.2). The same backstop as the pointer arm: only a cell has slots, and the
+        // dynamic slot (§2023:8.5.1.10.3's "located elsewhere"), and a group over such members reads and writes as its
+        // contiguous image (§2023:8.5.1.11.2). The same backstop as the pointer arm: only a cell has slots, and the
         // REDEFINES classifier refuses a dynamic-length member before any place is built for its class.
         if (DynSlotWindow.CarriedBySlot(item) || VarGroupWindow.Applies(item))
             return cell is null
                 ? throw new System.InvalidOperationException(
                     $"'{item.CobolName ?? item.ClrName}' is or contains a dynamic-length item and its storage class "
-                    + "has no backing StorageCell — the content has nowhere to live (ISO §8.5.1.10.3; kb/Work "
+                    + "has no backing StorageCell — the content has nowhere to live (ISO §2023:8.5.1.10.3; kb/Work "
                     + "PB1026). Such a class must be Rejected at classification, never given a byte window.")
                 : window with
                 {
@@ -360,12 +360,12 @@ public abstract record WindowCoding;
 
 /// <summary>A <see cref="RedefViewPlace"/>'s BIT window: the 0-based ABSOLUTE bit offset within the class's one
 /// byte backing (a typed position) and the member's boolean-position count
-/// (§13.18.29.4 GR1b's <c>m</c> for a bit group, the PICTURE 1(n) length for a bit leaf).</summary>
+/// (§2023:13.18.29.4 GR1b's <c>m</c> for a bit group, the PICTURE 1(n) length for a bit leaf).</summary>
 public sealed record BitWindow(Position Offset, int Bits) : WindowCoding
 {
     /// <summary>The CLASS-RELATIVE part of <see cref="Offset"/> — the member's static in-class bit offset plus
     /// each in-class OCCURS level's <c>(index − 1) × stride</c> term, WITHOUT the runtime byte displacement a
-    /// BASED class adds (kb/Work PB240). §14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit operand "is aligned on
+    /// BASED class adds (kb/Work PB240). §2023:14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit operand "is aligned on
     /// a byte boundary", and that displacement is a whole number of BYTES by construction (a pointer addresses
     /// characters), so this is the part that can move the answer — and, being constant exactly when every
     /// subscript is (<see cref="Position.ConstantValue"/>), the part whose static provability the rules' second clause
@@ -375,33 +375,33 @@ public sealed record BitWindow(Position Offset, int Bits) : WindowCoding
 
 /// <summary>A <see cref="RedefViewPlace"/>'s NATIONAL window (kb/Work PB231 — RESIDUE-11): the member occupies
 /// <see cref="RedefViewPlace.Width"/> bytes of the backing, two per national character position (ISO
-/// §13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), holding the UTF-16BE serialization
+/// §2023:13.18.60.4 GR8 leaves the size to the implementor; D-N1 pins two), holding the UTF-16BE serialization
 /// <c>CobolBits.NatBytes</c> already defines for every other national storage channel. <paramref name="Positions"/>
 /// is the character-position count the member's VALUE carrier holds — <c>Width / 2</c>, carried explicitly so the
 /// renderer never re-derives it.</summary>
 public sealed record NationalWindow(int Positions) : WindowCoding
 {
     /// <summary>⛔ THE ONE test for "does this member ride the backing as national bytes?", and the position
-    /// count when it does. It is exactly <b>USAGE NATIONAL</b> — §13.18.60.4 GR8 is written about the USAGE, not
+    /// count when it does. It is exactly <b>USAGE NATIONAL</b> — §2023:13.18.60.4 GR8 is written about the USAGE, not
     /// about a category ("The implicit or explicit USAGE NATIONAL clause specifies that a national coded
     /// character set shall be used to represent a data item in the storage of the computer"), so every one of
-    /// §13.18.60.3 SR12's five picture shapes rides here on one test: category national and national-edited
+    /// §2023:13.18.60.3 SR12's five picture shapes rides here on one test: category national and national-edited
     /// (whose usage SR13a/SR20 force to NATIONAL), and the national-form boolean, numeric and numeric-edited
-    /// (kb/Work PB646). The count is the item's own CHARACTER-IMAGE width, which §13.18.40.4 GR1 makes a count
+    /// (kb/Work PB646). The count is the item's own CHARACTER-IMAGE width, which §2023:13.18.40.4 GR1 makes a count
     /// of NATIONAL character positions under this usage — digits plus a SIGN SEPARATE position for a numeric
     /// item, the mask width for an edited one, the PICTURE length otherwise.
     /// <para>⚠ It used to name two shapes and read two different widths for them (<c>p.Length</c> for the
     /// category, <c>ElementaryImageWidth</c> for the numeric), which is a list where a rule belongs: the two
     /// widths are EQUAL for every category-national item — <c>ElementaryImageWidth</c>'s default arm IS
     /// <c>pic.Length</c> — so collapsing them changes no answer and makes the next SR12 shape automatic.</para>
-    /// <para>A national GROUP is not one of them: §13.18.29.4 GR2b makes it as-if <c>PICTURE N(m)</c> but its
+    /// <para>A national GROUP is not one of them: §2023:13.18.29.4 GR2b makes it as-if <c>PICTURE N(m)</c> but its
     /// LAYOUT stays its children's (D20), and each national leaf inside it gets its own window — the group's OWN
     /// window is a separate question, answered by <see cref="WindowPositionsOf"/>.</para></summary>
     public static int? PositionsOf(DataItem item) =>
         item is { IsElementary: true, Pic.Usage: Usage.National } ? item.ElementaryImageWidth : null;
 
     /// <summary>⛔ THE POSITION COUNT OF A MEMBER'S OWN WINDOW (kb/Work PB1653) — <see cref="PositionsOf"/> for an
-    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §13.18.29.4 GR2 b)
+    /// elementary national item, and for a NATIONAL GROUP its as-if <c>PICTURE N(m)</c> length: §2023:13.18.29.4 GR2 b)
     /// "a national group is treated as though it were an elementary data item of usage national and class and
     /// category national described with PICTURE N(m), where m is the length of the group". The window of a national
     /// group (<see cref="RedefViewPlace.For"/>) is therefore a NATIONAL window exactly as a bit group's is a bit
@@ -422,7 +422,7 @@ public abstract record CellWindowCoding(AccessPath Cell) : WindowCoding;
 /// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member
 /// is of a pointer class, whose value is a managed reference and therefore has no byte image at all. Its bytes in
 /// the class backing are RESERVED placeholder positions — <see cref="RedefViewPlace.Width"/> of them, the item's
-/// <see cref="DataItem.ByteWidth"/> — so §14.9.3.4 GR3's "the amount of storage to be allocated is the number of
+/// <see cref="DataItem.ByteWidth"/> — so §2023:14.9.3.4 GR3's "the amount of storage to be allocated is the number of
 /// bytes required to hold an item as described by data-name-1" and every following member's offset are exactly
 /// what a byte-addressed area says; the VALUE rides <c>StorageCell.SlotAt</c> at that same byte offset, through
 /// <c>CobolPtr.SlotRead</c>/<c>SlotWrite</c>.
@@ -442,13 +442,13 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     /// program-pointer, function-pointer, object reference and message-tag (USAGE MESSAGE-TAG, kb/Work PB4740; the
     /// slot rule DOC-A.1-212).
     /// <para>⚠ A REDEFINES class can never contain such a member on conforming source, which is why
-    /// <see cref="RedefViewPlace.For"/> may treat a missing cell as an internal error: §13.18.44.3 SR12 bars the
+    /// <see cref="RedefViewPlace.For"/> may treat a missing cell as an internal error: §2023:13.18.44.3 SR12 bars the
     /// REDEFINES subject from being "of class object, message-tag, or pointer or a strongly-typed group item",
     /// SR14 bars data-name-2 from the same list plus "an item subordinate to a strongly-typed group item", and
-    /// §13.18.60.3 SR14 admits a pointer USAGE "only for an elementary data item at level 1 or an elementary
+    /// §2023:13.18.60.3 SR14 admits a pointer USAGE "only for an elementary data item at level 1 or an elementary
     /// data item subordinate to a type declaration that includes the STRONG phrase" — so a pointer member of a
     /// REDEFINES-CLAUSE class is barred at the entry by the first two rules or at the declaration by the third. A
-    /// file's IMPLICITLY shared record area (§13.18.33.4 GR3 — a level-1 pointer record beside another record of
+    /// file's IMPLICITLY shared record area (§2023:13.18.33.4 GR3 — a level-1 pointer record beside another record of
     /// the same FD) is legal source, and there the pointer record is an OUT-OF-LINE record that never joins the
     /// class (FileModel.IsOutOfLineRecord — determination D-FRA, kb/Work PB981).</para></summary>
     public static bool CarriedBySlot(DataItem item) =>
@@ -467,7 +467,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     /// (the item <see cref="MembersOf"/> enumerated it from), outermost first: a member under an inner OCCURS — a
     /// pointer TABLE inside a table element, <c>10 EP USAGE POINTER OCCURS 2</c> — has one managed slot per inner
     /// occurrence, and an operation moving <paramref name="item"/> as a byte image carries every one of them (kb/Work
-    /// PB1951). §8.4.2.3.3 SR3's level list read past <paramref name="item"/>'s own levels, so the slot windows are
+    /// PB1951). §2023:8.4.2.3.3 SR3's level list read past <paramref name="item"/>'s own levels, so the slot windows are
     /// addressed with exactly the subscripts a reference to the member takes. Empty for a member with no inner
     /// OCCURS (kb/Work PB1922's elementary pointer).</summary>
     public static IReadOnlyList<DataItem> InnerLevelsOf(DataItem member, DataItem item) =>
@@ -483,7 +483,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
 
     /// <summary>The byte offset, within the storage class that <paramref name="root"/> heads, of EVERY pointer-image
     /// run — each OCCURS occurrence of each <see cref="CarriesPointerImage"/> member (kb/Work PB1071). What
-    /// ALLOCATE seeds with the NULL image: §14.9.3.4 GR9 initializes "data items of class object or class pointer in
+    /// ALLOCATE seeds with the NULL image: §2023:14.9.3.4 GR9 initializes "data items of class object or class pointer in
     /// the allocated storage … to null", and DOC-A.1-216 gives NULL the zero image. <see cref="DataItem.ClassOffset"/>
     /// is the occurrence-1 position, and each fixed OCCURS level on the member's path within its class displaces it
     /// by (occurrence − 1) × that level's per-occurrence storage extent — the stride
@@ -505,15 +505,15 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
 }
 
 /// <summary>A <see cref="RedefViewPlace"/>'s DYNAMIC-LENGTH window (kb/Work PB1026): the member is a dynamic-length
-/// elementary item of a CELL-BACKED class. ISO §8.5.1.10.3 — "Dynamic-length elementary items may be physically
+/// elementary item of a CELL-BACKED class. ISO §2023:8.5.1.10.3 — "Dynamic-length elementary items may be physically
 /// located in memory within the record they are subordinate to, or they may be located elsewhere in the computer's
 /// memory" — and this implementation locates it in a managed slot of the cell <paramref name="Cell"/> (its scope's
 /// cell: the record's, or the element cell of the dynamic-capacity table it lies in — <see cref="CellComponents"/>),
-/// so every description sharing the cell (§13.18.22.4 GR1 / GR4 b)) shares its content. <paramref name="Ordinal"/> is
+/// so every description sharing the cell (§2023:13.18.22.4 GR1 / GR4 b)) shares its content. <paramref name="Ordinal"/> is
 /// its typed component ordinal (a <see cref="PositionOffset"/>): <see cref="DataItem.ClassDynOrdinal"/> plus, for each
 /// fixed table level crossed within the scope, <c>(index − 1) ×</c> that level's components per occurrence (kb/Work
 /// PB1042 — one slot per OCCURRENCE). It occupies ZERO bytes of the backing (its <see cref="DataItem.ByteWidth"/>),
-/// which is §8.5.1.12.3's own accounting of the fixed run. Its read IS its content string, so
+/// which is §2023:8.5.1.12.3's own accounting of the fixed run. Its read IS its content string, so
 /// <see cref="RedefViewPlace.ReadsCharacterImage"/> holds.</summary>
 public sealed record DynSlotWindow(AccessPath Cell, Position Ordinal) : CellWindowCoding(Cell)
 {
@@ -525,7 +525,7 @@ public sealed record DynSlotWindow(AccessPath Cell, Position Ordinal) : CellWind
 
 /// <summary>⛔ THE ONE MODEL OF A CELL-BACKED AREA'S VARIABLE-LENGTH COMPONENTS (kb/Work PB1026, PB1042). A component
 /// is a dynamic-length elementary item (<see cref="DynSlotWindow.CarriedBySlot"/>) or a dynamic-capacity table: ISO
-/// §8.5.1.9.1 3) lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
+/// §2023:8.5.1.9.1 3) lets the table be "defined in any place, other than the file section, in which a fixed-capacity table
 /// may be defined", so an EXTERNAL or ADDRESS-OF-taken record may hold one. Each rides its own managed slot of the
 /// cell (<c>StorageCell.DynAt</c> / <c>DynTableAt</c>), numbered in storage order with one slot per OCCURRENCE of
 /// every enclosing fixed table, and a table's elements are element cells that are a SCOPE of their own: the element's
@@ -549,7 +549,7 @@ public static class CellComponents
 
     /// <summary>The components of ONE occurrence of <paramref name="group"/>, in ordinal (storage) order with every
     /// fixed table's occurrences expanded, each with its position in the group's window and the occurrence numbers of
-    /// the fixed tables it was expanded through (<c>Fixed</c>, most inclusive first — the tail §13.18.63.3 SR20's
+    /// the fixed tables it was expanded through (<c>Fixed</c>, most inclusive first — the tail §2023:13.18.63.3 SR20's
     /// subscript tuple gains below the group, so a seeder keys a table VALUE to the right element). A
     /// dynamic-capacity table enumerates its ELEMENT's components (it is referenced one element at a time, and its
     /// members' offsets are relative to the element cell).</summary>
@@ -560,7 +560,7 @@ public static class CellComponents
     }
 
     /// <summary>The same components in the same order, each placed by the description's STORAGE LAYOUT — the
-    /// §8.5.1.6.3 placement walk (<see cref="BitLayout.StartBitWithin"/>) that the class offsets <see cref="Of"/> reads
+    /// §2023:8.5.1.6.3 placement walk (<see cref="BitLayout.StartBitWithin"/>) that the class offsets <see cref="Of"/> reads
     /// are laid out by — for a description no storage class holds: a .NET host's published record of a group formal or
     /// RETURNING item composes the CALL lane's carrier of it (kb/Work PB2099, <c>PublishedRecordEmitter</c>). For an item
     /// a class holds the two agree position for position.</summary>
@@ -619,17 +619,17 @@ public static class CellComponents
 /// first ordinal), with maximum sizes <paramref name="DynMax"/> (a table's in occurrences, a dynamic-length item's in
 /// the image characters of its slot: <c>DataItem.SlotMaxSize</c>, twice its LIMIT for a national item), each laid out in
 /// a record image by its <paramref name="DynStructure"/> (its layout code, <c>FileModel.LayoutCodeOf</c>: the item's
-/// <c>CobolDynStructure.Code</c> when it names a structure - ISO §12.3.7.4 GR18/GR19; kb/Work PB1094 - else the bare
+/// <c>CobolDynStructure.Code</c> when it names a structure - ISO §2023:12.3.7.4 GR18/GR19; kb/Work PB1094 - else the bare
 /// unit of its data, <c>CobolDynStructure.PlainCode</c>, 0 for one image character a position and 32 for a national
 /// item; whether a code names a structure is asked of <c>CobolDynStructure.FromCode</c>, never <c>code != 0</c>;
-/// kb/Work PB3441). ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
+/// kb/Work PB3441). ISO §2023:8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
 /// were in fact contiguous with its neighbors whenever a procedural operation is applied to a group containing it"
 /// — is why its read is the CONTIGUOUS image (<c>StorageCell.ContiguousAt</c>), exactly what a declared group's
 /// generated <c>CurrentImage()</c> composes.
 /// <para><paramref name="Odo"/> is the OCCURS DEPENDING table the group holds as its TRAILING storage (kb/Work PB244;
-/// §13.18.38.3 SR22) - its element width and maximum count, <c>(0, 0)</c> for a group without one. The window
+/// §2023:13.18.38.3 SR22) - its element width and maximum count, <c>(0, 0)</c> for a group without one. The window
 /// reserves the table at its maximum in the fixed run; the cell helpers (<c>OdoTail</c>) make it the layout's last
-/// component and cut the run to the operand's current count (§13.18.38.4 GR8).</para></summary>
+/// component and cut the run to the operand's current count (§2023:13.18.38.4 GR8).</para></summary>
 public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnlyList<int> DynFixedAt,
                                     IReadOnlyList<int> DynMax, IReadOnlyList<int> DynStructure,
                                     IReadOnlyList<int> DynTable, OdoTail Odo,
@@ -637,7 +637,7 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
 {
     /// <summary>Each component's layout code with its STRUCTURE left out: the unit alone (<c>CobolDynStructure.PlainCode</c>),
     /// for a store of a character value, whose take step finds no length field or delimiter between the components
-    /// (§8.5.1.11.2: the contiguous image is the data alone) but still counts a national component in whole positions
+    /// (§2023:8.5.1.11.2: the contiguous image is the data alone) but still counts a national component in whole positions
     /// (kb/Work PB3441).</summary>
     public IReadOnlyList<int> DynUnitCodes =>
         [.. DynStructure.Select(static c => WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(WiseOwl.Cobol.Runtime.CobolDynStructure.UnitOf(c)))];
@@ -686,12 +686,12 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
 /// <summary>
 /// A level-66 RENAMES place — the THROUGH form ONLY: ONE alphanumeric view composed over the spanned record
 /// leaves. ⛔ <b>The composed CARRIER is one string; the DATA ITEM it stands for is a GROUP item</b>, and the two
-/// must not be confused: ISO §13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an
+/// must not be confused: ISO §2023:13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an
 /// alphanumeric GROUP item that includes all elementary items starting with data-name-2 …" — so every rule that
-/// turns on elementary-vs-group (§14.9.25.4 GR4's MOVE classification above all, through
+/// turns on elementary-vs-group (§2023:14.9.25.4 GR4's MOVE classification above all, through
 /// <c>MoveClassifier.IsGroupPlace</c>) must read it as a group. Calling the carrier "an elementary alphanumeric
 /// item" here is what propagated the opposite claim into three call sites (kb/Work PB430). The WITHOUT-THROUGH
-/// alias never reaches this record at all: §13.18.45.4 GR1 gives it data-name-2's own attributes, and
+/// alias never reaches this record at all: §2023:13.18.45.4 GR1 gives it data-name-2's own attributes, and
 /// <c>ReferenceResolver</c> forwards it to that item's place.
 /// Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
 /// width); writing stores the value at the span's width and distributes the slices back into the leaves left to
@@ -709,7 +709,7 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 
 /// <summary>
 /// The <see cref="Place"/> of a GROUP operand whose subtree contains an occurs-depending table (ISO/IEC 1989:2023
-/// §13.18.38 Format 2). It decorates the plain member place — read/write render as the struct lvalue unchanged (the
+/// §2023:13.18.38 Format 2). It decorates the plain member place — read/write render as the struct lvalue unchanged (the
 /// inherited inner access), so every consumer that does not know about ODO behaves exactly as before — and the GR8
 /// operand seams (rendered by <c>CodeGen.PlaceRenderer</c> over this record's structure) consult the decoration:
 /// <list type="bullet">
@@ -717,7 +717,7 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 ///     specified by the value of [data-name-1] at the start of the operation will be used" — the group image
 ///     truncated to the current extent. SR22 (the subject may be followed within its record only by entries
 ///     subordinate to it) guarantees the table is the TRAILING storage, so the current extent is a character PREFIX
-///     of the maximum image; a zero count with no preceding fixed part is the zero-length item of §8.5.4 item 1.</item>
+///     of the maximum image; a zero count with no preceding fixed part is the zero-length item of §2023:8.5.4 item 1.</item>
 ///   <item><b>Receiving, data-name-1 outside the group</b> (GR8a): the same current extent — character positions
 ///     past it are NOT modified; the stored prefix is spliced over the live image.</item>
 ///   <item><b>Receiving, data-name-1 inside the group</b> (GR8b): "the maximum length of the group will be used"
@@ -730,10 +730,10 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 /// <see cref="PositionsPerCharacter"/> is 8 for a subtree holding a USAGE BIT leaf and 1 otherwise, so
 /// <see cref="FixedUnits"/>/<see cref="ElemUnits"/> are bit positions for the first and character positions for the
 /// second — <c>fixed + occ × elem</c> is an identity only in a unit where each occurrence starts where the previous
-/// one ended, which §8.5.1.6.3's shared-byte runs break in characters. The BIT channel (<c>AsBits</c>/
-/// <c>FromBits</c>, §13.18.29.4 GR1b) uses the positions directly; the CHARACTER channel (<c>AsImage</c>/
-/// <c>FromImage</c>) takes the ceiling, which is also where §8.5.1.6.3 rule 4's trailing filler lives.
-/// <see cref="TrailingUnits"/> is the padding of the LAST occurrence of a table with an ALIGNED subject or member (§13.18.1.4 GR2) that the
+/// one ended, which §2023:8.5.1.6.3's shared-byte runs break in characters. The BIT channel (<c>AsBits</c>/
+/// <c>FromBits</c>, §2023:13.18.29.4 GR1b) uses the positions directly; the CHARACTER channel (<c>AsImage</c>/
+/// <c>FromImage</c>) takes the ceiling, which is also where §2023:8.5.1.6.3 rule 4's trailing filler lives.
+/// <see cref="TrailingUnits"/> is the padding of the LAST occurrence of a table with an ALIGNED subject or member (§2023:13.18.1.4 GR2) that the
 /// <see cref="ElemUnits"/> stride counts and the bit channel's extent must not (<see cref="BitLayout.TableBits"/>;
 /// kb/Work PB3156): the same table fixed at <c>n</c> occurrences is <c>stride × (n − 1) + width</c> positions, so
 /// the ODO extent at <c>c</c> occurrences is too.</para>
@@ -744,7 +744,7 @@ public sealed record OdoGroupPlace(
     : PlaceDecorator(Inner);
 
 /// <summary>
-/// A <c>table(… ALL …)</c> intrinsic-function argument (ISO §15.3 — "When the definition of a function permits an
+/// A <c>table(… ALL …)</c> intrinsic-function argument (ISO §2023:15.3 — "When the definition of a function permits an
 /// argument to be repeated a variable number of times, a table may be referenced by specifying the data-name … followed
 /// immediately by subscripting where one or more of the subscripts is the word ALL"; kb/Work PB62): ONE operand that
 /// stands for EVERY element the ALL subscripts range over — "the effect is as if each table element associated with
@@ -757,7 +757,7 @@ public sealed record OdoGroupPlace(
 /// runtime ranges are why this is a PLACE the backend ENUMERATES (<c>CobolTable.AllArgs</c>) rather than a
 /// bind-time expansion into N operands: the count is a runtime value, and a nested dynamic table's capacity even
 /// depends on the outer index (its <see cref="AllCount.Capacity"/> place carries the outer index variable).</para>
-/// <para>A decorator over the element so every STATIC classifier (class, category, usage, width, the §15.3 argument
+/// <para>A decorator over the element so every STATIC classifier (class, category, usage, width, the §2023:15.3 argument
 /// screen, MAX/MIN's type resolution) sees the element's item exactly as it would a single subscripted reference;
 /// only the intrinsic argument-list renderers expand it, and a single-value read (<c>PlaceRenderer.Read</c>) is an
 /// internal error by construction — a table(ALL) is never a value.</para>
@@ -781,7 +781,7 @@ public sealed record TableAllPlace(Place Element, LocalVector Indices, IReadOnly
     }
 }
 
-/// <summary>The RANGE of one ALL subscript level of a <see cref="TableAllPlace"/> (ISO §15.3) — structural, so the
+/// <summary>The RANGE of one ALL subscript level of a <see cref="TableAllPlace"/> (ISO §2023:15.3) — structural, so the
 /// backend renders it: a fixed OCCURS count, an OCCURS DEPENDING table's current count, or a dynamic-capacity table's
 /// current capacity.</summary>
 public abstract record AllCount
@@ -798,7 +798,7 @@ public abstract record AllCount
         public override IEnumerable<Place> Places => [];
     }
 
-    /// <summary>An OCCURS DEPENDING table: data-name-1's current value, which §13.18.38.4 GR7 requires to lie in
+    /// <summary>An OCCURS DEPENDING table: data-name-1's current value, which §2023:13.18.38.4 GR7 requires to lie in
     /// [integer-1, integer-2] (EC-BOUND-ODO outside — the same clamp the sending image applies).</summary>
     public sealed record Odo(Place Depending, int MinOccurs, int MaxOccurs) : AllCount
     {
@@ -814,12 +814,12 @@ public abstract record AllCount
         public override IEnumerable<Place> Places => [Register];
     }
 
-    /// <summary>A REPORT WRITER OCCURS … DEPENDING level (ISO §13.18.38 Format 3) — GR13's count, which is NOT the
+    /// <summary>A REPORT WRITER OCCURS … DEPENDING level (ISO §2023:13.18.38 Format 3) — GR13's count, which is NOT the
     /// data division's: "If the value of data-name-1 is not in the range integer-1 to (integer-2 - 1), the report
     /// group is processed as though the OCCURS clause had been written without the TO and DEPENDING phrases", so
     /// the count is data-name-1 inside that range and integer-2 outside it, with no EC-BOUND-ODO. ONE spelling for
     /// both its readers: the report engine's per-repetition presence test and a table(ALL) argument over a
-    /// REPEATING sum counter (§15.3 — "the range of values is determined by the object of the OCCURS DEPENDING ON
+    /// REPEATING sum counter (§2023:15.3 — "the range of values is determined by the object of the OCCURS DEPENDING ON
     /// clause"; kb/Work PB1271).</summary>
     public sealed record ReportDepending(Place Depending, int MinOccurs, int MaxOccurs) : AllCount
     {
@@ -829,7 +829,7 @@ public abstract record AllCount
 }
 
 /// <summary>
-/// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.3.3.4 GR6 — the unique
+/// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §2023:8.4.3.3.4 GR6 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
 /// the FormatDisplay/StoreDisplay pair). Rendered by <c>CodeGen.PlaceRenderer</c>.
@@ -838,7 +838,7 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
 /// A NATIONAL elementary cell viewed as the STORAGE BYTES its character positions occupy — UTF-16BE pairs, two per
-/// position (D-N1) — for a level-66 RENAMES THROUGH alias, which ISO §13.18.45.4 GR2 makes "an alphanumeric group
+/// position (D-N1) — for a level-66 RENAMES THROUGH alias, which ISO §2023:13.18.45.4 GR2 makes "an alphanumeric group
 /// item" over the record's storage (kb/Work PB1665, PB2466). Reading serializes the cell's characters
 /// (<c>CobolBits.NatBytes</c>); writing decodes the byte image back into the cell's positions
 /// (<c>CobolBits.NatReadWindow</c>, the one inverse). The alias composes its spanned leaves through this view, and a
@@ -851,10 +851,10 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 public sealed record NationalBytesPlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
-/// A GROUP item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.3.3.3 SR1 — "an alphanumeric
-/// group item" / "a group item that is neither a strongly-typed group nor a variable-length group"; §8.4.3.3.4 GR6 —
+/// A GROUP item viewed as its CHARACTER IMAGE for reference modification (ISO §2023:8.4.3.3.3 SR1 — "an alphanumeric
+/// group item" / "a group item that is neither a strongly-typed group nor a variable-length group"; §2023:8.4.3.3.4 GR6 —
 /// the unique data item is an elementary alphanumeric item over the group's positions): reading is the generated
-/// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §13.18.38 GR8);
+/// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §2023:13.18.38 GR8);
 /// writing distributes the spliced image back through the ONE group-image store (<c>PlaceRenderer.WriteGroupImage</c>
 /// — <c>FromImage</c>, or the GR8a current-extent splice). A variable-length group or a group with a pointer/object-class leaf has no image (every NUMERIC leaf kind joined the image across kb/Work PB164 + R40)
 /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island. The <see cref="NumericImagePlace"/>
@@ -866,11 +866,11 @@ public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
 /// A BIT GROUP viewed as its UNPACKED BOOLEAN-POSITION string, for reference modification (kb/Work PB173).
-/// <para><b>The derivation, in three links.</b> §13.18.29.4 GR1b: "a bit group is treated as though it were an
+/// <para><b>The derivation, in three links.</b> §2023:13.18.29.4 GR1b: "a bit group is treated as though it were an
 /// elementary data item of usage bit and class and category boolean described with PICTURE 1(m), where m is the
-/// bit length of the group". §8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and
+/// bit length of the group". §2023:8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and
 /// national group items are treated as elementary data items" — so a bit group is admitted as identifier-1 AS AN
-/// ELEMENTARY ITEM, not through the group bullet. §8.4.3.3.4 GR5a: "If the usage of identifier-1 is bit,
+/// ELEMENTARY ITEM, not through the group bullet. §2023:8.4.3.3.4 GR5a: "If the usage of identifier-1 is bit,
 /// positions used in evaluation are BIT POSITIONS; otherwise, positions used in evaluation are character
 /// positions." Chained: <c>G(1:3)</c> denotes bit positions 1..3 of the m-bit string, and by GR6 the resulting
 /// unique item keeps usage bit and category boolean.</para>
@@ -886,7 +886,7 @@ public sealed record GroupImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// opposite — that a national group "deliberately keeps <c>GroupImagePlace</c>" because a national leaf's
 /// <c>AsImage()</c> contribution "ALREADY IS its national-position string" — and that premise DIED with kb/Work
 /// PB327: <c>AsImage()</c> is the group's BYTE image, and a national position occupies two of those bytes
-/// (§13.18.60.4 GR8 / D-N1), which is what admits a national leaf to a file record at all. The bit case and the
+/// (§2023:13.18.60.4 GR8 / D-N1), which is what admits a national leaf to a file record at all. The bit case and the
 /// national case are now one shape read twice: the as-if elementary item's own alphabet gets its own place over
 /// the generated carrier face (<c>AsBits()</c> / <c>AsNat()</c>), and <see cref="GroupImagePlace"/> keeps the
 /// bytes.</para>
@@ -900,14 +900,14 @@ public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// <summary>
 /// A NATIONAL GROUP viewed as its NATIONAL-CHARACTER string, for reference modification and for every operand
 /// context (kb/Work PB327 — the national twin of <see cref="BitImagePlace"/>, and for the same reason).
-/// <para><b>The derivation.</b> §13.18.29.4 GR2b: "a national group is treated as though it were an elementary
+/// <para><b>The derivation.</b> §2023:13.18.29.4 GR2b: "a national group is treated as though it were an elementary
 /// data item of usage national and class and category national described with PICTURE N(m), where m is the length
-/// of the group". §8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and national group
-/// items are treated as elementary data items". §8.4.3.3.4 GR5a: positions are BIT positions only when the usage
+/// of the group". §2023:8.4.3.3.3 SR1's last sentence: "For reference modification, bit group items and national group
+/// items are treated as elementary data items". §2023:8.4.3.3.4 GR5a: positions are BIT positions only when the usage
 /// is bit, "otherwise, positions used in evaluation are character positions" — and a national item's character
 /// positions are its NATIONAL positions, one UTF-16 code unit each (D-N1), not the two BYTES each occupies.</para>
 /// <para>⛔ WHY IT EXISTS AT ALL, given that a national group once rode <see cref="GroupImagePlace"/>: because
-/// <c>AsImage()</c> is the group's STORAGE image and a national position takes two bytes of it (§13.18.60.4 GR8;
+/// <c>AsImage()</c> is the group's STORAGE image and a national position takes two bytes of it (§2023:13.18.60.4 GR8;
 /// D-N1 pins two, UTF-16BE). While national leaves were barred from every byte-addressed surface the two
 /// coincided, which is exactly how the asymmetry looked derived rather than accidental. It is the SAME
 /// two-alphabet split <see cref="BitImagePlace"/> carries — <c>AsImage()</c> speaks bytes, <c>AsNat()</c> speaks
@@ -921,7 +921,7 @@ public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
 public sealed record NatImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
-/// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):
+/// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9):
 /// a VIEW over the table's current capacity, NOT its own storage. Reading renders <c>{table-path}.Capacity</c> — the
 /// runtime <see cref="WiseOwl.Cobol.Runtime.CobolDynTable{T}.Capacity"/> (a native <c>long</c>, an unsigned integer per
 /// SR31), so <see cref="RegisterItem"/> carries a native-binary <see cref="PicInfo"/> (scale 0) and the numeric
@@ -942,7 +942,7 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
 }
 
 /// <summary>
-/// A REPORT SECTION <b>sum counter</b> (ISO/IEC 1989:2023 §13.18.54.4 GR1/GR5/GR12; kb/Work PB840 × PB882): the
+/// A REPORT SECTION <b>sum counter</b> (ISO/IEC 1989:2023 §2023:13.18.54.4 GR1/GR5/GR12; kb/Work PB840 × PB882): the
 /// conceptual numeric data item an entry containing a SUM clause establishes. It is RWCS engine state, never
 /// program storage, so this is a VIEW — reading renders <c>__RPT_{n}.SumImage({id}, profile)</c> and writing renders
 /// <c>__RPT_{n}.SetSumImage({id}, …, profile)</c> (the register is image-carried, kb/Work PB2553), the ONE place GR12's "It is permissible for procedure division
@@ -954,7 +954,7 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
 /// <para>⛔ A REPEATING ENTRY'S COUNTER IS AN OCCURRENCE OF A TABLE (kb/Work PB1271): with
 /// <paramref name="Subscripts"/> written, <paramref name="CounterId"/> is the FAMILY's first id
 /// (<c>ReportSumFamily.BaseId</c>) and the occurrence is selected at run time from the one-based subscripts against
-/// the OCCURS levels of <paramref name="RegisterItem"/> (<see cref="DataItem.SubscriptLevels"/>), with §8.4.2.3.4
+/// the OCCURS levels of <paramref name="RegisterItem"/> (<see cref="DataItem.SubscriptLevels"/>), with §2023:8.4.2.3.4
 /// GR2's EC-BOUND-SUBSCRIPT for one out of range. With none, <paramref name="CounterId"/> IS the counter — a
 /// non-repeating entry's, or one occurrence the report engine's own compose names directly.</para>
 /// </summary>
@@ -972,15 +972,15 @@ public sealed record ReportSumCounterPlace(
 }
 
 /// <summary>
-/// A report's <b>PAGE-COUNTER</b> (ISO/IEC 1989:2023 §8.4.3.15; kb/Work PB429) — the temporary unsigned integer
-/// data item §8.4.3.15.4 GR1 maintains for each report, as a receiving-capable place.
-/// <para><b>Why a place and not a MOVE arm.</b> §8.4.3.15.3 SR1 does not name a statement: "In the procedure
+/// A report's <b>PAGE-COUNTER</b> (ISO/IEC 1989:2023 §2023:8.4.3.15; kb/Work PB429) — the temporary unsigned integer
+/// data item §2023:8.4.3.15.4 GR1 maintains for each report, as a receiving-capable place.
+/// <para><b>Why a place and not a MOVE arm.</b> §2023:8.4.3.15.3 SR1 does not name a statement: "In the procedure
 /// division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may
 /// appear", and SR3 then subtracts LINE-COUNTER — and only LINE-COUNTER — from the receiving side. A verb-shaped
 /// permission would have to be re-granted in MOVE, every arithmetic resultant, INITIALIZE, INSPECT TALLYING and
 /// every context added later; a PLACE reaches all of them through the one receiving chokepoint
 /// (<c>ExpressionBinder.ResolveReceiving</c>), which is also where SR3's prohibition is screened, so the two
-/// halves of the one rule sit side by side. §13.18.37.4 GR6's "(unless procedurally altered)" is the standard
+/// halves of the one rule sit side by side. §2023:13.18.37.4 GR6's "(unless procedurally altered)" is the standard
 /// confirming that a program assigning page numbers is the intended use.</para>
 /// <para>A VIEW over the RWCS engine's counter, never program storage — the <see cref="CapacityRegisterPlace"/>
 /// and <see cref="ReportSumCounterPlace"/> pattern: reading renders <c>__RPT_{n}.PageCounter</c> and writing
@@ -1033,20 +1033,20 @@ public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMemb
 }
 
 /// <summary>
-/// The predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §8.4.3.6; kb/Work PB922) — the run unit's
+/// The predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §2023:8.4.3.6; kb/Work PB922) — the run unit's
 /// current exception object.
-/// <para><b>Why it is a place at all.</b> §8.4.3.6.3 SR2: "EXCEPTION-OBJECT is implicitly described as class
+/// <para><b>Why it is a place at all.</b> §2023:8.4.3.6.3 SR2: "EXCEPTION-OBJECT is implicitly described as class
 /// object and category object reference, as an external data item, and as a universal object reference." It is a
 /// DATA REFERENCE the standard itself declares, and NO data description entry declares it — so a compiler whose
 /// resolver does not know it answers "'EXCEPTION-OBJECT' is not defined" about a name that is defined, and every
 /// legal sending use (<c>IF EXCEPTION-OBJECT = NULL</c>, an INVOKE receiver, a function argument) is refused as
 /// a typo. Resolved HERE, in the ONE resolver, every caller inherits the answer — which is why this sits beside
 /// <see cref="CapacityRegisterPlace"/> and <see cref="DebugRegisterPlace"/> rather than in a verb.</para>
-/// <para>A VIEW, never storage: §8.4.3.6.4 GR2 gives the run unit ONE instance of it, and GR1 makes its value
+/// <para>A VIEW, never storage: §2023:8.4.3.6.4 GR2 gives the run unit ONE instance of it, and GR1 makes its value
 /// "the current exception object … set to null" when none is associated — which is the runtime's
 /// <c>ExceptionState.ExceptionObject</c>. The C# text is produced by <c>CodeGen.PlaceRenderer</c>, never stored
 /// here (backend-neutral, the <see cref="CapacityRegisterPlace"/> precedent).</para>
-/// <para>⛔ READ-ONLY BY RULE. §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving operand"
+/// <para>⛔ READ-ONLY BY RULE. §2023:8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving operand"
 /// — is screened at the ONE receiving chokepoint (<c>ExpressionBinder.ResolveReceiving</c>) and at SET's own
 /// receiver list, so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop, exactly as it is
 /// for <see cref="DebugRegisterPlace"/>.</para>
@@ -1067,23 +1067,23 @@ public sealed record ExceptionObjectPlace(DataItem RegisterItem) : Place
 }
 
 /// <summary>
-/// One source reference-modification <c>(start : [length])</c>, reduced to its typed positions — the ISO §8.4.3.3.2
+/// One source reference-modification <c>(start : [length])</c>, reduced to its typed positions — the ISO §2023:8.4.3.3.2
 /// general format read off the source, independent of WHAT is being modified. Produced by the ONE reader
 /// (<c>RefModBinder.ReadRefMod</c>, over the parsed <c>refModPart</c>) and consumed by the two things a ref-mod
 /// can attach to:
 /// <list type="bullet">
 ///   <item>a storage <b>place</b> — <see cref="RefModPlace"/>, readable AND writable (the splice);</item>
-///   <item>a <b>value</b> with no place — the result of a function-identifier (ISO §8.4.3.3.3 SR2), carried on
-///         <c>BoundIntrinsicCall.RefMod</c>. §8.4.3.2.3 SR1 makes a function-identifier a non-receiving operand,
+///   <item>a <b>value</b> with no place — the result of a function-identifier (ISO §2023:8.4.3.3.3 SR2), carried on
+///         <c>BoundIntrinsicCall.RefMod</c>. §2023:8.4.3.2.3 SR1 makes a function-identifier a non-receiving operand,
 ///         so the value form is read-only by construction and needs no splice counterpart.</item>
 /// </list>
 /// <paramref name="Start"/>/<paramref name="Length"/> are typed <see cref="Position"/>s (kb/Work PB2151), the SAME
 /// carrier <see cref="RefModPlace"/> holds, rendered only by the code generator.
 /// </summary>
-/// <param name="Start">The leftmost position (§8.4.3.3.4 item 5b).</param>
-/// <param name="Length">The length, or <see langword="null"/> for the omitted "to the end" form (§8.4.3.3.4 item
+/// <param name="Start">The leftmost position (§2023:8.4.3.3.4 item 5b).</param>
+/// <param name="Length">The length, or <see langword="null"/> for the omitted "to the end" form (§2023:8.4.3.3.4 item
 /// 5c).</param>
-/// <param name="AllowZeroLength">The REF-MOD-ZERO-LENGTH directive (ISO §7.3.23) is ON at this ref-mod's source
+/// <param name="AllowZeroLength">The REF-MOD-ZERO-LENGTH directive (ISO §2023:7.3.23) is ON at this ref-mod's source
 /// line, so a zero-length result is allowed instead of raising EC-BOUND-REF-MOD.</param>
 public readonly record struct RefModSpec(Position Start, Position? Length, bool AllowZeroLength);
 
@@ -1096,16 +1096,16 @@ public readonly record struct RefModSpec(Position Start, Position? Length, bool 
 /// </summary>
 public sealed record RefModPlace(Place Inner, Position Start, Position? Length) : PlaceDecorator(Inner)
 {
-    /// <summary>The REF-MOD-ZERO-LENGTH directive (ISO §7.3.23) is ON at this ref-mod's source line — a zero-length
-    /// result is ALLOWED (no EC-BOUND-REF-MOD raise, §8.4.3.3.4 item 5c). The directive's GR default is OFF, so this
+    /// <summary>The REF-MOD-ZERO-LENGTH directive (ISO §2023:7.3.23) is ON at this ref-mod's source line — a zero-length
+    /// result is ALLOWED (no EC-BOUND-REF-MOD raise, §2023:8.4.3.3.4 item 5c). The directive's GR default is OFF, so this
     /// is <see langword="false"/> for every ref-mod outside a <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> region — an
     /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
     public bool AllowZeroLength { get; init; }
 
     /// <summary>The slice's length when it is known at COMPILE time, in identifier-1's own positions
-    /// (§8.4.3.3.4 GR5a — bit positions for usage bit, character positions otherwise); <see langword="null"/>
+    /// (§2023:8.4.3.3.4 GR5a — bit positions for usage bit, character positions otherwise); <see langword="null"/>
     /// when it is a RUN-TIME quantity. Known exactly when the length is an integer literal, or when it is omitted
-    /// ("to the end", §8.4.3.3.4 GR5c) with an integer-literal leftmost position over an identifier-1 of static
+    /// ("to the end", §2023:8.4.3.3.4 GR5c) with an integer-literal leftmost position over an identifier-1 of static
     /// <paramref name="innerLength"/>. ⛔ A null is never "the whole item": a static reader that substitutes the
     /// inner item's full length for an unknown slice over-states it (kb/Work PB589).</summary>
     /// <param name="innerLength">identifier-1's length in the same positions, or null when it is not static.</param>
@@ -1114,16 +1114,16 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
         : innerLength is { } size && Start is PositionConstant { Value: >= int.MinValue and <= int.MaxValue } left
             ? size - (int)left.Value + 1 : null;
 
-    /// <summary>⛔ NOTHING A DATA DESCRIPTION ENTRY DECLARES — ISO §8.4.3.3.4 GR5: "Reference modification creates
+    /// <summary>⛔ NOTHING A DATA DESCRIPTION ENTRY DECLARES — ISO §2023:8.4.3.3.4 GR5: "Reference modification creates
     /// a unique data item that is a subset of the data item referenced by identifier-1." The slice IS a data item,
     /// and it is NOT <see cref="PlaceDecorator.Item"/> (which stays identifier-1, because GR6 takes the slice's
     /// class/category/usage from it and the storage is identifier-1's). So every rule of the form "shall be the
-    /// data item …" — §14.9.41.3 SR5's RELATIVE KEY identity, SR6's record key, the arithmetic resultant screen —
+    /// data item …" — §2023:14.9.41.3 SR5's RELATIVE KEY identity, SR6's record key, the arithmetic resultant screen —
     /// must answer NO here, and every "is this a whole item" test is one reading of this (kb/Work PB602).</summary>
     public override DataItem? DenotedItem => null;
 
     /// <summary>
-    /// The CATEGORY of the unique data item reference modification creates — <b>ISO §8.4.3.3.4 GR6, verbatim</b>:
+    /// The CATEGORY of the unique data item reference modification creates — <b>ISO §2023:8.4.3.3.4 GR6, verbatim</b>:
     /// "The unique data item has the same class, category, and usage as that defined for identifier-1, except
     /// that: a) the category alphanumeric-edited is considered class and category alphanumeric, b) the category
     /// national-edited is considered class and category national, c) the categories numeric and numeric-edited
@@ -1140,8 +1140,8 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// </para>
     /// <para>
     /// ⚠ <b>All three copies justified themselves with "ISO 8.4.2.4", A CLAUSE THAT DOES NOT EXIST</b>
-    /// (<c>cite.py --check 8.4.2.4</c> → "there is no clause 8.4.2.4 in the transcription"; §8.4.2 has only
-    /// .1/.2/.3, and reference modification is §8.4.3.3). It was inherited into 21 sites across 14 files — the
+    /// (<c>cite.py --check 8.4.2.4</c> → "there is no clause 8.4.2.4 in the transcription"; §2023:8.4.2 has only
+    /// .1/.2/.3, and reference modification is §2023:8.4.3.3). It was inherited into 21 sites across 14 files — the
     /// failure mode CLAUDE.md rule 1 names, at scale. A fabricated citation is how a wrong rule survives review:
     /// every reader saw a § and stopped.
     /// </para>
@@ -1160,7 +1160,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// unless the usage is bit) — `MOVE A-ITEM(1:2) TO a-boolean` and `MOVE B4(1:1) TO PIC 9` are Table 16 "No"
     /// cells, exactly as their unsliced twins are. Consumers that need the finer Table-16 row build through
     /// <c>Table16Operand.Of(Place)</c>, whose alphabetic rider reads the inner PICTURE. No ref-mod result is ever
-    /// category NUMERIC — GR6c rewrites numeric away — which is why the §8.8.1.1 arithmetic-operand bar on a
+    /// category NUMERIC — GR6c rewrites numeric away — which is why the §2023:8.8.1.1 arithmetic-operand bar on a
     /// ref-modified operand is correct as it stands. GnuCOBOL's "any slice is alphanumeric" is a leniency
     /// `--permissive` keeps (a warning) — never the strict axis.
     /// </para></summary>
@@ -1177,11 +1177,11 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// silently absent.
     /// </remarks>
     /// <summary>The category of THIS view's unique data item — <see cref="CategoryOf"/> over the inner item's
-    /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group
+    /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§2023:8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group
     /// or national group would be boolean / national by SR1's last sentence once GROUP-USAGE is modelled — kb/Work
     /// PB79). ⛔ THE ONE READER for consumers that hold a <see cref="RefModPlace"/> (kb/Work PB70): six of them
     /// each re-spelled "Pic is {} ip ? CategoryOf(ip) : Alphanumeric", and one returned null for a group.</summary>
-    public PicCategory Category => Inner.Item.OperandPic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;   // a bit / national group is "treated as elementary" (§8.4.3.3.3 SR1 last sentence; D20)
+    public PicCategory Category => Inner.Item.OperandPic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;   // a bit / national group is "treated as elementary" (§2023:8.4.3.3.3 SR1 last sentence; D20)
 
     public static PicCategory CategoryOf(PicInfo inner) => inner.Category switch
     {
@@ -1198,22 +1198,22 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     };
 
     /// <summary>⛔ <b>THE ONE READER for "the number of positions in the data item referenced by identifier-1"</b>
-    /// (ISO §8.4.3.3.4 GR5 b) and c), which bound leftmost-position and length by it) — the COUNT whose UNIT GR5 a)
+    /// (ISO §2023:8.4.3.3.4 GR5 b) and c), which bound leftmost-position and length by it) — the COUNT whose UNIT GR5 a)
     /// fixes: "If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise,
     /// positions used in evaluation are character positions." It is the maximum extent any slice of
-    /// <paramref name="inner"/> can have, and therefore the capacity §14.9.25.4 GR1's intermediate result item
+    /// <paramref name="inner"/> can have, and therefore the capacity §2023:14.9.25.4 GR1's intermediate result item
     /// needs (<c>SendingValueTemp.OfPlace</c>).
     /// <para>⛔ NOT <see cref="DataItem.ImageWidth"/>, which is the item's OCCUPANCY in characters and answers a
     /// different question for exactly the two shapes this reader exists for (kb/Work PB886): a <c>USAGE BIT</c>
-    /// item of <c>PIC 1(8)</c> occupies ONE character (§8.5.1.6.3 packs eight boolean positions into a byte) while
-    /// GR5 a) counts EIGHT positions, and a DYNAMIC LENGTH item occupies NONE statically (§8.5.1.10 — its current
-    /// length is a run-time value) while §8.5.1.10.4 makes a reference-modified one "a fixed-length data item whose
-    /// length is the dynamic-length elementary item's current length", bounded by the §13.18.19.4 GR2 LIMIT. Both
+    /// item of <c>PIC 1(8)</c> occupies ONE character (§2023:8.5.1.6.3 packs eight boolean positions into a byte) while
+    /// GR5 a) counts EIGHT positions, and a DYNAMIC LENGTH item occupies NONE statically (§2023:8.5.1.10 — its current
+    /// length is a run-time value) while §2023:8.5.1.10.4 makes a reference-modified one "a fixed-length data item whose
+    /// length is the dynamic-length elementary item's current length", bounded by the §2023:13.18.19.4 GR2 LIMIT. Both
     /// measured as a wrong answer: <c>MOVE BE(1:4) TO B1 B2</c> gave <c>1000</c> and <c>MOVE DL(2:5) TO D1 D2</c>
     /// gave <c>B</c>, because a one-character capacity truncated the intermediate.</para>
     /// <para>The BIT position count, and a NATIONAL GROUP's, are read through <see cref="DataItem.OperandPic"/> —
-    /// THE ONE operand-category/length reader — so §13.18.29.4 GR1b/GR2b's as-if PICTURE answers for a bit group and
-    /// a national group, which §8.4.3.3.3 SR1's last sentence ("bit group items and national group items are treated
+    /// THE ONE operand-category/length reader — so §2023:13.18.29.4 GR1b/GR2b's as-if PICTURE answers for a bit group and
+    /// a national group, which §2023:8.4.3.3.3 SR1's last sentence ("bit group items and national group items are treated
     /// as elementary data items") requires. An ELEMENTARY national item is counted by <see cref="DataItem.ImageWidth"/>,
     /// whose leaf width is in national positions (D-N1: one UTF-16 code unit each, never the two bytes each
     /// occupies) and carries GR4's SIGN IS SEPARATE position ("the sign position is assigned an ordinal number within
@@ -1222,11 +1222,11 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// few and <c>T(1:5)</c> was refused (kb/Work PB3128 review R1-1). A variable-length group cannot be
     /// reference-modified at all (SR1's last bullet), so no arm is owed one.</para></summary>
     public static int PositionCount(DataItem inner) =>
-        // §8.5.1.10.4 + §13.18.19.4 GR2 — the current length is a run-time value; the LIMIT is its ceiling.
+        // §2023:8.5.1.10.4 + §2023:13.18.19.4 GR2 — the current length is a run-time value; the LIMIT is its ceiling.
         inner.IsDynamicLength ? Math.Max(0, inner.DynMaxSize)
         // GR5 a) — bit positions under usage bit, an elementary bit item's or a bit group's as-if PICTURE length.
         : inner.OperandPic is { Usage: Usage.Bit } bit ? bit.Length
-        // §8.4.3.3.3 SR1's last sentence — a national group is an elementary national item of its as-if PICTURE.
+        // §2023:8.4.3.3.3 SR1's last sentence — a national group is an elementary national item of its as-if PICTURE.
         : inner.Pic is null && inner.AsIfPic is { Usage: Usage.National } group ? group.Length
         // GR5 a)'s "otherwise" — character positions, which for every remaining shape (an alphanumeric or numeric
         // elementary item under GR2's as-if alphanumeric redefinition or GR3's as-if national one, each including
@@ -1236,26 +1236,26 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>The storage width, in BITS, of ONE position <see cref="PositionCount"/> counts — the unit a
     /// reference modifier's leftmost position is multiplied by to reach a byte displacement (kb/Work PB1407): 1 for
-    /// a bit position (§8.4.3.3.4 GR5 a), 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
+    /// a bit position (§2023:8.4.3.3.4 GR5 a), 16 for a national character (D-N1: two bytes, UTF-16BE) and 8 for every
     /// other character position. It reads the same <see cref="DataItem.OperandPic"/> discriminant
     /// <see cref="PositionCount"/> does, so the two cannot disagree about what a position is.</summary>
     public static int PositionBits(DataItem inner) => inner.OperandPic switch
     {
         { Usage: Usage.Bit } => 1,
         // A character position's bytes are the ONE unit reader's (PicInfo.BytesPerPosition, kb/Work PB546) —
-        // keyed on the usage, so a boolean, numeric or numeric-edited item of usage national (§13.18.60.3 SR12)
+        // keyed on the usage, so a boolean, numeric or numeric-edited item of usage national (§2023:13.18.60.3 SR12)
         // is two bytes a position exactly as a national one is.
         { } pic => BitLayout.BitsPerCharacter * pic.BytesPerPosition,
         null => BitLayout.BitsPerCharacter,
     };
 
     /// <summary>⛔ <b>THE MOST POSITIONS identifier-1 can have</b> — the bound every slice of it lies within, which is
-    /// the capacity §14.9.25.4 GR1's intermediate result item needs (<c>SendingValueTemp.OfPlace</c>) and the maximum
-    /// extent §14.8.2.2 rule 1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
+    /// the capacity §2023:14.9.25.4 GR1's intermediate result item needs (<c>SendingValueTemp.OfPlace</c>) and the maximum
+    /// extent §2023:14.8.2.2 rule 1 measures a run-time-length slice by (<c>ActivationDescriptions.OfReferenceModification</c>,
     /// docs/CONFORMANCE.md D-RM1 a)). It is identifier-1's <see cref="PositionCount"/> for every item whose description
-    /// fixes a bound: its static count, or for a DYNAMIC LENGTH item its §8.5.1.10.1 maximum size (it "is smallest of": "the
+    /// fixes a bound: its static count, or for a DYNAMIC LENGTH item its §2023:8.5.1.10.1 maximum size (it "is smallest of": "the
     /// value declared in the LIMIT phrase", …, "the maximum permitted by the implementor"), of which a reference-modified one's
-    /// current length (§8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §13.18.2.4 GR1 b) gives it
+    /// current length (§2023:8.5.1.10.4) is never more. An ANY LENGTH item's description fixes none: §2023:13.18.2.4 GR1 b) gives it
     /// "n repetitions of the picture symbol … where n is the length of the corresponding argument", so its bound is the
     /// largest character string the run time holds, <see cref="WiseOwl.Cobol.Runtime.CobolDynString.MaxLength"/> (the
     /// carrier's own ceiling, the implementor maximum a dynamic-length item without a LIMIT takes). ⛔ Never
@@ -1267,7 +1267,7 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
 
     /// <summary>identifier-1's positions when its length is a COMPILE-TIME quantity — the <c>innerLength</c> a static
     /// reader passes to <see cref="StaticLength"/> — or null for an ANY LENGTH or DYNAMIC LENGTH identifier-1, whose
-    /// length is a run-time value (§13.18.2.4 GR1 b); §8.5.1.10.4); a reader that needs a bound for those asks
+    /// length is a run-time value (§2023:13.18.2.4 GR1 b); §2023:8.5.1.10.4); a reader that needs a bound for those asks
     /// <see cref="MaximumInnerPositions"/>. ⛔ A GROUP'S length is static too: reading it through
     /// <see cref="DataItem.OperandPic"/>, which an alphanumeric group lacks, measured <c>G(3:)</c> as a run-time slice
     /// and every slice of a group as zero positions (kb/Work PB2077 review R1-1).</summary>

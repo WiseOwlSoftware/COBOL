@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A WHOLE-RANGE float body takes an SDIDI argument UNNARROWED, and its domain is still the ONE screen's (kb/Work
-/// PB999). The SDIDI reaches 10^±6144 (ISO §8.8.1.5.2) and binary64 does not, so narrowing before the body answered
-/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §15.56.4 r1 / §15.82.4 r1 returned value is the
+/// PB999). The SDIDI reaches 10^±6144 (ISO §2023:8.8.1.5.2) and binary64 does not, so narrowing before the body answered
+/// LOG10(10^−400) with log10(+0.0) and SIN(10^400) with sin(+∞) — the §2023:15.56.4 r1 / §2023:15.82.4 r1 returned value is the
 /// approximation of the function OF ARGUMENT-1, not of a substitute.
 /// </summary>
 /// <remarks>
@@ -178,7 +178,7 @@ public sealed class WholeRangeBodiesDriftTests
             $"{method}({sig}E{exp}) = {actual:R}, oracle {expected:R} ({Math.Abs(actual - expected) / ulp:F1} ulps)");
     }
 
-    /// <summary>⛔ ANNUITY's §15.9.4 1) b) denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
+    /// <summary>⛔ ANNUITY's §2023:15.9.4 1) b) denominator 1 − (1 + rate)^−n, evaluated without forming 1 + rate in
     /// binary64 (kb/Work PB1310): a rate below 2^−53 made it 1 − 1 = 0 and the value 0 where it is about 1/n.
     /// Oracle: Python <c>decimal</c> at 80 digits, to within two ulps.</summary>
     [Theory]
@@ -241,7 +241,7 @@ public sealed class WholeRangeBodiesDriftTests
         Assert.Equal(0.5, CobolIntrinsics.StandardDeviation(mode, a, b));
         Assert.Equal(1.0, CobolIntrinsics.PresentValue(mode, X("0"), a, X("-100000000000000000")));
         Assert.Equal(2.0, CobolIntrinsics.PresentValue(mode, X("5", -1), X("300000000000000003"), X("-450000000000000000")));
-        UnderChecking(false, () =>                                                     // a rejected rate: the §15.3 default
+        UnderChecking(false, () =>                                                     // a rejected rate: the §2023:15.3 default
             Assert.Equal(0.0, CobolIntrinsics.PresentValue(mode, X("-1"), a)));
         Assert.Equal(1.5555555555555556, CobolIntrinsics.Variance(mode, X("1"), X("2"), X("4")));   // 14/9
         // 31-digit items 10^30, 10^30 + 1, 10^30 + 1 have variance 2/9 (the 34-digit mean made it 0.2222223333…), and
@@ -252,7 +252,7 @@ public sealed class WholeRangeBodiesDriftTests
             X("-4000000000000000000000000000000000")));
     }
 
-    /// <summary>⛔ A returned value outside binary64 is the size error condition (kb/Work PB1566; ISO §14.7.5 case
+    /// <summary>⛔ A returned value outside binary64 is the size error condition (kb/Work PB1566; ISO §2023:14.7.5 case
     /// 5 under CONFORMANCE.md DOC-A.1-179): ±∞ is EC-SIZE-OVERFLOW, a nonzero value rounded to zero
     /// EC-SIZE-UNDERFLOW — on the exact arm, the floating arm and a list body's narrowed result alike. A subnormal is
     /// in range, and a non-finite ARGUMENT keeps its own disposition.</summary>
@@ -293,10 +293,10 @@ public sealed class WholeRangeBodiesDriftTests
     {
         UnderChecking(true, () =>
         {
-            Assert.Equal(Pow10(-400), CobolIntrinsics.DomainDecAdmitted(Pow10(-400), CobolIntrinsics.ArgumentDomain.Positive, "LOG10", "§15.56.3 rule 2"));
-            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDecAdmitted(new CobolDec(-1, -400), CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§15.84.3 rule 2"));
+            Assert.Equal(Pow10(-400), CobolIntrinsics.DomainDecAdmitted(Pow10(-400), CobolIntrinsics.ArgumentDomain.Positive, "LOG10", "§2023:15.56.3 rule 2"));
+            Assert.Throws<CobolFatalException>(() => CobolIntrinsics.DomainDecAdmitted(new CobolDec(-1, -400), CobolIntrinsics.ArgumentDomain.NonNegative, "SQRT", "§2023:15.84.3 rule 2"));
         });
         UnderChecking(false, () =>
-            Assert.Null(CobolIntrinsics.DomainDecAdmitted(new CobolDec(0, 0), CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§15.55.3 rule 2")));
+            Assert.Null(CobolIntrinsics.DomainDecAdmitted(new CobolDec(0, 0), CobolIntrinsics.ArgumentDomain.Positive, "LOG", "§2023:15.55.3 rule 2")));
     }
 }

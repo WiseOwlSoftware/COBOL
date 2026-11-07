@@ -5,21 +5,21 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §14.9.51.4 GR11 (ALL FILES) — "If record locks have an effect
+      *> ISO §2023:14.9.51.4 GR11 (ALL FILES) — "If record locks have an effect
       *> for the write file connector and the WITH LOCK phrase is specified
       *> or implied, the record lock associated with the record written is
       *> set when the execution of the WRITE statement is successful."  GR10
-      *> and GR11 are ALL FILES rules, and §14.9.51.2 Format 1 prints the
+      *> and GR11 are ALL FILES rules, and §2023:14.9.51.2 Format 1 prints the
       *> ADVANCING phrase, the retry-phrase and the WITH LOCK bracket
       *> TOGETHER, so `WRITE R BEFORE ADVANCING 1 LINE WITH LOCK` is one
       *> legal statement that both advances the medium and locks the record.
-      *> §14.9.51.4 GR12 — "The successful execution of a WRITE statement
+      *> §2023:14.9.51.4 GR12 — "The successful execution of a WRITE statement
       *> releases a logical record to the operating environment" — is what
       *> gives a print-control WRITE a record to lock at all.
-      *> The other connector is then refused by §9.1.16 ("While locked by a
+      *> The other connector is then refused by §2023:9.1.16 ("While locked by a
       *> given file connector, a record is not accessible to another file
       *> connector in the same or a different run unit") with the record
-      *> operation conflict status of §14.9.30.4 GR9/GR10 b), '51'.
+      *> operation conflict status of §2023:14.9.30.4 GR9/GR10 b), '51'.
       *>
       *> ⛔ WHY THIS GOLDEN EXISTS (kb/Work PB683).  The emitter rendered
       *> three different runtime entries for WRITE — plain, ADVANCING, and
@@ -31,10 +31,10 @@
       *> shapes; they shall now agree.
       *>
       *> Each leg is one physical file with two connectors, both SHARING
-      *> WITH ALL OTHER (which §14.9.27.3 SR8 makes conditional on a LOCK
+      *> WITH ALL OTHER (which §2023:14.9.27.3 SR8 makes conditional on a LOCK
       *> MODE clause) and LOCK MODE IS MANUAL, so the lock is set only by
-      *> the explicit WITH LOCK phrase (§12.4.5.9.4 GR5).  The reader's
-      *> §14.9.30.4 GR9 conflict check precedes the physical retrieval, so
+      *> the explicit WITH LOCK phrase (§2023:12.4.5.9.4 GR5).  The reader's
+      *> §2023:14.9.30.4 GR9 conflict check precedes the physical retrieval, so
       *> the '51' does not depend on the writer's stream having reached the
       *> medium.
        IDENTIFICATION DIVISION.
@@ -95,7 +95,7 @@
        01 CR-ST PIC XX.
        PROCEDURE DIVISION.
        MAIN.
-      *> LEG A — the single ADVANCING phrase (§14.9.51.2 Format 1).
+      *> LEG A — the single ADVANCING phrase (§2023:14.9.51.2 Format 1).
            OPEN OUTPUT AW.
            MOVE "ALPHA" TO AW-REC.
            WRITE AW-REC BEFORE ADVANCING 1 LINE WITH LOCK.
@@ -113,10 +113,10 @@
            READ BR END-READ.
            DISPLAY "B-R=" BR-ST.
            CLOSE BW. CLOSE BR.
-      *> LEG C — COBOL-2023's combined form, in the ONE spelling §14.9.51.2
+      *> LEG C — COBOL-2023's combined form, in the ONE spelling §2023:14.9.51.2
       *> Format 1 prints: both WORDS, one ADVANCING, one operand (the choice
       *> indicators enclose the words only — kb/Work PB712 corrected this leg,
-      *> which used to carry two ADVANCING operands). §14.9.51.4 GR25 e)/f)
+      *> which used to carry two ADVANCING operands). §2023:14.9.51.4 GR25 e)/f)
       *> place the single advance after the presentation; SR17 forbids PAGE.
            OPEN OUTPUT CW.
            MOVE "ALPHA" TO CW-REC.

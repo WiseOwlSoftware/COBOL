@@ -16,10 +16,10 @@ public enum WordCharacterPosition
 }
 
 /// <summary>
-/// ⛔ THE CHARACTERS OF A COBOL WORD — ISO §8.3.2.1 and §8.1.3.2 GR4 over Annex B, "Characters permitted in
-/// user-defined words" (kb/Work PB1402). §8.3.2.1: "Each character of a COBOL word that is not a special character
+/// ⛔ THE CHARACTERS OF A COBOL WORD — ISO §2023:8.3.2.1 and §2023:8.1.3.2 GR4 over Annex B, "Characters permitted in
+/// user-defined words" (kb/Work PB1402). §2023:8.3.2.1: "Each character of a COBOL word that is not a special character
 /// word shall be selected from the set of basic letters, basic digits, extended letters, and the basic special
-/// characters hyphen and underscore." §8.1.3.2 GR4: the extended letters are the Annex B repertoire "excluding any
+/// characters hyphen and underscore." §2023:8.1.3.2 GR4: the extended letters are the Annex B repertoire "excluding any
 /// character that is defined as a basic letter, basic digit, or basic special character", and GR4 a): "A character in
 /// Annex B is included in the set of extended letters if it exists in the implementor-defined compile-time coded
 /// character set" — WiseOwl COBOL's is UTF-16 (DOC-A.1-25), which holds every one, so the extended letters ARE the
@@ -49,22 +49,22 @@ public static partial class CobolCharacterRepertoire
         c < 0x80 ? char.IsAsciiLetterOrDigit(c) || c is '-' or '_'
         : c is not ((>= '﷐' and <= '﷯') or '￾' or '￿');
 
-    /// <summary>A basic letter or an extended letter — §8.3.2.2's "each user-defined word shall contain at least one
+    /// <summary>A basic letter or an extended letter — §2023:8.3.2.2's "each user-defined word shall contain at least one
     /// basic letter or extended letter". Annex B.1: every character of the repertoire beyond the basic letters, basic
     /// digits, hyphen and underscore is an extended letter — a combining mark or a digit of another script included —
     /// so every character outside the basic repertoire counts; whether the edition's Annex B holds it is
     /// <see cref="Violation"/>'s question.</summary>
     public static bool IsLetter(char c) => IsBasicLetter(c) || (c >= 0x80 && IsWordCharacter(c));
 
-    /// <summary>⛔ THE ONE BASIC-LETTER PREDICATE: the basic letters of §8.1.3.1 Table 1 are the Latin letters
-    /// A–Z and a–z and nothing else — an extended letter (Annex B; §8.1.3.2 GR4) is a DISTINCT row of the same table,
-    /// so "any basic letter in the COBOL character set" (§13.18.40.3 SR8, a PICTURE EDITING phrase's character-1)
+    /// <summary>⛔ THE ONE BASIC-LETTER PREDICATE: the basic letters of §2023:8.1.3.1 Table 1 are the Latin letters
+    /// A–Z and a–z and nothing else — an extended letter (Annex B; §2023:8.1.3.2 GR4) is a DISTINCT row of the same table,
+    /// so "any basic letter in the COBOL character set" (§2023:13.18.40.3 SR8, a PICTURE EDITING phrase's character-1)
     /// excludes every one of them (kb/Work PB533). <see cref="char.IsLetter(char)"/> is NOT this question: it admits
     /// every Unicode letter, which is the word-character question's superset
     /// (<see cref="IsLetter"/>/<see cref="IsWordCharacter"/>), and a rule that says "basic" shall not ask it.</summary>
     public static bool IsBasicLetter(char c) => char.IsAsciiLetter(c);
 
-    /// <summary>The SHAPE of a COBOL word (§8.3.2.1), as every text-stage word reader asks it: one or more
+    /// <summary>The SHAPE of a COBOL word (§2023:8.3.2.1), as every text-stage word reader asks it: one or more
     /// <see cref="IsWordCharacter"/> characters, "The hyphen or underscore shall not appear as the first or last
     /// character". The edition's Annex B question is <see cref="Violation"/>, asked of the word afterwards.</summary>
     public static bool IsWordShape(string word)
@@ -82,8 +82,8 @@ public static partial class CobolCharacterRepertoire
         return false;
     }
 
-    /// <summary>The length of a COBOL word in CHARACTERS (§8.3.2.1's 63): one per code point, so a supplementary-plane
-    /// letter is one character, and §8.1.3.2 GR4 c) — "the base character and each combining character are treated as
+    /// <summary>The length of a COBOL word in CHARACTERS (§2023:8.3.2.1's 63): one per code point, so a supplementary-plane
+    /// letter is one character, and §2023:8.1.3.2 GR4 c) — "the base character and each combining character are treated as
     /// separate characters in determining the length of a user-defined word" — holds because a combining character is
     /// a code point of its own.</summary>
     public static int LengthInCharacters(string word)
@@ -111,7 +111,7 @@ public static partial class CobolCharacterRepertoire
     public static bool IsWordAtSomeEdition(string word) =>
         SeparatorPositionViolation(word) is null && (Violation(word, 2023) is null || Violation(word, 2014) is null);
 
-    /// <summary>⛔ THE BASIC SEPARATORS' POSITION RULE, as a message — §8.3.2.1: "The hyphen or underscore shall not
+    /// <summary>⛔ THE BASIC SEPARATORS' POSITION RULE, as a message — §2023:8.3.2.1: "The hyphen or underscore shall not
     /// appear as the first or last character in such words." Edition-free (it holds at COBOL-85 as at 2023), so it
     /// belongs to no Annex B table: <see cref="Violation"/> judges the extended letters by the edition's Annex B.3, whose
     /// item 3 mirrors this rule for them, and this judges the two basic characters. Null when the word starts and ends
@@ -127,7 +127,7 @@ public static partial class CobolCharacterRepertoire
         char edge = first ? word[0] : word[^1];
         return $"the COBOL word '{word}' has the {(edge == '_' ? "underscore" : "hyphen")} as its "
             + $"{(first ? "first" : "last")} character: \"The hyphen or underscore shall not appear as the first or last "
-            + "character in such words\" (ISO §8.3.2.1)";
+            + "character in such words\" (ISO §2023:8.3.2.1)";
     }
 
     /// <summary>The first Annex B violation in <paramref name="word"/> at <paramref name="dialectLevel"/> — a
@@ -149,20 +149,20 @@ public static partial class CobolCharacterRepertoire
                 case WordCharacterPosition.NotPermitted:
                     return $"{what}, which is not a character of a COBOL word at COBOL-{edition}: a word is made of "
                         + "basic letters, basic digits, hyphen, underscore and the extended letters of Annex B "
-                        + "(ISO §8.3.2.1; §8.1.3.2 GR4)";
+                        + "(ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)";
                 case WordCharacterPosition.NotFirst when first:
                     return $"{what} as its first character, which Annex B.3 item 2 permits in a word only after the "
-                        + $"start character (COBOL-{edition}; ISO §8.3.2.1)";
+                        + $"start character (COBOL-{edition}; ISO §2023:8.3.2.1)";
                 case WordCharacterPosition.Medial when first || last:
                     return $"{what} as its {(first ? "first" : "last")} character, which Annex B.3 item 3 permits only "
-                        + $"inside a word (COBOL-{edition}; ISO §8.3.2.1)";
+                        + $"inside a word (COBOL-{edition}; ISO §2023:8.3.2.1)";
             }
         }
         return null;
     }
 
     /// <summary>Is <paramref name="codePoint"/> (beyond the basic repertoire) in SOME edition's Annex B — the 2023 table or the
-    /// 2002/2014 one? Such a character is an EXTENDED LETTER (§8.1.3.2 GR4: Annex B less the basic characters), which COBOL-85
+    /// 2002/2014 one? Such a character is an EXTENDED LETTER (§2023:8.1.3.2 GR4: Annex B less the basic characters), which COBOL-85
     /// lacks; one in neither is no extended letter at all (U+00A0, the euro sign). The one place that distinction is drawn:
     /// <see cref="HasExtendedLetter"/> and <see cref="ViolationAtEveryEdition"/> both ask it.</summary>
     private static bool IsInSomeAnnexB(int codePoint) =>
@@ -199,7 +199,7 @@ public static partial class CobolCharacterRepertoire
             if (cp >= 0x80 && !IsInSomeAnnexB(cp))
                 return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
                     + "character of a COBOL word at any edition: a word is made of basic letters, basic digits, hyphen, "
-                    + "underscore and the extended letters of Annex B (ISO §8.3.2.1; §8.1.3.2 GR4)";
+                    + "underscore and the extended letters of Annex B (ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)";
         }
         return null;
     }

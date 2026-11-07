@@ -15,9 +15,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/IndexFieldFor quadruple. The five scope/shadowing cases
 /// the phase doc enumerates, mirroring the OoSpineTests method-local-shadowing conformance cases (which remain the
 /// authoritative BEHAVIOR net — these pin the resolver's precedence rules in isolation): (a) program-scope
-/// resolution; (b) a method-local data-name shadowing an object-level name (§8.4.6.2.1 rule 3a); (c) a
+/// resolution; (b) a method-local data-name shadowing an object-level name (§2023:8.4.6.2.1 rule 3a); (c) a
 /// method-local data-name shadowing an object-level INDEX-name (IndexCandidates → null); (d) a method-local
-/// index-name with its OWN cell shadowing an object index-name (§11.7.4 GR5); (e) an unshadowed object name
+/// index-name with its OWN cell shadowing an object index-name (§2023:11.7.4 GR5); (e) an unshadowed object name
 /// visible from a method (the LookupDataInScopeOf global fallback).
 /// <para>Real items come from binding a small program (the RedefinesClassificationTests harness pattern); the
 /// METHOD overlay is a hand-built <see cref="OoMethodDataScope"/> pointed at those items — the resolver consumes
@@ -69,7 +69,7 @@ public sealed class SymbolTableTests
         Assert.False(data.Symbols.TryResolve("NO-SUCH", Scope.Program, out _));
     }
 
-    // (b) §8.4.6.2.1 rule 3a: a method-local data-name REPLACES (never unions with) the object/program name.
+    // (b) §2023:8.4.6.2.1 rule 3a: a method-local data-name REPLACES (never unions with) the object/program name.
     [Fact]
     public void MethodScope_DataName_ShadowsGlobal()
     {
@@ -87,7 +87,7 @@ public sealed class SymbolTableTests
         Assert.NotSame(methodLocal, globals[0]);                  // program scope still sees the global item
     }
 
-    // (c) §8.4.6.2.3: a method-local DATA-name shadows an object-level INDEX-name of the same spelling —
+    // (c) §2023:8.4.6.2.3: a method-local DATA-name shadows an object-level INDEX-name of the same spelling —
     // IndexCandidates must return NULL (the data-name wins; binding it to the object's cell would be a torn
     // read/write of the wrong storage).
     [Fact]
@@ -101,7 +101,7 @@ public sealed class SymbolTableTests
         Assert.Null(data.Symbols.IndexCandidates("IX", [], new Scope(scope)));
     }
 
-    // (d) §11.7.4 GR5 index privacy: a method-local index-name has its OWN cell, never the shared global one.
+    // (d) §2023:11.7.4 GR5 index privacy: a method-local index-name has its OWN cell, never the shared global one.
     [Fact]
     public void MethodScope_IndexName_HasItsOwnCell()
     {

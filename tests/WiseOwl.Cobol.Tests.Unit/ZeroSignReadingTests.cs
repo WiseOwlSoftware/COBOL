@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// kb/Work PB3981, PB4120 — <see cref="ZeroSignReading"/>, the parse-informed second round of the question the token
 /// rewriter answers from characters: is this figurative ZERO an arithmetic operand? A ZERO followed by a sign touching its
 /// literal (<c>ZERO -1</c>) is an operand-list item, unless the grammar wants an arithmetic expression there, which the
-/// parse shows by failing at the sign (§8.7.1 then refuses the operator by name, as it refuses <c>Y -1</c>); and a BARE
-/// ZERO in a slot that takes only an arithmetic expression (ISO §8.8.1.1: "the figurative constant ZERO (ZEROS,
+/// parse shows by failing at the sign (§2023:8.7.1 then refuses the operator by name, as it refuses <c>Y -1</c>); and a BARE
+/// ZERO in a slot that takes only an arithmetic expression (ISO §2023:8.8.1.1: "the figurative constant ZERO (ZEROS,
 /// ZEROES)") is refused as a figurative, which the parse shows by failing at the ZERO. The end-to-end verdicts are the
 /// conformance cases <c>pb3981-*</c> and <c>pb4120-*</c> and the slot census below; the rest pin the round's own
 /// protocol: flip on a sign offender or a ZERO offender, take the flip back when the arithmetic reading fails at the
@@ -151,9 +151,9 @@ public sealed class ZeroSignReadingTests
         + "       PROCEDURE DIVISION.\n";
 
     /// <summary>⛔ THE SLOTS THAT TAKE ONLY AN ARITHMETIC EXPRESSION TAKE A BARE ZERO (kb/Work PB4120; PB4172 named the same
-    /// slots). ISO §8.8.1.1: "An arithmetic expression may be [...] the figurative constant ZERO (ZEROS, ZEROES)", and each
-    /// position below is an arithmetic expression: SET Formats 1 and 2 (§14.9.39.2), CONTINUE AFTER (§14.9.9.2), ALLOCATE
-    /// (§14.9.3.2), and the RETRY phrase, START's LENGTH phrase and the B-SHIFT operand, which the grammar types
+    /// slots). ISO §2023:8.8.1.1: "An arithmetic expression may be [...] the figurative constant ZERO (ZEROS, ZEROES)", and each
+    /// position below is an arithmetic expression: SET Formats 1 and 2 (§2023:14.9.39.2), CONTINUE AFTER (§2023:14.9.9.2), ALLOCATE
+    /// (§2023:14.9.3.2), and the RETRY phrase, START's LENGTH phrase and the B-SHIFT operand, which the grammar types
     /// arithmeticExpression alone. No neighbour of the ZERO shows it, so these parsed only once the parse itself was asked;
     /// a slot added tomorrow is covered the same way.</summary>
     [Theory]

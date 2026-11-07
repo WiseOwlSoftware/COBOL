@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §15.37.4 rule 2 — "If argument-3 is specified, argument-3 represents the number of matches
+      *> ISO §2023:15.37.4 rule 2 — "If argument-3 is specified, argument-3 represents the number of matches
       *> to ignore before determining the character position that shall be returned." — beyond the small
       *> values every earlier case uses, up to the 18-digit reach this program registers.
       *>
@@ -29,7 +29,7 @@
       *> SKIP0 and SKIP2 are the population guard: r2 with a value IN range still returns a position.
       *>
       *> The reach ABOVE 2**63 is deliberately not written here, and no claim is made about it.
-      *> §15.37.3 r3 puts no ceiling on argument-3's VALUE, so such an argument-3 is a legal argument and
+      *> §2023:15.37.3 r3 puts no ceiling on argument-3's VALUE, so such an argument-3 is a legal argument and
       *> r2/r3 would require zero for it; what this compiler does there has NOT been measured, so nothing
       *> in this file or its report asserts it. Whoever measures it adds the lines here.
        IDENTIFICATION DIVISION.

@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4635 review R1-2 - ISO §15.19.3 r5: "When the source-format is ANUM, argument-1 shall be a valid string of characters from the
+      *> PB4635 review R1-2 - ISO §2023:15.19.3 r5: "When the source-format is ANUM, argument-1 shall be a valid string of characters from the
       *> program's alphanumeric coded character set." (cite.py --check OK), a string BT (usage bit) does not hold; the enclosing
       *> parentheses of (BT) leave the representation as it is, so CONVERT((BT) ANUM NAT) is refused as CONVERT(BT ANUM NAT) is.
        IDENTIFICATION DIVISION.

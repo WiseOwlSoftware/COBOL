@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1284 — ISO/IEC 1989:2023 §13.18.45.3 SR8: "None of the items within the range, including data-name-2
+      *> kb/Work PB1284 — ISO/IEC 1989:2023 §2023:13.18.45.3 SR8: "None of the items within the range, including data-name-2
       *> and data-name-3, if specified, shall be ... an occurs-depending table." T, subordinate to G, is within the
       *> range of both entries (GR1: G and its subordinates; GR2: A through the last item of G). Before the fix
       *> X1 displayed blank and X2 displayed 'AB   ' — a fixed window over storage whose extent is not fixed.

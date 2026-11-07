@@ -12,12 +12,12 @@ namespace WiseOwl.Cobol.CodeGen;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// The Report Writer half of the Roslyn backend (ISO/IEC 1989:2023 §13.14–§13.18 / §14.9.16/.21/.46;
+/// The Report Writer half of the Roslyn backend (ISO/IEC 1989:2023 §2023:13.14–§2023:13.18 / §2023:14.9.16/.21/.46;
 /// REPORT_WRITER_DESIGN §4; P7 Step 9f — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>): per report an engine instance field (<c>__RPT_n</c>, a <c>CobolReport</c>),
 /// constructed in <c>__Activate</c> alongside the file registration; per report LINE one generated COMPOSE
 /// method invoked by the engine at presentation time. Every printable item renders through the orchestrator's
-/// ONE MOVE conversion (<c>ConvertSource</c>) — which IS §13.18.53.4 GR1's "SOURCE specifies the sending operand
+/// ONE MOVE conversion (<c>ConvertSource</c>) — which IS §2023:13.18.53.4 GR1's "SOURCE specifies the sending operand
 /// of an implicit MOVE statement to the printable item" (PIC-governed alignment/editing; the legacy's byte-copy
 /// content bugs cannot recur by construction). No byte plans, no registration kinds — the typed-native singular
 /// pattern.
@@ -27,7 +27,7 @@ internal sealed class ReportWriterEmitter(
     DispatchState dispatch, EcState ecState, EcEmitter ec)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the report lane reaches it for
-    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §13.18.63 VALUE recipe a format-4
+    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §2023:13.18.63 VALUE recipe a format-4
     /// operand is initialized by (kb/Work PB506). Lazy and cached because a compose method asks once per
     /// printable item per repetition, and a DataEmitter builds a PhysicalModel and its slicer/codec collaborators.</summary>
     private DataEmitter? _data;
@@ -42,8 +42,8 @@ internal sealed class ReportWriterEmitter(
         if (reports.Count == 0) return;
         w.Line();
         foreach (var r in reports)
-            w.Line($"private CobolReport __RPT_{r.CsIndex} = null!;   // RD {r.Name} (ISO §13.14) — constructed in __Activate");
-        // The NumProfile of each SUM counter's implicitly-defined register (ISO §13.18.54.4 GR1 — "a conceptual
+            w.Line($"private CobolReport __RPT_{r.CsIndex} = null!;   // RD {r.Name} (ISO §2023:13.14) — constructed in __Activate");
+        // The NumProfile of each SUM counter's implicitly-defined register (ISO §2023:13.18.54.4 GR1 — "a conceptual
         // data item that behaves as a data item of the category numeric"). Like a printable item, the register
         // lives OUTSIDE the storage forest, so FieldEmitter.EmitProfiles never sees it — and unlike a printable
         // item it is a RECEIVER too (GR12), so the store needs its profile emitted here (kb/Work PB840).
@@ -53,15 +53,15 @@ internal sealed class ReportWriterEmitter(
                 if (family.Register.Pic is { } rpic)
                     w.Line($"private static readonly NumProfile {family.Register.ProfileName} = {rpic.ProfileInitializer(ctx.SignEncoding)};"
                         + $"   // {r.Name} sum counter {family.BaseId}{(family.Count > 1 ? $"..{family.BaseId + family.Count - 1}" : "")}"
-                        + $"{(family.Name is null ? "" : $" '{family.Name}'")} (ISO §13.18.54.4 GR1)");
-        // The NumProfile of each report's PAGE-COUNTER register (ISO §8.4.3.15.4 GR1 — a temporary unsigned
+                        + $"{(family.Name is null ? "" : $" '{family.Name}'")} (ISO §2023:13.18.54.4 GR1)");
+        // The NumProfile of each report's PAGE-COUNTER register (ISO §2023:8.4.3.15.4 GR1 — a temporary unsigned
         // integer data item maintained per report). Same reason as the sum counter above: the register lives
-        // outside the storage forest and §8.4.3.15.3 SR1 makes it a RECEIVER, so its store needs a profile
+        // outside the storage forest and §2023:8.4.3.15.3 SR1 makes it a RECEIVER, so its store needs a profile
         // (kb/Work PB429).
         foreach (var r in reports)
             if (r.PageCounterRegister.Pic is { } ppic)
                 w.Line($"private static readonly NumProfile {r.PageCounterRegister.ProfileName} = {ppic.ProfileInitializer(ctx.SignEncoding)};"
-                    + $"   // {r.Name} PAGE-COUNTER (ISO §8.4.3.15.4 GR1)");
+                    + $"   // {r.Name} PAGE-COUNTER (ISO §2023:8.4.3.15.4 GR1)");
         foreach (var r in reports)
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))
             {
@@ -81,12 +81,12 @@ internal sealed class ReportWriterEmitter(
     /// conditioned entries, in a fixed order: each conditioned LINE (its PRESENT WHEN chain AND its enclosing
     /// OCCURS … DEPENDING counts, <see cref="LinePresent"/>), each conditioned printable item (its field-local
     /// chain AND its repetition guards), each conditioned SUM entry the group prints (its FULL chain). ISO
-    /// §13.18.41.4 GR2 evaluates every condition-1 of the group "before the processing of any LINE clauses for the
-    /// report group" and §13.18.38.4 GR13 evaluates data-name-1 "just before the processing for the first LINE
+    /// §2023:13.18.41.4 GR2 evaluates every condition-1 of the group "before the processing of any LINE clauses for the
+    /// report group" and §2023:13.18.38.4 GR13 evaluates data-name-1 "just before the processing for the first LINE
     /// clause", so the engine runs the probe ONCE, before the page-fit test, and the placement, the compose and the
     /// sum reset all read its answers. The compose used to evaluate an item's chain itself — after the page advance
     /// the group's own fit test had caused — and the engine re-ran a SUM entry's chain at the end of the group.
-    /// A GROUP INDICATE condition is NOT a slot: §13.18.28.4 GR1 makes it the engine's own state, which this
+    /// A GROUP INDICATE condition is NOT a slot: §2023:13.18.28.4 GR1 makes it the engine's own state, which this
     /// group's page advance legitimately re-arms (kb/Work PB1244).</summary>
     private sealed class PresencePlan
     {
@@ -95,7 +95,7 @@ internal sealed class ReportWriterEmitter(
         public Dictionary<ReportFieldModel, int> Fields { get; } = new(ReferenceEqualityComparer.Instance);
         public Dictionary<ReportSumModel, int> Sums { get; } = new(ReferenceEqualityComparer.Instance);
 
-        /// <summary>The slot of each conditioned SOURCE / VALUE entry occurrence of the group — what §13.18.54.4 GR11
+        /// <summary>The slot of each conditioned SOURCE / VALUE entry occurrence of the group — what §2023:13.18.54.4 GR11
         /// asks of a rolled total's data-name-1 ("declared to be absent as a result of a PRESENT WHEN clause or an
         /// OCCURS clause with the DEPENDING phrase"). A SUM entry's occurrence reads its counter's slot (<see cref="Sums"/>).</summary>
         public Dictionary<ReportItemOccurrence, int> Items { get; } = new(ReferenceEqualityComparer.Instance);
@@ -124,7 +124,7 @@ internal sealed class ReportWriterEmitter(
                                                          .. f.RepetitionGuards.Select(RepetitionTest)]));
                 }
         }
-        // A SUM counter's presence is BOTH halves of §13.18.54.4 GR10 — its PRESENT WHEN chain and its occurrence's
+        // A SUM counter's presence is BOTH halves of §2023:13.18.54.4 GR10 — its PRESENT WHEN chain and its occurrence's
         // OCCURS … DEPENDING tests (kb/Work PB1271): an absent occurrence's counter is neither printed nor reset.
         foreach (var s in r.Sums)
             if (ReferenceEquals(s.PrintedIn, group) && (s.PresentWhen.Count > 0 || s.RepetitionGuards.Count > 0))
@@ -135,7 +135,7 @@ internal sealed class ReportWriterEmitter(
                 plan.Tests.Add(string.Join(" && ", terms));
             }
         // A SOURCE / VALUE entry's occurrence is absent exactly when its full chain or its OCCURS … DEPENDING count says
-        // so (§13.18.54.4 GR11) — the SUM entry's twin above, and read in the same snapshot, by the rolled addition.
+        // so (§2023:13.18.54.4 GR11) — the SUM entry's twin above, and read in the same snapshot, by the rolled addition.
         foreach (var o in r.ItemOccurrences)
             if (o.Sum is null && ReferenceEquals(o.Family.Group, group)
                 && (o.PresentWhen.Count > 0 || o.RepetitionGuards.Count > 0))
@@ -155,35 +155,35 @@ internal sealed class ReportWriterEmitter(
     {
         var plan = PlanOf(r, group);
         if (plan.Tests.Count == 0) return;
-        using (w.Block($"private void __RPT_P_{r.CsIndex}_{gi}(bool[] __p)   // {r.Name} {group.Kind} presence (ISO §13.18.41.4 GR2 / §13.18.38.4 GR13)"))
+        using (w.Block($"private void __RPT_P_{r.CsIndex}_{gi}(bool[] __p)   // {r.Name} {group.Kind} presence (ISO §2023:13.18.41.4 GR2 / §2023:13.18.38.4 GR13)"))
             for (int k = 0; k < plan.Tests.Count; k++)
                 w.Line($"__p[{k}] = {plan.Tests[k]};");
     }
 
     /// <summary>Emit one report line's compose method: a space-filled buffer of the report's line width, each
-    /// printable item placed at its COLUMN (§13.18.14) with the value the §13.18.53.4 GR1/GR3 implicit MOVE
+    /// printable item placed at its COLUMN (§2023:13.18.14) with the value the §2023:13.18.53.4 GR1/GR3 implicit MOVE
     /// produces — evaluated when the ENGINE invokes the method, i.e. at presentation time, after LINE-COUNTER
-    /// was set to this line's number (§13.18.35.4 GR6). A field-local PRESENT WHEN chain guards its placements
-    /// (§13.18.41.4 GR2b — an absent item places nothing and never advances the horizontal counter, GR3f);
-    /// a multiple COLUMN entry places once per operand (§13.18.14.4 GR12) with its VARYING counters stepped
-    /// per repetition (§13.18.64.4 GR3); a relative (PLUS) operand places against the line's horizontal
-    /// counter (§13.18.14.4 GR7/GR8/GR9).</summary>
+    /// was set to this line's number (§2023:13.18.35.4 GR6). A field-local PRESENT WHEN chain guards its placements
+    /// (§2023:13.18.41.4 GR2b — an absent item places nothing and never advances the horizontal counter, GR3f);
+    /// a multiple COLUMN entry places once per operand (§2023:13.18.14.4 GR12) with its VARYING counters stepped
+    /// per repetition (§2023:13.18.64.4 GR3); a relative (PLUS) operand places against the line's horizontal
+    /// counter (§2023:13.18.14.4 GR7/GR8/GR9).</summary>
     private void EmitCompose(ReportModel r, ReportGroupModel group, int gi, ReportLineModel line, int li, CodeWriter w)
     {
         using (w.Block($"private string __RPT_C_{r.CsIndex}_{gi}_{li}()   // {r.Name} {group.Kind} line {li + 1}"))
         {
             w.Line($"var __ln = {RuntimeApi.ReportNewLine(r.CsIndex)};");
-            // The horizontal counter (§13.18.14.4 GR7 — the rightmost occupied column, 0 at line start) exists
+            // The horizontal counter (§2023:13.18.14.4 GR7 — the rightmost occupied column, 0 at line start) exists
             // only when some operand is relative; every placed item then updates it (GR9).
             bool needsHc = line.Fields.Any(f => f.Columns.Any(c => c.Relative));
-            if (needsHc) w.Line("int __hc = 0;   // the §13.18.14.4 GR7 horizontal counter");
-            // The step anchors of this line's repeating entries (§13.18.38.4 GR12): each holds the base column of
+            if (needsHc) w.Line("int __hc = 0;   // the §2023:13.18.14.4 GR7 horizontal counter");
+            // The step anchors of this line's repeating entries (§2023:13.18.38.4 GR12): each holds the base column of
             // ONE printable placement, written by its first repetition and read (never rewritten) by the rest, so
             // the displacement Σ ordinal × integer-3 lands on the column the item occupies in repetition 0.
             foreach (var a in line.Fields.SelectMany(f => f.Columns)
                          .Where(c => c.Kind == ReportColumnKindModel.AnchorSeed)
                          .Select(c => c.AnchorId).Distinct().Order())
-                w.Line($"int __ra{a} = 0;   // §13.18.38.4 GR12 — a repeating entry's step anchor");
+                w.Line($"int __ra{a} = 0;   // §2023:13.18.38.4 GR12 — a repeating entry's step anchor");
             foreach (var f in line.Fields)
                 EmitFieldPlacements(r, gi, PresencePlan.SlotOf(PlanOf(r, group).Fields, f), f, needsHc, w);
             w.Line("return __ln.ToString();");
@@ -204,29 +204,29 @@ internal sealed class ReportWriterEmitter(
             w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", f.Columns[0].AbsoluteLeftmost(f.PrintItem.DisplayTextWidth), single)};");
             return;
         }
-        // The placement's presence — ALL THREE suppressors §13.18.63.4 GR22 names ("a GROUP INDICATE, PRESENT
+        // The placement's presence — ALL THREE suppressors §2023:13.18.63.4 GR22 names ("a GROUP INDICATE, PRESENT
         // WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item"), in one test:
-        // the PRESENT WHEN chain (§13.18.41.4 GR2b) and every enclosing repeating entry's OCCURS … DEPENDING test
-        // (§13.18.38.4 GR13) as the group's presence SNAPSHOT recorded them before any LINE clause was processed
-        // (kb/Work PB1272); and the GROUP INDICATE condition, which §13.18.28.4 GR1 makes "the same effect as a
+        // the PRESENT WHEN chain (§2023:13.18.41.4 GR2b) and every enclosing repeating entry's OCCURS … DEPENDING test
+        // (§2023:13.18.38.4 GR13) as the group's presence SNAPSHOT recorded them before any LINE clause was processed
+        // (kb/Work PB1272); and the GROUP INDICATE condition, which §2023:13.18.28.4 GR1 makes "the same effect as a
         // PRESENT WHEN clause" whose condition the engine owns (GroupIndicatePresent, per detail group — kb/Work
         // PB1244). An absent item places nothing and never advances the horizontal counter, so an indicated item
         // with a relative COLUMN operand needs nothing of its own.
         string[] tests = [.. presentSlot >= 0 ? [RuntimeApi.ReportIsPresent(r.CsIndex, gi, presentSlot)] : (string[])[],
                           .. f.GroupIndicate ? [$"__RPT_{r.CsIndex}.GroupIndicatePresent"] : (string[])[]];
         using IDisposable? guard = tests.Length > 0
-            ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§13.18.41.4 GR2b / §13.18.28.4 GR1 / §13.18.38.4 GR13)")
+            ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§2023:13.18.41.4 GR2b / §2023:13.18.28.4 GR1 / §2023:13.18.38.4 GR13)")
             : null;
         for (int rep = 0; rep < f.Columns.Count; rep++)
         {
-            // VARYING counters (§13.18.64.4 GR3/GR4): each placement runs in its OWN block that declares every counter in
+            // VARYING counters (§2023:13.18.64.4 GR3/GR4): each placement runs in its OWN block that declares every counter in
             // scope at the value its declaring entry's occurrence gives it, so a SOURCE, a subscript or a FROM/BY
             // expression names a counter by its one compose-local variable whichever placement of whichever field reads it.
             using IDisposable? occurrence = f.Varyings.Count > 0
-                ? w.Block($"// VARYING counters at placement {rep + 1} (§13.18.64.4 GR3)") : null;
+                ? w.Block($"// VARYING counters at placement {rep + 1} (§2023:13.18.64.4 GR3)") : null;
             EmitVaryingCounters(r, f.Varyings, rep, w);
             var spec = f.Columns[rep];
-            // The operand this repetition takes (§13.18.63.4 GR23 / §13.18.53.4 GR4 — the ONE cycling reader is
+            // The operand this repetition takes (§2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4 — the ONE cycling reader is
             // ReportFieldModel.SourceAt). The index is the repetition ORDINAL, so a PRESENT WHEN that suppresses
             // the item does not shift the assignment (GR23's last sentence).
             string image = FieldImage(r, f, rep, w);
@@ -236,33 +236,33 @@ internal sealed class ReportWriterEmitter(
                     // GR6 b)-d): LEFT, RIGHT or CENTER fixes the leftmost column from integer-1 and the printable-size
                     // (ReportColumnSpec.AbsoluteLeftmost — the ONE computation the bind-time width walk uses too).
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", spec.AbsoluteLeftmost(f.PrintItem.DisplayTextWidth), image)};");
-                    if (needsHc) w.Line($"__hc = {spec.AbsoluteRightmost(f.PrintItem.DisplayTextWidth)};   // §13.18.14.4 GR9");
+                    if (needsHc) w.Line($"__hc = {spec.AbsoluteRightmost(f.PrintItem.DisplayTextWidth)};   // §2023:13.18.14.4 GR9");
                     break;
                 case ReportColumnKindModel.Relative:
-                    w.Line($"__hc += {spec.Value};   // §13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
+                    w.Line($"__hc += {spec.Value};   // §2023:13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", "__hc", image)};");
-                    w.Line($"__hc += {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    w.Line($"__hc += {f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;
                 case ReportColumnKindModel.AnchorSeed:
                     // Repetition 0 of a STEP'd repeating entry whose COLUMN operand is relative: place as GR8
-                    // says AND remember the column, because §13.18.38.4 GR12 measures the later repetitions from
+                    // says AND remember the column, because §2023:13.18.38.4 GR12 measures the later repetitions from
                     // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST).
-                    w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §13.18.14.4 GR8 + §13.18.38.4 GR12");
+                    w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §2023:13.18.14.4 GR8 + §2023:13.18.38.4 GR12");
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", $"__ra{spec.AnchorId}", image)};");
-                    w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;
                 default:
                     w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", $"__ra{spec.AnchorId} + {spec.Value}", image)};"
-                        + $"   // §13.18.38.4 GR12 — {spec.Value} columns right of repetition 0");
+                        + $"   // §2023:13.18.38.4 GR12 — {spec.Value} columns right of repetition 0");
                     if (needsHc)
-                        w.Line($"__hc = __ra{spec.AnchorId} + {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                        w.Line($"__hc = __ra{spec.AnchorId} + {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §2023:13.18.14.4 GR9");
                     break;
             }
         }
     }
 
-    /// <summary>ONE repetition's OCCURS … DEPENDING presence test as a C# boolean (ISO §13.18.38.4 GR13 with
-    /// §13.18.63.4 GR22). GR13: the repetition count is data-name-1 when its value lies in integer-1 through
+    /// <summary>ONE repetition's OCCURS … DEPENDING presence test as a C# boolean (ISO §2023:13.18.38.4 GR13 with
+    /// §2023:13.18.63.4 GR22). GR13: the repetition count is data-name-1 when its value lies in integer-1 through
     /// (integer-2 − 1), and integer-2 otherwise ("the report group is processed as though the OCCURS clause had
     /// been written without the TO and DEPENDING phrases"), so repetition <c>Ordinal</c> appears exactly when it
     /// is below that count. The test is one term of the group's presence probe (<see cref="PresencePlan"/>), so
@@ -276,10 +276,10 @@ internal sealed class ReportWriterEmitter(
         return $"{g.Ordinal} < {PlaceRenderer.OccurrenceCount(new AllCount.ReportDepending(place, g.Spec.Min, g.Spec.Max))}";
     }
 
-    /// <summary>ONE presence delegate per report line, carrying BOTH suppressors §13.18.63.4 GR22 names that
-    /// can absent a whole line: the §13.18.41 PRESENT WHEN chain and the §13.18.38.4 GR13 count of every
+    /// <summary>ONE presence delegate per report line, carrying BOTH suppressors §2023:13.18.63.4 GR22 names that
+    /// can absent a whole line: the §2023:13.18.41 PRESENT WHEN chain and the §2023:13.18.38.4 GR13 count of every
     /// enclosing repeating entry with a DEPENDING phrase. Composing them here rather than in two delegates is
-    /// what keeps §13.18.35.4 GR4c's "these clauses are taken into account in computing the trial sum" true of
+    /// what keeps §2023:13.18.35.4 GR4c's "these clauses are taken into account in computing the trial sum" true of
     /// both at once — the line's slot of the group's presence snapshot (<see cref="PresencePlan"/>) holds the one
     /// answer the placement and the page-fit test both read. Null when the line is unconditional (the
     /// characterization-pinned three-argument construction).</summary>
@@ -292,14 +292,14 @@ internal sealed class ReportWriterEmitter(
     }
 
     /// <summary>Declare the VARYING counters in scope at placement <paramref name="rep"/> of <paramref name="f"/> (ISO
-    /// §13.18.64.4 GR3): "For the first occurrence, the value of arithmetic-expression-1 is moved to data-name-1 … For
+    /// §2023:13.18.64.4 GR3): "For the first occurrence, the value of arithmetic-expression-1 is moved to data-name-1 … For
     /// the second and subsequent occurrences, the value of arithmetic-expression-2 is added to data-name-1." Occurrence
     /// <c>n</c> (zero-based) of the DECLARING entry therefore holds FROM + n × BY — written as that CLOSED FORM, not as
-    /// an accumulator, because an entry made repeating by an OCCURS clause (§13.18.38 Format 3) is REPLAYED into one
+    /// an accumulator, because an entry made repeating by an OCCURS clause (§2023:13.18.38 Format 3) is REPLAYED into one
     /// field per repetition and an accumulator local to a field could not span them. The two forms are equal, not
     /// approximately: GR3 adds arithmetic-expression-2 itself, and both operands are landed as integers ONCE
     /// (<see cref="VaryValue"/> — a noninteger value is GR5's EC-REPORT-VARYING).
-    /// <para>The one case the closed form is NOT the recurrence is §13.18.64.3 SR3's "may be referenced in
+    /// <para>The one case the closed form is NOT the recurrence is §2023:13.18.64.3 SR3's "may be referenced in
     /// arithmetic-expression-2 of the same VARYING clause": a BY that names a counter of its own entry adds a value that
     /// changes with each step. That entry's counters are then advanced <c>n</c> times, in clause order, each step adding
     /// BY evaluated against the counters as the previous step left them (kb/Work PB1306).</para>
@@ -308,7 +308,7 @@ internal sealed class ReportWriterEmitter(
     /// renderer widens to Int128 for any operator. The locals were `long`, so `FROM 2 * 3 - 5` was a CS0266
     /// backend crash on conforming source.</para>
     /// <para>Counters are declared one DECLARING ENTRY at a time, outermost first, because a counter's FROM and BY may
-    /// name the counters of the entries above it (§13.18.64.3 SR3).</para></summary>
+    /// name the counters of the entries above it (§2023:13.18.64.3 SR3).</para></summary>
     private void EmitVaryingCounters(ReportModel r, IReadOnlyList<ReportVaryingUse> varyings, int rep, CodeWriter w)
     {
         foreach (var entryUses in varyings.GroupBy(u => u.Counter.Group))
@@ -317,20 +317,20 @@ internal sealed class ReportWriterEmitter(
             int n = uses[0].Ordinal + (uses[0].PerPlacement ? rep : 0);
             // A BY carrying operand-evaluation steps (kb/Work PB4517) is stepped too: GR3b adds "the value of
             // arithmetic-expression-2" at each occurrence, and a function's value "is determined when the function is
-            // referenced at runtime" (§8.4.3.2.4 GR1), so the closed form's ONE evaluation of BY is not the recurrence.
+            // referenced at runtime" (§2023:8.4.3.2.4 GR1), so the closed form's ONE evaluation of BY is not the recurrence.
             if (uses.Any(u => u.Counter.Recurrent || StepsOf(u.Counter.By) is not null))
             {
                 foreach (var u in uses)
                 {
                     EmitSteps(StepsOf(u.Counter.From), w);
                     w.Line($"Int128 {LocalNames.Of(u.Counter.Local)} = {VaryValue(r, u.Counter, u.Counter.From, "FROM")};"
-                        + $"   // VARYING {u.Counter.Name} FROM (§13.18.64.4 GR3a)");
+                        + $"   // VARYING {u.Counter.Name} FROM (§2023:13.18.64.4 GR3a)");
                 }
                 if (n > 0)
                     w.Line($"for (int __vi = 0; __vi < {n}; __vi++) {{ "
                         + string.Join(" ", uses.Select(u => StepsText(StepsOf(u.Counter.By))
                             + $"{LocalNames.Of(u.Counter.Local)} += {VaryValue(r, u.Counter, u.Counter.By, "BY")};"))
-                        + " }   // occurrence " + (n + 1) + ": BY added per step (§13.18.64.4 GR3b, §13.18.64.3 SR3)");
+                        + " }   // occurrence " + (n + 1) + ": BY added per step (§2023:13.18.64.4 GR3b, §2023:13.18.64.3 SR3)");
                 continue;
             }
             foreach (var u in uses)
@@ -338,14 +338,14 @@ internal sealed class ReportWriterEmitter(
                 EmitSteps(StepsOf(u.Counter.From), w);
                 string from = VaryValue(r, u.Counter, u.Counter.From, "FROM");
                 w.Line(n == 0
-                    ? $"Int128 {LocalNames.Of(u.Counter.Local)} = {from};   // VARYING {u.Counter.Name}, occurrence 1 (§13.18.64.4 GR3a)"
+                    ? $"Int128 {LocalNames.Of(u.Counter.Local)} = {from};   // VARYING {u.Counter.Name}, occurrence 1 (§2023:13.18.64.4 GR3a)"
                     : $"Int128 {LocalNames.Of(u.Counter.Local)} = {from} + {n} * {VaryValue(r, u.Counter, u.Counter.By, "BY")};"
-                        + $"   // VARYING {u.Counter.Name}, occurrence {n + 1} (§13.18.64.4 GR3)");
+                        + $"   // VARYING {u.Counter.Name}, occurrence {n + 1} (§2023:13.18.64.4 GR3)");
             }
         }
     }
 
-    /// <summary>A VARYING FROM/BY value as an <see cref="Int128"/> integer C# expression (ISO §13.18.64.4 GR3a/GR3b;
+    /// <summary>A VARYING FROM/BY value as an <see cref="Int128"/> integer C# expression (ISO §2023:13.18.64.4 GR3a/GR3b;
     /// absent ⇒ 1). The value lands in its OWN lane — fixed point unscaled at its scale, binary64, or a
     /// standard-decimal intermediate — through <c>CobolReport.VaryingInteger</c>, which applies GR5: "If the
     /// evaluation of arithmetic-expression-1 or arithmetic-expression-2 produces a noninteger value and the VARYING
@@ -361,7 +361,7 @@ internal sealed class ReportWriterEmitter(
     {
         NumX x = num.Render(e, ReceiverContext.None);
         string detail = CsLiteral($"report {r.Name}: VARYING {v.Name} {phrase} evaluated to a noninteger value "
-            + "(ISO §13.18.64.4 GR5)");
+            + "(ISO §2023:13.18.64.4 GR5)");
         if (x.Real || x.Dec) return RuntimeApi.ReportVaryingInteger($"{x.Expr}, {detail}");
         string unscaled = NumericRenderer.Align(x, x.Scale);   // the unsigned-wide lane lands in Int128 here
         return x.Scale == 0 && !x.U
@@ -369,14 +369,14 @@ internal sealed class ReportWriterEmitter(
             : RuntimeApi.ReportVaryingInteger($"{unscaled}, {x.Scale}, {detail}");
     }
 
-    /// <summary>A PRESENT WHEN chain as ONE C# boolean expression — the AND of the chain (ISO §13.18.41.4 GR2b:
+    /// <summary>A PRESENT WHEN chain as ONE C# boolean expression — the AND of the chain (ISO §2023:13.18.41.4 GR2b:
     /// an absent ancestor absents every subordinate, so presence = every condition true), evaluated under the
     /// presenting statement's EC-SIZE checking (<see cref="UnderPresentingChecking(Func{string})"/>, kb/Work PB4031).</summary>
     private string PresentExpr(IReadOnlyList<BoundCondition> conds) =>
         UnderPresentingChecking(() => string.Join(" && ", conds.Select(c => $"({cond.Render(c)})")));
 
     /// <summary>⛔ A REPORT CLAUSE OPERAND'S STEPS RUN AT EACH EVALUATION (kb/Work PB4517). The binder drains each clause
-    /// operand's operand-evaluation steps — a function activation, a §15.4 subscript temporary store — into the operand
+    /// operand's operand-evaluation steps — a function activation, a §2023:15.4 subscript temporary store — into the operand
     /// itself (<c>ReportWriterBinder.BindReportGroupClauses</c>): a condition as a <see cref="BoundUdfEvaluated"/>, which
     /// renders as its own IIFE; an expression as a <see cref="BoundUdfEvaluatedExpr"/> (<see cref="StepsOf"/> /
     /// <see cref="InnerOf"/>); a SOURCE operand and a CODE place beside the value. Every site that evaluates one emits
@@ -397,14 +397,14 @@ internal sealed class ReportWriterEmitter(
     private static BoundExpr? InnerOf(BoundExpr? e) => e is BoundUdfEvaluatedExpr u ? u.Inner : e;
 
     /// <summary>The C# expression of one printable item's image at REPETITION <paramref name="rep"/> — the
-    /// operand §13.18.63.4 GR23 / §13.18.53.4 GR4 assign to that repetition, rendered by the rule its OWN clause
+    /// operand §2023:13.18.63.4 GR23 / §2023:13.18.53.4 GR4 assign to that repetition, rendered by the rule its OWN clause
     /// carries.
     /// <para>⛔ TWO CLAUSES, TWO RULES, AND THEY ARE NOT THE SAME RULE (kb/Work PB506). A SOURCE operand is "the
     /// sending operand of an implicit MOVE statement in which the data item referenced by identifier-1 is moved
-    /// to the printable item" (§13.18.53.4 GR1), so it goes through the orchestrator's ONE MOVE conversion
+    /// to the printable item" (§2023:13.18.53.4 GR1), so it goes through the orchestrator's ONE MOVE conversion
     /// (<c>ConvertSource</c> — PIC-governed alignment and editing, JUSTIFIED honoured). A VALUE operand is an
-    /// INITIALIZATION: §13.18.63.4 GR21 imports GR7 ("aligned … except that initialization is not affected by a
-    /// JUSTIFIED clause and no editing takes place") and GR8, and §13.18.63.3 SR34 imports SR11 (an
+    /// INITIALIZATION: §2023:13.18.63.4 GR21 imports GR7 ("aligned … except that initialization is not affected by a
+    /// JUSTIFIED clause and no editing takes place") and GR8, and §2023:13.18.63.3 SR34 imports SR11 (an
     /// alphanumeric-edited or national-edited picture's editing characters "do not cause editing of the initial
     /// value"), so it goes through the ONE VALUE recipe the working-storage lane uses
     /// (<see cref="ValueInitializer.InitializerFrom"/>). Routing a VALUE through the MOVE applied all three
@@ -412,15 +412,15 @@ internal sealed class ReportWriterEmitter(
     /// <para>The synthetic print item is StoreAsImage for numerics, so both paths yield the printable CHARACTER
     /// image for every category (the display format / edit-mask / string-store renders).</para></summary>
     /// <param name="rep">The PLACEMENT index within this field (one per COLUMN operand). The entry-wide
-    /// repetition ORDINAL — what §13.18.63.4 GR23 counts when it assigns "successive operands to successive
-    /// repeating printable items", and what §13.18.38's replay makes span the OCCURS repetitions too — is
+    /// repetition ORDINAL — what §2023:13.18.63.4 GR23 counts when it assigns "successive operands to successive
+    /// repeating printable items", and what §2023:13.18.38's replay makes span the OCCURS repetitions too — is
     /// <see cref="ReportFieldModel.RepetitionOrdinal"/> + this index (kb/Work PB506 × PB565).</param>
     /// <param name="w">The compose body: a PROHIBITED transfer's rule-7 keep is emitted into it as statements before the
     /// placement that reads the returned image (see <see cref="KeptOnProhibitedInexact"/>).</param>
     private string FieldImage(ReportModel r, ReportFieldModel f, int rep, CodeWriter w)
     {
-        // The SOURCE operand's own steps (a function activation, a §15.4 subscript store — kb/Work PB4517) run here, once
-        // per placement, before the value is read: §13.18.53.4 GR1/GR2's implicit MOVE / COMPUTE "is executed implicitly
+        // The SOURCE operand's own steps (a function activation, a §2023:15.4 subscript store — kb/Work PB4517) run here, once
+        // per placement, before the value is read: §2023:13.18.53.4 GR1/GR2's implicit MOVE / COMPUTE "is executed implicitly
         // whenever the associated item is printed", and the transfer below is rendered up to three times.
         EmitSteps(f.SourceAt(f.RepetitionOrdinal + rep).Steps, w);
         var (plain, rounding, compute) = TransferImage(r, f, rep, raiseOnSizeError: false);
@@ -435,18 +435,18 @@ internal sealed class ReportWriterEmitter(
         return raising is null ? image : $"({RuntimeApi.SizeTruncationChecking} ? {raising} : {image})";
     }
 
-    /// <summary>⛔ THE PRESENTING STATEMENT'S EC-SIZE CHECKING GOVERNS THE REPORT COMPOSE (kb/Work PB4031). §7.3.25.4 GR6
+    /// <summary>⛔ THE PRESENTING STATEMENT'S EC-SIZE CHECKING GOVERNS THE REPORT COMPOSE (kb/Work PB4031). §2023:7.3.25.4 GR6
     /// enables checking "for the procedure division statements and procedure division headers that follow in the
-    /// compilation group", so a TURN written at the REPORT SECTION entry enables nothing there, and §14.7.5 names GENERATE
+    /// compilation group", so a TURN written at the REPORT SECTION entry enables nothing there, and §2023:14.7.5 names GENERATE
     /// among the statements whose execution the size error condition "may occur as a result of": the implicit COMPUTE
-    /// (§13.18.53.4 GR2 — "executed implicitly whenever the associated item is printed"; §13.18.54.4 GR4 for a SUM
+    /// (§2023:13.18.53.4 GR2 — "executed implicitly whenever the associated item is printed"; §2023:13.18.54.4 GR4 for a SUM
     /// counter's ROUNDED face), the PRESENT WHEN conditions and the VARYING expressions run as part of the GENERATE or
     /// TERMINATE that presents the group, and THAT statement's state decides them. One compose serves every such
     /// statement, so the state arrives at run time (<see cref="EmitPresenting"/> sets it) and the compose is rendered
     /// both ways: <paramref name="plain"/>, as no statement's checking, and <paramref name="render"/> again under
     /// <see cref="EcState.ComposeSizeChecking"/>, where every receiver-less numeric render takes the CHECKED kernels
     /// exactly as it does inside a statement with EC-SIZE checking (<c>NumericRenderer.CheckedFor</c>), so an
-    /// intermediate past its range raises EC-SIZE-OVERFLOW (§14.7.5 no-phrase rule 3) for the presenting statement's
+    /// intermediate past its range raises EC-SIZE-OVERFLOW (§2023:14.7.5 no-phrase rule 3) for the presenting statement's
     /// guard. Two equal renders (nothing arithmetic in them) emit once; a compilation group with no exception checking
     /// emits the plain render alone (<see cref="EcState.Active"/>).</summary>
     private string UnderPresentingChecking(string plain, Func<string> render)
@@ -469,28 +469,28 @@ internal sealed class ReportWriterEmitter(
         finally { ecState.ComposeSizeChecking = saved; }
     }
 
-    /// <summary>⛔ §14.7.4.3 RULE 7 IN A PRINTABLE ITEM'S IMPLICIT COMPUTE (kb/Work PB3990 review finding R1-1). "If the
+    /// <summary>⛔ §2023:14.7.4.3 RULE 7 IN A PRINTABLE ITEM'S IMPLICIT COMPUTE (kb/Work PB3990 review finding R1-1). "If the
     /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
     /// identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the
-    /// content of the resultant identifier is unchanged": a SOURCE ... ROUNDED MODE IS PROHIBITED operand (§13.18.53.4
-    /// GR2) and a SUM counter printed with ROUNDED MODE IS PROHIBITED (§13.18.54.4 GR4) are implicit COMPUTE
+    /// content of the resultant identifier is unchanged": a SOURCE ... ROUNDED MODE IS PROHIBITED operand (§2023:13.18.53.4
+    /// GR2) and a SUM counter printed with ROUNDED MODE IS PROHIBITED (§2023:13.18.54.4 GR4) are implicit COMPUTE
     /// statements whose resultant is the printable item, with no SIZE ERROR phrase. Every landing raises
     /// <c>CobolSizeError.ProhibitedInexact</c> before it stores, so while the presenting statement does not enable
     /// EC-SIZE-TRUNCATION the image is formed inside the ONE rule-7 keep
     /// (<see cref="ArithmeticEmitter.EmitProhibitedInexactKeep"/>) and the presentation continues (docs/CONFORMANCE.md
     /// DOC-A.1-70) — uncaught, the raise ended the run unit.
     /// The printable item's unchanged content is SPACES: a printable item is not storage, it is a horizontal division of
-    /// a report line whose value "is determined solely by a SOURCE, SUM, or VALUE clause" (§13.8.6.2.3), and each
+    /// a report line whose value "is determined solely by a SOURCE, SUM, or VALUE clause" (§2023:13.8.6.2.3), and each
     /// presentation composes the line afresh from a space-filled buffer (<c>CobolReport.NewLine</c>), so before the
     /// implicit COMPUTE its columns hold spaces — placed at the item's columns, so the horizontal
     /// counter and the column-overlap test see the item exactly as they would a stored one.
     /// <para>Under the presenting statement's EC-SIZE-TRUNCATION checking (<paramref name="raising"/>, see
-    /// <see cref="FieldImage"/>) there is no keep: the condition is set to exist and §14.6.13.1.3 processes it, so the
+    /// <see cref="FieldImage"/>) there is no keep: the condition is set to exist and §2023:14.6.13.1.3 processes it, so the
     /// raise leaves the compose for the statement's guard.</para></summary>
     private string KeptOnProhibitedInexact(ReportFieldModel f, string image, string? raising, CodeWriter w)
     {
         string kept = $"__rimg{ctx.Names.NextEc()}";
-        w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§14.7.4.3 rule 7)");
+        w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§2023:14.7.4.3 rule 7)");
         if (raising is null)
         {
             ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
@@ -502,41 +502,41 @@ internal sealed class ReportWriterEmitter(
         return kept;
     }
 
-    /// <summary>The image expression of <see cref="FieldImage"/>, the ROUNDING MODE of its transfer (§14.7.4) and whether
+    /// <summary>The image expression of <see cref="FieldImage"/>, the ROUNDING MODE of its transfer (§2023:14.7.4) and whether
     /// the transfer is an implicit COMPUTE — the one transfer that has a RAISING form (<paramref name="raiseOnSizeError"/>,
     /// <c>MoveEmitter.ConvertSource</c>'s; a MOVE and a VALUE ignore it).</summary>
     private (string Image, CobolRounding Rounding, bool Compute) TransferImage(ReportModel r, ReportFieldModel f, int rep,
         bool raiseOnSizeError)
     {
         BoundOperand source;
-        // The transfer's ROUNDING MODE (§14.7.4). Only a report value clause's own ROUNDED phrase sets it:
-        // §13.18.53.4 GR2 for a SOURCE operand and §13.18.54.4 GR4 for a SUM counter's printable face. With no
-        // phrase the transfer is §13.18.53.4 GR1's MOVE / GR4's MOVE, which truncates (kb/Work PB852).
+        // The transfer's ROUNDING MODE (§2023:14.7.4). Only a report value clause's own ROUNDED phrase sets it:
+        // §2023:13.18.53.4 GR2 for a SOURCE operand and §2023:13.18.54.4 GR4 for a SUM counter's printable face. With no
+        // phrase the transfer is §2023:13.18.53.4 GR1's MOVE / GR4's MOVE, which truncates (kb/Work PB852).
         var rounding = CobolRounding.Truncation;
         switch (f.SourceAt(f.RepetitionOrdinal + rep))
         {
             case FieldValueSource v:
-                // §13.18.63 — an initialization, NOT the §13.18.53.4 GR1 implicit MOVE (see the remarks above).
+                // §2023:13.18.63 — an initialization, NOT the §2023:13.18.53.4 GR1 implicit MOVE (see the remarks above).
                 return (Data.ValueImageOf(f.PrintItem, v.Raw), rounding, false);
             case FieldReferenceSource { Value: { } operand }:
-                // SOURCE identifier-1 (§13.18.53.4 GR1's implicit MOVE sender), bound by the ONE operand binder: a
-                // storage item with its subscripts and reference modification, a LINE-COUNTER / PAGE-COUNTER (§8.4.3.15
-                // SR1 — composed at presentation time, AFTER the §13.18.35.4 GR6 counter update, so a PH line's
+                // SOURCE identifier-1 (§2023:13.18.53.4 GR1's implicit MOVE sender), bound by the ONE operand binder: a
+                // storage item with its subscripts and reference modification, a LINE-COUNTER / PAGE-COUNTER (§2023:8.4.3.15
+                // SR1 — composed at presentation time, AFTER the §2023:13.18.35.4 GR6 counter update, so a PH line's
                 // LINE-COUNTER prints the PH's own line number), a sum counter or a VARYING counter. One conversion.
                 source = operand;
                 break;
             case FieldReferenceSource bad:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding, false);
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §2023:13.18.53.3 SR4)"), rounding, false);
             case FieldSumSource s:
-                // The SUM counter is the printable entry's source item (§13.18.54.4 GR4 — "the content of the
+                // The SUM counter is the printable entry's source item (§2023:13.18.54.4 GR4 — "the content of the
                 // sum counter is moved, according to the general rules of the MOVE statement, to the printable
                 // item"), reached through the ONE sum-counter place the procedure division also reads and writes
                 // (kb/Work PB840): one identity, one accessor, one conversion. The counter is indexed by its
                 // ENTRY ORDINAL (GR1) — `First(Id == name)` used to pick whichever entry spelled its data-name
                 // first (kb/Work PB882).
                 var sum = r.Sums[s.CounterId];
-                // §13.18.54.4 GR4 — with the clause's ROUNDED phrase "the content of the sum counter is computed
+                // §2023:13.18.54.4 GR4 — with the clause's ROUNDED phrase "the content of the sum counter is computed
                 // according to the general rules for the COMPUTE statement with the ROUNDED phrase".
                 var counter = new BoundFieldOperand(new ReportSumCounterPlace(r.CsIndex, s.CounterId, sum.Family.Register));
                 // Only the ROUNDED face is a COMPUTE; without the phrase GR4's transfer is a MOVE, which cannot raise.
@@ -550,7 +550,7 @@ internal sealed class ReportWriterEmitter(
                 return ($"({RuntimeApi.ReportSumPresentable(r.CsIndex, s.CounterId)} "
                     + $"? {moved} : {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))})", sum.Rounding, sumCompute);
             case FieldComputeSource { Value: { } expr } cs:
-                // §13.18.53.4 GR2 — "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE
+                // §2023:13.18.53.4 GR2 — "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE
                 // statement that is executed implicitly whenever the associated item is printed. If the ROUNDED
                 // phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase."
                 // The COMPUTE's receiving operand is the printable item, so the transfer IS the one conversion
@@ -559,10 +559,10 @@ internal sealed class ReportWriterEmitter(
                     raiseOnSizeError: raiseOnSizeError), cs.Rounding, true);
             case FieldComputeSource bad:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding, false);
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §2023:13.18.53.3 SR4)"), rounding, false);
             default:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)"), rounding, false);
+                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §2023:13.18.53.3 SR4)"), rounding, false);
         }
         return (move.ConvertSource(source, f.PrintItem, rounding: rounding), rounding, false);
     }
@@ -570,8 +570,8 @@ internal sealed class ReportWriterEmitter(
     // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not
     // re-added. It turned a format-4 VALUE operand's raw text into a BoundOperand — a quoted literal, an ALL
     // literal, a figurative, else a numeric literal — purely so the operand could be pushed through
-    // `move.ConvertSource`, i.e. through §13.18.53.4 GR1's implicit MOVE. §13.18.63.4 GR21/GR7/GR8 and
-    // §13.18.63.3 SR34/SR11 say a VALUE is an INITIALIZATION and exclude exactly the transforms a MOVE applies,
+    // `move.ConvertSource`, i.e. through §2023:13.18.53.4 GR1's implicit MOVE. §2023:13.18.63.4 GR21/GR7/GR8 and
+    // §2023:13.18.63.3 SR34/SR11 say a VALUE is an INITIALIZATION and exclude exactly the transforms a MOVE applies,
     // so the whole raw-text→BoundOperand recognition chain was a SECOND, DIVERGENT copy of the decode
     // `ValueInitializer` already owns (its figurative/ALL/edited arms, the CCVS alphanumeric-on-numeric
     // leniency, the LOCALE compose). `FieldImage` now calls that one recipe.
@@ -579,43 +579,43 @@ internal sealed class ReportWriterEmitter(
     /// <summary>Emit the per-instance report-engine construction (called inside <c>__Activate</c>'s
     /// once-per-instance block, right after the file registration — hazard: the report FD must be
     /// registered BEFORE the engine's first write, REPORT_WRITER_DESIGN §4): the engine with its
-    /// §13.18.39.4 geometry, each group with its compose table, the CONTROL get/set delegates (§13.18.16), the
-    /// SUM counters (§13.18.54), and the USE BEFORE REPORTING hooks (§14.9.49 Format 2 GR8).</summary>
+    /// §2023:13.18.39.4 geometry, each group with its compose table, the CONTROL get/set delegates (§2023:13.18.16), the
+    /// SUM counters (§2023:13.18.54), and the USE BEFORE REPORTING hooks (§2023:14.9.49 Format 2 GR8).</summary>
     public void EmitReportConstruction(CodeWriter w)
     {
         var reports = ctx.Data.Reports.Declared;
         if (reports.Count == 0) return;
         foreach (var r in reports)
         {
-            if (r.File is null) continue;   // diagnosed at bind (§13.18.46) — compile already failed
+            if (r.File is null) continue;   // diagnosed at bind (§2023:13.18.46) — compile already failed
             w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {FileKeyExpr(r.File)}, "
                 + $"{r.LineWidth}, {r.PageWidth}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
                 + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing});");
-            // The CODE clause (§13.18.12): the characters every logical record of this report begins with (GR1). A
+            // The CODE clause (§2023:13.18.12): the characters every logical record of this report begins with (GR1). A
             // literal is a constant; an identifier is READ by the engine at each body group (GR3 — the value is used
             // until the next evaluation), through the one string-carrier read the CONTROL operands use.
             if (r.Code is { } code)
             {
                 if (code.Literal is { } literal)
-                    w.Line($"__RPT_{r.CsIndex}.SetCode(static () => {CsLiteral(literal)});   // CODE literal-1 (§13.18.12.4 GR1)");
+                    w.Line($"__RPT_{r.CsIndex}.SetCode(static () => {CsLiteral(literal)});   // CODE literal-1 (§2023:13.18.12.4 GR1)");
                 else if (code.Value is { } codePlace)
                     w.Line($"__RPT_{r.CsIndex}.SetCode(() => "
                         + (code.Steps is null   // a function-bearing subscript's store runs at each read (kb/Work PB4517)
                             ? CallEmitter.CallStringRead(codePlace)
                             : $"{{ {StepsText(code.Steps)}return {CallEmitter.CallStringRead(codePlace)}; }}")
-                        + ");   // CODE identifier-1 (§13.18.12.4 GR3)");
+                        + ");   // CODE identifier-1 (§2023:13.18.12.4 GR3)");
                 else
                     w.Line(LoudStmt($"report {r.Name}: CODE identifier '{code.Written}' does not resolve to a place this "
-                        + "backend can read (ISO §13.18.12.4 GR3)"));
+                        + "backend can read (ISO §2023:13.18.12.4 GR3)"));
             }
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))
             {
                 // A conditioned line carries its slot in the group's presence snapshot, which the engine takes
-                // once per presentation, BEFORE any LINE processing (§13.18.41.4 GR2; kb/Work PB1272);
+                // once per presentation, BEFORE any LINE processing (§2023:13.18.41.4 GR2; kb/Work PB1272);
                 // unconditional lines keep the three-argument construction (the characterization-pinned text). A
-                // line that seeds or steps from a §13.18.38.4 GR12c/GR12d step anchor adds the anchor triple,
+                // line that seeds or steps from a §2023:13.18.38.4 GR12c/GR12d step anchor adds the anchor triple,
                 // which then forces the slot argument to be written out even when it is −1. A first line whose
-                // LINE clause carries the NEXT PAGE phrase (§13.18.35.2 Format 1; kb/Work PB1001) adds it as a
+                // LINE clause carries the NEXT PAGE phrase (§2023:13.18.35.2 Format 1; kb/Work PB1001) adds it as a
                 // NAMED argument, so every phrase-less line keeps its text.
                 var plan = PlanOf(r, group);
                 string lines = group.Lines.Count == 0
@@ -629,55 +629,55 @@ internal sealed class ReportWriterEmitter(
                     + $"{CsLiteral(group.Name ?? "")}, {group.ControlLevel}, {lines});");
                 if (plan.Tests.Count > 0)
                     w.Line($"__rg{r.CsIndex}_{gi}.SetPresence({plan.Tests.Count}, __RPT_P_{r.CsIndex}_{gi});");
-                // The OR PAGE phrase of a control heading (§13.18.57.2; kb/Work PB1298) — the engine reprints the
-                // heading after each page advance (§13.18.57.4 GR6 c)).
+                // The OR PAGE phrase of a control heading (§2023:13.18.57.2; kb/Work PB1298) — the engine reprints the
+                // heading after each page advance (§2023:13.18.57.4 GR6 c)).
                 if (group.OrPage)
                     w.Line($"__rg{r.CsIndex}_{gi}.OrPage = true;");
-                // The NEXT GROUP clause (§13.18.37; kb/Work PB957) — the bound runtime record, written verbatim; the
+                // The NEXT GROUP clause (§2023:13.18.37; kb/Work PB957) — the bound runtime record, written verbatim; the
                 // engine applies it after the group's last line (GR2).
                 if (group.NextGroup is { } ng)
                     w.Line($"__rg{r.CsIndex}_{gi}.NextGroup = new ReportNextGroup(ReportNextGroupKind.{ng.Kind}, "
                         + $"{ng.Value}, {(ng.Reset ? "true" : "false")});");
                 w.Line($"__RPT_{r.CsIndex}.AddGroup(__rg{r.CsIndex}_{gi});");
             }
-            // CONTROL hierarchy (§13.18.16), major→minor: get/set image delegates over the typed storage — the
+            // CONTROL hierarchy (§2023:13.18.16), major→minor: get/set image delegates over the typed storage — the
             // CALL boundary's one string-carrier pair (CallStringRead/CallStringWrite), reused verbatim.
             foreach (var ctl in r.Controls)
             {
                 if (ctl.IsFinal)
                 {
-                    w.Line($"__RPT_{r.CsIndex}.AddControl(true, static () => \"\", static __v => {{ }});   // FINAL (§13.18.16.4 GR2 — never breaks)");
+                    w.Line($"__RPT_{r.CsIndex}.AddControl(true, static () => \"\", static __v => {{ }});   // FINAL (§2023:13.18.16.4 GR2 — never breaks)");
                     continue;
                 }
-                // ⛔ CITATION REPAIRED (kb/Work PB177 arm C): this said "ISO §13.18.16.3 SR3", but SR3 is
+                // ⛔ CITATION REPAIRED (kb/Work PB177 arm C): this said "ISO §2023:13.18.16.3 SR3", but SR3 is
                 // "Data-name-1 shall not be subject to any OCCURS clauses" — a real clause answering a
-                // different question. The §13.18.16.3 SHAPE rules (SR3/SR5/SR7) and the §13.18.60.3 SR10 INDEX
+                // different question. The §2023:13.18.16.3 SHAPE rules (SR3/SR5/SR7) and the §2023:13.18.60.3 SR10 INDEX
                 // rule are REJECTED AT BIND TIME by ReportSectionBinder.ControlOperandShapeViolation, so an INDEX operand
                 // never reaches this loop. What survives here is ONE implementation limit, labelled as one: an
                 // unresolved operand — the shapes ReferenceResolver returns null for, which today are the
                 // dynamic-capacity table entry and a leaf beneath one (both ALSO rejected at bind, by the IsTable
                 // arm), so this limb is a backstop for a resolver shape not yet enumerated.
                 // ⛔ A REFERENCE-MODIFIED OPERAND IS SAVED AND COMPARED AS ITS SLICE, NOT AS THE WHOLE ITEM
-                // (kb/Work PB205). §13.18.16.3 SR4 expressly permits the ref-mod and §13.18.16.4 GR3 then defines
+                // (kb/Work PB205). §2023:13.18.16.3 SR4 expressly permits the ref-mod and §2023:13.18.16.4 GR3 then defines
                 // the prior control as having "the same data description as the corresponding data item" — which
-                // for a reference-modified operand is the §8.4.3.3.4 GR5 unique data item, the slice. The
+                // for a reference-modified operand is the §2023:8.4.3.3.4 GR5 unique data item, the slice. The
                 // positions are integer literals (SR4), so the view needs no expression machinery: it is the ONE
                 // ref-mod view builder, reached by item instead of by parse context.
                 if (ctl.Place is not { } place)
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "
-                        + "this backend can save and restore as the prior control value (ISO §13.18.16.4 GR3)"));
+                        + "this backend can save and restore as the prior control value (ISO §2023:13.18.16.4 GR3)"));
                     continue;
                 }
                 // ⛔ A FLOATING-POINT CONTROL ITEM SAVES AND RESTORES ITS BIT PATTERN (kb/Work PB1234). No syntax
-                // rule of §13.18.16.3 excludes a floating-point data-name-1, and GR3's prior control has "the same
+                // rule of §2023:13.18.16.3 excludes a floating-point data-name-1, and GR3's prior control has "the same
                 // data description as the corresponding data item", so GR4 a)'s store and restore are same-usage
                 // copies. The character-image channel below has no float restore (a string→double assignment),
                 // and a DISPLAY image is a ROUNDED rendering besides, so the item was a run-time loud at program
                 // activation. The float arm reads the item on its OWN carrier (the same-usage MOVE read), keys it
                 // by its bits (CobolReport.FloatControlKey), writes it back through the item's own encoding, and
                 // breaks on a VALUE change (CobolReport.FloatControlEqual). A reference-modified operand denotes a
-                // character slice, not the item (§8.4.3.3.4 GR5/GR6 — Place.DenotedItem is null for it), and keeps
+                // character slice, not the item (§2023:8.4.3.3.4 GR5/GR6 — Place.DenotedItem is null for it), and keeps
                 // the character arm.
                 if (place.DenotedItem is not null && place.Item.Pic is { IsFloat: true } fpic)
                 {
@@ -686,57 +686,57 @@ internal sealed class ReportWriterEmitter(
                     string store = place.Item.StoreAsImage ? NumericRenderer.ImageOfCarrier(restored, place.Item) : restored;
                     w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {RuntimeApi.ReportFloatControlKey(carrier)}, "
                         + $"__v => {{ {PlaceRenderer.Write(place, store)} }}, {RuntimeApi.ReportFloatControlEqual});"
-                        + "   // floating-point CONTROL (§13.18.16.4 GR3/GR4)");
+                        + "   // floating-point CONTROL (§2023:13.18.16.4 GR3/GR4)");
                     continue;
                 }
-                // The prior-control save/compare/restore key is the item's CHARACTER IMAGE (§13.18.16.4 GR3 —
+                // The prior-control save/compare/restore key is the item's CHARACTER IMAGE (§2023:13.18.16.4 GR3 —
                 // representation-faithful for every category): read via the one string-carrier read; the
                 // restore decodes through StoreDisplay for a native numeric leaf (the NumericImagePlace shape),
                 // or splices the image for string-carried storage.
                 string set = CallEmitter.CallPlaceIsString(place)
                     ? CallEmitter.CallStringWrite(place, "__v")
                     : PlaceRenderer.Write(place, RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, PlaceRenderer.Read(place)));
-                // ⛔ THE BREAK TEST IS THE PROGRAM'S COMPARISON (kb/Work PB1131). §12.3.6.4 GR11 c): the program
+                // ⛔ THE BREAK TEST IS THE PROGRAM'S COMPARISON (kb/Work PB1131). §2023:12.3.6.4 GR11 c): the program
                 // collating sequences "are used to determine the truth value of any alphanumeric comparisons and
-                // national comparisons … Implicitly specified by the presence of a CONTROL clause", and §13.18.16.4
+                // national comparisons … Implicitly specified by the presence of a CONTROL clause", and §2023:13.18.16.4
                 // GR3's test is one "for equality with the corresponding prior control" — an operand of the SAME
                 // data description, so the comparison class is the item's own against itself, asked of the ONE
                 // class rule a relation condition asks (CollateArgFor over the operand's category — a reference-
-                // modified operand answers the slice's category, §8.4.3.3.4 GR6 c)). No sequence ⇒ no argument:
+                // modified operand answers the slice's category, §2023:8.4.3.3.4 GR6 c)). No sequence ⇒ no argument:
                 // the engine's code-unit compare of two equal-length images IS that comparison.
                 var cat = CollatingSelection.OperandCategory(new BoundFieldOperand(place));
                 string collate = ctx.CollateArgFor(cat, cat);
                 string equal = collate.Length == 0 ? "" : $", static (__a, __b) => {RuntimeApi.StrCompare("__a", "__b", collate)} == 0";
                 w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CallEmitter.CallStringRead(place)}, __v => {{ {set} }}{equal});");
             }
-            // SUM counters (§13.18.54): the addend delegate yields the addends' total at the counter's scale
+            // SUM counters (§2023:13.18.54): the addend delegate yields the addends' total at the counter's scale
             // (GR3 — ADD-consistent accumulation; GR9 — multiple addends sum together).
             // ⛔ ONE CARRIER, NEVER A NARROWING CAST (kb/Work PB1509/PB1560/PB1666). The counter, every addend and
             // the term's total are Int128 end to end — the carrier the compiler gives every 19–38-digit numeric
             // item — and GR1's digit count (up to the 31 digit positions a numeric PICTURE may describe,
-            // §13.18.40.3 SR14) is the engine's capacity. The delegate used to be `() => (long)(…)`, so a 20-digit
+            // §2023:13.18.40.3 SR14) is the engine's capacity. The delegate used to be `() => (long)(…)`, so a 20-digit
             // addend wrapped modulo 2^64 into a wrong printed total with no size error. An alignment or a term
             // total past Int128 is past every counter's capacity: the checked Align raises CobolSizeError and the
             // checked term sum OverflowException, and the engine takes either as GR3's size error.
-            // The arithmetic MODE (§11.9.5.2 GR1 NATIVE / GR3 STANDARD-DECIMAL — both name the SUM clause) selects
+            // The arithmetic MODE (§2023:11.9.5.2 GR1 NATIVE / GR3 STANDARD-DECIMAL — both name the SUM clause) selects
             // how each ADDEND is evaluated: an arithmetic-expression addend renders through the unit's own lane
             // (a CobolDec SDIDI under STANDARD-DECIMAL, landed by NumericRenderer.Align's Dec arm), exactly as the
             // same expression in a COMPUTE would. The ACCUMULATION itself is one aligned addition of two
             // fixed-point values ≤ 31 digits each, whose ≤ 32-digit exact result both engines represent without
-            // rounding (§8.8.1.5.2 — a 34-digit SDIDI never rounds a ≤ 34-digit value), so the Int128 addition IS
+            // rounding (§2023:8.8.1.5.2 — a 34-digit SDIDI never rounds a ≤ 34-digit value), so the Int128 addition IS
             // the standard-decimal result as well as the native one.
             foreach (var sum in r.Sums)
             {
                 int printedGi = r.Groups.IndexOf(sum.PrintedIn);
                 // A conditioned SUM entry passes its slot in its group's presence snapshot — absent at a
-                // presentation suppresses the end-of-group reset (§13.18.41.4 GR3g / §13.18.54.4 GR10), and the
+                // presentation suppresses the end-of-group reset (§2023:13.18.41.4 GR3g / §2023:13.18.54.4 GR10), and the
                 // printable face reads the same snapshot, so one answer governs both halves (kb/Work PB1272).
                 string sumPresent = PresencePlan.SlotOf(PlanOf(r, sum.PrintedIn).Sums, sum) is var ss and >= 0 ? $", {ss}" : "";
                 // GR1's digit count rides the registration: it is the counter's capacity, and an addition past it is
                 // the GR3 size error that sets the entry's indicator (kb/Work PB1130).
                 w.Line($"__RPT_{r.CsIndex}.AddSum({sum.Id}, {sum.ResetLevel}, "
                     + $"__rg{r.CsIndex}_{printedGi}{sumPresent});");
-                // ONE TERM PER `SUM … [UPON …]` GROUP (§13.18.54.3 SR1 + §13.18.54.4 GR1/GR7c2 — kb/Work
+                // ONE TERM PER `SUM … [UPON …]` GROUP (§2023:13.18.54.3 SR1 + §2023:13.18.54.4 GR1/GR7c2 — kb/Work
                 // PB482): the counter belongs to the ENTRY, the UPON filter belongs to its own group, and GR9
                 // sums a group's addends together. Each addend is the bound identifier's value — subscripts and
                 // all — rendered through the ONE numeric renderer, so a table addend is an ordinary indexed read
@@ -744,7 +744,7 @@ internal sealed class ReportWriterEmitter(
                 foreach (var term in sum.Terms)
                 {
                     // ⛔ THE ADDITION IS THE ADD STATEMENT'S, EVALUATED BY THE ADD STATEMENT'S MACHINERY (kb/Work
-                    // PB1686). §13.18.54.4 GR3: "The adding is consistent with the general rules of the ADD statement
+                    // PB1686). §2023:13.18.54.4 GR3: "The adding is consistent with the general rules of the ADD statement
                     // with the ON SIZE ERROR phrase or, in the case of an arithmetic expression, the COMPUTE
                     // statement with the ON SIZE ERROR phrase", and GR9 sums a group's addends together — so ONE
                     // addition is `ADD addend-1 … addend-n TO counter`: the addends' sum is the one initial
@@ -755,7 +755,7 @@ internal sealed class ReportWriterEmitter(
                     // former form aligned EACH addend to the counter's scale (and rounded it there) BEFORE adding, so
                     // an addend finer than the counter lost its extra digits one addend at a time: a 9V99 counter fed
                     // 1.000 then −0.005 held 1.00, where ADD of the same two values gives 0.99 (1.000 − 0.005 =
-                    // 0.995, truncated). The SUM clause's own rounded-phrase (§13.18.54.2) is the mode of that store (kb/Work PB852's determination; GR4 speaks of the SOURCE clause's phrase).
+                    // 0.995, truncated). The SUM clause's own rounded-phrase (§2023:13.18.54.2) is the mode of that store (kb/Work PB852's determination; GR4 speaks of the SOURCE clause's phrase).
                     // ⛔ A ROLLED TOTAL IS NOT THIS TERM'S GENERATE-DRIVEN ADDITION (kb/Work PB1294): GR9 sums a clause's
                     // addends "separately according to the above rules", and a data-name-1 addend's rule is GR7 a)/b) —
                     // added when ITS group is processed — so it registers with that group (RegisterRolledAdditions) and
@@ -763,7 +763,7 @@ internal sealed class ReportWriterEmitter(
                     var driven = term.Addends.Where(a => !a.Rolled).ToList();
                     if (driven.Count == 0) continue;
                     string addend = SumAddition(r, sum, driven.Select(a => a.Value),
-                        $"report {r.Name}: SUM addend was rejected at bind (ISO §13.18.54.3 SR5)");
+                        $"report {r.Name}: SUM addend was rejected at bind (ISO §2023:13.18.54.3 SR5)");
                     // null = no UPON phrase (GR7 c) 1) — every GENERATE for this report). An UPON phrase whose
                     // operands were ALL rejected emits the EMPTY filter instead, so a suppressed COBOL2046
                     // accumulates on NOTHING rather than on everything: the absence of the phrase and the
@@ -784,14 +784,14 @@ internal sealed class ReportWriterEmitter(
         }
         RegisterCrossEngineAdditions(w, reports);
         // ⛔ NO USE BEFORE REPORTING HOOK IS INSTALLED HERE (kb/Work PB369). The declarative run before a group is
-        // produced is selected per STATEMENT (§14.9.49.4 GR4 — "FORMATS 1 AND 2"), so it travels with the GENERATE /
+        // produced is selected per STATEMENT (§2023:14.9.49.4 GR4 — "FORMATS 1 AND 2"), so it travels with the GENERATE /
         // TERMINATE call as the selector EmitBeforeReportingSelectors writes; an engine-wide hook installed by the
         // declaring program would run the declaring program's NON-global declaratives for a contained program's
         // GENERATE of a GLOBAL report, and could never run the contained program's own.
     }
 
     /// <summary>⛔ ONE ADDITION INTO A SUM COUNTER, AS A CLOSURE — the generate-driven term and the rolled addition both
-    /// are this (kb/Work PB1294; the rule is kb/Work PB1686's). ISO §13.18.54.4 GR3: "The adding is consistent with the
+    /// are this (kb/Work PB1294; the rule is kb/Work PB1686's). ISO §2023:13.18.54.4 GR3: "The adding is consistent with the
     /// general rules of the ADD statement with the ON SIZE ERROR phrase or, in the case of an arithmetic expression,
     /// the COMPUTE statement with the ON SIZE ERROR phrase", and GR9 sums the addends together — so ONE addition is
     /// <c>ADD addend-1 … addend-n TO counter</c>: the addends' sum is the one initial evaluation
@@ -817,7 +817,7 @@ internal sealed class ReportWriterEmitter(
                 : NumericRenderer.StoreExpr(
                     num.Combine(new NumX("__c", family.Scale), "+", num.Fold(addendExprs, rcv), rcv),
                     family.Scale, family.Register.ProfileName, sum.Rounding, raiseOnSizeError: true);
-        // ⛔ A ROLLED ADDEND'S OWN VARYING COUNTERS (§13.18.64.4 GR3): the SOURCE operand of the entry a rolled total
+        // ⛔ A ROLLED ADDEND'S OWN VARYING COUNTERS (§2023:13.18.64.4 GR3): the SOURCE operand of the entry a rolled total
         // adds may name a VARYING counter in scope at that entry, whose value is the entry's own occurrence's — a
         // compose-local when the entry PRINTS. The addition runs when the entry's group is processed, so it declares the
         // same locals for the occurrence it adds, by the ONE emission the compose uses (EmitVaryingCounters), and the
@@ -837,7 +837,7 @@ internal sealed class ReportWriterEmitter(
     /// once EVERY report's engine and groups exist (kb/Work PB1294) — a registration names the OTHER engine's object, so
     /// it cannot be written while that engine is still unconstructed:
     /// <list type="bullet">
-    /// <item><b>UPON on a detail of another report</b> (§13.18.54.4 GR7 c) 2), SR7's report-name qualifier): the event is
+    /// <item><b>UPON on a detail of another report</b> (§2023:13.18.54.4 GR7 c) 2), SR7's report-name qualifier): the event is
     /// that detail's GENERATE, executed against ITS report's engine, so the addition registers there
     /// (<c>AddGenerateTrigger</c>), once per appearance of the detail in the phrase.</item>
     /// <item><b>A rolled total</b> (GR6/GR7 a)/b)): the addition registers with the report GROUP that contains data-name-1
@@ -858,10 +858,10 @@ internal sealed class ReportWriterEmitter(
                     var remote = term.Upon.Where(d => d.Detail is not null && !ReferenceEquals(d.Owner, target)).ToList();
                     if (driven.Count == 0 || remote.Count == 0) continue;
                     string addend = SumAddition(target, sum, driven.Select(a => a.Value),
-                        $"report {target.Name}: SUM addend was rejected at bind (ISO §13.18.54.3 SR5)");
+                        $"report {target.Name}: SUM addend was rejected at bind (ISO §2023:13.18.54.3 SR5)");
                     foreach (var d in remote)
                         w.Line($"__RPT_{d.Owner!.CsIndex}.AddGenerateTrigger({CsLiteral(d.Detail!.Name!)}, "
-                            + $"__RPT_{target.CsIndex}, {sum.Id}, {addend});   // UPON a detail of report {d.Owner.Name} (ISO §13.18.54.4 GR7 c) 2))");
+                            + $"__RPT_{target.CsIndex}, {sum.Id}, {addend});   // UPON a detail of report {d.Owner.Name} (ISO §2023:13.18.54.4 GR7 c) 2))");
                 }
 
         var pending = new List<(ReportModel Target, ReportSumModel Sum, ReportItemOccurrence Source)>();
@@ -893,14 +893,14 @@ internal sealed class ReportWriterEmitter(
                 ? PresencePlan.SlotOf(PlanOf(sourceReport, counter.PrintedIn).Sums, counter)
                 : PresencePlan.SlotOf(PlanOf(sourceReport, source.Family.Group).Items, source);
             string addend = SumAddition(rolledTarget, rolledSum, [source.Value],
-                $"report {rolledTarget.Name}: the value of data-name-1 '{source.Family.Name}' is not a number a sum counter can add (ISO §13.18.54.4 GR6)",
+                $"report {rolledTarget.Name}: the value of data-name-1 '{source.Family.Name}' is not a number a sum counter can add (ISO §2023:13.18.54.4 GR6)",
                 w, source);
             w.Line($"__RPT_{rolledTarget.CsIndex}.AddRolled(__rg{sourceReport.CsIndex}_{gi}, {rolledSum.Id}, {slot}, {addend});"
-                + $"   // rolled total of '{source.Family.Name}' (ISO §13.18.54.4 GR6/GR7)");
+                + $"   // rolled total of '{source.Family.Name}' (ISO §2023:13.18.54.4 GR6/GR7)");
         }
     }
 
-    // ── The §14.9.49.4 GR4 Format-2 selector (kb/Work PB369) ─────────────────────────────────────────────────
+    // ── The §2023:14.9.49.4 GR4 Format-2 selector (kb/Work PB369) ─────────────────────────────────────────────────
 
     /// <summary>The per-report selector member a unit emits, named by the report's compilation-unique
     /// <see cref="ReportModel.Uid"/> so a contained program and its containers agree on it.</summary>
@@ -912,10 +912,10 @@ internal sealed class ReportWriterEmitter(
 
     /// <summary>Does a qualifying USE BEFORE REPORTING declarative for a group of <paramref name="r"/> exist in
     /// <paramref name="unit"/> (any, when <paramref name="globalOnly"/> is false; only a GLOBAL one otherwise) or,
-    /// as a GLOBAL one, in a container between it and the program that declares the report? §14.9.49.4 GR4: a) the
+    /// as a GLOBAL one, in a container between it and the program that declares the report? §2023:14.9.49.4 GR4: a) the
     /// source element containing the statement, then b) "a qualifying declarative with the GLOBAL attribute in the
     /// next inclusive directly containing source element", repeated outward. The walk stops at the declaring
-    /// program: no program outside it can name the report's groups (§13.18.27.4 GR2).</summary>
+    /// program: no program outside it can name the report's groups (§2023:13.18.27.4 GR2).</summary>
     public static bool ChainSelects(BoundUnit? unit, ReportModel r, bool globalOnly)
     {
         for (; unit is not null && unit.Data.Reports.Visible.Contains(r); unit = unit.Parent, globalOnly = true)
@@ -929,10 +929,10 @@ internal sealed class ReportWriterEmitter(
     }
 
     /// <summary>Emit, for every report <paramref name="unit"/> can see whose GR4 chain has a qualifying
-    /// declarative, the selector the engine asks just before producing each group (§14.9.49.4 GR8): the unit's
+    /// declarative, the selector the engine asks just before producing each group (§2023:14.9.49.4 GR8): the unit's
     /// own declarative for the group — any, when the statement is this unit's (GR4 a)); only a GLOBAL one when
     /// the walk arrived from a contained program (GR4 b)) — run in THIS instance (the declaring program's data,
-    /// §8.4.6.2), else the next container outward. Records the reports whose statements pass it in
+    /// §2023:8.4.6.2), else the next container outward. Records the reports whose statements pass it in
     /// <see cref="DispatchState.BeforeReportingSelectors"/>.</summary>
     public void EmitBeforeReportingSelectors(BoundUnit unit, CodeWriter w)
     {
@@ -945,10 +945,10 @@ internal sealed class ReportWriterEmitter(
             asLocal: false, w);
     }
 
-    /// <summary>The METHOD's half of §14.9.49.4 GR4 (kb/Work PB1044): a method is a source element of its own
-    /// (§14.2.2 SR10 admits USE declaratives in a method definition; design SSOT §9.10), so its GENERATE and
+    /// <summary>The METHOD's half of §2023:14.9.49.4 GR4 (kb/Work PB1044): a method is a source element of its own
+    /// (§2023:14.2.2 SR10 admits USE declaratives in a method definition; design SSOT §9.10), so its GENERATE and
     /// TERMINATE statements select over ITS declaratives — GR4 a) — and, being contained in no source element with a
-    /// procedure division (§14.2.2 SR12/SR13), GR4 b)'s outward walk has nowhere to go. The selectors are LOCAL
+    /// procedure division (§2023:14.2.2 SR12/SR13), GR4 b)'s outward walk has nowhere to go. The selectors are LOCAL
     /// FUNCTIONS of the method (they call its local <c>__RunUse</c> and capture its data), over the reports its
     /// class half owns. The caller restores <see cref="DispatchState.BeforeReportingSelectors"/> after the body.</summary>
     public void EmitMethodBeforeReportingSelectors(IReadOnlyList<BoundDeclarative> decls, CodeWriter w)
@@ -971,8 +971,8 @@ internal sealed class ReportWriterEmitter(
             if (!selects(r)) continue;
             dispatch.BeforeReportingSelectors.Add(r);
             w.Line();
-            w.Line($"{(asLocal ? "" : "private ")}global::System.Func<int, bool>? {SelectorField(r)}{(asLocal ? " = null" : "")};   // RD {r.Name}: the cached selector (ISO §14.9.49.4 GR4)");
-            using (w.Block($"{(asLocal ? "" : "public ")}bool {SelectorName(r)}(int __gi, bool __globalOnly)   // RD {r.Name} — ISO §14.9.49.4 GR4 / GR8"))
+            w.Line($"{(asLocal ? "" : "private ")}global::System.Func<int, bool>? {SelectorField(r)}{(asLocal ? " = null" : "")};   // RD {r.Name}: the cached selector (ISO §2023:14.9.49.4 GR4)");
+            using (w.Block($"{(asLocal ? "" : "public ")}bool {SelectorName(r)}(int __gi, bool __globalOnly)   // RD {r.Name} — ISO §2023:14.9.49.4 GR4 / GR8"))
             {
                 var cases = new List<string>();
                 var seen = new HashSet<int>();
@@ -997,12 +997,12 @@ internal sealed class ReportWriterEmitter(
             : "";
 
     /// <summary>The engine of <paramref name="r"/> as THIS unit reaches it — its own field, or the declaring
-    /// container's through the <c>__outer</c> chain for an inherited GLOBAL report (§13.18.27.4 GR2).</summary>
+    /// container's through the <c>__outer</c> chain for an inherited GLOBAL report (§2023:13.18.27.4 GR2).</summary>
     private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r));
 
-    // ── Verb emission (ISO §14.9.21 / §14.9.16 / §14.9.46) ───────────────────────────────────────────────────
+    // ── Verb emission (ISO §2023:14.9.21 / §2023:14.9.16 / §2023:14.9.46) ───────────────────────────────────────────────────
 
-    /// <summary>INITIATE: one engine call per report, in written order (§14.9.21.4 GR5).</summary>
+    /// <summary>INITIATE: one engine call per report, in written order (§2023:14.9.21.4 GR5).</summary>
     public void EmitInitiate(BoundInitiate s)
     {
         foreach (var r in s.Reports)
@@ -1010,12 +1010,12 @@ internal sealed class ReportWriterEmitter(
     }
 
     /// <summary>GENERATE: detail reporting names the detail group; summary reporting (the report-name form,
-    /// §14.9.16.4 GR2) passes null.</summary>
+    /// §2023:14.9.16.4 GR2) passes null.</summary>
     public void EmitGenerate(BoundGenerate s)
     {
         if (s.Detail is { } det && det.Name is null)
         {
-            // A GENERATE-able detail always has a data-name (§13.16.3 SR7) — unreachable unless the binder let
+            // A GENERATE-able detail always has a data-name (§2023:13.16.3 SR7) — unreachable unless the binder let
             // an unnamed group through; loud, never a silent wrong-group generate (§1.4).
             ctx.Writer.Line(LoudStmt($"GENERATE of an unnamed detail group of report {s.Report.Name}"));
             return;
@@ -1025,7 +1025,7 @@ internal sealed class ReportWriterEmitter(
             + $"{(sel.Length > 0 ? ", " + sel : "")});"));
     }
 
-    /// <summary>TERMINATE: one engine call per report, in written order (§14.9.46.4 GR4).</summary>
+    /// <summary>TERMINATE: one engine call per report, in written order (§2023:14.9.46.4 GR4).</summary>
     public void EmitTerminate(BoundTerminate s) =>
         EmitPresenting(() =>
         {
@@ -1053,13 +1053,13 @@ internal sealed class ReportWriterEmitter(
             emitCalls();
     }
 
-    /// <summary>SUPPRESS PRINTING (§14.9.45): name the group of the enclosing USE BEFORE REPORTING procedure
+    /// <summary>SUPPRESS PRINTING (§2023:14.9.45): name the group of the enclosing USE BEFORE REPORTING procedure
     /// (resolved at bind, <see cref="BoundSuppress.Group"/>) to its report's engine, which inhibits the CURRENT
     /// instance of that group only when the statement executes during that group's own hook (GR1/GR2; kb/Work
     /// PB1186) — printing, page advance, NEXT GROUP and LINE-COUNTER changes, but NOT the end-of-group sum reset.
     /// The argument is the group's ordinal in its report description: the <c>ReportGroup.Index</c> that
-    /// <see cref="EmitReportConstruction"/>'s AddGroup order assigns and the §14.9.49.4 GR4 selector switches on.</summary>
+    /// <see cref="EmitReportConstruction"/>'s AddGroup order assigns and the §2023:14.9.49.4 GR4 selector switches on.</summary>
     public void EmitSuppress(BoundSuppress s) =>
         ctx.Writer.Line($"{Engine(s.Report)}.SuppressPrinting({s.Report.Groups.IndexOf(s.Group)});   "
-            + $"// §14.9.45.4 GR1 — {s.Group.Name ?? "(unnamed group)"}");
+            + $"// §2023:14.9.45.4 GR1 — {s.Group.Name ?? "(unnamed group)"}");
 }

@@ -5,19 +5,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.12.4 GR1 — "When native arithmetic is in effect, the quotient is the result of dividing
+      *> ISO §2023:14.9.12.4 GR1 — "When native arithmetic is in effect, the quotient is the result of dividing
       *> the dividend by the divisor."
       *> (cite.py --check 14.9.12.4 "When native arithmetic is in effect, the quotient is the result of
-      *> dividing the dividend by the divisor" -> OK, §14.9.12.4 General rules 1.)
-      *> ISO §14.9.12.4 GR7 — "When native arithmetic is in effect, the remainder is the result of
+      *> dividing the dividend by the divisor" -> OK, §2023:14.9.12.4 General rules 1.)
+      *> ISO §2023:14.9.12.4 GR7 — "When native arithmetic is in effect, the remainder is the result of
       *> multiplying the subsidiary quotient and the divisor and subtracting the product from the
       *> dividend."
       *> (cite.py --check 14.9.12.4 "the remainder is the result of multiplying the subsidiary quotient and
-      *> the divisor and subtracting the product from the dividend" -> OK, §14.9.12.4 General rules 7.)
+      *> the divisor and subtracting the product from the dividend" -> OK, §2023:14.9.12.4 General rules 7.)
       *>
       *> DERIVED BEFORE MEASURING. GR2 fixes dividend and divisor; GR6c defines the subsidiary quotient as
       *> "derived from THE QUOTIENT by truncation of digits at the least significant end", with the same
-      *> number of digits and the same decimal point location as identifier-3; §14.7.7 rule 3 NOTE 1
+      *> number of digits and the same decimal point location as identifier-3; §2023:14.7.7 rule 3 NOTE 1
       *> confines ROUNDED to the final TRANSFER. Each line is hand-derived from those rules alone.
       *>   A=3333  10 / 3 = 3.33333…, truncated at PIC 9V999's three fraction digits -> 3.333.
       *>   B=13    100 / 8 = 12.5 exactly; ROUNDED with no MODE is nearest-away-from-zero -> 13
@@ -32,14 +32,14 @@
       *>           the QUOTIENT by TRUNCATION, i.e. 6.6, so the remainder is 20 − 6.6 × 3 = 0.20. An
       *>           implementation that back-multiplied the ROUNDED stored value would compute
       *>           20 − 6.7 × 3 = −0.10 and print 010 into the unsigned receiver.
-      *>   F=SIZEERR 777   §14.7.5 case 2 — division by zero raises the size error condition; with the ON
+      *>   F=SIZEERR 777   §2023:14.7.5 case 2 — division by zero raises the size error condition; with the ON
       *>           SIZE ERROR phrase present, identifier-3 is left with its previous content (777).
       *>
       *> THE RULE'S THIRD MODE IS NOT SILENTLY SKIPPED. Both GR1 and GR7 name standard-decimal AND
       *> standard-binary arithmetic. The standard-decimal clause is pinned by the twin
       *> conformance:cases/14.9.12-DIVIDE/l1_divide_quotient_remainder_standard_decimal (the same six statements, the same
       *> derived values, under ARITHMETIC IS STANDARD-DECIMAL); the standard-binary clause is refused by
-      *> name — conformance:cases/14.9.12-DIVIDE/l1-divide-arithmetic-standard-binary — under the §4.2.6
+      *> name — conformance:cases/14.9.12-DIVIDE/l1-divide-arithmetic-standard-binary — under the §2023:4.2.6
       *> processor-dependence decline recorded in docs/CONFORMANCE.md §2 row 2, so that clause is
       *> UNREACHABLE rather than unverified.
        IDENTIFICATION DIVISION.

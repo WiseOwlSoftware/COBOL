@@ -8,9 +8,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE PINNED BYTES (V59 step 3 — the codec). Every expected value here is computed FROM the pinned
-/// representation, never from observed output: ISO/IEC 1989:2023 §13.18.60.4 GR4 gives USAGE BINARY "a radix of
+/// representation, never from observed output: ISO/IEC 1989:2023 §2023:13.18.60.4 GR4 gives USAGE BINARY "a radix of
 /// 2" and leaves the rest to the implementor, GR11 gives PACKED-DECIMAL "a radix of 10 … the minimum possible
-/// configuration", and §4.2.16 (Annex A.1 items 205/215) obliges us to DOCUMENT our choice — so these vectors
+/// configuration", and §2023:4.2.16 (Annex A.1 items 205/215) obliges us to DOCUMENT our choice — so these vectors
 /// ARE that documentation, executable.
 /// <para>
 /// WiseOwl COBOL's choices, each following the IBM / Micro Focus / GnuCOBOL survey so a data file interchanges:
@@ -56,7 +56,7 @@ public sealed class RecordImageCodecTests
     private static void AssertImage(string expected, string actual) =>
         Assert.Equal(Hex(expected), Hex(actual));   // hex on failure — a raw Latin-1 diff is unreadable
 
-    // ── BINARY: radix 2, two's complement, big-endian, StorageLength bytes (§13.18.60.4 GR4) ──
+    // ── BINARY: radix 2, two's complement, big-endian, StorageLength bytes (§2023:13.18.60.4 GR4) ──
 
     [Fact]
     public void Binary_Unsigned_IsBigEndianTwosComplement()
@@ -76,7 +76,7 @@ public sealed class RecordImageCodecTests
             CobolNum.FormatImage(-1, P(Usage.Binary, 18, signed: true)));
     }
 
-    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §14.9.25.4 GR6 d) 2. b.), so the image can never carry
+    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §2023:14.9.25.4 GR6 d) 2. b.), so the image can never carry
     /// a two's-complement negative for one — a sign that leaked into the bytes would read back as an enormous
     /// positive.</summary>
     [Fact]
@@ -86,7 +86,7 @@ public sealed class RecordImageCodecTests
         Assert.Equal(5, CobolNum.ParseImage(Bytes(0x00, 0x05), P(Usage.Binary, 4, signed: false)));
     }
 
-    /// <summary>The 16-byte tier: §13.18.60.4 GR4 requires storage "sufficient … to contain the maximum range of
+    /// <summary>The 16-byte tier: §2023:13.18.60.4 GR4 requires storage "sufficient … to contain the maximum range of
     /// values implied by the associated decimal picture character-string", and a signed 19-digit picture
     /// (max 10^19−1) does not fit 8 bytes (2^63−1 ≈ 9.22×10^18).</summary>
     [Fact]
@@ -101,7 +101,7 @@ public sealed class RecordImageCodecTests
         Assert.Equal(-v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));
     }
 
-    // ── PACKED-DECIMAL: radix 10 BCD, sign nibble 0xC/0xD/0xF (§13.18.60.4 GR11) ──
+    // ── PACKED-DECIMAL: radix 10 BCD, sign nibble 0xC/0xD/0xF (§2023:13.18.60.4 GR11) ──
 
     [Fact]
     public void Packed_SignNibbleIsCorDorF()
@@ -112,7 +112,7 @@ public sealed class RecordImageCodecTests
     }
 
     /// <summary>The implied decimal point occupies no nibble — the image is the UNSCALED digit run, exactly as
-    /// the value is held in storage (§13.18.40.4: V occupies no position). <c>PIC S9(3)V99 COMP-3</c> = 5 digits.</summary>
+    /// the value is held in storage (§2023:13.18.40.4: V occupies no position). <c>PIC S9(3)V99 COMP-3</c> = 5 digits.</summary>
     [Fact]
     public void Packed_ScaleIsImplied_NotRepresented()
     {
@@ -179,7 +179,7 @@ public sealed class RecordImageCodecTests
     }
 
     /// <summary>THE ONE-WIDTH INVARIANT at the codec: an item's image is EXACTLY the bytes it occupies in
-    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§15.14.4 r1) and <c>FUNCTION LENGTH</c> (§15.50.4
+    /// storage — the property <c>FUNCTION BYTE-LENGTH</c> (§2023:15.14.4 r1) and <c>FUNCTION LENGTH</c> (§2023:15.50.4
     /// GR3) cannot disagree about.</summary>
     [Theory]
     [MemberData(nameof(Grid))]
@@ -213,11 +213,11 @@ public sealed class RecordImageCodecTests
         {
             Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(v, p), p));
             if (signed) Assert.Equal(-v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));
-            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (§14.9.25.4 GR6 d) 2. b.)
+            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (§2023:14.9.25.4 GR6 d) 2. b.)
         }
     }
 
-    /// <summary>A form-less profile (USAGE INDEX, §13.18.60.4 GR10) at a byte boundary is a compiler invariant
+    /// <summary>A form-less profile (USAGE INDEX, §2023:13.18.60.4 GR10) at a byte boundary is a compiler invariant
     /// break. It fails LOUD — inventing bytes for it is the class of defect the codec exists to retire.</summary>
     [Fact]
     public void NoByteForm_FailsLoud()

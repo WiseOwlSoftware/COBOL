@@ -6,12 +6,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.51.4 GR26 a)/b) AT THE BOUNDARY — a WRITE that lands
+      *> ISO §2023:14.9.51.4 GR26 a)/b) AT THE BOUNDARY — a WRITE that lands
       *> the LINAGE-COUNTER exactly ON the page size.
       *>
       *> ⚖ THIS FIXTURE PINS AN ADJUDICATED DETERMINATION, NOT A
       *> LITERAL RULE. docs/CONFORMANCE.md §4, "DETERMINATION — the
-      *> §14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page size"
+      *> §2023:14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page size"
       *> (kb/Work PB686). GR26's two arms, as PRINTED, cannot both be
       *> honoured at that one counter value; this fixture pins the
       *> reading the determination adopts, and the two lines marked
@@ -22,13 +22,13 @@
       *>   python scripts/spec/cite.py --check 14.9.51.4 "an end-of-page
       *>   condition occurs when the lines written by a WRITE statement
       *>   do not fit within the current page body"
-      *>   -> OK  §14.9.51.4 26)  (General rules)
+      *>   -> OK  §2023:14.9.51.4 26)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "This occurs
       *>   when the associated LINAGE-COUNTER is equal to or exceeds
-      *>   the page size."     -> OK  §14.9.51.4 26)  (General rules)
+      *>   the page size."     -> OK  §2023:14.9.51.4 26)  (General rules)
       *>   python scripts/spec/cite.py --check 14.9.51.4 "equal to or
       *>   exceeds the current value of the footing start and is less
-      *>   than the page size" -> OK  §14.9.51.4 26)  (General rules)
+      *>   than the page size" -> OK  §2023:14.9.51.4 26)  (General rules)
       *> Arm a) fires at counter >= page size; arm b) is clamped to
       *> counter < page size. Read literally, a write landing ON the
       *> page size is arm a): page overflow, the record pushed to the
@@ -38,7 +38,7 @@
       *> other rules, each of which this fixture also exercises.
       *>   python scripts/spec/cite.py --check 13.18.34.4 "specifies
       *>   the number of lines that may be written or spaced on the
-      *>   logical page"       -> OK  §13.18.34.4 2)  (General rules)
+      *>   logical page"       -> OK  §2023:13.18.34.4 2)  (General rules)
       *> GR2 makes all `page size` lines writable. Under the literal
       *> reading the line NUMBERED page size can never receive a
       *> record from an AFTER-advancing write — it is pushed to the
@@ -47,14 +47,14 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The footing
       *>   area is the area of the page body between the footing start
       *>   and the page size, inclusive."
-      *>                       -> OK  §13.18.34.4 3)  (General rules)
+      *>                       -> OK  §2023:13.18.34.4 3)  (General rules)
       *> GR3 puts the page-size line INSIDE the footing area. Arm b)'s
       *> "less than the page size" clamp excludes exactly that line, so
       *> b) could never fire on the last line GR3 gives it.
       *>   python scripts/spec/cite.py --check 13.18.34.4 "the value of
       *>   LINAGE-COUNTER is implicitly incremented to exceed the value
       *>   specified by integer-1"
-      *>                       -> OK  §13.18.34.4 7) a)  (General rules)
+      *>                       -> OK  §2023:13.18.34.4 7) a)  (General rules)
       *> And GR7's ADVANCING PAGE rule is the standard's own way of
       *> making arm a) fire: it says the counter is implicitly
       *> incremented to EXCEED integer-1 — not to equal it. Equality
@@ -75,16 +75,16 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The value of
       *>   LINAGE-COUNTER is automatically set to one at the time an
       *>   OPEN statement with the OUTPUT phrase is executed for the
-      *>   associated file."   -> OK  §13.18.34.4 7) a)
+      *>   associated file."   -> OK  §2023:13.18.34.4 7) a)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "the
       *>   LINAGE-COUNTER is incremented by the value of the integer
       *>   specified in the ADVANCING phrase"
-      *>                       -> OK  §13.18.34.4 7) a)
+      *>                       -> OK  §2023:13.18.34.4 7) a)
       *>   python scripts/spec/cite.py --check 13.18.34.4 "The value of
       *>   LINAGE-COUNTER is automatically reset to one when the device
       *>   is repositioned to the first line that may be written on for
       *>   each of the succeeding logical pages."
-      *>                       -> OK  §13.18.34.4 7) a)
+      *>                       -> OK  §2023:13.18.34.4 7) a)
       *> GR7d gives 1 at OPEN OUTPUT; each write adds 1 (GR7 c) 2);
       *> the overflow write resets to 1 (GR7 c) 4).
       *>
@@ -102,7 +102,7 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "If the
       *>   FOOTING phrase is not specified, no end-of-page condition
       *>   independent of the page overflow condition exists."
-      *>                       -> OK  §13.18.34.4 1)  (General rules)
+      *>                       -> OK  §2023:13.18.34.4 1)  (General rules)
       *>   N1, N2 counters 2, 3 — no independent end-of-page exists
       *>      and the lines fit: NOT AT END-OF-PAGE runs.
       *>   N3 counter 4 — ⚖ THE BOUNDARY WITHOUT A FOOTING PHRASE.
@@ -121,10 +121,10 @@
       *>   python scripts/spec/cite.py --check 13.18.34.4 "When the
       *>   ADVANCING phrase of the WRITE statement is not specified,
       *>   the LINAGE-COUNTER is incremented by the value one."
-      *>                       -> OK  §13.18.34.4 7) a)
+      *>                       -> OK  §2023:13.18.34.4 7) a)
       *> so P1..P4 must step 2, 3, 4, 1 and raise exactly what F1..F4
       *> raise. The RECORD sits on a different physical line than it
-      *> does on FTG — §14.9.51.4 GR25 makes an omitted ADVANCING
+      *> does on FTG — §2023:14.9.51.4 GR25 makes an omitted ADVANCING
       *> phrase act as AFTER ADVANCING 1 LINE, and the connector
       *> reaches that through its print path — but the end-of-page
       *> condition is a function of the COUNTER, so the displayed
@@ -136,13 +136,13 @@
       *> observes a completed write and the counter it left behind:
       *>   python scripts/spec/cite.py --check 14.9.51.4 "When an
       *>   end-of-page condition occurs, the WRITE statement is
-      *>   successful"        -> OK  §14.9.51.4 27)  (General rules)
+      *>   successful"        -> OK  §2023:14.9.51.4 27)  (General rules)
       *>
       *> ⛔ WHY EACH WRITE HAS ITS OWN MOVE:
       *>   python scripts/spec/cite.py --check 14.9.51.4 "The logical
       *>   record released by the successful execution of the WRITE
       *>   statement is no longer available in the record area"
-      *>                       -> OK  §14.9.51.4 4)  (General rules)
+      *>                       -> OK  §2023:14.9.51.4 4)  (General rules)
       *> Neither file is in a SAME RECORD AREA clause, so a second
       *> WRITE of the same record item without an intervening MOVE
       *> would release an area the standard has declared unavailable.

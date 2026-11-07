@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>⛔ A CHARACTER BECOMES A BYTE AT AN IN-MEMORY BYTE CHANNEL IN EXACTLY ONE PLACE, AND A CHARACTER WITH NO BYTE
 /// IMAGE IS NEVER SILENTLY TRUNCATED (kb/Work PB547). An alphanumeric item holds a UTF-16 code unit (docs/CONFORMANCE.md
-/// DOC-A.1-31, -33), one byte per position at every byte channel (DOC-A.1-209, ISO/IEC 1989:2023 §8.1.2 1): the storage
-/// image a REDEFINES view reads (§13.18.44.4 GR1: one storage area) must give every character the same number of bytes,
+/// DOC-A.1-31, -33), one byte per position at every byte channel (DOC-A.1-209, ISO/IEC 1989:2023 §2023:8.1.2 1): the storage
+/// image a REDEFINES view reads (§2023:13.18.44.4 GR1: one storage area) must give every character the same number of bytes,
 /// so a character above U+00FF other than HIGH-VALUE reads as <c>?</c> (0x3F) and sets EC-DATA-CONVERSION (DOC-A.1-46:
 /// "visible under checking, never silent"), the disposition decided for CONVERT's byte legs. Before PB547 the national,
 /// bit and numeric views cast the code unit to a byte: U+20AC read as 0xAC, so a national view of "€ABC" held U+AC41 and
@@ -53,7 +53,7 @@ public sealed class StorageImageByteTests
     }
 
     /// <summary>Checking off: the same substitute, nothing recorded — the condition is raised only while enabled
-    /// (§14.6.13.1.1), the value is the same either way.</summary>
+    /// (§2023:14.6.13.1.1), the value is the same either way.</summary>
     [Fact]
     public void NatReadWindow_WithCheckingOff_SubstitutesAndRaisesNothing()
     {

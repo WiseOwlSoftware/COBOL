@@ -5,10 +5,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.14.3 SR4 — "Identifier-1 is a sending operand."
+      *> ISO §2023:14.9.14.3 SR4 — "Identifier-1 is a sending operand."
       *> The EXIT PROGRAM RAISING statement READS the object reference
       *> named by identifier-1; the operand is never a receiving item
-      *> of the statement. §14.6.13.1.5 item 1 states that property as
+      *> of the statement. §2023:14.6.13.1.5 item 1 states that property as
       *> an effect and is the clause this golden derives from: "The
       *> predefined object reference EXCEPTION-OBJECT is set to the
       *> CONTENT of the object reference specified in the RAISE
@@ -19,9 +19,9 @@
       *> of identifier-1, which is what "sending operand" means. Had
       *> the statement written to the operand instead, no object could
       *> arrive and OBJECT-SENT could not print.
-      *> Expected ORDER, from §14.6.13.1.5's EXIT/GOBACK list: item 1
+      *> Expected ORDER, from §2023:14.6.13.1.5's EXIT/GOBACK list: item 1
       *> does not apply (W-E's class CL1ERR IS named in L1SUB03's
-      *> procedure division header RAISING phrase, satisfying §14.9.14.3
+      *> procedure division header RAISING phrase, satisfying §2023:14.9.14.3
       *> SR5 a), so no EC-OO-EXCEPTION substitution); item 2 applies —
       *> "if a USE statement in the activating runtime element specifies
       *> an applicable class or interface, the associated declarative is

@@ -5,14 +5,14 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §8.5.2.12 item 2 (kb/Work R43 / PB579, the LIVE part of GR-8.5.2.12-2): an elementary data item
+      *> ISO §2023:8.5.2.12 item 2 (kb/Work R43 / PB579, the LIVE part of GR-8.5.2.12-2): an elementary data item
       *> described with one of the usages "binary-char, binary-short, binary-long, binary-double, float-short,
       *> float-long, float-extended, float-binary-32, float-binary-64, float-binary-128, float-decimal-16, or
       *> float-decimal-34" is of CATEGORY NUMERIC. FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are not provided
       *> (Annex A.3 items 17 and 19, refused COBOL1564 — R43 item 2 records them as the declined part), so
       *> this program holds the nine provided usages to the category, through three consumers that admit ONLY
       *> numeric operands:
-      *>  - an ADD with every item as an addend (§14.9.2.3 SR2: "Identifier-1 and identifier-2 shall reference
+      *>  - an ADD with every item as an addend (§2023:14.9.2.3 SR2: "Identifier-1 and identifier-2 shall reference
       *>    numeric data items") — the sum of 1 .. 9 is 45;
       *>  - the NUMERIC class condition, which for a numeric-category item tests the content: each item holds a
       *>    valid value, so each answers true (nine Ys);

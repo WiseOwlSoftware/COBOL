@@ -5,19 +5,19 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> The EVALUATE selection-set shapes ISO §14.9.13.3 admits, pinned so the SR2 / SR4 / SR9 screens
+      *> The EVALUATE selection-set shapes ISO §2023:14.9.13.3 admits, pinned so the SR2 / SR4 / SR9 screens
       *> (kb/Work PB399) reject only what the standard rejects.
       *>
       *> SR2: "The number of selection objects within each set of selection objects shall be equal to the
       *> number of selection subjects."  A SET of selection objects is ONE WHEN phrase, so consecutive WHEN
       *> phrases sharing one imperative-statement are counted separately (leg TWO-PHRASES).
-      *> SR7 c): "The word ANY may correspond to a selection subject of any type", and §14.9.13.4 GR4 a) 1.
+      *> SR7 c): "The word ANY may correspond to a selection subject of any type", and §2023:14.9.13.4 GR4 a) 1.
       *> makes such a pair true without consulting the subject (leg ANY-OK) — ANY still OCCUPIES a position
       *> and is counted.
       *> SR4: "The two operands in a range-expression shall be of the same class and shall not be of class
-      *> boolean, message-tag, object, or pointer."  CLASS is §8.5.2.1 Table 2's, so a PIC A pair is a legal
+      *> boolean, message-tag, object, or pointer."  CLASS is §2023:8.5.2.1 Table 2's, so a PIC A pair is a legal
       *> same-class (alphabetic) range (leg ALPHA-RANGE) and a numeric pair a legal numeric one.
-      *> SR9: "Neither identifier-3 nor identifier-4 shall reference a variable-length group."  §8.5.1.12.1
+      *> SR9: "Neither identifier-3 nor identifier-4 shall reference a variable-length group."  §2023:8.5.1.12.1
       *> defines that term as "a group item whose data description has at least one dynamic-length elementary
       *> item or dynamic-capacity table as a subordinate item" — an OCCURS DEPENDING ON group is NOT one, its
       *> size being its maximum, so leg ODO-RANGE is legal source and shall compile (kb/Work PB399's own
@@ -61,7 +61,7 @@
                WHEN OTHER
                    DISPLAY "NO-PHRASE"
            END-EVALUATE.
-      *> A numeric range: §14.7.8 rule 1 — "the range of values includes literal-1, literal-2, and all
+      *> A numeric range: §2023:14.7.8 rule 1 — "the range of values includes literal-1, literal-2, and all
       *> algebraic values between", and 2 is between 1 and 3.
            EVALUATE WS-A
                WHEN 1 THRU 3
@@ -70,7 +70,7 @@
                    DISPLAY "NUM-OUT"
            END-EVALUATE.
       *> A class-ALPHABETIC range (both ends PIC A) against a class-alphabetic subject: SR4's same-class
-      *> test is satisfied, and §8.8.4.2.1 then compares them as alphanumeric operands over the program
+      *> test is satisfied, and §2023:8.8.4.2.1 then compares them as alphanumeric operands over the program
       *> collating sequence — "AAA" <= "BBB" <= "CCC" in the native sequence.
            EVALUATE WS-P
                WHEN WS-LOA THRU WS-HIA
@@ -78,7 +78,7 @@
                WHEN OTHER
                    DISPLAY "ALPHA-OUT"
            END-EVALUATE.
-      *> An OCCURS DEPENDING ON group at BOTH ends — a fixed-length group by §8.5.1.12.1, so SR9 does not
+      *> An OCCURS DEPENDING ON group at BOTH ends — a fixed-length group by §2023:8.5.1.12.1, so SR9 does not
       *> reach it.  With WS-N1 = 3 both images are three characters.
            MOVE "AAA" TO WS-G1.
            MOVE "CCC" TO WS-G2.

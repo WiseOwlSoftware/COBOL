@@ -7,7 +7,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1524 — ISO/IEC 1989:2023 §16.2.1.2 GR2: "If resources needed to create a new object are not available,
+/// kb/Work PB1524 — ISO/IEC 1989:2023 §2023:16.2.1.2 GR2: "If resources needed to create a new object are not available,
 /// the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist and is
 /// propagated back to the runtime element that invoked the New method." Every New form reaches the ONE body
 /// <see cref="__FACTORY_BASE.__New"/>; a golden cannot exhaust memory, so these cases inject the allocation failure
@@ -30,9 +30,9 @@ public sealed class StandardClassBaseNewResourceTests
     [Fact]
     public void New_CreatesTheFactorysClass_AndFactoryObjectReturnsThatFactory()
     {
-        // New's result is the universal object type (it crosses as §16.2's ACTIVE-CLASS returning item, kb/Work PB1582).
+        // New's result is the universal object type (it crosses as §2023:16.2's ACTIVE-CLASS returning item, kb/Work PB1582).
         var made = Assert.IsType<Thing>(ThingFactory.Instance.__New());
-        Assert.Same(ThingFactory.Instance, made.__FactoryObject());   // §16.2.2.2 GR1
+        Assert.Same(ThingFactory.Instance, made.__FactoryObject());   // §2023:16.2.2.2 GR1
     }
 
     [Fact]

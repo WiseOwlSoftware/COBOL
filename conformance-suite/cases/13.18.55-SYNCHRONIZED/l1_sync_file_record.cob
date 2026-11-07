@@ -5,12 +5,12 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.55.4 GR11 — the implementor's rules for synchronizing the
+      *> ISO §2023:13.18.55.4 GR11 — the implementor's rules for synchronizing the
       *> RECORDS OF A FILE, as that affects the synchronization of elementary
       *> items. WiseOwl COBOL's stated rule is that there are none: a file record
       *> is laid out exactly as the equivalent WORKING-STORAGE group.
       *>
-      *> THE RULE. §13.18.55.4 GR11: "Any rules for synchronization of the
+      *> THE RULE. §2023:13.18.55.4 GR11: "Any rules for synchronization of the
       *> records of a file, as this affects the synchronization of elementary
       *> items, shall be specified by the implementor."
       *> This is the FILE-level companion to GR9 a), which covers "the format

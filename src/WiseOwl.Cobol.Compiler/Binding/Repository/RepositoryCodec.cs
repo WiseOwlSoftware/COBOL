@@ -9,40 +9,40 @@ using static WiseOwl.Cobol.Binding.Repository.RepositoryVocabulary;
 namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
-/// ⛔ THE ONE TRANSLATION BETWEEN A BOUND UNIT AND ITS REPOSITORY RECORD (ISO §8.13; docs/rearchitecture/
+/// ⛔ THE ONE TRANSLATION BETWEEN A BOUND UNIT AND ITS REPOSITORY RECORD (ISO §2023:8.13; docs/rearchitecture/
 /// DESIGN-external-repository.md §6.1, §6.3, §6.4; kb/Work PB2100). <see cref="Of(BoundUnit, DataBinder)"/> writes a program's, a
 /// function's or a prototype's record from the bound unit — its formals and returning item as description TREES, every type
 /// declaration, dynamic-length structure and referenced prototype those descriptions name as rows of the record's own tables
-/// (§6.2 rule 4) — and <see cref="Of(OoClassUnit, DataBinder, ExpansionIdentity?)"/> / <see cref="Of(OoInterfaceSymbol, DataBinder)"/> a class's or an
-/// interface's, whose methods are described the same way and share the record's tables (ISO §8.13 "the methods contained in
+/// (§2023:6.2 rule 4) — and <see cref="Of(OoClassUnit, DataBinder, ExpansionIdentity?)"/> / <see cref="Of(OoInterfaceSymbol, DataBinder)"/> a class's or an
+/// interface's, whose methods are described the same way and share the record's tables (ISO §2023:8.13 "the methods contained in
 /// the source unit, if any, and details about the method's externalized name, parameters, returning item, and entry
 /// convention"). <see cref="Decode"/> binds a record back into a throw-away forest of <see cref="DataItem"/>s, so every
-/// comparator and derived quantity answers on the decoded twin exactly as on the bound item (§6.3's invariant, held by the
+/// comparator and derived quantity answers on the decoded twin exactly as on the bound item (§2023:6.3's invariant, held by the
 /// round-trip test over the corpus, §17.2).
 /// <para>A TYPE clause's declaration is the one the binder resolved where the clause was written
-/// (<see cref="DataItem.TypeDeclaration"/>, through its ONE type-name lookup: a method's own declaration first, ISO §11.7.4
+/// (<see cref="DataItem.TypeDeclaration"/>, through its ONE type-name lookup: a method's own declaration first, ISO §2023:11.7.4
 /// GR5), so a prototype's formal, a method's and a program's are each described with their own declarations; the codec
 /// never looks a type-name up again.</para>
-/// <para><b>Restricted program- and function-pointers are typed by SIGNATURE</b> (ISO §13.18.60.4 GR25: "A restricted
+/// <para><b>Restricted program- and function-pointers are typed by SIGNATURE</b> (ISO §2023:13.18.60.4 GR25: "A restricted
 /// program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as
 /// that identified by the specified program-prototype-name", and GR26 its function-pointer twin). The record keeps the
 /// restriction's written NAME and the prototype's full signature (<see cref="PrototypeRecord"/>); the decoder rebuilds
 /// <see cref="DataItem.RestrictedPrototype"/> with a <see cref="PrototypeOrigin"/> of its own for every referenced
 /// prototype and stamps each decoded pointer with the identity of that signature
 /// (<see cref="PrototypeSignatures.StampContentRestrictions"/>), so a decoded pointer shares what it may contain with a
-/// group pointer exactly when their prototypes' signatures are the same — never by name (§6.4; kb/Work PB4491).</para>
-/// <para><b>Data-names are recorded and never compared</b> (ISO §13.7.3 SR2: "The description of the formal parameters and
+/// group pointer exactly when their prototypes' signatures are the same — never by name (§2023:6.4; kb/Work PB4491).</para>
+/// <para><b>Data-names are recorded and never compared</b> (ISO §2023:13.7.3 SR2: "The description of the formal parameters and
 /// the returning item that appear in the linkage section of a function prototype or a program prototype shall match the
 /// description of the formal parameters and the returning item in the corresponding function definition or program
 /// definition"): the <c>Name</c> fields serve diagnostics, the host surface and the REDEFINES / OCCURS DEPENDING targets
 /// inside one record.</para>
-/// <para>Not recorded (emitter or binder-transient facts, §6.3): C# names, uids, carrier fields, the storage form, the
+/// <para>Not recorded (emitter or binder-transient facts, §2023:6.3): C# names, uids, carrier fields, the storage form, the
 /// REDEFINES class tiers, VALUE clauses, condition-names, index names and KEY phrases.</para>
 /// </summary>
 internal static class RepositoryCodec
 {
     /// <summary>The record of <paramref name="unit"/> (an outermost program, function or prototype unit), in the persisted
-    /// vocabulary (§6.1).</summary>
+    /// vocabulary (§2023:6.1).</summary>
     public static RepositoryRecord Of(BoundUnit unit, DataBinder data)
     {
         var encoder = new Encoder(data.OoClasses);
@@ -53,11 +53,11 @@ internal static class RepositoryCodec
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);
     }
 
-    /// <summary>The record of a class (ISO §8.13; §6.1 <see cref="ClassRecord"/>): its unit facts from the class's ENVIRONMENT
-    /// DIVISION (which applies to its methods, ISO §11.3), its superclass and the interfaces its object and its factory
-    /// implement as externalized identities (§6.4), its object properties, and every object and factory method the class
+    /// <summary>The record of a class (ISO §2023:8.13; §2023:6.1 <see cref="ClassRecord"/>): its unit facts from the class's ENVIRONMENT
+    /// DIVISION (which applies to its methods, ISO §2023:11.3), its superclass and the interfaces its object and its factory
+    /// implement as externalized identities (§2023:6.4), its object properties, and every object and factory method the class
     /// itself declares. An expansion of a parameterized class (<paramref name="expansion"/>: the placement pass's identity for it,
-    /// with its key) is the same record under kind <see cref="RepositoryUnitKind.Expansion"/> (§5.2).</summary>
+    /// with its key) is the same record under kind <see cref="RepositoryUnitKind.Expansion"/> (§2023:5.2).</summary>
     public static RepositoryRecord Of(OoClassUnit cls, DataBinder data, ExpansionIdentity? expansion = null)
     {
         var symbol = cls.Symbol;
@@ -70,7 +70,7 @@ internal static class RepositoryCodec
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
-    /// <summary>The record of an interface (ISO §8.13; §6.1): the interfaces it INHERITS (ISO §11.6.2) as identities, and its
+    /// <summary>The record of an interface (ISO §2023:8.13; §2023:6.1): the interfaces it INHERITS (ISO §2023:11.6.2) as identities, and its
     /// own method prototypes; <paramref name="data"/> is the interface's bound forest (its unit facts).</summary>
     public static RepositoryRecord Of(OoInterfaceSymbol iface, DataBinder data, ExpansionIdentity? expansion = null)
     {
@@ -83,7 +83,7 @@ internal static class RepositoryCodec
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts, Expansion: expansion);
     }
 
-    /// <summary>The record of a parameterized class or interface (§5.2 "ParameterizedClass / ParameterizedInterface"): a unit that
+    /// <summary>The record of a parameterized class or interface (§2023:5.2 "ParameterizedClass / ParameterizedInterface"): a unit that
     /// states only its identity and its <paramref name="skeleton"/> — its expansions are the classes, and it has no methods, formals or
     /// tables of its own.</summary>
     public static RepositoryRecord Of(string name, string externalizedName, bool isInterface, SkeletonRecord skeleton) => new(
@@ -91,24 +91,24 @@ internal static class RepositoryCodec
         false, RecordList<CurrencyRecord>.Empty, RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null, RecordList<DescriptionRecord>.Empty,
         RecordList<StructureRecord>.Empty, RecordList<PrototypeRecord>.Empty, Skeleton: skeleton);
 
-    /// <summary>The currency symbols the source unit defines and their currency strings (ISO §8.13), ordered by symbol.</summary>
+    /// <summary>The currency symbols the source unit defines and their currency strings (ISO §2023:8.13), ordered by symbol.</summary>
     private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.State.Configuration.CurrencySigns.OrderBy(c => c.Key)
         .Select(c => new CurrencyRecord(c.Key, c.Value.Text, Persisted(c.Value.LiteralClass))));
 
-    /// <summary>The object properties of a class or an interface (ISO §8.13; §13.18.42), each the accessors of one property
+    /// <summary>The object properties of a class or an interface (ISO §2023:8.13; §2023:13.18.42), each the accessors of one property
     /// of one half, in the order its first accessor appears; its externalized name is the one its accessors carry (ISO
-    /// §12.3.8.4 GR2).</summary>
+    /// §2023:12.3.8.4 GR2).</summary>
     private static RecordList<PropertyRecord> PropertiesOf(RecordList<MethodRecord> methods) => List(methods
         .Where(m => m.Accessor is not RepositoryAccessor.None)
         .GroupBy(m => (m.IsFactory, Property: CobolNames.Fold(m.PropertyName!)))
         .Select(g => new PropertyRecord(g.First().PropertyName!, g.First().ExternalizedName, g.Key.IsFactory,
             g.Any(m => m.Accessor is RepositoryAccessor.Get), g.Any(m => m.Accessor is RepositoryAccessor.Set))));
 
-    /// <summary>Bind <paramref name="record"/> into a throw-away forest (§6.3) and stamp every decoded restricted pointer
-    /// with the identity of its referenced prototype's signature (§6.4). With no <paramref name="words"/> the record is
+    /// <summary>Bind <paramref name="record"/> into a throw-away forest (§2023:6.3) and stamp every decoded restricted pointer
+    /// with the identity of its referenced prototype's signature (§2023:6.4). With no <paramref name="words"/> the record is
     /// decoded in the publishing element's own scope
     /// (slice 4's round trip): its object references keep their written words. An importing group passes the word it gives
-    /// each class or interface identity the record names (<c>MetadataRepositoryProvider</c>, §8.7), so the decoded object
+    /// each class or interface identity the record names (<c>MetadataRepositoryProvider</c>, §2023:8.7), so the decoded object
     /// references are compared in ITS word space; an identity absent from <paramref name="words"/> keeps the written word.</summary>
     public static DecodedRecord Decode(RepositoryRecord record,
         IReadOnlyDictionary<(bool Interface, string Identity), IdentityName>? words = null)
@@ -120,7 +120,7 @@ internal static class RepositoryCodec
     }
 
     /// <summary>Every description of <paramref name="record"/> that is an object reference to a class or interface IDENTITY
-    /// (§6.4): its formals', returning item's, type declarations' and referenced prototypes' entries, subordinates included —
+    /// (§2023:6.4): its formals', returning item's, type declarations' and referenced prototypes' entries, subordinates included —
     /// what an importer must be able to name (REPO-11).</summary>
     public static IEnumerable<PicRecord> ObjectReferences(RepositoryRecord record)
     {
@@ -141,7 +141,7 @@ internal static class RepositoryCodec
     }
 
     /// <summary>⛔ THE NAMES THE IMPORTING GROUP GIVES THE CLASS AND INTERFACE IDENTITIES <paramref name="record"/> NAMES in its
-    /// object-reference descriptions (§6.4, §8.7) — the ONE derivation the resolver's provider (REPO-11) and
+    /// object-reference descriptions (§2023:6.4, §2023:8.7) — the ONE derivation the resolver's provider (REPO-11) and
     /// <c>--repository-check</c>'s comparison both read: each identity's class of the group, else the standard class BASE, else the class
     /// the external repository publishes under it (<see cref="OoClassTable.ImportClass"/>, which imports it), by identity, because the
     /// record keeps the PUBLISHING element's words and a word is per source element. <paramref name="unanswered"/> lists the
@@ -188,17 +188,17 @@ internal static class RepositoryCodec
 
         public RecordList<PrototypeRecord> Prototypes => List(_prototypes.Select(p => p!));
 
-        /// <summary>One formal parameter (§8.13: its description, its manner of receiving and OPTIONAL).</summary>
+        /// <summary>One formal parameter (§2023:8.13: its description, its manner of receiving and OPTIONAL).</summary>
         public FormalRecord Formal(DataItem item, int position, bool byValue, bool optional) =>
             new(position, item.CobolName ?? "", byValue ? PassingMode.Value : PassingMode.Reference, optional, Describe(item, item));
 
-        /// <summary>A PROCEDURE DIVISION header's RAISING phrase, each element an identity (§6.4).</summary>
+        /// <summary>A PROCEDURE DIVISION header's RAISING phrase, each element an identity (§2023:6.4).</summary>
         public RecordList<RaisingRecord> Raising(IEnumerable<RaisingTarget> raising) =>
             List(raising.Select(t => new RaisingRecord(Persisted(t.Kind), Identity(t), t.Factory)));
 
         /// <summary>One method of a class or an interface, its formals and returning item described as a program's are. An
         /// accessor's externalized name is its property's (ISO
-        /// §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that
+        /// §2023:12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that
         /// implements the named property"); an OVERRIDE is the bound fact (<see cref="OoMethodSymbol.OverrideOf"/>), which the
         /// emitted method's CLR <c>override</c> is too.</summary>
         public MethodRecord Method(OoMethodSymbol m)
@@ -225,7 +225,7 @@ internal static class RepositoryCodec
             GroupUsage: Persisted(d.GroupUsage), Pic: d.Pic is { } p ? Pic(d, p) : null,
             Children: List(d.Children.Select(c => Describe(c, root))));
 
-        /// <summary>The identity of a RAISING element (§6.4): an exception-name as written, a class or an interface by the
+        /// <summary>The identity of a RAISING element (§2023:6.4): an exception-name as written, a class or an interface by the
         /// externalized name it resolved to in the publishing element (the partition left out every element that did not
         /// resolve, COBOL0858).</summary>
         public string Identity(RaisingTarget t) => t.Kind switch
@@ -239,7 +239,7 @@ internal static class RepositoryCodec
 
         /// <summary>The OCCURS clause. The DEPENDING ON object is the entry the binder resolved (<c>OccursSpec.Depending</c>),
         /// recorded by its preorder index in <paramref name="root"/>'s tree beside its word: a word alone would make the decoder
-        /// resolve it again, unqualified (ISO §8.4.2.2.3 SR1 qualifies a non-unique one).</summary>
+        /// resolve it again, unqualified (ISO §2023:8.4.2.2.3 SR1 qualifies a non-unique one).</summary>
         private static OccursRecord Table(OccursSpec spec, DataItem root)
         {
             int? entry = spec.Depending is { } dep ? PreorderIndex(root, dep) : null;
@@ -290,7 +290,7 @@ internal static class RepositoryCodec
         }
 
         /// <summary>The externalized name the object reference's class or interface resolved to in the publishing element
-        /// (§6.4) — the description's own <see cref="ObjectRefDescriptor.Identity"/>, which the binder set where the word
+        /// (§2023:6.4) — the description's own <see cref="ObjectRefDescriptor.Identity"/>, which the binder set where the word
         /// resolved; an ACTIVE-CLASS description names its containing class by word, resolved here. Null for a universal
         /// reference, a formal parameter of a parameterized definition, and a word the group's class table does not hold.</summary>
         private string? ObjectIdentity(ObjectRefDescriptor? d) => d switch
@@ -397,15 +397,15 @@ internal static class RepositoryCodec
             {
                 var (table, entry) = _dependingLinks[i];
                 var spec = table.OccursSpec!;
-                // The object is the entry at its recorded position (a word alone is no identity: ISO §8.4.2.2.3 SR1 qualifies
-                // a non-unique one), and its word is that entry's name. The binder records the link only when §13.18.38.3
+                // The object is the entry at its recorded position (a word alone is no identity: ISO §2023:8.4.2.2.3 SR1 qualifies
+                // a non-unique one), and its word is that entry's name. The binder records the link only when §2023:13.18.38.3
                 // SR17 / SR2 / SR20 admit it (kb/Work PB3510): a record naming any other object is malformed, never a cycle
                 // for a consumer to follow.
                 var dep = At(entries, entry, $"'{table.CobolName}' DEPENDING ON entry");
                 if (dep.CobolName is not { } word || !CobolNames.Same(word, spec.DependingName!))
                     throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which entry {entry} ('{dep.CobolName}') is not");
                 spec.Depending = DependingAdmission.Of(table, dep).Admitted ? dep
-                    : throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which ISO §13.18.38.3 SR17 / SR2 / SR20 refuse");
+                    : throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which ISO §2023:13.18.38.3 SR17 / SR2 / SR20 refuse");
             }
             return root;
         }
@@ -451,7 +451,7 @@ internal static class RepositoryCodec
             foreach (var childRecord in r.Children)
             {
                 var child = Item(childRecord, item);
-                // The object is found by the binder's own placement rule, both halves (§13.18.44.3 SR7, NOTE 1): the nearest
+                // The object is found by the binder's own placement rule, both halves (§2023:13.18.44.3 SR7, NOTE 1): the nearest
                 // preceding same-named sibling that is not itself a redefinition, else (a --permissive SR7 chain) the nearest.
                 if (child.RedefinesTargetName is { } target)
                     child.SetRedefinition(DataItem.RedefinedEntry([.. item.Children.Where(c => c.CobolName is { } w && CobolNames.Same(w, target))])
@@ -495,7 +495,7 @@ internal static class RepositoryCodec
 }
 
 /// <summary>A record the decoder cannot bind: an index naming no row of its table, a REDEFINES or DEPENDING ON naming no entry
-/// of the record, or a link the rules forbid (§15.3). The reader of slice 7 reports it as its malformed-record outcome (REPO-4);
+/// of the record, or a link the rules forbid (§2023:15.3). The reader of slice 7 reports it as its malformed-record outcome (REPO-4);
 /// a record the compiler wrote never draws it.</summary>
 internal sealed class RepositoryRecordException(string message) : Exception(message);
 
@@ -503,7 +503,7 @@ internal sealed class RepositoryRecordException(string message) : Exception(mess
 /// key (<see cref="OoClassSymbol.Name"/>) and, for an imported class, its full CLR name (<see cref="ObjectRefDescriptor.ClrName"/>).</summary>
 internal readonly record struct IdentityName(string Name, string? ClrName);
 
-/// <summary>A record bound into its throw-away forest (§6.3): the formals and the returning item as a CALL's callee
+/// <summary>A record bound into its throw-away forest (§2023:6.3): the formals and the returning item as a CALL's callee
 /// signature, the type declarations and the referenced prototypes as the record's tables decoded, and a class's or an
 /// interface's methods with theirs.</summary>
 internal sealed record DecodedRecord(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning,

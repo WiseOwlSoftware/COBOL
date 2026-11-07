@@ -6,7 +6,7 @@ using System.Text;
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>
-/// ⛔ THE ONE SPELLING OF A MESSAGE SERVER'S NAME (docs/rearchitecture/DESIGN-message-control.md §0 Q3, §5.1). <see cref="Normalize"/> removes
+/// ⛔ THE ONE SPELLING OF A MESSAGE SERVER'S NAME (docs/rearchitecture/DESIGN-message-control.md §0 Q3, §2023:5.1). <see cref="Normalize"/> removes
 /// trailing spaces and upper-cases, so two spellings of one name are one server. <see cref="Spell"/> is the directory name of the normalized
 /// name under the socket directory's <c>s/</c> and <c>p/</c>: a name that matches <c>[A-Z0-9-]{1,14}</c> is spelled as itself, any other is
 /// <c>_</c> followed by 13 characters, the RFC 4648 base32 of the first 8 bytes of the SHA-256 of its UTF-8 bytes, no padding. <c>_</c> lies

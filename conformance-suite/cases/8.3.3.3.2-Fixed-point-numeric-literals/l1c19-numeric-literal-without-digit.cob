@@ -4,10 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §8.3.3.3.2 1) — a numeric literal shall contain at least
+      *> ISO §2023:8.3.3.3.2 1) — a numeric literal shall contain at least
       *>   one digit
       *> "A literal shall contain at least one digit."
-      *> OK  §8.3.3.3.2 1)  (Fixed-point numeric literals)
+      *> OK  §2023:8.3.3.3.2 1)  (Fixed-point numeric literals)
       *> ADD +1 TO N is valid (sign, then one digit). ADD + TO N writes
       *>   a
       *> would-be signed literal with no digit, so the source shall be

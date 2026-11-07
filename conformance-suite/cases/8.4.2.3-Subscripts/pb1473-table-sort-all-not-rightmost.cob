@@ -7,9 +7,9 @@
       *> kb/Work PB1473 - THE SUBSCRIPT ALL OF A TABLE SORT'S SUBJECT STANDS ONLY AS ITS RIGHTMOST OR ONLY SUBSCRIPT.
       *>   cite.py --check 8.4.2.3.3 "as the rightmost or only subscript of a table in the table format of a SORT
       *>     statement. This is equivalent to omitting the rightmost or only subscript in this context." -> OK
-      *>     §8.4.2.3.3 6)
+      *>     §2023:8.4.2.3.3 6)
       *>   cite.py --check 14.9.40.3 "Subscripting shall be specified in accordance with 8.4.2.3, Subscripts."
-      *>     -> OK §14.9.40.3 13)
+      *>     -> OK §2023:14.9.40.3 13)
       *> E2 lies in R2 OCCURS 2, so `SORT E2(1, ALL)` is the legal spelling (the legal twin is
       *> 2002/pb1055_table_sort_nested_subject, leg 2) while ALL in the FIRST of two positions names no table the
       *> statement could sort. Each statement is refused (COBOL2363); with the nested-subject binding landed

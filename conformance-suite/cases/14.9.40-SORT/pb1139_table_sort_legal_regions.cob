@@ -8,8 +8,8 @@
       *> kb/Work PB1139 - THE FORMAT-2 TABLE SORT IS NOT SUBJECT TO SORT SR3.
       *>   cite.py --check 14.9.40.3 "A SORT statement shall not appear in imperative-statement-1 of an
       *>     exception-checking PERFORM statement, in an input or output procedure, or in a declarative
-      *>     procedure." -> OK §14.9.40.3 3)
-      *> §14.9.40.3 prints SR3 under its FORMAT 1 sub-heading (SR3-SR12 are Format 1, SR13-SR15 Format 2), so the
+      *>     procedure." -> OK §2023:14.9.40.3 3)
+      *> §2023:14.9.40.3 prints SR3 under its FORMAT 1 sub-heading (SR3-SR12 are Format 1, SR13-SR15 Format 2), so the
       *> three bans bind the FILE-format SORT only, and nothing else restricts where a table SORT may be written.
       *> The statement used to draw COBOL1617 inside an exception-checking PERFORM, whatever its format.
       *> WHY EACH LEG CAN FAIL (expected values derived from the rules):

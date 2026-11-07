@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.75.3 r4 — RANDOM's UNSEEDED FIRST reference in the run
+      *> ISO §2023:15.75.3 r4 — RANDOM's UNSEEDED FIRST reference in the run
       *> unit: "If the first reference to this function in the run unit
       *> does not specify argument-1, the seed value is defined by the
       *> implementor." The implementor supplies a seed, so the reference
@@ -13,7 +13,7 @@
       *>   cite.py --check 15.75.3 "If the first reference to this
       *>   function in the run unit does not specify argument-1, the
       *>   seed value is defined by the implementor."
-      *>     -> OK  §15.75.3 4)  (Argument rules)
+      *>     -> OK  §2023:15.75.3 4)  (Argument rules)
       *>
       *> ⛔ WHY A NEW GOLDEN. 2023/pb1_intrinsic_formats seeds its FIRST
       *> reference (COMPUTE A = FUNCTION RANDOM(7)), so r4's antecedent
@@ -28,26 +28,26 @@
       *> EVERY LINE DERIVED, r4 first:
       *>  R4-FIRST=IN-RANGE  r4 makes the unseeded first reference well
       *>    defined — a seed exists, therefore a sequence exists — and
-      *>    §15.75.4 r1 fixes its codomain: "The returned value is
+      *>    §2023:15.75.4 r1 fixes its codomain: "The returned value is
       *>    greater than or equal to zero and less than one."
       *>      cite.py --check 15.75.4 "The returned value is greater
       *>      than or equal to zero and less than one."
-      *>        -> OK  §15.75.4 1)  (Returned value rules)
-      *>  R4-NEXT=IN-RANGE   §15.75.3 r5: "In each case, subsequent
+      *>        -> OK  §2023:15.75.4 1)  (Returned value rules)
+      *>  R4-NEXT=IN-RANGE   §2023:15.75.3 r5: "In each case, subsequent
       *>    references without specifying argument-1 return the next
       *>    number in the current sequence" — the sequence r4's own seed
-      *>    started; §15.75.4 r1 bounds it again.
-      *>  R4-SEQ=ADVANCES    r5's "the NEXT number" of a §15.75.1
+      *>    started; §2023:15.75.4 r1 bounds it again.
+      *>  R4-SEQ=ADVANCES    r5's "the NEXT number" of a §2023:15.75.1
       *>    "pseudo-random number from a rectangular distribution": two
       *>    successive draws of a continuous rectangular distribution
       *>    coincide only on a measure-zero event. STRUCTURAL, the same
       *>    convention 2023/pb1_intrinsic_formats' SEQ-ADVANCES uses;
       *>    no implementation number is written down anywhere below.
-      *>  R3-RESEED=REPRODUCES  §15.75.3 r3: "If a subsequent reference
+      *>  R3-RESEED=REPRODUCES  §2023:15.75.3 r3: "If a subsequent reference
       *>    specifies argument-1, a new sequence of pseudo-random
       *>    numbers is started" — so each FUNCTION RANDOM(7) restarts
       *>    seed 7's sequence and returns its FIRST number — and
-      *>    §15.75.4 r2: "For a given seed value on a given
+      *>    §2023:15.75.4 r2: "For a given seed value on a given
       *>    implementation, the sequence of pseudo-random numbers will
       *>    always be the same" — so the two firsts are equal, whatever
       *>    the numbers are. This is r4's OTHER half: the implicit seed
@@ -88,7 +88,7 @@
            ELSE
                DISPLAY "R4-SEQ=ADVANCES"
            END-IF
-      *> r3 + §15.75.4 r2 — an explicit seed REPLACES the sequence r4
+      *> r3 + §2023:15.75.4 r2 — an explicit seed REPLACES the sequence r4
       *> started, and seed 7 reproduces.
            COMPUTE W1 = FUNCTION RANDOM(7)
            COMPUTE W2 = FUNCTION RANDOM(7)

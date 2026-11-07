@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// on the base tree and are all four kinds of harm at once: <c>SUM WS-CELL(2)</c> compiled and then ABORTED the
 /// process at the first GENERATE; <c>SUM WS-TXT(1:2)</c> silently summed the whole item; <c>UPON CFT</c> named a
 /// control footing and totalled nothing; <c>UPON NOSUCH</c> named nothing at all and was accepted.</para>
-/// <para><b>The invariant.</b> An addend written as identifier-1 is an ORDINARY IDENTIFIER (ISO §8.4.3.1.2
+/// <para><b>The invariant.</b> An addend written as identifier-1 is an ORDINARY IDENTIFIER (ISO §2023:8.4.3.1.2
 /// Format 2, qualified-data-name-with-subscripts), so the capture keeps the WHOLE reference and the VALUE is
 /// bound in the procedure phase through the one expression binder. Every <c>KeyReference</c> call in the report
 /// binder therefore has to sit inside a NAMED capture helper that says which rules it screens — the guard below
@@ -36,27 +36,27 @@ public sealed class ReportSumOperandCaptureDriftTests
     /// reference modifier, or that the clause's own note says where its residue is tracked.</summary>
     private static readonly Dictionary<string, string> KeyReferenceCallers = new(StringComparer.Ordinal)
     {
-        ["SumAddendRef"] = "the SUM addend capture — keeps the whole reference and screens §13.18.54.3 SR5",
-        ["UponDetailRef"] = "the UPON data-name-2 capture — screens §13.18.54.3 SR7's shape",
+        ["SumAddendRef"] = "the SUM addend capture — keeps the whole reference and screens §2023:13.18.54.3 SR5",
+        ["UponDetailRef"] = "the UPON data-name-2 capture — screens §2023:13.18.54.3 SR7's shape",
         ["ControlOperandRef"] = "the CONTROL / TYPE CH-CF / RESET ON capture (kb/Work PB205) — keeps the ref-mod",
-        // ⛔ ADJUDICATED AT THE TRAIN-35 MERGE, not inherited. `OCCURS … DEPENDING ON data-name-1` (§13.18.38.2
+        // ⛔ ADJUDICATED AT THE TRAIN-35 MERGE, not inherited. `OCCURS … DEPENDING ON data-name-1` (§2023:13.18.38.2
         // Format 3, landed by kb/Work PB562 in train 34) writes DATA-NAME-1, not identifier-1 — and that position
-        // admits QUALIFICATION ONLY: §8.4.2.2.2 Format 1 is the qualified-data-name, which carries no subscript,
-        // and §8.4.3.3.3 SR5's NOTE bars reference modification "where data-name-n is used in a general format or
+        // admits QUALIFICATION ONLY: §2023:8.4.2.2.2 Format 1 is the qualified-data-name, which carries no subscript,
+        // and §2023:8.4.3.3.3 SR5's NOTE bars reference modification "where data-name-n is used in a general format or
         // syntax rule". So the key helper's name + IN/OF pair IS the whole written reference here and nothing is
-        // dropped — the opposite of §13.18.54.3 SR5's addend, which is an identifier.
+        // dropped — the opposite of §2023:13.18.54.3 SR5's addend, which is an identifier.
         // ⚠ RESIDUE, reported to the registrar rather than fixed here (it is PB562's clause, not PB482's): the
         // grammar's `dataReference` will still PARSE `DEPENDING ON WS-T(2)`, and the subscript is then dropped in
         // silence instead of being refused the way COBOL2046 refuses a subscripted UPON operand.
-        ["ReportOccursOf"] = "OCCURS … DEPENDING ON data-name-1 (§13.18.38.2 Format 3) — a data-name position: "
-                             + "qualification only (§8.4.2.2.2 Format 1), no reference modification (§8.4.3.3.3 SR5 NOTE)",
-        // ⛔ THE SOURCE CLAUSE'S ARM IS NO LONGER ONE OF THESE (kb/Work PB1292). §13.18.53's identifier-1 is an
-        // identifier exactly as §13.18.54.3 SR5's is, and `BindSourceReference` — the one bare capture that dropped
+        ["ReportOccursOf"] = "OCCURS … DEPENDING ON data-name-1 (§2023:13.18.38.2 Format 3) — a data-name position: "
+                             + "qualification only (§2023:8.4.2.2.2 Format 1), no reference modification (§2023:8.4.3.3.3 SR5 NOTE)",
+        // ⛔ THE SOURCE CLAUSE'S ARM IS NO LONGER ONE OF THESE (kb/Work PB1292). §2023:13.18.53's identifier-1 is an
+        // identifier exactly as §2023:13.18.54.3 SR5's is, and `BindSourceReference` — the one bare capture that dropped
         // its subscript and reference modification and staged COBOL0899 — is DELETED: the identifier is kept as its
         // WRITTEN reference (`FieldReferenceSource`) and bound in the procedure phase by the one operand binder.
         // The RD CODE clause's identifier-1 shared that arm, so it keeps the whole reference too and asks the
-        // key helper only for the BASE item its §13.18.12.3 SR2 screen is about:
-        ["ResolveReportCode"] = "RD CODE identifier-1 (§13.18.12.3 SR2) — the screen is over the BASE item's description; the subscript and "
+        // key helper only for the BASE item its §2023:13.18.12.3 SR2 screen is about:
+        ["ResolveReportCode"] = "RD CODE identifier-1 (§2023:13.18.12.3 SR2) — the screen is over the BASE item's description; the subscript and "
                                 + "reference modification ride in the written reference and bind in the procedure phase",
     };
 
@@ -105,8 +105,8 @@ public sealed class ReportSumOperandCaptureDriftTests
         Assert.Contains("ReportGroupResolution.Resolve(", binder);
     }
 
-    [Fact]   // ONE counter per ENTRY (§13.18.54.4 GR1) however many times SUM appears (SR1): the grammar's one
-             // reportSumClause holds every SUM group (§13.18.54.2 — RESET and the rounded-phrase follow them, kb/Work
+    [Fact]   // ONE counter per ENTRY (§2023:13.18.54.4 GR1) however many times SUM appears (SR1): the grammar's one
+             // reportSumClause holds every SUM group (§2023:13.18.54.2 — RESET and the rounded-phrase follow them, kb/Work
              // PB1295), the binder makes each group a term, and a single-group capture is what silently discarded
              // every group but one.
     public void SumGroupsOfOneEntry_AreCollected_NotOverwritten()
@@ -161,21 +161,21 @@ public sealed class ReportSumOperandCaptureDriftTests
         Assert.Contains("13.18.54.3", sr7.IsoSection);
     }
 
-    /// <summary>The numbered syntax rules of §13.18.54.3, read out of the spec transcription.</summary>
+    /// <summary>The numbered syntax rules of §2023:13.18.54.3, read out of the spec transcription.</summary>
     private static Dictionary<int, string> SumSyntaxRules()
     {
         string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2023.md"));
         int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.54\.3\b"));
-        Assert.True(start >= 0, "§13.18.54.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
+        Assert.True(start >= 0, "§2023:13.18.54.3 is missing from specs/ISO_COBOL_2023.md — this guard must follow the clause.");
         int end = Array.FindIndex(lines, start + 1, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.18\.54\.4\b"));
-        Assert.True(end > start, "§13.18.54.4 not found after §13.18.54.3 — the heading shape changed.");
+        Assert.True(end > start, "§2023:13.18.54.4 not found after §2023:13.18.54.3 — the heading shape changed.");
 
         var rules = new Dictionary<int, string>();
         foreach (string l in lines[start..end])
             if (Regex.Match(l, @"^(\d+)\\?\)\s+(.*)$") is { Success: true } m)
                 rules[int.Parse(m.Groups[1].Value)] = m.Groups[2].Value.Trim();
         Assert.True(rules.Count >= 9,
-            $"only {rules.Count} syntax rules parsed from §13.18.54.3 — fix the scanner, do not lower the floor.");
+            $"only {rules.Count} syntax rules parsed from §2023:13.18.54.3 — fix the scanner, do not lower the floor.");
         return rules;
     }
 }

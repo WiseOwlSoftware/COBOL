@@ -5,13 +5,13 @@
 *> portable: unverified
 *>---
       *> A CONTROL OPERAND'S REFERENCE-MODIFICATION LITERAL BEYOND THE
-      *> IMPLEMENTATION LIMIT (kb/Work PB1579). ISO/IEC 1989:2023 §13.18.16.3 SR4:
+      *> IMPLEMENTATION LIMIT (kb/Work PB1579). ISO/IEC 1989:2023 §2023:13.18.16.3 SR4:
       *> "Data-name-1 may be reference-modified. If it is, leftmost-position and
       *> length shall be integer literals." 77777777777 IS an integer literal,
-      *> so SR4 holds; but §13.18.16.4 GR3 defines a prior control "having the
+      *> so SR4 holds; but §2023:13.18.16.4 GR3 defines a prior control "having the
       *> same data description as the corresponding data item", and a slice
       *> 77,777,777,777 positions long exceeds the 2,147,483,647 this
-      *> implementation lays out — ISO §4.5: "Translation may be unsuccessful due
+      *> implementation lays out — ISO §2023:4.5: "Translation may be unsuccessful due
       *> to factors other than lack of conformance of a compilation group"
       *> (docs/CONFORMANCE.md §3 "Integer operands and host carriers"). The
       *> verdict is COBOL2427, the one limit screen. Before PB1579 the literal

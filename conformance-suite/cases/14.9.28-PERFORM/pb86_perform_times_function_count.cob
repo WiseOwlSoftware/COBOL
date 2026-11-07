@@ -5,20 +5,20 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB86. §14.9.28.2 Format 2: `PERFORM proc {identifier-1 |
-      *> integer-1} TIMES`; §8.4.3.2.4 GR1 makes a function-identifier an
-      *> identifier referencing a temporary item, and §14.9.28.3 SR2 asks only
+      *> kb/Work PB86. §2023:14.9.28.2 Format 2: `PERFORM proc {identifier-1 |
+      *> integer-1} TIMES`; §2023:8.4.3.2.4 GR1 makes a function-identifier an
+      *> identifier referencing a temporary item, and §2023:14.9.28.3 SR2 asks only
       *> that identifier-1 be an integer — met by an integer-type function
-      *> (§15.2 type 5). The keyword-omitted spelling (§8.4.3.2 SR2, FUNCTION ALL
+      *> (§2023:15.2 type 5). The keyword-omitted spelling (§2023:8.4.3.2 SR2, FUNCTION ALL
       *> INTRINSIC) bound and ran the body ONCE (the emitter's `_ => "1"`
       *> default); the FUNCTION spelling was a parse error. GR7: the count is
       *> determined once. Expected counts are the functions' §15 values:
-      *> INTEGER(3.7) = 3 (§15.44 — the greatest integer ≤ 3.7),
-      *> INTEGER-PART(2.9) = 2 (§15.49), LENGTH("ABCD") = 4 (§15.50),
-      *> MOD(7, 3) = 1 (§15.64), and the identifier/literal controls. A
+      *> INTEGER(3.7) = 3 (§2023:15.44 — the greatest integer ≤ 3.7),
+      *> INTEGER-PART(2.9) = 2 (§2023:15.49), LENGTH("ABCD") = 4 (§2023:15.50),
+      *> MOD(7, 3) = 1 (§2023:15.64), and the identifier/literal controls. A
       *> trailing-P item (PIC 9P VALUE 20) IS an integer (no digit position right
       *> of the decimal point) and counts by VALUE, 20 — not by its stored digit;
-      *> a GO TO … DEPENDING ON selector reads the same way (§14.9.17 — value 10
+      *> a GO TO … DEPENDING ON selector reads the same way (§2023:14.9.17 — value 10
       *> is out of range for two procedure-names, so control falls through).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB86TIMES.

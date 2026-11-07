@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO §13.18.60.3 SR16 — "The ACTIVE-CLASS phrase may be specified only in a factory
+      *> ISO §2023:13.18.60.3 SR16 — "The ACTIVE-CLASS phrase may be specified only in a factory
       *> definition, an instance definition, or the linkage or local-storage section of a
       *> method definition."  FOUR permitted positions; conformance:2002/
       *> pb389_object_reference_descriptor writes the fourth (a method's LOCAL-STORAGE), and
@@ -14,7 +14,7 @@
       *> writes THE OTHER THREE and makes each one OBSERVABLE, so SR16's permission is proved
       *> by a running program rather than by the absence of a diagnostic.  kb/Work PB496.
       *>
-      *> Each declaration is also a §13.18.60.4 GR22 e) witness: "If ACTIVE-CLASS is
+      *> Each declaration is also a §2023:13.18.60.4 GR22 e) witness: "If ACTIVE-CLASS is
       *> specified, the object referenced by this data item shall be of the same class as the
       *> object that was used to invoke the method in which this data description entry is
       *> specified" — e)1. the factory object of that class when FACTORY is written, e)2. an
@@ -24,7 +24,7 @@
       *>
       *> 1-2. FAW is declared in the FACTORY definition's WORKING-STORAGE (SR16 position 1)
       *>    as FACTORY OF ACTIVE-CLASS.  FMK is a factory method; SET FAW TO SELF is
-      *>    §14.9.39.3 SR14 b)2. (the receiver carries the FACTORY phrase and the method IS
+      *>    §2023:14.9.39.3 SR14 b)2. (the receiver carries the FACTORY phrase and the method IS
       *>    defined in the factory definition).  GR22 e)1. then binds FAW to the factory
       *>    object of the class that invoked the method, so INVOKE FAW "TAG" prints  FTAG-C
       *>    when invoked on PB496C and                                               FTAG-D

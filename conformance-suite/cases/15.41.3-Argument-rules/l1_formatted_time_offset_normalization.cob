@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §15.41.4 2)/3) — the UTC adjustment across MIDNIGHT
+      *> ISO §2023:15.41.4 2)/3) — the UTC adjustment across MIDNIGHT
       *> in both directions, and the DIRECT reflection at both ends of
       *> standard numeric time form.
       *>

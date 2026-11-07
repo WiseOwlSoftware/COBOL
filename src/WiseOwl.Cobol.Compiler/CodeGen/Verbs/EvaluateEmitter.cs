@@ -16,7 +16,7 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
     /// <summary>The USE FOR DEBUGGING trigger emitter — property-wired by <see cref="UnitEmitters"/> (docs/CONTROL_FLOW_DESIGN.md D20).</summary>
     internal DebugTriggerEmitter Debug { get; set; } = null!;
 
-    /// <summary>EVALUATE → a chained <c>if / else if / else</c> (ISO §14.9.13 GR1–3: the WHEN arms are tested in
+    /// <summary>EVALUATE → a chained <c>if / else if / else</c> (ISO §2023:14.9.13 GR1–3: the WHEN arms are tested in
     /// source order, the FIRST true arm's statements run, WHEN OTHER is the else tail; no arm matching = no
     /// statements). The matches were composed at bind time (DESIGN §5.3 — no dispatch tables, readable
     /// generated C#).</summary>
@@ -41,7 +41,7 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
         if (ev.Other is { } other)
         {
             // ⛔ THE "ONLY WHEN OTHER" ARM IS NOW UNREACHABLE FROM SOURCE, AND IT IS NOT WHERE THE BUG WAS
-            // (kb/Work PB396). §14.9.13.2's outer `{ … } …` group is unbracketed, so an EVALUATE has at least
+            // (kb/Work PB396). §2023:14.9.13.2's outer `{ … } …` group is unbracketed, so an EVALUATE has at least
             // one WHEN phrase with its imperative-statement-1 and the grammar enforces it — `Whens` cannot be
             // empty for any statement the parser produces. The arm stays because emitting `else` with no `if`
             // would be invalid C#, and it is CORRECT rather than merely tolerated: the loss this shape used to

@@ -5,33 +5,33 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB1929 — every sending brace of ISO/IEC 1989:2023 §14.9.39.2's To-formats names an IDENTIFIER, and
-      *> §8.4.3.1.3 SR1 makes that "any of the formats for an identifier". A function-identifier (§8.4.3.1.2 Format 1),
-      *> an inline method invocation (Format 4) and the keyword-omitted function (§8.4.3.2.3 SR2) are three of them,
-      *> and each references a DATA ITEM — §8.4.3.2.1 "A function-identifier references the unique data item that
-      *> results from the evaluation of a function"; §8.4.3.4.4 GR1 "An inline method invocation references a
+      *> kb/Work PB1929 — every sending brace of ISO/IEC 1989:2023 §2023:14.9.39.2's To-formats names an IDENTIFIER, and
+      *> §2023:8.4.3.1.3 SR1 makes that "any of the formats for an identifier". A function-identifier (§2023:8.4.3.1.2 Format 1),
+      *> an inline method invocation (Format 4) and the keyword-omitted function (§2023:8.4.3.2.3 SR2) are three of them,
+      *> and each references a DATA ITEM — §2023:8.4.3.2.1 "A function-identifier references the unique data item that
+      *> results from the evaluation of a function"; §2023:8.4.3.4.4 GR1 "An inline method invocation references a
       *> temporary data item with the same class, category, and content as the temp-identifier". So the sender's class
       *> and category are the RETURNING item's, and each format's sending rule is satisfied by it:
-      *>   Format 5  §14.9.39.3 SR9   "Identifier-4 shall be an object reference"
-      *>   Format 7  §14.9.39.3 SR17  "Identifier-6 shall be of category data-pointer"
-      *>   Format 9  §14.9.39.3 SR21  identifier-8 of category program-pointer
-      *>   Format 1  §14.9.39.3 SR2   "Identifier-2 shall reference a data item of class index"
+      *>   Format 5  §2023:14.9.39.3 SR9   "Identifier-4 shall be an object reference"
+      *>   Format 7  §2023:14.9.39.3 SR17  "Identifier-6 shall be of category data-pointer"
+      *>   Format 9  §2023:14.9.39.3 SR21  identifier-8 of category program-pointer
+      *>   Format 1  §2023:14.9.39.3 SR2   "Identifier-2 shall reference a data item of class index"
       *> The bare-reference sniff (OoExtractBareReference) answered null for all three shapes, so each format saw "no
       *> identifier" and refused the sender as a literal or an arithmetic expression (COBOL0867 / 0869).
       *> (Format 8, the function-pointer twin, is 2014 and has its own golden:
       *> 2014/pb1929_set_function_pointer_function_sender.)
       *> EXPECTED OUTPUT, derived line by line:
       *>   1  SET A2 TO FUNCTION PB1929MK(1): the function's temporary is an object reference to a fresh account;
-      *>      its WHO method returns "ACCOUNT" in PIC X(8), so "ACCOUNT " (§14.9.25.4, Table 16: alphanumeric to alphanumeric is left-justified and space-filled)
-      *>   2  the keyword-omitted spelling PB1929MK(2) is the same function-identifier (§8.4.3.2.3 SR2)        "ACCOUNT "
+      *>      its WHO method returns "ACCOUNT" in PIC X(8), so "ACCOUNT " (§2023:14.9.25.4, Table 16: alphanumeric to alphanumeric is left-justified and space-filled)
+      *>   2  the keyword-omitted spelling PB1929MK(2) is the same function-identifier (§2023:8.4.3.2.3 SR2)        "ACCOUNT "
       *>   3  SET A4 TO F1 :: "MAKE": an inline method invocation, whose temporary is the invoked method's RETURNING
-      *>      item (§8.4.3.4.4 GR1 b)); MAKE returns a fresh account                                          "ACCOUNT "
+      *>      item (§2023:8.4.3.4.4 GR1 b)); MAKE returns a fresh account                                          "ACCOUNT "
       *>   4  SET DP TO FUNCTION PB1929PT(1): the function ALLOCATEs and returns the address, so the pointer is not
-      *>      NULL (§14.9.3.4 GR1 allocates the bytes; GR2 yields NULL only for a size of 0 or less)                           "SET"
-      *>   5  SET PP TO FUNCTION PB1929PG(1): the function returns the program address of PB1929SUB (§8.4.3.13.4
+      *>      NULL (§2023:14.9.3.4 GR1 allocates the bytes; GR2 yields NULL only for a size of 0 or less)                           "SET"
+      *>   5  SET PP TO FUNCTION PB1929PG(1): the function returns the program address of PB1929SUB (§2023:8.4.3.13.4
       *>      GR1 b)), so CALL PP activates it and it displays                                                  IN-SUB
       *>   6  SET TX TO FUNCTION PB1929IX(1): the function returns an INDEX data item holding occurrence 4 (class
-      *>      index, so identifier-2 — §14.9.39.3 SR2); positioning TX at it selects "ABCDEFGHI"(4)            "D"
+      *>      index, so identifier-2 — §2023:14.9.39.3 SR2); positioning TX at it selects "ABCDEFGHI"(4)            "D"
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB1929MK.
        ENVIRONMENT DIVISION.

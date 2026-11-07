@@ -5,7 +5,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Conformance;
 
 /// <summary>
-/// INITIALIZE (ISO §14.9.20): the bind-time expansion to implicit elementary MOVEs (GR4) — the GR6c category
+/// INITIALIZE (ISO §2023:14.9.20): the bind-time expansion to implicit elementary MOVEs (GR4) — the GR6c category
 /// defaults (numeric/numeric-edited → ZEROES through MOVE editing, the others → SPACES), REPLACING category
 /// selection with full MOVE semantics (GR5c2/GR6b), the FILLER and REDEFINES exclusions (GR5a2/GR5a3), OCCURS
 /// expansion of every occurrence (GR5b2), and multi-identifier order (GR3). The COBOL-85 facts are differential
@@ -29,7 +29,7 @@ public sealed class InitializeDifferentialTests
             STOP RUN.
         """;
 
-    // §14.9.20 GR5c4 + GR6c: the bare-85 form makes every non-excluded elementary a receiver; defaults are
+    // §2023:14.9.20 GR5c4 + GR6c: the bare-85 form makes every non-excluded elementary a receiver; defaults are
     // ZEROES for numeric AND numeric-edited (the EDITED zero — '$$$9.99' shows '  $0.00', never spaces), and
     // alphanumeric SPACES for alphabetic / alphanumeric / alphanumeric-edited (plain spaces, NO editing).
     [Fact]
@@ -55,7 +55,7 @@ public sealed class InitializeDifferentialTests
                 IF AE1 = SPACES DISPLAY "AE1-SP" ELSE DISPLAY "AE1-NO".
             """));
 
-    // §14.9.20 GR5c2: with REPLACING (and no DEFAULT), ONLY items of a listed category are receivers — every
+    // §2023:14.9.20 GR5c2: with REPLACING (and no DEFAULT), ONLY items of a listed category are receivers — every
     // other item is left UNCHANGED (the GR5c filter; '85 and 2023 agree).
     [Fact]
     public void Initialize_Replacing_LeavesOtherCategoriesUntouched()
@@ -69,10 +69,10 @@ public sealed class InitializeDifferentialTests
                 DISPLAY X1.
             """));
 
-    // §14.9.20 GR4 + GR6b (NC223A INI-TEST-GF-7 shape): each REPLACING sender stores under FULL MOVE semantics —
+    // §2023:14.9.20 GR4 + GR6b (NC223A INI-TEST-GF-7 shape): each REPLACING sender stores under FULL MOVE semantics —
     // a numeric identifier-2 into a numeric-edited receiver EDITS (1234 → '$234.00': alignment + high-order
-    // truncation at the mask's digit positions, §14.9.25.4 GR5); an alphanumeric literal into an
-    // alphanumeric-edited receiver places characters through the B-insertion mask (§13.18.40).
+    // truncation at the mask's digit positions, §2023:14.9.25.4 GR5); an alphanumeric literal into an
+    // alphanumeric-edited receiver places characters through the B-insertion mask (§2023:13.18.40).
     [Fact]
     public void Initialize_Replacing_AllFiveCategories_FullMoveSemantics()
         => AssertMatchesGolden(Program("""
@@ -97,7 +97,7 @@ public sealed class InitializeDifferentialTests
                 DISPLAY R-ALP.
             """));
 
-    // §14.9.20 GR5a2: an (explicit or implicit) FILLER elementary item is EXCLUDED from the bare form — the
+    // §2023:14.9.20 GR5a2: an (explicit or implicit) FILLER elementary item is EXCLUDED from the bare form — the
     // whole-group display shows the FILLER bytes intact between the cleared neighbors.
     [Fact]
     public void Initialize_FillerExcluded()
@@ -111,7 +111,7 @@ public sealed class InitializeDifferentialTests
                 DISPLAY G0.
             """));
 
-    // §14.9.20 GR5a3: a subordinate whose entry has REDEFINES — and its subtree — is excluded; the REDEFINED
+    // §2023:14.9.20 GR5a3: a subordinate whose entry has REDEFINES — and its subtree — is excluded; the REDEFINED
     // (canonical) item still initializes, and items after the class initialize normally. (Exercises the Tier-B
     // string-canonical window store: X(4) redefined by 9(4) shares ONE backing.)
     [Fact]
@@ -127,7 +127,7 @@ public sealed class InitializeDifferentialTests
                 IF RA = SPACES DISPLAY "RA-SPACES" ELSE DISPLAY "RA-KEPT".
             """));
 
-    // §14.9.20 GR5b2 + GR8 (NC201A PFM-F4 shape — a named group over a COMP OCCURS table): a table element makes
+    // §2023:14.9.20 GR5b2 + GR8 (NC201A PFM-F4 shape — a named group over a COMP OCCURS table): a table element makes
     // EVERY occurrence a receiving operand, initialized per element (a 5 × S9(3) COMP table is five scaled
     // integers, not one byte run).
     [Fact]
@@ -149,7 +149,7 @@ public sealed class InitializeDifferentialTests
                 DISPLAY SHOW-N.
             """));
 
-    // §14.9.20 GR3 + GR5b1 (NC223A INI-TEST-GF-8 shape): multiple identifier-1 behave as separate INITIALIZE
+    // §2023:14.9.20 GR3 + GR5b1 (NC223A INI-TEST-GF-8 shape): multiple identifier-1 behave as separate INITIALIZE
     // statements in source order, and an ELEMENTARY identifier-1 is itself the (single) receiver — the
     // numeric-edited elementary gets the edited zero, the alphanumeric elementary spaces.
     [Fact]
@@ -172,7 +172,7 @@ public sealed class InitializeDifferentialTests
                 IF D2 = SPACES DISPLAY "D2-SP" ELSE DISPLAY "D2-NO".
             """));
 
-    // §14.9.20 GR5a2 (the 2002+ FILLER phrase, Annex E): WITH FILLER re-includes FILLER elementary items.
+    // §2023:14.9.20 GR5a2 (the 2002+ FILLER phrase, Annex E): WITH FILLER re-includes FILLER elementary items.
     // Spec-pinned at --std 2023 (the former legacy engine has no 2002 surface): the bare form leaves the FILLER bytes
     // ('  FF00' — P1 spaces, FILLER kept, P2 zeros), WITH FILLER clears them too ('    00').
     [Fact]

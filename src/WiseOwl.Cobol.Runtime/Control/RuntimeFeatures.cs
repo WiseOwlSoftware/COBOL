@@ -21,7 +21,7 @@ internal static class RuntimeFeatures
     /// <c>EnsureRegistered</c> member's lookup are the trim analyzer's IL2026 and IL2075 sites), and so the one thing a trimmed
     /// or native-AOT application removes. On unless the application switches it off: a trimmed publish that keeps it roots
     /// the whole runtime (a callee found at run time may use any member of it); an application that publishes trimmed or
-    /// ahead of time and composes its run unit itself (§11.4) sets the switch false and the probe is removed, so a CALL no
+    /// ahead of time and composes its run unit itself (§2023:11.4) sets the switch false and the probe is removed, so a CALL no
     /// registered module answers is EC-PROGRAM-NOT-FOUND with the reason. A native-AOT application MUST set it false: the default
     /// does not follow <c>RuntimeFeature.IsDynamicCodeSupported</c> (a trimmed self-contained application threw
     /// <c>TypeLoadException</c> on it), and one that leaves it on finds no assembly loader by path, which the probe reports as

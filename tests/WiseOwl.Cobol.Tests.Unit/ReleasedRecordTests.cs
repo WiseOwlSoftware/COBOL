@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// kb/Work PB1195 — <see cref="CobolFile.ReleasedRecord"/> is the logical record a WRITE, REWRITE or RELEASE releases
-/// at its released length (§13.18.43.4 GR13): a DEPENDING ON item's content cuts the record-area image
+/// at its released length (§2023:13.18.43.4 GR13): a DEPENDING ON item's content cuts the record-area image
 /// (GR13 a), otherwise the record is its own size (GR13 b)/c)) and the image is the record. A length past the image
 /// releases the image — a record cannot be longer than the area it came from — and never invents characters.
 /// </summary>
