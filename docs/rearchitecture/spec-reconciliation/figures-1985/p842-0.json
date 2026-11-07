@@ -1,0 +1,16 @@
+{
+ "page": 842,
+ "figure": 0,
+ "drawn_lines": [
+  "⎧data-name-1                                   ⎫",
+  "⎨                                              ⎬ (leftmost-character-position:[length])",
+  "⎩<u>FUNCTION</u> function-name-1 [({argument-1} ... )]⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "╭ data-name-1                                    ╮",
+  "┤                                                ├ (leftmost-character-position:[length])",
+  "╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯"
+ ],
+ "reason": "The printed page (the amendment's reference-modification format) sets {data-name-1 / FUNCTION function-name-1 [({argument-1} ...)]} (leftmost-character-position: [length]) as the batch drew it. Drawn in the house style (figure_reading.restyle)."
+}

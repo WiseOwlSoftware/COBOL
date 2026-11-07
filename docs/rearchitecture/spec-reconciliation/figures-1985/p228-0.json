@@ -1,0 +1,16 @@
+{
+ "page": 228,
+ "figure": 0,
+ "drawn_lines": [
+  "             ⎧⎧<u>AND</u>⎫               ⎫",
+  "condition-1  ⎨⎨   ⎬  condition-2  ⎬ ...",
+  "             ⎩⎩<u>OR</u> ⎭               ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "             ╭ ╭ <u>AND</u> ╮               ╮",
+  "condition-1  ┤ ┤     ├  condition-2  ├ …",
+  "             ╰ ╰ <u>OR</u>  ╯               ╯"
+ ],
+ "reason": "The printed page sets the combined condition as the batch drew it: condition-1 {{AND/OR} condition-2} .... Drawn in the house style (figure_reading.restyle)."
+}

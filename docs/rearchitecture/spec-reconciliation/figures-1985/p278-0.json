@@ -1,0 +1,22 @@
+{
+ "page": 278,
+ "figure": 0,
+ "drawn_lines": [
+  "             ⎧ <u>BINARY</u>        ⎫",
+  "             ⎪ <u>COMPUTATIONAL</u> ⎪",
+  "[<u>USAGE</u> IS]   ⎨ <u>COMP</u>          ⎬",
+  "             ⎪ <u>DISPLAY</u>       ⎪",
+  "             ⎪ <u>INDEX</u>         ⎪",
+  "             ⎩ <u>PACKED-DECIMAL</u> ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "             ╭ <u>BINARY</u>         ╮",
+  "             │ <u>COMPUTATIONAL</u>  │",
+  "[ <u>USAGE</u> IS ] ┤ <u>COMP</u>           ├",
+  "             │ <u>DISPLAY</u>        │",
+  "             │ <u>INDEX</u>          │",
+  "             ╰ <u>PACKED-DECIMAL</u> ╯"
+ ],
+ "reason": "The printed page sets [USAGE IS] before a six-way brace of BINARY, COMPUTATIONAL, COMP, DISPLAY, INDEX and PACKED-DECIMAL, all underlined, as the batch drew it (its closing brace's last piece a column off, read the same). Redrawn in the house style."
+}

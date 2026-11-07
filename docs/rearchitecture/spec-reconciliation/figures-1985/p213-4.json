@@ -1,0 +1,24 @@
+{
+ "page": 213,
+ "figure": 4,
+ "drawn_lines": [
+  "<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} ... = arithmetic-expression-1",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-COMPUTE</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>COMPUTE</u> {identifier-1 [<u>ROUNDED</u>]} …   = arithmetic-expression-1",
+  "",
+  "    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]",
+  "",
+  "    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]",
+  "",
+  "    [<u>END-COMPUTE</u>]"
+ ],
+ "reason": "The printed page sets COMPUTE as the batch drew it: {identifier-1 [ROUNDED]} ... = arithmetic-expression-1 and the three optional phrases. Drawn in the house style (figure_reading.restyle)."
+}

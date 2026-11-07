@@ -1,0 +1,35 @@
+{
+ "page": 231,
+ "figure": 0,
+ "drawn_lines": [
+  " <u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  " <u>PROGRAM-ID</u>.  program-name-1  [IS <u>INITIAL</u> PROGRAM].",
+  "",
+  "[<u>ENVIRONMENT</u> <u>DIVISION</u>.  environment-division-content]",
+  "",
+  "[<u>DATA</u> <u>DIVISION</u>.  data-division-content]",
+  "",
+  "[<u>PROCEDURE</u> <u>DIVISION</u>.  procedure-division-content]",
+  "",
+  "┌[nested-source-program] ...  ┐",
+  "└ <u>END</u> <u>PROGRAM</u> program-name-1. ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  " <u>IDENTIFICATION</u> <u>DIVISION</u>.",
+  "",
+  " <u>PROGRAM-ID</u>. program-name-1 [IS <u>INITIAL</u> PROGRAM].",
+  "",
+  "[<u>ENVIRONMENT</u> <u>DIVISION</u>. environment-division-content]",
+  "",
+  "[<u>DATA</u> <u>DIVISION</u>. data-division-content]",
+  "",
+  "[<u>PROCEDURE</u> <u>DIVISION</u>. procedure-division-content]",
+  "",
+  "[[nested-source-program] …",
+  "",
+  " <u>END</u> <u>PROGRAM</u> program-name-1.]"
+ ],
+ "reason": "The printed page (GENERAL FORMAT FOR NESTED SOURCE PROGRAMS) prints the skeleton in typed one-row delimiters: [[nested-source-program] ... opens a bracket the END PROGRAM program-name-1.] row closes; the batch redrew that pair as a multi-row bracket the page does not draw. Drawn as printed."
+}

@@ -1,0 +1,26 @@
+{
+ "page": 226,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>COPY</u> text-name-1 ┌⎧<u>OF</u>⎫ library-name-1┐",
+  "                 └⎩<u>IN</u>⎭                ┘",
+  "",
+  "   ┌            ⎧⎧==pseudo-text-1==⎫      ⎧==pseudo-text-2==⎫⎫     ┐",
+  "   │            ⎪⎪identifier-1     ⎪      ⎪identifier-2     ⎪⎪     │",
+  "   │ <u>REPLACING</u>  ⎨⎨literal-1        ⎬  <u>BY</u>  ⎨literal-2        ⎬⎬ ... │",
+  "   │            ⎪⎪word-1           ⎪      ⎪word-2           ⎪⎪     │",
+  "   └            ⎩⎩                 ⎭      ⎩                 ⎭⎭     ┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                 ┌ ╭ <u>OF</u> ╮                ┐",
+  "<u>COPY</u> text-name-1 │ ┤    ├ library-name-1 │",
+  "                 └ ╰ <u>IN</u> ╯                ┘",
+  "",
+  "   ┌           ╭ ╭ ==pseudo-text-1== ╮    ╭ ==pseudo-text-2== ╮ ╮   ┐",
+  "   │ <u>REPLACING</u> ┤ ┤ identifier-1      ├ <u>BY</u> ┤ identifier-2      ├ ├ … │",
+  "   │           │ │ literal-1         │    │ literal-2         │ │   │",
+  "   └           ╰ ╰ word-1            ╯    ╰ word-2            ╯ ╯   ┘"
+ ],
+ "reason": "The printed page (GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS) sets COPY text-name-1 [{OF/IN} library-name-1] [REPLACING {{==pseudo-text-1==/identifier-1/literal-1/word-1} BY {==pseudo-text-2==/identifier-2/literal-2/word-2}} ...], the four alternatives on four rows; the batch's columns were off and it drew a blank fifth row. The page's running head and title, which the batch set in the same pre, are now outside it. Hand-drawn from the page."
+}

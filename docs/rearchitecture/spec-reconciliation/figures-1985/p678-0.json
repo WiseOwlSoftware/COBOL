@@ -1,6 +1,6 @@
 {
  "page": 678,
- "figure": 1,
+ "figure": 0,
  "drawn_lines": [
   "       ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫               ┌             ⎧identifier-1⎫┐",
   "<u>ENABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>     ⎬  cd-name-1    │WITH <u>KEY</u>     ⎨            ⎬│",

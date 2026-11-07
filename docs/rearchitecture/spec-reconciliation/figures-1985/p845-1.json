@@ -1,0 +1,24 @@
+{
+ "page": 845,
+ "figure": 1,
+ "drawn_lines": [
+  "                                   ┌     ⎧cd-name-1    ⎫┐",
+  "            ┌⎧<u>IN</u>⎫            ┐     │⎧<u>IN</u>⎫ ⎪             ⎪│",
+  "data-name-1 │⎨  ⎬ data-name-2│ ... │⎨  ⎬ ⎨file-name-1  ⎬│",
+  "            └⎩<u>OF</u>⎭            ┘     │⎩<u>OF</u>⎭ ⎪             ⎪│",
+  "                                   └     ⎩report-name-1⎭┘",
+  "",
+  "     [({subscript} ... )] [reference-modifier]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "                                   ┌     ╭cd-name-1     ╮ ┐",
+  "            ┌╭<u>IN</u>╮            ┐     │╭<u>IN</u>╮ │              │ │",
+  "data-name-1 │┤  ├ data-name-2│ …   │┤  ├ ┤file-name-1   ├ │",
+  "            └╰<u>OF</u>╯            ┘     │╰<u>OF</u>╯ │              │ │",
+  "                                   └     ╰report-name-1 ╯ ┘",
+  "",
+  "     [({subscript} …   )] [reference-modifier]"
+ ],
+ "reason": "The printed page repeats the amendment's identifier format (page 843) as the batch drew it. Drawn in the house style (figure_reading.restyle)."
+}

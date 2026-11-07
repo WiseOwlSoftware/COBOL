@@ -1,0 +1,16 @@
+{
+ "page": 272,
+ "figure": 0,
+ "drawn_lines": [
+  "                                       ┌⎧ <u>THROUGH</u> ⎫                 ┐",
+  "66  data-name-1 <u>RENAMES</u> data-name-2  │⎨         ⎬  data-name-3    │ .",
+  "                                       └⎩ <u>THRU</u>    ⎭                 ┘"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔                                    ┌ ╭ <u>THROUGH</u> ╮             ┐   ╗",
+  "║ 66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ . ║",
+  "╚                                    └ ╰ <u>THRU</u>    ╯             ┘   ╝"
+ ],
+ "reason": "The printed page encloses the RENAMES format in a level-2 box, as the regeneration draws it; the batch lost the box and set the THROUGH/THRU bracket's middle piece a column off, so it read as a choice bar. The regeneration's words, underlines and groups match the page."
+}

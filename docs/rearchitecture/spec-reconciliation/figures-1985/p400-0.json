@@ -1,0 +1,16 @@
+{
+ "page": 400,
+ "figure": 0,
+ "drawn_lines": [
+  "      ⎧<u>RECORD</u> IS   ⎫ ⎧<u>STANDARD</u>⎫",
+  "<u>LABEL</u> ⎨            ⎬ ⎨        ⎬",
+  "      ⎩<u>RECORDS</u> ARE ⎭ ⎩<u>OMITTED</u> ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "      ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮",
+  "<u>LABEL</u> ┤             ├ ┤          ├",
+  "      ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯"
+ ],
+ "reason": "The printed page sets LABEL {RECORD IS / RECORDS ARE} {STANDARD / OMITTED}, LABEL, RECORD, RECORDS, STANDARD and OMITTED underlined, as the batch drew it. Redrawn in the house style."
+}

@@ -1,0 +1,20 @@
+{
+ "page": 218,
+ "figure": 5,
+ "drawn_lines": [
+  "<u>PERFORM</u> ┌procedure-name-1 ┌⎧<u>THROUGH</u>⎫ procedure-name-2┐┐",
+  "        │                 │⎨       ⎬                 ││",
+  "        └                 └⎩<u>THRU</u>   ⎭                 ┘┘",
+  "",
+  "    [imperative-statement-1 <u>END-PERFORM</u>]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>PERFORM</u> ┌procedure-name-1 ┌ ╭ <u>THROUGH</u>╮ procedure-name-2 ┐ ┐",
+  "        │                 │ ┤        ├                  │ │",
+  "        └                 └ ╰ <u>THRU</u>   ╯                  ┘ ┘",
+  "",
+  "    [imperative-statement-1   <u>END-PERFORM</u>]"
+ ],
+ "reason": "The printed page sets PERFORM format 1 as the batch drew it: the procedure-name-1 bracket round the THROUGH/THRU bracket, and [imperative-statement-1 END-PERFORM]. Drawn in the house style (figure_reading.restyle)."
+}

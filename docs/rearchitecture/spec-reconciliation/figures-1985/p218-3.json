@@ -1,0 +1,18 @@
+{
+ "page": 218,
+ "figure": 3,
+ "drawn_lines": [
+  "        ⎧<u>INPUT</u> {file-name-1} ...  ⎫",
+  "        ⎪<u>OUTPUT</u> {file-name-2} ... ⎪",
+  "RI <u>OPEN</u> ⎨<u>I-O</u> {file-name-3} ...    ⎬ ...",
+  "        ⎩<u>EXTEND</u> {file-name-4} ... ⎭"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "        ╭ <u>INPUT</u> {file-name-1} …    ╮",
+  "        │ <u>OUTPUT</u> {file-name-2} …   │",
+  "RI <u>OPEN</u> ┤ <u>I-O</u> {file-name-3} …      ├ …",
+  "        ╰ <u>EXTEND</u> {file-name-4} …   ╯"
+ ],
+ "reason": "The printed page sets RI OPEN as the batch drew it: INPUT, OUTPUT, I-O and EXTEND each with its file-name and ellipsis in one brace, then the ellipsis. Drawn in the house style (figure_reading.restyle)."
+}

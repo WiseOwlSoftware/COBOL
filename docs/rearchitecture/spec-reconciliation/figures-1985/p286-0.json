@@ -1,0 +1,30 @@
+{
+ "page": 286,
+ "figure": 0,
+ "drawn_lines": [
+  "                            ⎧ IS [<u>NOT</u>] <u>GREATER</u> THAN       ⎫",
+  "                            ⎪ IS [<u>NOT</u>] &gt;                 ⎪",
+  "                            ⎪ IS [<u>NOT</u>] <u>LESS</u> THAN          ⎪",
+  "⎧ identifier-1            ⎫ ⎪ IS [<u>NOT</u>] &lt;                 ⎪ ⎧ identifier-2            ⎫",
+  "⎪ literal-1               ⎪ ⎪ IS [<u>NOT</u>] <u>EQUAL</u> TO           ⎪ ⎪ literal-2               ⎪",
+  "⎨ arithmetic-expression-1 ⎬ ⎨ IS [<u>NOT</u>] =                 ⎬ ⎨ arithmetic-expression-2 ⎬",
+  "⎩ index-name-1            ⎭ ⎪ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO ⎪ ⎩ index-name-2            ⎭",
+  "                            ⎪ IS &gt;=                      ⎪",
+  "                            ⎪ IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO    ⎪",
+  "                            ⎩ IS &lt;=                      ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "                                ╭ IS [ <u>NOT</u> ] <u>GREATER</u> THAN     ╮",
+  "                                │ IS [ <u>NOT</u> ] &gt;                │",
+  "                                │ IS [ <u>NOT</u> ] <u>LESS</u> THAN        │",
+  "╭ identifier-1                ╮ │ IS [ <u>NOT</u> ] &lt;                │ ╭ identifier-2                ╮",
+  "│ literal-1                   │ │ IS [ <u>NOT</u> ] <u>EQUAL</u> TO         │ │ literal-2                   │",
+  "┤ ║ arithmetic-expression-1 ║ ├ ┤ IS [ <u>NOT</u> ] =                ├ ┤ ║ arithmetic-expression-2 ║ ├",
+  "╰ index-name-1                ╯ │ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO │ ╰ index-name-2                ╯",
+  "                                │ IS &gt;=                       │",
+  "                                │ IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO    │",
+  "                                ╰ IS &lt;=                       ╯"
+ ],
+ "reason": "The printed page sets the relation condition as a four-way operand brace, a ten-way relational-operator brace and a second four-way operand brace, with arithmetic-expression-1 and arithmetic-expression-2 each in a one-word level-2 box. The batch lost the boxes and set its closers a column off; the regeneration put = inside the first box. Drawn from the page."
+}

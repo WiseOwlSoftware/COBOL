@@ -1,0 +1,24 @@
+{
+ "page": 258,
+ "figure": 1,
+ "drawn_lines": [
+  "<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1",
+  "",
+  "   ┌⎧<u>ASCENDING</u> ⎫                              ┐",
+  "   │⎨           ⎬ KEY IS  {data-name-2} ...    │ ...",
+  "   └⎩<u>DESCENDING</u>⎭                              ┘",
+  "",
+  "    [<u>INDEXED</u> BY  {index-name-1} ... ]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "╔ <u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1 ╗",
+  "║                                                              ║",
+  "║ ┌ ╭ <u>ASCENDING</u>  ╮                          ┐                  ║",
+  "║ │ ┤            ├ KEY IS { data-name-2 } … │ …                ║",
+  "║ └ ╰ <u>DESCENDING</u> ╯                          ┘                  ║",
+  "║                                                              ║",
+  "╚ [ <u>INDEXED</u> BY { index-name-1 } … ]                            ╝"
+ ],
+ "reason": "The printed page encloses OCCURS Format 2 in a level-2 box, as the regeneration draws it; the batch lost the box. Every word, underline and group of the regeneration matches the page."
+}
