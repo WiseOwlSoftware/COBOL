@@ -923,7 +923,7 @@ def record_held(t: Triage, v: dict, ref: dict | None, spec: Spec) -> Draft | str
     expected = work.section_named(secs, "Expected result") or ""
     written = clauses_in(expected + NL + work.section_named(secs, "Draft issue"))
     if written - cited:
-        return ("the record cites " + ", ".join("§" + c for c in sorted(written - cited)) +
+        return ("the record cites " + ", ".join("§2023:" + c for c in sorted(written - cited)) +
                 ", which the refutation line's checked `citations` do not carry")
     unwritten = {c for c in cited if not re.search(rf"(?<![0-9A-Za-z.]){re.escape(c)}(?![0-9A-Za-z]|\.[0-9])", expected)}
     if unwritten:

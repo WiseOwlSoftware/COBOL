@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Validate a spec citation against the transcription of the standard (`--edition`, default 2023: `specs/ISO_COBOL_2023.md`)
-— the mechanical check for CLAUDE.md rule 1.
+"""Validate a spec citation against the transcription of the edition it names — the mechanical check for CLAUDE.md
+rule 1. `--check` takes a WHOLE citation in the format `scripts/spec/citation.py` specifies (`§<edition>:<locator>[ <rule>]`,
+kb/Work PB4887); `--find` searches the transcription `--edition` names (default 2023: `specs/ISO_COBOL_2023.md`).
 
 WHY THIS EXISTS. Rule 1 requires the exact §/GR for any semantics question, and the failure mode is not
 inventing a citation — it is INHERITING one. A fix-queue entry or design doc carries "§8.4.1.2 GR2", the text
@@ -14,7 +15,8 @@ items (§14.8.2.3.3 is one — checking against the catalog reports a real citat
 is a per-block count that does NOT track the printed rule number once a rule has sub-letters (the abs rule
 prints as 6)d)2.b) and the catalog calls it 2). Both produce confident wrong answers.
 
-    python scripts/spec/cite.py --check 8.4.2.3.4 "EC-BOUND-SUBSCRIPT exception condition is set to exist"
+    python scripts/spec/cite.py --check "§2023:8.4.2.3.4 GR1" "EC-BOUND-SUBSCRIPT exception condition is set to exist"
+    python scripts/spec/cite.py --check "§1985:VI.5.3.1" "A data description entry specifies the characteristics"
     python scripts/spec/cite.py --find  "shall fall within the bounds from integer-1"
 
 `--check` exits non-zero unless the text appears INSIDE that clause's own region, so a wrong clause number

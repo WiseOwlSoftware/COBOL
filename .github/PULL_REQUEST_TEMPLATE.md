@@ -9,8 +9,8 @@ sign the Contributor License Agreement (CLA.md) — once, for all your future pu
 
 ## Why — the standard
 
-<!-- The clause and rule that require this behavior, e.g. §14.9.25.3 SR1, checked with
-     `python scripts/spec/cite.py --check <clause> "<text>"`. Behavior changes without a citation cannot be merged. -->
+<!-- The clause and rule that require this behavior, with the edition, e.g. §2023:14.9.25.3 SR1, checked with
+     `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"`. Behavior changes without a citation cannot be merged. -->
 
 ## How it was verified
 

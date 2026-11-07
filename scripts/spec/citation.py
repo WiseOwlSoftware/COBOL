@@ -25,7 +25,8 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
   (`GR6d.2`, `SR3b`). `render` writes the glued form; `parse` also reads `GR 1`.
 - **Disambiguation.** `§` immediately followed by an edition token and a colon is a citation of the standard, and
   nothing else is: the repository's own documents keep their `§` sections ("plan §0", "DESIGN-x §4.4.3"). A `§` with
-  four digits and a colon whose digits are not an edition (`§5000:`) is a MALFORMED citation, never prose.
+  four digits and a colon whose digits are not an edition (`§5000:`) is a MALFORMED citation, never prose. A placeholder
+  in angle brackets after the colon (`§2023:<clause>`, the way a document shows the format) is a template, not a citation.
 - **Paragraph numbers restart in each section of the 1985 standard** (VI.5.3 and VII.5.3 are different paragraphs), so
   a 1985 locator always carries its section, and a paragraph the section does not have is refused even when another
   section has it.
@@ -105,7 +106,7 @@ _RULE = re.compile(RULE + r"\Z")
 #: by `parse`); `bare` is the transition's bare form (BARE_MEANS_2023), exactly the shape the audits have always
 #: read (`§13.16`, `§ 14.9.39.4`), and the annex clauses (`§A.1`, `§E.2`). A caller that embeds a citation in a larger pattern embeds THIS string (its group
 #: `cite` spans the citation) and reads the match with `from_match`.
-PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
+PATTERN = (r"(?P<cite>§(?:(?P<edition>\d{4}):(?!<)(?P<locator>p\.[A-Z]+-\d+|[A-Z0-9]+(?:\.[A-Z0-9]+)*(?![a-z]))?"
            r"|\s?(?P<bare>(?:\d+|[A-Z])(?:\.\d+)+)(?![a-z]|\.[A-Z])))")
 _SCAN = re.compile(PATTERN + r"(?: (?P<rule>" + RULE + r"))?")
 #: A WHOLE citation, as `cite.py --check` takes it. While BARE_MEANS_2023 the `§` of a bare clause number is optional,
@@ -339,11 +340,12 @@ def validate(c: Citation, repo: pathlib.Path = spec_pdf.REPO) -> str | None:
 # ── THE BARE FORM'S CLASSIFIER (the rewrite and, after phase 2, the BARE refusal) ─────────────────────────────────────
 
 #: ⛔ A BARE `§` IS NOT ALWAYS A CITATION OF THE STANDARD. The repository's docs and comments also point at THEIR OWN
-#: sections ("DESIGN-locale-facility §4.4.3", "ADR §1.2.1 guardrail 1", "plan §0"). This screen says "the `§` just
-#: right of a document's name is that document's section". Other EDITIONS of COBOL are not in it: they carry their own
-#: edition token now (`§1985:VI.5.3.2`), and a free-text "COBOL-85 §4.3.3" is the rewrite's hand-repair item.
+#: sections ("DESIGN-locale-facility §4.4.3", "ADR §1.2.1 guardrail 1", "plan §0", and a kb/Work site's
+#: "`docs/VERSION_CHANGE_REFERENCE.md` (§4.2)", a Markdown file named just before). This screen says "the `§` just right
+#: of a document's name is that document's section". Other EDITIONS of COBOL are not in it: they carry their own edition
+#: token now (`§1985:VI.5.3.2`), and a free-text "COBOL-85 §4.3.3" is the rewrite's hand-repair item.
 DOCUMENT_SECTION = re.compile(
-    r"(?:DESIGN|ADR|PLAN|PROMPT|DEVLOG|SURVEY|CRITIQUE|EVAL|README|CONFORMANCE\.md|REDEFINES_DESIGN"
+    r"(?:DESIGN|ADR|PLAN|PROMPT|DEVLOG|SURVEY|CRITIQUE|EVAL|README|CONFORMANCE\.md|REDEFINES_DESIGN|\.md\b"
     r"|this doc|its own)[^§\n]{0,45}$", re.IGNORECASE)
 #: A free-text citation of ANOTHER edition, just left of a bare `§`: "COBOL-85 §4.3.3", "ISO 1989:2002 §14.8.4".
 OTHER_EDITION = re.compile(
@@ -481,6 +483,7 @@ def self_test() -> int:
         ("scan stops a glued rule path at the clause", [c.locator for c in scan("§2023:13.18.35.4.5b.3")] == ["13.18.35.4"]
          and [c.locator for c in scan("§13.18.35.4.5b.3", bare=True)] == ["13.18.35.4"]),
         ("scan reads no clause in a placeholder (§14.9.N)", list(scan("the (§14.9.N) banners", bare=True)) == []),
+        ("scan reads a template (§2023:<clause>) as no citation", list(scan('check "§2023:<clause>[ <rule>]"')) == []),
         ("scan keeps the full stop out of a rule", [c.rule for c in scan("as §2023:14.9.8.4 GR1.")] == ["GR1"]),
         ("clause_pattern does not match a longer clause",
          re.search(clause_pattern("14.9.2"), "§2023:14.9.27") is None

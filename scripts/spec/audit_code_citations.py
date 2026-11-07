@@ -1165,7 +1165,7 @@ SELF_TEST = [
      "roundedPhrase", ".g4"),
     ("HEADER", "// LINAGE clause (ISO §13.16) — page-based printing for sequential files", "linageClause",
      ".g4"),
-    ("PHANTOM", "// A figurative constant operand (ISO §8.3.1.2).", "figurative", ".g4"),
+    ("PHANTOM", "// A figurative constant operand (ISO §2023:8.3.1.2).", "figurative", ".g4"),
     # ⛔ THE GOLDEN LEG. Narrowing SUBJECT/HEADER to a `.cob` header's LABEL line can only be trusted if
     # the narrowed check is still SEEN to fire on the defect it exists for: a golden whose OPENING
     # citation names the wrong construct (feedback_measure_the_selectors_complement — a selector is

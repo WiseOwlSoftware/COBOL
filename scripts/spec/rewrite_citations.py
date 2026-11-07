@@ -19,13 +19,17 @@ merged with main after the operator lane's branches drain, in the same change th
 and the citations audit (`audit_code_citations.py --check`, which then refuses a bare citation as BARE) must be GREEN on
 the rewritten tree. Phase 1 proves it on a scratch copy and never commits its output.
 
-THE POPULATION. The files the citation audits read (`citation_corpus.all_files()`), and the other prose and data that cite
-the standard: the scripts and the skills (`scripts/`, `.claude/`, `tools/` excluded as a submodule), the root documents, the
-GitHub templates, the suite's diagnostic expectations and `constructs.json`, and the Characterization snapshots (the
-compiler's diagnostic text changes in the same landing). Left out and counted: the frozen evidence (`citation_corpus.FROZEN`),
-the DEVLOG (history, never rewritten), `adjudication/` (agents' recorded output), the generated inventory
-(`tests/version-matrix/inventory/`, rewritten only by `record_verdicts.py`), `specs/` (the standard's own text) and this
-script and `citation.py` (their planted cases are bare on purpose).
+THE POPULATION. The files the citation audits read (`citation_corpus.all_files()`: the compiler's C# and grammars, the
+tests, the suite's programs, the docs, the register), and the other PROSE and DATA that cite the standard: the Markdown of
+the scripts and the skills, the root documents, the GitHub templates, the suite's diagnostic expectations,
+`constructs.json`, and the Characterization snapshots (the compiler's diagnostic text changes in the same landing).
+⛔ THE TOOLING'S CODE IS NOT REWRITTEN (`scripts/`, `.claude/` Python, PowerShell and JavaScript): its string literals are
+data its own logic reads — a self-test's planted lines, `r2_collect.py`'s design references (`§8.x` of a design document,
+which are also 2023 clause numbers) — and the scratch-copy proof broke two self-tests that way. Its citations of the
+standard are counted and repaired by hand as they are touched. Every other tracked file is left out and counted too: the
+frozen evidence (`citation_corpus.FROZEN`), the DEVLOG (history, never rewritten), `adjudication/` (agents' recorded
+output), the generated inventory (`tests/version-matrix/inventory/`, rewritten only by `record_verdicts.py`) and `specs/`
+(the standard's own text).
 """
 from __future__ import annotations
 
@@ -46,13 +50,12 @@ import citation_corpus  # noqa: E402
 
 REPO = citation_corpus.REPO
 #: The other prose and data that cite the standard, beyond the audits' population (globs under the repository root).
-EXTRA = ("scripts/**/*.py", "scripts/**/*.ps1", "scripts/**/*.md", "scripts/**/*.txt", ".claude/**/*.md",
-         ".claude/**/*.py", ".claude/**/*.js", "*.md", ".github/**/*.md", ".github/**/*.yml",
+EXTRA = ("scripts/**/*.md", ".claude/**/*.md", "*.md", ".github/**/*.md", ".github/**/*.yml",
          "conformance-suite/**/*.json", "tests/version-matrix/constructs.json",
          "tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/**/*")
-#: Never rewritten (see the docstring); a path under one of these is counted as left out.
-LEFT_OUT = ("DEVLOG/", "adjudication/", "tests/version-matrix/inventory/", "specs/", "specs-private/", "tools/",
-            "scripts/spec/citation.py", "scripts/spec/rewrite_citations.py") + tuple(f + "/" for f in citation_corpus.FROZEN)
+#: Never rewritten even when a glob above reaches them (see the docstring).
+LEFT_OUT = ("DEVLOG/", "adjudication/", "tests/version-matrix/inventory/", "specs/", "specs-private/", "tools/") + tuple(
+    f + "/" for f in citation_corpus.FROZEN)
 #: A file's own numbered section headings (a Markdown document points at its own `§4.2`).
 OWN_HEADING = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)+)")
 
@@ -140,19 +143,19 @@ def rewrite_file(path: pathlib.Path, known: frozenset[str], tally: Tally, apply:
 
 
 def left_out_counts(repo: pathlib.Path = REPO) -> collections.Counter:
-    """The bare citations in the trees the rewrite leaves out, so the record says what it did not touch."""
+    """The bare `§N.N` spellings in every repository file the rewrite does not read, by directory, so the record says
+    what it did not touch (some are citations of the standard, some a document's own sections)."""
     counts: collections.Counter = collections.Counter()
+    read = set(population(repo))
     for p in citation_corpus.repository_files():
-        rel = p.relative_to(repo).as_posix()
-        if not rel.startswith(LEFT_OUT) or not p.is_file():
+        if p in read or not p.is_file():
             continue
         try:
             text = p.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        if "§" in text:
-            counts[next(prefix for prefix in LEFT_OUT if rel.startswith(prefix))] += sum(
-                1 for c in citation.scan(text, bare=True) if c.bare)
+        if "§" in text and (n := sum(1 for c in citation.scan(text, bare=True) if c.bare)):
+            counts[_directory(p.relative_to(repo).as_posix())] += n
     return counts
 
 

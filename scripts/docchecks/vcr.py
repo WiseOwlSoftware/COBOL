@@ -184,7 +184,7 @@ def self_test() -> list[str]:
         ("the edition form resolves the same way", citation_findings(["§2023:14.9.1 `quick BROWN fox`"], clause_regions(spec)), []),
         ("the edition form's quote is checked", len(citation_findings(["§2023:14.9.2 `quick brown`"], clause_regions(spec))), 1),
         ("a malformed citation is a finding", len(citation_findings(["see §5000: there"], clause_regions(spec))), 1),
-        ("an unknown clause is a finding", len(citation_findings(["see §99.9"], clause_regions(spec))), 1),
+        ("an unknown clause is a finding", len(citation_findings(["see §2023:99.9"], clause_regions(spec))), 1),
         ("a quote the clause lacks is a finding", len(citation_findings(["§14.9.2 `quick brown`"], clause_regions(spec))), 1),
         ("a spec line number is a finding", len(line_number_findings(["see @1234 - 1300"])), 1),
         ("an edition marker is not a line number", line_number_findings(["added @2023 and @2014"]), []),
