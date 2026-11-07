@@ -151,10 +151,10 @@
   {
    "id": "apply-commit-clause-2023",
    "status": "active",
-   "description": "The I-O-CONTROL APPLY COMMIT clause (ISO \u00a712.4.6.3) and with it the COMMIT and ROLLBACK statements it gives effect to (\u00a714.9.7, \u00a714.9.36) \u2014 the commit and rollback facility, a COBOL-2023 introduction (Annex E.3.2 item 2). Provided for RELATIVE and INDEXED files (kb/Work PB3337, PB3338; docs/CONFORMANCE.md \u00a75, A.4.3 Partial). The ISO/IEC 1989:2002 and 2014 I-O-CONTROL formats have no APPLY clause and the paragraph's format is closed, so below 2023 the clause draws COBOL1970 (the 85 format likewise). COMMIT and ROLLBACK are user-defined words below 2023 (user-word-commit-2023).",
+   "description": "The I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3) and with it the COMMIT and ROLLBACK statements it gives effect to (§2023:14.9.7, §2023:14.9.36) \u2014 the commit and rollback facility, a COBOL-2023 introduction (Annex E.3.2 item 2). Provided for RELATIVE and INDEXED files (kb/Work PB3337, PB3338; docs/CONFORMANCE.md §5, A.4.3 Partial). The ISO/IEC 1989:2002 and 2014 I-O-CONTROL formats have no APPLY clause and the paragraph's format is closed, so below 2023 the clause draws COBOL1970 (the 85 format likewise). COMMIT and ROLLBACK are user-defined words below 2023 (user-word-commit-2023).",
    "display": "APPLY COMMIT clause (commit and rollback)",
    "diagnosticCode": "COBOL1970",
-   "citation": "ISO \u00a712.4.6.3 (APPLY COMMIT clause; Annex E.3.2 item 2)",
+   "citation": "ISO §2023:12.4.6.3 (APPLY COMMIT clause; Annex E.3.2 item 2)",
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOL1970",
@@ -1324,13 +1324,13 @@
   {
    "id": "set-program-pointer-2002",
    "status": "active",
-   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
+   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO §2023:14.9.39.2 Format 9, program-pointer-assignment), including the §2023:8.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since §2023:14.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the §2023:8.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and §2023:8.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
    "display": "SET TO program-pointer (Format 9)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO \u00a714.9.39.2 Format 9 / \u00a714.9.39.3 SR21 / SR22 / \u00a78.4.3.13",
+   "citation": "ISO §2023:14.9.39.2 Format 9 / §2023:14.9.39.3 SR21 / SR22 / §2023:8.4.3.13",
    "introducedIn": 2002,
    "removedIn": null,
-   "vcr": "ISO \u00a714.9.39.2 Format 9 (its operand is the 2002 program-pointer category, \u00a78.5.2.9); the set-function-pointer-2014 twin",
+   "vcr": "ISO §2023:14.9.39.2 Format 9 (its operand is the 2002 program-pointer category, §2023:8.5.2.9); the set-function-pointer-2014 twin",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KSPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PP USAGE PROGRAM-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET PP TO ADDRESS OF PROGRAM \"KSPPSUB\"\n    STOP RUN.\nEND PROGRAM KSPP.\n"
   },
   {
@@ -2314,10 +2314,10 @@
   {
    "id": "externalized-name-as-2002",
    "status": "active",
-   "description": "The AS externalized-name phrase \u2014 `[ AS literal-1 ]` on PROGRAM-ID (\u00a711.10.2 Formats 1 and 2), FUNCTION-ID (\u00a711.5.2 Formats 1 and 2), CLASS-ID (\u00a711.3.2), INTERFACE-ID (\u00a711.6.2), METHOD-ID (\u00a711.7.2) and the EXTERNAL clause (\u00a713.18.22.2, on a data description entry and on a file description entry alike \u2014 kb/Work PB511). \u00a78.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985 has NO such phrase anywhere and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve every site; below 2002 the gate names the edition (COBOL0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The \u00a712.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
+   "description": "The AS externalized-name phrase \u2014 `[ AS literal-1 ]` on PROGRAM-ID (§2023:11.10.2 Formats 1 and 2), FUNCTION-ID (§2023:11.5.2 Formats 1 and 2), CLASS-ID (§2023:11.3.2), INTERFACE-ID (§2023:11.6.2), METHOD-ID (§2023:11.7.2) and the EXTERNAL clause (§2023:13.18.22.2, on a data description entry and on a file description entry alike \u2014 kb/Work PB511). §2023:8.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985 has NO such phrase anywhere and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve every site; below 2002 the gate names the edition (COBOL0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The §2023:12.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
    "display": "the AS externalized-name phrase",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO \u00a78.3.2.2 2); \u00a711.10.2 / \u00a711.5.2 / \u00a711.3.2 / \u00a711.6.2 / \u00a711.7.2 / \u00a713.18.22.2 / \u00a713.4.5.2 general formats",
+   "citation": "ISO §2023:8.3.2.2 2); §2023:11.10.2 / §2023:11.5.2 / §2023:11.3.2 / §2023:11.6.2 / §2023:11.7.2 / §2023:13.18.22.2 / §2023:13.4.5.2 general formats",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -3373,7 +3373,7 @@
   },
   {
    "id": "statement-raising-2002",
-   "description": "The statement-level RAISING phrase (GOBACK / EXIT PROGRAM / EXIT METHOD / EXIT FUNCTION) - a 2002 introduction (the EC model); distinct from the PROCEDURE DIVISION header RAISING clause (procedure-raising-2002). The fixture's bare GOBACK also gates (0880) below 2002; the reject cells assert THIS row's 0879. Folded from the inline EcBinder gate (Exec Step E). The LAST phrase sits in a DECLARATIVE because \u00a714.9.18.3 SR5 admits it only there or in a WHEN phrase of a PERFORM: the probe's original ordinary-paragraph GOBACK became illegal source when PB410 landed that screen (COBOL2103), and CI caught it because no wave-local gate runs ~VersionMatrix. The EC-model declarative is the right host anyway - this row IS the 2002 EC model - and a Format-3 PERFORM was rejected as the alternative because it is 2023-only and would have broken the 2002/2014 compile cells.",
+   "description": "The statement-level RAISING phrase (GOBACK / EXIT PROGRAM / EXIT METHOD / EXIT FUNCTION) - a 2002 introduction (the EC model); distinct from the PROCEDURE DIVISION header RAISING clause (procedure-raising-2002). The fixture's bare GOBACK also gates (0880) below 2002; the reject cells assert THIS row's 0879. Folded from the inline EcBinder gate (Exec Step E). The LAST phrase sits in a DECLARATIVE because §2023:14.9.18.3 SR5 admits it only there or in a WHEN phrase of a PERFORM: the probe's original ordinary-paragraph GOBACK became illegal source when PB410 landed that screen (COBOL2103), and CI caught it because no wave-local gate runs ~VersionMatrix. The EC-model declarative is the right host anyway - this row IS the 2002 EC model - and a Format-3 PERFORM was rejected as the alternative because it is 2023-only and would have broken the 2002/2014 compile cells.",
    "display": "the GOBACK / EXIT ... RAISING phrase",
    "diagnosticCode": "COBOL0879",
    "citation": "ISO §2023:14.9.18.2 / §2023:14.9.14.2 Format 2 (exception propagation; the EC model is 2002+)",

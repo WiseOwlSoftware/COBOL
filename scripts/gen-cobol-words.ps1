@@ -10,13 +10,13 @@
 #   - the parser  cobolWord rule        (CobolParserCore.g4 — admits the word in a user-defined-name slot),
 #   - the lexer    _dataNameTokens set   (CobolLexer.g4     — a '(' after one of these enters SUBSCRIPT mode).
 # This script makes BOTH a generated artifact of the ONE declarative source tests/version-matrix/cobol-words.json,
-# exactly parallel to how scripts/gen-reserved-words.ps1 single-sources the §8.9 ReservedWords table. A silent
+# exactly parallel to how scripts/gen-reserved-words.ps1 single-sources the §2023:8.9 ReservedWords table. A silent
 # desync of the two sources mis-triggers (or fails to trigger) SUBSCRIPT mode — a wrong-or-missing parse error
 # with no diagnostic pointing at the cause; CobolWordsDriftTests binds the two generated artifacts to this file.
 #
 # Inputs (in-repo):
 #   tests/version-matrix/cobol-words.json    — the single declarative source (token / nameSlot / subscriptTrigger / note).
-#   tests/version-matrix/reserved-words.json — the §8.9 per-edition reserved-word flags. Cross-check (RW-1/RW-2)
+#   tests/version-matrix/reserved-words.json — the §2023:8.9 per-edition reserved-word flags. Cross-check (RW-1/RW-2)
 #                                              AND, since kb/Work PB693, the SOURCE of the reservation gate:
 #                                              step 4b derives it here instead of reading a per-row flag.
 #   src/WiseOwl.Cobol.Frontend/WiseOwl.Cobol.Frontend.csproj — the <AntlrNamespace> property (single source of the generated-lexer namespace).
@@ -104,7 +104,7 @@ $subTrigOnly  = @($subTrigTokens  | Where-Object { -not $nsSet.Contains($_) })  
 # word like COLUMN/LENGTH/SCREEN flipped to nameSlot=false stays 2023-reserved and would slip past RW-1, but lands
 # in subscriptTrigger-only and fails the exact pin). A NEW asymmetry updates the constant + the FU ledger.
 # nameSlot-only: exactly {BIT, AS} (safe latent under-triggers — in cobolWord, not the lexer trigger set).
-# AS (P10 Step 15): the §13.10 constant entry's `AS (arith-expr)` must lex its parenthesized expression in
+# AS (P10 Step 15): the §2023:13.10 constant entry's `AS (arith-expr)` must lex its parenthesized expression in
 # NORMAL mode, so AS cannot be a subscript trigger; a table NAMED As subscripted at 85 is the ledgered
 # under-trigger (the BIT precedent).
 $allowedNameSlotOnly = @('BIT', 'AS')
@@ -136,14 +136,14 @@ foreach ($e in $reserved.words) { $rwMap[$e.word] = $e }
 #     (a) the subscriptTrigger-only words (DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM) are RESERVED keywords at every
 #         edition — they are in the trigger set only because they COLLIDE with functionName ('(' opens the
 #         argument list), NOT because they are user words; and
-#     (b) nameSlot words such as COLUMN and LENGTH are §8.9-reserved at all four editions yet are name-slot rows —
-#         admitted in a DEFINITION slot through reservedGatedWord (step 4b), so the §8.9 funnel can name the word.
+#     (b) nameSlot words such as COLUMN and LENGTH are §2023:8.9-reserved at all four editions yet are name-slot rows —
+#         admitted in a DEFINITION slot through reservedGatedWord (step 4b), so the §2023:8.9 funnel can name the word.
 #   So the sound, valuable cross-checks that DO hold are:
 #     RW-1 (fail-hard): every subscriptTrigger-ONLY word (nameSlot=false) is a genuine reserved keyword — it maps
 #           to a reserved-words entry reserved at 2023. This catches a NON-reserved stray word wrongly kept out of
 #           cobolWord. (A RESERVED word wrongly dropped from cobolWord — the COLUMN/LENGTH/SCREEN class — is caught
 #           NOT here but by the exact subscriptTrigger-only pin above, since it stays 2023-reserved.)
-#     RW-2 (report):    the count of nameSlot words that are reserved at all four editions (the §8.9-funnel-gated
+#     RW-2 (report):    the count of nameSlot words that are reserved at all four editions (the §2023:8.9-funnel-gated
 #           name-slot admissions) — surfaced as a COUNT, not an error.
 $rwViolations = @()
 foreach ($t in $subTrigOnly) {
@@ -183,9 +183,9 @@ $lowConfidence = @()
 foreach ($t in $nameSlotTokens) {
     if ($t -eq 'IDENTIFIER') { continue }
     $e = $rwMap[(To-Word $t)]
-    if ($null -eq $e) { continue }                                   # a §8.10 context-sensitive word: never reserved
+    if ($null -eq $e) { continue }                                   # a §2023:8.10 context-sensitive word: never reserved
     if (-not ($e.r85 -or $e.r2002 -or $e.r2014 -or $e.r2023)) { continue }
-    # The grammar gate keys on userWordHere() = !IsReservedAt (confidence-blind), while the §8.9 funnel only
+    # The grammar gate keys on userWordHere() = !IsReservedAt (confidence-blind), while the §2023:8.9 funnel only
     # REPORTS high-confidence rows (ReservedWordSet.RejectsAt). Gating a lower-confidence word would reject the
     # declaration with a bare parse error and NO COBOL0901 to explain it — fail hard instead of shipping that.
     if ($e.confidence -ne 'high') { $lowConfidence += "$t($($e.confidence))" ; continue }
@@ -219,7 +219,7 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     # "name" the gate would then refuse, and the parse failed (feedback_left_edge_predicates). The gate is now
     # TOKEN-LEVEL: the word stays its keyword token here, and ReservationGateRewriter (Frontend.LexAndParse)
     # retypes it to IDENTIFIER — before the authoritative parse, where every prediction sees it — exactly when
-    # §8.9 leaves it free at the compile edition AND the program DECLARES it (a reservedGatedWord definition
+    # §2023:8.9 leaves it free at the compile edition AND the program DECLARES it (a reservedGatedWord definition
     # slot). Its only grammar home is reservedGatedWord below.
     # kb/Work PB805 + PB655: EVERY keyword-token alternative also carries {!keywordContinuesHere()}? — hoisted
     # into each greedy operand list's loop decision, it ends the list wherever the enclosing construct can read
@@ -234,16 +234,16 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
 [void]$sb.AppendLine('    ;')
 # ---- 5b. Emit reservedGatedWord — the SAME derived gate set, with NO predicate (kb/Work PB300/PB693/PB655) ----
 # A gated word is never a cobolWord (step 5). That is right for every REFERENCE slot, but a DECLARATION naming
-# the word must still PARSE, for two readers: where §8.9 RESERVES it the funnel answers with the targeted
+# the word must still PARSE, for two readers: where §2023:8.9 RESERVES it the funnel answers with the targeted
 # COBOL0901 ("'X' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 parse error that never names
-# the cause; where §8.9 leaves it FREE this match IS the declaration ReservationGateRewriter looks for, and the
+# the cause; where §2023:8.9 leaves it FREE this match IS the declaration ReservationGateRewriter looks for, and the
 # re-parse then sees the word as an IDENTIFIER everywhere. Every definition slot therefore offers this rule, and so
 # does procedureName, the one rule of every procedure-name slot, REFERENCES included (kb/Work PB4206): a statement
 # reading of the word (PERFORM RECEIVE as an inline PERFORM) otherwise wins and the error never falls at the word.
 # No predicate: a predicate is what could not steer prediction (step 5), and the token type alone is the fact.
 # That re-admission used to be a HAND-WRITTEN list of two words in CobolData.g4 (COMMIT/ROLLBACK) — so CRT and
 # CURSOR, gated by kb/Work PB301, never got their 0901 and nobody noticed; then the GATE ITSELF was a
-# hand-set flag and fifty-one §8.9-straddling words never got one (PB693). Deriving BOTH halves from the ONE
+# hand-set flag and fifty-one §2023:8.9-straddling words never got one (PB693). Deriving BOTH halves from the ONE
 # reserved-words.json makes the next gated word automatic (CLAUDE.md rule 5); CobolWordsDriftTests pins it.
 $gatedTokens = [System.Collections.Generic.List[string]]::new([string[]]$gated)
 $gatedTokens.Sort([System.StringComparer]::Ordinal)
@@ -253,7 +253,7 @@ if ($gatedTokens.Count -lt 1) {
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('// The USER-WORD home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655/PB4206). A gated word')
 [void]$sb.AppendLine('// is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where')
-[void]$sb.AppendLine('// §8.9 leaves it free AND a user-defined-word slot below matched it. Where §8.9 reserves it, the match')
+[void]$sb.AppendLine('// §2023:8.9 leaves it free AND a user-defined-word slot below matched it. Where §2023:8.9 reserves it, the match')
 [void]$sb.AppendLine('// stands and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every')
 [void]$sb.AppendLine('// use of this rule is a user-defined-word slot (every definition slot, and procedureName, references')
 [void]$sb.AppendLine('// included; kb/Work PB4206), so a new slot needs no new C#.')
@@ -265,13 +265,13 @@ for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
 [void]$sb.AppendLine('      ) { gatedDeclaration(TokenStream.LT(-1)); }')
 [void]$sb.AppendLine('    ;')
 
-# ---- 5c. Emit the KEYWORD RULES — the keyword position of a gated word a format spells where §8.9 frees it ----
+# ---- 5c. Emit the KEYWORD RULES — the keyword position of a gated word a format spells where §2023:8.9 frees it ----
 # (kb/Work PB2623, PB3794.) The token-level gate retypes EVERY occurrence of a declared free word to IDENTIFIER, so
-# a format that spells that word as a keyword AT AN EDITION WHERE §8.9 LEAVES IT FREE meets an IDENTIFIER there:
+# a format that spells that word as a keyword AT AN EDITION WHERE §2023:8.9 LEAVES IT FREE meets an IDENTIFIER there:
 # `01 MESSAGE PIC 9.` then `CONTINUE AFTER MESSAGE RECEIVED` at 2023 was a parse error. The keyword position is where
 # the format spells the word, so it reads the keyword token OR the retyped spelling, recognized through the ONE
 # word-text predicate (wordAhead, so a >>COBOL-WORDS synonym steers it too). The rows carrying the
-# keywordWhereFree determination are the words this applies to; CobolWordsDriftTests re-derives the 2023 and §8.10
+# keywordWhereFree determination are the words this applies to; CobolWordsDriftTests re-derives the 2023 and §2023:8.10
 # members from the standard itself and holds the hand grammar to spelling each word ONLY through its rule.
 $keywordRows = @($rows | Where-Object { $_.PSObject.Properties['keywordWhereFree'] } |
     Sort-Object -Property token -CaseSensitive)
@@ -280,17 +280,17 @@ foreach ($r in $keywordRows) {
         throw "token $($r.token): keywordWhereFree on a word the derived gate does not hold — the gate never retypes it, so the keyword token alone already reads its format; drop the determination"
     }
     $word = To-Word $r.token
-    # A word §8.9 reserves at EVERY edition is never free: its one way to be freed, >>COBOL-WORDS UNDEFINE, withdraws
-    # "any syntax requiring the use of the COBOL word" (ISO §7.3.10.4 GR3), so no format position reads it as a keyword
+    # A word §2023:8.9 reserves at EVERY edition is never free: its one way to be freed, >>COBOL-WORDS UNDEFINE, withdraws
+    # "any syntax requiring the use of the COBOL word" (ISO §2023:7.3.10.4 GR3), so no format position reads it as a keyword
     # while a program declares it, and a keyword rule for it would accept what GR3 makes unavailable (kb/Work PB3957: ORDER).
     $e = $rwMap[$word]
     if ($e -and $e.r85 -and $e.r2002 -and $e.r2014 -and $e.r2023) {
-        throw "token $($r.token): keywordWhereFree on a word §8.9 reserves at every edition - no edition leaves it free, and >>COBOL-WORDS UNDEFINE withdraws the syntax that requires it (ISO §7.3.10.4 GR3); drop the determination"
+        throw "token $($r.token): keywordWhereFree on a word §2023:8.9 reserves at every edition - no edition leaves it free, and >>COBOL-WORDS UNDEFINE withdraws the syntax that requires it (ISO §2023:7.3.10.4 GR3); drop the determination"
     }
     $rule =(($r.token.TrimEnd('_').ToLowerInvariant() -split '_') | ForEach-Object -Begin { $first = $true } -Process {
         if ($first) { $first = $false; $_ } else { $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1) } }) -join ''
     [void]$sb.AppendLine('')
-    [void]$sb.AppendLine("// The keyword $word where a format spells it and §8.9 may leave it free: $($r.keywordWhereFree).")
+    [void]$sb.AppendLine("// The keyword $word where a format spells it and §2023:8.9 may leave it free: $($r.keywordWhereFree).")
     [void]$sb.AppendLine("${rule}Keyword")
     [void]$sb.AppendLine("    : $($r.token)")
     [void]$sb.AppendLine("    | {wordAhead(`"$word`")}? IDENTIFIER")
@@ -316,8 +316,8 @@ foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('')
 [void]$cs.AppendLine('    /// <summary>The RESERVATION-GATED token types (kb/Work PB693/PB655) — the same derived set step 4b')
-[void]$cs.AppendLine('    /// keeps out of cobolWord and ReservationGateRewriter retypes where §8.9 frees a declared word. A parse')
-[void]$cs.AppendLine('    /// error ON one of these that §8.9 reserves is the §8.9 violation only where a user-defined word could stand,')
+[void]$cs.AppendLine('    /// keeps out of cobolWord and ReservationGateRewriter retypes where §2023:8.9 frees a declared word. A parse')
+[void]$cs.AppendLine('    /// error ON one of these that §2023:8.9 reserves is the §2023:8.9 violation only where a user-defined word could stand,')
 [void]$cs.AppendLine('    /// and CobolErrorStrategy.ReservedWordUse decides it (kb/Work PB4132): there the report is the targeted COBOL0901,')
 [void]$cs.AppendLine('    /// elsewhere the word is its keyword out of place (a stray END-DISPLAY is COBOL0306, as END-ADD is).')
 [void]$cs.AppendLine('    /// Generated, so a newly gated word needs no edit anywhere.</summary>')
@@ -328,7 +328,7 @@ foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
 foreach ($t in $gatedTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('')
-[void]$cs.AppendLine('    /// <summary>The words a general format spells as a keyword where ISO §8.9 may leave them free — the rows')
+[void]$cs.AppendLine('    /// <summary>The words a general format spells as a keyword where ISO §2023:8.9 may leave them free — the rows')
 [void]$cs.AppendLine('    /// carrying the keywordWhereFree determination, whose &lt;word&gt;Keyword rules step 5c emits (kb/Work PB4174). A syntax')
 [void]$cs.AppendLine('    /// diagnostic that names the words EXPECTED at an edition (AdmittedKinds) keeps them although the reserved-word')
 [void]$cs.AppendLine('    /// table does not reserve them there. Generated, so a determination added tomorrow needs no edit anywhere.</summary>')
@@ -348,8 +348,8 @@ $stats = [ordered]@{
     subscriptTrigger = $subTrigTokens.Count
     nameSlotOnly     = $nameSlotOnly.Count       # documented FU-1 latent asymmetry (BIT)
     subscriptTrigOnly = $subTrigOnly.Count        # functionName collisions
-    nameSlotReservedAll4 = $nameSlotReservedAll4.Count   # RW-2: §8.9-funnel-gated name-slot admissions
-    reservationGated = $gatedTokens.Count                # 4b: DERIVED — nameSlot words §8.9 reserves at >=1 edition
+    nameSlotReservedAll4 = $nameSlotReservedAll4.Count   # RW-2: §2023:8.9-funnel-gated name-slot admissions
+    reservationGated = $gatedTokens.Count                # 4b: DERIVED — nameSlot words §2023:8.9 reserves at >=1 edition
     keywordRules     = $keywordRows.Count                # 5c: the keywordWhereFree determinations
     namespace        = $antlrNamespace
 }

@@ -18,7 +18,7 @@ public static partial class ReservedWords
         new("ADDRESS", false, true, true, true, "high", "added 2002 (ISO 2002 §2002:8.9; ISO 2023 §2023:8.9)"),
         new("ADVANCING", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §2023:8.9)"),
         new("AFTER", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §2023:8.9)"),
-        new("ALIGNED", false, true, true, true, "high", "added 2002 (ISO 2002 Annex F.1 item 6; §2023:8.9 omits it; ISO 2023 §2023:8.9)"),
+        new("ALIGNED", false, true, true, true, "high", "added 2002 (ISO 2002 Annex F.1 item 6; §2002:8.9 omits it; ISO 2023 §2023:8.9)"),
         new("ALL", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §2023:8.9)"),
         new("ALLOCATE", false, true, true, true, "high", "added 2002 (ISO 2002 §2002:8.9; ISO 2023 §2023:8.9)"),
         new("ALPHABET", true, true, true, true, "high", "continuous since 1985 (GnuCOBOL 85 and 2014 lists; ISO 2002 and 2023 §2023:8.9)"),

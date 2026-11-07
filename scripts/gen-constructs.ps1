@@ -11,7 +11,7 @@
 #   tests/version-matrix/constructs.json  — the canonical rows: id / display / introducedIn / removedIn / obsoleteIn /
 #                                           diagnosticCode / citation / directiveWords (+ description / vcr / source /
 #                                           status / expectDiagnostic used by the version-matrix tests, not the
-#                                           registry). directiveWords (kb/Work PB725) lists the ISO §7.3 compiler-
+#                                           registry). directiveWords (kb/Work PB725) lists the ISO §2023:7.3 compiler-
 #                                           directive words the row gates; CompilerDirectiveCatalog inverts them into
 #                                           the word → row map the text-manipulation stage gates on, so a new
 #                                           directive is ONE row here plus a regen — never a hand-kept name set.
@@ -57,13 +57,13 @@ foreach ($r in $rows) {
         if ([string]::IsNullOrWhiteSpace($r.directiveOperand.citation)) { throw "row '$($r.id)': directiveOperand needs a citation — an unchecked operand is a cited decision, never a silence" }
         if ($r.directiveOperand.form -eq 'stage' -and [string]::IsNullOrWhiteSpace($r.directiveOperand.owner)) { throw "row '$($r.id)': a stage-owned operand needs an owner" }
         if ($r.directiveOperand.form -eq 'words' -and @($r.directiveOperand.choice).Count -eq 0 -and -not $r.directiveOperand.directiveName) { throw "row '$($r.id)': a words operand needs a choice or a directiveName alternative" }
-        # An implementor-defined NAME position (§7.3.9.2's call-convention-name-1) is not a column: its admissible
+        # An implementor-defined NAME position (§2023:7.3.9.2's call-convention-name-1) is not a column: its admissible
         # words are the names the implementor DEFINES, which belong in the row's choice (kb/Work PB1383 — a column
         # admitting "any COBOL word" accepted names that select nothing).
         if ($null -ne $r.directiveOperand.userWord) { throw "row '$($r.id)': directiveOperand.userWord is not a column — list the implementor-defined names in choice (kb/Work PB1383)" }
     }
     elseif ($null -ne $r.directiveOperand) { throw "row '$($r.id)' carries directiveOperand but no directiveWords" }
-    # A directive's PLACEMENT rule (kb/Work PB1377/PB1378/PB1065) — where §7.3 says it may not be written — is data on
+    # A directive's PLACEMENT rule (kb/Work PB1377/PB1378/PB1065) — where §2023:7.3 says it may not be written — is data on
     # the same row, so the stage that judges the rule shape is written once and a new directive with the same
     # restriction is one field here.
     if ($null -ne $r.directivePlacement) {
@@ -96,7 +96,7 @@ foreach ($r in $rows) {
     $line = '        new("{0}", "{1}", {2}, {3}, {4}, "{5}", "{6}")' -f `
         (Esc $r.id), (Esc $r.display), ([int]$r.introducedIn), (NullOrInt $r.removedIn), (NullOrInt $r.obsoleteIn), `
         (Esc $r.diagnosticCode), (Esc $r.citation)
-    # The ISO §7.3 directive words this row gates (kb/Work PB725) — an object initializer only on the rows
+    # The ISO §2023:7.3 directive words this row gates (kb/Work PB725) — an object initializer only on the rows
     # that carry them, so the 200-odd non-directive rows keep their one-line rendering.
     if ($null -ne $r.directiveWords -and @($r.directiveWords).Count -gt 0) {
         $words = (@($r.directiveWords) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', '
