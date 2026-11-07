@@ -219,9 +219,12 @@ internal sealed partial class ControlFlowBinder
                 + ". An arithmetic expression is not admitted here; compute it into a data item first");
         // The §5.5 2) integer test reads the function value through its OPERAND twin, so the LENGTH sum is the integer function
         // value it is (IntrinsicBinder.OperandOf marks it FunctionValue) and not the unmarked BoundBinary of an expression.
+        // The per-evaluation carrier (BoundUdfEvaluatedExpr, the GR12 window's function activations) is transparent to the
+        // TYPE as Classify makes it transparent to the KIND: the integer test reads the value the carrier wraps (kb/Work PB4865).
+        var valued = e is BoundUdfEvaluatedExpr carrier ? carrier.Inner : e;
         bool isInteger = functionIdentifier
-            ? IntrinsicResultType.IsIntegerOperand(IntrinsicBinder.OperandOf(e, functionValue: true))
-            : IntrinsicResultType.IsIntegerOperand(e);
+            ? IntrinsicResultType.IsIntegerOperand(IntrinsicBinder.OperandOf(valued, functionValue: true))
+            : IntrinsicResultType.IsIntegerOperand(valued);
         return new VaryingOperand(kind, e, literal, isInteger, text);
     }
 
