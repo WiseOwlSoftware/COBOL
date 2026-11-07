@@ -14,7 +14,7 @@ returns no separate reasoning text.
 
 HOW IT CALLS CLAUDE. Through the Claude Code CLI in print mode, `claude -p`, which a cloud session (claude.ai/code) and
 an attended host both have signed in, and the call bills the account that runs it, unless `use_api_key_file` named an
-API key: then the key goes into the CLI's environment (`ANTHROPIC_API_KEY`, nowhere else) and the call bills it. The CLI
+API key (`--api-key-file`, and `--api-account` naming which of its keys, kb/Work PB4916): then the key goes into the CLI's environment (`ANTHROPIC_API_KEY`, nowhere else) and the call bills it. The CLI
 is made a plain text generator: `--safe-mode` (no CLAUDE.md, skills, plugins, hooks, MCP servers or other
 customizations), `--tools ""` (no tools), `--no-session-persistence`, `--setting-sources ""`, `--strict-mcp-config`,
 `--system-prompt` (the fuzz's own, replacing Claude Code's), `--output-format json` (one record: `result`,
@@ -25,7 +25,9 @@ instructions; with them, 693, the CLI's own minimum.
 
 BILLING. The call bills whatever the CLI is signed in with; with `ANTHROPIC_API_KEY` in its environment it bills that
 key (its init record then reports `apiKeySource: ANTHROPIC_API_KEY`). `--api-key-file` (differential_fuzz.py) loads the
-key from a file into the CLI's environment only, so it is never on a command line or in a log. The exchange so far travels on stdin as one prompt: the CLI takes one user
+key from a file into the CLI's environment only, so it is never on a command line or in a log; `--api-account` names the
+account whose key it is when the file holds more than one (`api_key.read_api_key`), and the run's `run.json` records that
+account's NAME (`api_account`), never the key. The exchange so far travels on stdin as one prompt: the CLI takes one user
 turn, so an earlier reply and the correction that followed it are written into that turn, labelled.
 
 TEMPERATURE. The CLI has no sampling option, so `temperature` is accepted for the signature and not sent; the run's
@@ -62,11 +64,14 @@ _spent_usd = 0.0
 _api_key: str | None = None
 
 
-def use_api_key_file(path: str | os.PathLike[str]) -> None:
-    """Bill every later call to the API key held in the file `path` (`read_api_key`). The key goes only into the CLI's
-    environment; a missing or empty file is an error before any call is made."""
+def use_api_key_file(path: str | os.PathLike[str], account: str | None = None) -> str | None:
+    """Bill every later call to the key of `account` in the file `path` (`read_api_key`), and return the account NAME it
+    bills (None: the file's one unlabeled key). The key goes only into the CLI's environment; a file with no such key is a
+    RuntimeError before any call is made."""
     global _api_key
-    _api_key = read_api_key(path)
+    chosen = read_api_key(path, account)
+    _api_key = chosen.key
+    return chosen.account
 
 
 def spent() -> float:
@@ -216,9 +221,20 @@ def self_test() -> int:
                     check(f"a {bad} reply raises RuntimeError", True)
             keyfile = Path(tmp) / "key.txt"
             keyfile.write_text("  sk-test-key  " + chr(10), encoding="utf-8", newline="\n")
-            use_api_key_file(keyfile)
+            billed = use_api_key_file(keyfile)
             mode.write_text("key", encoding="utf-8", newline="\n")
-            check("an API key file reaches the CLI's environment only", claude_chat("sonnet", msgs[:2], 0.3)[0] == "KEY=sk-test-key")
+            check("an API key file reaches the CLI's environment only", claude_chat("sonnet", msgs[:2], 0.3)[0] == "KEY=sk-test-key"
+                  and billed is None)
+            # kb/Work PB4916: a file of labeled keys, the account named (invented labels; no sign-in in a tracked file).
+            keyfile.write_text("account1 (planted)\nsk-test-key-one\n\naccount2 (planted)\nsk-test-key-two\n", encoding="utf-8", newline="\n")
+            billed = use_api_key_file(keyfile, "account2")
+            check("--api-account selects its key from a labeled file, and the account's name is returned",
+                  claude_chat("sonnet", msgs[:2], 0.3)[0] == "KEY=sk-test-key-two" and billed == "account2")
+            try:
+                use_api_key_file(keyfile)
+                check("a labeled pair with no account is refused before any call", False)
+            except RuntimeError as e:
+                check("a labeled pair with no account is refused before any call", "sk-test-key" not in str(e))
             globals()["_api_key"] = None
             os.environ[EXE_ENV] = str(Path(tmp) / "no-such-claude")
             saved_path = os.environ.get("PATH", "")

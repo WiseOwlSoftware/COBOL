@@ -5,8 +5,9 @@ Run: python scripts/spec/test_transcribe_pdf.py   (every gate and CI run it thro
 
 Cases: submit; a crash between `create` and the state write, adopted on the next run; collect before and after the batch
 ends; an errored page and a cut-off page retried; a written page never overwritten, and replaced only by `--replace` (the
-old text kept); the stamp line dropped; the cost guard; the key never printed or stored; the local backend; adoption of a
-run that already exists; the check numbers; the assembly and its refusals.
+old text kept); the stamp line dropped; the cost guard; the key never printed or stored; a key file of labeled keys, the
+account chosen by --api-account, recorded in the state and kept by a later command (kb/Work PB4916); the local backend;
+adoption of a run that already exists; the check numbers; the assembly and its refusals.
 """
 import base64
 import contextlib
@@ -26,6 +27,8 @@ sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, f
 from standard_streams import ensure_utf8  # noqa: E402
 
 KEY = "sk-planted-secret-key"
+#: kb/Work PB4916: the second account's key of a planted labeled pair (invented labels; no sign-in in a tracked file).
+KEY2 = "sk-planted-second-account-key"
 #: A planted stamp line, built from pieces: the repository's own stamp audit would refuse the whole shape in this file.
 STAMP = "Copyright by the publisher. store order " + chr(35) + " X_" + "9999999. Downloaded today"
 failures: list[str] = []
@@ -87,12 +90,12 @@ def plant_pdf(path: pathlib.Path, texts: list[str]) -> None:
     T.pdf_page_count = lambda pdf: len(texts)
     T.page_text = lambda pdf, pno: texts[pno - 1]
 
-def run(argv, fake, pdf, parts=None):
+def run(argv, fake, pdf, parts=None, key_wanted=KEY):
     out = io.StringIO()
     code = None
     with contextlib.redirect_stdout(out):
         try:
-            code = T.main(argv, client_factory=lambda key: SimpleNamespace(messages=SimpleNamespace(batches=fake)) if key == KEY else None,
+            code = T.main(argv, client_factory=lambda key: SimpleNamespace(messages=SimpleNamespace(batches=fake)) if key == key_wanted else None,
                           pdf_override=pdf, parts=parts)
         except SystemExit as e:
             code = e.code
@@ -182,6 +185,27 @@ def main() -> int:
         check("a missing key file is refused naming the path", code not in (0, None) and not fake2.created)
         code, out = run(["submit", "--edition", "1985", "--state", str(fresh)], fake2, pdf)
         check("a network command without a key file is refused", code not in (0, None) and not fake2.created)
+        print("a key file of labeled keys: --api-account (kb/Work PB4916)")
+        pair = root / "pair.txt"
+        pair.write_text(f"account1 (planted)\n{KEY}\n\naccount2 (planted)\n{KEY2}\n", encoding="utf-8", newline="\n")
+        billed = root / "billed"
+        fake4 = FakeBatches()
+        acct = ["--edition", "1985", "--state", str(billed), "--api-key-file", str(pair)]
+        code, out = run(["submit", *acct], fake4, pdf, key_wanted=KEY2)
+        check("a labeled pair with no --api-account is refused before any batch", code not in (0, None) and not fake4.created)
+        code, out = run(["submit", *acct, "--api-account", "account2"], fake4, pdf, key_wanted=KEY2)
+        st = json.loads((billed / "state.json").read_text(encoding="utf-8"))
+        check("--api-account bills its key and the state records the account's NAME, never a key",
+              code == 0 and len(fake4.created) == 1 and st["api_account"] == "account2"
+              and KEY2 not in (billed / "state.json").read_text(encoding="utf-8"))
+        code, out = run(["collect", *acct], fake4, pdf, key_wanted=KEY2)
+        check("a later command with no --api-account bills the account the state records, and status names it",
+              code == 0 and "billed to the account account2" in out)
+        code, out = run(["collect", *acct, "--api-account", "account1"], fake4, pdf, key_wanted=KEY)
+        check("a later command naming another account than the state's is refused, naming no key",
+              code not in (0, None) and KEY not in str(code) and KEY2 not in str(code))
+        code, out = run(["status", "--edition", "1985", "--state", str(billed), "--api-account", "account2"], fake4, pdf)
+        check("--api-account without --api-key-file is refused", code not in (0, None) and "give the key file" in str(code))
         check("the estimate is pages x the measured tokens at the batch rate", abs(T.estimate_usd(976, "claude-opus-5-5") - 976 * 0.02104) < 0.5)
 
         print("adopting a run that already exists")
