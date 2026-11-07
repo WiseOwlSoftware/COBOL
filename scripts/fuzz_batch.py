@@ -23,7 +23,7 @@ THE FILES. `DIR/batch.json` (the batch id, the model and the plan), `DIR/replies
 one per request that succeeded; an errored, canceled or expired request writes none, and the judge records its row as a
 RUNNER_ERROR naming why) and `DIR/collect.json` (the counts and the token totals).
 
-BILLING. The API key is read from `--api-key-file` (`fuzz_claude.read_api_key`: its first non-empty line) and handed to the SDK client only; it is never printed
+BILLING. The API key is read from `--api-key-file` (`api_key.read_api_key`: its first non-empty line) and handed to the SDK client only; it is never printed
 or written. The system prompt of each clause family is marked for prompt caching, so the requests of one family share it.
 """
 from __future__ import annotations
@@ -41,7 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from standard_streams import ensure_utf8  # noqa: E402  (scripts/: UTF-8 standard streams)
 
 import differential_fuzz as df  # noqa: E402
-import fuzz_claude  # noqa: E402  (THE reader of an API key file, read_api_key)
+from api_key import read_api_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816)
 
 #: The default writer: the model of the 2026-11-03 calibration, chosen by the owner for the batch run.
 DEFAULT_MODEL = "claude-sonnet-5-5"
@@ -98,7 +98,7 @@ def write_replies(results: Iterable[Any], replies: Path) -> dict[str, Any]:
 def client_for(key_file: str) -> Any:
     import anthropic  # noqa: PLC0415  (only the network commands need the SDK)
     try:
-        key = fuzz_claude.read_api_key(key_file)
+        key = read_api_key(key_file)
     except RuntimeError as e:
         raise SystemExit(f"fuzz_batch: {e}") from None
     return anthropic.Anthropic(api_key=key)
