@@ -83,7 +83,6 @@ internal static class DebugTriggerPlanner
             PlanFile(leaf, target, fires);
             return;
         }
-        var item = target.Item!;
         // The INTO phrase of READ and RETURN executes only when the verb delivered a record ("not executed or evaluated", rules 5 and 6): it is
         // planned as its own moment, after the verb's action, and the rest of the statement is planned without it.
         var into = (leaf as IBoundIntoPhrase)?.IntoMove;
@@ -92,24 +91,24 @@ internal static class DebugTriggerPlanner
         // is not referenced by this execution (rules 5 and 6, the closing sentence), so each phrase is planned apart and guarded by its own flag.
         var phrases = (leaf as IBoundEvaluatedPhrases)?.PhraseOperands ?? [];
         if (phrases.Count > 0) PlanPhrases(phrases, target, fires);
-        var referenced = FirstReferenceTo(BoundReferences.Of(leaf, [into, .. phrases]), item);
-        if (referenced is null) return;   // a statement that does not reference the item runs nothing (a qualifier is no reference, rule 9)
+        var referenced = Find(BoundReferences.Of(leaf, [into, .. phrases]), target);
+        if (referenced is not { } hit) return;   // a statement that does not reference the item runs nothing (a qualifier is no reference, rule 9)
         switch (leaf)
         {
             // Rule 5 a / 6 a: WRITE and REWRITE run the section before the I-O for EITHER kind of target.
             case BoundWrite or BoundKeyedWrite or BoundRewrite or BoundKeyedRewrite:
-                fires.Add(new DebugFire(target, referenced, DebugWhen.BeforeIo));
+                fires.Add(FireFor(target, hit, DebugWhen.BeforeIo));
                 return;
         }
         if (target.Kind is DebugTargetKind.AllReferences)
         {
             // Rule 5 b: GO TO DEPENDING ON runs before control is transferred; rule 5 d: any other statement, after it.
-            fires.Add(new DebugFire(target, referenced, leaf is BoundGoToDepending ? DebugWhen.Before : DebugWhen.After));
+            fires.Add(FireFor(target, hit, leaf is BoundGoToDepending ? DebugWhen.Before : DebugWhen.After));
             return;
         }
         // Rule 6 c: the item alone runs the section after a statement that CHANGES it.
-        if (BoundStores.DirectStoreOf(leaf, item) is { } stored && !(into?.Targets.Any(t => ReferenceEquals(t, stored)) ?? false))
-            fires.Add(new DebugFire(target, stored, DebugWhen.After));
+        if (target.Item is { } item && BoundStores.DirectStoreOf(leaf, item) is { } stored && !(into?.Targets.Any(t => ReferenceEquals(t, stored)) ?? false))
+            fires.Add(FireFor(target, new Hit(stored), DebugWhen.After));
     }
 
     /// <summary>The conditional phrases of an EVALUATE or SEARCH that reference an ALL REFERENCES target: ONE after-statement fire naming every phrase
@@ -118,15 +117,15 @@ internal static class DebugTriggerPlanner
     private static void PlanPhrases(IReadOnlyList<object> phrases, BoundDebugTarget target, List<DebugFire> fires)
     {
         if (target.Kind is not DebugTargetKind.AllReferences) return;
-        Place? first = null;
+        Hit? first = null;
         var indices = new List<int>();
         for (int k = 0; k < phrases.Count; k++)
-            if (FirstReferenceTo(BoundReferences.OfOperand(phrases[k]), target.Item!) is { } place)
+            if (Find(BoundReferences.OfOperand(phrases[k]), target) is { } found)
             {
-                first ??= place;
+                first ??= found;
                 indices.Add(k);
             }
-        if (first is not null) fires.Add(new DebugFire(target, first, DebugWhen.After, Phrases: indices));
+        if (first is { } head) fires.Add(FireFor(target, head, DebugWhen.After, phrases: indices));
     }
 
     /// <summary>The INTO phrase of a READ or RETURN (its implicit move of the record area into the receiver): the receiver is a written
@@ -134,12 +133,11 @@ internal static class DebugTriggerPlanner
     /// path that moved the record.</summary>
     private static void PlanInto(BoundMove into, BoundDebugTarget target, List<DebugFire> fires)
     {
-        var item = target.Item!;
-        if (FirstReferenceTo(BoundReferences.OfOperand(into.Targets), item) is not { } referenced) return;
+        if (Find(BoundReferences.OfOperand(into.Targets), target) is not { } referenced) return;
         if (target.Kind is DebugTargetKind.AllReferences)
-            fires.Add(new DebugFire(target, referenced, DebugWhen.AfterAction));
-        else if (BoundStores.DirectStoreOf(into, item) is { } stored)
-            fires.Add(new DebugFire(target, stored, DebugWhen.AfterAction));
+            fires.Add(FireFor(target, referenced, DebugWhen.AfterAction));
+        else if (target.Item is { } item && BoundStores.DirectStoreOf(into, item) is { } stored)
+            fires.Add(FireFor(target, new Hit(stored), DebugWhen.AfterAction));
     }
 
     /// <summary>Rule 8: a cd-name target is referenced by the communication statements of its own description, and the section
@@ -192,12 +190,11 @@ internal static class DebugTriggerPlanner
     private static void PlanPerform(BoundStatement perform, BoundPerformControl control, BoundDebugTarget target, List<DebugFire> fires)
     {
         if (target.Kind is DebugTargetKind.CdName or DebugTargetKind.FileName) return;
-        var item = target.Item!;
         switch (control)
         {
             case PerformTimes times:
-                if (target.Kind is DebugTargetKind.AllReferences && FirstReferenceTo(BoundReferences.OfOperand(times.Count), item) is { } counted)
-                    fires.Add(new DebugFire(target, counted, DebugWhen.After));
+                if (target.Kind is DebugTargetKind.AllReferences && Find(BoundReferences.OfOperand(times.Count), target) is { } counted)
+                    fires.Add(FireFor(target, counted, DebugWhen.After));
                 break;
             case PerformUntil until:
                 Phase(0, DebugWhen.LoopTest, until.Until);
@@ -216,18 +213,30 @@ internal static class DebugTriggerPlanner
         void Phase(int level, DebugWhen when, params object[] parts)
         {
             foreach (var part in parts)
-                if (FirstReferenceTo(BoundReferences.OfOperand(part), item) is { } place)
+                if (Find(BoundReferences.OfOperand(part), target) is { } reference)
                 {
-                    fires.Add(new DebugFire(target, place, when, level));
+                    fires.Add(FireFor(target, reference, when, level));
                     return;
                 }
         }
     }
 
-    /// <summary>The first place that references <paramref name="item"/> — the item itself, a window of it or an occurrence of it, but not
-    /// a group that contains it (a group reference does not "explicitly reference" a member, rule 5).</summary>
-    private static Place? FirstReferenceTo(IReadOnlyList<Place> places, DataItem item) =>
-        places.FirstOrDefault(p => ReferenceEquals(p.Item, item));
+    /// <summary>How a statement references a target: through <see cref="Place"/>, or through none for a read of a counter register.</summary>
+    private readonly record struct Hit(Place? Place);
+
+    /// <summary>The first reference to <paramref name="target"/> in <paramref name="reach"/>, or null. A data-name target is its item itself, a window
+    /// of it or an occurrence of it, but not a group that contains it (a group reference does not "explicitly reference" a member, rule 5). A counter
+    /// register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER) is no place: a read of it is a register reference (<see cref="Reach.Registers"/>), and
+    /// PAGE-COUNTER's receiving place carries the report's counter item.</summary>
+    private static Hit? Find(Reach reach, BoundDebugTarget target)
+    {
+        if (target.Item is { } item && reach.Places.FirstOrDefault(p => ReferenceEquals(p.Item, item)) is { } place) return new Hit(place);
+        return reach.Registers.Any(target.NamesRegister) ? new Hit(null) : null;
+    }
+
+    /// <summary>The fire of <paramref name="target"/> for the reference <paramref name="hit"/>; a counter register's DEBUG-CONTENTS is its register image.</summary>
+    private static DebugFire FireFor(BoundDebugTarget target, Hit hit, DebugWhen when, int level = 0, IReadOnlyList<int>? phrases = null) =>
+        new(target, hit.Place, when, level, phrases, target.Register is null ? DebugContents.Referenced : DebugContents.Register);
 
     /// <summary>Rule 7: one run per operand per statement. A target a statement reaches by two routes (WRITE record and its FROM
     /// item, a hoisted step and the verb) keeps the fire that is not the plain after-statement one, else the first.</summary>
