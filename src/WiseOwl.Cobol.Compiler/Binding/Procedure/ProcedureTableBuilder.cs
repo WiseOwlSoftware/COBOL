@@ -699,7 +699,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
     /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null;
+        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
+        || SumCounterOf(operand) is not null;
+
+    /// <summary>The register of the REPORT SECTION sum counter the operand names, or null: the item every reference to the counter carries
+    /// (<see cref="ReportSumCounterPlace.RegisterItem"/>), which is what the trigger watches. X3.23-1985 USE FOR DEBUGGING syntax rule 9
+    /// admits it by name: "Identifier-1 must not reference any data item defined in the Report Section except sum counters" (kb/Work PB4858).
+    /// A silent probe, like <see cref="NamesDataItem"/>.</summary>
+    private DataItem? SumCounterOf(Core.DataReferenceContext operand) =>
+        new DataReferenceCst(operand).Register == SpecialRegister.None && operand.cobolWord()?.GetText() is { } name
+        && ctx.Refs.Counters.SumCounterFamilyFor(operand, name, ReferenceResolver.ReadWritten(operand).Qualifiers, report: false)
+            is (_, { } family)
+            ? family.Register : null;
 
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
@@ -768,17 +779,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
     /// item its qualifiers pick, §8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
-    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A special register or a
-    /// report sum counter has no data item to watch and stays staged.</summary>
+    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A report sum counter is its
+    /// register item (syntax rule 9); LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are runtime-sourced references no place stands for and stay staged.</summary>
     private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
     {
         string written = DebugOperandAsWritten(operand);
         string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
-        if (ctx.Refs.ProbeDeclaration(operand) is not { } item)
+        if ((ctx.Refs.ProbeDeclaration(operand) ?? SumCounterOf(operand)) is not { } item)
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
-                + "special register or a report sum counter, which has no data item of its own for the trigger to watch — only a data item the "
-                + "DATA DIVISION describes is modeled (VCR Table 7 row 7.17)");
+                + "special register the statement binder routes to a runtime-sourced reference (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), which "
+                + "is no place for the trigger to watch; a data item, a REPORT SECTION sum counter (syntax rule 9) and the other special registers "
+                + "are modeled (VCR Table 7 row 7.17)");
             return;
         }
         if (operand.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.refModPart() is not null

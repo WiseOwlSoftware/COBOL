@@ -107,14 +107,16 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
     /// transfer reaches the statement's ordinary after-statement fires, so each path runs each section once.</summary>
     public void LandBeforeTransfer()
     {
-        foreach (var (fires, line, flags) in _owedAfter)
-            foreach (var fire in fires) EmitFire(fire, line, flags);
+        foreach (var text in OwedTexts()) ctx.Writer.Line(text);
     }
 
-    /// <summary>The same sections as <see cref="LandBeforeTransfer"/>, as the text of their statements, for a transfer the emitter spells as one
-    /// string (the RESUME landing, <c>DispatchState.ResumeTransfer</c>); empty when nothing is owed.</summary>
-    public string OwedBeforeTransferText() =>
-        string.Join(" ", _owedAfter.SelectMany(owed => owed.Fires.Select(fire => FireText(fire, owed.Line, owed.Flags))));
+    /// <summary>The same sections as <see cref="LandBeforeTransfer"/>, as the text of their statements joined into one string, for a transfer
+    /// the emitter spells as one string (the RESUME landing, <c>DispatchState.ResumeTransfer</c>); empty when nothing is owed.</summary>
+    public string OwedBeforeTransferText() => string.Join(" ", OwedTexts());
+
+    /// <summary>The statement of each section owed, innermost statement first.</summary>
+    private IEnumerable<string> OwedTexts() =>
+        _owedAfter.SelectMany(owed => owed.Fires.Select(fire => FireText(fire, owed.Line, owed.Flags)));
 
     private static List<DebugFire> Of(BoundDebugTriggered n, DebugWhen when) => n.Fires.Where(f => f.When == when).ToList();
 
