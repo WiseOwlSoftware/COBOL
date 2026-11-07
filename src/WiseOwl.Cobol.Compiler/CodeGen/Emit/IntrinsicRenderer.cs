@@ -1073,24 +1073,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         ArgArray(ic, 0, RuntimeApi.ExactType, a => ExactValueOf(ic, a))
         ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => ExactValueArg(ic, i)));
 
-    /// <summary>Each argument's binary64-ness, in order, as a <c>bool[]</c> expression parallel to <see cref="ExactValueArgList"/> (a
-    /// table(ALL) element is enumerated by the same walk): what the exact value cannot say, because a float ITEM's content is its exact
-    /// expansion (kb/Work PB4859, <c>CobolIntrinsics.MedianBinary64Exact</c>).</summary>
-    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand's binary64 carrier flag.</remarks>
-    private string Binary64FlagList(BoundIntrinsicCall ic) =>
-        ArgArray(ic, 0, "bool", a => Binary64FlagOf(ic, a))
-        ?? $"new bool[] {{ {string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Flag(RawArg(ic, i))))} }}";
-
-    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operand's binary64 carrier flag.</remarks>
-    private string Binary64FlagOf(BoundIntrinsicCall ic, BoundOperand a)
-    {
-        for (int i = 0; i < ic.Args.Count; i++)
-            if (ReferenceEquals(ic.Args[i], a)) return Flag(RawArg(ic, i));
-        return Flag(num.AsNum(a, num.Receiver));
-    }
-
-    private static string Flag(NumX x) => x.Real ? "true" : "false";
-
     /// <summary>One operand as its exact value: a written argument through <see cref="ExactValueArg"/> (its own position's intake),
     /// an element of a table(ALL) argument directly.</summary>
     /// <remarks>INTAKE(EXACT) — the per-operand form of <see cref="ExactValueArg"/> — same contract.</remarks>
@@ -1404,14 +1386,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "SumScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SumExact", $"{mode}, {ExactValueArgList(ic)}")),
             "RangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("RangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "MeanScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MeanExact", $"{mode}, {ExactValueArgList(ic)}")),
-            // ⛔ A MEDIAN WITH A BINARY64 ARGUMENT DECIDES ITS PARITY AND ITS MIDDLE PAIR AT RUN TIME (kb/Work PB4827, PB4859). An odd count
-            // selects (§2023:15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
+            // ⛔ A MEDIAN DECIDES ITS PARITY, ITS MIDDLE PAIR AND THEIR KINDS AT RUN TIME (kb/Work PB4827, PB4859, PB4891). An odd count selects
+            // (§2023:15.61.4 1), the exact lane keeps the selected argument's own kind); an even count is the mean of the two middle values
             // (§2023:15.61.4 2)), a new value that is the binary64 mean when a MIDDLE value is binary64 (DOC-A.1-92b), as the float lane forms it for
-            // a count the binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair), and the exact mean when both are fixed-point. The exact
-            // lane reaches here for a binary64 beside a fixed-point item, of two kinds, or over a run-time count (SelectionNeedsExactLane), and
-            // which values are the middle pair is a run-time fact, so the body takes each argument's binary64-ness beside its exact value.
-            "MedianScaled" when !num.StandardDecimal && AnyRealArgument(ic)
-                => Exact("MedianBinary64Exact", $"{mode}, {Binary64FlagList(ic)}, {ExactValueArgList(ic)}", null),
+            // a count the binder knows (IntrinsicCarrierRules.ReturnsMeanOfMiddlePair), and the exact mean when both are fixed-point. Which values
+            // are the middle pair is a run-time fact, and so is the kind of a nested selection's returned content (MAX (F M2) returns F's or
+            // M2's), so the body reads each middle's binary64-ness off its exact value (CobolExact.TryBinary64), never off the written operands.
             "MedianScaled" when !num.StandardDecimal => Exact("MedianExact", $"{mode}, {ExactValueArgList(ic)}", null),
             "MidrangeScaled" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("MidrangeExact", $"{mode}, {ExactValueArgList(ic)}")),
             "Variance" when !num.StandardDecimal => Dec(RuntimeApi.Intrinsic("VarianceExact", $"{mode}, {ExactValueArgList(ic)}")),

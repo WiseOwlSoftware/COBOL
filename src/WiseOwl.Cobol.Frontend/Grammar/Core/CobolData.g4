@@ -246,9 +246,10 @@ linkageSection
 // item (§2023:13.16.3 SR4: no entry-name clause is the filler format; §2023:13.18.60.2: `[ USAGE IS ]` is optional).
 // entryNameHere() refuses the name reading only where the targeted edition reserves the word AND the clause reading
 // parses, so `05 DEFAULT PIC X.` still names DEFAULT and draws the funnel's 0901, and a word an edition leaves free
-// (NATIONAL at COBOL-85) is still a name.
+// (NATIONAL at COBOL-85) is still a name. The report group description entry asks the same predicate of its own clause
+// list (CobolReportWriter.g4 reportGroupEntry, kb/Work PB4889).
 dataDescriptionEntry
-    : levelNumber ({entryNameHere()}? dataName)? dataDescriptionBody DOT
+    : levelNumber ({entryNameHere(RULE_dataDescriptionBody)}? dataName)? dataDescriptionBody DOT
     ;
 
 levelNumber

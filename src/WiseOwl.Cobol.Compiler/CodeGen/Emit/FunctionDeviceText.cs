@@ -96,7 +96,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         if (x.Dec) return RuntimeApi.FunctionDeviceTextDec(x.Expr, Comma);
         if (x.Wide) return RuntimeApi.FunctionDeviceTextWide(x.Expr, x.Scale, Comma);
         // A run-time-scaled exact value (kb/Work PB4575: INTEGER (P + 2.0E0)) settles into the temporary that keeps every digit.
-        if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr), Comma);
+        if (x.Exact) return RuntimeApi.FunctionFieldText(RuntimeApi.FunctionFieldOfExact(x.Expr, num.IntermediateMode), Comma);
         if (x.U) return RuntimeApi.FunctionDeviceTextDec(num.DecOperand(x), Comma);
         return RuntimeApi.FunctionDeviceTextScaled(x.Expr, x.Scale, Comma);
     }
@@ -137,7 +137,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         x.Real ? FloatField(x)
         : x.Dec ? RuntimeApi.FunctionFieldOfValue(x.Expr)
         : x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)
-        : x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)
+        : x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr, num.IntermediateMode)
         : RuntimeApi.FunctionFieldOfValue(num.DecOperand(x));
 
     /// <summary>The argument list of a selecting function: the comma list, or one array expression when a table(ALL) is among
@@ -199,7 +199,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 // MEDIAN's mean reads the same middle kind on DISPLAY as on COMPUTE (kb/Work PB4859 review R1-1).
                 return value.Real ? FloatField(value)
                     : value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
-                    : value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)
+                    : value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr, num.IntermediateMode)
                     : RuntimeApi.FunctionFieldOfValue(num.DecOperand(value));
         }
     }

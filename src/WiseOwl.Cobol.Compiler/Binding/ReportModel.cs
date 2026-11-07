@@ -189,7 +189,7 @@ public sealed record ReportNamedEntry(string Name, IReadOnlyList<string?> Qualif
             string? name = ge.dataName().NameOrNull();
             if (name is not null)
                 entries.Add(new ReportNamedEntry(name, [.. Enumerable.Reverse(above).Select(a => a.Name)],
-                    ge.reportGroupClause().Any(c => c.reportSumClause() is not null)));
+                    ge.reportGroupBody().reportGroupClause().Any(c => c.reportSumClause() is not null)));
             above.Add((level, name));
         }
         return entries;
