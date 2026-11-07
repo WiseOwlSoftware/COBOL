@@ -61,8 +61,8 @@ public static partial class CobolIntrinsics
         return xs.Length % 2 != 0 ? median : CobolExact.FromDec(median.ToDecRounded(mode));
     }
 
-    /// <summary>MEDIAN (§15.61.4) over arguments that are ALL binary64 (a float item's content or an engine's approximation) whose count
-    /// is a run-time fact (kb/Work PB4827): an odd count returns the selected argument whole, as its own kind (§15.61.4 1)); an even
+    /// <summary>MEDIAN (§15.61.4) over arguments of which at least one is binary64 (a float item's content or an engine's approximation)
+    /// and whose count is a run-time fact (kb/Work PB4827, PB4859): an odd count returns the selected argument whole, as its own kind (§15.61.4 1)); an even
     /// count is the mean of the two middle values (§15.61.4 2)), a new value that beside binary64 arguments is evaluated in binary64
     /// (§15.4.1: "an implementor-defined approximation of the value of that expression"), as <see cref="MedianReal"/> forms it for a
     /// count the binder knows, and it lands as the float item it derives from does (<see cref="CobolExact.FromBinary64"/>).</summary>

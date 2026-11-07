@@ -216,15 +216,15 @@ public readonly struct FunctionValueField
     {
         (FunctionValueField low, FunctionValueField high, bool even) = MedianMiddles(arguments);
         if (!even) return low;
-        // ⛔ THE MEAN IS THE EXACT MEAN, THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§15.61.4 2), §15.4.1; kb/Work PB3953, PB4750, PB4826
-        // review R1-2): their exact sum times the exact one half, whatever form the sum takes, so DISPLAY shows what COMPUTE stores.
-        // Only two binary64 middles keep the SDIDI mean of their approximations: a sum truncated at 34 digits and then halved was
-        // 4.5 units off in its 34th digit, and MEDIAN (A B) = (A + B) / 2 was true on DISPLAY alone. Under a standard mode the
-        // mean is the SDIDI's (<see cref="MedianStandard"/>).
-        if (low._shape != Shape.Float || high._shape != Shape.Float)
-            return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
-        CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
-        return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));
+        // ⛔ THE MEAN IS THE ONE VALUE EVERY NATIVE CHANNEL GIVES (§15.61.4 2), §15.4.1; kb/Work PB3953, PB4750, PB4826 review R1-2, PB4859),
+        // so DISPLAY shows what COMPUTE stores. With a binary64 argument anywhere in the list the function's equivalent expression is
+        // evaluated in binary64 (docs/CONFORMANCE.md DOC-A.1-92b), as the renderer's float lane and CobolIntrinsics.MedianBinary64Exact
+        // form it: the mean of the two middles, each as its double. Otherwise it is the exact sum times the exact one half, whatever form
+        // the sum takes (a sum truncated at 34 digits and then halved was 4.5 units off in its 34th digit, and MEDIAN (A B) = (A + B) / 2
+        // was true on COMPUTE alone). Under a standard mode the mean is the SDIDI's (<see cref="MedianStandard"/>).
+        if (arguments.Any(a => a._shape == Shape.Float))
+            return OfFloat(CobolIntrinsics.MedianReal([.. arguments.Select(a => FloatResultant.FromExact(a.Exact(), CobolRounding.NearestEven, single: false))]));
+        return OfExact(CobolExact.Mul(CobolExact.Add(low.Exact(), high.Exact()), CobolExact.From(5, 1)));
     }
 
     /// <summary>MEDIAN under a STANDARD arithmetic mode (§15.61.4 2): the mean of the two middle values is the arithmetic expression

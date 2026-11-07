@@ -1306,7 +1306,9 @@ clause text and fails if a new member is silently exempted.
    (`9(29)` beside `V9(9)` sums to 1.0000000010e38, which the carrier holds, and is NOT routed). An argument of UNKNOWN bound (an
    intrinsic's value) beside an argument the alignment shifts is bounded by its carrier's 39 digits, past the `Int128`'s 38, so
    the list is routed too, as `CombineAdditive`'s exact additive takes the same operands (kb/Work PB4752, PB4792); with no shift
-   the alignment is the identity and the native arm keeps the list (MOD / REM are deliberately NOT routed: their value is a difference of nearly equal magnitudes — MOD(9E30,
+   the alignment is the identity and the native arm keeps the list; a WHOLE-VALUE argument (a nested call of this family, `NumX.Exact`) is such an operand of unknown bound
+   and run-time scale, read unlowered by `IntrinsicRenderer.AlignedOperands` (`AlignedOperand.RunTimeScaled`) so `SUM (SUM (A B) Z) ROUNDED` stores `.00` too, where the lowered 34-digit image
+   read as an SDIDI operand and stored `.01` (kb/Work PB4860); an even MEDIAN beside ANY binary64 argument is the binary64 mean on every channel, DISPLAY included (kb/Work PB4859) (MOD / REM are deliberately NOT routed: their value is a difference of nearly equal magnitudes — MOD(9E30,
    0.12345678) needs 39 digits of the dividend — so the 34-digit SDIDI body would answer an approximation silently where
    the native arm refuses loudly). ⚠ The note's first proposal — align to the RECEIVER's scale, as MAX/MIN do — is unsound for arithmetic
    (RANGE(0.6, −0.5) into a scale-0 receiver is 1.1 → 1, but arguments cut to scale 0 first give 0 − 0): the arguments keep
