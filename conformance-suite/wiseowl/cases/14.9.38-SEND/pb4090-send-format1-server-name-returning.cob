@@ -14,10 +14,10 @@
       *> PB4090): SRVNAME and SRVTWO are declared nowhere, and a server name is no data item, so neither is an error.
       *>   leg 1  SEND TO message-server-name-1 FROM identifier-1 RETURNING data-name-1;
       *>   leg 2  the same with the optional word TO omitted (14.9.38.2 prints TO without an underline, 5.2.3).
-      *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4): each SEND is accepted and performs no message I-O, so the program's output is its own
-      *> DISPLAYs. EXPECTED VALUES, DERIVED: nothing is sent or received, so WS-REPLY stays NULL (14.9.38.4 GR6 sets the tag only when a server run unit takes the message) and the
-      *> two tests of WS-REPLY find it NULL, as it began.
+      *> SEND is the asynchronous messaging facility (Annex A.3 item 4). No run unit serves the names sent to, so each SEND is
+      *> EC-MCS-NO-SERVER and unsuccessful (14.9.38.4 GR5). EXPECTED VALUES, DERIVED: nothing is received, so WS-REPLY stays NULL
+      *> (14.9.38.4 GR6 sets the tag only when a server run unit takes the message) and the two tests of WS-REPLY find it NULL, as
+      *> it began.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090F1.
        DATA DIVISION.

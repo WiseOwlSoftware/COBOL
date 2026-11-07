@@ -406,6 +406,36 @@ internal static class RuntimeApi
     public static string ContinueAfterScaled(string unscaledOfCarrierType, string scale, string checkLessThanZero) =>
         $"{nameof(CobolTiming)}.{nameof(CobolTiming.ContinueAfter)}({unscaledOfCarrierType}, {scale}, {checkLessThanZero})";
 
+    /// <summary>The interval of CONTINUE AFTER's value carried as ONE value (a binary64 or a standard-decimal <c>CobolDec</c>) — the shared
+    /// <c>CobolTiming.Interval(seconds)</c> a RECEIVE's wait reads (DESIGN-message-control.md §0 Q5).</summary>
+    public static string TimingInterval(string seconds) =>
+        $"{nameof(CobolTiming)}.{nameof(CobolTiming.Interval)}({seconds})";
+
+    /// <summary>The scaled-integer interval — <c>CobolTiming.Interval(unscaled, scale)</c>.</summary>
+    public static string TimingIntervalScaled(string unscaledOfCarrierType, string scale) =>
+        $"{nameof(CobolTiming)}.{nameof(CobolTiming.Interval)}({unscaledOfCarrierType}, {scale})";
+
+    /// <summary>The asynchronous messaging facility's statements (ISO §2023:14.9.38 SEND, §2023:14.9.31 RECEIVE; kb/Work PB4744): one call of
+    /// <c>AsyncMessaging</c> each, returning the <c>MessageOutcome</c> the statement stores and dispatches from.</summary>
+    public static string AsyncSendToServer(string server, string image, string extents, string slots, string checking) =>
+        $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.SendToServer)}({server}, {image}, {extents}, {slots}, {checking})";
+
+    public static string AsyncSendResponse(string to, string image, string extents, string slots, string raising, string raisingLast, string checking) =>
+        $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.SendResponse)}({to}, {image}, {extents}, {slots}, {raising}, {raisingLast}, {checking})";
+
+    /// <summary>The message tags of a message area's leaf vector, the slots a SEND carries beside its image (<c>AsyncMessaging.TagsOf</c>, kb/Work PB4744).</summary>
+    public static string AsyncTagsOf(string leaves) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.TagsOf)}({leaves})";
+
+    /// <summary>The leaf vector with the received message's tags in place of the area's own (<c>AsyncMessaging.WithTags</c>).</summary>
+    public static string AsyncWithTags(string leaves, string tags) => $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.WithTags)}({leaves}, {tags})";
+
+    public static string AsyncReceive(string from, string capacity, string wait, string checking) =>
+        $"{nameof(AsyncMessaging)}.{nameof(AsyncMessaging.Receive)}({from}, {capacity}, {wait}, {checking})";
+
+    /// <summary>A RECEIVE's wait, spelled so a rename of the kinds breaks here.</summary>
+    public static string MessageWaitOf(MessageWaitKind kind, string seconds = "0") =>
+        $"new {nameof(MessageWait)}({nameof(MessageWaitKind)}.{kind}, {seconds})";
+
     /// <summary>Set the run-unit termination status passed to the OS as the process exit code (ISO §2023:14.9.42.4 GR5 /
     /// §2023:14.9.18.4 GR10) — <c>RunUnit.SetExitStatus(status)</c>.</summary>
     public static string SetExitStatus(string status) =>

@@ -245,6 +245,16 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
                       + "phrase where the depending on data item is not within identifier-1, the POINTER clause, the FUNCTION-POINTER clause or the "
                       + "PROGRAM-POINTER clause") + ".\"");
         }
+        // A message tag lives in a managed slot of the group that holds it and is no part of the item's image (DOC-A.1-212): a FIXED group's tags travel beside its image
+        // (MessagingEmitter, AsyncMessaging.TagsOf; DESIGN-message-control.md section 4.4). A VARIABLE-LENGTH group is received by its contiguous decomposition
+        // (FromContiguousImage), which has no tag-skipping form, so its tag would be lost silently: refused (kb/Work PB4744's lead).
+        if (place.DenotedItem is not null && root.IsGroup && DataItem.HasVariableLengthSubordinate(root)
+            && DataItem.DescendantsOf(root).FirstOrDefault(i => i.IsElementary && ItemCategory.IsMessageTag(i)) is { } tag)
+        {
+            using var at = ctx.Edition.At(operand);
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.MessagingTagInMessageArea,
+                $"{(receiving ? "RECEIVE GIVING" : "SEND FROM")} '{DataBinder.WrittenText(operand)}': its subordinate '{tag.CobolName}' is a message tag in a variable-length group");
+        }
         return null;
     }
 

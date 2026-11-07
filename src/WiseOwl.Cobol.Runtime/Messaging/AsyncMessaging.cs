@@ -1,0 +1,128 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Runtime.Messaging;
+
+namespace WiseOwl.Cobol.Runtime;
+
+/// <summary>How a RECEIVE waits (ISO §2023:14.9.31.4 GR2; docs/rearchitecture/DESIGN-message-control.md §0 Q5).</summary>
+public enum MessageWaitKind
+{
+    /// <summary>No CONTINUE phrase: until a message or an exception arrives.</summary>
+    Forever,
+
+    /// <summary>CONTINUE AFTER MESSAGE RECEIVED: ask once.</summary>
+    MessageReceived,
+
+    /// <summary>CONTINUE AFTER n SECONDS, n already evaluated by <see cref="CobolTiming.Interval(double)"/>'s rule (whole seconds, at most <see cref="CobolTiming.MaxSeconds"/>, -1 for a value below zero); zero and a negative value ask once.</summary>
+    Seconds,
+}
+
+/// <summary>How long a RECEIVE waits for a message (§2023:14.9.31.4 GR2).</summary>
+public readonly record struct MessageWait(MessageWaitKind Kind, long Seconds)
+{
+    internal static readonly MessageWait Forever = new(MessageWaitKind.Forever, 0);
+    internal static readonly MessageWait Poll = new(MessageWaitKind.MessageReceived, 0);
+
+    /// <summary>True when the RECEIVE asks once and never waits.</summary>
+    internal bool AsksOnce => Kind == MessageWaitKind.MessageReceived || (Kind == MessageWaitKind.Seconds && Seconds <= 0);
+}
+
+/// <summary>
+/// How one SEND or RECEIVE ended, as the generated statement needs it (docs/rearchitecture/DESIGN-message-control.md §5.7).
+/// <para><see cref="Successful"/> chooses the ON EXCEPTION or NOT ON EXCEPTION phrase whatever the checking (§0 Q8). <see cref="Raised"/> is the level-3
+/// exception-name the statement set to exist, non-null only when checking for it is enabled at the statement (§2023:14.6.13.1.1) and the unsuccessful
+/// execution is a condition at all; the generated code then runs the §2023:14.6.13.1.3 / §2023:14.6.13.1.4 selection over it, and <see cref="RaisedFatal"/> is
+/// Table 13's fatality of that name. <see cref="Image"/>, <see cref="Extents"/> and <see cref="Slots"/> are the message a RECEIVE took (an unsuccessful RECEIVE
+/// of a reply that raised, or of a message longer than identifier-1, still carries its message, §0 Q6, Q7); <see cref="Length"/> is what data-name-2 receives, or
+/// null when it stays unchanged; <see cref="Tag"/> is the server tag a SEND Format 1 returns or the requestor tag a RECEIVE reports.</para>
+/// </summary>
+public readonly record struct MessageOutcome(
+    bool Successful, MessageTag Tag, string? Image, RecordExtents? Extents, object?[]? Slots, long? Length,
+    string? Raised, bool RaisedFatal, string? Detail);
+
+/// <summary>
+/// ⛔ THE ASYNCHRONOUS MESSAGING FACILITY'S STATEMENTS, AS GENERATED CODE CALLS THEM (ISO §2023:14.9.38 SEND, §2023:14.9.31 RECEIVE;
+/// docs/rearchitecture/DESIGN-message-control.md §5.7, §4.5; kb/Work PB4744). Each entry runs the statement on the current run unit's
+/// <see cref="MessagingPeer"/> (which blocks until the protocol completes it) and then does the one thing the peer cannot: the statement's EXCEPTION CONDITION.
+/// The peer names an unsuccessful execution's condition; whether it is RAISED is the statement's own checking (§2023:14.6.13.1.1 — "it is raised only if checking
+/// for that exception condition is enabled"), so the entry asks the statement's <see cref="EcCheckingProfile"/>, and only then sets the last exception status.
+/// <para>⛔ ONE MECHANISM FOR EVERY NAME. The message control system chooses the name (EC-MCS-NO-SERVER, EC-MCS-INVALID-TAG, the termination replies) and a server
+/// chooses the name its requestor learns (§2023:14.9.38.4 GR8, §0 Q6), so no compile-time flag could name it: the statement carries its profile into the run
+/// (<c>IProfiledStatement</c>), as an activating statement does for a name <c>GOBACK … RAISING LAST</c> stages. A level-1 or level-2 name a server forwards
+/// sets nothing (Q6: "Only the lowest level exception-names are associated with exception status indicators", §2023:14.6.13.1.1).</para>
+/// </summary>
+public static class AsyncMessaging
+{
+    /// <summary>SEND Format 1 (§2023:14.9.38.4 GR4 to GR6): offers the message image to the run unit that serves <paramref name="server"/> and waits until one takes it.</summary>
+    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, object?[] slots, string checking) =>
+        Outcome(RunUnit.Current.Messaging.Send(server, new MessageBody(image, extents, slots)), checking);
+
+    /// <summary>SEND Format 2 (§2023:14.9.38.4 GR7, GR8): answers the requestor <paramref name="to"/> names. <paramref name="raising"/> is the written
+    /// exception-name, <paramref name="raisingLast"/> the LAST phrase, which sends "the name of the last exception raised in the current run unit" or none.</summary>
+    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising, bool raisingLast, string checking) =>
+        Outcome(RunUnit.Current.Messaging.SendResponse(to, new MessageBody(image, extents, slots), raisingLast ? LastExceptionName() : raising), checking);
+
+    /// <summary>RECEIVE (§2023:14.9.31.4): <paramref name="capacity"/> is identifier-1's maximum length in character positions.</summary>
+    public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking) =>
+        Outcome(RunUnit.Current.Messaging.Receive(from, capacity, wait), checking, lessThanZero: wait.Kind == MessageWaitKind.Seconds && wait.Seconds < 0);
+
+    /// <summary>The message tags a message area holds, in storage order, from the area's leaf vector (<c>AsLeaves</c>: a nested group is a nested vector, a table an array of
+    /// its occurrences): the slots that travel beside the image (§2023:14.9.38.4 GR4 - "The message contains the content of" identifier-1 - and §2023:14.9.31.4 GR1; a tag
+    /// lives in a managed slot and is no part of the image, DOC-A.1-212; docs/rearchitecture/DESIGN-message-control.md section 4.4). Every other leaf is image.</summary>
+    public static object?[] TagsOf(object?[] leaves)
+    {
+        var tags = new List<object?>();
+        Collect(leaves);
+        return [.. tags];
+
+        void Collect(object? value)
+        {
+            if (value is MessageTag) tags.Add(value);
+            else if (value is Array elements and not byte[] and not char[])
+                foreach (object? element in elements) Collect(element);
+        }
+    }
+
+    /// <summary>The inverse of <see cref="TagsOf"/>: a copy of a message area's leaf vector whose tags, in storage order, are <paramref name="tags"/> - the slots of a received
+    /// message. A tag the message did not carry (the receiving area holds more than the sender's did) is <see cref="MessageTag.Null"/>: its positions were filled with spaces
+    /// (§2023:14.9.31.4 GR1), and a tag is never made of them.</summary>
+    public static object?[] WithTags(object?[] leaves, object?[]? tags)
+    {
+        int next = 0;
+        return (object?[])Replace(leaves)!;
+
+        object? Replace(object? value)
+        {
+            if (value is MessageTag) return next < (tags?.Length ?? 0) ? tags![next++] : MessageTag.Null;
+            if (value is not Array elements || value is byte[] or char[] || !MayHoldTags(elements.GetType().GetElementType()!)) return value;
+            var copy = (Array)elements.Clone();
+            for (int i = 0; i < copy.Length; i++) copy.SetValue(Replace(elements.GetValue(i)), i);
+            return copy;
+        }
+
+        static bool MayHoldTags(Type element) => element == typeof(MessageTag) || element == typeof(object) || element.IsArray;
+    }
+
+    private static string? LastExceptionName() =>
+        ExceptionState.LastName is { } name && name != ExceptionState.ObjectSentinel ? name : null;   // an exception OBJECT has no name to send (GR8: none raised sends none)
+
+    private const string ContinueLessThanZero = "EC-CONTINUE-LESS-THAN-ZERO";
+
+    /// <param name="lessThanZero">A RECEIVE whose CONTINUE AFTER value is negative (§0 Q5): the value is zero, and EC-CONTINUE-LESS-THAN-ZERO is set to exist as
+    /// §2023:14.9.9.4 GR1 b) does for the CONTINUE statement; nonfatal, and a RECEIVE that also failed reports its own condition instead.</param>
+    private static MessageOutcome Outcome(StatementResult result, string checking, bool lessThanZero = false)
+    {
+        string? raised = null;
+        bool fatal = false;
+        if ((result.ExceptionName ?? (lessThanZero ? ContinueLessThanZero : null)) is { } name
+            && ExceptionCatalog.TryGet(name, out var info) && info.Level == 3      // a level-1 or level-2 name sets no condition (Q6)
+            && EcCheckingProfile.Of(checking).Enabled(info.Name))
+        {
+            fatal = info.IsFatal;
+            ExceptionState.Set(info.Name, fatal);
+            raised = info.Name;
+        }
+        return new MessageOutcome(result.Successful, result.Tag, result.Image, result.Extents, result.Slots, result.Length, raised, fatal, result.Detail);
+    }
+}

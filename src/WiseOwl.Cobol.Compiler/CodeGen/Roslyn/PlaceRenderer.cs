@@ -576,6 +576,17 @@ internal static class PlaceRenderer
     public static string WriteFullGroupImage(Place group, string image, string context) =>
         group is OdoGroupPlace o ? WriteFullGroupImage(o.Inner, image, context) : WriteGroupImage(group, image, context);
 
+    /// <summary>The store of a received message's image into a group that holds message tags (kb/Work PB4744; §2023:14.9.31.4 GR1): the record struct's generated
+    /// <c>FromMessageImage</c>, which distributes every position but a tag's placeholder (<c>GroupImageCodec.HoldsOnlyMessageTagSlots</c>). A group in a storage cell
+    /// takes the image through its window as any group image does - its tags are slots of the cell beside the bytes - and an occurs-depending wrapper is unwrapped.
+    /// The tags follow through <see cref="GroupLeaves"/> / <see cref="WriteGroupLeaves"/>.</summary>
+    public static string WriteMessageGroupImage(Place group, string image, string context) => group switch
+    {
+        OdoGroupPlace o => WriteMessageGroupImage(o.Inner, image, context),
+        RedefViewPlace or RenamesPlace => WriteGroupImage(group, image, context),
+        _ => $"{GroupTarget(group)}.FromMessageImage({image});",
+    };
+
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
     /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the

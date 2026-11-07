@@ -945,20 +945,40 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
-        if (!group.ElementImageCapable) return;   // one-way (PB244): no FromImage over a pointer/object leaf
-        using (w.Block("public void FromImage(string __s)"))
+        if (!group.ElementImageCapable)
         {
-            w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
-            int off = 0;
-            foreach (var f in members)
-            {
-                EmitMemberFromImage(f, off, w);
-                off += f.Width;
-            }
+            // one-way (PB244): no FromImage over a pointer/object leaf. A group whose only managed slots are MESSAGE TAGS has the receiving half a message needs,
+            // FromMessageImage: the image's other positions distribute as FromImage does and a tag's placeholder positions are skipped, the tag itself arriving beside
+            // the image as a slot (kb/Work PB4744; §2023:14.9.31.4 GR1; DESIGN-message-control.md section 4.4). It is no FromImage because the placeholder image is not
+            // injective (equality and a group MOVE must keep asking the two-way capability).
+            if (HoldsOnlyMessageTagSlots(group)) EmitFromImage("FromMessageImage", messageImage: true);
+            return;
         }
+        EmitFromImage("FromImage", messageImage: false);
         if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
         if (group.GroupUsage is GroupUsage.National) EmitNatMethods(group, w);
+
+        void EmitFromImage(string method, bool messageImage)
+        {
+            using (w.Block($"public void {method}(string __s)"))
+            {
+                w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
+                int off = 0;
+                foreach (var f in members)
+                {
+                    EmitMemberFromImage(f, off, w, messageImage);
+                    off += f.Width;
+                }
+            }
+        }
     }
+
+    /// <summary>⛔ THE ONE QUESTION "does this group's receiving half skip message-tag positions?" (kb/Work PB4744): the group holds at least one managed slot and every
+    /// slot it holds is a message tag. A pointer or object-reference slot is no case - SEND SR3 and RECEIVE SR2 refuse them in a message area, and their groups keep the
+    /// one-way image alone. The nested-struct arm of <see cref="EmitMemberFromImage"/> asks it of the nested group, so a struct and the struct inside it agree on the method
+    /// that distributes the image.</summary>
+    private static bool HoldsOnlyMessageTagSlots(DataItem group) =>
+        SlotWindow.MembersOf(group) is var slots && slots.Any() && slots.All(ItemCategory.IsMessageTag);
 
     /// <summary>A NATIONAL GROUP's elementary face (ISO §2023:13.18.29.4 GR2b — "a national group is treated as though
     /// it were an elementary data item of usage national and class and category national described with PICTURE
@@ -1272,7 +1292,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// leaf's sign lives in those bytes (two's complement / the sign nibble) and its <c>SignKind</c> — a DISPLAY
     /// concern — is not consulted at all. The former <c>ImageProfileOf</c> sign rewrite existed only because the
     /// image was a zoned digit run that had to carry a fixed-width sign.</para></summary>
-    private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w)
+    private static void EmitMemberFromImage(PhysicalModel.Physical f, int off, CodeWriter w, bool messageImage = false)
     {
         // D19/PB43 — the run's leader unpacks the shared byte(s) ONCE and distributes the boolean positions back
         // to each member in declaration order; the continuations have Width 0 and consume no slice.
@@ -1302,6 +1322,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             return;
         }
         if (f.Width == 0) return;   // a run continuation — its value came from the leader's unpack
+        // A message tag rides beside the image as a slot (kb/Work PB4744): in the message image its placeholder positions are skipped.
+        if (messageImage && f.SlotLeaf is not null) return;
+        // A nested struct that holds message tags distributes by its own FromMessageImage in the message image (HoldsOnlyMessageTagSlots), else by FromImage.
+        string fromImage = messageImage && f.Group is { } nested && HoldsOnlyMessageTagSlots(nested) ? "FromMessageImage" : "FromImage";
         // ⛔ THE INVERSE OF AsImageOf's national arm (kb/Work PB327): decode the UTF-16BE byte pairs back to the
         // leaf's character positions through CobolBits.NatReadWindow — the inverse CobolBits.NatBytes names, never
         // a second decoder. A pair the image is too short to hold decodes as the NATIONAL space, which is exactly
@@ -1329,14 +1353,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct
-                ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
+                ? $"{f.Name}.{fromImage}(__s.Substring({off}, {f.Width}));"
                 : $"{f.Name} = {CarrierFromChars(f, $"__s.Substring({off}, {f.Width})")};");
             return;
         }
         int elem = f.Width / f.Occurs;   // per-occurrence width (Width = elem × Occurs, exact by construction)
         using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
             w.Line(f.IsGroupStruct
-                ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
+                ? $"{f.Name}[__i].{fromImage}(__s.Substring({off} + __i * {elem}, {elem}));"
                 : $"{f.Name}[__i] = {CarrierFromChars(f, $"__s.Substring({off} + __i * {elem}, {elem})")};");
     }
 

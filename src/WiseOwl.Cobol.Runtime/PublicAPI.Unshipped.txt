@@ -42,6 +42,7 @@ WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.get -> bool
 WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.PointerType.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.PointerType.init -> void
+WiseOwl.Cobol.Runtime.AsyncMessaging
 WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
 WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision
@@ -183,6 +184,29 @@ WiseOwl.Cobol.Runtime.IO.KeySegment.Length.init -> void
 WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.get -> int
 WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.init -> void
 WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
+WiseOwl.Cobol.Runtime.MessageOutcome
+WiseOwl.Cobol.Runtime.MessageOutcome.Deconstruct(out bool Successful, out WiseOwl.Cobol.Runtime.MessageTag Tag, out string? Image, out WiseOwl.Cobol.Runtime.RecordExtents? Extents, out object?[]? Slots, out long? Length, out string? Raised, out bool RaisedFatal, out string? Detail) -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Detail.get -> string?
+WiseOwl.Cobol.Runtime.MessageOutcome.Detail.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Equals(WiseOwl.Cobol.Runtime.MessageOutcome other) -> bool
+WiseOwl.Cobol.Runtime.MessageOutcome.Extents.get -> WiseOwl.Cobol.Runtime.RecordExtents?
+WiseOwl.Cobol.Runtime.MessageOutcome.Extents.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Image.get -> string?
+WiseOwl.Cobol.Runtime.MessageOutcome.Image.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Length.get -> long?
+WiseOwl.Cobol.Runtime.MessageOutcome.Length.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.MessageOutcome() -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.MessageOutcome(bool Successful, WiseOwl.Cobol.Runtime.MessageTag Tag, string? Image, WiseOwl.Cobol.Runtime.RecordExtents? Extents, object?[]? Slots, long? Length, string? Raised, bool RaisedFatal, string? Detail) -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Raised.get -> string?
+WiseOwl.Cobol.Runtime.MessageOutcome.Raised.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.RaisedFatal.get -> bool
+WiseOwl.Cobol.Runtime.MessageOutcome.RaisedFatal.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Slots.get -> object?[]?
+WiseOwl.Cobol.Runtime.MessageOutcome.Slots.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Successful.get -> bool
+WiseOwl.Cobol.Runtime.MessageOutcome.Successful.init -> void
+WiseOwl.Cobol.Runtime.MessageOutcome.Tag.get -> WiseOwl.Cobol.Runtime.MessageTag
+WiseOwl.Cobol.Runtime.MessageOutcome.Tag.init -> void
 WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageParty.None = 0 -> WiseOwl.Cobol.Runtime.MessageParty
 WiseOwl.Cobol.Runtime.MessageParty.Requestor = 2 -> WiseOwl.Cobol.Runtime.MessageParty
@@ -190,6 +214,19 @@ WiseOwl.Cobol.Runtime.MessageParty.Server = 1 -> WiseOwl.Cobol.Runtime.MessagePa
 WiseOwl.Cobol.Runtime.MessageTag
 WiseOwl.Cobol.Runtime.MessageTag.IsNull.get -> bool
 WiseOwl.Cobol.Runtime.MessageTag.MessageTag() -> void
+WiseOwl.Cobol.Runtime.MessageWait
+WiseOwl.Cobol.Runtime.MessageWait.Deconstruct(out WiseOwl.Cobol.Runtime.MessageWaitKind Kind, out long Seconds) -> void
+WiseOwl.Cobol.Runtime.MessageWait.Equals(WiseOwl.Cobol.Runtime.MessageWait other) -> bool
+WiseOwl.Cobol.Runtime.MessageWait.Kind.get -> WiseOwl.Cobol.Runtime.MessageWaitKind
+WiseOwl.Cobol.Runtime.MessageWait.Kind.init -> void
+WiseOwl.Cobol.Runtime.MessageWait.MessageWait() -> void
+WiseOwl.Cobol.Runtime.MessageWait.MessageWait(WiseOwl.Cobol.Runtime.MessageWaitKind Kind, long Seconds) -> void
+WiseOwl.Cobol.Runtime.MessageWait.Seconds.get -> long
+WiseOwl.Cobol.Runtime.MessageWait.Seconds.init -> void
+WiseOwl.Cobol.Runtime.MessageWaitKind
+WiseOwl.Cobol.Runtime.MessageWaitKind.Forever = 0 -> WiseOwl.Cobol.Runtime.MessageWaitKind
+WiseOwl.Cobol.Runtime.MessageWaitKind.MessageReceived = 1 -> WiseOwl.Cobol.Runtime.MessageWaitKind
+WiseOwl.Cobol.Runtime.MessageWaitKind.Seconds = 2 -> WiseOwl.Cobol.Runtime.MessageWaitKind
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.get -> string?
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Directory.init -> void
@@ -715,6 +752,8 @@ const WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.MaxFileBytes = 26843545
 override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.MessageOutcome.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.MessageWait.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Occurrence.ToString() -> string!
 override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.GetHashCode() -> int
@@ -730,6 +769,11 @@ static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(Wise
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassReturningViolation(WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cobol.Runtime.ActivationDescription! first, WiseOwl.Cobol.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
+static WiseOwl.Cobol.Runtime.AsyncMessaging.Receive(WiseOwl.Cobol.Runtime.MessageTag from, int capacity, WiseOwl.Cobol.Runtime.MessageWait wait, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
+static WiseOwl.Cobol.Runtime.AsyncMessaging.SendResponse(WiseOwl.Cobol.Runtime.MessageTag to, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, object?[]! slots, string? raising, bool raisingLast, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
+static WiseOwl.Cobol.Runtime.AsyncMessaging.SendToServer(string! server, string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents, object?[]! slots, string! checking) -> WiseOwl.Cobol.Runtime.MessageOutcome
+static WiseOwl.Cobol.Runtime.AsyncMessaging.TagsOf(object?[]! leaves) -> object?[]!
+static WiseOwl.Cobol.Runtime.AsyncMessaging.WithTags(object?[]! leaves, object?[]? tags) -> object?[]!
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.SdidiValue(WiseOwl.Cobol.Runtime.CobolPassMode mode, WiseOwl.Cobol.Runtime.CobolDec value, WiseOwl.Cobol.Runtime.SignEncoding signEncoding) -> WiseOwl.Cobol.Runtime.CobolArg
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.StoreReturn(WiseOwl.Cobol.Runtime.CobolArg? ret, WiseOwl.Cobol.Runtime.MessageTag value) -> void
 static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> WiseOwl.Cobol.Runtime.CobolArg
@@ -867,6 +911,10 @@ static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledI
 static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolTable.RequireOccurrences(long count) -> void
+static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.Int128 unscaled, int scale) -> long
+static WiseOwl.Cobol.Runtime.CobolTiming.Interval(System.UInt128 unscaled, int scale) -> long
+static WiseOwl.Cobol.Runtime.CobolTiming.Interval(WiseOwl.Cobol.Runtime.CobolDec seconds) -> long
+static WiseOwl.Cobol.Runtime.CobolTiming.Interval(double seconds) -> long
 static WiseOwl.Cobol.Runtime.CobolVarGroup.FromImage(string! image, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.GroupAtom![]! to) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.OfImage(string! image) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.OverlaidImage(string! current, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.CobolVarGroup! view, WiseOwl.Cobol.Runtime.GroupAtom![]! viewShape) -> string!
@@ -956,7 +1004,11 @@ static WiseOwl.Cobol.Runtime.IO.FileLockPosture.WhenOwedWritesAreAdmitted(WiseOw
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
+static WiseOwl.Cobol.Runtime.MessageOutcome.operator !=(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
+static WiseOwl.Cobol.Runtime.MessageOutcome.operator ==(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool
 static WiseOwl.Cobol.Runtime.MessageTag.SameParty(WiseOwl.Cobol.Runtime.MessageTag a, WiseOwl.Cobol.Runtime.MessageTag b) -> bool
+static WiseOwl.Cobol.Runtime.MessageWait.operator !=(WiseOwl.Cobol.Runtime.MessageWait left, WiseOwl.Cobol.Runtime.MessageWait right) -> bool
+static WiseOwl.Cobol.Runtime.MessageWait.operator ==(WiseOwl.Cobol.Runtime.MessageWait left, WiseOwl.Cobol.Runtime.MessageWait right) -> bool
 static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator ==(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
@@ -1006,6 +1058,10 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.IO.KeySegment.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.IO.KeySegment.ToString() -> string
+~override WiseOwl.Cobol.Runtime.MessageOutcome.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.MessageOutcome.ToString() -> string
+~override WiseOwl.Cobol.Runtime.MessageWait.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.MessageWait.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Equals(object obj) -> bool
