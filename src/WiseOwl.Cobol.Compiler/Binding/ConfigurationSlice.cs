@@ -308,6 +308,13 @@ public sealed class ConfigurationSlice(Action<Antlr4.Runtime.RuleContext?, strin
     /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>ProgramPrototypesOf</c> (kb/Work PB974).</summary>
     internal Dictionary<string, FunctionSpecifier> FunctionSpecifiers { get; } = new(CobolNames.Comparer);
 
+    /// <summary>The function-prototype-names whose <c>AS literal-5</c> was refused where it is written (§2023:12.3.8.3 SR2,
+    /// reported there). The word is still DECLARED by the REPOSITORY paragraph (it is in <see cref="UserFunctionNames"/>) but
+    /// registers no <see cref="FunctionSpecifiers"/> row, so a reference to it resolves to no prototype: that is the
+    /// refusal already reported, and the reference draws no COBOL1505 of its own (kb/Work PB4822, the function twin of
+    /// <see cref="RefusedProgramSpecifiers"/>).</summary>
+    internal HashSet<string> RefusedFunctionSpecifiers { get; } = new(CobolNames.Comparer);
+
     /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§2023:12.3.8 —
     /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §2023:8.4.3.2 SR2 precondition that lets the word
     /// FUNCTION be OMITTED when referencing that intrinsic (GR13). §2023:8.3.2 case-insensitive.</summary>
