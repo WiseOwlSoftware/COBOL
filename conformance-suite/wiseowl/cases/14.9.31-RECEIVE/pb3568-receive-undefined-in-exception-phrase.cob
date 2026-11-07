@@ -9,10 +9,7 @@
       *> ISO §2023:14.9.31.4 GR5 a) - "If the ON EXCEPTION phrase is specified in the RECEIVE statement, control is
       *> transferred to imperative-statement-1." - a statement the standard makes reachable is a statement.
       *>   cite.py: OK  §2023:14.9.31.4 5)  (General rules)
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md
-      *> section 4 item 1; Annex A.3 item 4, section 4.2.6). Declining a facility declines its behaviour, not the
-      *> identifiers its statements name: the statement binds to a no-op, and every operand that is an
-      *> identifier is still resolved (kb/Work PB3568). The program is otherwise legal; the facility exists at 2023.
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3568R2.
        DATA DIVISION.

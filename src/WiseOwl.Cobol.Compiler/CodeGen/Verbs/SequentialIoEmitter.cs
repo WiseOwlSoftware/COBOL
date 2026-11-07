@@ -1105,7 +1105,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// "the new value becomes the content of the item", truncated on the right at its maximum; a NATIONAL one
     /// decodes the record's byte pairs first, the inverse of its NatBytes image); a pointer-class record has no
     /// character image, so the record does not reach it and its value is unchanged.</summary>
-    private void EmitOutOfLineInto(Place record, string currentRecord, string currentExtents, bool fixedForm = false)
+    internal void EmitOutOfLineInto(Place record, string currentRecord, string currentExtents, bool fixedForm = false)
     {
         var w = ctx.Writer;
         var item = record.Item;

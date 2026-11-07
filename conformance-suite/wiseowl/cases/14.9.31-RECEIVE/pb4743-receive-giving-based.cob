@@ -7,8 +7,7 @@
       *> RECEIVE MT GIVING BUF WS-LEN, BUF being BASED. Expected: COBOL6266.
       *> ISO 14.9.31.3 SR2: identifier-1 "shall not contain ... the BASED clause".
       *>   cite.py: OK  14.9.31.3 2)  (Syntax rules)
-      *> SEND and RECEIVE are the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4); the statement is accepted inert, but its syntax rules are asked (kb/Work PB4743).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743N8.
        DATA DIVISION.

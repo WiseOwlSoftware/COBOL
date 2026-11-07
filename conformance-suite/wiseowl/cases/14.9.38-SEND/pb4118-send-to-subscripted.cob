@@ -12,9 +12,7 @@
       *> one dataReference position; the binder used to take any operand that is no message-tag item for a server name
       *> without asking how it was written (kb/Work PB4118).
       *>   cite.py: OK  14.9.38.3 2)  OK  8.4.2.3.1  OK  8.4.3.3.3 5)  OK  8.4.3.1.2
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4
-      *> item 1; Annex A.3 item 4): declining it declines its behaviour, not the syntax rules of its statements, and
-      *> the statement still reads its operands (kb/Work PB3568, PB4118).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4118N1.
        DATA DIVISION.

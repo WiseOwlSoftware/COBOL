@@ -245,6 +245,14 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
                       + "phrase where the depending on data item is not within identifier-1, the POINTER clause, the FUNCTION-POINTER clause or the "
                       + "PROGRAM-POINTER clause") + ".\"");
         }
+        // A message tag lives in a managed slot of the group that holds it and is no part of the item's image (DOC-A.1-212), so a group holding one would send and
+        // receive its image and lose the tag silently (DESIGN-message-control.md section 4.4 carries the slots beside the image; kb/Work PB4744's lead owes them).
+        if (place.DenotedItem is not null && root.IsGroup && DataItem.DescendantsOf(root).FirstOrDefault(i => i.IsElementary && ItemCategory.IsMessageTag(i)) is { } tag)
+        {
+            using var at = ctx.Edition.At(operand);
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.MessagingTagInMessageArea,
+                $"{(receiving ? "RECEIVE GIVING" : "SEND FROM")} '{DataBinder.WrittenText(operand)}': its subordinate '{tag.CobolName}' is a message tag");
+        }
         return null;
     }
 

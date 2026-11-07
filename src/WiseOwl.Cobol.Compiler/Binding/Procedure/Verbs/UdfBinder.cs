@@ -398,7 +398,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// is "the statement in which the inline invocation or function invocation was specified") and a §2023:15.4
     /// subscript temporary store alike (GR2 a) 1.: "the one in which the exception condition was raised"; before
     /// PB1432 an unmarked store's size-error landing wrote a <c>goto</c> inside a short-circuited operand's lambda,
-    /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IActivatingStatement"/> is also given THAT statement's
+    /// CS0159, and fell back INTO the statement when hoisted). An <see cref="IProfiledStatement"/> is also given THAT statement's
     /// §2023:7.3.25 checking profile (§2023:14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
     /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
     /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
@@ -420,10 +420,10 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         for (int i = 0; i < taken.Count; i++)
         {
             var step = taken[i] with { OperandEvaluation = true };
-            if (step is IActivatingStatement a)
+            if (step is IProfiledStatement a)
             {
                 profile ??= ctx.EcState.Turn.ProfileAt(host.StatementLine);
-                step = a.WithActivatorChecking(profile);
+                step = a.WithCheckingProfile(profile);
             }
             taken[i] = step;
             ctx.Data.Procedure.OperandEvaluations.Advance(ctx.Data.Procedure.OperandEvaluations.Current + 1);

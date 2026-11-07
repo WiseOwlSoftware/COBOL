@@ -429,7 +429,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <para>The DESCRIPTOR's <see cref="DiagnosticDescriptor.Severity"/> chooses the disposition, so the
     /// policy lives in the catalogue (where it is documented and drift-tested) and never in a local test at
     /// the site: <see cref="EditionSeverity.Warning"/> ⇒ ACCEPT-INERT (the facility is additive — the program
-    /// compiles, runs, and the facility does nothing: COBOL1578/1579/1778, satisfying §2023:4.2.6 ¶3's
+    /// compiles, runs, and the facility does nothing: COBOL1778, satisfying §2023:4.2.6 ¶3's
     /// mandatory compile-time warning mechanism for their Annex A.3 elements, and COBOL1580, whose A.4.14
     /// VALIDATE is instead a §2023:4.2.7 element this implementation documents rather than is obliged to warn about
     /// — kb/Work PB709; the descriptor's <c>Annex</c> datum is what tells the two apart);

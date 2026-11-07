@@ -12,9 +12,7 @@
       *> reference that uniquely identifies" the resource (kb/Work PB4118; before it the qualified name was taken for a
       *> server name and never resolved).
       *>   cite.py: OK  14.9.38.3 2)  OK  14.9.38.2  OK  8.4.2.2.2
-      *> SEND and RECEIVE are the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4
-      *> item 1; Annex A.3 item 4): declining it declines its behaviour, not the syntax rules of its statements, and
-      *> the statement still reads its operands (kb/Work PB3568, PB4118).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4118N5.
        DATA DIVISION.

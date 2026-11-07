@@ -68,7 +68,7 @@ OO mechanism (feedback_one_mechanism_per_job):
 - **The pickup** (`CallEmitter.EmitPropagationPickup`) has an object branch (slots exclusive): GR1b2
   re-registers in the activator → F4 dispatch (rule 2) → on `NoHandler`, item 3 (PROPAGATE ON) and else the item-4
   conversion: `ExceptionState.ConvertObjectPropagationToNamed()` re-stages the object as the NAMED EC-OO-EXCEPTION
-  for this activation, and the pickup's one NAMED arm (`TakeRaisedPropagation(site.ActivatorChecking…)`, the PB408
+  for this activation, and the pickup's one NAMED arm (`TakeRaisedPropagation(site.CheckingProfile…)`, the PB408
   activator gate) takes it from there: raised — last status set, the F3 tiers (EC-OO-EXCEPTION/EC-OO/EC-ALL match),
   unresumed ⇒ `CobolFatalException` (fatal per Table 13 — surviving needs RESUME AT NEXT STATEMENT, the standard
   fatal-EC protocol) — only when EC-OO-EXCEPTION checking is enabled in the ACTIVATING element, else nothing is
@@ -339,7 +339,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§2023
     (`+EC-USER;-EC-SIZE`), and the runtime folds it with `ExceptionCatalog.DirectiveCovers` — the GR2/GR3/GR4
     expansion, written ONCE and shared with `TurnState`'s compile-time fold (`EcCheckingProfileDriftTests` keeps
     the two answers equal). `TurnState.ProfileAt(line)` builds it; `EcBinder.EcWrap` stamps it on every
-    `IActivatingStatement` at the one `BindStatement` exit, recursing into a desugar sequence, so a new
+    `IProfiledStatement` at the one `BindStatement` exit, recursing into a desugar sequence, so a new
     activating node inherits it by implementing the interface. Whether the pickup is EMITTED still gates on the
     group's EC participation (zero scaffolding); whether it RAISES gates on the profile.
   - **An OPERAND-EVALUATION step — a function reference, an inline method invocation, an object-property
