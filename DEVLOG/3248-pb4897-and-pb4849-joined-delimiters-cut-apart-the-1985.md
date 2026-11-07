@@ -1,4 +1,4 @@
-## PB4897 and PB4849: joined delimiters cut apart, the 1985 pairing repaired, and the figure comparison tightened
+## Entry 3248 — 2026-11-07 05:25 PST — PB4897 and PB4849: joined delimiters cut apart, the 1985 pairing repaired, and the figure comparison tightened
 
 **PB4897 (landed; replayed from wave 20261891 B, commit 298949190e).** Amendment 1's bold face stands the brackets
 and braces of consecutive lines one on another, joined end to end, and the measurer read them as one tall bracket or a
@@ -29,3 +29,4 @@ Tests: planted 10h, 10i (and a direct `_deal` case), 10j and an OCR-misreading c
 new `figure_reading` self-test cases. The new raster cases fail against the base measurer (67/70 RED, the `_deal` case
 missing outright). Left as leads: a box around one typed delimiter, and `render_figure`'s ellipsis row after a tall
 brace. PB4850 is not started (blocked by PB4849). closes_rows: none (tooling and transcription).
+
