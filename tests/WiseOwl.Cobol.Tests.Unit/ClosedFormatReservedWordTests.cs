@@ -594,9 +594,9 @@ public sealed class ClosedFormatReservedWordTests
     [InlineData("01\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
     [InlineData("77\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
     [InlineData("01 W-A PIC X.\n       88\n" + Proc, 2023, "COBOL0307: unexpected 'PROCEDURE'. A period may be missing")]
-    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2002, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
-    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
-    [InlineData("01 SCREEN SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'SCREEN'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2002, "COBOL0307: unexpected 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: unexpected 'LOCAL-STORAGE'. A period may be missing")]
+    [InlineData("01 SCREEN SECTION.\n" + Proc, 2023, "COBOL0307: unexpected 'SCREEN'. A period may be missing")]
     [InlineData("01 W-A\n       LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: cannot parse construct near 'LOCAL-STORAGE'. A period may be missing")]
     [InlineData("01 W-A PIC X\n       LOCAL-STORAGE SECTION.\n" + Proc, 2023, "COBOL0307: missing token before 'LOCAL-STORAGE'. A period may be missing")]
     [InlineData("01 LOCAL-STORAGE SECTION.\n" + Proc, 85, "COBOL0001: cannot parse construct near 'SECTION'")]
@@ -671,16 +671,40 @@ public sealed class ClosedFormatReservedWordTests
     /// slot (it drew COBOL5506 listing every clause), the plain report <c>01 FILE SECTION.</c> draws in the working-storage
     /// section.</summary>
     [Theory]
-    [InlineData("SCREEN SECTION.\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
-    [InlineData("SCREEN SECTION.\n       01 S1 LINE 1 COL 1 VALUE \"X\".\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
-    [InlineData("SCREEN SECTION.\n       01 K CONSTANT AS 5.\n       01 REPORT SECTION.", "COBOL0001: cannot parse construct near 'REPORT'")]
-    [InlineData("REPORT SECTION.\n       RD R.\n       01 LINKAGE SECTION.", "COBOL0001: cannot parse construct near 'LINKAGE'")]
+    [InlineData("SCREEN SECTION.\n       01 LINKAGE SECTION.", "COBOL0001: unexpected 'LINKAGE'")]
+    [InlineData("SCREEN SECTION.\n       01 S1 LINE 1 COL 1 VALUE \"X\".\n       01 LINKAGE SECTION.", "COBOL0001: unexpected 'LINKAGE'")]
+    [InlineData("SCREEN SECTION.\n       01 K CONSTANT AS 5.\n       01 REPORT SECTION.", "COBOL0001: unexpected 'REPORT'")]
+    [InlineData("REPORT SECTION.\n       RD R.\n       01 LINKAGE SECTION.", "COBOL0001: unexpected 'LINKAGE'")]
     public void AnOutOfOrderHeaderAfterADanglingLevelNumber_IsNoKindExpected(string section, string diagnostic)
     {
         var errors = Compile(Head + "       DATA DIVISION.\n       " + section + "\n" + Proc);
         Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains("error " + diagnostic, errors[0]);
         Assert.DoesNotContain("COBOL5506", errors[0]);
+    }
+
+    /// <summary>⛔ A SECTION'S ENTRY LOOP NAMES NO ENTRY AFTER A HEADER'S FIRST WORD (kb/Work PB4818). The report section's loop
+    /// chooses between its two entry kinds before the level-number, where adaptive prediction reads
+    /// <c>noHeaderWrittenHere</c> as true, so it took a gated word as the name and died at SECTION. Each line is the report the
+    /// same words draw in the working-storage section where §8.9 reserves the word and §13.2.1 lets the header follow, the
+    /// out-of-order report where it does not, and the plain report at SECTION where §8.9 frees the word (85), and each is one
+    /// report, at whichever entry precedes the line and at any level-number.</summary>
+    [Theory]
+    [InlineData("01 SCREEN SECTION.", 2023, "(6,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
+    [InlineData("01 SCREEN SECTION.", 2002, "(6,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
+    [InlineData("02 SCREEN SECTION.", 2023, "(6,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
+    [InlineData("01 A TYPE DE.\n       01 SCREEN SECTION.", 2023, "(7,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
+    [InlineData("01 K CONSTANT AS 1.\n       01 SCREEN SECTION.", 2023, "(7,11): error COBOL0307: unexpected 'SCREEN'. A period may be missing")]
+    [InlineData("01 LOCAL-STORAGE SECTION.", 2023, "(6,11): error COBOL0001: unexpected 'LOCAL-STORAGE'")]
+    [InlineData("01 SCREEN DIVISION.", 2023, "(6,11): error COBOL0001: unexpected 'SCREEN'")]
+    [InlineData("01 COMMUNICATION SECTION.", 2002, "(6,11): error COBOL0001: unexpected 'COMMUNICATION'")]
+    [InlineData("01 SCREEN SECTION.", 85, "(6,18): error COBOL0001: cannot parse construct near 'SECTION'")]
+    [InlineData("01 MAIN SECTION.", 2023, "(6,16): error COBOL0001: cannot parse construct near 'SECTION'")]
+    public void AHeaderAfterAReportGroupsLevelNumber_IsReportedAtTheDataEntrysWord(string line, int edition, string diagnostic)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       REPORT SECTION.\n       RD R.\n       " + line + "\n" + Proc, edition);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains(diagnostic, errors[0]);
     }
 
     /// <summary>The legal readings the header rule leaves alone (kb/Work PB4706): a word that only STARTS like a header, a word
