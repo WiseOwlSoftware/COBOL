@@ -1,4 +1,4 @@
-## PB4813: verify_publishable reads the 2002 stamp, so the 2002 canary can be collected
+## Entry 3264 — 2026-11-07 11:41 PST — PB4813: verify_publishable reads the 2002 stamp, so the 2002 canary can be collected
 
 **Mechanism.** `scripts/spec/verify_publishable.py` keys its per-copy stamp shapes (`FORBIDDEN`, `TREE_FORBIDDEN`) by edition,
 and both tables had rows for 1985 and 2023 only. `transcribe_pdf.py collect --edition 2002` therefore stopped with "no
@@ -25,3 +25,4 @@ the number, the date and a name. 2002 still exits at its missing acknowledgment 
 tracked file: the planted name and number are assembled from pieces.
 
 **Gate.** The first gate was RED: `test_transcribe_pdf.py` expected `stamp_patterns(2002)` to exit, which the row ends. That self-test now drops a planted 2002 stamp from a page and tests the exit on a table copy without 2002. Re-gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,467/22,467 · Unit 40,427/40,427 · Characterization 37/37 cases ran (skipped 0)` (run 000002-20261107T190931Z).
+
