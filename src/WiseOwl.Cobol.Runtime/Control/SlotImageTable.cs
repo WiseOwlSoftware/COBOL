@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Runtime;
 internal sealed class SlotImageTable
 {
     private const int FirstSweepAt = 1024;
+    private static int s_lastTagSerial;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag id (review R2-1)
 
     private readonly object _gate = new();
     private readonly Dictionary<long, object> _bases = [];   // CellLife and NamedAddress held strongly, an identity as a WeakReference
@@ -58,7 +59,7 @@ internal sealed class SlotImageTable
     }
 
     /// <summary>The identifier of <paramref name="tag"/> in this run unit, assigned on first use (the process epoch in the high half,
-    /// 1, 2, 3 ... in the low); the message serial number is part of the key, because the tag read back must reply to the message it
+    /// a process-wide serial 1, 2, 3 ... in the low, so no two run units of a process share an id); the message serial number is part of the key, because the tag read back must reply to the message it
     /// was sent for.</summary>
     internal long TagId(MessageTag tag)
     {
@@ -67,7 +68,7 @@ internal sealed class SlotImageTable
         {
             if (!_tagIds.TryGetValue(key, out long id))
             {
-                id = (PointerImage.Epoch << 32) | (uint)(_tagIds.Count + 1);
+                id = (PointerImage.Epoch << 32) | (uint)Interlocked.Increment(ref s_lastTagSerial);
                 _tagIds[key] = id;
                 _tags[id] = tag;
             }

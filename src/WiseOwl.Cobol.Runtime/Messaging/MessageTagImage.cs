@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// VALUE is a <see cref="MessageTag"/> and its STORAGE is the 8 character positions every managed slot reserves; the standard
 /// leaves a message-tag item's representation to the implementor (§2023:13.18.60.4 GR9), and the owner decided (2026-11-06) that
 /// a file carries those 8 positions as a token the run unit reads back as the same tag. The token is the tag's identifier in
-/// the run unit's <see cref="SlotImageTable"/> (1, 2, 3 ...), big-endian like every binary item (DOC-A.1-205/207), and NULL is
+/// the run unit's <see cref="SlotImageTable"/> (the process epoch in the high four positions, a process-wide serial in the low four), big-endian like every binary item (DOC-A.1-205/207), and NULL is
 /// eight X"00" positions, the same NULL image every pointer category has (<see cref="PointerImage.NullImage"/>).
 /// <para>A token the run unit never assigned — one a file brought in from another run unit, or short-record padding — is NOT
 /// NULL: it decodes to a tag of party <see cref="MessageParty.Unresolved"/> that keeps its positions and images back unchanged, and

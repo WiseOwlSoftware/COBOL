@@ -130,6 +130,23 @@ public sealed class SlotImageRoundTripTests
     }
 
     [Fact]
+    public void AMessageTagTokenAnotherRunUnitOfThisProcessWrote_IsForeign_EvenWhenThisRunUnitImagedItsOwn()
+    {
+        // Review R2-1: tag ids counted from 1 in every run unit, so run unit B's first tag shared run unit A's first id.
+        string fromA = null!;
+        RunUnit.Run(unit => fromA = MessageTagImage.Of(new MessageTag("mcs", MessageParty.Server, "PAYROLL-A", 4)));
+        RunUnit.Run(unit =>
+        {
+            string own = MessageTagImage.Of(new MessageTag("mcs", MessageParty.Server, "OTHER-B", 9));
+            Assert.NotEqual(fromA, own);
+            var read = MessageTagImage.TagOf(fromA);
+            Assert.Equal(MessageParty.Unresolved, read.Party);
+            Assert.Equal(fromA, MessageTagImage.Of(read));
+            Assert.Equal("OTHER-B", MessageTagImage.TagOf(own).Name);
+        });
+    }
+
+    [Fact]
     public void AnEndedCellLife_IsNotRetainedByTheRunUnitsTable()
     {
         // Review R1-2: the reverse table held every imaged cell strongly for the life of the run unit.
