@@ -1,3 +1,4 @@
-## The merge queue's empty half hours, measured
+## Entry 3231 — 2026-11-06 18:49 PST — The merge queue's empty half hours, measured
 
 From 18:13 to 18:43 PST on 2026-11-06, the merge queue sat empty while two waves ran. Nothing was broken: no branch was reviewed CLEAN, so none could land. The waves' findings files show why. A review takes about five minutes, but in wave 20261887 every branch drew findings at round 1, and the fix round (a finisher's fix plus a full gate) took a median of 31 minutes before the re-review could start; in wave 20261885 the median was 43. The branches reach review together, so they enter the fix round together and the queue empties for a round. PB4888 records the measurements and the levers to test, which belong to the operator lane: fewer round-1 findings, a faster fix round, staggered release and a queue-idle metric.
+
