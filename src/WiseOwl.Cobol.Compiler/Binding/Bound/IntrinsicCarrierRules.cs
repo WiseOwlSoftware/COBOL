@@ -143,7 +143,10 @@ internal static class IntrinsicCarrierRules
     /// </list>
     /// A list of one kind of binary64 stays on the float lane: its content IS the double. So does an even-count MEDIAN of two kinds
     /// (<paramref name="meanOfMiddlePair"/>, kb/Work PB4753): the mean of the two middle values is a NEW value, evaluated as its
-    /// equivalent expression is (§15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low.
+    /// equivalent expression is (§15.4.1) in binary64 beside a float item, where the exact lane landed it one binary64 low. A MIXED
+    /// even list keeps the exact lane because WHICH values are the middle pair is a run-time fact: its body
+    /// (<c>CobolIntrinsics.MedianBinary64Exact</c>, kb/Work PB4859) forms the binary64 mean when a MIDDLE value is binary64 and the
+    /// exact mean when both are fixed-point (a binary64 elsewhere in the list is not an operand of the mean).
     /// </summary>
     internal static bool SelectionNeedsExactLane(bool anyBinary64, bool allBinary64, bool anyFloatItem, bool anyApproximation,
         bool meanOfMiddlePair) =>
@@ -182,8 +185,9 @@ internal static class IntrinsicCarrierRules
 
     /// <summary>An exact scaled operand: its unscaled digits (<c>NumX.Digits</c>, 0 when it has no bound of its own: an
     /// intrinsic's value, a windowed or image-decoded read), its scale and whether it is a table(ALL) argument, which stands for an
-    /// unknown number of elements.</summary>
-    internal readonly record struct AlignedOperand(int Digits, int Scale, bool TableAll)
+    /// unknown number of elements. <paramref name="RunTimeScaled"/> marks a whole-value operand (<c>NumX.Exact</c>: a nested call's
+    /// exact value, kb/Work PB4860) whose scale only the run time knows, so the alignment is taken to shift it.</summary>
+    internal readonly record struct AlignedOperand(int Digits, int Scale, bool TableAll, bool RunTimeScaled = false)
     {
         /// <summary>Is the operand's digit bound unknown (<c>NumX.Digits</c> 0)? It is then bounded by its 16-byte carrier's
         /// <see cref="PicInfo.CarrierDigitBound"/> digits, as <c>NumericRenderer.DigitBound</c> bounds it (kb/Work PB4752).</summary>
@@ -204,7 +208,7 @@ internal static class IntrinsicCarrierRules
         if (functionName is "MOD" or "REM" || operands.Count == 0 || operands.Any(x => x is null)) return false;
         var xs = operands.Select(x => x!.Value).ToList();
         int s = xs.Max(x => x.Scale);
-        return xs.Any(x => x.Unbounded) && xs.Any(x => x.Scale != s);
+        return xs.Any(x => x.Unbounded) && (xs.Any(x => x.Scale != s) || xs.Any(x => x.RunTimeScaled));
     }
 
     /// <summary>Can aligning a cross-aligning call's arguments to their common scale — and accumulating the aligned values —

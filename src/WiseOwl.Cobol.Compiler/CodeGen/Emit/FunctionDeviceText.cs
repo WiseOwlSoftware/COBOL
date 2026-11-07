@@ -188,7 +188,10 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 // an expression past the Int128 carrier holds every digit (kb/Work PB3953: GnuCOBOL's temporary is arbitrary-precision).
                 // So does one in which a wide value met an SDIDI operand (NumX.Exact, kb/Work PB4575), whose scale is the run time's.
                 NumX value = num.AsNum(a, ReceiverContext.None, keepWide: true);
-                return value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
+                // A binary64 expression (F + 0, NumX.Real) is a binary64 temporary, as ValueField describes a nested function's, so a
+                // MEDIAN's mean reads the same middle kind on DISPLAY as on COMPUTE (kb/Work PB4859 review R1-1).
+                return value.Real ? RuntimeApi.FunctionFieldOfFloat(value.Expr)
+                    : value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
                     : value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)
                     : RuntimeApi.FunctionFieldOfValue(num.DecOperand(value));
         }
