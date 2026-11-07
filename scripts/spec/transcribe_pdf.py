@@ -421,17 +421,20 @@ def local_pages(run: Run, pdf: pathlib.Path, model: str, pages: list[int], repla
     """Convert named pages with a local vision model; the provenance of each is recorded in local.json.
     A page that cannot be converted (every try of the request failed, the reply did not stop, or the stamp check refused it) is
     recorded in local.json with the error and the model, and the run goes on to the next page; the failed pages are returned
-    and `main` exits nonzero for them. `pages ... --local ANOTHER` retries them (a failed page has no file)."""
+    and `main` exits nonzero for them. `pages ... --local ANOTHER` retries them (a failed page has no file). A failed `--replace` leaves the written page and its record untouched."""
     digest = next((m["digest"] for m in post("/api/tags", None)["models"] if m["name"] == model), "")
     log = run.local_log()
     failed: list[int] = []
 
     def fail(pno: int, why: str) -> None:
         name = page_name(pno)
-        print(f"{name}: NOT written, {why}", flush=True)
+        kept = run.page_file(pno).exists()
+        print(f"{name}: NOT {'replaced' if kept else 'written'}, {why}", flush=True)
+        failed.append(pno)
+        if kept:  # a --replace that failed: the page and its provenance stay as they were, so the record never calls a written page failed
+            return
         log[name] = {"model": model, "error": why, "at": datetime.datetime.now().astimezone().isoformat()}
         write_atomic(run.local_file, json.dumps(log, indent=1))
-        failed.append(pno)
 
     for pno in pages:
         name = page_name(pno)

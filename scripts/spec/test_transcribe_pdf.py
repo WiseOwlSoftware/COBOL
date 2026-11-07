@@ -309,6 +309,15 @@ def main() -> int:
                 got = T.local_pages(T.Run(root / "bad", 1985), pdf3, "planted:1b", [1], False, post=backend, sleep=lambda s: None)
             check(f"{what} is a failed page, not a crash", got == [1])
 
+        always500 = lambda path, body: post(path, body) if path == "/api/tags" else (_ for _ in ()).throw(http500())
+        before = dict(flk.local_log()["p0001"])
+        text_before = flk.page_file(1).read_text(encoding="utf-8")
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = T.local_pages(flk, pdf3, "planted:3b", [1], True, post=always500, sleep=lambda s: None)
+        check("a failed --replace is returned but leaves the written page and its provenance untouched",
+              got == [1] and flk.local_log()["p0001"] == before and flk.page_file(1).read_text(encoding="utf-8") == text_before
+              and 1 not in flk.local_failed())
+
         print("check and agreement")
         recall, precision, md_words, layer_words = T.agreement("alpha beta gamma\n" + STAMP, "alpha beta gamma delta", 1985)
         check("recall counts layer words found, precision markdown words found",
