@@ -621,7 +621,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 11                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 13                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -648,6 +648,23 @@ def unit_failures():
     got = sorted((xo, xc) for xo, xc, *_ in R.enclosures(siblings, []))
     if got != [(0, 30), (40, 70)]:
         fails.append(f"enclosures: sibling braces paired as {got}, want [(0, 30), (40, 70)]")
+    # A brace's two pieces are one shape (kb/Work PB4849, 1985 PDF pages 407, 426, 559, 602): measured a row apart,
+    # they get one span and one point row, the labelled one; a sibling pair keeps its own; an agreeing pair keeps its point.
+    def span(x, r0, r1, side, mids):
+        t, m, b = ("ì", "í", "î") if side == "L" else ("ü", "ý", "þ")
+        return ((x,), r0, r1, [piece(t, x, r0)] + [piece(m, x, r) for r in mids] + [piece(b, x, r1)])
+
+    pieces = [span(10, 0, 4, "L", [2]), span(50, 1, 4, "R", [3]),        # a closer a row short, pointing a row low
+              span(60, 0, 2, "L", [1]), span(80, 0, 2, "R", [1])]        # a sibling whose pieces agree
+    spans, point = R.pair_glyphs(pieces, lambda b: b["y0"], {2: [55.0], 3: [0.0]})
+    got = [(r0, r1, sorted(point[id(g)])) for _, r0, r1, g in spans]
+    if got != [(0, 4, [3]), (0, 4, [3]), (0, 2, [1]), (0, 2, [1])]:
+        fails.append(f"pair_glyphs: a brace's pieces measured a row apart drawn as {got}, want one span 0-4 with its "
+                     "point on the row of the label left of the opener (3), and the sibling unchanged")
+    _, unlabelled = R.pair_glyphs(pieces[:2], lambda b: b["y0"], {})
+    if [sorted(unlabelled[id(g)]) for *_, g in pieces[:2]] != [[2], [2]]:
+        fails.append(f"pair_glyphs: with no label the opener's point wins, got {unlabelled}")
+
     # Choice bars have no hand: the second bar of a height closes the first.
     bars = [{"x": 5, "y0": 0, "y1": 30, "h": 30, "kind": "bar", "side": None},
             {"x": 50, "y0": 0, "y1": 30, "h": 30, "kind": "bar", "side": None}]

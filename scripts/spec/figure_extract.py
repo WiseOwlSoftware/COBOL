@@ -30,7 +30,7 @@ underlined on the rendered page and this function said it was not.
 
     python scripts/spec/figure_extract.py 632
     python scripts/spec/figure_extract.py 607 --band 130 320
-    python scripts/spec/figure_extract.py 190 --edition 2002     # another edition (default 2023); a scan is refused
+    python scripts/spec/figure_extract.py 190 --edition 2002     # another edition (default 2023); a scan is refused, naming spec_pdf.scan_check
 """
 from __future__ import annotations
 
