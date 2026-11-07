@@ -417,7 +417,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         using var _ = ctx.Edition.At(dref);
         return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §2023:8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
-            ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
+            ? ctx.Refs.Counters.LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §2023:8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15) — RWCS registers, intercepted ahead of name resolution
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
@@ -554,7 +554,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // like any other, so it takes the SAME §2023:8.8.1.1 class screen (kb/Work PB1142).
         return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? ScreenIdentifierOperand(kof, dref, context)
         : dref.LINAGE_COUNTER() is not null
-            ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
+            ? ctx.Refs.Counters.LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
                 : BoundExprError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §2023:8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §2023:8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
@@ -754,44 +754,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             : $"symbolic-character '{alias.Word}' is a figurative constant other than ZERO and is not a numeric operand "
                 + "(ISO §2023:8.8.1.1; §2023:12.3.7.4 GR11 a); §2023:8.3.3.6.3 SR1 a))");
         return BoundExprError.Refused(ctx.Edition, $"'{alias.Word}' in a numeric context");
-    }
-
-    /// <summary>Resolve a LINAGE-COUNTER reference to its file (ISO §2023:8.4.3.14): in the grammar alternative
-    /// <c>LINAGE_COUNTER ((OF|IN) cobolWord)?</c> the cobolWord IS the file-name qualifier. Unqualified, the
-    /// register resolves only when exactly ONE file has a LINAGE clause — with several, qualification is
-    /// required (§2023:8.4.3.14 SR3 / §2023:8.4.2.2). Null (the caller binds a loud error) for no/an ambiguous match,
-    /// with a bind-time diagnostic naming the rule.</summary>
-    private FileModel? LinageFileOf(Core.DataReferenceContext dref)
-    {
-        // ⛔ §2023:8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements". The report
-        // section's clause expressions (SOURCE, PRESENT WHEN, SUM, VARYING) bind through THIS binder with the report in
-        // scope, and this is the ONE producer of the LINAGE-COUNTER operand, so one test here refuses every such position
-        // — present and future — by BINDING CONTEXT; before it, `SOURCE LINAGE-COUNTER + 1` and `PRESENT WHEN
-        // LINAGE-COUNTER > 1` bound and read the live counter (kb/Work PB1431).
-        if (ctx.Refs.EnclosingReport is { } report)
-        {
-            DataBinder.ReportLinageCounterOutsideProcedure(ctx.Edition, dref, $"RD '{report.Name}': clause operand", DataBinder.WrittenText(dref));
-            return null;
-        }
-        if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
-        {
-            if (ctx.Data.State.VisibleFiles.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
-            ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
-                + "file whose file description entry contains a LINAGE clause (ISO §2023:8.4.3.14 / §2023:13.18.34.4 GR7a)");
-            return null;
-        }
-        // The VISIBLE set, not the program's own FD list (kb/Work PB123's sweep): VisibleFiles carries the
-        // containers' GLOBAL FDs too (§2023:13.18.27.4 GR1), so a contained program whose only LINAGE file is the
-        // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
-        // visible LINAGE files — own plus inherited — still require qualification (§2023:8.4.3.14 SR3).
-        var linageFiles = ctx.Data.State.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
-        if (linageFiles.Count == 1) return linageFiles[0];
-        ctx.Edition.Error(DiagnosticCatalog.LinageCounterWithoutLinage, linageFiles.Count == 0
-            ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §2023:8.4.3.14 — "
-              + "the register is generated by the presence of a LINAGE clause)"
-            : "unqualified LINAGE-COUNTER with more than one LINAGE file: qualify by file-name (ISO §2023:8.4.3.14 "
-              + "SR3 / §2023:8.4.2.2 Qualification)");
-        return null;
     }
 
     // Receiving references resolve through ResolveReceiving below — the ONE

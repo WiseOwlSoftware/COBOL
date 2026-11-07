@@ -21,10 +21,10 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// (<see cref="TakeLoopFires"/>). A fire the verb never landed is an internal error raised at the wrapper — never a trigger that silently
 /// did not run.</para>
 /// <para>DEBUG-CONTENTS is the item's storage image (rule 24 c: "the content of the data item referenced by identifier-1 at the time that
-/// control passes to the debugging section"; rule 11: no conversion), the CD's record-area image for a cd-name (rule 23 e), the file's record area for a READ and spaces for every other file-name fire (rule 23 c, d); DEBUG-SUB-n are the occurrence numbers of
+/// control passes to the debugging section"; rule 11: no conversion), a counter register's storage image (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER: no place stands for it), the CD's record-area image for a cd-name (rule 23 e), the file's record area for a READ and spaces for every other file-name fire (rule 23 c, d); DEBUG-SUB-n are the occurrence numbers of
 /// the reference's subscripted levels, outermost first (rule 14).</para>
 /// </summary>
-internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
+internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places, NumericRenderer num)
 {
     private IReadOnlyList<DebugFire> _beforeIo = [];
     private IReadOnlyList<DebugFire> _afterAction = [];
@@ -201,6 +201,7 @@ internal sealed class DebugTriggerEmitter(EmitContext ctx, PlaceTable places)
     {
         string contents = fire.Contents switch
         {
+            DebugContents.Register => OperandText.CounterRegisterStorageImage(new BoundComputedOperand(fire.Target.Register!), num),   // rule 24 c: the register has no place
             DebugContents.Spaces => "\"\"",   // rule 23 d: the register is space-filled, and nothing is moved into it
             DebugContents.FileRecord => places.RecordArea(fire.Target.File!) is { } area ? OperandText.RecordAreaImage(area) : "\"\"",   // rule 23 c
             _ when fire.Target.Kind is DebugTargetKind.CdName => OperandText.RecordAreaImage(fire.Referenced!),

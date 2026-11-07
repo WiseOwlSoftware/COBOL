@@ -60,7 +60,7 @@ internal sealed class UnitEmitters
 
         // Acyclic construction order (each ctor takes only already-built collaborators); the cycles close
         // via the property wiring below.
-        Debug = new DebugTriggerEmitter(Ctx, Places);   // the data-name, file-name and cd-name USE FOR DEBUGGING triggers (docs/CONTROL_FLOW_DESIGN.md D20)
+        Debug = new DebugTriggerEmitter(Ctx, Places, Num);   // the data-name, file-name and cd-name USE FOR DEBUGGING triggers (docs/CONTROL_FLOW_DESIGN.md D20)
         dispatchState.OwedBeforeTransfer = Debug.OwedBeforeTransferText;   // the RESUME landing runs the sections the abandoned statements owe (kb/Work PB4857)
         Brackets = new ReceiverBracketEmitter(Ctx);
         Move = new MoveEmitter(Ctx, Num, Places, Brackets);

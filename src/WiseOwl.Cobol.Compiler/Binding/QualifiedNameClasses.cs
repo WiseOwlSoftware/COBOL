@@ -47,9 +47,9 @@ internal static class QualifiedNameClasses
         new("qualified-record-key-name", Disposition.Resolved, typeof(Model.FileModel), "RecordKeyNameCandidates",
             "§2023:8.4.2.2.3 SR1 — every file's record-key-names (Format 6: one file-name qualifier) and the data-name reading "
             + "are one KeyNameReading set, counted by DataBinder.UniqueOrReportAmbiguous (kb/Work PB1099)"),
-        new("qualified-linage-counter", Disposition.Resolved, typeof(ExpressionBinder), "LinageFileOf",
+        new("qualified-linage-counter", Disposition.Resolved, typeof(CounterResolver), "LinageFileOf",
             "§2023:8.4.2.2.3 SR8"),
-        new("qualified-report-counter", Disposition.Resolved, typeof(ReportWriterBinder), "CounterReportOf",
+        new("qualified-report-counter", Disposition.Resolved, typeof(CounterResolver), "ReportOf",
             "§2023:8.4.2.2.3 SR9 + SR10"),
     ];
 }
