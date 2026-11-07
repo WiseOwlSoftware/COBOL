@@ -483,7 +483,45 @@ def main() -> int:
           bands[0] is not None and bands[1] is not None and bands[0][0] < 120 < 148 < bands[0][1] <= bands[1][0] < 190
           and bands[1][1] > 218, f"got {bands}")
 
-    # 9. REAL 1985 pages (kb/Work PB4848, PB4899): thirteen general-format regions cropped from the licensed scan, binarized,
+    # 8j. Two bold brackets of consecutive lines stood one on another, the bottom foot of the upper one joined to the
+    #     top foot of the lower one (kb/Work PB4897, PDF page 844), with paper at the stem's middle pixel where their
+    #     joined feet meet: two brackets of each hand, never one tall bracket and never a brace.
+    img = canvas()
+    for x, hand in ((20, "L"), (60, "R")):
+        for y0, y1 in ((20, 50), (50, 80)):
+            fill(img, x, y0, x + 1.2, y1)
+            fx = (x, x + 3.5) if hand == "L" else (x + 1.2 - 3.5, x + 1.2)
+            fill(img, fx[0], y0, fx[1], y0 + 1.0)
+            fill(img, fx[0], y1 - 1.0, fx[1], y1)
+        px0, px1 = int(round(x * S)), int(round((x + 1.2) * S))
+        mid, col = int(round(50 * S)), (px0 + px1) // 2
+        img[mid - 2:mid + 2, col - 1:col + 2] = 255                       # the paper between the joined feet
+    rp = R.measure_image(img)
+    total += 2
+    got = sorted((s["kind"], s["side"], round(s["h"])) for s in R.classify_page(rp))
+    check("brackets joined foot to foot are two brackets of each hand",
+          got == [("bracket", "L", 30), ("bracket", "L", 30), ("bracket", "R", 30), ("bracket", "R", 30)], f"got {got}")
+    check("joined brackets are no brace", rp.braces == [] and rp.unclassified == [], f"got {rp.braces} {rp.unclassified}")
+
+    # 8k. Two braces of consecutive lines joined hook to hook (kb/Work PB4897, PDF page 841's `{+|-}` pairs): two
+    #     braces, each with its own point, never one brace pointing at the joint; a single brace as tall is one.
+    img = canvas()
+    curly(img, 20, 20, 50, "L")
+    curly(img, 20, 50, 80, "L")
+    curly(img, 60, 20, 50, "R")
+    curly(img, 60, 50, 80, "R")
+    curly(img, 100, 20, 80, "L")
+    rp = R.measure_image(img)
+    total += 2
+    got = sorted((b["side"], round(b["x"] / 10), b["point"]) for b in rp.braces)
+    joined = [g for g in got if g[1] < 9]
+    check("braces joined hook to hook are two braces, each pointing at its own middle",
+          [g[:2] for g in joined] == [("L", 2), ("L", 2), ("R", 6), ("R", 6)]
+          and all(near(g[2], want, 1.5) for g, want in zip(joined, (35, 65, 35, 65))), f"got {got} {rp.unclassified}")
+    tall = [g for g in got if g[1] >= 9]
+    check("a single tall brace is not cut", len(tall) == 1 and tall[0][0] == "L" and near(tall[0][2], 50, 1.5), f"got {got}")
+
+    # 9. REAL 1985 pages (kb/Work PB4848, PB4897, PB4899): general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
     #    figure_raster_pages/calibration.json; a crop is measured with its page's skew. PDF page 222's crop holds no
     #    box: its underline fused to `SEQUENCE`'s Q read as a box 1.3 pt tall, and erased, until `find_boxes` required

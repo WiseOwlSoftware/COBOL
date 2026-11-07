@@ -272,6 +272,42 @@
    "underlines": null
   },
   {
+   "page": 841,
+   "file": "p0841.png",
+   "x0_pt": 40.0,
+   "y0_pt": 130.0,
+   "region_pt": [
+    133,
+    222
+   ],
+   "skew_deg": 0.0,
+   "stems_L": 2,
+   "stems_R": 2,
+   "bars": 0,
+   "braces_L": 4,
+   "braces_R": 4,
+   "boxes": 0,
+   "underlines": null
+  },
+  {
+   "page": 844,
+   "file": "p0844.png",
+   "x0_pt": 40.0,
+   "y0_pt": 433.0,
+   "region_pt": [
+    436,
+    525
+   ],
+   "skew_deg": -0.1,
+   "stems_L": 2,
+   "stems_R": 2,
+   "bars": 0,
+   "braces_L": 4,
+   "braces_R": 4,
+   "boxes": 0,
+   "underlines": null
+  },
+  {
    "page": 845,
    "file": "p0845.png",
    "x0_pt": 40.0,

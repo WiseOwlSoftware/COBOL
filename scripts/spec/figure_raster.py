@@ -33,11 +33,13 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
   4. STEMS: a vertical run of ink >= MIN_VERT_H tall and <= MAX_VERT_W thick whose length is the height of its
      component. FEET: a bracket stem carries short horizontal runs anchored in its stroke on its END rows, turning
      inward; a choice-indicator bar has none. A foot stops at the next stem's stroke and belongs to the stem whose end
-     rows it is on (the PB3530 failure, folio 726, here at pixel scale). A stem must be STRAIGHT (`_straight`, a line
-     that may lean): the long middle of a tall brace and its hooks otherwise read as a bracket.
+     rows it is on (the PB3530 failure, folio 726, here at pixel scale). Brackets of consecutive lines that touch are
+     one stem whose joined feet stand INSIDE it; it is cut there (`split_stacked_stems`). A stem must be STRAIGHT
+     (`_straight`, a line that may lean): the long middle of a tall brace and its hooks otherwise read as a bracket.
   5. BRACES: a tall narrow component, or several stacked with a gap (the printer overstruck the glyphs), whose edge
      departs from its shoulders at the middle by a point (`_classify_curly`); the side is the hooks' direction. The
-     halves are NOT straight. A tall curved shape without a point (a parenthesis) is listed in `unclassified`.
+     halves are NOT straight. Braces of consecutive lines joined hook to hook are cut at the joint (`_curlies`). A
+     tall curved shape without a point (a parenthesis) is listed in `unclassified`.
   6. UNDERLINES that are components of their own: a thin bar that is no hyphen (`find_rules`, `is_hyphen`).
   7. WORDS: the remaining components, grouped into lines (by the letters nearest each glyph, so a line may run
      uphill) and words by position (`find_words`: an i's dot joins its letter, an ellipsis's dots stay one word, a typed
@@ -50,16 +52,17 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
      DISAGREEMENT in `RasterPage.disagreements`, and the word keeps text None: the tool never picks silently. Each box
      lists the words it encloses.
 
-WHAT IT WAS CALIBRATED ON. Thirteen general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426, 444,
-493, 568, 602, 684, 693, 845: the Environment, Nucleus, Sequential, Relative, Indexed, Sort-Merge, Report Writer and
-Communication modules, Debug, and Amendment 1), each counted BY EYE against the rendered page: brackets by side, braces
-by side, boxes and (on three pages) underlines; with them, the boxed first paragraphs of pages 389 and 684, whose
-boxes wrap a line (PB4898), and page 222's underline fused to a descender (PB4849). The crops, with the stamp margins excluded, and the counts are in
-`figure_raster_pages/` (`calibration.json`); `test_figure_raster.py` measures every crop and asserts the counts. PB4848's
-table in kb/Work lists the measured values and what is not yet right (Amendment 1's bold face, PDF pages 841 and 844;
-on page 602 the eye counts 41 underlines and the measurer 42, the extra one the fused foot serifs of "am" in
-"data-name-3", so that page asserts no underline count). The measurer is for the MONOSPACED general-format band: on
-proportional prose (the amendments' Times text) serif chains read as rules.
+WHAT IT WAS CALIBRATED ON. Fifteen general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426,
+444, 493, 568, 602, 684, 693, and Amendment 1's 841, 844 and 845: the Environment, Nucleus, Sequential, Relative,
+Indexed, Sort-Merge, Report Writer and Communication modules, Debug, and both faces of the amendment), each counted BY
+EYE against the rendered page: brackets by side, braces by side, boxes and (on three pages) underlines; with them, the
+boxed first paragraphs of pages 389 and 684, whose boxes wrap a line (PB4898), and page 222's underline fused to a
+descender (PB4849). The crops, with the stamp margins excluded, and the counts are in `figure_raster_pages/`
+(`calibration.json`); `test_figure_raster.py` measures every crop and asserts the counts. PB4848's and PB4897's notes
+in kb/Work list the measured values and what is not yet right (on page 602 the eye counts 41 underlines and the
+measurer 42, the extra one the fused foot serifs of "am" in "data-name-3", so that page asserts no underline count).
+The measurer is for the MONOSPACED general-format band: on proportional prose (the amendments' Times text) serif
+chains read as rules.
 
     python scripts/spec/figure_raster.py --calibrate 196 217 --edition 1985 --out DIR
         writes one side-by-side image per page (the scan; the same scan with every measured mark drawn on it: brackets
@@ -97,10 +100,12 @@ STEM_FRACTION = 0.75           # a stem shorter than this share of its component
 BRACE_MAX_W = 12.0             # a brace is narrower than this, in points
 BRACE_SHOULDER = 0.15          # the shoulders of a brace's point lie this share of its height above and below it (page 196)
 BRACE_MID = (0.4, 0.6)         # the point lies in this band of the brace's height
+STACK_JOINT_H = 3.0           # the fused feet of two brackets stood one on another are at most this thick: 2.0 to 2.3 on PDF pages 841 and 844 (kb/Work PB4897); a glyph fused to a stem is 5 or more
 BRACKET_STRAIGHT = 1.1         # a bracket's stem is straight (or leaning evenly) to within this many points: 72 pt bracket on page 684 wanders 0.82, the 22 pt braces of 196 and 217 more than 1.7
 BRACE_HOOK = 0.15              # the hooked ends bend this far from the halves, away from the point (a sign test: 0.15 read pages 217 and 844 best of 0.5, 0.3, 0.15)
 BRACE_HOOK_ROWS = 0.08         # ... judged over this share of the height at each end
 BRACE_SYMMETRY = 1.6           # the top and bottom halves of a brace mirror within this many points (median): 0.5 at 22 pt, 1.3 at the 57 pt braces of page 217
+BRACE_JOINT = 0.6             # two braces joined hook to hook bend their centre line toward the hooks this far or more at the joint: 1.1 on PDF page 841; a single brace's middle 0.3 at most (kb/Work PB4897)
 BRACE_GLYPH_H = 10.2           # a brace's last enclosed row begins this far above its bottom: median of 120 braces on PDF pages 196, 217, 252, 389, 396, 426 (p10 7.2, p90 11.9; kb/Work PB4848)
 BRACE_GLYPHS = {"L": ("ì", "í", "î"), "R": ("ü", "ý", "þ")}   # render_figure.GLYPH_PIECES: top, point, bottom
 BRACE_POINT = 1.0              # the middle departs this far from the shoulders: 2.5 at 22 pt (page 196), 1.0 to 1.8 at 26 pt and 33 pt (page 844, 196); a parenthesis stays under 0.5
@@ -358,9 +363,14 @@ def find_stems(ink: np.ndarray, labels: np.ndarray, comps: list, scale: float) -
         y0, y1 = int(r0[members].min()), int(r1[members].max())   # a printed stem LEANS (page 196's closing bracket
         #                                                           drifts 1.8 pt over 50): its columns end at different rows
         x0, x1 = int(c.min()), int(c.max()) + 1
-        lab = int(labels[(y0 + y1) // 2, (x0 + x1) // 2])
-        if lab == 0:
+        # The component is the one that holds most of the stroke's pixels. Its middle pixel is no witness: two brackets
+        # stood one on another meet there, and on PDF page 844 that pixel is paper between their joined feet, which
+        # dropped the stem and left its ink to be read as a brace (kb/Work PB4897).
+        held = labels[y0:y1, x0:x1]
+        held = held[held > 0]
+        if held.size == 0:
             continue
+        lab = int(np.bincount(held).argmax())
         comp = comps[lab - 1]
         if (y1 - y0) < STEM_FRACTION * (comp.y1 - comp.y0):
             continue                                      # a section of a curly shape
@@ -377,31 +387,66 @@ def _foot_side(stem: _Stem, stems: list, ink: np.ndarray, scale: float):
     inherit it (kb/Work PB3530, folio 726, where each choice bar stands 0.70 pt from the bracket's foot and
     adopted it), because the foot's row is not on the neighbour's end rows. A run longer than FOOT_MAX is an
     underline."""
-    h, w = ink.shape
     tol = max(2, stem.px1 - stem.px0) + 1
-    lo, hi = FG.FOOT_MIN * scale, FG.FOOT_MAX * scale
     others = [s for s in stems if s is not stem]
-
-    def blocked(x, r):
-        return any(o.px0 <= x < o.px1 and o.py0 <= r < o.py1 for o in others)
-
     votes = []
     for ends in (range(stem.py0 - 1, stem.py0 + tol), range(stem.py1 - tol, stem.py1 + 1)):
         for r in ends:
-            if not 0 <= r < h:
-                continue
-            stroke = np.nonzero(ink[r, stem.px0:stem.px1])[0]
-            if len(stroke) == 0:
-                continue                               # a leaning stem is not on this row yet
             for direction in (+1, -1):                 # +1: turns right (opening), -1: turns left (closing)
-                anchor = stem.px0 + int(stroke[-1] if direction > 0 else stroke[0])   # the stroke's own edge on THIS row
-                x = anchor
-                while 0 <= x + direction < w and ink[r, x + direction] and not blocked(x + direction, r):
-                    x += direction
-                if not lo <= abs(x - anchor) <= hi:
-                    continue
-                votes.append("L" if direction > 0 else "R")
+                if _is_foot(stem, r, direction, others, ink, scale):
+                    votes.append("L" if direction > 0 else "R")
     return max(set(votes), key=votes.count) if votes else None
+
+
+def _is_foot(stem: _Stem, r: int, direction: int, others: list, ink: np.ndarray, scale: float) -> bool:
+    """Does a FOOT leave the stem's stroke on pixel row `r`, turning `direction` (+1 right, -1 left)? A foot is a run of
+    ink anchored on the stroke's own edge on that row, FOOT_MIN..FOOT_MAX long, that stops at another stem's stroke."""
+    h, w = ink.shape
+    if not 0 <= r < h:
+        return False
+    stroke = np.nonzero(ink[r, stem.px0:stem.px1])[0]
+    if len(stroke) == 0:
+        return False                                   # a leaning stem is not on this row yet
+    anchor = stem.px0 + int(stroke[-1] if direction > 0 else stroke[0])   # the stroke's own edge on THIS row
+    x = anchor
+    while (0 <= x + direction < w and ink[r, x + direction]
+           and not any(o.px0 <= x + direction < o.px1 and o.py0 <= r < o.py1 for o in others)):
+        x += direction
+    return FG.FOOT_MIN * scale <= abs(x - anchor) <= FG.FOOT_MAX * scale
+
+
+def split_stacked_stems(stems: list, ink: np.ndarray, scale: float) -> list:
+    """Cut a stem that is two or more BRACKETS stood one on another, joined foot to foot (kb/Work PB4897). In a format
+    whose alternatives each carry an optional phrase (PDF pages 841 and 844, the subscript format: `data-name-2
+    [{+|-} integer-2]` over `index-name-1 [{+|-} integer-3]`), the brackets of consecutive lines touch: the bottom foot
+    of the upper bracket and the top foot of the lower one fuse into a band, at most STACK_JOINT_H thick, that turns the
+    same way as the stem's end feet, inside the stem (a bracket's stem has no foot between its ends). The stem is cut
+    at the middle of each such band, and each piece must stand at least MIN_VERT_H tall and be a bracket of the same
+    hand by itself. A bar (no feet) is never cut. Returns the stems, each piece a stem of its own."""
+    out = []
+    for stem in stems:
+        side = _foot_side(stem, stems, ink, scale)
+        if side is None:
+            out.append(stem)
+            continue
+        direction = +1 if side == "L" else -1
+        others = [s for s in stems if s is not stem]
+        reach = int(FG.MIN_VERT_H * scale)
+        rows = [r for r in range(stem.py0 + reach, stem.py1 - reach) if _is_foot(stem, r, direction, others, ink, scale)]
+        cuts, start = [], 0
+        for i in range(1, len(rows) + 1):            # a joint's rows may skip a row or two where the feet part
+            if i == len(rows) or rows[i] - rows[i - 1] > STACK_JOINT_H * scale / 2:
+                band = rows[start:i]
+                start = i
+                if band and (band[-1] - band[0] + 1) <= STACK_JOINT_H * scale:
+                    cuts.append((band[0] + band[-1] + 1) // 2)
+        pieces = [stem._replace(py0=a, py1=b) for a, b in zip([stem.py0] + cuts, cuts + [stem.py1])]
+        if (len(pieces) > 1 and all(p.py1 - p.py0 >= reach for p in pieces)
+                and all(_foot_side(p, [p] + others, ink, scale) == side for p in pieces)):
+            out.extend(pieces)
+        else:
+            out.append(stem)
+    return sorted(out, key=lambda s: (s.py0, s.px0))
 
 
 def _classify_curly(box: tuple, ink: np.ndarray, scale: float):
@@ -418,16 +463,11 @@ def _classify_curly(box: tuple, ink: np.ndarray, scale: float):
     overstruck from stacked glyphs with a gap between them (page 217): rows with no ink take the edge interpolated
     across the gap (kb/Work PB4848)."""
     x0, y0, x1, y1 = box
-    sub = ink[y0:y1, x0:x1]
-    n = sub.shape[0]
-    has = sub.any(axis=1)
-    if n < 8 or not has[0] or not has[-1]:
+    edges = _edges(box, ink, scale)
+    if edges is None:
         return None
-    left = np.argmax(sub, axis=1).astype(np.float64) / scale
-    right = (sub.shape[1] - 1 - np.argmax(sub[:, ::-1], axis=1)).astype(np.float64) / scale
-    if not has.all():
-        rows = np.arange(n)
-        left, right = np.interp(rows, rows[has], left[has]), np.interp(rows, rows[has], right[has])
+    left, right = edges
+    n = len(left)
     s = max(1, int(round(n * BRACE_SHOULDER)))
     lo, hi = int(n * BRACE_MID[0]), max(int(n * BRACE_MID[1]), int(n * BRACE_MID[0]) + 1)
     best = (0.0, 0)
@@ -450,6 +490,58 @@ def _classify_curly(box: tuple, ink: np.ndarray, scale: float):
     if abs(bend) < BRACE_HOOK:
         return None
     return ("L" if bend > 0 else "R"), (y0 + m) / scale
+
+
+def _edges(box: tuple, ink: np.ndarray, scale: float):
+    """(left, right): the stroke's edges per pixel row of the box, in points, or None when the box is too short or its
+    first or last row holds no ink. Rows with no ink (the gap of an overstruck brace) take the edge interpolated."""
+    x0, y0, x1, y1 = box
+    sub = ink[y0:y1, x0:x1]
+    n = sub.shape[0]
+    has = sub.any(axis=1)
+    if n < 8 or not has[0] or not has[-1]:
+        return None
+    left = np.argmax(sub, axis=1).astype(np.float64) / scale
+    right = (sub.shape[1] - 1 - np.argmax(sub[:, ::-1], axis=1)).astype(np.float64) / scale
+    if not has.all():
+        rows = np.arange(n)
+        left, right = np.interp(rows, rows[has], left[has]), np.interp(rows, rows[has], right[has])
+    return left, right
+
+
+def _curlies(box: tuple, ink: np.ndarray, scale: float) -> list:
+    """The braces in the pixel box (x0, y0, x1, y1), as [(side, y of the point in points, y0, y1)]: none, one, or
+    several stood one on another and JOINED HOOK TO HOOK (kb/Work PB4897: PDF page 841's `{+|-}` of two consecutive
+    lines are one component, whose joint departs from its shoulders like a point and read as ONE brace pointing at the
+    joint). The joint is where the stroke's centre line bends TOWARD the hooks' side, as a brace's ends do, by
+    BRACE_JOINT or more (1.1 pt at page 841's joints); a brace's point bends the other way, and the middle of page 841's
+    80 pt five-line brace bends toward its hooks by 0.3 at most. A shape tall enough to hold two braces is cut at each such
+    bend between MIN_VERT_H from either end, sharpest first; when both pieces hold braces of the hand the bend points to,
+    they are the braces. Otherwise the shape is judged whole (`_classify_curly`)."""
+    x0, y0, x1, y1 = box
+    reach = int(FG.MIN_VERT_H * scale)
+    edges = _edges(box, ink, scale) if y1 - y0 >= 2 * reach else None
+    if edges is not None:
+        centre = (edges[0] + edges[1]) / 2
+        n = len(centre)
+        s = max(1, int(round(n * BRACE_SHOULDER)))
+        rows = np.arange(max(reach, s), min(n - reach, n - s))
+        bend = centre[rows] - (centre[rows - s] + centre[rows + s]) / 2
+        tried: list = []
+        for i in np.argsort(-np.abs(bend), kind="stable"):
+            m = int(rows[i])
+            if abs(bend[i]) < BRACE_JOINT:
+                break
+            if any(abs(m - t) <= s for t in tried):
+                continue
+            tried.append(m)
+            hand = "L" if bend[i] > 0 else "R"        # a '{' hooks toward larger x, a '}' toward smaller
+            upper = _curlies((x0, y0, x1, y0 + m), ink, scale)
+            lower = _curlies((x0, y0 + m, x1, y1), ink, scale)
+            if upper and lower and {c[0] for c in upper + lower} == {hand}:
+                return upper + lower
+    one = _classify_curly(box, ink, scale)
+    return [(one[0], one[1], y0, y1)] if one else []
 
 
 def _stack_pieces(pieces: list, scale: float) -> list:
@@ -476,25 +568,27 @@ def find_braces(ink: np.ndarray, comps: list, stem_labels: set, scale: float):
               if k not in stem_labels and (c.y1 - c.y0) / scale >= FG.MIN_VERT_H
               and (c.x1 - c.x0) / scale <= BRACE_MAX_W and c.area >= MIN_COMPONENT_PX]
 
-    def take(box):
-        curly = _classify_curly(box, ink, scale)
+    def take(box, curlies):
         x0, y0, x1, y1 = box
-        shape = {"x": round(x0 / scale, 2), "y0": round(y0 / scale, 2), "y1": round(y1 / scale, 2)}
-        if curly:
-            found.append({**shape, "side": curly[0], "point": round(curly[1], 2)})
-            return True
-        other.append({**shape, "h": round((y1 - y0) / scale, 2)})
-        return False
+        for side, point, b0, b1 in curlies:
+            found.append({"x": round(x0 / scale, 2), "y0": round(b0 / scale, 2), "y1": round(b1 / scale, 2),
+                          "side": side, "point": round(point, 2)})
+        if not curlies:
+            other.append({"x": round(x0 / scale, 2), "y0": round(y0 / scale, 2), "y1": round(y1 / scale, 2),
+                          "h": round((y1 - y0) / scale, 2)})
 
-    # a piece that is a brace by itself is one (two small braces stood one above the other, page 844, are two);
-    # only the pieces that are not are stacked and judged together
-    rest = [(k, c) for k, c in pieces if not _classify_curly((c.x0, c.y0, c.x1, c.y1), ink, scale)]
-    alone = {k for k, _ in pieces} - {k for k, _ in rest}
+    # a piece that holds braces by itself is taken as it is (two small braces stood one above the other, page 844,
+    # are two); only the pieces that hold none are stacked and judged together
+    rest = []
     for k, c in pieces:
-        if k in alone:
-            take((c.x0, c.y0, c.x1, c.y1))
+        box = (c.x0, c.y0, c.x1, c.y1)
+        curlies = _curlies(box, ink, scale)
+        if curlies:
+            take(box, curlies)
+        else:
+            rest.append((k, c))
     for box, _ in _stack_pieces(rest, scale):
-        take(box)
+        take(box, _curlies(box, ink, scale))
     return found, other
 
 
@@ -1254,7 +1348,7 @@ def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None, 
     ink, relabelled, rejoined, fused = split_fused_rules(ink, comps, scale)
     if relabelled is not None:
         labels, comps = relabelled, rejoined
-    stems = find_stems(ink, labels, comps, scale)
+    stems = split_stacked_stems(find_stems(ink, labels, comps, scale), ink, scale)
     sides = {id(s): _foot_side(s, stems, ink, scale) for s in stems}
     stems = [s for s in stems if _straight(s, sides[id(s)], labels, scale)]
     stem_labels = {s.comp for s in stems}
