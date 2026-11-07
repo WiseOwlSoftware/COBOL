@@ -400,6 +400,30 @@ public sealed class McsStoreCrashMatrixTests : IDisposable
         Assert.Equal("ONE" + line + "TWO" + line + "THREE" + line, File.ReadAllText(System.IO.Path.Combine(directory, "X.out")));
     }
 
+    /// <summary>A destination renamed only by case, with a run unit still holding the old spelling (§6 "Devices"): on a host whose file names ignore case both spellings are one file, so the
+    /// old spelling's send advances the stored row of the new one, creates no row of its own, and the next run unit's cut loop never cuts what it delivered. On a case-sensitive host
+    /// the two are two files and the old one has no row.</summary>
+    [Fact]
+    public void RunUnitHoldingACaseRenamedDevice_NeverHasItsDeliveredOutputCut()
+    {
+        string directory = Fresh();
+        string definitions = System.IO.Path.Combine(directory, "mcs.json");
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "dev" }, { "name": "KEEP" } ] }""");
+        using var a = new Session(directory);
+        Assert.Equal("00", Sent(a.Control, "dev", "ONE"));
+        File.WriteAllText(definitions, """{ "destinations": [ { "name": "DEV" }, { "name": "KEEP" } ] }""");
+        using (var b = new Session(directory))
+            Assert.Equal("00", Sent(b.Control, "DEV", "TWO"));
+        Assert.Equal("00", Sent(a.Control, "dev", "THREE"));
+        Assert.DoesNotContain(McsInspector.Rows(directory), row => row.Key[0] == (byte)'D' && System.Text.Encoding.UTF8.GetString(row.Key, 1, row.Key.Length - 1) == "dev");
+        string line = Environment.NewLine;
+        string before = File.ReadAllText(System.IO.Path.Combine(directory, "dev.out"));
+        Assert.EndsWith("THREE" + line, before);
+        using (var c = new Session(directory))
+            Assert.Equal("00", Sent(c.Control, "KEEP", "K"));
+        Assert.Equal(before, File.ReadAllText(System.IO.Path.Combine(directory, "dev.out")));
+    }
+
     /// <summary>A dead statement's tail in a device the definitions drop is cut to the committed end before the row is retired, so it is never left as delivered output (§6 "Devices").</summary>
     [Fact]
     public void RetiredDevice_HasItsDeadTailCut_BeforeItsRowGoes()

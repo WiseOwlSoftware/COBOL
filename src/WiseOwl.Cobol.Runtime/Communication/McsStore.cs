@@ -204,7 +204,8 @@ internal sealed class McsStore : IDisposable
             string file = DeviceFile(device);
             bool existed = File.Exists(file);
             long length = existed ? new FileInfo(file).Length : 0;
-            long end = Math.Min(tables.DeviceEnd(device) ?? length, length);   // a file shorter than its committed end was changed outside the MCS; a device with no row (a run unit holding definitions a later seeding retired) keeps what its file holds, as seeding does
+            string? row = CommittedRow(tables, device);
+            long end = Math.Min(row is null ? length : tables.DeviceEnd(row)!.Value, length);   // a file shorter than its committed end was changed outside the MCS; a device with no row (a run unit holding definitions a later seeding retired) keeps what its file holds, as seeding does
             written.Add(new Written(device, end, existed));
             using (var handle = File.OpenHandle(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
             {
@@ -212,9 +213,24 @@ internal sealed class McsStore : IDisposable
                 RandomAccess.SetLength(handle, end + text.Length);
                 RandomAccess.FlushToDisk(handle);
             }
-            tables.SetDeviceEnd(device, end + text.Length);
+            if (row is not null) tables.SetDeviceEnd(row, end + text.Length);   // a retired device gets no row back: seeding retired it, and a row it recreated would claim a file another row owns
         }
     }
+
+    /// <summary>The <c>DeviceEnds</c> row that owns the file <paramref name="device"/> names, or null when none does. The row of the same spelling; else, on a host whose file names ignore
+    /// case, the row of the spelling that is the same file, so a run unit still holding a definition that differs only by case from the stored one advances the stored row
+    /// instead of leaving it short of the file (which the next run unit's cut loop would cut) or recreating a second row for one file.</summary>
+    private string? CommittedRow(McsTables tables, string device)
+    {
+        if (tables.DeviceEnd(device) is not null) return device;
+        if (!FileNamesIgnoreCase) return null;
+        return tables.DeviceEnds().Select(r => r.Device).FirstOrDefault(d => string.Equals(d, device, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool? _fileNamesIgnoreCase;
+
+    /// <summary>Whether the MCS directory's file system treats names that differ only by case as one file, probed once with the store file's own name in the other case.</summary>
+    private bool FileNamesIgnoreCase => _fileNamesIgnoreCase ??= File.Exists(Path.Combine(_root, MessageStore.StoreFile.ToUpperInvariant()));
 
     /// <summary>A statement that answers 92 took no action, so the devices it wrote to go back to their committed ends, and a device it created goes. Best effort: the
     /// positional protocol of <see cref="Transmit"/> does not depend on it (the next transmission to a device starts at its committed end and the run unit's first statement

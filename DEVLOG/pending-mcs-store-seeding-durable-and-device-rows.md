@@ -16,4 +16,6 @@ file of a removed device is left alone. Witness: `DeviceRenamedOnlyByCase_Leaves
 
 Both notes close no inventory row. Self-review: the McsStore, McsTables and McsStoreCrashMatrixTests unit population (141 tests) green.
 
+**Review round 2.** `Transmit` still recreated the retired row for a live run unit holding the old spelling, so on a case-insensitive host the stale `dev` row and the new `DEV` row claimed one file with different ends and the next run unit's cut loop cut delivered output. `Transmit` now resolves the owning row through `CommittedRow` (same spelling, else on a case-insensitive host the case-equal row, probed once by `FileNamesIgnoreCase`), advances that row, and creates none for a retired device. Witness: `RunUnitHoldingACaseRenamedDevice_NeverHasItsDeliveredOutputCut`.
+
 **Review round 1.** A run unit still holding definitions a later seeding retired could send to the retired device, and `DeviceEnd` read the missing row as 0, so its SEND overwrote the file from offset 0. `DeviceEnd` is now `long?` and `Transmit` takes the file length for a row-less device (the seeding rule), and `Prepare` cuts a retired device's file to its old committed end before the row goes (`CutDevice`, shared with the run unit's cut loop). Witnesses: `RunUnitHoldingARetiredDevice_AppendsToItsFile_NeverOverwrites`, `RetiredDevice_HasItsDeadTailCut_BeforeItsRowGoes`.
