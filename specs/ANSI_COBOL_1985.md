@@ -7066,10 +7066,9 @@ The body of the Procedure Division must conform to one of the following formats:
 
 <u>Format 2</u>:
 
-<pre>
-{paragraph-name.
-
-    [sentence] ... } ...
+<pre style="line-height:1">
+{ paragraph-name.
+[ sentence ] … } …
 </pre>
 
 IV-36
@@ -8047,10 +8046,10 @@ Data Division - Data Description Entry
 
 <u>FORMAT 3</u>:
 
-<pre>
-                       ⎧<u>VALUE</u> IS  ⎫  ⎧           ┌⎧<u>THROUGH</u>⎫            ┐⎫
-88  condition-name-1   ⎨          ⎬  ⎨literal-1  │⎨       ⎬  literal-2 │⎬ ... .
-                       ⎩<u>VALUES</u> ARE⎭  ⎩           └⎩<u>THRU</u>   ⎭            ┘⎭
+<pre style="line-height:1">
+                    ╭ <u>VALUE</u> IS   ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮
+88 condition-name-1 ┤            ├ ┤ literal-1 │ ┤         ├ literal-2 │ ├ … .
+                    ╰ <u>VALUES</u> ARE ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
 </pre>
 
 V-14
@@ -8296,8 +8295,8 @@ Verb Formats (ACCEPT - CALL)
 
 ## GENERAL FORMAT FOR COBOL VERBS
 
-<pre>
-<u>ACCEPT</u> identifier-1  [<u>FROM</u> mnemonic-name-1]
+<pre style="line-height:1">
+<u>ACCEPT</u> identifier-1 [ <u>FROM</u> mnemonic-name-1 ]
 </pre>
 
 <pre>
@@ -9037,8 +9036,8 @@ Verb Formats (STRING - TERMINATE)
 <u>SUPPRESS</u> PRINTING
 </pre>
 
-<pre>
-<u>TERMINATE</u> {report-name-1} ...
+<pre style="line-height:1">
+<u>TERMINATE</u> { report-name-1 } …
 </pre>
 
 V-31
@@ -12415,8 +12414,8 @@ The GO TO statement causes control to be transferred from one part of the Proced
 
 <u>Format 2</u>:
 
-<pre>
-<u>GO</u> TO {procedure-name-1} ...  <u>DEPENDING</u> ON identifier-1
+<pre style="line-height:1">
+<u>GO</u> TO { procedure-name-1 } … <u>DEPENDING</u> ON identifier-1
 </pre>
 
 ### 6.15.3 Syntax Rules

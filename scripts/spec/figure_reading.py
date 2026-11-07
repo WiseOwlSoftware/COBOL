@@ -253,6 +253,43 @@ def _boxes(w: Word) -> int:
     return sum(1 for f in w.holders if f == "box")
 
 
+#: Which of THINGS a difference in an enclosure family's count is.
+FAMILY_THING = {"bar": "bars", "box": "boxes"}
+
+
+def _family_counts(lines: list[str]) -> collections.Counter:
+    """How many enclosures of each family a drawing draws, holding a word or not."""
+    return collections.Counter(e.family for e in enclosures(lines))
+
+
+def _underlined_delimiters(lines: list[str]) -> int:
+    """How many delimiter or column glyphs a drawing underlines: a delimiter is never a required word (§2023:5.2.2
+    underlines words), so one underlined is a rule the measurer took for an underline."""
+    n = 0
+    for line in lines:
+        text, under = plain_row(line)
+        n += sum(1 for c in under if c < len(text) and (text[c] in ONE_ROW or text[c] == BAR or text[c] in COLUMN_GLYPHS))
+    return n
+
+
+def _antecedent(lines: list[str], words: list[Word], w: Word) -> tuple:
+    """What an ellipsis `w` repeats (§2023:5.2.7: the portion of the format just before it): the word, or the enclosure
+    with the words it holds, that ends nearest to its left on its row; () when nothing does."""
+    def spelt(t: str) -> str:
+        return t.replace("...", "…")
+    best, out = -1, ()                            # the last column of what ends nearest
+    for x in words:
+        last = x.col + len(x.text) - 1
+        if x.row == w.row and x is not w and best < last < w.col:
+            best, out = last, ("word", spelt(x.text))
+    for e in enclosures(lines):
+        if e.top <= w.row <= e.bottom and best < e.right < w.col:
+            held = tuple(spelt(y.text) for y in words if e.top <= y.row <= e.bottom and e.left < y.col
+                         and y.col + len(y.text) <= e.right)
+            best, out = e.right, (e.family, held)
+    return out
+
+
 def compare(drawn: list[str], generated: list[str]) -> dict:
     """How two drawings of one format differ: {"words": [...], thing: [...] for each of THINGS}; every list empty when
     they agree. Words are paired in reading order by their text (difflib); a word only one side has is in "words"."""
@@ -282,6 +319,12 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
     out["grouping"] += [f"generated: a {f} in rows {r0}-{r1} pairs with nothing"
                         for f, s, r0, r1 in strays(generated) if extra[(f, s)]]
     pairs = [(x, partner[id(x)]) for x in a if id(x) in partner]
+    # An ellipsis repeats what is printed just before it (§2023:5.2.7), so that is part of its alignment: page 399's
+    # `{data-name-1} ...` came out with the ellipsis a row lower, after the brace of `RECORD IS` / `RECORDS ARE`.
+    for x, y in pairs:
+        if spelling(x) == "…" and _antecedent(drawn, a, x) != _antecedent(generated, b, y):
+            out["alignment"].append(f"the ellipsis on drawn row {x.row}: drawn after {_antecedent(drawn, a, x)}, "
+                                    f"generated after {_antecedent(generated, b, y)}")
     for x, y in pairs:
         if _grouping(x) != _grouping(y):
             out["grouping"].append(f"{x.text}: drawn {'/'.join(_grouping(x)) or '-'}, generated {'/'.join(_grouping(y)) or '-'}")
@@ -291,6 +334,17 @@ def compare(drawn: list[str], generated: list[str]) -> dict:
             out["boxes"].append(f"{x.text}: drawn {_boxes(x)}, generated {_boxes(y)}")
         if x.underlined != y.underlined:
             out["underlines"].append(f"{x.text}: drawn {list(x.underlined)}, generated {list(y.underlined)}")
+    # An enclosure that holds no word, and a delimiter underlined, are invisible to the words' holders and letters: page
+    # 321's `GO TO [procedure-name-1]` came out `│ <u>[</u> │ procedure-name-1 │ <u>]</u> │` (each typed bracket in a level-2
+    # box too small to measure as one) and agreed word for word (kb/Work PB4849). So the drawings' enclosures are
+    # counted by family, and their underlined delimiters, where the words have not named the difference already.
+    fa, fb = _family_counts(drawn), _family_counts(generated)
+    for fam in sorted(fa.keys() | fb.keys()):
+        if fa[fam] != fb[fam] and not out[FAMILY_THING.get(fam, "grouping")]:
+            out[FAMILY_THING.get(fam, "grouping")].append(f"{fam}: drawn {fa[fam]}, generated {fb[fam]}")
+    ua, ub = _underlined_delimiters(drawn), _underlined_delimiters(generated)
+    if ua != ub:
+        out["underlines"].append(f"underlined delimiters: drawn {ua}, generated {ub}")
     # ALIGNMENT is §2023:5.2.6.1's: inside one group, words on one row are in sequence and words on different rows are
     # stacked alternatives. Outside every group a row that ends simply continues the format, so only words that share
     # their innermost group in the drawing are compared.
@@ -342,6 +396,21 @@ def self_test() -> int:
     no_bars = ["┌ <u>ALPHA</u> ┐", "│ BETA  │", "└ GAMMA ┘"]
     diff = compare(bars, no_bars)
     check("lost choice bars are named", len(diff["bars"]) == 3, str(diff))
+    # Enclosures that hold no word and underlined delimiters are named too (PDF page 321's boxed typed brackets read as
+    # bars and underlines; kb/Work PB4849).
+    diff = compare(["<u>GO</u> TO [procedure-name-1]"], ["<u>GO</u> TO │ <u>[</u> │ procedure-name-1 │ <u>]</u> │"])
+    check("bars holding no word and underlined delimiters are named",
+          diff["bars"] == ["bar: drawn 0, generated 2"] and diff["underlines"] == ["underlined delimiters: drawn 0, generated 2"]
+          and not diff["words"], str(diff))
+    # An ellipsis repeats what precedes it (§2023:5.2.7): one moved after another group is an alignment difference
+    # (PDF page 399's `{data-name-1} ...` regenerated a row lower, after the brace of RECORD IS / RECORDS ARE).
+    drawn_ell = ["     ⎧<u>RECORD</u> IS  ⎫", "<u>DATA</u> ⎨           ⎬ {data-name-1} ...", "     ⎩<u>RECORDS</u> ARE⎭"]
+    moved = ["     ╭ <u>RECORD</u> IS   ╮", "<u>DATA</u> ┤             ├ { data-name-1 }", "     │             │",
+             "     ╰ <u>RECORDS</u> ARE ╯ …"]
+    kept = ["     ╭ <u>RECORD</u> IS   ╮", "<u>DATA</u> ┤             ├ { data-name-1 } …", "     ╰ <u>RECORDS</u> ARE ╯"]
+    check("an ellipsis moved after another group is named", len(compare(drawn_ell, moved)["alignment"]) == 1,
+          str(compare(drawn_ell, moved)))
+    check("an ellipsis after the same group agrees", not any(compare(drawn_ell, kept).values()), str(compare(drawn_ell, kept)))
     check("stacked alternatives stay stacked", not diff["alignment"], str(diff))
     flat = ["┌ <u>ALPHA</u> BETA ┐", "└ GAMMA      ┘"]
     diff = compare(no_bars, flat)
