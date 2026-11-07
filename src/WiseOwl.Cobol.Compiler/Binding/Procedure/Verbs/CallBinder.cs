@@ -1459,7 +1459,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // (Format 2's BY CONTENT / BY VALUE operand is identifier-4, which no section rule names); SR7 governs the
         // RETURNING item of both formats. The ONE screen (ParameterConformance) INVOKE's SR9/SR11 ask too.
         // At COBOL-85 the SAME requirement is the edition's own §1985:X.5.2.3 SR3, which names EVERY operand of the
-        // USING phrase (its Format 2 BY CONTENT operand included) and admits no address-identifier: the '85
+        // USING phrase and admits no address-identifier (the 1985 CALL has no 2002+ Format 2, so formatTwo is
+        // false and every operand was always screened): the '85
         // DEBUG-ITEM register is refused under that rule, not under a 2023 rule about a register that edition lacks
         // (kb/Work PB4901).
         if (ctx.Edition.Edition.Year < 2002)

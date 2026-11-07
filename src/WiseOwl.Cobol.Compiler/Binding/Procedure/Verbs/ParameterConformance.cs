@@ -326,7 +326,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         ctx.Edition.Error(code,
             $"{subject} '{DataBinder.WrittenText(written)}' references {kind}; ISO {clause} requires "
             + (addressAdmitted ? "an address-identifier or " : "")
-            + "a data item defined in the file, working-storage, local-storage, or linkage section");
+            + (ctx.Edition.Edition.Year < 2002
+                // §1985:X.5.2.3 SR3 — the '85 list has a Communication Section and no Local-Storage Section.
+                ? "a data item defined in the file, working-storage, communication, or linkage section"
+                : "a data item defined in the file, working-storage, local-storage, or linkage section"));
         return false;
     }
 
