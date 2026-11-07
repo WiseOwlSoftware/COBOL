@@ -29,8 +29,8 @@ public sealed record BoundProgram(
     // docs/CONTROL_FLOW_DESIGN.md D20) and the DEBUG-CONTENTS width the register is declared with (general rule 15).
     IReadOnlyList<BoundDebugTarget>? DebugTargets = null,
     int DebugContentsWidth = DebugItem.MinContentsWidth,
-    // The description the DEBUG-SUB-n members share (general rule 10: PICTURE S9999 SIGN IS LEADING SEPARATE): the emitter declares its profile.
-    DataItem? DebugSubRegister = null,
+    // The DEBUG-SUB-n members (general rule 10: PICTURE S9999 SIGN IS LEADING SEPARATE): the emitter declares each profile.
+    IReadOnlyList<DataItem>? DebugSubRegisters = null,
     // The exception-checking (Format-3) PERFORM handler pc-ranges (imp-2/3/4) appended above the main pc space
     // (ISO §2023:14.9.28.4 GR17). F3HandlerBasePc is the first such pc (null when the unit has none — the byte-identity
     // gate: a non-F3 unit adds zero synthetic pcs and needs no fall-through wall); F3HandlerOwners[pc - base] is the

@@ -1018,7 +1018,7 @@ public enum DebugRegisterMember { Item, Line, Name, Sub1, Sub2, Sub3, Contents }
 /// (the runtime sets it), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
 /// <see cref="RegisterItem"/> carries the member's <see cref="PicInfo"/> (its fixed width) so
 /// MOVE / DISPLAY interpret it as an X-item, except DEBUG-SUB-n: general rule 10 makes those <c>PICTURE S9999 SIGN IS LEADING SEPARATE</c>, a
-/// numeric item carried as its character image (<c>ImplicitRegisters.DebugSubRegister</c>).
+/// numeric item carried as its character image (<c>ImplicitRegisters.DebugSubRegisters</c>).
 /// </summary>
 public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMember Member) : Place
 {

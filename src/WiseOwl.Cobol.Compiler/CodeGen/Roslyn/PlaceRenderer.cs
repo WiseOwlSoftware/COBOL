@@ -732,6 +732,8 @@ internal static class PlaceRenderer
         // group-image store can land on one; distributing it into the spanned leaves IS the WriteRenames store
         // the Write switch already owns, never a second FromImage (kb/Work PB430).
         RenamesPlace => Write(group, image),
+        // The DEBUG-ITEM group (kb/Work PB4903) has no record struct: its image IS the register's, and the Write arm distributes it.
+        DebugRegisterPlace => Write(group, image),
         _ when !group.ImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),   // the OPERAND's capability (kb/Work PB189)
         OdoGroupPlace odo when UsesCurrentExtent(odo, AccessDir.Receiving) => ReceiveInto(odo, image),   // GR8a
         OdoGroupPlace odo => WriteGroupImage(odo.Inner, image, context),   // GR8b — the maximum length, whatever the inner's storage shape
@@ -781,6 +783,8 @@ internal static class PlaceRenderer
         // alphanumeric GROUP item (ISO §2023:13.18.45.4 GR2) whose image IS the composed span string Read renders —
         // it has no record struct, so `.AsImage()` on it would not compile.
         RenamesPlace => Read(group),
+        // The DEBUG-ITEM group (kb/Work PB4903) has no record struct either: its read IS the concatenated register image.
+        DebugRegisterPlace => Read(group),
         // ⛔ UNWRAP BEFORE THE GUARD (the PB176 skeptic round): an OdoGroupPlace may wrap a Tier-B
         // RedefViewPlace whose valid image IS the string window — a wrapper-first guard turned that
         // working read into a loud throw (CallStringRead hands the WRAPPER in, unlike the other callers).

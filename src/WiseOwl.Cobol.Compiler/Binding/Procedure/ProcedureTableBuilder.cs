@@ -770,7 +770,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     public int DebugContentsWidth => ctx.Data.State.Implicit.DebugContentsWidth;
 
     /// <summary>The description the DEBUG-SUB-n members share (general rule 10); null when no debugging section activated the register.</summary>
-    public DataItem? DebugSubRegister => ctx.Data.State.Implicit.DebugSubRegister;
+    public IReadOnlyList<DataItem> DebugSubRegisters => ctx.Data.State.Implicit.DebugSubRegisters;
 
     /// <summary>Whether <paramref name="section"/> is a debugging section. General rule 1: "Automatic execution of a debugging section is not
     /// caused by a statement appearing in a debugging section", so the statement binder plans no fire for one.</summary>
