@@ -52,13 +52,25 @@ REPO = spec_pdf.REPO
 #: The reseller's per-copy stamp of each edition, in pieces (SHAPES, never a licensee's name or an order number), so a
 #: partial survival is caught as readily as the whole line. 1985: PB4812 records the stamp as "Licensed to ... order # ...";
 #: the first assembly of the adopted run then showed the model leaving
-#: the opening sentence and the licence-terms sentence behind on 14 pages (kb/Work PB4816, review R1-1), so those are pieces too. 2002 has no row until PB4813's run reads its
-#: stamp line, so `--edition 2002` exits naming this table (kb/Work PB4815).
+#: the opening sentence and the licence-terms sentence behind on 14 pages (kb/Work PB4816, review R1-1), so those are pieces too.
+#: 2002: read from the 2002 PDF's own text layer (kb/Work PB4813). It prints one stamp line, the same on all 882 pages:
+#: the 1985 line's opening and licence-terms sentences, a store order reference whose number is longer than six digits
+#: (so 2023's `X_` shape, which needs a word boundary after six, misses it), and 2023's download date. Each shape matches
+#: that line on every page and no other line of the PDF.
 FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"Licensed to\b", "per-copy licence stamp"),
         (r"\border\s*#", "reseller order reference"),
         (r"Copyright by INCITS", "per-copy licence stamp"),
+        (r"Single user licen[cs]e", "per-copy licence stamp"),
+        (r"Copying and networking", "per-copy licence stamp"),
+    ],
+    2002: [
+        (r"Copyright by INCITS", "per-copy licence stamp"),
+        (r"Licensed to\b", "per-copy licence stamp"),
+        (r"\border\s*#", "reseller order reference"),
+        (r"\bX_\d{6,}\b", "reseller order number"),
+        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
         (r"Single user licen[cs]e", "per-copy licence stamp"),
         (r"Copying and networking", "per-copy licence stamp"),
     ],
@@ -78,6 +90,11 @@ FORBIDDEN: dict[int, list[tuple[str, str]]] = {
 TREE_FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number"),
+    ],
+    2002: [
+        (r"\bX_\d{6,}\b", "reseller order number"),
+        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+        (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
     ],
     2023: [
         (r"\bX_\d{6}\b", "reseller order number"),
@@ -341,6 +358,18 @@ def self_test() -> int:
           len(quietly(check_stamp, ["order # 12"], 1985)) == 1 and quietly(check_stamp, [order_number], 1985) == [])
     check("1985 refuses the opening and the licence-terms sentences the model left behind (PB4816 review R1-1)",
           len(quietly(check_stamp, ["Copyright by INCITS.", "Single user license only. Copying and networking prohibited."], 1985)) == 3)
+    # An invented stamp of the 2002 shape (kb/Work PB4813), assembled so the tree check never reads it whole.
+    long_order = "X_" + "9876543"
+    planted_2002 = ("Copyright by INCITS. Licensed to " + "Ann Example.  ANSI store order # " + long_order + ". "
+                    + download_date + ".  Single user license only. Copying and networking prohibited.")
+    check("2002 refuses every piece of its stamp, each once",
+          len(quietly(check_stamp, [planted_2002], 2002)) == len(FORBIDDEN[2002]))
+    check("2002's own shape catches the order number longer than 2023's six-digit shape reads",
+          quietly(check_stamp, [long_order], 2002) != [] and quietly(check_stamp, [long_order], 2023) == [])
+    check("2002's tree shapes catch the order number, the download date and a purchaser's name",
+          all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2002]))
+    check("2002 has a stamp row, so check_text reaches its acknowledgment row and exits there",
+          2002 in FORBIDDEN and 2002 in TREE_FORBIDDEN and 2002 not in REQUIRED)
     for edition in (1985, 2002):
         try:
             quietly(check_text, good, edition)
