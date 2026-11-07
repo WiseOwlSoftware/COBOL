@@ -1,4 +1,4 @@
-## PB4850: the 1985 transcription, reconciled against the page and published
+## Entry 3280 — 2026-11-07 15:50 PST — PB4850: the 1985 transcription, reconciled against the page and published
 
 The 1985 transcription (`specs/ANSI_COBOL_1985.md`) had passed its figure gates but not its prose ones. Five attempts at
 PB4850 had stopped short. This one applies the batch reconciliation of 2026-11-06 and runs no comparison again.
@@ -66,3 +66,4 @@ reads and that each pass quotes the box sides. The sweep also corrected `rule_ca
 **Leads, not fixed here.** Figure 1's two missing connectors (page 114). The element-summary tables' remaining group
 labels and indentation (pages 31-84; only the claimed rows and the titles were checked). Underlines on Section headings
 in the body beyond the claimed ones. Page 837's head (`| Page No. | Change |`). The four printed pages the scan lacks (they need another copy of the standard).
+
