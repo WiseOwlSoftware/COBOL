@@ -3,6 +3,7 @@
 using System.Globalization;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
@@ -209,7 +210,12 @@ internal sealed partial class ControlFlowBinder
         // (§8.8.1.1) and keeps the Classify verdict.
         bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
             && ConditionBinder.SoleFunctionCall(written) is not null;
-        var (kind, literal) = functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
+        // ⛔ A WHOLLY PARENTHESIZED OPERAND IS AN ARITHMETIC EXPRESSION, NEVER ONE OF THE GROUP'S MEMBERS (§8.8.1.1; kb/Work PB4865):
+        // the binder drops the grouping parentheses, so Classify sees only the BoundNumRef or literal underneath and would admit
+        // `BY (FUNCTION TWO)`, `BY (J)` or `FROM (1)` as the identifier or literal §14.9.28.2 prints. The WRITTEN shape decides.
+        bool parenthesized = op.arithmeticExpression() is { } whole && !ReferenceEquals(SoleOperand.Unparenthesized(whole), whole);
+        var (kind, literal) = parenthesized ? (VaryingOperandKind.Invalid, null)
+            : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
                 $"'{text}' is not one of the operands ISO §14.9.28.2's varying-phrase prints in this slot — "
