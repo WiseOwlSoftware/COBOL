@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// and a server on another, ordered by the protocol itself, so nothing sleeps. The kill is <see cref="MessagingPeer.Abort"/>. A <see cref="ManualTime"/> supplies
 /// the CONTINUE AFTER deadline, so a deadline passes when the test says so.
 /// </summary>
+[Trait("Host", "ReFS")]
 public sealed class MessagingPeerTests : IDisposable
 {
     private static readonly TimeSpan Guard = TimeSpan.FromSeconds(30);
