@@ -554,7 +554,8 @@ def find_boxes(ink: np.ndarray, labels: np.ndarray, comps: list, scale: float):
     rectangles, open where they meet (PDF page 389's first paragraph: `and the` over `and the MULTIPLE`, `location ...
     reel.` over `FILE TAPE clause`; page 684's: `a message segment, ... a` over `or more`; kb/Work PB4898). So a
     component's boxes are found from the FACES its rules enclose, one box per rectangle of a face (`_faces`); a
-    component that encloses no face of a box's size (a rule the scan broke) is judged whole. Its rules are often fused
+    component that encloses no face of a box's size (a rule the scan broke), or several (a drawn diagram's cells), is
+    judged whole. Its rules are often fused
     to what stands against them (a brace or bracket touching the right edge: pages 396, 389), so only each rule's own
     rows or columns are erased, never the component's other ink. Returns (ink with the boxes' rules erased, [Rect], one
     per rectangle); the caller relabels, so the erased rules are neither read again as underlines nor their sides as
@@ -594,7 +595,10 @@ def _faces(mine: np.ndarray, scale: float) -> list:
     by a column's width where its next line begins). Ink fused inside a box (a bracket whose feet touch its side:
     `[RECORD]` on PDF page 389) cuts small faces off the box's own; a small face belongs to the box-sized face whose rows
     hold it, so the rectangle still reaches the box's rules. Each window reaches a rule's thickness and tilt beyond its
-    rectangle, so it holds the rules that enclose it."""
+    rectangle, so it holds the rules that enclose it. A component that encloses SEVERAL box-sized faces is no level-2
+    box: it is a drawn diagram or table whose cells share rules (PDF pages 114, 295 to 298, 346 to 349: a run that took
+    each cell for a box measured 18 and 21 "boxes" on pages 297 and 298), and it gets no windows, so `find_boxes`
+    judges it whole as it judges a component with no face."""
     h, w = mine.shape
     paper = np.ones((h + 2, w + 2), dtype=bool)                  # a margin of paper joins everything outside the rules
     paper[1:-1, 1:-1] = ~mine
@@ -607,6 +611,8 @@ def _faces(mine: np.ndarray, scale: float) -> list:
     inner = [(k, f) for k, f in enumerate(holes, start=1)
              if f.x0 > 0 and f.y0 > 0 and f.x1 < w + 2 and f.y1 < h + 2]   # the one touching the margin is outside
     big = [(k, f) for k, f in inner if (f.x1 - f.x0) >= BOX_MIN_W * scale and (f.y1 - f.y0) >= BOX_MIN_H * scale]
+    if len(big) != 1:
+        return []           # no face: judged whole (a rule the scan broke); several: a drawn diagram's cells, judged whole
     pad = int(math.ceil((BOX_RULE + BOX_TILT) * scale))
     tilt = BOX_TILT * scale
     line = max(1, int(BOX_MIN_H * scale / 2))                   # a jump of the ends shorter than this is a glyph, not a line

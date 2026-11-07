@@ -376,6 +376,19 @@ def main() -> int:
     check("a wrapped box's rules, its open seam included, are neither underlines nor choice bars",
           rp.rules == [] and all(s["kind"] != "bar" for s in R.classify_page(rp)), f"got {rp.rules} {R.classify_page(rp)}")
 
+    # 8i. A drawn DIAGRAM (a table of ruled cells, PDF pages 297 and 298) is no level-2 box per cell: its cells share
+    #     rules, several faces of one component, and it is judged whole as before (kb/Work PB4898).
+    img = canvas()
+    for y in (20, 40, 60):
+        fill(img, 20, y, 200, y + 0.6)
+    for x in (20, 110, 199.4):
+        fill(img, x, 20, x + 0.6, 60.6)
+    for x, y in ((30, 26), (120, 26), (30, 46), (120, 46)):
+        word(img, x, y, 4)
+    rp = R.measure_image(img)
+    total += 1
+    check("a ruled table's cells are not a box each", len(rp.boxes) <= 1, f"got {rp.boxes}")
+
     # 10. Reading the converted figure's words onto the scan (kb/Work PB4849).
     def dot(img, x, y):
         fill(img, x, y, x + 1.8, y + 1.6)
