@@ -384,7 +384,7 @@ def emit_row(text: str, under: set) -> str:
     return "".join(out)
 
 
-def restyle(lines: list[str]) -> list[str]:
+def restyle(lines: list[str], strict: bool = True) -> list[str]:
     """The batch's drawing of a format redrawn in the house style (FIGURE-STYLE.md), carrying the same words and the
     same four things and boxes (`compare` is asserted empty): what a refuter writes when the printed page bears the
     batch's drawing out (`sweep_figures` verdict `drawn`, kb/Work PB4849). The words keep their rows and columns; only
@@ -399,12 +399,29 @@ def restyle(lines: list[str]) -> list[str]:
       later word keeps its column.
     A full double-line box rectangle (rule 9 draws a box's sides only: its rules need rows of their own) and the
     batch's other notation (arrows, broken bars) have no house form this can derive: ValueError, and a refuter draws
-    that figure by hand (verdict `neither`)."""
+    that figure by hand (verdict `neither`). So is, while `strict`, a drawing holding a multi-row piece that pairs with
+    nothing: usually its columns are off (the `<u>` tags hide a one-column slip), and the redrawing would keep the
+    wrong reading. A refuter who has checked the page's own unpaired delimiter (a bracket opened on one line and closed
+    on the next, PDF page 245) passes `strict=False`."""
     plain = [plain_row(line) for line in lines]
     for text, _ in plain:
         odd = sorted(set(text) & (RULE_GLYPHS | OTHER_NOTATION))
         if odd:
             raise ValueError(f"no house form for {''.join(odd)!r} (a box's rules, or other notation): draw it by hand")
+    # A multi-row piece that pairs with nothing is a drawing whose columns are off (a closer set one column left of
+    # the rows beside it, PDF page 253): it reads wrongly, and redrawing it would keep the wrong reading.
+    # A corner alone on its row is the page's typed delimiter, which may pair across lines (`[report-description-entry`
+    # ... `] ...`, PDF page 592); rule 7 types it below.
+    # A corner beside its partner one column off (`┌A ┐` over `└B┘`) is the misdrawn case.
+    columns = set(_columns([t for t, _ in plain]))
+    left = [d for d in _pair(_delimiters(lines))[1] if d in columns]
+    corners = [d for d in columns if d[3] == d[4] and plain[d[3]][0][d[2]] in set(TOP) | set(BOTTOM)]
+    lost = [d for d in left if d not in corners] + [
+        d for d in left if d in corners and any(e != d and e[:2] == d[:2] and abs(e[3] - d[3]) == 1
+                                                and abs(e[2] - d[2]) <= 1 for e in corners)]
+    if lost and strict:
+        fam, side, c, r0, r1 = lost[0]
+        raise ValueError(f"a {fam} piece in column {c}, rows {r0}-{r1}, pairs with nothing: the drawing's columns are off")
     grid, under = [list(t) for t, _ in plain], [set(u) for _, u in plain]
 
     def cell(r, c):
@@ -590,6 +607,12 @@ def self_test() -> int:
     crossed = ["⎧A⎫", "⎨B⎬", "⎩C⎭", "WORDWORD"]
     check("restyle: no blank column is set through another row's word",
           restyle(crossed) == ["╭A╮", "┤B├", "╰C╯", "WORDWORD"], str(restyle(crossed)))
+    try:
+        restyle(["┌A ┐", "└B┘"])              # the closer one column left on its second row (PDF page 253)
+        refused = False
+    except ValueError as exc:
+        refused = "pairs with nothing" in str(exc)
+    check("restyle: a drawing whose columns are off is refused", refused)
     try:
         restyle(rectangle)
         refused = False

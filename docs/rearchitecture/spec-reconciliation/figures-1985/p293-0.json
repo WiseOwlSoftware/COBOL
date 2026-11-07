@@ -1,0 +1,16 @@
+{
+ "page": 293,
+ "figure": 0,
+ "drawn_lines": [
+  "                   ⎧⎧<u>AND</u>⎫                                    ⎫",
+  "relation-condition ⎨⎨   ⎬ [<u>NOT</u>] [relational-operator] object ⎬ ...",
+  "                   ⎩⎩<u>OR</u> ⎭                                    ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                   ╭ ╭ <u>AND</u> ╮                                    ╮   ╗",
+  "║relation-condition ┤ ┤     ├ [<u>NOT</u>] [relational-operator] object ├ … ║",
+  "╚                   ╰ ╰ <u>OR</u>  ╯                                    ╯   ╝"
+ ],
+ "reason": "The printed page sets relation-condition {{AND/OR} [NOT] [relational-operator] object} ... with AND, OR and NOT underlined, as the batch drew it, inside the page-wide level-2 box round the abbreviated-combined-relation clause (the batch lost the box). Drawn as the batch's drawing with the box's two sides round it."
+}

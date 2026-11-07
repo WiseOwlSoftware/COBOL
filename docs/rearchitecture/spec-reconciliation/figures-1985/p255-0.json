@@ -1,0 +1,16 @@
+{
+ "page": 255,
+ "figure": 0,
+ "drawn_lines": [
+  "┌data-name-1┐",
+  "│FILLER     │",
+  "└           ┘"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "┌ data-name-1 ┐",
+  "│ FILLER      │",
+  "└             ┘"
+ ],
+ "reason": "The printed page sets [data-name-1 / FILLER] as a two-row bracket, which the batch drew three rows tall; the two read the same. The measurer did not locate it. Redrawn in the house style."
+}
