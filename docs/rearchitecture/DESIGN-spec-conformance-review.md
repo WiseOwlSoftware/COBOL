@@ -705,3 +705,105 @@ So: **an all-CONFORMS report is a red flag, not a good result**, and that senten
   failures.
 - **Cluster before triaging.** The finding count is not the defect count: batch 1's 42 open rows were three root
   causes for 31 of them; batch 2's 41 were 34 of a single one.
+
+## 10. THE EDITION PARAMETER — the 1985 audit (kb/Work PB4886)
+
+`--std=1985` is audited against ANSI X3.23-1985 itself (`specs/ANSI_COBOL_1985.md`, with Amendments 1 and 2), not against
+the reconstructed `VERSION_CHANGE_REFERENCE.md` and the NIST CCVS85 suite alone. **It is this audit with an edition
+parameter, not a second audit:** the same three phases (§3), the same definition of done (§1), the same inventory store and
+its one recording path (§4, §8), and the same rule that an omitted rule is silent false confidence (§7). Only the reader of
+the standard's structure, the row key and the mapping onto the 2023 rows are per edition, and each is below. The 2002
+edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-structured, so its reader is closer to
+2023's.
+
+### 10.1 The 1985 rule catalog and its key
+
+`python scripts/spec/extract_rule_catalog.py --edition 1985` reads the 1985 document in its own structure
+(`scripts/spec/rule_catalog_1985.py`, self-test on planted text):
+
+- **The locator is a Roman section and that section's own paragraph number** (`§1985:VI.5.7.3`), because paragraph numbers
+  restart in each section; Amendment 1's Section A (the Intrinsic Function module) is cited `§1989:A.2.5.3`. The readers
+  of that structure are `scripts/spec/citation.py`'s (`SECTION_85`, `PARAGRAPH_85`, `FOLIO_85`, `AMENDMENT_85`), so the
+  catalog and `cite.py --check` cannot disagree about what a paragraph is.
+- **A rule block** is a paragraph headed Syntax Rules (SR), General Rules (GR), Arguments (AR) or Returned Values (RV),
+  headed with `#` or, where the transcription did not head it, a plain line opening with its number; a **rule** is a
+  column-0 `(n)`, and its lettered `a.` items and their `1)` items are its text (THE RULE IS THE UNIT, §3). A General
+  Format paragraph is an FMT row. The page-break furniture (the folio, the page's running header) is never rule text.
+- **The row key** is `<year>-<kind>-<locator>-<n>` (`1985-SR-VI.5.7.3-1`; a list restarted inside a block `-L<k>.<n>`, an
+  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). The year prefix keeps the 1985 ids apart from
+  the 2023 ids in the one inventory store.
+- **Module and level.** Sections VI to XVI are the eleven modules and Section A the twelfth. Every module but Sort-Merge,
+  Report Writer and Intrinsic Function has two levels (§1985:I.1.2; Amendment 1 adds the third one-level module), and the
+  standard boxes every specification unique to level 2. A row's `box` is `none`, `part` or `whole` (the prose box is the
+  transcription's one markup, `rule_catalog_1985.BOX_SPAN`; a general format's is FIGURE-STYLE.md rule 9's double line),
+  and its `level` is 2 only when the whole rule is boxed in a two-level module. A `part` row is a level-1 rule with a
+  level-2 span, verified at both levels. A box in a one-level module is a finding. The high subset (§1985:I.1.5.1) is
+  every row of the required modules at its module's highest level.
+- **The amendment.** The amended 1985 is a different language level for edition gating, so a row carries its `document`
+  (the base standard, or Amendment 1 for Section A) and `amended_by`: Amendment 1's Addendum 1 and Amendment 2 are
+  tables of changes, a row per change keyed by the printed page it begins on and a paragraph and rule, and a change that
+  names a rule records its amendment there. A change that ADDS a rule ("add the following as the new general rule 4") is a
+  row of its amendment, cited by the amendment's own page (`§1993:p.B-14`), and keeps the number the amendment gives it;
+  the base rules keep their 1985 numbers, which are the ones 1985 citations use.
+- **Completeness** is held as for 2023: a rule-shaped heading no kind resolves ("Editing Rules", "Presentation Rules"), a
+  recognised block that yields no rule, an ordinal that neither continues nor restarts its list, a box in a one-level
+  module, an amendment change naming a rule the catalog cannot find, and a duplicate id are each reported, and `--check`
+  fails on them. The paragraphs that DEFINE the rule kinds (§1985:IV.3) are outside the denominator, as §2023:5.3 is. Which
+  kind a rule-shaped block of another name is (1985 has no counterpart of §2023:5.3.2/5.3.3's typing) is an adjudication,
+  recorded in `rule_catalog_1985.KINDS` or `EXCLUDED_BLOCKS` with its reason, never a guess in the reader.
+
+The catalog is written (`docs/rearchitecture/spec-rule-catalog-1985.json`) only once the transcription is reconciled
+(kb/Work PB4850); until then `--edition 1985 --check` prints the counts and the findings and writes nothing. On the
+unreconciled file of 2026-11-07 it counts 1,988 rows from 614 blocks (SR 580, GR 1,051, AR 65, RV 80, FMT 212) and 49
+findings, most of them the reconciliation's to repair.
+
+### 10.2 The mapping onto the 2023 inventory: SAME, DIFFERS, NONE
+
+Most 1985 rules have a 2023 counterpart that already carries a verdict. Each 1985 row is mapped to its 2023 rule or rules:
+
+- **SAME** (the 2023 text states the same requirement in substance, and the adversarial verify pass upheld that): the 1985
+  row's verdict is the 2023 rows' verdict, held as a REFERENCE (`carries_from: [<2023 ids>]`), never a copy, so it is
+  re-derived whenever a 2023 row is re-verdicted, the §8.1 shape of one determination applied by a predicate. Its evidence
+  is the 2023 row's test run under `--std=1985`.
+- **DIFFERS** (same subject, different requirement) and **NONE** (no counterpart: a deleted, obsolete or changed feature):
+  a 1985 row of its own, adjudicated against `--std=1985` with a pinned compiler like any 2023 row (§8), its witness a
+  program run under `--std=1985`.
+- **DISPUTED** (the verify pass refuted or could not uphold a SAME): a fleet adjudicator decides SAME or DIFFERS before
+  the row is recorded.
+
+The 1985 rows live in the same store, `tests/version-matrix/inventory/<1985 id>.json`, with `edition: 1985`, are built by
+`build_inventory.py` from the 1985 catalog with the same edition parameter, and are recorded only through
+`record_verdicts.py`. **The progress metric is the 1985 GAP count, reported by the ledger beside 2023's**, and the 1985
+conformance statement (kb/Work PB4885: the high subset plus all four optional modules) is written from those rows, every
+open one named.
+
+### 10.3 The Message Batches arm — `scripts/spec/audit_batch.py`
+
+The independent JUDGMENTS go to Opus 5.5 through the Message Batches API (owner 2026-11-07, kb/Work PB4886), in passes,
+each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
+
+| pass | one request per | answer |
+|---|---|---|
+| `map` | 1985 catalog rule, with the 2023 rules most like it (the inverse-document-frequency weight of the words of their headings and text, the same kind preferred; 5 by default) | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
+| `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
+| `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with its `§1985:` citation, which must parse |
+| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which the fleet compiles and runs under `--std=1985` and checks against the rule text before any use |
+
+`results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open). The tool's rules:
+
+- **Restartable**, on the ONE batch state the transcriber shares (`scripts/spec/message_batches.py`, `BatchRun`): an
+  intent written before every create and the batch after, a crash between them adopted from the server's list on the next
+  run, the usage of every reply recorded. A pass's items are planned once (`items.json`, every input its prompts need);
+  each answer is written once and never overwritten; a reply outside the pass's answer shape is kept in `raw/` and its item
+  retried.
+- **A canary before each full submit**: `submit --canary N` first, and a full submit is refused until that pass holds a
+  collected canary with a valid answer. **`--max-usd` on every submit and retry**, against spent plus in-flight plus this
+  submit, priced by the canary's measured cost per request. The map pass on the unreconciled file estimates about $0.017
+  a request, about $34 for the pass, before a canary measures it.
+- **Public text only**: a prompt carries the tracked transcriptions' text, never a page image; a request whose text
+  matches any per-copy stamp shape (`verify_publishable`) is refused before any batch.
+- **The key** comes through `scripts/api_key.py` with `--api-account`; a pass's `state.json` records the account's name,
+  never the key. The self-test (`scripts/spec/test_audit_batch.py`) uses a fake client (`scripts/spec/fake_batches.py`,
+  the transcriber's self-test's too) and opens no key file.
+
+The passes run after the reconciled 1985 file (PB4850) and its catalog exist; the verdicts stay with the fleet (§5, §8).
