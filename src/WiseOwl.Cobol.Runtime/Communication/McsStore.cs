@@ -224,7 +224,7 @@ internal sealed class McsStore : IDisposable
     {
         if (tables.DeviceEnd(device) is not null) return device;
         if (!FileNamesIgnoreCase) return null;
-        return tables.DeviceEnds().Select(r => r.Device).FirstOrDefault(d => string.Equals(d, device, StringComparison.OrdinalIgnoreCase));
+        return tables.DeviceEnds().Select(r => r.Device).FirstOrDefault(d => string.Equals(d, device, StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a file name, which the host's file system folds, not COBOL
     }
 
     private bool? _fileNamesIgnoreCase;
