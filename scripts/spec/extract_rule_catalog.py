@@ -62,11 +62,11 @@ PAGE = re.compile(r"^##\s+Page\s+(\d+)\s*$")
 # Any markdown heading — used to CLOSE a rule block (see the loop). Annex headings carry no section number.
 ANY_HEADING = re.compile(r"^#{1,6}\s+\S")
 # A GENERAL-FORMAT DIAGRAM in the transcription. Every diagram is a `<pre style="line-height:1">` block today; the
-# fenced (also inside a `>` blockquote, as §7.3.23.2 still is) and `$$` forms are the transcription's earlier
+# fenced (also inside a `>` blockquote, as §2023:7.3.23.2 still is) and `$$` forms are the transcription's earlier
 # renderings. Keying `has_diagram` on those two alone left it False on all 322 FMT rows once the diagrams moved to
 # <pre> — a field that could never report the one thing it names (kb/Work PB1536).
 FMT_DIAGRAM = re.compile(r"<pre\b|^[\s>]*```|\$\$", re.M)
-# The numbered-and-named format label of a multi-format construct ("Format 1 (replacing):"), §5.2.1.
+# The numbered-and-named format label of a multi-format construct ("Format 1 (replacing):"), §2023:5.2.1.
 FMT_LABEL = re.compile(r"^\s*Format\s+\d+", re.M)
 # PAGE-BREAK FURNITURE. At every printed page boundary the transcription injects a running header, and it is
 # emitted AS A HEADING — inside rule blocks. Treating it as a block terminator truncates every rule block that
@@ -90,7 +90,7 @@ FURNITURE = re.compile(
 # follow it and is NEITHER a heading NOR rule prose, which is exactly the pair of mistakes this project made with
 # it (fix-queue PB689):
 #   · read as a HEADING it TRUNCATES the block. `specs/ISO_COBOL_2023.md` rendered nine of them as `## FORMAT n` /
-#     `## SEQUENTIAL FILES`; the block scan closes at any heading, so §14.9.51.4 (WRITE) contributed 16 of its 42
+#     `## SEQUENTIAL FILES`; the block scan closes at any heading, so §2023:14.9.51.4 (WRITE) contributed 16 of its 42
 #     general rules and the traceability inventory's denominator — the number v1.0 is defined against (D13) —
 #     was silently short by 60 rows across five clauses. GR-14.9.51.4-23, the line-sequential '71' status, was
 #     one of the rules that had no row to verdict.
@@ -107,7 +107,7 @@ FURNITURE = re.compile(
 # are reported as transcription defects to repair (see `heading_labels` below), never silently tolerated.
 GROUP_LABEL = re.compile(r"^(?:#{1,6}\s+)?(?P<label>[A-Z][A-Z0-9 \-/&,]*)\s*$")
 # A top-level rule ordinal at the start of a line. The transcription uses BOTH "1)" and "1." — an earlier version
-# matched only "1)" and silently dropped every rule in §8.8.3.2, §11.9.11.2, §13.18.24.3 and §14.9.30.3. The
+# matched only "1)" and silently dropped every rule in §2023:8.8.3.2, §2023:11.9.11.2, §2023:13.18.24.3 and §2023:14.9.30.3. The
 # completeness self-check is what surfaced it; without it the denominator would have been quietly short.
 # Sub-items ("a)") are indented and stay with their parent rule.
 # The label's delimiter is ESCAPED in the transcription (`1\)`, `1\.`) because an unescaped `1)` at column 0
@@ -115,7 +115,7 @@ GROUP_LABEL = re.compile(r"^(?:#{1,6}\s+)?(?P<label>[A-Z][A-Z0-9 \-/&,]*)\s*$")
 # and it re-parses the rule's text as block syntax, which ate the leading `>` of eight rules. The backslash is
 # optional here so the catalog reads both forms: this regex is the DENOMINATOR of the P14 traceability
 # inventory, and a silent zero-rule extraction would read as "no rules in this clause" rather than as a break.
-# ⛔ The DELIMITER FORM (")" vs ".") is captured because it is load-bearing (fix-queue PB39): §15.68.3 writes its
+# ⛔ The DELIMITER FORM (")" vs ".") is captured because it is load-bearing (fix-queue PB39): §2023:15.68.3 writes its
 # top-level rules `1\)` … and wrote its nested list `1.` … at column 0, and the form — not any arithmetic on the
 # ordinals — is what separated them. DEVLOG 1167 proved every ordinal-only heuristic wrong on that clause. (PB55
 # has since indented that list at its printed level; the form rule stays the segmenter's evidence for the next.)
@@ -144,7 +144,7 @@ ORDINAL = re.compile(r"^(?P<n>\d+)\\?(?P<form>[.)])\s+(?P<text>.*)$")
 # referent both live in the item above it. That is the same silent-false-confidence class as PB689's
 # contamination, in the other direction.
 #
-# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§14.9.41.3 SR6 b) 2.
+# The transcription flattened the TAIL of some nested lists onto column 0 at a PAGE BREAK (§2023:14.9.41.3 SR6 b) 2.
 # and 3. are printed indented under b) on PDF page 785 / folio 755 — the ordinal glyph measured at x0 115.05 on
 # a page whose body margin is 80.04 — and were transcribed at column 0). All 23 such items, in 14 clauses, were
 # measured on the PDF and REPAIRED in the transcription by PB698, so this arm catches nothing today and is a
@@ -157,11 +157,11 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 
 # The rule-block kinds the standard uses. Intrinsic functions use argument/returned-value rules instead of SR/GR.
 # SINGULAR forms are load-bearing, not a nicety: the standard writes "Syntax rule" when a block holds exactly one
-# (§10.6.3, §11.9.4, §13.4.3, …). A plural-only map skipped 15 whole blocks — invisible to the empty-block check,
+# (§2023:10.6.3, §2023:11.9.4, §2023:13.4.3, …). A plural-only map skipped 15 whole blocks — invisible to the empty-block check,
 # because a block that is never RECOGNISED is never counted as seen. The TOC cross-check below is what caught it.
 # ⛔ KEYED ON THE SINGULAR CANONICAL FORM ONLY — every plural variant is normalised into it by `kind_of`.
 # The literal-spelling map came back a SECOND time: it carried "argument rules"/"argument rule" and still missed
-# §15.10.3, §15.13.3 and §15.100.3, which the standard heads "Argument**s** rule(s)". Ten normative rules were
+# §2023:15.10.3, §2023:15.13.3 and §2023:15.100.3, which the standard heads "Argument**s** rule(s)". Ten normative rules were
 # absent from the denominator, and the burn-down was measuring against a total that was short — the exact "silent
 # false confidence" DESIGN-spec-conformance-review.md §7 names. Adding two more spellings would have set up the
 # third occurrence, so the pluralisation is now normalised away and the unrecognised-heading check below fails loudly
@@ -169,13 +169,13 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 #
 # ⛔ "Editing rules" AND "Precedence rules" ARE NOT A THIRD AND FOURTH KIND — the standard classifies them
 # ITSELF, and this map records that classification rather than inventing vocabulary for it:
-#   §5.3.3  "The rules of the PICTURE clause specified in 13.18.40.5, Editing rules, are General rules."
-#   §5.3.2  "The rules of the PICTURE clause specified in 13.18.40.6, Precedence rules, are syntax rules."
+#   §2023:5.3.3  "The rules of the PICTURE clause specified in 13.18.40.5, Editing rules, are General rules."
+#   §2023:5.3.2  "The rules of the PICTURE clause specified in 13.18.40.6, Precedence rules, are syntax rules."
 # (both validated with `scripts/spec/cite.py --check`). So this is the SAME defect class as the pluralisation
 # above — a heading spelling the map did not know — not a change to what the denominator MEANS. 17 rules, all
 # core PICTURE editing: 15 GR + 2 SR. Owner decision 2026-07-30.
-# §5.3 "Rules" itself stays OUT and is the reason the two above come in: it is the clause that DEFINES the
-# taxonomy (§5.3.1–5.3.3 is prose about what syntax and general rules are) and carries no numbered rules of its
+# §2023:5.3 "Rules" itself stays OUT and is the reason the two above come in: it is the clause that DEFINES the
+# taxonomy (§2023:5.3.1–5.3.3 is prose about what syntax and general rules are) and carries no numbered rules of its
 # own, so there is nothing there to extract.
 KINDS = {
     "syntax rule": "SR",
@@ -236,7 +236,7 @@ def kind_of(title: str) -> str | None:
 
 #: The title of a clause that PRINTS a construct's general format is `spec_headings.GENERAL_FORMAT_TITLE`: THE one
 #: definition, shared with every script that asks the question (kb/Work PB284: the sibling copies kept missing the
-#: one clause, §14.9.7.2, that spells the noun "General forms").
+#: one clause, §2023:14.9.7.2, that spells the noun "General forms").
 
 #: A clause title that only INTRODUCES its construct and carries no block of its own ("14.9.7.1 General").
 INTRO_TITLE = re.compile(r"general\.?", re.IGNORECASE)
@@ -284,7 +284,7 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
             return
         num, title = cur
         # ⛔ COUNT THE LISTS, NOT ONLY THE ITEMS — the distinction is the whole triage signal, and reporting only
-        # a total actively misleads. §8.3.2.2 "User-defined words" reports 15 items, which reads like a numbered
+        # a total actively misleads. §2023:8.3.2.2 "User-defined words" reports 15 items, which reads like a numbered
         # rule block; they are FIVE nested sub-lists inside prose, each restarting at 1 (1-2-3, 1-2, 1-6, 1-2,
         # 1-2). A rule block is normally ONE ascending list, so `lists == 1` is weak evidence FOR admitting the
         # clause and `lists > 1` is weak evidence for a prose enumeration — neither is proof, which is why each
@@ -413,10 +413,10 @@ def main() -> int:
     # ⛔ A kind need not be uniform across a clause, and the two non-uniform shapes are EXPLICIT so they cannot
     # be confused (DEVLOG 1166 recorded the limit; these forms are its removal):
     #   "SR"                                   — every rule in the clause is this kind;
-    #   {"sublists": {"1": "SR", "2": "GR"}}   — kind per SUB-LIST (§8.3.2.2: five normative sub-lists, two
-    #                                            constrain where words may be WRITTEN ⇒ SR per §5.3.2, three
-    #                                            state effect or treatment ⇒ GR per §5.3.3);
-    #   {"items": {"1": "SR", "4": "GR"}}      — kind per ITEM of a SINGLE list (§8.3.3.3.2: items 1-3
+    #   {"sublists": {"1": "SR", "2": "GR"}}   — kind per SUB-LIST (§2023:8.3.2.2: five normative sub-lists, two
+    #                                            constrain where words may be WRITTEN ⇒ SR per §2023:5.3.2, three
+    #                                            state effect or treatment ⇒ GR per §2023:5.3.3);
+    #   {"items": {"1": "SR", "4": "GR"}}      — kind per ITEM of a SINGLE list (§2023:8.3.3.3.2: items 1-3
     #                                            constrain the literal's written form ⇒ SR, item 4 states its
     #                                            value ⇒ GR). Requires the clause to segment as one list.
     # A sub-list or item the map does not know is a manifest/segmentation DISAGREEMENT and is FATAL at flush —
@@ -450,22 +450,22 @@ def main() -> int:
     buf: list[str] = []
     ordinal = 0
     # A rule block can contain MORE THAN ONE numbered list — the standard restarts numbering under an unheaded
-    # sub-list (e.g. §7.2.3.4 General rules runs 1..n for COPY, then restarts 1..n for text-word matching). Keyed
+    # sub-list (e.g. §2023:7.2.3.4 General rules runs 1..n for COPY, then restarts 1..n for text-word matching). Keyed
     # on (kind, section, ordinal) alone, 173 rules collided and silently overwrote each other — which would have
     # carried the WRONG verdict forward on every inventory refresh. Track the sub-list and qualify the id.
     #
     # ⛔ SEGMENTATION IS DECIDED BY THE DELIMITER FORM AND THE INDENTED-RUN EVIDENCE, NEVER BY ORDINAL ARITHMETIC
     # ALONE (fix-queue PB39, DEVLOG 1167). The old rule — "an ordinal that goes backwards opens a sub-list, and
     # the sub-list never returns to its parent" — filed 326 top-level rules under sub-list ids the standard does
-    # not use (SR-12.3.7.3-L7.18 for what the standard calls "§12.3.7.3 syntax rule 18"). The mechanism, read
+    # not use (SR-12.3.7.3-L7.18 for what the standard calls "§2023:12.3.7.3 syntax rule 18"). The mechanism, read
     # from the transcription itself:
     #   · whatever delimiter form a run opened with is that level's form; a change of form opens a NEST
-    #     (§15.68.3 as PB39 found it: `1\)..5\)`, nested `1...7.`, then `6\) 7\)` returning to the top level);
-    #   · EXCEPT that the transcription also drifts form mid-run — §13.18.40.3 writes SR 1-5 as `N.` and SR 6-37
+    #     (§2023:15.68.3 as PB39 found it: `1\)..5\)`, nested `1...7.`, then `6\) 7\)` returning to the top level);
+    #   · EXCEPT that the transcription also drifts form mid-run — §2023:13.18.40.3 writes SR 1-5 as `N.` and SR 6-37
     #     as `N\)` — so an ordinal that STRICTLY CONTINUES an open level's run (n == last+1) belongs to that
-    #     level regardless of form, preferring a form-matched level when two continue with the same n (§9.3.6);
+    #     level regardless of form, preferring a form-matched level when two continue with the same n (§2023:9.3.6);
     #   · EXCEPT that a column-0 ordinal continuing the most recent INDENTED run is the flattened TAIL of that
-    #     nested list, not a rule (§14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §15.30.3 GR2b).
+    #     nested list, not a rule (§2023:14.9.13.4 GR4a: `1\.-3\.` indented, `4.-6.` at column 0; §2023:15.30.3 GR2b).
     #     ⛔ That case never reaches `place()` any more — it is decided in the scan loop by `flattened_tail`
     #     and BUFFERED INTO THE PARENT RULE (fix-queue PB698). It used to open a sub-list here, which gave 27
     #     sub-item FRAGMENTS rows of their own across 14 clauses while every other sub-item in the standard was
@@ -534,7 +534,7 @@ def main() -> int:
             last_indented = 0
             return levels[-1][1]
         # 4. an ordinal that strictly continues an OPEN level's run closes every level above it and continues
-        #    it — the form may drift (§13.18.40.3). Form-matched levels win over form-drifted ones (§9.3.6).
+        #    it — the form may drift (§2023:13.18.40.3). Form-matched levels win over form-drifted ones (§2023:9.3.6).
         for form_matched in (True, False):
             for i in range(len(levels) - 1, -1, -1):
                 if n == levels[i][2] + 1 and (levels[i][0] == form) == form_matched:
@@ -597,7 +597,7 @@ def main() -> int:
         if m := PAGE.match(line):
             page = int(m.group(1))
             continue
-        # ANY heading closes the current rule block. Terminating only on a NUMBERED heading let §16.2.2.2 — the
+        # ANY heading closes the current rule block. Terminating only on a NUMBERED heading let §2023:16.2.2.2 — the
         # last rule block in the standard's body — run straight through the un-numbered annex headings ("## Annex
         # A (normative)"), turning every "N." line in Annexes A-F into a fake rule: 601 phantoms in one block.
         # A block that never ends is as wrong as a block never seen, and inflates the denominator instead of
@@ -621,9 +621,9 @@ def main() -> int:
             flush()
             num, title = m.group("num"), m.group("title")
             # ⛔ A CLAUSE MAY BE A RULE BLOCK WITHOUT ITS HEADING SAYING SO, AND THAT IS DECLARED IN DATA, NOT
-            # HERE (fix-queue PB29). §8.8.1.2 is headed "Native, standard-binary, and standard-decimal
+            # HERE (fix-queue PB29). §2023:8.8.1.2 is headed "Native, standard-binary, and standard-decimal
             # arithmetic" and carries seven numbered rules, two of which PB28 proved the compiler violates —
-            # §5.3.1 settles that they ARE rules ("Except for intrinsic functions, rules are categorized as
+            # §2023:5.3.1 settles that they ARE rules ("Except for intrinsic functions, rules are categorized as
             # syntax rules and general rules", validated with cite.py). Adding such titles to KINDS would be a
             # hand-maintained list of prose headings, which is the shape this project keeps deleting; the
             # ADMITTED set lives in `spec-unharvested-rule-blocks.json` beside the reason each was admitted, and
@@ -704,7 +704,7 @@ def main() -> int:
                 })
 
     # ---- completeness self-check -----------------------------------------------------------------------------
-    # §5.3.2-5.3.5 are the CONVENTIONS clause: prose DEFINING what a syntax/general/argument/returned-value rule
+    # §2023:5.3.2-5.3.5 are the CONVENTIONS clause: prose DEFINING what a syntax/general/argument/returned-value rule
     # is. They are rule-block headings that correctly contain no rules. Every other empty block is a parse gap.
     EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
     gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
@@ -716,14 +716,14 @@ def main() -> int:
     # "verify this diagram against the grammar rule that implements it".
     #
     # ⛔ A ROW IS A FORMAT THE CLAUSE PRINTS, NOT A HEADING THAT SAYS "General formats" (kb/Work PB1536 Q2). The
-    # scan used to emit a row for ANY heading so titled, and §5.2 — the description-techniques clause ABOUT
-    # general formats, whose only body is its own sub-clause §5.2.1 — manufactured FMT-5.2: a GAP row whose
+    # scan used to emit a row for ANY heading so titled, and §2023:5.2 — the description-techniques clause ABOUT
+    # general formats, whose only body is its own sub-clause §2023:5.2.1 — manufactured FMT-5.2: a GAP row whose
     # "text" was a bare anchor, which no grammar rule could ever implement. So a candidate heading yields a row
-    # only when its body carries what §5.2.1 says a general format IS: a diagram, or the numbered-and-named
+    # only when its body carries what §2023:5.2.1 says a general format IS: a diagram, or the numbered-and-named
     # "Format N" labels of a multi-format construct ("the general format is separated into multiple formats that
     # are numbered and named" — cite.py --check 5.2.1 → OK). A candidate without either is one of two shapes,
     # and they are told apart structurally rather than by a list of section numbers:
-    #   · a PARENT clause — its next numbered heading is its own sub-clause (§5.2 → §5.2.1): the clause is a
+    #   · a PARENT clause — its next numbered heading is its own sub-clause (§2023:5.2 → §2023:5.2.1): the clause is a
     #     topic, not a construct's format. Skipped, and printed, so the exclusion is an observation.
     #   · a LEAF whose diagram the TRANSCRIPTION LOST (§15.78.2 REVERSE printed its format as bare text until
     #     wave 60): still a row — dropping it would shrink the denominator silently — and a LOUD self-check
@@ -924,7 +924,7 @@ def main() -> int:
             print(f"      §{sec}  '{label}'")
 
     # ⛔ THE SAME POSTURE FOR PB698's DEFECT: the extractor no longer lets a flattened nested-list tail become a
-    # row, but a transcription that outdents one still makes `cite.py` report the WRONG printed path (§14.9.41.3
+    # row, but a transcription that outdents one still makes `cite.py` report the WRONG printed path (§2023:14.9.41.3
     # SR6 b) 2. and 3. both resolved to "6) b) 1." while the printed page indents them under b)), and a wrong
     # citation path is the one thing CLAUDE.md rule 1 exists to prevent. Repair the indentation on the page.
     if flattened_tails:
@@ -936,7 +936,7 @@ def main() -> int:
 
     # ⛔ A SUB-LIST IS A ROW FAMILY ONLY WHEN THE PRINTED PAGE SAYS SO (kb/Work PB55, "THE RULE IS THE UNIT").
     # A column-0 list that restarts at 1 is either a PEER list the standard prints at the block's own margin
-    # (§14.7.5's "The size error condition exists in the following cases:") — rules of their own — or a NESTED
+    # (§2023:14.7.5's "The size error condition exists in the following cases:") — rules of their own — or a NESTED
     # list the transcription flattened, which is its parent rule's body. The markdown cannot tell the two apart:
     # 51 nested lists sat at column 0 and held 152 fragment rows until PB55 measured every one on the PDF. So
     # every sub-list must be RECORDED in `data/sublist-levels.json` as measured at level 0; one that is not is a

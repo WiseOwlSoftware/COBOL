@@ -8,7 +8,7 @@
 #
 # ⛔ THE ONE FACT THE GUARDS STILL NEED: WHICH `divergent` ROWS TERMINATE (kb/Work PB1955). A `divergent` row whose
 # note begins `TERMINATES EC-<name>` has a golden that records a run that CONTINUED past a fatal I-O status nothing
-# covers, which WiseOwl COBOL's documented choice under ISO §9.1.13.1 ("The implementor may either continue or
+# covers, which WiseOwl COBOL's documented choice under ISO §2023:9.1.13.1 ("The implementor may either continue or
 # terminate the execution of the run unit"; Annex A.1 item 103, docs/CONFORMANCE.md DOC-A.1-103) ENDS, so the run
 # must end naming that exception. Every other `divergent` row is compared with its golden like a green one (the
 # legacy engine's exemption list for them is retired with the engine, kb/Work PB2109). The marker is written down

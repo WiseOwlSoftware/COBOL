@@ -447,7 +447,7 @@ references reaching line 50,407 in a file that now has 47,195 lines, all of them
 sentence long before they pointed past the end. A clause number is the STANDARD's own identifier and does not
 move; the quoted fragment is what pins the reference INSIDE the clause. Both halves are checked mechanically —
 the DOC AUDITS gate audit (`scripts/docchecks/vcr.py`, `citation_findings`) applies the same contract as
-`python scripts/spec/cite.py --check <clause> "<text>"`, so a citation cannot rot without the battery going red.
+`python scripts/spec/cite.py --check "§2023:<clause>" "<text>"`, so a citation cannot rot without the battery going red.
 
 Annex E is the 2014→2023 substantive-changes list, Annex F the archaic/obsolete lists; a body clause beside them
 is the site the change actually lands on.

@@ -580,9 +580,9 @@ def closure(refs: dict[str, frozenset[str]], anchors: set[str]) -> set[str]:
 
 
 #: ⛔ A WORD THE GRAMMAR MUST DEMAND AND THE LANGUAGE STILL LETS YOU OMIT, recorded where the rule is (kb/Work
-#: PB3751). Some omissions only a later phase can see: §13.18.63.2's `[ IN alphabet-name-1 ]` with IN left out is,
-#: BY POSITION, one more literal operand (a constant-name, §13.10.3 SR2), so the parser always takes it as one and
-#: the binder tells the alphabet from the constant by SYMBOL (§8.3.2.2). The rule therefore writes `(IN cobolWord)?`
+#: PB3751). Some omissions only a later phase can see: §2023:13.18.63.2's `[ IN alphabet-name-1 ]` with IN left out is,
+#: BY POSITION, one more literal operand (a constant-name, §2023:13.10.3 SR2), so the parser always takes it as one and
+#: the binder tells the alphabet from the constant by SYMBOL (§2023:8.3.2.2). The rule therefore writes `(IN cobolWord)?`
 #: and the language accepts the IN-less spelling all the same. The rule says so in a comment line of its own:
 #:     // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
 #: and the audit reports that word as DECIDED, not as a candidate. ⛔ A MARKER IS CHECKED, NEVER TRUSTED: the member
@@ -619,12 +619,12 @@ def member_declared(type_name: str, member: str, src: pathlib.Path = REPO / "src
 
 #: The three candidate classes, each the name its `audit:<kind>` marker uses, and what a candidate of it states.
 KINDS = {
-    # §8.3.2.4.3: a word printed without an underline, which a rule spelling the construct DEMANDS (rejects legal source)
+    # §2023:8.3.2.4.3: a word printed without an underline, which a rule spelling the construct DEMANDS (rejects legal source)
     "optional-word": "required in",
-    # §5.2.2 with §5.2.6 (kb/Work PB2024): an underlined word no bracket or choice indicator holds apart from a word
+    # §2023:5.2.2 with §2023:5.2.6 (kb/Work PB2024): an underlined word no bracket or choice indicator holds apart from a word
     # the alternative demands, which the alternative lets be LEFT OUT (accepts what the format does not print)
     "required-word": "omissible in",
-    # §5.2.7 (kb/Work PB2024, the PB1183 shape): a word no ellipsis repeats, which a rule lets be WRITTEN AGAIN
+    # §2023:5.2.7 (kb/Work PB2024, the PB1183 shape): a word no ellipsis repeats, which a rule lets be WRITTEN AGAIN
     "repeated-word": "repeatable in",
 }
 
@@ -652,7 +652,7 @@ class Examination(NamedTuple):
 #: format — `usageClause : (USAGE IS?)? usageKeyword …` writes USAGE only inside an optional group and
 #: `fileStatusClause : FILE? STATUS …` only as an optional token, and each is still its construct's own rule.
 #: "enclosing": the same test, judged against this format plus every format that underlines the keyword — a
-#: paragraph printed INSIDE a definition (§11.6.2 INTERFACE-ID within §10.6.1's interface-definition) is spelled
+#: paragraph printed INSIDE a definition (§2023:11.6.2 INTERFACE-ID within §2023:10.6.1's interface-definition) is spelled
 #: by the definition's rule, which demands END INTERFACE from the enclosing format.
 ANCHORINGS = ("demanding", "named", "enclosing")
 
@@ -1069,7 +1069,7 @@ def main() -> int:
 
     def printed_words(plain: set[str], underlined: set[str]) -> set[str]:
         # A word `measure` deliberately SKIPS (FORMAT, ALL, TRUE …) is never measured, so it cannot testify that a
-        # rule demands an unprinted word: the FORMAT clause's own rule demands FORMAT (§13.18.24.2).
+        # rule demands an unprinted word: the FORMAT clause's own rule demands FORMAT (§2023:13.18.24.2).
         return {w.replace("-", "_") for w in plain | underlined | SKIP}
 
     def enclosing_words(f: Format) -> set[str]:

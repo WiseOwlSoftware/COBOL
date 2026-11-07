@@ -74,7 +74,7 @@ EXTERNAL_SLICE = re.compile(r"\A\S+ — external repository slice (?P<n>\d+)\b")
 
 #: v1.0's gates, in order: (label, how it is measured). ("note", id): the note's status. ("title", regex): the note
 #: whose title matches, once one is filed. ("gap", n): passed when GAP <= n. v1.0 is zero GAP (D13) plus P15 Cut 3 and
-#: the §4.2.16 user documentation (PB2911, "Why a campaign"); the review's gates (R1, the oracle, D10) all landed and
+#: the §2023:4.2.16 user documentation (PB2911, "Why a campaign"); the review's gates (R1, the oracle, D10) all landed and
 #: the review itself is held, so they are no longer the page's.
 GATES = (
     ("Zero GAP", ("gap", 0)),

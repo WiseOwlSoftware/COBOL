@@ -36,7 +36,7 @@ RUNTIME="${GUARD_RUNTIME_DLL:-src/WiseOwl.Cobol.Runtime/bin/Debug/net10.0/WiseOw
 case "$RUNTIME" in /*|[A-Za-z]:[\\/]*) ;; *) RUNTIME="$ROOT/$RUNTIME" ;; esac
 # A hung program used to block its whole group forever; the timeout makes that a reported NO-VERDICT instead.
 # `timeout` reports 124 on expiry and 137 after the -k KILL. A COBOL program may itself STOP RUN with status
-# 124 (§14.9.42.4 GR5), but that ambiguity only arises on a NON-MATCHING run, where declining to score is the
+# 124 (§2023:14.9.42.4 GR5), but that ambiguity only arises on a NON-MATCHING run, where declining to score is the
 # conservative direction — and it is loud, so it gets read rather than absorbed.
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 

@@ -41,7 +41,7 @@ import pathlib
 import re
 import sys
 
-#: ⛔ THE CLAUSE-PATH RULE IS IMPORTED, NEVER RE-IMPLEMENTED. §14.9.5 must not select §14.9.50, and the one
+#: ⛔ THE CLAUSE-PATH RULE IS IMPORTED, NEVER RE-IMPLEMENTED. §2023:14.9.5 must not select §2023:14.9.50, and the one
 #: definition of that lives with the schema. The dependency runs ONE way — `inventory_schema` reads this
 #: script's ARTIFACT rather than importing this module, so there is no cycle.
 from inventory_schema import section_matches

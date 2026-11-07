@@ -6,7 +6,7 @@
     python scripts/spec/audit_code_citations.py --self-test  # prove each check FAILS on a known defect
 
 ⛔ WHY THIS EXISTS, AND WHY `cite.py` AND `audit_doc_citations.py` CANNOT SEE THIS DEFECT.
-`cite.py --check <clause> "<text>"` answers "is this sentence inside that clause". `audit_doc_citations.py`
+`cite.py --check "§2023:<clause>" "<text>"` answers "is this sentence inside that clause". `audit_doc_citations.py`
 answers "the quoted fragment is real — is it filed under the right clause". Both need a QUOTE. The commonest
 citation in this repository has none: a statement-header comment (`// MOVE (§2023:14.9.24)`), a lexer rule
 (`// COBOL-2002 ROUNDED MODE names (ISO §14.9.4)`), a `<summary>` naming a clause and nothing else. Those carry

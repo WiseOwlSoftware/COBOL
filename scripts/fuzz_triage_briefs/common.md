@@ -36,7 +36,7 @@ P10, P14). Public skills for your role (P10): `<<REPO>>/tools/claude-skills/skil
 - The previous triages, whose classes RECUR (recognize them, do not re-derive; read their "Recurring families" and "The
   GnuCOBOL side" sections):
 <<PRIOR_RECORDS>>
-- Citations: `python <<REPO>>/scripts/spec/cite.py --check <clause> "<text>"` for EVERY clause you cite. A citation you did
+- Citations: `python <<REPO>>/scripts/spec/cite.py --check "§2023:<clause>" "<text>"` for EVERY clause you cite. A citation you did
   not run `--check` on is not a citation (CLAUDE.md rule 1).
 - The work register: before calling anything a NEW WiseOwl defect, search `<<REPO>>/kb/Work/*.md` by member name and by
   symptom (`grep -ril`), untruncated, and read the notes landed since the run (`git log --since` the run's start on

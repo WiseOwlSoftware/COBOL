@@ -50,15 +50,15 @@ import render_figure  # noqa: E402  (the one pairing of multi-line delimiters, a
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-#: The families whose content may be left out: §5.2.6.2 brackets, §5.2.6.4 choice indicators.
+#: The families whose content may be left out: §2023:5.2.6.2 brackets, §2023:5.2.6.4 choice indicators.
 OMISSIBLE = frozenset({"bracket", "bar"})
-#: The families an ellipsis can repeat: §5.2.7 names the "right bracket or right brace delimiter".
+#: The families an ellipsis can repeat: §2023:5.2.7 names the "right bracket or right brace delimiter".
 REPEATABLE = frozenset({"bracket", "brace"})
 #: Delimiters set as text on one printed line.
 TEXT_OPEN = {"[": "bracket", "{": "brace"}
 TEXT_CLOSE = {"]": "bracket", "}": "brace"}
 TEXT_BAR = "|"
-#: The three ways the standard sets the §5.2.7 ellipsis (render_figure.TEXT_GLYPHS / ASCII_ELLIPSIS).
+#: The three ways the standard sets the §2023:5.2.7 ellipsis (render_figure.TEXT_GLYPHS / ASCII_ELLIPSIS).
 ELLIPSIS = "…"
 _ELLIPSIS_SPELLINGS = ("...", "…", "¼")
 #: A printed line that carries an all-lowercase word is prose, not a diagram line (the audit's `measure` row rule).
@@ -204,7 +204,7 @@ def read(pages: Iterable[tuple[int, list[dict], list[dict]]]) -> Reading:
             hs = [h for h in holders if h.holds(page, p["x0"], p["y0"], rowof[p["y0"]])]
             return tuple(sorted(hs, key=lambda h: (-(h.x_close - h.x_open), h.top)))
 
-        # §5.2.7: the portion an ellipsis repeats is the bracket or brace whose closer stands immediately to its
+        # §2023:5.2.7: the portion an ellipsis repeats is the bracket or brace whose closer stands immediately to its
         # left; a word standing nearer than any such closer is repeated alone (`identifier-1 …`).
         repeated_holders: set[Holder] = set()
         repeated_words: set[int] = set()
@@ -323,7 +323,7 @@ class Layout:
 # Measured fixtures: (text, x0, x1, y0, underlined) words and (x, y0, y1, kind, side) stems, replayed from the
 # printed page so the self-test needs no PDF (CI and a fresh worktree do not have it), as test_render_figure.py does.
 
-#: §12.4.5.9.2 LOCK MODE clause, PDF page 355 (folio 325), band y 200-245.
+#: §2023:12.4.5.9.2 LOCK MODE clause, PDF page 355 (folio 325), band y 200-245.
 LOCK_MODE = (
     [("ì", 160.2, 165.5, 206.3, False), ("ü", 236.3, 241.6, 206.3, False), ("MANUAL", 172.1, 214.0, 207.2, True),
      ("ì", 398.7, 404.0, 208.0, False), ("ü", 461.5, 466.8, 208.0, False), ("RECORD", 410.5, 450.0, 208.9, True),
@@ -336,7 +336,7 @@ LOCK_MODE = (
      ("þ", 461.5, 466.8, 226.4, False)],
     [(248.56, 202.24, 244.02, "bracket", "L"), (468.22, 202.24, 244.02, "bracket", "R")])
 
-#: §14.9.8.2 COMPUTE Format 1, PDF page 632, band y 200-300.
+#: §2023:14.9.8.2 COMPUTE Format 1, PDF page 632, band y 200-300.
 COMPUTE = (
     [("Format", 63.5, 97.0, 204.3, False), ("1", 99.4, 105.3, 204.3, False),
      ("(arithmetic-compute):", 107.6, 209.8, 204.3, False),

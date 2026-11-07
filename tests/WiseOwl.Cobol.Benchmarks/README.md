@@ -190,7 +190,7 @@ BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9168/25H2/2025Update/HudsonValle
 40×) and `Compare_LongStrings_CaseOnly` **54,038 → 731 ns** — the identical prefix is walked once with a vectorized
 `CommonPrefixLength` instead of at every level; the two long variants are now within 5% of each other because the
 level walks start at the last character. Short pairs improved too (**64.8 → 44.9 ns**, they share prefixes) — now
-**3.4× ICU**. `Compare_ShortStrings_LocaleCollation` (the COBOL layer's carrier: §8.8.4.2.11 span trim, well-formedness
+**3.4× ICU**. `Compare_ShortStrings_LocaleCollation` (the COBOL layer's carrier: §2023:8.8.4.2.11 span trim, well-formedness
 scan, per-use resolution of the run unit's locale, then the engine) is **65.6 ns — ~20 ns over the engine and 0 B
 allocated**, so the carrier needs no devirtualized fast arm. Unchanged, by construction: STANDARD-COMPARE's shifted
 lane (the skip is taken for state-free non-ignorable collators only), key building, and the mixed-script path's 93 B

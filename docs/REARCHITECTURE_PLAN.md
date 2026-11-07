@@ -2775,7 +2775,7 @@ result. Run the long legs ONE AT A TIME.
   the invoking command chain ended in a `grep -c` that matched nothing. Redirect the full output to a file, then
   `grep 'ALL GREEN'` and `grep -icE 'crash|abort|Failed: *[1-9]'`.
 
-- **⛔ EVERY SPEC CITATION IS VALIDATED MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.**
+- **⛔ EVERY SPEC CITATION IS VALIDATED MECHANICALLY — `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"`.**
   CLAUDE.md rule 1 requires it. The failure mode is INHERITING a citation, not inventing one: a queue entry
   carries a §, its quoted text is genuinely in the standard, and the clause NUMBER is never re-derived. Two CA10
   citations were wrong exactly that way (real: §2023:8.4.2.3.4 GR2 and §2023:13.18.38.4 GR7); CA37/CA38's were one level

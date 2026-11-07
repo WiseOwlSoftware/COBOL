@@ -1037,7 +1037,7 @@ one — but the wave must confirm the float form takes that stage and does not s
 
 ## 16. Citation ledger
 
-Every clause below was validated with `python scripts/spec/cite.py --check <clause> "<text>"` in the session that
+Every clause below was validated with `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"` in the session that
 produced this draft. `OK` = the quoted text was found inside that clause's own region.
 
 | Clause | Quoted text (head) | Verdict |

@@ -125,7 +125,7 @@ def self_test() -> int:
             rc = 1
 
     # ── kb/Work R43 (2026-09-24): the LEAD-IN axis and the NOTE cut. Neither can be falsified against the live
-    # catalog by the drift test alone — the lead-in arm selects the three §9.3.6 exact-match criteria whichever
+    # catalog by the drift test alone — the lead-in arm selects the three §2023:9.3.6 exact-match criteria whichever
     # way a nested list is handled, and only one live row carries a NOTE that matters — so both are driven here.
     listed = [
         {"id": "GR-1.1-1", "kind": "GR", "section": "1.1", "sublist": 1,

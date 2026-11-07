@@ -92,7 +92,7 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    origin/main...<head>` and the code around each hunk; the **full code review** dimension above in full —
    `python scripts/spec/drift_rules.py <each changed file>` and every SPECIFIC rule it prints, correctness against the
    CITED rule, the sibling arms, loud failure, comment accuracy, **no fixed time limit in a test**,
-   `python scripts/spec/cite.py --check <clause> "<text>"` on every citation the diff adds, and, for a diff that
+   `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"` on every citation the diff adds, and, for a diff that
    reaches a SORT, MERGE or file I/O path, **its abnormal and exception-path tests**. Check them against the case list
    in the I11 row of `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md`, the owner's standing rule in its one
    home, and against the report's `## Owner test requirement` section. A path the change reaches with no test is a

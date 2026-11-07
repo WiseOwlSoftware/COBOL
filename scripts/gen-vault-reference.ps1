@@ -64,7 +64,7 @@ function Get-Summary([string]$doc) {
 # to the task at hand costs a full file read — 634 times over. First sentence, one line, YAML-safe.
 function Get-Description([string]$summary) {
     if (-not $summary) { return 'No ``///`` summary in the source — documentation debt.' }
-    # First sentence, but do not break on the period inside an ISO citation (§14.9.24.4) or a decimal.
+    # First sentence, but do not break on the period inside an ISO citation (§2023:14.9.24.4) or a decimal.
     $m = [regex]::Match($summary, '^(.*?[.!?])(?:\s|$)')
     $d = if ($m.Success -and $m.Groups[1].Value.Length -ge 25) { $m.Groups[1].Value } else { $summary }
     if ($d.Length -gt 200) { $d = $d.Substring(0, 197).TrimEnd() + '...' }

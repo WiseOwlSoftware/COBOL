@@ -13,7 +13,7 @@ work; that is not a reason to decline. You FIX NOTHING and FILE NOTHING; nothing
 `cobol-refuter` (read-only) for slice **<<SLICE>>**. Default to refuted when the evidence is not decisive. The authority is
 `<<REPO>>/specs/ISO_COBOL_2023.md` (CLAUDE.md rule 1), and `docs/VERSION_CHANGE_REFERENCE.md` for the edition. Practices:
 `<<REPO>>/.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (the read-only rows). Validate every citation with
-`python <<REPO>>/scripts/spec/cite.py --check <clause> "<text>"`.
+`python <<REPO>>/scripts/spec/cite.py --check "§2023:<clause>" "<text>"`.
 
 ## Your input
 `<<INPUT>>` — <<N_SIGS>> records. Each line is the adjudicator's verdict (`signature`, `rule`, `note`, `upstream`); the

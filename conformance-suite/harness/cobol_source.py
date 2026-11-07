@@ -24,7 +24,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable, Iterable
 
-#: The last column of the fixed-form program-text area this reader uses (the 85 margin R; §6.3.1 makes it the
+#: The last column of the fixed-form program-text area this reader uses (the 85 margin R; §2023:6.3.1 makes it the
 #: implementor's at 2002 on, which is why the lint refuses text past it in a portable test).
 FIXED_TEXT_END = 72
 SEQUENCE_AREA = 6
