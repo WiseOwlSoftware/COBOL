@@ -325,6 +325,54 @@ def place_rows(rowof, words, encl):
     return out
 
 
+def pair_glyphs(spans, row_of, label_x):
+    """A glyph delimiter's two PIECES are one shape: pair each opening brace or parenthesis with its closing piece, give
+    the pair one span and a brace one point row. Returns the spans (x, r0, r1, pieces) with each pair's rows unified,
+    and {id(pieces): the rows of its point} for every piece (empty: the point goes at the centre of the span).
+
+    Each piece is measured on its own, and on a scan the two pieces of one brace measure a row apart: their middle
+    pieces disagreed by a row on the 1985 PDF pages 407, 426, 559 and 602, and page 407's closing brace ran a row short
+    of its opener (kb/Work PB4849; the four were corrected by hand from the page). The printed page draws one brace,
+    pointing at the label set beside it, so:
+      * the pair is found the way a reader matches parentheses, as `enclosures` finds it: a closer takes the nearest
+        open piece of its family to its left whose rows overlap its own by half the shorter;
+      * the pair spans the rows of both pieces;
+      * its point is the measured point both pieces share; where they disagree, the one on a row carrying a word left
+        of the opener (the label it points at: `TYPE IS`, page 602), else the opener's, else the closer's; a pair
+        with no measured interior point is drawn with its point at the centre of its span.
+    `row_of(piece)` maps a piece to its row; `label_x` maps a row to the x of each word on it."""
+    def kind(grp):
+        kinds = [GLYPH_PIECES[b["text"]] for b in grp]
+        return next((f for f, _, _ in kinds if f), "brace"), next((sd for _, sd, _ in kinds if sd), "L")
+
+    def measured(r0, r1, grp):
+        return {row_of(b) for b in grp if GLYPH_PIECES[b["text"]][2] == "mid"} & set(range(r0 + 1, r1))
+
+    rows = {id(grp): [r0, r1] for _, r0, r1, grp in spans}
+    point = {id(grp): measured(r0, r1, grp) for _, r0, r1, grp in spans}
+    open_: list[tuple] = []
+    pairs = []
+    for x, r0, r1, grp in sorted(spans, key=lambda s: (min(b["x0"] for b in s[3]), kind(s[3])[1] != "R")):
+        family, side = kind(grp)
+        if side == "L":
+            open_.append((x, r0, r1, grp, family))
+            continue
+        k = next((k for k in range(len(open_) - 1, -1, -1) if open_[k][4] == family
+                  and min(r1, open_[k][2]) - max(r0, open_[k][1]) + 1 >= 0.5 * min(r1 - r0 + 1, open_[k][2] - open_[k][1] + 1)),
+                 None)
+        if k is not None:
+            pairs.append((open_.pop(k)[3], grp))
+    for o, c in pairs:
+        span = [min(rows[id(o)][0], rows[id(c)][0]), max(rows[id(o)][1], rows[id(c)][1])]
+        rows[id(o)] = rows[id(c)] = span
+        po, pc = (point[id(g)] & set(range(span[0] + 1, span[1])) for g in (o, c))
+        x_open = min(b["x0"] for b in o)
+        labelled = sorted(r for r in po | pc if any(x < x_open for x in label_x.get(r, ())))
+        shared = sorted(po & pc)
+        point[id(o)] = point[id(c)] = set(shared) or set((labelled or sorted(po) or sorted(pc))[:1])
+    return [(x, rows[id(grp)][0], rows[id(grp)][1], grp) for x, _, _, grp in spans], point
+
+
 def split_delimiters(pieces):
     """Split one column's pieces into SEPARATE delimiters, cutting at each top hook.
 
@@ -516,6 +564,10 @@ def build(page, lo, hi, extract, classify_page):
 
     glyph_raw = [(x, min(hook_row(b) for b in grp), max(hook_row(b) for b in grp), grp)
                  for x, ps in gx.items() for grp in split_delimiters(ps)]
+    label_x = collections.defaultdict(list)                  # raw row -> the x of each word printed on it
+    for w in text_w:
+        label_x[rindex[rowof[w["y0"]]]].append(w["x0"])
+    glyph_raw, glyph_point = pair_glyphs(glyph_raw, lambda b: raw_near(b["y0"]), label_x)
 
     # A group spanning only TWO rows renders one row tall, because a corner glyph strokes from its cell centre.
     # Insert a spacer row between such a pair — which is also what the printed page does, giving each operand
@@ -707,7 +759,8 @@ def build(page, lo, hi, extract, classify_page):
         # ... and it belongs to the INTERIOR of the span. A two-alternative brace has only two rows of text to
         # map onto, so its measured middle piece lands on the top or bottom row, where the hook wins and the
         # point disappears — which is exactly the case rule 5's spacer row exists to make room for.
-        points = {near(b["y0"]) for b in pieces if GLYPH_PIECES[b["text"]][2] == "mid"} & set(span[1:-1])
+        # The row is the pair's (`pair_glyphs`): a brace's opening and closing pieces carry ONE point row.
+        points = {shift[r] for r in glyph_point[id(pieces)]}
         if family == "brace" and not points:
             points = {span[len(span) // 2]}
         if len(span) == 1:

@@ -7872,11 +7872,11 @@ Data Division - File Description Entry
 │ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
 └                                           ╰ CHARACTERS ╯ ┘
 
-┌        ╭ CONTAINS integer-3 CHARACTERS
-│        │
-│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] ╮ ┐
-│ <u>RECORD</u> ┤                                                                       │ │
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          ├ │
+┌        ╭ CONTAINS integer-3 CHARACTERS                                         ╮
+│        │                                                                       │
+│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-4 ] [ <u>TO</u> integer-5 ] CHARACTERS ] │ ┐
+│ <u>RECORD</u> ┤                                                                       ├ │
+│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
 │        │                                                                       │ │
 └        ╰ CONTAINS integer-6 <u>TO</u> integer-7 CHARACTERS                            ╯ ┘
 
@@ -8949,9 +8949,8 @@ Verb Formats (SET - STOP)
 </pre>
 
 <pre style="line-height:1">
-    ╭                          ╭ <u>ON</u>  ╮
-<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ╮ …
-    │                          │     │ ├
+    ╭                          ╭ <u>ON</u>  ╮ ╮
+<u>SET</u> ┤ { mnemonic-name-1 } … <u>TO</u> ┤     ├ ├ …
     ╰                          ╰ <u>OFF</u> ╯ ╯
 </pre>
 
@@ -22527,10 +22526,10 @@ The NEXT GROUP clause specifies information for vertical positioning of a page f
 #### 3.16.2 General Format
 
 <pre style="line-height:1">
-              ╭ integer-1
-              │
-<u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-2 ╮
-              │                ├
+              ╭ integer-1      ╮
+              │                │
+<u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-2 ├
+              │                │
               ╰ <u>NEXT</u> <u>PAGE</u>      ╯
 </pre>
 
