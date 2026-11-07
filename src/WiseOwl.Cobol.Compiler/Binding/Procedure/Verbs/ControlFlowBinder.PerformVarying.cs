@@ -210,11 +210,15 @@ internal sealed partial class ControlFlowBinder
         // (§8.8.1.1) and keeps the Classify verdict.
         bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
             && ConditionBinder.SoleFunctionCall(written) is not null;
-        // ⛔ A WHOLLY PARENTHESIZED OPERAND IS AN ARITHMETIC EXPRESSION, NEVER ONE OF THE GROUP'S MEMBERS (§8.8.1.1; kb/Work PB4865):
-        // the binder drops the grouping parentheses, so Classify sees only the BoundNumRef or literal underneath and would admit
-        // `BY (FUNCTION TWO)`, `BY (J)` or `FROM (1)` as the identifier or literal §14.9.28.2 prints. The WRITTEN shape decides.
-        bool parenthesized = op.arithmeticExpression() is { } whole && !ReferenceEquals(SoleOperand.Unparenthesized(whole), whole);
-        var (kind, literal) = parenthesized ? (VaryingOperandKind.Invalid, null)
+        // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§8.8.1.1, §8.3.3.3.2 rule 2; kb/Work PB4865):
+        // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
+        // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal
+        // §14.9.28.2 prints. The WRITTEN shape decides, through the ONE sole-operand readers: a single unparenthesized primary
+        // (SoleOperand.Primary) or a single numeric literal with its contiguous sign (SoleOperand.NumericLiteral); anything
+        // else written is an arithmetic expression.
+        bool arithmeticExpression = op.arithmeticExpression() is { } whole
+            && SoleOperand.Primary(whole) is null && SoleOperand.NumericLiteral(whole) is null;
+        var (kind, literal) = arithmeticExpression ? (VaryingOperandKind.Invalid, null)
             : functionIdentifier ? (VaryingOperandKind.Identifier, null) : Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
