@@ -123,11 +123,18 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         return ValueField(num.Render(ic, ReceiverContext.None, keepWide: true));
     }
 
+    /// <summary>A binary64 value's temporary. An engine-produced approximation (a nested function's value) orders by the shortest
+    /// image that names it, as the operand lift <c>DecFromApproximation</c> reads it; a binary64 the program computed (F + 0, which is no
+    /// approximation) orders by its EXACT value, as <c>DecFromBinary64</c> lifts it - the one order MAX, MIN and an odd MEDIAN take on
+    /// COMPUTE, so DISPLAY selects the same argument (kb/Work PB4859 review R2-1).</summary>
+    private string FloatField(NumX x) =>
+        x.Approximate ? RuntimeApi.FunctionFieldOfFloat(x.Expr) : RuntimeApi.FunctionFieldOfBinary64(x.Expr, num.IntermediateMode);
+
     /// <summary>A value that describes its own temporary, as a field.</summary>
     /// <remarks>INTAKE(LIFTED) - an exact scaled value is lifted to the SDIDI through the one operand lift; an SDIDI and a binary64 pass
     /// through, and a value on the exact wide form (kb/Work PB3953) SETTLES here into a temporary that keeps every digit.</remarks>
     private string ValueField(NumX x) =>
-        x.Real ? RuntimeApi.FunctionFieldOfFloat(x.Expr)
+        x.Real ? FloatField(x)
         : x.Dec ? RuntimeApi.FunctionFieldOfValue(x.Expr)
         : x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)
         : x.Exact ? RuntimeApi.FunctionFieldOfExact(x.Expr)
@@ -188,7 +195,10 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 // an expression past the Int128 carrier holds every digit (kb/Work PB3953: GnuCOBOL's temporary is arbitrary-precision).
                 // So does one in which a wide value met an SDIDI operand (NumX.Exact, kb/Work PB4575), whose scale is the run time's.
                 NumX value = num.AsNum(a, ReceiverContext.None, keepWide: true);
-                return value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
+                // A binary64 expression (F + 0, NumX.Real) is a binary64 temporary, as ValueField describes a nested function's, so a
+                // MEDIAN's mean reads the same middle kind on DISPLAY as on COMPUTE (kb/Work PB4859 review R1-1).
+                return value.Real ? FloatField(value)
+                    : value.Wide ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
                     : value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr)
                     : RuntimeApi.FunctionFieldOfValue(num.DecOperand(value));
         }

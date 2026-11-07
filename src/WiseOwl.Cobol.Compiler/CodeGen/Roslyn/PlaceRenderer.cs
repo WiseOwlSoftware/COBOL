@@ -177,6 +177,19 @@ internal static class PlaceRenderer
         _ => throw new System.InvalidOperationException($"unknown DEBUG-ITEM member '{m}'"),
     };
 
+    /// <summary>The C# store statement for a DEBUG-ITEM register member, the write twin of <see cref="DebugRead"/>.</summary>
+    private static string DebugWrite(DebugRegisterMember m, string rhs) => m switch
+    {
+        DebugRegisterMember.Item => $"__dbgItem.StoreImage({rhs});",
+        DebugRegisterMember.Line => $"__dbgItem.StoreLine({rhs});",
+        DebugRegisterMember.Name => $"__dbgItem.StoreName({rhs});",
+        DebugRegisterMember.Sub1 => $"__dbgItem.StoreSub(1, {rhs});",
+        DebugRegisterMember.Sub2 => $"__dbgItem.StoreSub(2, {rhs});",
+        DebugRegisterMember.Sub3 => $"__dbgItem.StoreSub(3, {rhs});",
+        DebugRegisterMember.Contents => $"__dbgItem.StoreContents({rhs});",
+        _ => throw new System.InvalidOperationException($"unknown DEBUG-ITEM member '{m}'"),
+    };
+
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into <paramref name="p"/>.</summary>
     public static string Write(Place p, string rhs) => p switch
     {
@@ -254,12 +267,10 @@ internal static class PlaceRenderer
         // may appear, and SR3 bars only LINE-COUNTER from the receiving side. The store goes to the RWCS engine;
         // there is no storage to write (kb/Work PB429).
         ReportPageCounterPlace pc => RuntimeApi.ReportPageCounterWrite(pc.ReportIndex, pc.Depth, rhs),
-        // Unreachable: a COBOL program never assigns to a DEBUG-* register (X3.23-1985 — the runtime populates it via
-        // the injected debug trigger); a receiving-position use is rejected at bind time. The backstop for a
-        // receiver path that forgot the gate.
-        DebugRegisterPlace => throw new System.InvalidOperationException(
-            "the X3.23-1985 DEBUG-ITEM register is read-only (the debug facility populates it); a store must be "
-            + "rejected at bind time and never reach PlaceRenderer.Write"),
+        // A program store into the X3.23-1985 DEBUG-ITEM register or a member (reference-modified too, through the RefModPlace splice above):
+        // the standard states how the facility updates the register (general rule 11) and no rule against a program's store, so it lands
+        // in the program-instance __dbgItem, as GnuCOBOL 3.2 does (kb/Work PB4858 review round 2, R2-3).
+        DebugRegisterPlace d => DebugWrite(d.Member, rhs),
         // Unreachable by RULE: ISO §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving
         // operand" — is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving) and at SET's
         // own receiver list (OoBinder). The backstop for a receiver path that forgot the gate (kb/Work PB922).

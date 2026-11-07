@@ -219,9 +219,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
-        // trigger points; the data-name, ALL REFERENCES OF and cd-name targets are collected for the statement
-        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the file-name subject kind and the SORT/MERGE
-        // cause taxonomy are staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        // trigger points; the data-name, ALL REFERENCES OF, file-name and cd-name targets are collected for the statement
+        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the SORT/MERGE
+        // cause taxonomy is staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
         FinalizeDebug(pd);
     }
 
@@ -567,10 +567,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
     /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
     /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
-    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF) and
+    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF), file-name and
     /// cd-name operands become <see cref="DebugTargets"/> (<see cref="AddDebugDataTarget"/>, <see cref="AddDebugCdTarget"/>;
-    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20). The file-name subject kind is STAGED — rejected
-    /// loud COBOL1571 (its after-I-O trigger insertion is kb/Work PB4811's). A SORT/MERGE INPUT/
+    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20); a file-name operand is a target too
+    /// (<see cref="AddDebugFileTarget"/>, general rule 2, kb/Work PB4811). A SORT/MERGE INPUT/
     /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
     /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
     private void FinalizeDebug(Core.ProcedureDivisionContext pd)
@@ -631,12 +631,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
                     else if (NamesCommunicationDescription(dr))
                         AddDebugCdTarget(dr, section);
-                    else if (NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
+                    else if (NamesFile(dr))
+                        AddDebugFileTarget(dr, section);
+                    else if (!ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                            + $"ON '{nm}' names a file-name (the file-name trigger, run after OPEN, CLOSE, READ, DELETE and START by "
-                            + "X3.23-1985 USE FOR DEBUGGING general rule 2, is recognized but not modeled) or an operand no rule "
-                            + "classifies; the procedure-name, ALL PROCEDURES, data-name, ALL REFERENCES OF and cd-name triggers "
-                            + "are modeled (VCR Table 7 row 7.17)");
+                            + $"ON '{nm}' names an operand no rule classifies as a procedure-name, data-name, file-name or cd-name "
+                            + "(X3.23-1985 USE FOR DEBUGGING general format; VCR Table 7 row 7.17)");
                 }
             }
         }
@@ -699,7 +699,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// report them, X3.23-1985), so that operand is the data item the trigger watches, not one the
     /// COBOL2270 "shall be subscripted" rule (ISO §8.4.2.3.3 SR5) judges (kb/Work PB4363, review round 1).</summary>
     private bool NamesDataItem(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null;
+        new DataReferenceCst(operand).Register != SpecialRegister.None || ctx.Refs.ProbeDeclaration(operand) is not null
+        || SumCounterOf(operand) is not null;
+
+    /// <summary>The register of the REPORT SECTION sum counter the operand names, or null: the item every reference to the counter carries
+    /// (<see cref="ReportSumCounterPlace.RegisterItem"/>), which is what the trigger watches. X3.23-1985 USE FOR DEBUGGING syntax rule 9
+    /// admits it by name: "Identifier-1 must not reference any data item defined in the Report Section except sum counters" (kb/Work PB4858).
+    /// A silent probe, like <see cref="NamesDataItem"/>.</summary>
+    private DataItem? SumCounterOf(Core.DataReferenceContext operand) =>
+        new DataReferenceCst(operand).Register == SpecialRegister.None && operand.cobolWord()?.GetText() is { } name
+        && ctx.Refs.Counters.SumCounterFamilyFor(operand, name, ReferenceResolver.ReadWritten(operand).Qualifiers, report: false)
+            is (_, { } family)
+            ? family.Register : null;
 
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
@@ -768,17 +779,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
     /// item its qualifiers pick, §8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
-    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A special register or a
-    /// report sum counter has no data item to watch and stays staged.</summary>
+    /// the item, and DEBUG-SUB-n report which occurrence a statement referenced) and named once (syntax rule 6). A report sum counter is its
+    /// register item (syntax rule 9); LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER are runtime-sourced references no place stands for and stay staged.</summary>
     private void AddDebugDataTarget(Core.DataReferenceContext operand, SectionInfo section, DebugTargetKind kind)
     {
         string written = DebugOperandAsWritten(operand);
         string phrase = kind is DebugTargetKind.AllReferences ? $"ON ALL REFERENCES OF '{written}'" : $"ON '{written}'";
-        if (ctx.Refs.ProbeDeclaration(operand) is not { } item)
+        if ((ctx.Refs.ProbeDeclaration(operand) ?? SumCounterOf(operand)) is not { } item)
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING {phrase} names a "
-                + "special register or a report sum counter, which has no data item of its own for the trigger to watch — only a data item the "
-                + "DATA DIVISION describes is modeled (VCR Table 7 row 7.17)");
+                + "special register the statement binder routes to a runtime-sourced reference (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), which "
+                + "is no place for the trigger to watch; a data item, a REPORT SECTION sum counter (syntax rule 9) and the other special registers "
+                + "are modeled (VCR Table 7 row 7.17)");
             return;
         }
         if (operand.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.refModPart() is not null
@@ -815,6 +827,23 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         }
         _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.CdName, written, null, cd.Key, section.StartPc, section.EndPc));
         _debugContentsWidth = Math.Max(_debugContentsWidth, cd.Area.ImageWidth);
+    }
+
+    /// <summary>Record one file-name target (X3.23-1985 USE FOR DEBUGGING general rule 2): the file the operand names, whose largest record
+    /// widens DEBUG-CONTENTS (general rules 15 and 23 c). Named once (syntax rule 6).</summary>
+    private void AddDebugFileTarget(Core.DataReferenceContext operand, SectionInfo section)
+    {
+        string written = DebugOperandAsWritten(operand);
+        if (!ctx.Data.State.VisibleFiles.TryGetValue(operand.cobolWord()!.GetText(), out var file)) return;   // NamesFile said it is one
+        if (_debugTargets.Any(t => ReferenceEquals(t.File, file)))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
+                + "file-name that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows a file-name in "
+                + "one USE FOR DEBUGGING statement, once");
+            return;
+        }
+        _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.FileName, written, null, null, section.StartPc, section.EndPc, file));
+        _debugContentsWidth = Math.Max(_debugContentsWidth, file.AreaRecord?.ImageWidth ?? 0);
     }
 
     /// <summary>The widest DEBUG-CONTENTS any target needs, as <see cref="FinalizeDebug"/> collects them.</summary>

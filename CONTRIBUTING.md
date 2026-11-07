@@ -24,10 +24,13 @@ Security vulnerabilities are **not** filed as issues; see [SECURITY.md](SECURITY
 
 Every question of syntax, semantics or output is settled by the text of **ISO/IEC 1989:2023**. The Markdown
 transcription lives at `specs/ISO_COBOL_2023.md`. When you report a defect or change behavior, cite the exact clause,
-syntax rule (SR) or general rule (GR) — for example `§14.9.25.3 SR1` — and check the citation mechanically:
+syntax rule (SR) or general rule (GR), and name the edition of the standard you cite. The format is
+`§<edition>:<locator>[ <rule>]`: for example `§2023:14.9.25.3 SR1`, or `§1985:VI.5.3.2 GR3` for ANSI X3.23-1985, whose
+locator is the Roman section and then that section's own paragraph number. `scripts/spec/citation.py` documents the
+format and parses it. Check the citation mechanically:
 
 ```bash
-python scripts/spec/cite.py --check 14.9.25.3 "<the text you are quoting>"
+python scripts/spec/cite.py --check "§2023:14.9.25.3 SR1" "<the text you are quoting>"
 ```
 
 Other compilers (GnuCOBOL, IBM Enterprise COBOL, Micro Focus) and the NIST CCVS suite are useful evidence, but they

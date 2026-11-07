@@ -1812,7 +1812,7 @@ parser of §7/§8 rows, with its C# twin `tests/_shared/ConformanceRegister.cs`)
 `audit_derivations.py` (§8), `gen_ledger.py` (§2/§4/§5 posture by heading number); `impacted_tests.py` maps the path
 to the ANNEX A.1 REGISTER gate audit.
 
-**The target.** `docs/CONFORMANCE.md` becomes a RENDERED VIEW (§3.17.4; one row in `rendered_views.VIEWS`:
+**The target.** `docs/CONFORMANCE.md` becomes a RENDERED VIEW (`DESIGN-test-build-ci.md` §3.17.4; one row in `rendered_views.VIEWS`:
 `View("conformance", "docs/CONFORMANCE.md", _py("scripts/spec/conformance_doc.py", "--out", "{out}"),
 _py("scripts/spec/conformance_doc.py", "--check"))`, gitignored, rendered by the session probe beside the burn-down),
 and the tree holds its sources under `docs/conformance/`:
@@ -1855,7 +1855,7 @@ is the owner's decision (2026-10-25, asked in the Mythos-lane session: "Keyed ta
 recorded in PB3738.
 
 **The migration** is one script, `scripts/spec/conformance_migrate.py`, run once by the landing that splits the file
-and deleted by it (the `devlog_migrate.py` shape, §3.17.4): it cuts the committed `docs/CONFORMANCE.md` into the
+and deleted by it (the `devlog_migrate.py` shape, `DESIGN-test-build-ci.md` §3.17.4): it cuts the committed `docs/CONFORMANCE.md` into the
 sources above, and the landing's proof is that `conformance_doc.py --out` over the sources renders byte-identical to
 the file it cut (the implementer commits the diff of the two: empty). After the landing, `docs/DOC_INDEX.md`'s
 `docs/CONFORMANCE.md` row names the sources and the view, and every skill or brief that says "add a row to

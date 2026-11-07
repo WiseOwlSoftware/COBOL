@@ -53,8 +53,8 @@ public sealed record BoundProgram(
 /// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
 /// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
 /// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name, ALL REFERENCES OF and cd-name
-/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20); the file-name subject kind and the
-/// SORT/MERGE-procedure cause taxonomy are staged (rejected COBOL1571 at bind).</summary>
+/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target; the
+/// SORT/MERGE-procedure cause taxonomy is staged (rejected COBOL1571 at bind).</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
     string SubjectName,
@@ -72,20 +72,24 @@ public enum DebugTargetKind
     AllReferences,
     /// <summary><c>USE FOR DEBUGGING ON cd-name-1</c> — general rule 8: the section runs after the communication statements it lists.</summary>
     CdName,
+    /// <summary><c>USE FOR DEBUGGING ON file-name-1</c> — general rule 2: the section runs after the OPEN, CLOSE, READ, DELETE and START
+    /// that reference the file.</summary>
+    FileName,
 }
 
-/// <summary>One <c>USE FOR DEBUGGING</c> target that is a data item or a communication description, with the debugging section
-/// it runs (X3.23-1985 debug module general rules 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
+/// <summary>One <c>USE FOR DEBUGGING</c> target that is a data item, a communication description or a file, with the debugging section
+/// it runs (X3.23-1985 debug module general rules 2, 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
 /// DEBUG-NAME holds (general rule 13): the name as written, its qualifiers joined by OF or IN. Exactly one of
-/// <paramref name="Item"/> (the data item) and <paramref name="CdKey"/> (the communication description's key) is set, by
-/// <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
+/// <paramref name="Item"/> (the data item), <paramref name="CdKey"/> (the communication description's key) and <paramref name="File"/>
+/// (the file) is set, by <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
 public sealed record BoundDebugTarget(
     DebugTargetKind Kind,
     string Name,
     DataItem? Item,
     string? CdKey,
     int SectionStartPc,
-    int SectionEndPc);
+    int SectionEndPc,
+    FileModel? File = null);
 
 /// <summary>When a <see cref="DebugFire"/> runs relative to the statement it was planned for (X3.23-1985 USE FOR DEBUGGING general
 /// rules 5, 6 and 8).</summary>
@@ -114,8 +118,21 @@ public enum DebugWhen
 /// occurrence numbers), <paramref name="When"/> the moment, and <paramref name="Level"/> the PERFORM level a loop-phase fire belongs to.
 /// <paramref name="Phrases"/> are the indices (<see cref="IBoundEvaluatedPhrases"/>) of the conditional phrases the referenced operand is written in, or null when
 /// the statement evaluates the operand outright: the section runs only when one of those phrases was evaluated (rules 5 and 6: "If identifier-1 is
-/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed").</summary>
-public sealed record DebugFire(BoundDebugTarget Target, Place Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null);
+/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"). A file-name fire references no
+/// place: <paramref name="Referenced"/> is null and <paramref name="Contents"/> says what DEBUG-CONTENTS holds (general rule 23 c and d).</summary>
+public sealed record DebugFire(BoundDebugTarget Target, Place? Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null,
+    DebugContents Contents = DebugContents.Referenced);
+
+/// <summary>What DEBUG-CONTENTS holds for a <see cref="DebugFire"/> (X3.23-1985 USE FOR DEBUGGING general rules 23 and 24).</summary>
+public enum DebugContents
+{
+    /// <summary>The image of <see cref="DebugFire.Referenced"/>: the data item (rule 24 c) or the cd-name's area (rule 23 e).</summary>
+    Referenced,
+    /// <summary>The file's record area: "For READ, DEBUG-CONTENTS contains the entire record read" (rule 23 c).</summary>
+    FileRecord,
+    /// <summary>Spaces: "For all other references to file-name-1, DEBUG-CONTENTS contains spaces" (rule 23 d).</summary>
+    Spaces,
+}
 
 /// <summary>⛔ A STATEMENT THAT CAUSES DEBUGGING SECTIONS TO RUN (X3.23-1985 USE FOR DEBUGGING general rules 5-8; docs/CONTROL_FLOW_DESIGN.md
 /// D20). Made by <c>StatementBinder.BindStatement</c>, the one funnel every statement passes through, exactly when a data-name,
@@ -1395,8 +1412,13 @@ public sealed record IntoPhraseRules(
 /// draws, and <c>RELEASE N FROM QUOTE</c> aborted the RUN because <c>DataBindState.ImageForcedItems</c> had never seen the
 /// receiver. <c>ImplicitMoveConstructionDriftTests</c> keeps the I-O and sort emitters free of
 /// <c>new BoundMove</c>.</para></summary>
-public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
+public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement, IBoundImplicitOperands
 {
+    /// <summary>The element moves of a group move are the statement's meaning (§14.6.9.2), their element places and the DEPENDING items their
+    /// counts read are not operands the program wrote (X3.23-1985 USE FOR DEBUGGING general rules 5 and 9: a group reference does not
+    /// reference its subordinates).</summary>
+    public IEnumerable<object> ImplicitOperands => ElementMoves.Count == 0 ? [] : [ElementMoves];
+
     /// <summary>Per-target stores — the §14.9.25.4 GR2/GR3 SENDING operand for that receiver and the dispatch
     /// kind it classifies to — computed ONCE at construction by the single authority
     /// (<see cref="MoveClassifier"/>, P7 Step 7; kb/Work PB425 added the sender half) — a computed record
@@ -1739,7 +1761,12 @@ public sealed record BoundSetConditions(
 /// pointer, §8.6.5). The two spellings are independent per operand and may be mixed in one statement, because
 /// the printed `…` sits OUTSIDE the brace — so the KIND belongs to the operand and never to the
 /// statement.</para></summary>
-public sealed record BoundPointerReceiver(Place? Pointer, DataItem? Based);
+public sealed record BoundPointerReceiver(Place? Pointer, DataItem? Based)
+{
+    /// <summary>The based item data-name-1 as the statement wrote it, set exactly when <see cref="Based"/> is: the operand the statement
+    /// explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5; kb/Work PB4855). Read only by the debug reference walk.</summary>
+    public Place? BasedWritten { get; init; }
+}
 
 /// <summary>SET data-pointer assignment (ISO §14.9.39 Format 7): the address identified by identifier-6 is
 /// stored in / assigned to EACH receiving operand IN THE ORDER SPECIFIED (§14.9.39.4 GR12 and GR13 — one loop
@@ -1765,7 +1792,13 @@ public sealed record BoundSetPointer(
 /// <paramref name="RefMod"/> carries a REFERENCE-MODIFIED operand's leftmost position (kb/Work PB1407; null when none
 /// is written): the address is then the one of the unique data item reference modification creates, which §8.4.3.3.4
 /// GR5 makes a subset of identifier-1 starting at that position.</summary>
-public sealed record BoundAddressOf(DataItem Item, IReadOnlyList<OffsetTerm>? OccursDisplacement = null, AddressRefMod? RefMod = null);
+public sealed record BoundAddressOf(DataItem Item, IReadOnlyList<OffsetTerm>? OccursDisplacement = null, AddressRefMod? RefMod = null)
+{
+    /// <summary>identifier-1 as the operand wrote it, with its subscripts: the data item the statement explicitly references (X3.23-1985 USE
+    /// FOR DEBUGGING general rule 5; kb/Work PB4855). The emitter forms the address from <see cref="Item"/> and the displacement; this place is read
+    /// only by the debug reference walk. Null for a shape the place builder does not model.</summary>
+    public Place? Written { get; init; }
+}
 
 /// <summary>The reference modifier of an <c>ADDRESS OF identifier-1(leftmost:length)</c> operand — everything the emitter
 /// needs to turn the written leftmost position into a byte displacement and to range-check it exactly as a read of
@@ -1861,7 +1894,12 @@ public sealed record BoundSetPointerUpDown(IReadOnlyList<Place> Targets, BoundEx
 /// (GR4a) and <paramref name="Returning"/> also set when present (GR4b). <paramref name="Initialized"/>: GR6
 /// binary-zero fill (form 1) / the GR7 INITIALIZE lowering (form 2).</summary>
 public sealed record BoundAllocate(
-    DataItem? Based, BoundExpr? Chars, bool Initialized, Place? Returning) : BoundStatement;
+    DataItem? Based, BoundExpr? Chars, bool Initialized, Place? Returning) : BoundStatement
+{
+    /// <summary>The based item data-name-1 as the statement wrote it: the operand it explicitly references (X3.23-1985 USE FOR DEBUGGING general
+    /// rule 5; kb/Work PB4855). The emitter allocates from <see cref="Based"/>; this place is read only by the debug reference walk.</summary>
+    public Place? Written { get; init; }
+}
 
 /// <summary><c>FREE pointer…</c> (ISO §14.9.15): per-operand left to right (GR2); each operand runs the GR1
 /// three-way (release-and-null / NULL no-op / EC-STORAGE-NOT-ALLOC nonfatal, reported through the
@@ -1972,8 +2010,12 @@ public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
     bool IsAll = false, Place? DependItem = null, AccessPath? DynTable = null,
-    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases
+    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases, IBoundImplicitOperands
 {
+    /// <summary>The OCCURS DEPENDING ON item the scan's bound reads is the table's, not an operand the program wrote (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 5: "explicitly references").</summary>
+    public IEnumerable<object> ImplicitOperands => DependItem is null ? [] : [DependItem];
+
     /// <summary>Each WHEN condition is evaluated only when the scan reaches it and every earlier one was false.</summary>
     public IReadOnlyList<object> PhraseOperands => [.. Whens.Select(w => (object)w.Condition)];
 }

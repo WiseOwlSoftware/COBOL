@@ -1,0 +1,87 @@
+OPEN INPUT SF, missing
+  USE SF 35
+  DBG [SF] [        ]
+CLOSE SF, not open
+  USE SF 42
+  DBG [SF] [        ]
+  DBG [SF] [        ]
+  DBG [SF] [        ]
+OPEN INPUT SF
+  DBG [SF] [        ]
+READ SF, a record
+  DBG [SF] [ABCDEFGH]
+READ SF, at end, no phrase
+  USE SF 10
+  DBG [SF] [        ]
+READ SF, past the end, no phrase
+  USE SF 46
+  DBG [SF] [        ]
+READ SF AT END, past the end
+  USE SF 46
+  DBG [SF] [        ]
+CLOSE SF
+  DBG [SF] [        ]
+READ SF AT END, closed
+  USE SF 47
+  DBG [SF] [        ]
+  DBG [SF] [        ]
+  DBG [SF] [ABCDEFGH]
+READ SF AT END, at end
+END
+  DBG [SF] [        ]
+  DBG [KF]
+  DBG [KF]
+  DBG [KU]
+  DBG [KU]
+CLOSE KF, not open
+  DBG [KF]
+  DBG [KF]
+START KF ZZZ, no phrase
+  DBG [KF]
+FS2 23
+DELETE KF QQQ, no phrase
+  DBG [KF]
+FS2 23
+  DBG [KF]
+  DBG [KU]
+READ KU QQQ, no phrase
+  USE KU 23
+  DBG [KU]
+READ KU QQQ INVALID KEY
+INVALID
+START KU ZZZ, no phrase
+  DBG [KU]
+  USE KU 23
+FS3 23
+DELETE KU ZZZ, no phrase
+  DBG [KU]
+  USE KU 23
+FS3 23
+START KU AAA
+  DBG [KU]
+READ KU NEXT, a record
+  DBG [KU]
+READ KU NEXT, a record
+  DBG [KU]
+READ KU NEXT, at end, no phrase
+  USE KU 10
+  DBG [KU]
+READ KU NEXT, past the end, no phrase
+  USE KU 46
+  DBG [KU]
+READ KU NEXT AT END, past the end
+  USE KU 46
+  DBG [KU]
+  DBG [KU]
+  DBG [SF] [        ]
+READ SF INTO X1, a record
+  DBG [SF] [ABCDEFGH]
+  DBX
+READ SF INTO X1, at end, no phrase
+  USE SF 10
+  DBG [SF] [        ]
+READ SF INTO X1, past the end
+  USE SF 46
+  DBG [SF] [        ]
+  DBG [SF] [        ]
+END

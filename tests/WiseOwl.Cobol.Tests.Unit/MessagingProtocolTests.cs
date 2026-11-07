@@ -920,7 +920,7 @@ public sealed class MessagingProtocolTests
     }
 
     [Fact]
-    public void ASendThatEndsImpWithALinkGrantedClosesThatLinkSoTheNextSendIsNotStuckOnIt()
+    public void ASendThatEndsImpWithALinkGrantedConsumesItsLateAckSoTheNextSendIsNotStuckOnIt()
     {
         var network = Network();
         var a = new Peer(network, "srvA", "SRV");
@@ -934,14 +934,104 @@ public sealed class MessagingProtocolTests
         requestor.DropAnswer();
         requestor.Post(new ActionFailed(requestor.Log.OfType<Enumerate>().Last(), "socket error"));   // ... which fails with the grant not yet acknowledged
         Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
-        Assert.Contains(requestor.Log, action => action is CloseLink);
-        Pump(requestor, a);
+        Pump(requestor, a);                                              // the server answers the GRANT it holds: the ACK is consumed, not applied
         requestor.Send("SRV", "Y");
         Pump(requestor, a);
         a.Receive(default);
         Pump(requestor, a);
         Assert.True(requestor.Last.Successful);                          // the second SEND did not hang on the granted link
         Assert.Equal("Y", a.Last.Image);
+    }
+
+    [Fact]
+    public void ASendThatEndsImpWithALinkGrantedSparesTheRepliesOwedForEarlierSerialsOnThatLink()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "FIRST");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        var owed = requestor.Last.Tag;                                   // FIRST was sent on the link; its reply is owed
+        var asked = server.Last.Tag;
+        requestor.Send("SRV", "SECOND");
+        Pump(requestor, server);
+        server.Receive(default);                                         // the claim
+        while (requestor.Log.OfType<Write>().Count(w => w.Frame is GrantFrame) < 2) Assert.True(requestor.Step());     // the second GRANT is out
+        requestor.Post(new BellRang());
+        requestor.DropAnswer();
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Enumerate>().Last(), "socket error"));
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
+        Pump(requestor, server);
+        server.SendResponse(asked, "REPLY TO FIRST");                    // the server never ended: the link must still carry this
+        Pump(requestor, server);
+        requestor.Receive(owed, 50);
+        Assert.Equal("REPLY TO FIRST", requestor.Last.Image);            // not EC-MCS-ABNORMAL-TERMINATION
+        Assert.True(requestor.Last.Successful);
+    }
+
+    [Fact]
+    public void AReceiveEndedImpWithAClaimInFlightKeepsTheLinkWhileRepliesAreOwedOnItAndTheNextReceiveTakesTheMessage()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "FIRST");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        var owed = requestor.Last.Tag;                                   // FIRST was sent on the link; its reply is owed
+        var asked = server.Last.Tag;
+        requestor.Send("SRV", "SECOND");
+        Pump(requestor, server);
+        server.Receive(default);                                         // the claim is in flight ...
+        while (requestor.Log.OfType<Write>().Count(w => w.Frame is GrantFrame) < 2) Assert.True(requestor.Step());
+        server.Post(new ActionFailed(new CloseLink(default), "late failure"));                   // ... when an unrelated action fails and ends the RECEIVE
+        Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+        Pump(requestor, server);
+        server.SendResponse(asked, "REPLY TO FIRST");                    // neither party ended: the link still carries this
+        server.Receive(default);                                         // the held GRANT is taken by the next RECEIVE
+        Pump(requestor, server);
+        Assert.Equal("SECOND", server.Last.Image);
+        Assert.True(requestor.Last.Successful);                          // the SEND of SECOND completed
+        requestor.Receive(owed, 50);
+        Assert.Equal("REPLY TO FIRST", requestor.Last.Image);            // not EC-MCS-ABNORMAL-TERMINATION
+        Assert.True(requestor.Last.Successful);
+    }
+
+    [Fact]
+    public void AWriteThatFailsEndsItsLinkWhateverStatementWasCurrent()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "X");
+        Pump(requestor, server);
+        server.Receive(default);
+        while (!requestor.Log.OfType<Write>().Any(w => w.Frame is GrantFrame)) Assert.True(requestor.Step());
+        requestor.Post(new ActionFailed(requestor.Log.OfType<Write>().Single(w => w.Frame is GrantFrame), "broken pipe"));
+        Assert.Equal(ExceptionCatalog.McsImp, requestor.Last.ExceptionName);
+        Assert.Contains(requestor.Log, action => action is CloseLink);   // a link whose write failed is not trusted with a later SEND
+        Pump(requestor, server);
+        requestor.Send("SRV", "Y");
+        Pump(requestor, server);
+        server.Receive(default);
+        Pump(requestor, server);
+        Assert.True(requestor.Last.Successful);
+        Assert.Equal("Y", server.Last.Image);
+    }
+
+    [Fact]
+    public void AReceiveEndedImpWithAClaimInFlightClosesTheClaimedLinkSoTheRequestorGoesOnToANewRound()
+    {
+        var (_, server, requestor) = Pair();
+        requestor.Send("SRV", "ONCE");
+        Pump(requestor, server);
+        server.Receive(default);                                         // the claim is in flight ...
+        while (!requestor.Log.OfType<Write>().Any(w => w.Frame is GrantFrame)) Assert.True(requestor.Step());
+        server.Post(new ActionFailed(new CloseLink(default), "late failure"));                   // ... when an action fails and ends the RECEIVE
+        Assert.Equal(ExceptionCatalog.McsImp, server.Last.ExceptionName);
+        Pump(requestor, server);
+        Assert.Empty(requestor.Results);                                 // the GRANT was never acknowledged, so no program saw the message
+        server.Receive(default);
+        Pump(requestor, server);
+        Assert.Equal("ONCE", server.Last.Image);
+        Assert.True(requestor.Last.Successful);
     }
 
     [Fact]

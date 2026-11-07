@@ -709,12 +709,15 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         string why = r.TargetPc == DispatchResult.ResumeNext
             ? "RESUME AT NEXT STATEMENT (§14.9.33.4 GR2)"
             : "RESUME AT procedure-name ≡ GO TO (§14.9.33.4 GR3)";
+        // The statements that enclose this RESUME in its declarative are abandoned by the unwind, and the after-statement debugging
+        // sections they owe run first, on the arm that unwinds (X3.23-1985 USE FOR DEBUGGING general rules 5 d and 6 c, kb/Work PB4857).
+        string owed = dispatch.OwedBeforeTransferText();
         if (dispatch.InGlobalDeclarativeRangeTest is not { } inGlobalRange)
         {
-            ctx.Writer.Line($"{signal}   // {why}");
+            ctx.Writer.Line($"{owed}{signal}   // {why}");
             return true;
         }
-        ctx.Writer.Line($"if (!({inGlobalRange})) {signal}   // {why}");
+        ctx.Writer.Line($"if (!({inGlobalRange})) {{ {owed}{signal} }}   // {why}");
         ctx.Writer.Line("else ExceptionState.MarkDeclarativesNotNormal(__useActive);   "
             + "// GR1: within a global declarative's scope of execution RESUME ≡ CONTINUE — executed, so not normal completion (§14.6.13.1.2 1))");
         return false;

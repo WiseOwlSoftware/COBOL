@@ -1,0 +1,42 @@
+OPEN OUTPUT SF
+  DBS [SF] [        ]
+WRITE SF
+CLOSE SF
+  DBS [SF] [        ]
+OPEN INPUT SF
+  DBS [SF] [        ]
+READ SF
+  DBS [SF] [ABCDEFGH]
+READ SF INTO W
+  DBS [SF] [IJKLMNOP]
+W = IJKLMNOP
+READ SF AT END
+END
+CLOSE SF
+  DBS [SF] [        ]
+OPEN OUTPUT KF
+  DBK [KF] [        ]
+WRITE KF
+CLOSE KF
+  DBK [KF] [        ]
+OPEN I-O KF
+  DBK [KF] [        ]
+START KF AAA
+  DBK [KF] [        ]
+READ KF NEXT
+  DBK [KF] [AAA11111]
+START KF ZZZ
+  DBK [KF] [        ]
+INVALID
+READ KF BBB
+  DBK [KF] [BBB22222]
+READ KF QQQ
+INVALID
+DELETE KF BBB
+  DBK [KF] [        ]
+DELETE KF BBB AGAIN
+  DBK [KF] [        ]
+INVALID
+CLOSE KF
+  DBK [KF] [        ]
+END
