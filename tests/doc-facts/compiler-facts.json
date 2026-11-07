@@ -1045,6 +1045,10 @@
         {
           "name": "extents",
           "optional": true
+        },
+        {
+          "name": "slots",
+          "optional": true
         }
       ]
     },

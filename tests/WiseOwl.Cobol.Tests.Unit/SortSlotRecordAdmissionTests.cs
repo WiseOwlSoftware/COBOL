@@ -8,18 +8,20 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ WHICH SD RECORDS THE SORT STORE CARRIES WITH THEIR MANAGED SLOTS (kb/Work PB4772, review round 1). The slot-carrying
-/// path (<c>SortBinder.SortRecordCarriesSlots</c>) admits a fixed-size, single-description SD record in the INPUT/OUTPUT
-/// PROCEDURE form only. Everything else a pointer-leafed SD record can meet stays the COBOL1756 deferral, never a
-/// silent compile: a variable-length file releases a size (ISO §2023:13.18.43.4 GR13 a) the leaf-vector path ignores, and
-/// USING/GIVING/MERGE move a FILE record, which has no managed-slot half. Each case names its own reason text.
+/// path (<c>SortBinder.SortRecordCarriesSlots</c>) admits a fixed-size, single-description SD record. Everything else a
+/// pointer-leafed SD record can meet stays the COBOL1756 deferral, never a silent compile: a variable-length file releases
+/// a size (ISO §2023:13.18.43.4 GR13 a) the leaf-vector path ignores. USING, GIVING and MERGE are admitted since kb/Work
+/// PB4838 (a file record carries each slot leaf as its token). Each deferral case names its own reason text.
 /// </summary>
 public sealed class SortSlotRecordAdmissionTests
 {
     private const string Files = """
        FD FI.
-       01 FIREC PIC X(10).
+       01 FIREC PIC X(15).
        FD FO.
-       01 FOREC PIC X(10).
+       01 FOREC PIC X(15).
+       FD FM.
+       01 FMREC PIC X(15).
 """;
 
     private const string Phases = """
@@ -38,6 +40,7 @@ public sealed class SortSlotRecordAdmissionTests
            SELECT SF ASSIGN TO "pb4772sf.wrk".
            SELECT FI ASSIGN TO "pb4772fi.dat".
            SELECT FO ASSIGN TO "pb4772fo.dat".
+           SELECT FM ASSIGN TO "pb4772fm.dat".
        DATA DIVISION.
        FILE SECTION.
        SD SF{sdClause}.
@@ -95,15 +98,18 @@ public sealed class SortSlotRecordAdmissionTests
         Program("PB4772B", " RECORD IS VARYING IN SIZE FROM 2 TO 30 DEPENDING ON WS-N", Files, ProcForm),
         "pointer/object-class leaf");
 
-    [Fact]
-    public void SortUsing_OverASlotRecord_StaysTheDeferral() => AssertDeferred(Program("PB4772C", "", Files,
-        "SORT SF ON ASCENDING KEY SKEY OF SREC USING FI OUTPUT PROCEDURE IS OUTP."), "managed-slot half");
-
-    [Fact]
-    public void SortGiving_OverASlotRecord_StaysTheDeferral() => AssertDeferred(Program("PB4772D", "", Files,
-        "SORT SF ON ASCENDING KEY SKEY OF SREC INPUT PROCEDURE IS INP GIVING FO."), "managed-slot half");
-
-    [Fact]
-    public void Merge_OverASlotRecord_StaysTheDeferral() => AssertDeferred(Program("PB4772E", "", Files,
-        "MERGE SF ON ASCENDING KEY SKEY OF SREC USING FI FO OUTPUT PROCEDURE IS OUTP."), "managed-slot half");
+    /// <summary>kb/Work PB4838: a USING file, a GIVING file and a MERGE over a slot SD record are admitted - a file record
+    /// carries each pointer or message-tag leaf as its 8-position token, which the transfer decodes and writes back.</summary>
+    [Theory]
+    [InlineData("PB4772C", "SORT SF ON ASCENDING KEY SKEY OF SREC USING FI OUTPUT PROCEDURE IS OUTP.")]
+    [InlineData("PB4772D", "SORT SF ON ASCENDING KEY SKEY OF SREC INPUT PROCEDURE IS INP GIVING FO.")]
+    [InlineData("PB4772F", "SORT SF ON ASCENDING KEY SKEY OF SREC USING FI GIVING FO.")]
+    [InlineData("PB4772E", "MERGE SF ON ASCENDING KEY SKEY OF SREC USING FI FO OUTPUT PROCEDURE IS OUTP.")]
+    [InlineData("PB4772G", "MERGE SF ON ASCENDING KEY SKEY OF SREC USING FI FO GIVING FM.")]
+    public void UsingGivingAndMerge_OverASlotRecord_AreAdmitted(string id, string statement)
+    {
+        var (ok, errors, warnings) = Compile(Program(id, "", Files, statement));
+        Assert.True(ok, string.Join(Environment.NewLine, errors));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
+    }
 }
