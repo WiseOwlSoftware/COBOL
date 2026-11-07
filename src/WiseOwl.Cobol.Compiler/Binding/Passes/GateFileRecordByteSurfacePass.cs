@@ -32,10 +32,12 @@ internal sealed class GateFileRecordByteSurfacePass : IBindPass
     /// <para>⚠ AS OF PB231's POINTER THIRD (landed the same day, D-SLOT) THE PREDICATE REFUSES NOTHING, so this
     /// gate is currently VACUOUS — and it stays, for the reason the predicate's ALLOW-list direction exists: a
     /// category added to the model with no pinned representation must be refused BY NAME on every byte surface,
-    /// this one included, rather than laid out as a zero-width alias. A pointer/object leaf in a FILE record is a
-    /// separate question this gate deliberately does not answer: the RECORD image is a byte string with no
-    /// managed-slot half, so such a record is not <c>IsImageCapable</c> and every WRITE/READ of it is the record
-    /// codec's own Tier-C loud (<c>TierCIsland.Reason</c>) — unchanged by this fold.</para>
+    /// this one included, rather than laid out as a zero-width alias. A pointer or message-tag leaf in a FILE record is
+    /// not refused here either, and it is no longer a deferral (kb/Work PB4838): the owner decided that the file carries the
+    /// leaf's 8-position token and READ, RETURN and SORT GIVING restore the reference within the run unit, so such a record is
+    /// <c>RecordImageCapable</c> and its struct's <c>AsImage</c>/<c>FromImage</c> pair is the codec (docs/CONFORMANCE.md A.1
+    /// items 212 and 216). An object-reference leaf cannot reach a file record: §2023:13.18.57.3 SR8 and
+    /// §2023:13.18.60.3 SR15 refuse it in the file section.</para>
     /// <para>NATIONAL now RIDES: a national character position occupies two bytes, high-order first
     /// (§2023:13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two), which the codec composes through
     /// <c>CobolBits.NatBytes</c> and decodes through <c>CobolBits.NatReadWindow</c>. What the fold refuses is what

@@ -59,6 +59,10 @@ public sealed class RunUnit
     /// <summary>The external-switch store (§2023:12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
     public SwitchStore Switches { get; } = new();
 
+    /// <summary>What this run unit has rendered as slot-image tokens, so a file's pointer and message-tag leaves read back as the
+    /// references they were written from (kb/Work PB4838; <see cref="PointerImage"/>, <see cref="MessageTagImage"/>).</summary>
+    internal SlotImageTable SlotImages { get; } = new();
+
     /// <summary>The run-unit file-connector registry (§2023:9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
 

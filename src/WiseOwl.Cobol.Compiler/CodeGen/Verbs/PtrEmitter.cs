@@ -179,7 +179,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             }
             // GR9: every pointer member of the record starts null, and a null pointer's storage image is the zero
             // address (DOC-A.1-216), so those runs are seeded with it instead of the fill (kb/Work PB1071).
-            w.Line($"{addr} = {RuntimeApi.PtrAllocate($"(global::System.Int128){cls.Width}", fill, na, [.. SlotWindow.PointerImageOffsetsOf(based)])};   // ALLOCATE based-item (ISO §2023:14.9.3.4 GR3/GR4b/GR9)");
+            w.Line($"{addr} = {RuntimeApi.PtrAllocate($"(global::System.Int128){cls.Width}", fill, na, [.. SlotWindow.TokenImageOffsetsOf(based)])};   // ALLOCATE based-item (ISO §2023:14.9.3.4 GR3/GR4b/GR9)");
             if (s.Returning is { } ret2)
                 w.Line(PlaceRenderer.Write(ret2, addr) + "   // GR4a — the RETURNING pointer also receives the address");
             EmitStorageNotAvail(w, na);   // GR5c — data-name-2 and the based address already hold NULL

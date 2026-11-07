@@ -255,6 +255,8 @@ public sealed class RunUnitStateDriftTests
             "memo of the one-run atom array of each width, keyed by the width: derived data, the array is immutable (kb/Work PB2690)",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_areaBases"] =
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
+        ["WiseOwl.Cobol.Runtime.PointerImage::s_cellBases"] =
+            "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS (one per cell life, kb/Work PB4838); what a token decodes to is the run unit's own SlotImageTable",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_nameBases"] =
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
         ["WiseOwl.Cobol.Runtime.Repository.RepositoryLocator::Cache"] =

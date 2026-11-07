@@ -99,6 +99,11 @@ public abstract record Place
     /// <see cref="ImageCapable"/>.</summary>
     public virtual bool TransferImageCapable => Item.TransferImageCapable;
 
+    /// <summary>The operand-level twin of <see cref="DataItem.RecordImageCapable"/> (kb/Work PB4838): the file record image,
+    /// two-way over a pointer or message-tag token, asked of the REFERENCED operand for the same reason as <see cref="ImageCapable"/>.
+    /// Only the file record codec (a record area's send and store) asks it.</summary>
+    public virtual bool RecordImageCapable => Item.RecordImageCapable;
+
     /// <summary>The operand-level twin of <see cref="DataItem.BoundaryImageCapable"/> (kb/Work PB189): the
     /// fixed half asks <see cref="ImageCapable"/> (the OPERAND), the variable-length half the entry's own
     /// current-extent composer.</summary>
@@ -137,6 +142,9 @@ public abstract record PlaceDecorator(Place Inner) : Place
 
     /// <inheritdoc/>
     public override bool TransferImageCapable => Inner.TransferImageCapable;
+
+    /// <inheritdoc/>
+    public override bool RecordImageCapable => Inner.RecordImageCapable;
 
     /// <inheritdoc/>
     public override bool OwnsStorageCell => Inner.OwnsStorageCell;
@@ -186,6 +194,10 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
     /// <summary>The <see cref="ImageCapable"/> law applied to the one-way transfer image (kb/Work PB244).</summary>
     public override bool TransferImageCapable =>
         ElementItem.IsDynamicTable ? ElementItem.ElementTransferImageCapable : ElementItem.TransferImageCapable;
+
+    /// <summary>The <see cref="ImageCapable"/> law applied to the file record image (kb/Work PB4838).</summary>
+    public override bool RecordImageCapable =>
+        ElementItem.IsDynamicTable ? ElementItem.ElementRecordImageCapable : ElementItem.RecordImageCapable;
 }
 
 /// <summary>
@@ -212,6 +224,10 @@ public sealed record RedefViewPlace(AccessPath Backing, Position Offset, int Wid
     /// <summary>The <see cref="ImageCapable"/> law applied to the one-way transfer image (kb/Work PB244).</summary>
     public override bool TransferImageCapable =>
         ViewItem.IsDynamicTable ? ViewItem.ElementTransferImageCapable : ViewItem.TransferImageCapable;
+
+    /// <summary>The <see cref="ImageCapable"/> law applied to the file record image (kb/Work PB4838).</summary>
+    public override bool RecordImageCapable =>
+        ViewItem.IsDynamicTable ? ViewItem.ElementRecordImageCapable : ViewItem.RecordImageCapable;
 
     /// <summary>⛔ THE WINDOW'S CODING — how the member's VALUE CARRIER relates to the bytes of the class's one
     /// backing. Null is the identity coding (an alphanumeric / edited / byte-form-numeric member, whose carrier
@@ -473,24 +489,26 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     public static IReadOnlyList<DataItem> InnerLevelsOf(DataItem member, DataItem item) =>
         member.SubscriptLevels().Skip(item.SubscriptArity).ToList();
 
-    /// <summary>⛔ THE ONE test for "do this slot member's reserved positions hold a POINTER IMAGE?" (kb/Work PB1071;
-    /// DOC-A.1-216): the three pointer categories do — <c>PointerImage</c> defines the image, NULL as eight zero
-    /// positions — and the object reference and the message tag, the other slot-carried categories, have no image and
-    /// keep their reserved placeholder. The cell seed (<c>GroupImageCodec.SlotSeedOf</c>), the one-way group image
-    /// (<c>SlotImageOf</c>) and the ALLOCATE seed (<see cref="PointerImageOffsetsOf"/>) all ask it.</summary>
-    public static bool CarriesPointerImage(DataItem item) =>
-        CarriedBySlot(item) && item.Pic!.Category is not (PicCategory.ObjectReference or PicCategory.MessageTag);
+    /// <summary>⛔ THE ONE test for "do this slot member's reserved positions hold a TOKEN IMAGE?" (kb/Work PB1071, PB4838;
+    /// DOC-A.1-216, DOC-A.1-212): the three pointer categories and the message tag do — <c>PointerImage</c> and
+    /// <c>MessageTagImage</c> define the image, NULL as eight zero positions, and both DECODE it back to the reference — and
+    /// the object reference, the one other slot-carried category, has no image and keeps its reserved placeholder (no file
+    /// record holds one: §2023:13.18.57.3 SR8). The cell seed (<c>GroupImageCodec.SlotSeedOf</c>), the group image
+    /// (<c>SlotImageOf</c>), the file record codec's decode (<c>GroupImageCodec.SlotFromImage</c>) and the ALLOCATE seed
+    /// (<see cref="TokenImageOffsetsOf"/>) all ask it.</summary>
+    public static bool CarriesTokenImage(DataItem item) =>
+        CarriedBySlot(item) && item.Pic!.Category is not PicCategory.ObjectReference;
 
     /// <summary>The byte offset, within the storage class that <paramref name="root"/> heads, of EVERY pointer-image
-    /// run — each OCCURS occurrence of each <see cref="CarriesPointerImage"/> member (kb/Work PB1071). What
+    /// run — each OCCURS occurrence of each <see cref="CarriesTokenImage"/> member (kb/Work PB1071). What
     /// ALLOCATE seeds with the NULL image: §2023:14.9.3.4 GR9 initializes "data items of class object or class pointer in
     /// the allocated storage … to null", and DOC-A.1-216 gives NULL the zero image. <see cref="DataItem.ClassOffset"/>
     /// is the occurrence-1 position, and each fixed OCCURS level on the member's path within its class displaces it
     /// by (occurrence − 1) × that level's per-occurrence storage extent — the stride
     /// <c>PlaceBuilder.WindowScopeOf</c> applies to a reference, so a seed and a reference cannot disagree.</summary>
-    public static IEnumerable<int> PointerImageOffsetsOf(DataItem root)
+    public static IEnumerable<int> TokenImageOffsetsOf(DataItem root)
     {
-        foreach (var member in MembersOf(root).Where(CarriesPointerImage))
+        foreach (var member in MembersOf(root).Where(CarriesTokenImage))
         {
             IEnumerable<int> at = [member.ClassOffset];
             for (DataItem? n = member; n is not null && ReferenceEquals(n.Class, member.Class); n = n.Parent)
