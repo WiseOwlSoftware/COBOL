@@ -8,13 +8,16 @@ ends; an errored page and a cut-off page retried; a written page never overwritt
 old text kept); the stamp line dropped; the cost guard; the key never printed or stored; the local backend; adoption of a
 run that already exists; the check numbers; the assembly and its refusals.
 """
+import base64
 import contextlib
 import datetime
 import io
+import http.client
 import json
 import pathlib
 import sys
 import tempfile
+import urllib.error
 from types import SimpleNamespace
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -235,6 +238,85 @@ def main() -> int:
 
         T.local_pages(loc, pdf, "planted:1b", [2], False, post=cut)
         check("a reply that did not stop is not written", not loc.page_file(2).exists())
+
+        print("the local backend survives errors (PB4912)")
+        pdf3 = root / "planted3.pdf"
+        plant_pdf(pdf3, ["alpha beta gamma", "delta epsilon zeta", "eta theta iota"])
+        page_of = {base64.standard_b64encode(T.render_png(pdf3, n)).decode(): n for n in (1, 2, 3)}
+        tries: dict[int, int] = {}
+        sleeps: list[float] = []
+
+        def http500():
+            return urllib.error.HTTPError("http://x/api/chat", 500, "Internal Server Error", None, None)
+
+        def flaky(path, body):
+            """Page 1 fails once (a model still loading), page 2 fails every time, page 3 never."""
+            if path == "/api/tags":
+                return post(path, body)
+            n = page_of[body["messages"][0]["images"][0]]
+            tries[n] = tries.get(n, 0) + 1
+            if n == 2 or (n == 1 and tries[n] == 1):
+                raise http500()
+            return post(path, body)
+
+        flk = T.Run(root / "flaky", 1985)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            failed = T.local_pages(flk, pdf3, "planted:1b", [1, 2, 3], False, post=flaky, sleep=sleeps.append)
+        check("a failing request is retried and the page is then written", tries[1] == 2 and flk.page_file(1).exists())
+        check("a pause separates the tries", sleeps == [T.LOCAL_RETRY_SECONDS] * (1 + T.LOCAL_TRIES - 1))
+        check("a page that fails every try is tried LOCAL_TRIES times, not written, and returned",
+              tries[2] == T.LOCAL_TRIES and not flk.page_file(2).exists() and failed == [2])
+        check("the run goes on to the page after the failed one", flk.page_file(3).exists() and "p0003: written" in out.getvalue())
+        flog = flk.local_log()
+        check("the failure is recorded with the error and the model",
+              flog["p0002"]["model"] == "planted:1b" and "HTTP Error 500" in flog["p0002"]["error"] and flk.local_failed() == [2])
+        check("the written pages keep their provenance", flog["p0001"]["digest"] == "abc123" and "error" not in flog["p0003"])
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            T.print_status(flk, flk.load(3))
+        check("status counts the written local pages and lists the failed one",
+              "local 2;" in out.getvalue() and "local conversions failed 1: 2 (planted:1b: HTTPError" in out.getvalue())
+        T.local_pages(flk, pdf3, "planted:2b", [2], False, post=post, sleep=sleeps.append)
+        check("another model retries the failed page, and its record becomes the success",
+              flk.page_file(2).exists() and flk.local_failed() == [] and flk.local_log()["p0002"]["model"] == "planted:2b")
+
+        real_local = T.local_pages
+        try:
+            for what, state_dir, backend, want in (("the exit code is nonzero when a page failed", "flaky2", flaky, 1),
+                                                   ("the exit code is zero when none did", "flaky3", post, 0)):
+                tries.clear()
+                T.local_pages = lambda r, pf, m, pg, rp, backend=backend: real_local(r, pf, m, pg, rp, post=backend, sleep=lambda s: None)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = T.main(["pages", "1", "2", "3", "--edition", "1985", "--state", str(root / state_dir), "--local", "planted:1b"],
+                                  pdf_override=pdf3)
+                check(what, code == want)
+        finally:
+            T.local_pages = real_local
+
+        def torn(path, body):
+            if path == "/api/tags":
+                return post(path, body)
+            raise http.client.IncompleteRead(b"")
+
+        def garbled(path, body):
+            if path == "/api/tags":
+                return post(path, body)
+            return json.loads("<html>")
+
+        for what, backend in (("a torn reply", torn), ("a reply that is not JSON", garbled)):
+            with contextlib.redirect_stdout(io.StringIO()):
+                got = T.local_pages(T.Run(root / "bad", 1985), pdf3, "planted:1b", [1], False, post=backend, sleep=lambda s: None)
+            check(f"{what} is a failed page, not a crash", got == [1])
+
+        always500 = lambda path, body: post(path, body) if path == "/api/tags" else (_ for _ in ()).throw(http500())
+        before = dict(flk.local_log()["p0001"])
+        text_before = flk.page_file(1).read_text(encoding="utf-8")
+        with contextlib.redirect_stdout(io.StringIO()):
+            got = T.local_pages(flk, pdf3, "planted:3b", [1], True, post=always500, sleep=lambda s: None)
+        check("a failed --replace is returned but leaves the written page and its provenance untouched",
+              got == [1] and flk.local_log()["p0001"] == before and flk.page_file(1).read_text(encoding="utf-8") == text_before
+              and 1 not in flk.local_failed())
 
         print("check and agreement")
         recall, precision, md_words, layer_words = T.agreement("alpha beta gamma\n" + STAMP, "alpha beta gamma delta", 1985)
