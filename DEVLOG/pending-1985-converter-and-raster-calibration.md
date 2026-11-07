@@ -32,3 +32,4 @@ fitness for monospaced bands only.
 (`spec_pdf`) and the underline tests (`figure_extract`) are each read from their one home; no wrapper or alias was added and the old key reader is deleted from `fuzz_claude.py`.
 Two defects found in files already read were fixed in place: the planted-only fill test, and a stem's median extent that lost the first 4.7 pt of a leaning bracket.
 Gate: see the report.
+Review R1-1 (blocking): the first assembly kept 14 residues of the per-copy stamp because the 1985 shape table named only two pieces. verify_publishable.FORBIDDEN[1985] now carries the opening and licence-terms pieces, the assembly was redone (16 stamp lines dropped) and a planted case in the verify_publishable self-test pins the three new shapes.

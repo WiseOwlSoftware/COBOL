@@ -6651,8 +6651,6 @@ In the general format of the chapters that follow, 'condition-name' refers to a 
 
 IV-24
 
-Copyright by INCITS.
-
 ## Page 171
 
 Explicit and Implicit Specifications
@@ -13719,8 +13717,6 @@ Figure 1: Format 1 SEARCH statement having two WHEN phrases
 
 VI-126
 
-Copyright by INCITS.
-
 ## Page 359
 
 Nucleus - SET
@@ -15661,8 +15657,6 @@ Table 2: Permissible Statements
 
 VII-40
 
-Copyright by INCITS.
-
 ## Page 415
 
 Sequential I-O - OPEN
@@ -16704,8 +16698,6 @@ The Procedure Division contains declarative procedures when the USE statement fr
 
 VIII-16
 
-Copyright by INCITS.
-
 ## Page 447
 
 Relative I-O - CLOSE
@@ -16771,8 +16763,6 @@ The file is locked and cannot be opened again during this execution of this run 
 (7) If more than one file-name-1 is specified in a CLOSE statement, the result of executing this CLOSE statement is the same as if a separate CLOSE statement had been written for each file-name-1 in the same order as specified in the CLOSE statement.
 
 VIII-18
-
-Copyright by INCITS.
 
 ## Page 449
 
@@ -17282,8 +17272,6 @@ b. If the comparison is not satisfied by any record in the file, the invalid key
 (10) The comparison described in general rule 4 uses the data item referenced by the RELATIVE KEY phrase of the ACCESS MODE clause associated with file-name-1.
 
 VIII-34
-
-Copyright by INCITS. Single user license only. Copying and networking prohibited.
 
 ## Page 465
 
@@ -17860,8 +17848,6 @@ Indexed I-O - ALTERNATE RECORD KEY
 
 IX-12
 
-Copyright by INCITS.
-
 ## Page 483
 
 Indexed I-O - ORGANIZATION IS INDEXED
@@ -18347,8 +18333,6 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 (18) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
 
 IX-27
-
-Copyright by INCITS.
 
 ## Page 498
 
@@ -19195,8 +19179,6 @@ A program is in the initial state:
 
 X-10
 
-Copyright by INCITS.
-
 ## Page 525
 
 Inter-Program Communication - End Program Header
@@ -19932,8 +19914,6 @@ the same number of character positions as described by the description of the co
 (16) The END-CALL phrase delimits the scope of the CALL statement. (See page IV-40, Scope of Statements.)
 
 X-30
-
-Copyright by INCITS.
 
 ## Page 547
 
@@ -21015,8 +20995,6 @@ If any literal within pseudo-text-2 is of a length too great to be accommodated 
 
 XII-8
 
-Copyright by INCITS.
-
 # SECTION XIII: REPORT WRITER MODULE
 
 ## Page 583
@@ -22021,8 +21999,6 @@ d. After the report heading report group is presented, the final LINE-COUNTER se
 e. LINE-COUNTER is unaffected by the processing of a nonprintable report group.
 
 XIII-29
-
-Copyright by INCITS.
 
 ## Page 612
 
@@ -23447,8 +23423,6 @@ c. If EXTEND is specified, the associated procedure is executed when the conditi
 (7) Within a USE procedure, there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control to the invoking routine.
 
 XIII-77
-
-Copyright by INCITS.
 
 ## Page 656
 
@@ -28669,8 +28643,6 @@ Hardware Dependent Element List
 (20) The BEFORE/AFTER ADVANCING phrase of the SEND statement is dependent upon a device capable of vertical positioning or of an action based on mnemonic-name. (1 COM)
 
 XVII-95
-
-Copyright by INCITS.
 
 ## Page 804
 

@@ -51,12 +51,16 @@ REPO = spec_pdf.REPO
 
 #: The reseller's per-copy stamp of each edition, in pieces (SHAPES, never a licensee's name or an order number), so a
 #: partial survival is caught as readily as the whole line. 1985: PB4812 records the stamp as "Licensed to ... order # ...";
-#: more pieces are added when that PDF's stamp line is read at the first run. 2002 has no row until PB4813's run reads its
+#: the first assembly of the adopted run then showed the model leaving
+#: the opening sentence and the licence-terms sentence behind on 14 pages (kb/Work PB4816, review R1-1), so those are pieces too. 2002 has no row until PB4813's run reads its
 #: stamp line, so `--edition 2002` exits naming this table (kb/Work PB4815).
 FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"Licensed to\b", "per-copy licence stamp"),
         (r"\border\s*#", "reseller order reference"),
+        (r"Copyright by INCITS", "per-copy licence stamp"),
+        (r"Single user licen[cs]e", "per-copy licence stamp"),
+        (r"Copying and networking", "per-copy licence stamp"),
     ],
     2023: [
         (r"Licensed to\b", "per-copy licence stamp"),
@@ -335,6 +339,8 @@ def self_test() -> int:
     check("a 2023 text carrying the stamp pieces fails once per piece", len(found) == 3)
     check("1985 reads its own stamp shapes: an `order #` line is refused and the 2023-only order number is not looked for",
           len(quietly(check_stamp, ["order # 12"], 1985)) == 1 and quietly(check_stamp, [order_number], 1985) == [])
+    check("1985 refuses the opening and the licence-terms sentences the model left behind (PB4816 review R1-1)",
+          len(quietly(check_stamp, ["Copyright by INCITS.", "Single user license only. Copying and networking prohibited."], 1985)) == 3)
     for edition in (1985, 2002):
         try:
             quietly(check_text, good, edition)
