@@ -7,9 +7,12 @@ Run: python scripts/spec/test_figure_raster.py   (every gate and CI run it throu
 The drawn geometry is the measured shape of the 2023 vector figures (`test_figure_geometry.py`): 0.5 pt strokes,
 3.5 pt feet, SEND's choice bars 0.70 pt clear of the bracket's feet (kb/Work PB3530).
 """
+import json
 import math
 import pathlib
+import struct
 import sys
+import zlib
 
 import numpy as np
 
@@ -107,6 +110,52 @@ def scan(img, deg, seed):
     out[ink_r[drop], ink_c[drop]] = 255
     out[rng.randint(0, h, 120), rng.randint(0, w, 120)] = 0          # specks of one pixel
     return out
+
+
+def read_png(path):
+    """The red channel of an 8-bit PNG (gray or RGB, not interlaced) as a uint8 array, read with zlib alone: CI's
+    self-test jobs install numpy and nothing that decodes images."""
+    data = pathlib.Path(path).read_bytes()
+    assert data[:8] == b"\x89PNG\r\n\x1a\n", f"{path} is not a PNG"
+    pos, idat, width = 8, b"", 0
+    while pos < len(data):
+        n, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + n]
+        if kind == b"IHDR":
+            width, height, depth, ctype, _, _, interlace = struct.unpack(">IIBBBBB", body)
+            assert depth == 8 and ctype in (0, 2) and interlace == 0, f"{path}: only 8-bit gray or RGB is read"
+            channels = 1 if ctype == 0 else 3
+        elif kind == b"IDAT":
+            idat += body
+        pos += 12 + n
+    raw = zlib.decompress(idat)
+    stride = width * channels
+    out = np.zeros((height, stride), dtype=np.uint8)
+    for y in range(height):
+        row = np.frombuffer(raw, dtype=np.uint8, count=stride, offset=y * (stride + 1) + 1).astype(np.int32)
+        ft = raw[y * (stride + 1)]
+        prev = out[y - 1].astype(np.int32) if y else np.zeros(stride, dtype=np.int32)
+        if ft == 0:
+            cur = row
+        elif ft == 2:
+            cur = row + prev
+        else:                                   # Sub, Average and Paeth read the pixel to the left: a running loop
+            cur = np.zeros(stride, dtype=np.int32)
+            for i in range(stride):
+                a = cur[i - channels] if i >= channels else 0
+                b = prev[i]
+                c = prev[i - channels] if i >= channels else 0
+                if ft == 1:
+                    pred = a
+                elif ft == 3:
+                    pred = (a + b) // 2
+                else:
+                    p = a + b - c
+                    pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                    pred = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+                cur[i] = row[i] + pred
+        out[y] = (cur & 255).astype(np.uint8)
+    return np.ascontiguousarray(out.reshape(height, width, channels)[:, :, 0])
 
 
 def near(a, b, tol=1.0):
@@ -302,13 +351,10 @@ def main() -> int:
     # 9. REAL 1985 pages (kb/Work PB4848): twelve general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
     #    figure_raster_pages/calibration.json; a crop is measured with its page's skew.
-    import json
-    import pymupdf
     pages = pathlib.Path(__file__).resolve().parent / "figure_raster_pages"
     cal = json.loads((pages / "calibration.json").read_text(encoding="utf-8"))
     for e in cal["pages"]:
-        pix = pymupdf.Pixmap(str(pages / e["file"]))
-        gray = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)[:, :, 0].copy()
+        gray = read_png(pages / e["file"])
         rp = R.measure_image(gray, cal["dpi"], skew=e["skew_deg"])
         got = {"stems_L": sum(s["side"] == "L" for s in rp.stems), "stems_R": sum(s["side"] == "R" for s in rp.stems),
                "bars": sum(s["kind"] == "bar" for s in rp.stems), "braces_L": sum(b["side"] == "L" for b in rp.braces),

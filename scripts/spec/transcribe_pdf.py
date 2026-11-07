@@ -422,15 +422,20 @@ def agreement(layer: str, markdown: str, edition: int) -> tuple[float, float, in
     return recall, precision, sum(b.values()), sum(a.values())
 
 
-def check_pages(run: Run, pdf: pathlib.Path, pages: list[int]) -> None:
+def page_text(pdf: pathlib.Path, pno: int) -> str:
+    """The PDF's own text layer of one page (OCR, with its errors: a signal, never the transcription)."""
     import pymupdf  # noqa: PLC0415
     with pymupdf.open(pdf) as doc:
-        for pno in pages:
-            md = run.page_file(pno).read_text(encoding="utf-8")
-            recall, precision, md_words, layer_words = agreement(doc[pno - 1].get_text(), md, run.edition)
-            stamp = sum(1 for p in stamp_patterns(run.edition) if p.search(md))
-            print(f"{page_name(pno)}: recall {recall:.3f} precision {precision:.3f} md-words {md_words} layer-words {layer_words} "
-                  f"| stamp matches {stamp}")
+        return doc[pno - 1].get_text()
+
+
+def check_pages(run: Run, pdf: pathlib.Path, pages: list[int]) -> None:
+    for pno in pages:
+        md = run.page_file(pno).read_text(encoding="utf-8")
+        recall, precision, md_words, layer_words = agreement(page_text(pdf, pno), md, run.edition)
+        stamp = sum(1 for p in stamp_patterns(run.edition) if p.search(md))
+        print(f"{page_name(pno)}: recall {recall:.3f} precision {precision:.3f} md-words {md_words} layer-words {layer_words} "
+              f"| stamp matches {stamp}")
 
 
 # -- assembly -----------------------------------------------------------------------------------------------------------

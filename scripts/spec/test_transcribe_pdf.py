@@ -17,8 +17,6 @@ import sys
 import tempfile
 from types import SimpleNamespace
 
-import pymupdf
-
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import transcribe_pdf as T  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -29,16 +27,13 @@ KEY = "sk-planted-secret-key"
 STAMP = "Copyright by the publisher. store order " + chr(35) + " X_" + "9999999. Downloaded today"
 failures: list[str] = []
 
-
 def check(name: str, cond: bool) -> None:
     print(f"  {'ok  ' if cond else 'FAIL'} {name}")
     if not cond:
         failures.append(name)
 
-
 class Crash(Exception):
     """A process death between the server accepting a batch and the state file recording it."""
-
 
 class FakeBatches:
     def __init__(self) -> None:
@@ -71,27 +66,23 @@ class FakeBatches:
     def results(self, bid):
         return iter(self.results_by_id[bid])
 
-
 def message(text, stop="end_turn"):
     return SimpleNamespace(stop_reason=stop, content=[SimpleNamespace(type="text", text=text)],
                            usage=SimpleNamespace(input_tokens=5000, output_tokens=900))
 
-
 def ok(pno, text, stop="end_turn"):
     return SimpleNamespace(custom_id=T.page_name(pno), result=SimpleNamespace(type="succeeded", message=message(text, stop)))
-
 
 def errored(pno):
     return SimpleNamespace(custom_id=T.page_name(pno), result=SimpleNamespace(type="errored"))
 
-
 def plant_pdf(path: pathlib.Path, texts: list[str]) -> None:
-    doc = pymupdf.open()
-    for t in texts:
-        doc.new_page(width=300, height=400).insert_text((40, 80), t, fontsize=14)
-    doc.save(path)
-    doc.close()
-
+    """A stand-in PDF: the three functions that open one (render, page count, text layer) are replaced, so the self-test
+    needs no PDF library (CI's self-test jobs install none) and reads no licensed file."""
+    path.write_bytes(b"planted, not a PDF")
+    T.render_png = lambda pdf, pno: b"rendered page %d" % pno
+    T.pdf_page_count = lambda pdf: len(texts)
+    T.page_text = lambda pdf, pno: texts[pno - 1]
 
 def run(argv, fake, pdf, parts=None):
     out = io.StringIO()
@@ -105,7 +96,6 @@ def run(argv, fake, pdf, parts=None):
         except Crash:
             code = "crash"
     return code, out.getvalue()
-
 
 def main() -> int:
     parts = [(1, "Front matter"), (2, "SECTION A: SECOND")]
@@ -268,7 +258,6 @@ def main() -> int:
 
     print(f"=== TRANSCRIBE_PDF SELF-TEST: {'GREEN' if not failures else 'RED - ' + ', '.join(failures)} ===")
     return 1 if failures else 0
-
 
 if __name__ == "__main__":
     ensure_utf8()
