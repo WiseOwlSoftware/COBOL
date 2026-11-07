@@ -55,6 +55,14 @@ VERSION_CHANGE_REFERENCE name the `cite.py` call that works (`--check "§1985:�
 Rows 7.13, 7.19 and 7.20 agree with the 1985 text (§1985:IV.4.2.2.2.3; no ORDER TABLE; §1985:VII.2.7). PB4759 can cite
 §1985:XV.3.2.4.
 
+**Review round 1.** The branch review found one more reader of the old markup. `audit_batch.COMMON`, the preamble
+of every map, verify and claims request, still told the reader that `<ins>...</ins>` marks a level-2 box, while the
+transcription carries no `<ins>` and marks a box with `spec_pdf.BOX_SIDE`. The audit readers would have had no level-2
+signal. The preamble now names the box side (built from `BOX_SIDE`) and a format's double lines (§1985:I.1.3), and the
+self-test plants a whole-boxed rule. It checks that every pass's preamble defines the mark `rule_catalog_1985.box_of`
+reads and that each pass quotes the box sides. The sweep also corrected `rule_catalog_1985`'s box citation from
+§1985:I.1.2 to §1985:I.1.3, where the box sentence is.
+
 **Leads, not fixed here.** Figure 1's two missing connectors (page 114). The element-summary tables' remaining group
 labels and indentation (pages 31-84; only the claimed rows and the titles were checked). Underlines on Section headings
 in the body beyond the claimed ones. Page 837's head (`| Page No. | Change |`). The four printed pages the scan lacks (they need another copy of the standard).

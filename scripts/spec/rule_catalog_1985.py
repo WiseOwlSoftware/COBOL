@@ -10,7 +10,7 @@ is not ISO's:
     `SECTION A: INTRINSIC FUNCTION MODULE`, cited `§1989:A.<paragraph>`;
   - Sections VI to XVI are the eleven MODULES (Nucleus ... Segmentation) and Section A the twelfth; every module but
     Sort-Merge, Report Writer and Intrinsic Function has two LEVELS, and the standard draws a BOX around every
-    specification unique to level 2 (§1985:I.1.2; FIGURE-STYLE.md rule 9 for a general format);
+    specification unique to level 2 (§1985:I.1.3; FIGURE-STYLE.md rule 9 for a general format);
   - a rule block is a paragraph headed `Syntax Rules`, `General Rules`, `Arguments` or `Returned Values` (headed with `#`
     or, where the transcription did not head it, a plain line opening with its number, as citation.PARAGRAPH_85 reads
     both), and a rule is a column-0 `(n)`; its lettered `a.` items and their `1)` items are its text (THE RULE IS THE
