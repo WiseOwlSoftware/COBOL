@@ -1,4 +1,4 @@
-## PB4886: the 1985 audit's tooling — the rule catalog takes an edition, and one batch tool judges the mapping
+## Entry 3272 — 2026-11-07 14:08 PST — PB4886: the 1985 audit's tooling — the rule catalog takes an edition, and one batch tool judges the mapping
 
 The 1985 compiler is to be audited against the 1985 standard itself, the way 2023 is, and that audit waits for the
 reconciled 1985 transcription (PB4850). This landing builds its tooling beside that work, and runs no batch.
@@ -46,3 +46,4 @@ now keyed by batch and custom id (`BatchRun.usage_key`). The probe now reads $0.
 the retried reply, the cut-off reply and a repeated collect.
 
 PB4886 stays open: the audit itself, and the edition parameter of `build_inventory.py` and the ledger, wait for PB4850.
+
