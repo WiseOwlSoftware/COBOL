@@ -1,4 +1,4 @@
-## The local transcription backend retries and records a failed page instead of stopping the run
+## Entry 3246 — 2026-11-07 02:04 PST — The local transcription backend retries and records a failed page instead of stopping the run
 
 PB4912. `transcribe_pdf.py pages --local` stopped the whole run on the first Ollama HTTP error (HTTP 500 after 54 of 224 pages on 2026-11-06). Re-probed with a planted fake backend: the traceback reproduced (HTTPError uncaught in `local_pages`).
 
@@ -7,3 +7,4 @@ Fix at the one place: `local_pages` now sends each request through `post_with_re
 Self-test (`test_transcribe_pdf.py`): flaky page, always-failing page, torn reply, non-JSON reply, status listing, retry on another model, exit codes. Closes no inventory row (tooling).
 
 Review finding R1-1 (a failed --replace overwrote the written page provenance in local.json): a failure on a page whose file exists now leaves the page and its record untouched and is still returned, so the run exits nonzero; the self-test plants it.
+
