@@ -793,6 +793,43 @@ def self_test() -> int:
                                           figure_lines=figure_reading.restyle(batch))), encoding="utf-8", newline="")
         check("a `drawn` verdict carrying the batch's drawing, restyled, loads", len(load_verdicts(root)) == 2)
 
+    # ---- the scan's coverage (kb/Work PB4849): the vector audits refuse a scan naming `spec_pdf.scan_check`, so that
+    # check must judge EVERY `<pre>` block of a scanned edition: each is written in its decided form, or the check fails.
+    import types
+    saved = (raster_sweep, regenerated, spec_pdf.require, sys.modules.get("pymupdf"), sys.argv)
+    calls: list[tuple] = []
+    try:
+        globals()["raster_sweep"] = lambda *a: calls.append((a[0], a[6])) or 0
+        spec_pdf.require = lambda edition: pathlib.Path("planted.pdf")
+        sys.modules["pymupdf"] = types.SimpleNamespace(open=lambda path: None)
+        scans = [e for e in sorted(spec_pdf.EDITIONS) if spec_pdf.geometry(e) == "raster"]
+        for e in scans:
+            sys.argv = ["sweep_figures.py"] + spec_pdf.scan_check(e).split()[2:]
+            main()
+        check("spec_pdf.scan_check of every scanned edition runs the raster sweep's --check",
+              bool(scans) and calls == [(e, "check") for e in scans], str(calls))
+        globals()["raster_sweep"] = saved[0]
+        md = ["## Page 9001", "### 6.6.2 General Format", "<pre>", "<u>ADD</u> x", "</pre>", "<pre>", "<u>ADD</u> y", "</pre>",
+              "### 6.7 EXAMPLES", "<pre>", "ADD A TO B.", "</pre>"]
+        blocks = drawn_figures(md, page_furniture(1985))
+        made = {"<u>ADD</u> x": ["<u>ADD</u> x"], "<u>ADD</u> y": ["<u>ADD</u> <u>y</u>"], "ADD A TO B.": ["ADD A TO B."]}
+        globals()["regenerated"] = lambda edition, doc, drawn, R: [(d, made[d.rows[0]], [], []) for d in drawn]
+        R = types.SimpleNamespace(PRE_OPEN="<pre>")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = raster_sweep(1985, None, md, R, (9001, 9001), None, "check", 10, pathlib.Path("planted.md"))
+        said = out.getvalue()
+        check("--check judges every block of a scan: one agreed, a disagreeing format and an example await a verdict, "
+              "and the check fails", [d.general_format for d in blocks] == [True, True, False] and rc == 1
+              and "agreed (written regenerated)   : 1" in said and "2 await a verdict" in said, said)
+    finally:
+        globals()["raster_sweep"], globals()["regenerated"], spec_pdf.require = saved[:3]
+        if saved[3] is None:
+            sys.modules.pop("pymupdf", None)
+        else:
+            sys.modules["pymupdf"] = saved[3]
+        sys.argv = saved[4]
+
     total = len(ran)
     print(f"sweep_figures self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
     for f in fails:

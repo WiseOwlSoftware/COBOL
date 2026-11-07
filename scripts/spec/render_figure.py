@@ -21,7 +21,8 @@ See `find_bands`. An explicit `--band` overrides it for a page the structure can
     python scripts/spec/render_figure.py 784                     # START, printed page 754 — every figure
     python scripts/spec/render_figure.py 632 --bands-only        # COMPUTE — just report what it located
     python scripts/spec/render_figure.py 607 --band 140 250      # override: one band, given explicitly
-    python scripts/spec/render_figure.py 190 --edition 2002      # another edition (default 2023); a scan is refused
+    python scripts/spec/render_figure.py 190 --edition 2002      # another edition (default 2023)
+    python scripts/spec/render_figure.py 456 --edition 1985      # a scan: its figures regenerated, and what stayed unread
 """
 from __future__ import annotations
 
