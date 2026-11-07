@@ -110,11 +110,13 @@ public abstract class CobolParserCoreBase : Parser
            && (t.Type is CobolParserCore.PROGRAM or CobolParserCore.COLLATING or CobolParserCore.SEQUENCE
                || classificationAhead() || memorySizeAhead() || segmentLimitAhead());
 
-    /// <summary>X3.23-1985 <c>MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}</c> — the word MEMORY followed by
-    /// the SIZE token (kb/Work PB830). A left-edge predicate; the SIZE check keeps a computer named MEMORY a
-    /// computer-name.</summary>
+    /// <summary>X3.23-1985 <c>MEMORY [SIZE] integer-1 {WORDS | CHARACTERS | MODULES}</c> — the word MEMORY followed by
+    /// the SIZE token or by integer-1 (kb/Work PB830; SIZE is an optional word on the printed §1985:VI.4.4.2 format,
+    /// kb/Work PB4919). A left-edge predicate; the second-token check keeps a computer named MEMORY a computer-name,
+    /// since no other OBJECT-COMPUTER clause opens on an integer.</summary>
     protected bool memorySizeAhead()
-        => Word(TokenStream.LT(1), "MEMORY") && TokenStream.LT(2)?.Type == CobolParserCore.SIZE;
+        => Word(TokenStream.LT(1), "MEMORY")
+           && TokenStream.LT(2)?.Type is CobolParserCore.SIZE or CobolParserCore.INTEGERLIT;
 
     /// <summary>The MEMORY SIZE clause's unit word — WORDS or MODULES (CHARACTERS is a lexer token and is
     /// matched by the grammar directly).</summary>

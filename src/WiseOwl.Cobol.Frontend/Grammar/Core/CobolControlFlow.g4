@@ -504,9 +504,9 @@ useStatement
     // Accepted-inert at 85 (the section is compiled as if comment lines — the conforming posture when
     // WITH DEBUGGING MODE is absent, and our permanently-off object-time switch when present); the
     // EditionValidator flags it COBOL0902 ≥2002 (`use-for-debugging-removed-2002`, VCR Table 7
-    // row 7.17). ON is written by every CCVS-85 witness but accepted as optional (house optional-word
-    // tolerance, cf. Format 1's ON).
-    | USE FOR DEBUGGING ON? useDebugTarget+
+    // row 7.17). The printed format (§1985:XV.3.2.2, page XV-5) underlines only USE and DEBUGGING: FOR and ON are
+    // optional words, so `USE DEBUGGING ALL PROCEDURES` is the same statement (kb/Work PB4919).
+    | USE FOR? DEBUGGING ON? useDebugTarget+
     ;
 
 // One '85 debug-operand: ALL PROCEDURES / [ALL REFERENCES OF] identifier / a bare name (file-name,
