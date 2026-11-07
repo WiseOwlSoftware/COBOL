@@ -109,6 +109,27 @@ The tag is emitted from ONE place, `render_figure.PRE_OPEN`, which `sweep_figure
 that this makes the opening tag *not* a bare `<pre>`: anything matching figure boundaries must allow the
 attributes (`</?pre(?:\s[^>]*)?>`).
 
+### 9. A level-2 box — DOUBLE lines, its two sides only (the 1985 edition)
+
+The 1985 standard encloses syntax unique to level 2 of a module in a drawn box (PDF page 23, "specifications unique to
+level 2 of the modules are enclosed in boxes"; page 147; kb/Work PB4848, PB4849). A box groups nothing and chooses
+nothing, so it must not read as any of the three families above. It is drawn in the double-line glyphs, which no other
+notation uses:
+
+```
+box       ╔ ║ ╚   ╗ ║ ╝        U+2554 U+2551 U+255A · U+2557 U+2551 U+255D
+one row   ║ … ║                 a box one row tall (rule 7's reason: a corner on one row joins nothing)
+```
+
+Only the two SIDES are drawn. A top or bottom rule would need a row of its own, and a row is one printed line (see
+"A row is one printed line" below); a box set inside a line (`[SAME ║[RECORD]║ AREA …]`, PDF page 389) has no row to
+put one on. A box's sides take their own column, beside the bracket or brace they enclose, and run through the blank
+rows between the groups inside it: a box is not a group, so it adds no blank row and removes none.
+
+`render_figure` draws the boxes `figure_raster.find_boxes` measured (`figure_raster.classify_page` gives each box as
+two stems of kind `box`), and `figure_reading` reads them from either drawing: these sides, or a full double-line
+rectangle (`╔═══╗` above and `╚═══╝` below the rows it holds), and `compare` names a word whose boxes differ.
+
 ## Where a figure IS, for the generator
 
 Located from the **clause structure**, never from spacing. A bold numbered heading opens and closes every
@@ -122,6 +143,16 @@ groups 24 pt apart, while COMPUTE's two formats sit 31 pt apart — no threshold
 splitter fragmented single figures and merged neighbouring ones.
 
 Over the whole standard this locates **475 figures on 339 pages**, all laying out without a collision.
+
+**A scanned edition (1985) has no text layer to read the structure from** (kb/Work PB4849): its OCR layer misreads
+words inside a figure (`{iLEerT:` for `[END OF]`), and nothing on the page is bold. There the figure is located by
+its WORDS: the transcription's own drawing of each format (the `<pre>` blocks of a `## Page N` section) gives them,
+`figure_raster.locate` places the page's figures together, in order, as disjoint runs of printed lines whose OCR words
+match each figure's (the OCR text is a position hint only, never a word), and `figure_raster.align` pairs every word
+with its measured ink by one assignment over the figure. From there the figure is laid out exactly as a vector page's
+is, by the rules below. `sweep_figures.py --edition 1985 --cross-check` regenerates every drawn format this way and
+names, per format, which of the four carried things (grouping, choice bars, underlines, alignment;
+`figure_reading.compare`) the two drawings disagree on.
 
 ## Layout rules, for the generator
 
