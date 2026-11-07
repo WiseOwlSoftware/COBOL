@@ -2738,7 +2738,8 @@ second path:
 - **The mutex's answer.** `HostRegionLocks.HoldStoreMutex` returns the `RegionLockResult`: a keyed connector reads anything but `Ok`
   as "no protection" (DOC-A.1-75), and the message store reads `Unavailable` as status 92. Still the one way the mutex is taken.
 - **A presence byte.** `HostRegionLocks.McsPresenceByte` (`RegionBase + 0x103`), held shared by every open message store session and
-  tested exclusively by `cobol mcs reset`.
+  tested exclusively by `cobol mcs reset`. `HostRegionLocks.McsStartByte` (`RegionBase + 0x104`) is the 2023 messaging facility's
+  activation lock (DESIGN-message-control.md §5.4.5), held through `start/<N>.lock` of its socket directory and never on `mcs.store`.
 
 What the message store does NOT need and does not get: `RunUnitPageMedium` (its one handle is a `HandlePageMedium`), record frames,
 release ordinals, alternate trees, the TRANSACTIONS and HOLDINGS trees and the dead-owner step. A refused handle is reopened with
