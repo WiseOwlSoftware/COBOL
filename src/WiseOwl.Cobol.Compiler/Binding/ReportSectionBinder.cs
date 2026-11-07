@@ -555,12 +555,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             int.TryParse(ge.levelNumber().GetText(), out int level);
             enclosing.RemoveAll(c => c.Level >= level);
-            var specs = ge.reportGroupClause().Select(c => c.reportVaryingClause()).OfType<Core.ReportVaryingClauseContext>()
+            var specs = ge.reportGroupBody().reportGroupClause().Select(c => c.reportVaryingClause()).OfType<Core.ReportVaryingClauseContext>()
                 .SelectMany(vc => vc.reportVaryingSpec()).ToList();
             if (specs.Count == 0) continue;
             using var _ = Edition.At(ge);
             string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
-            bool repeating = ge.reportGroupClause().Any(c => c.occursClause() is not null
+            bool repeating = ge.reportGroupBody().reportGroupClause().Any(c => c.occursClause() is not null
                 || (c.reportLineClause()?.reportLineOperand().Length ?? 0) > 1
                 || (c.reportColumnClause()?.reportColumnOperand().Length ?? 0) > 1);
             if (!repeating)
@@ -675,7 +675,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var ge in entries)
         {
             if (int.TryParse(ge.levelNumber().GetText(), out int level) && level == 1) continue;
-            foreach (var c in ge.reportGroupClause())
+            foreach (var c in ge.reportGroupBody().reportGroupClause())
                 if (c.reportNextGroupClause() is { } misplaced)
                 {
                     using var _ = Edition.At(misplaced);
@@ -1119,7 +1119,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 orPageHeading = kind == ReportGroupKindModel.ControlHeading && WrittenGroupType(ge)?.OR() is not null;
                 firstLineClause = true;
             }
-            foreach (var clause in ge.reportGroupClause())
+            foreach (var clause in ge.reportGroupBody().reportGroupClause())
             {
                 if (clause.reportLineClause() is not { } lc) continue;
                 using var _ = Edition.At(lc);
@@ -1173,12 +1173,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private void ScreenReportColumnClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
         foreach (var ge in entries)
-            foreach (var clause in ge.reportGroupClause())
+            foreach (var clause in ge.reportGroupBody().reportGroupClause())
             {
                 if (clause.reportColumnClause() is not { } cc || cc.reportColumnOperand().Length <= 1) continue;
                 using var _ = Edition.At(cc);
                 string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
-                if (ge.reportGroupClause().Any(c => c.occursClause() is not null))
+                if (ge.reportGroupBody().reportGroupClause().Any(c => c.occursClause() is not null))
                     Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: a multiple COLUMN clause and an OCCURS "
                         + "clause may not both be present in the same report group description entry (ISO §2023:13.18.14.3 SR10 a))");
                 int? last = null;
@@ -1204,12 +1204,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         for (int i = 0; i < entries.Length; i++)
         {
-            if (!entries[i].reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
+            if (!entries[i].reportGroupBody().reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
             if (!int.TryParse(entries[i].levelNumber().GetText(), out int level)) continue;
             for (int k = i + 1; k < entries.Length; k++)
             {
                 if (!int.TryParse(entries[k].levelNumber().GetText(), out int sub) || sub <= level) break;
-                if (!entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
+                if (!entries[k].reportGroupBody().reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
                 using var _ = Edition.At(entries[k]);
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': an entry that contains a LINE "
                     + "clause shall not have a subordinate entry that also contains a LINE clause (ISO "
@@ -1261,7 +1261,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             bool elementary = !IsReportGroupEntry(entries, i);
             bool column = false, source = false, value = false, sum = false, picture = false, groupIndicate = false,
                 justifiedOrBwz = false, type = false, line = false;
-            foreach (var c in ge.reportGroupClause())
+            foreach (var c in ge.reportGroupBody().reportGroupClause())
             {
                 type |= c.reportTypeClause() is not null;
                 line |= c.reportLineClause() is not null;
@@ -1306,7 +1306,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // §2023:13.18.54.2 — the SUM clause is the repeated `SUM OF … [UPON …]` group followed by ONE RESET phrase and ONE
             // rounded-phrase; the grammar's reportSumClause takes the groups together, so a SECOND clause in an entry
             // means a RESET or ROUNDED phrase (or another clause) was written BETWEEN two SUM groups (kb/Work PB1295).
-            if (ge.reportGroupClause().Count(c => c.reportSumClause() is not null) > 1)
+            if (ge.reportGroupBody().reportGroupClause().Count(c => c.reportSumClause() is not null) > 1)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} writes its SUM clause in more than one "
                     + "piece: the RESET phrase and the rounded-phrase come once, after the whole repeated SUM … UPON "
                     + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO §2023:13.18.54.2)");
@@ -1522,7 +1522,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <see cref="ScreenReportVaryingClauses"/>, not here, so a replay cannot multiply them.</summary>
     private List<ReportVaryingModel> VaryingCountersOf(Core.ReportGroupEntryContext ge, ReportGroupBuild st)
     {
-        var specs = ge.reportGroupClause().Select(c => c.reportVaryingClause()).OfType<Core.ReportVaryingClauseContext>()
+        var specs = ge.reportGroupBody().reportGroupClause().Select(c => c.reportVaryingClause()).OfType<Core.ReportVaryingClauseContext>()
             .SelectMany(vc => vc.reportVaryingSpec()).ToList();
         if (specs.Count == 0) return [];
         var enclosing = st.Varying.SelectMany(v => v.Counters).ToList();
@@ -1568,7 +1568,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var multi = MultipleLineOperands(ge, model);
         if (multi is not { } ops) return occurs;
         // SR10 d) "An OCCURS clause shall not also be present in the same entry."
-        if (ge.reportGroupClause().Any(c => c.occursClause() is not null))
+        if (ge.reportGroupBody().reportGroupClause().Any(c => c.occursClause() is not null))
         {
             Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': a multiple LINE clause and an "
                 + "OCCURS clause may not both be present in the same report group description entry (ISO "
@@ -1585,7 +1585,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private int? MultipleLineOperands(Core.ReportGroupEntryContext ge, ReportModel model)
     {
         Core.ReportLineClauseContext? lc = null;
-        foreach (var clause in ge.reportGroupClause())
+        foreach (var clause in ge.reportGroupBody().reportGroupClause())
             if (clause.reportLineClause() is { } found) lc = found;
         if (lc is null) return null;
         var ops = lc.reportLineOperand();
@@ -1628,7 +1628,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         ReportModel model, ReportGroupBuild st)
     {
         Core.OccursClauseContext? oc = null;
-        foreach (var clause in ge.reportGroupClause())
+        foreach (var clause in ge.reportGroupBody().reportGroupClause())
             if (clause.occursClause() is { } found) oc = found;
         if (oc is null) return null;
 
@@ -1712,7 +1712,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // (GR12d). Anything else repeats horizontally.
         var axis = ReportRepetitionAxis.Horizontal;
         for (int k = self; k < subtreeEnd; k++)
-            if (entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null))
+            if (entries[k].reportGroupBody().reportGroupClause().Any(c => c.reportLineClause() is not null))
             {
                 axis = ReportRepetitionAxis.Vertical;
                 break;
@@ -1814,7 +1814,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// The §2023:13.18.38.3 SR26 overlap test measures the repeated item against integer-3.</summary>
     private int? ReportEntryPictureWidth(Core.ReportGroupEntryContext ge, ReportModel model)
     {
-        foreach (var clause in ge.reportGroupClause())
+        foreach (var clause in ge.reportGroupBody().reportGroupClause())
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
                 // The SAME character-position count the print columns use (§2023:13.18.14.4 GR9), through the ONE rule.
                 return PictureAnalyzer.Analyze(
@@ -1909,7 +1909,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Core.ReportSumClauseContext? sumClause = null;
             Core.ConditionContext? ownCond = null;
 
-            foreach (var clause in ge.reportGroupClause())
+            foreach (var clause in ge.reportGroupBody().reportGroupClause())
             {
                 if (clause.reportTypeClause()?.reportGroupType() is { } t)
                 {
@@ -2417,7 +2417,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private static bool AbsoluteLineClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
-            foreach (var clause in entries[k].reportGroupClause())
+            foreach (var clause in entries[k].reportGroupBody().reportGroupClause())
                 if (clause.reportLineClause() is { } lc
                     && lc.reportLineOperand().Any(o => o.reportRelativeSign() is null && o.integerOperand() is not null))
                     return true;
@@ -2429,7 +2429,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
-            foreach (var clause in entries[k].reportGroupClause())
+            foreach (var clause in entries[k].reportGroupBody().reportGroupClause())
                 if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.reportRelativeSign() is null))
                     return true;
         return false;
@@ -2454,7 +2454,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (!int.TryParse(entries[k].levelNumber().GetText(), out int lv) || lv >= level) continue;
             level = lv;
-            if (entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null)) return true;
+            if (entries[k].reportGroupBody().reportGroupClause().Any(c => c.reportLineClause() is not null)) return true;
             if (lv == 1) break;
         }
         return false;
@@ -2471,7 +2471,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         int relativeSpan = 1, absoluteLow = int.MaxValue, absoluteHigh = int.MinValue, lines = 0;
         bool anyRelative = false, anyAbsolute = false;
         for (int k = self; k < subtreeEnd; k++)
-            foreach (var clause in entries[k].reportGroupClause())
+            foreach (var clause in entries[k].reportGroupBody().reportGroupClause())
             {
                 if (clause.reportLineClause() is not { } lc) continue;
                 foreach (var op in lc.reportLineOperand())
@@ -2538,7 +2538,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>The TYPE phrase an entry writes (the last one when a repeated clause was written — §2023:13.18.57 has no
     /// ellipsis and <see cref="UnrepeatedElements"/> diagnoses it elsewhere), or null.</summary>
     private static Core.ReportGroupTypeContext? WrittenGroupType(Core.ReportGroupEntryContext ge) =>
-        ge.reportGroupClause().Select(c => c.reportTypeClause()?.reportGroupType()).LastOrDefault(t => t is not null);
+        ge.reportGroupBody().reportGroupClause().Select(c => c.reportTypeClause()?.reportGroupType()).LastOrDefault(t => t is not null);
 
     /// <summary>Map a TYPE clause (ISO §2023:13.18.57 Format 2 + the SR9 abbreviations) onto the group model,
     /// capturing the CH/CF control operand.</summary>
@@ -3879,7 +3879,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // same reference again under §2023:13.8.6.2.3, the other sections' rule (kb/Work PB4226's sibling: one verdict).
         var conds = new List<Core.ConditionContext>();
         foreach (var ge in model.WrittenEntries)
-            foreach (var clause in ge.reportGroupClause())
+            foreach (var clause in ge.reportGroupBody().reportGroupClause())
                 if (clause.reportPresentWhenClause()?.condition() is { } cond) conds.Add(cond);
         if (conds.Count == 0) return;
 
@@ -4033,7 +4033,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private void ScreenReportSubscripts(ReportModel model)
     {
         foreach (var ge in model.WrittenEntries)
-            foreach (var clause in ge.reportGroupClause())
+            foreach (var clause in ge.reportGroupBody().reportGroupClause())
             {
                 if (clause.reportPresentWhenClause() is not null) continue;
                 var seen = new HashSet<string>(CobolNames.Comparer);

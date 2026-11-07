@@ -5,11 +5,11 @@ One restartable, edition-aware tool replaces the five scripts of the 2023 conver
 build_links, validate_doc), which had a retired checkout's paths, a retired model and one synchronous call per page.
 `--edition {1985,2002,2023}` names the PDF and the Markdown (spec_pdf.EDITIONS); `--state DIR` holds the run.
 
-    python scripts/spec/transcribe_pdf.py submit   --edition 1985 --state DIR --api-key-file KEY [--max-usd N]
+    python scripts/spec/transcribe_pdf.py submit   --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--max-usd N]
     python scripts/spec/transcribe_pdf.py status   --edition 1985 --state DIR [--api-key-file KEY]
     python scripts/spec/transcribe_pdf.py collect  --edition 1985 --state DIR --api-key-file KEY
     python scripts/spec/transcribe_pdf.py retry    --edition 1985 --state DIR --api-key-file KEY
-    python scripts/spec/transcribe_pdf.py pages 12 40-44 --edition 1985 --state DIR --api-key-file KEY [--replace]
+    python scripts/spec/transcribe_pdf.py pages 12 40-44 --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--replace]
     python scripts/spec/transcribe_pdf.py pages 4 122 --edition 1985 --state DIR --local qwen3.6:35b [--replace]
     python scripts/spec/transcribe_pdf.py check    --edition 1985 --state DIR 4 122      # word agreement, numbers only
     python scripts/spec/transcribe_pdf.py assemble --edition 1985 --state DIR           # the pages -> specs/<edition>.md
@@ -24,8 +24,11 @@ that errored, expired, were cut off (a `stop_reason` other than `end_turn`) or a
 errors (`CLIENT_RETRIES`). A run that already exists (state.json, local.json, pages/) is ADOPTED as it stands: no page it
 holds is ever resubmitted, and `status`, `check` and `assemble` call no API.
 
-THE KEY is the first non-empty line of the file `--api-key-file` (api_key.read_api_key); it goes to the SDK client only and
-is never printed, logged or written to state.
+THE KEY is read from the file `--api-key-file`: the key of the account `--api-account` names when the file holds one
+labeled key per account (api_key.read_api_key, kb/Work PB4916). It goes to the SDK client only and is never printed, logged
+or written to state. `state.json` records the account's NAME (`api_account`) at the run's first API call: a batch belongs to
+the account that created it, so a later command takes that account from the state and refuses another
+(api_key.read_run_key), and `status` prints it.
 
 LOCAL BACKEND. `pages ... --local MODEL` sends the same render and prompt to a local vision model (Ollama) and records the
 model, digest, time and token counts per page in `local.json`; the model's outer code fence is removed. A request that
@@ -66,7 +69,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes of each edition)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
-from api_key import read_api_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816)
+from api_key import ACCOUNT_HELP, ApiKey, read_run_key  # noqa: E402  (THE reader of an API key file, kb/Work PB4816, PB4916)
 from standard_streams import ensure_utf8  # noqa: E402
 
 #: The model the pilot chose (2026-11-06): Sonnet 5.5 got the words right but drew general formats wrongly.
@@ -243,10 +246,13 @@ class Run:
 
 # -- the Message Batches API --------------------------------------------------------------------------------------------
 
-def load_key(key_file: str) -> str:
-    """The key in `key_file`; a missing or empty file exits naming the path (never the key)."""
+def load_key(key_file: str, account: str | None, run: Run, st: dict[str, Any]) -> ApiKey:
+    """The key of `account` in `key_file`, kept to the account `st` records (`read_run_key`), which it then records; a file
+    with no such key, or another account than the state's, exits naming the path (never a key)."""
     try:
-        return read_api_key(key_file)
+        chosen = read_run_key(key_file, account, st.get("api_account"), run.state_file)
+        st["api_account"] = chosen.account
+        return chosen
     except RuntimeError as e:
         raise SystemExit(f"transcribe_pdf: {e}") from None
 
@@ -387,6 +393,8 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     failed = run.local_failed()
     print(f"pages written {count - len(missing)}/{count}; local {len(log) - len(failed)}; cost so far ${cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
           flush=True)
+    if st.get("batches"):
+        print(f"batches billed to the account {st.get('api_account') or '(one unlabeled key)'}", flush=True)
     if failed:
         print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
               flush=True)
@@ -538,7 +546,8 @@ def build_parser() -> argparse.ArgumentParser:
         spec_pdf.add_edition_argument(p)
         p.add_argument("--state", required=True, help="the run's directory (state.json, local.json, pages/, orig/)")
         if key:
-            p.add_argument("--api-key-file", help="a file whose first non-empty line is the Anthropic API key")
+            p.add_argument("--api-key-file", help="the Anthropic API key file: one key, or one labeled key per account (api_key.py)")
+            p.add_argument("--api-account", help=ACCOUNT_HELP + "; state.json records it, and a later command keeps it")
 
     s = sub.add_parser("submit", help="submit a batch for every page no recorded batch covers")
     common(s)
@@ -587,12 +596,14 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
     st = run.load(pdf_page_count(pdf) if pdf else None, model)
     if a.cmd == "pages" and a.local:
         return 1 if local_pages(run, pdf, a.local, parse_pages(a.pages, st["pages"]), a.replace) else 0
+    if a.api_account and not a.api_key_file:
+        raise SystemExit("transcribe_pdf: --api-account names which key of --api-key-file to bill; give the key file")
     if a.cmd == "status" and not a.api_key_file:
         print_status(run, st)
         return 0
     if not a.api_key_file:
         raise SystemExit(f"transcribe_pdf: {a.cmd} calls the API and needs --api-key-file")
-    client = client_factory(load_key(a.api_key_file))
+    client = client_factory(load_key(a.api_key_file, a.api_account, run, st).key)
     adopt_pending(run, st, client)
     if a.cmd == "submit":
         todo = [p for p in range(1, st["pages"] + 1) if p not in covered(st) and not run.page_file(p).exists()]

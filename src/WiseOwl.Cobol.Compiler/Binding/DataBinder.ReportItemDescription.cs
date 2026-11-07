@@ -64,7 +64,7 @@ public sealed partial class DataBinder
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false;
         var valueRaws = new List<string>();
-        foreach (var clause in ge.reportGroupClause())
+        foreach (var clause in ge.reportGroupBody().reportGroupClause())
         {
             if (clause.pictureClause() is { } pc && pc.PIC_STRING() is { } pic)
             {
