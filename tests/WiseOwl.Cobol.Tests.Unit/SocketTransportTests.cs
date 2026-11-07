@@ -16,8 +16,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class SocketTransportTests : IDisposable
 {
-    /// <summary>Only ever the failure of a hang, and one harness unit (kb/Work PB3108): the transport's accept loops and pumps run on the thread pool, which a host busy with the whole
-    /// population can hold back for a minute and more, so a fixed limit measures the host (gate run 000003-20261107T040901Z: 61 s and 91 s, red, for cases that take a fraction of a second).</summary>
+    /// <summary>Only ever the failure of a hang, and one harness unit (kb/Work PB3108): the transport's accept loops and pumps run on the thread pool, so a fixed limit measures the host
+    /// (gate run 000003-20261107T040901Z, on a host also running a Linux gate: 61 s and 91 s, red, for cases that take a fraction of a second, the first two of the class to use a pump).</summary>
     private static readonly TimeSpan Guard = TimeSpan.FromMilliseconds(ObservationBudget.UnitMs);
 
     private readonly string _work = ScratchDirectory.Create("pb4742-");
