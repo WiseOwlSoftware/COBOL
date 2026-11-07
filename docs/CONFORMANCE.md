@@ -2224,8 +2224,8 @@ of an unsupported facility.
   undefined-reference COBOL1639 in either arm (8.4.2.1), the program being wrong and not the compiler incomplete (a paragraph under a qualifier that is not its own section
   is COBOL1639 in the procedure-name text, `names no procedure`). A cd-name the program declares (X3.23-1985's debug module
   triggers on the ENABLE, DISABLE, SEND, RECEIVE and ACCEPT MESSAGE COUNT of one; CCVS DB205A) is a bare operand like a file-name,
-  a cd-name trigger target (D-DEBUG-DATA) and never "not defined" (kb/Work PB4713); a file-name stays the staged COBOL1571
-  (kb/Work PB4811); after ALL it is no identifier-1, and the resolver says it is
+  a cd-name trigger target (D-DEBUG-DATA) and never "not defined" (kb/Work PB4713); a file-name is a file-name trigger target
+  (D-DEBUG-FILE, kb/Work PB4811); after ALL it is no identifier-1, and the resolver says it is
   "declared as a cd-name, not as a data item" (COBOL1639), as it does for `MOVE CM-IN TO T`. The
   bare operand reads `word` and `word OF section` as a procedure-name first (8.4.2.2.2), so `ON PARA-W OF SEC-A`
   debugs the qualified paragraph. Witnesses: `conformance:cases/_unassigned/pb4237_debug_all_identifier` (85),
@@ -2262,6 +2262,22 @@ of an unsupported facility.
   `conformance:wiseowl/cases/_unassigned/pb4759_debug_cd_name_triggers`, `conformance:cases/_unassigned/pb4810-debug-target-subscripted`
   (COBOL6334), `conformance:cases/_unassigned/pb4810-debug-target-repeated` (COBOL6335),
   `conformance-test:DebugFacilityTests.StatementInADebuggingSection_At85_CausesNoSection`; CCVS DB201A runs with no failing test.
+
+- **D-DEBUG-FILE — when a file-name USE FOR DEBUGGING section runs** (kb/Work PB4811, PB4808). The text is X3.23-1985's Debug module (the
+  owner's copy, `specs-private/ANSI_COBOL_1985.pdf`, PDF pages 693-698), USE FOR DEBUGGING general rules 2 and 23 and syntax rule 6; the design is
+  `docs/CONTROL_FLOW_DESIGN.md` D20. Rule 2: the section runs after an OPEN or CLOSE that references the file, after a READ "not resulting in the
+  execution of an associated AT END or INVALID KEY imperative statement", and after a DELETE or START that references it; rule 23: DEBUG-NAME is
+  the file-name, DEBUG-CONTENTS the entire record read for a READ and spaces for every other reference. **Determinations** where the text leaves the
+  choice: (1) a DELETE or START section runs whatever the outcome of the I-O, because rule 2 c states no condition (GnuCOBOL 3.3-dev `typeck.c:9243`,
+  `9279`, `14423`: "after delete but before exception test"), and BEFORE the statement's INVALID KEY imperative statement, because rule 7 makes
+  each imperative verb a statement of its own. (2) A READ section runs after the INTO move and any USE procedure and before the NOT AT END
+  statements, on the path that delivered a record only (`typeck.c:13301-13317`, `codegen.c:8527-8532`); a READ whose status is neither success nor
+  at end (a failure a USE procedure or the FILE STATUS item handles) runs none. (3) DELETE FILE, which the 1985 text does not have, is a DELETE
+  statement that references the file-name and runs the section as GnuCOBOL's `cb_emit_delete_file` does. (4) WRITE, REWRITE, SORT, MERGE, RELEASE and
+  RETURN are not in rule 2 and run no file-name section (GnuCOBOL agrees). (5) DEBUG-CONTENTS is the file's record area, as wide as the largest
+  record of the file. (6) A sort-merge file may be named, and no statement references it in rule 2's sense, so its section never runs.
+  Witnesses: `conformance:cases/_unassigned/pb4811-debug-file-name-triggers`, `conformance:cases/_unassigned/pb4811-debug-file-name-repeated`
+  (COBOL6335), `conformance:cases/_unassigned/pb4811-debug-file-name-removed-2002` (COBOL0902).
 
 - **D-DEBUG-SUB — what DEBUG-SUB-1 to DEBUG-SUB-3 are** (kb/Work PB4810). General rule 10 of the 1985 text describes each as `PICTURE S9999
   SIGN IS LEADING SEPARATE`, and a member the reference does not use is SPACES. **Determination (the text decides, no latitude):** each is a

@@ -53,8 +53,8 @@ public sealed record BoundProgram(
 /// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
 /// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
 /// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name, ALL REFERENCES OF and cd-name
-/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20); the file-name subject kind and the
-/// SORT/MERGE-procedure cause taxonomy are staged (rejected COBOL1571 at bind).</summary>
+/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target; the
+/// SORT/MERGE-procedure cause taxonomy is staged (rejected COBOL1571 at bind).</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
     string SubjectName,
@@ -72,20 +72,24 @@ public enum DebugTargetKind
     AllReferences,
     /// <summary><c>USE FOR DEBUGGING ON cd-name-1</c> — general rule 8: the section runs after the communication statements it lists.</summary>
     CdName,
+    /// <summary><c>USE FOR DEBUGGING ON file-name-1</c> — general rule 2: the section runs after the OPEN, CLOSE, READ, DELETE and START
+    /// that reference the file.</summary>
+    FileName,
 }
 
-/// <summary>One <c>USE FOR DEBUGGING</c> target that is a data item or a communication description, with the debugging section
-/// it runs (X3.23-1985 debug module general rules 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
+/// <summary>One <c>USE FOR DEBUGGING</c> target that is a data item, a communication description or a file, with the debugging section
+/// it runs (X3.23-1985 debug module general rules 2, 5, 6 and 8; docs/CONTROL_FLOW_DESIGN.md D20). <paramref name="Name"/> is what
 /// DEBUG-NAME holds (general rule 13): the name as written, its qualifiers joined by OF or IN. Exactly one of
-/// <paramref name="Item"/> (the data item) and <paramref name="CdKey"/> (the communication description's key) is set, by
-/// <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
+/// <paramref name="Item"/> (the data item), <paramref name="CdKey"/> (the communication description's key) and <paramref name="File"/>
+/// (the file) is set, by <paramref name="Kind"/>. The section runs over the bounded pc range [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>].</summary>
 public sealed record BoundDebugTarget(
     DebugTargetKind Kind,
     string Name,
     DataItem? Item,
     string? CdKey,
     int SectionStartPc,
-    int SectionEndPc);
+    int SectionEndPc,
+    FileModel? File = null);
 
 /// <summary>When a <see cref="DebugFire"/> runs relative to the statement it was planned for (X3.23-1985 USE FOR DEBUGGING general
 /// rules 5, 6 and 8).</summary>
@@ -114,8 +118,21 @@ public enum DebugWhen
 /// occurrence numbers), <paramref name="When"/> the moment, and <paramref name="Level"/> the PERFORM level a loop-phase fire belongs to.
 /// <paramref name="Phrases"/> are the indices (<see cref="IBoundEvaluatedPhrases"/>) of the conditional phrases the referenced operand is written in, or null when
 /// the statement evaluates the operand outright: the section runs only when one of those phrases was evaluated (rules 5 and 6: "If identifier-1 is
-/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed").</summary>
-public sealed record DebugFire(BoundDebugTarget Target, Place Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null);
+/// specified in a phrase that is not executed or evaluated, the associated debugging section is not executed"). A file-name fire references no
+/// place: <paramref name="Referenced"/> is null and <paramref name="Contents"/> says what DEBUG-CONTENTS holds (general rule 23 c and d).</summary>
+public sealed record DebugFire(BoundDebugTarget Target, Place? Referenced, DebugWhen When, int Level = 0, IReadOnlyList<int>? Phrases = null,
+    DebugContents Contents = DebugContents.Referenced);
+
+/// <summary>What DEBUG-CONTENTS holds for a <see cref="DebugFire"/> (X3.23-1985 USE FOR DEBUGGING general rules 23 and 24).</summary>
+public enum DebugContents
+{
+    /// <summary>The image of <see cref="DebugFire.Referenced"/>: the data item (rule 24 c) or the cd-name's area (rule 23 e).</summary>
+    Referenced,
+    /// <summary>The file's record area: "For READ, DEBUG-CONTENTS contains the entire record read" (rule 23 c).</summary>
+    FileRecord,
+    /// <summary>Spaces: "For all other references to file-name-1, DEBUG-CONTENTS contains spaces" (rule 23 d).</summary>
+    Spaces,
+}
 
 /// <summary>⛔ A STATEMENT THAT CAUSES DEBUGGING SECTIONS TO RUN (X3.23-1985 USE FOR DEBUGGING general rules 5-8; docs/CONTROL_FLOW_DESIGN.md
 /// D20). Made by <c>StatementBinder.BindStatement</c>, the one funnel every statement passes through, exactly when a data-name,

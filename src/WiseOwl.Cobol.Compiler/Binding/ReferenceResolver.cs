@@ -279,7 +279,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <paramref name="Written"/> and its subscripts rendered to <paramref name="IndexExprs"/> (every OCCURS level
     /// bound, §8.4.2.3.3 SR3; empty for a property temp, whose subscripts were identifier-3's). Never both.</summary>
     private readonly record struct Identified(
-        RefResolution? Answer, DataItem? Item, WrittenReference Written, List<Position>? IndexExprs);
+        RefResolution? Answer, DataItem? Item, WrittenReference Written, List<Position>? IndexExprs, Place? ImplicitPlace = null);
 
     private RefResolution ResolveImplCore(Core.DataReferenceContext dref, bool report)
     {
@@ -298,7 +298,10 @@ public sealed class ReferenceResolver(DataBinder data)
         // character of the span, and `RN(2:N)` with N = 0 overwrote the span instead of raising EC-BOUND-REF-MOD
         // (§7.3.23.3 GR1, directive omitted). Both forms were dropped: the THROUGH form's RenamesPlace AND the
         // no-THROUGH form's forward to data-name-2's place.
-        if (Places.PlaceForItem(item, id.IndexExprs!, out var gap) is not { } inner) return ItemFailure(dref, gap);
+        // An implicitly-defined name that is no storage item (DEBUG-CONTENTS) brings its own place; every other item's is built.
+        PlaceGap gap = default;
+        var inner = id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap);
+        if (inner is null) return ItemFailure(dref, gap);
 
         if (cleanRef is null) return RefResolution.Resolved(inner, "");
         // identifier-1's DESCRIPTION is the item its place stands for, not the name as written: for a no-THROUGH
@@ -380,10 +383,17 @@ public sealed class ReferenceResolver(DataBinder data)
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
         // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
-        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
-        // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
-        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
-            return Ends(Resolved(new DebugRegisterPlace(dbg.Item, dbg.Member)));
+        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). The unqualified,
+        // unsubscripted form is covered, with or without a reference modifier: DEBUG-CONTENTS (1:12) is the reference
+        // modification of an alphanumeric item like any other (§8.4.3.3.3 SR1; X3.23-1985 USE FOR DEBUGGING general rule 10
+        // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
+        // tail below. A qualified DEBUG-* falls through to loud.
+        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null))
+        {
+            var debugWritten = ReadWritten(dref);
+            if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
+            return new Identified(null, dbg.Item, debugWritten, [], new DebugRegisterPlace(dbg.Item, dbg.Member));
+        }
 
         // A REPORT SECTION SUM COUNTER (ISO §13.18.54.4 GR5 — the data-name after the level number names the
         // COUNTER, not the printable item; GR12 permits procedure division statements to read and alter it): an
@@ -593,7 +603,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // (§8.4.3.11.3 SR1) or a reference already refused: null, and the caller names the operand-shape rule unless
         // the resolver has (WasDiagnosed). What stays HERE is the address-specific tail.
         var id = Identify(dref, report: true, forAddressOf: true);
-        if (id.Item is not { } item) return null;
+        if (id.Item is not { } item || id.ImplicitPlace is not null) return null;   // a register is no data item of a section
         var written = id.Written;
         var subCtx = written.SubscriptGroup;
         var exprs = id.IndexExprs!;

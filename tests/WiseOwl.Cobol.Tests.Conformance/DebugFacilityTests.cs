@@ -10,9 +10,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// authoritative behavior is the 1985 standard; WiseOwl COBOL models it (accepted-and-ACTIVE) only at <c>--std 85</c>
 /// and rejects it ≥2002 (COBOL0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
 /// DEBUG-CONTENTS transfer-cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness)
-/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
-/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens). STAGED loud (COBOL1571): the file-name subject kind (kb/Work
-/// PB4811) and the SORT/MERGE-procedure cause.
+/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF, cd-name and file-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
+/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens; the file-name trigger is general rule 2, kb/Work PB4811).
+/// STAGED loud (COBOL1571): the SORT/MERGE-procedure cause.
 /// </summary>
 public sealed class DebugFacilityTests
 {
@@ -446,14 +446,15 @@ public sealed class DebugFacilityTests
         EditionHarness.AssertEveryDiagnosticPositioned(diags, operand);
     }
 
-    /// <summary>The bare operand that IS a file stays the staged COBOL1571 (the file-name trigger is kb/Work PB4811's), and a file-name is
-    /// not mistaken for an undeclared word by the new resolution (kb/Work PB4363's sibling sweep of the bare-name arm).</summary>
+    /// <summary>The bare operand that IS a file is the file-name subject (X3.23-1985 USE FOR DEBUGGING general rule 2; kb/Work PB4811): it
+    /// compiles, and a file-name is not mistaken for an undeclared word by the resolution (kb/Work PB4363's sibling sweep of the bare-name arm).
+    /// The program opens no file, so no section runs.</summary>
     [Fact]
-    public void BareOperandNamingAFile_At85_StaysStaged()
+    public void BareOperandNamingAFile_At85_IsTheFileNameSubject()
     {
         var (ok, diags) = EditionHarness.Compile(OperandProgram("SF"), 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: declarative section 'DBG': USE FOR DEBUGGING ON 'SF' names a file-name");
+        Assert.True(ok, string.Join("; ", diags));
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL1571");
         EditionHarness.AssertNoDiagnostic(diags, "COBOL1639");
     }
 

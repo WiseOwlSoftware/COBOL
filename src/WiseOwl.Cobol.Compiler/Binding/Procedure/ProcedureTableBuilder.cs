@@ -219,9 +219,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
-        // trigger points; the data-name, ALL REFERENCES OF and cd-name targets are collected for the statement
-        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the file-name subject kind and the SORT/MERGE
-        // cause taxonomy are staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        // trigger points; the data-name, ALL REFERENCES OF, file-name and cd-name targets are collected for the statement
+        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the SORT/MERGE
+        // cause taxonomy is staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
         FinalizeDebug(pd);
     }
 
@@ -567,10 +567,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
     /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
     /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
-    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF) and
+    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF), file-name and
     /// cd-name operands become <see cref="DebugTargets"/> (<see cref="AddDebugDataTarget"/>, <see cref="AddDebugCdTarget"/>;
-    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20). The file-name subject kind is STAGED — rejected
-    /// loud COBOL1571 (its after-I-O trigger insertion is kb/Work PB4811's). A SORT/MERGE INPUT/
+    /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20); a file-name operand is a target too
+    /// (<see cref="AddDebugFileTarget"/>, general rule 2, kb/Work PB4811). A SORT/MERGE INPUT/
     /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
     /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
     private void FinalizeDebug(Core.ProcedureDivisionContext pd)
@@ -631,12 +631,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
                     else if (NamesCommunicationDescription(dr))
                         AddDebugCdTarget(dr, section);
-                    else if (NamesFile(dr) || !ReportUnresolvedDebugOperand(dr, section))
+                    else if (NamesFile(dr))
+                        AddDebugFileTarget(dr, section);
+                    else if (!ReportUnresolvedDebugOperand(dr, section))
                         ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"declarative section '{section.Name}': USE FOR DEBUGGING "
-                            + $"ON '{nm}' names a file-name (the file-name trigger, run after OPEN, CLOSE, READ, DELETE and START by "
-                            + "X3.23-1985 USE FOR DEBUGGING general rule 2, is recognized but not modeled) or an operand no rule "
-                            + "classifies; the procedure-name, ALL PROCEDURES, data-name, ALL REFERENCES OF and cd-name triggers "
-                            + "are modeled (VCR Table 7 row 7.17)");
+                            + $"ON '{nm}' names an operand no rule classifies as a procedure-name, data-name, file-name or cd-name "
+                            + "(X3.23-1985 USE FOR DEBUGGING general format; VCR Table 7 row 7.17)");
                 }
             }
         }
@@ -815,6 +815,23 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         }
         _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.CdName, written, null, cd.Key, section.StartPc, section.EndPc));
         _debugContentsWidth = Math.Max(_debugContentsWidth, cd.Area.ImageWidth);
+    }
+
+    /// <summary>Record one file-name target (X3.23-1985 USE FOR DEBUGGING general rule 2): the file the operand names, whose largest record
+    /// widens DEBUG-CONTENTS (general rules 15 and 23 c). Named once (syntax rule 6).</summary>
+    private void AddDebugFileTarget(Core.DataReferenceContext operand, SectionInfo section)
+    {
+        string written = DebugOperandAsWritten(operand);
+        if (!ctx.Data.State.VisibleFiles.TryGetValue(operand.cobolWord()!.GetText(), out var file)) return;   // NamesFile said it is one
+        if (_debugTargets.Any(t => ReferenceEquals(t.File, file)))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
+                + "file-name that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING syntax rule 6 allows a file-name in "
+                + "one USE FOR DEBUGGING statement, once");
+            return;
+        }
+        _debugTargets.Add(new BoundDebugTarget(DebugTargetKind.FileName, written, null, null, section.StartPc, section.EndPc, file));
+        _debugContentsWidth = Math.Max(_debugContentsWidth, file.AreaRecord?.ImageWidth ?? 0);
     }
 
     /// <summary>The widest DEBUG-CONTENTS any target needs, as <see cref="FinalizeDebug"/> collects them.</summary>
