@@ -35,8 +35,7 @@ public sealed class SocketTransportTests : IDisposable
             transport.Dispose();
             wake.Dispose();
         }
-        try { Directory.Delete(_sockets.Path, recursive: true); }
-        catch (IOException) { /* a socket file another test run still holds */ }
+        ScratchDirectory.Remove(_sockets.Path);
         ScratchDirectory.Remove(_work);
     }
 

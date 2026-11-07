@@ -27,8 +27,7 @@ public sealed class MessagingPeerTests : IDisposable
     public void Dispose()
     {
         foreach (var peer in _peers) peer.End(abnormal: false);
-        try { Directory.Delete(McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path, recursive: true); }
-        catch (IOException) { /* a file another process still holds */ }
+        ScratchDirectory.Remove(McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path);
         ScratchDirectory.Remove(_work);
     }
 
@@ -254,7 +253,7 @@ public sealed class MessagingPeerTests : IDisposable
     public void ARunUnitThatSendsNothingCreatesNoSocketDirectory()
     {
         string socketDirectory = McsSocketDirectory.Resolve(McsDirectory.Resolve(_work).Identity).Path;
-        Directory.Delete(socketDirectory, recursive: true);
+        ScratchDirectory.Remove(socketDirectory);
         RunUnit.Run(ru => ru.MessagingSettings = new MessagingSettings { Directory = _work, ServedName = null });
         Assert.False(Directory.Exists(socketDirectory));
     }
