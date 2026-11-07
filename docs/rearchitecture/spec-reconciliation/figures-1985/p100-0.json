@@ -1,0 +1,19 @@
+{
+ "page": 100,
+ "figure": 0,
+ "drawn_lines": [
+  "    02  XCOUNTER ...",
+  "",
+  "    02  BAKER  OCCURS 20 TIMES  INDEXED BY BAKER-INDEX ...",
+  "        03  CHARLIE ...",
+  "        03  DOG  OCCURS 5 TIMES ...",
+  "            04  EASY",
+  "            88  MAX  VALUE IS ...",
+  "            04  FOX ...",
+  "                05  GEORGE OCCURS 10 TIMES ...",
+  "                    06  HARRY ...",
+  "                    06  JIM ..."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page sets this block as an example data definition ('Assuming the following data definition:', 4.4.3 Subscripting Example), not a general format."
+}

@@ -1,0 +1,20 @@
+{
+ "page": 696,
+ "figure": 0,
+ "drawn_lines": [
+  "01  DEBUG-ITEM.",
+  "    02  DEBUG-LINE      PICTURE IS X(6).",
+  "    02  FILLER          PICTURE IS X  VALUE IS SPACE.",
+  "    02  DEBUG-NAME      PICTURE IS X(30).",
+  "    02  FILLER          PICTURE IS X  VALUE IS SPACE.",
+  "    02  DEBUG-SUB-1     PICTURE IS S9999  SIGN IS LEADING SEPARATE CHARACTER.",
+  "    02  FILLER          PICTURE IS X  VALUE IS SPACE.",
+  "    02  DEBUG-SUB-2     PICTURE IS S9999  SIGN IS LEADING SEPARATE CHARACTER.",
+  "    02  FILLER          PICTURE IS X  VALUE IS SPACE.",
+  "    02  DEBUG-SUB-3     PICTURE IS S9999  SIGN IS LEADING SEPARATE CHARACTER.",
+  "    02  FILLER          PICTURE IS X  VALUE IS SPACE.",
+  "    02  DEBUG-CONTENTS  PICTURE IS X(n)."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page shows the implicit description of the special register DEBUG-ITEM as 01/02 data description entries in plain type (USE FOR DEBUGGING general rule 10), a COBOL record description, not a general format."
+}

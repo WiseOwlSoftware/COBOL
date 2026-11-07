@@ -1,0 +1,18 @@
+{
+ "page": 951,
+ "figure": 1,
+ "drawn_lines": [
+  "DATA DIVISION.",
+  "WORKING-STORAGE SECTION.",
+  "    COPY COPY-1",
+  "        REPLACING ==(01)==",
+  "        BY ==(02)==.",
+  "    IF TABL = \"NYN\"",
+  "        DISPLAY \"SECOND STANDARD COBOL\"",
+  "    ELSE IF TABL = \"NNYYNN\"",
+  "        DISPLAY \"THIRD STANDARD COBOL\".",
+  "    STOP RUN."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's Description of Change (X3.23b-1993): the block is an example program fragment of COBOL source in plain type, illustrating a change, not a general format."
+}

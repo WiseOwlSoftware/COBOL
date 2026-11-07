@@ -1,0 +1,17 @@
+{
+ "page": 670,
+ "figure": 0,
+ "drawn_lines": [
+  "             <u>IMPLICIT DESCRIPTION</u>                             <u>COMMENT</u>",
+  "",
+  "01   data-name-0.",
+  "     02   data-name-1   PICTURE 9(6).                       MESSAGE DATE",
+  "     02   data-name-2   PICTURE 9(8).                       MESSAGE TIME",
+  "     02   data-name-3   PICTURE X(12).                      SYMBOLIC TERMINAL",
+  "     02   data-name-4   PICTURE 9(4).                       TEXT LENGTH",
+  "     02   data-name-5   PICTURE X.                          END KEY",
+  "     02   data-name-6   PICTURE XX.                         STATUS KEY"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page shows the IMPLICIT DESCRIPTION / COMMENT table of the CD entry: a record description with comments, not a general format."
+}

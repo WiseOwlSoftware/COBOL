@@ -1,0 +1,18 @@
+{
+ "page": 290,
+ "figure": 2,
+ "drawn_lines": [
+  "                                ⎧<u>POSITIVE</u>⎫",
+  "arithmetic-expression-1 IS [<u>NOT</u>] ⎨<u>NEGATIVE</u>⎬",
+  "                                ⎩<u>ZERO</u>    ⎭"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔                                    ╭ <u>POSITIVE</u> ╮ ╗",
+  "║                                    │          │ ║",
+  "║ arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├ ║",
+  "║                                    │          │ ║",
+  "╚                                    ╰ <u>ZERO</u>     ╯ ╝"
+ ],
+ "reason": "The printed page encloses the whole sign-condition format in one level-2 box and underlines POSITIVE, NEGATIVE and ZERO whole; the batch lost the box, and the regeneration read the box's side as a choice bar and its rule as underline breaks. Drawn from the page, with the regeneration's layout."
+}

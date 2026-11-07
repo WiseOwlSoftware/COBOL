@@ -1,0 +1,24 @@
+{
+ "page": 210,
+ "figure": 0,
+ "drawn_lines": [
+  "level-number  [data-name-1]",
+  "",
+  "    ┌                 ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫┐",
+  "    │<u>LINE</u> NUMBER IS  ⎨                           ⎬│",
+  "    └                 ⎩<u>PLUS</u> Integer-2            ⎭┘",
+  "",
+  "    [[<u>USAGE</u> IS]  <u>DISPLAY</u>]."
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "level-number [ data-name-1 ]",
+  "",
+  "┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐",
+  "│ <u>LINE</u> NUMBER IS ┤                            ├ │",
+  "└                ╰ <u>PLUS</u> Integer-2             ╯ ┘",
+  "",
+  "[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] ."
+ ],
+ "reason": "The printed page encloses both alternatives (integer-1 [ON NEXT PAGE] and PLUS Integer-2) in one brace inside the LINE NUMBER bracket, as the regeneration draws it; the batch dropped the brace on the second alternative."
+}

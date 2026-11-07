@@ -1,0 +1,18 @@
+{
+ "page": 775,
+ "figure": 0,
+ "drawn_lines": [
+  "          SD   FILEA ... .",
+  "          01   RECA   PIC S9(18).",
+  "          01   RECB   PIC 9(9)V9(9).",
+  "          01   RECC   PIC X(18).",
+  "",
+  "          WORKING-STORAGE SECTION.",
+  "          01   A   PIC S9(10)V9(8).",
+  "",
+  "          PROCEDURE DIVISION.",
+  "               RETURN FILEA INTO A."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

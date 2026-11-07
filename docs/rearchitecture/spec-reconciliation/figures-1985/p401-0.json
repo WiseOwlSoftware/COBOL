@@ -1,0 +1,22 @@
+{
+ "page": 401,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>LINAGE</u> IS ⎧data-name-1⎫ LINES  ┌WITH <u>FOOTING</u> AT ⎧data-name-2⎫┐",
+  "          ⎩integer-1  ⎭        └                ⎩integer-2  ⎭┘",
+  "",
+  "    ┌LINES AT <u>TOP</u> ⎧data-name-3⎫┐  ┌LINES AT <u>BOTTOM</u> ⎧data-name-4⎫┐",
+  "    └             ⎩integer-3  ⎭┘  └                ⎩integer-4  ⎭┘"
+ ],
+ "decided": "neither",
+ "figure_lines": [
+  "╔           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐  ╗",
+  "║ <u>LINAGE</u> IS ┤             ├ LINES │ WITH <u>FOOTING</u> AT ┤             ├ │  ║",
+  "║           ╰ integer-1   ╯       └                 ╰ integer-2   ╯ ┘  ║",
+  "║                                                                      ║",
+  "║ ┌              ╭ data-name-3 ╮ ┐ ┌                 ╭ data-name-4 ╮ ┐ ║",
+  "║ │ LINES AT <u>TOP</u> ┤             ├ │ │ LINES AT <u>BOTTOM</u> ┤             ├ │ ║",
+  "╚ └              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘ ╝"
+ ],
+ "reason": "The printed page encloses the whole LINAGE clause, prose and format, in one level-2 box; the batch lost the box, and the regeneration drew its left side as a choice bar. Drawn from the regeneration with the box's two sides."
+}

@@ -1,0 +1,24 @@
+{
+ "page": 258,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>OCCURS</u> integer-2 TIMES",
+  "",
+  "   ┌⎧<u>ASCENDING</u> ⎫                              ┐",
+  "   │⎨           ⎬ KEY IS  {data-name-2} ...    │ ...",
+  "   └⎩<u>DESCENDING</u>⎭                              ┘",
+  "",
+  "    [<u>INDEXED</u> BY  {index-name-1} ... ]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "<u>OCCURS</u> integer-2 TIMES",
+  "",
+  "╔ ┌ ╭ <u>ASCENDING</u>  ╮                          ┐   ╗",
+  "║ │ ┤            ├ KEY IS { data-name-2 } … │ … ║",
+  "╚ └ ╰ <u>DESCENDING</u> ╯                          ┘   ╝",
+  "",
+  "[ <u>INDEXED</u> BY { index-name-1 } … ]"
+ ],
+ "reason": "The printed page draws a level-2 box around exactly the span the regeneration boxes (checked on the rendered page and against the box pass's list of the page's boxes); the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

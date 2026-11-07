@@ -1,0 +1,15 @@
+{
+ "page": 954,
+ "figure": 0,
+ "drawn_lines": [
+  "01  GROUP-ITEM.",
+  "    02  TABLE-SIZE  PIC S9(5)  VALUE IS 5.",
+  "    02  TABLE-ITEM  PIC X  OCCURS 1 TO 20 TIMES",
+  "            DEPENDING ON TABLE-SIZE.",
+  "",
+  "PROCEDURE DIVISION.",
+  "    INSPECT GROUP-ITEM ..."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's Description of Change (X3.23b-1993): the block is an example program fragment of COBOL source in plain type, illustrating a change, not a general format."
+}

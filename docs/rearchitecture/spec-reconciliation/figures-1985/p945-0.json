@@ -1,0 +1,14 @@
+{
+ "page": 945,
+ "figure": 0,
+ "drawn_lines": [
+  "01   FIELD-A   PIC V+(5).",
+  "01   FIELD-B   PIC .$$.",
+  "",
+  "PROCEDURE DIVISION.",
+  "     MOVE ZERO TO FIELD-A",
+  "     MOVE .123 TO FIELD-B"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's Description of Change (X3.23b-1993): the block is an example program fragment of COBOL source in plain type, illustrating a change, not a general format."
+}

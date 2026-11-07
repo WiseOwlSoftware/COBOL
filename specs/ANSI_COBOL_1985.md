@@ -6828,20 +6828,14 @@ The following is the general format of the paragraphs in the Identification Divi
 
 #### 6.1.3.1 General Format
 
-<pre>
- <u>IDENTIFICATION</u> <u>DIVISION</u>.
-
- <u>PROGRAM-ID</u>.  program-identification-entry
-
-[<u>AUTHOR</u>.  [comment-entry] ... ]
-
-[<u>INSTALLATION</u>.  [comment-entry] ... ]
-
-[<u>DATE-WRITTEN</u>.  [comment-entry] ... ]
-
-[<u>DATE-COMPILED</u>.  [comment-entry] ... ]
-
-[<u>SECURITY</u>.  [comment-entry] ... ]
+<pre style="line-height:1">
+<u>IDENTIFICATION</u> <u>DIVISION</u>.
+<u>PROGRAM-ID</u>. program-identification-entry
+[ <u>AUTHOR</u>. [ comment-entry ] … ]
+[ <u>INSTALLATION</u>. [ comment-entry ] … ]
+[ <u>DATE-WRITTEN</u>. [ comment-entry ] … ]
+[ <u>DATE-COMPILED</u>. [ comment-entry ] … ]
+[ <u>SECURITY</u>. [ comment-entry ] … ]
 </pre>
 
 IV-30
@@ -7044,24 +7038,16 @@ The body of the Procedure Division must conform to one of the following formats:
 
 <u>Format 1</u>:
 
-<pre>
-[<u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u> [segment-number].
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.]
-
-{section-name <u>SECTION</u> [segment-number].
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+[ <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u> [ segment-number ] .
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>. ]
+{ section-name <u>SECTION</u> [ segment-number ] .
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 <u>Format 2</u>:
@@ -8038,10 +8024,10 @@ Data Division - Data Description Entry
 
 <u>FORMAT 2</u>:
 
-<pre>
-                                         ┌⎧<u>THROUGH</u>⎫              ┐
-66 data-name-1 <u>RENAMES</u> data-name-2     │⎨       ⎬  data-name-3 │ .
-                                         └⎩<u>THRU</u>   ⎭              ┘
+<pre style="line-height:1">
+                                   ┌ ╭ <u>THROUGH</u> ╮             ┐
+66 data-name-1 <u>RENAMES</u> data-name-2 │ ┤         ├ data-name-3 │ .
+                                   └ ╰ <u>THRU</u>    ╯             ┘
 </pre>
 
 <u>FORMAT 3</u>:
@@ -8193,54 +8179,54 @@ Data Division - Report Group Description Entry
 
 <u>FORMAT 2</u>:
 
-<pre>
-level-number  [data-name-1]
+<pre style="line-height:1">
+level-number [ data-name-1 ]
 
-    ┌                 ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS  ⎨                           ⎬│
-    └                 ⎩<u>PLUS</u> Integer-2            ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> Integer-2             ╯ ┘
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>].
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] .
 </pre>
 
 <u>FORMAT 3</u>:
 
-<pre>
-level-number  [data-name-1]
+<pre style="line-height:1">
+level-number [ data-name-1 ]
 
-    ⎧<u>PICTURE</u>⎫
-    ⎨       ⎬ IS character-string
-    ⎩<u>PIC</u>    ⎭
+╭ <u>PICTURE</u> ╮
+┤         ├ IS character-string
+╰ <u>PIC</u>     ╯
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>]
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ]
 
-    ┌          ⎧<u>LEADING</u> ⎫                    ┐
-    │[<u>SIGN</u> IS] ⎨        ⎬ <u>SEPARATE</u> CHARACTER│
-    └          ⎩<u>TRAILING</u>⎭                    ┘
+┌             ╭ <u>LEADING</u>  ╮                    ┐
+│ [ <u>SIGN</u> IS ] ┤          ├ <u>SEPARATE</u> CHARACTER │
+└             ╰ <u>TRAILING</u> ╯                    ┘
 
-    ┌⎧<u>JUSTIFIED</u>⎫      ┐
-    │⎨         ⎬ RIGHT│
-    └⎩<u>JUST</u>     ⎭      ┘
+┌ ╭ <u>JUSTIFIED</u> ╮       ┐
+│ ┤           ├ RIGHT │
+└ ╰ <u>JUST</u>      ╯       ┘
 
-    [<u>BLANK</u> WHEN <u>ZERO</u>]
+[ <u>BLANK</u> WHEN <u>ZERO</u> ]
 
-    ┌                 ⎧integer-1  [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS  ⎨                           ⎬│
-    └                 ⎩<u>PLUS</u> integer-2            ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> integer-2             ╯ ┘
 
-    [<u>COLUMN</u> NUMBER IS integer-3]
+[ <u>COLUMN</u> NUMBER IS integer-3 ]
 
-    ⎧<u>SOURCE</u> IS identifier-1                                   ⎫
-    ⎪                                                         ⎪
-    ⎪<u>VALUE</u> IS literal-1                                       ⎪
-    ⎪                                                         ⎪
-    ⎨{<u>SUM</u>  {identifier-2} ...  [<u>UPON</u> {data-name-2} ... ]} ...⎬
-    ⎪                                                         ⎪
-    ⎪       ┌         ⎧data-name-3⎫┐                          ⎪
-    ⎪       │<u>RESET</u> ON ⎨           ⎬│                          ⎪
-    ⎩       └         ⎩<u>FINAL</u>      ⎭┘                          ⎭
+╭ <u>SOURCE</u> IS identifier-1                                  ╮
+│                                                         │
+│ <u>VALUE</u> IS literal-1                                      │
+│                                                         │
+┤ { <u>SUM</u> { identifier-2 } … [ <u>UPON</u> { data-name-2 } … ] } … ├
+│                                                         │
+│ ┌          ╭ data-name-3 ╮ ┐                            │
+│ │ <u>RESET</u> ON ┤             ├ │                            │
+╰ └          ╰ <u>FINAL</u>       ╯ ┘                            ╯
 
-    [<u>GROUP</u> INDICATE].
+[ <u>GROUP</u> INDICATE ] .
 </pre>
 
 V-18
@@ -8255,26 +8241,17 @@ V-18
 
 <u>FORMAT 1</u>:
 
-<pre>
-[<u>PROCEDURE</u> <u>DIVISION</u>  [<u>USING</u>  {data-name-1} ... ].
-
-[<u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u> [segment-number].
-
-     USE statement.
-
-[paragraph-name.
-
-     [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.]
-
-{section-name <u>SECTION</u> [segment-number].
-
-[paragraph-name.
-
-     [sentence] ... ] ... } ... ]
+<pre style="line-height:1">
+[ <u>PROCEDURE</u> <u>DIVISION</u> [ <u>USING</u> { data-name-1 } … ] .
+[ <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u> [ segment-number ] .
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>. ]
+{ section-name <u>SECTION</u> [ segment-number ] .
+[ paragraph-name.
+[ sentence ] … ] … } … ]
 </pre>
 
 <u>FORMAT 2</u>:
@@ -9489,16 +9466,12 @@ The following gives the general format and order of presentation of the entries 
 
 #### 2.3.1 General Format
 
-<pre>
- identification-division
-
-[environment-division]
-
-[data-division]
-
-[procedure-division]
-
-[end-program-header]
+<pre style="line-height:1">
+identification-division
+  [ environment-division ]
+  [ data-division ]
+  [ procedure-division ]
+║ [ end-program-header ] ║
 </pre>
 
 #### 2.3.2 Syntax Rules
@@ -9614,8 +9587,8 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified.
 
 #### 3.3.2 General Format
 
-<pre>
-<u>PROGRAM-ID</u>.  program-name.
+<pre style="line-height:1">
+<u>PROGRAM-ID</u>. program-name.
 </pre>
 
 #### 3.3.3 Syntax Rules
@@ -9702,8 +9675,8 @@ The SOURCE-COMPUTER paragraph provides a means of describing the computer upon w
 
 ### 4.3.2 General Format
 
-<pre>
-<u>SOURCE-COMPUTER</u>.  [computer-name  [WITH <u>DEBUGGING</u> <u>MODE</u>].]
+<pre style="line-height:1">
+<u>SOURCE-COMPUTER</u>. [ computer-name [ WITH <u>DEBUGGING</u> <u>MODE</u> ] . ]
 </pre>
 
 ### 4.3.3 Syntax Rules
@@ -9736,14 +9709,16 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 ### 4.4.2 General Format
 
-<pre>
-<u>OBJECT-COMPUTER</u>.  [computer-name
+<pre style="line-height:1">
+<u>OBJECT-COMPUTER</u>. [ computer-name
 
-  ┌                       ⎧<u>WORDS</u>     ⎫┐
-  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│
-  └                       ⎩<u>MODULES</u>   ⎭┘
+┌                       ╭ <u>WORDS</u>      ╮ ┐
+│                       │            │ │
+│ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │
+│                       │            │ │
+└                       ╰ <u>MODULES</u>    ╯ ┘
 
-  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1].]
+[ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] . ]
 </pre>
 
 ### 4.4.3 Syntax Rules
@@ -10260,14 +10235,14 @@ The OCCURS clause eliminates the need for separate entries for repeated data ite
 
 <u>Format 1:</u>
 
-<pre>
+<pre style="line-height:1">
 <u>OCCURS</u> integer-2 TIMES
 
-   ┌⎧<u>ASCENDING</u> ⎫                              ┐
-   │⎨           ⎬ KEY IS  {data-name-2} ...    │ ...
-   └⎩<u>DESCENDING</u>⎭                              ┘
+╔ ┌ ╭ <u>ASCENDING</u>  ╮                          ┐   ╗
+║ │ ┤            ├ KEY IS { data-name-2 } … │ … ║
+╚ └ ╰ <u>DESCENDING</u> ╯                          ┘   ╝
 
-    [<u>INDEXED</u> BY  {index-name-1} ... ]
+[ <u>INDEXED</u> BY { index-name-1 } … ]
 </pre>
 
 <u>Format 2:</u>
@@ -11345,10 +11320,12 @@ The result of the test is true if the switch is set to the specified position co
 
 The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero. The general format for a sign condition is as follows:
 
-<pre>
-                                ⎧<u>POSITIVE</u>⎫
-arithmetic-expression-1 IS [<u>NOT</u>] ⎨<u>NEGATIVE</u>⎬
-                                ⎩<u>ZERO</u>    ⎭
+<pre style="line-height:1">
+╔                                    ╭ <u>POSITIVE</u> ╮ ╗
+║                                    │          │ ║
+║ arithmetic-expression-1 IS [ <u>NOT</u> ] ┤ <u>NEGATIVE</u> ├ ║
+║                                    │          │ ║
+╚                                    ╰ <u>ZERO</u>     ╯ ╝
 </pre>
 
 When used, NOT and the next key word specify one sign condition that defines the algebraic test to be executed for truth value; e.g., NOT ZERO is a truth test for a nonzero (positive or negative) value. An operand is positive, if its value is greater than zero, negative if its value is less than zero, and zero if its value is equal to zero. Arithmetic-expression-1 must contain at least one reference to a variable.
@@ -11379,8 +11356,8 @@ A condition is negated by use of the logical operator 'NOT' which reverses the t
 
 The general format for a negated condition is:
 
-<pre>
-<u>NOT</u> condition-1
+<pre style="line-height:1">
+║ <u>NOT</u> condition-1 ║
 </pre>
 
 #### 6.3.2.2 Combined Conditions
@@ -11775,17 +11752,20 @@ The ACCEPT statement causes low volume data to be made available to the specifie
 
 <u>Format 1</u>:
 
-<pre>
-<u>ACCEPT</u> identifier-1 [<u>FROM</u> mnemonic-name-1]
+<pre style="line-height:1">
+<u>ACCEPT</u> identifier-1 ║ [ <u>FROM</u> mnemonic-name-1 ] ║
 </pre>
 
 <u>Format 2</u>:
 
-<pre>
-                         ⎧ <u>DATE</u>        ⎫
-<u>ACCEPT</u> identifier-2 <u>FROM</u> ⎨ <u>DAY</u>         ⎬
-                         ⎪ <u>DAY-OF-WEEK</u> ⎪
-                         ⎩ <u>TIME</u>        ⎭
+<pre style="line-height:1">
+╔                          ╭ <u>DATE</u>        ╮ ╗
+║                          │             │ ║
+║                          │ <u>DAY</u>         │ ║
+║ <u>ACCEPT</u> identifier-2 <u>FROM</u> ┤             ├ ║
+║                          │ <u>DAY-OF-WEEK</u> │ ║
+║                          │             │ ║
+╚                          ╰ <u>TIME</u>        ╯ ╝
 </pre>
 
 ### 6.5.3 Syntax Rules
@@ -11869,15 +11849,14 @@ The ADD statement causes two or more numeric operands to be summed and the resul
 
 <u>Format 3</u>:
 
-<pre>
-<u>ADD</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2 [<u>ROUNDED</u>]
-    ⎩<u>CORR</u>         ⎭
-
-    [ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1]
-
-    [<u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2]
-
-    [<u>END-ADD</u>]
+<pre style="line-height:1">
+╔     ╭ <u>CORRESPONDING</u> ╮                                          ╗
+║ <u>ADD</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 [ <u>ROUNDED</u> ] ║
+║     ╰ <u>CORR</u>          ╯                                          ║
+║                                                                ║
+║ [ ON <u>SIZE</u> <u>ERROR</u> imperative-statement-1 ]                       ║
+║ [ <u>NOT</u> ON <u>SIZE</u> <u>ERROR</u> imperative-statement-2 ]                   ║
+╚ [ <u>END-ADD</u> ]                                                    ╝
 </pre>
 
 ### 6.6.3 Syntax Rules
@@ -12026,9 +12005,10 @@ The DISPLAY statement causes low volume data to be transferred to an appropriate
 
 ### 6.10.2 General Format
 
-<pre>
-<u>DISPLAY</u> ⎧identifier-1⎫ ...  [<u>UPON</u> mnemonic-name-1]  [WITH <u>NO</u> <u>ADVANCING</u>]
-        ⎩literal-1   ⎭
+<pre style="line-height:1">
+        ╭ identifier-1 ╮
+<u>DISPLAY</u> ┤              ├ … ║ [ <u>UPON</u> mnemonic-name-1 ] [ WITH <u>NO</u> <u>ADVANCING</u> ] ║
+        ╰ literal-1    ╯
 </pre>
 
 ### 6.10.3 Syntax Rules
@@ -12943,9 +12923,10 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 <u>Format 2</u>:
 
-<pre>
-<u>MOVE</u> ⎧<u>CORRESPONDING</u>⎫ identifier-1 <u>TO</u> identifier-2
-     ⎩<u>CORR</u>         ⎭
+<pre style="line-height:1">
+╔      ╭ <u>CORRESPONDING</u> ╮                              ╗
+║ <u>MOVE</u> ┤               ├ identifier-1 <u>TO</u> identifier-2 ║
+╚      ╰ <u>CORR</u>          ╯                              ╝
 </pre>
 
 ### 6.19.3 Syntax Rules
@@ -13731,8 +13712,8 @@ Nucleus - SET
 
 <u>Format 4</u>:
 
-<pre>
-<u>SET</u> {condition-name-1} ...  <u>TO</u> <u>TRUE</u>
+<pre style="line-height:1">
+║ <u>SET</u> { condition-name-1 } … <u>TO</u> <u>TRUE</u> ║
 </pre>
 
 ## 6.23.3 Syntax Rules
@@ -14415,14 +14396,10 @@ The Input-Output Section is located in the Environment Division of a source prog
 
 The general format of the Input-Output Section is shown below.
 
-<pre>
+<pre style="line-height:1">
 <u>INPUT-OUTPUT</u> <u>SECTION</u>.
-
-<u>FILE-CONTROL</u>.  {file-control-entry} ...
-
-╔═══════════════════════════════════════════════╗
-║[<u>I-O-CONTROL</u>.   [input-output-control-entry]]║
-╚═══════════════════════════════════════════════╝
+<u>FILE-CONTROL</u>. { file-control-entry } …
+║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║
 </pre>
 
 VII-6
@@ -14613,9 +14590,10 @@ The PADDING CHARACTER clause specifies the character which is to be used for blo
 
 ### 2.7.2 General Format
 
-<pre>
-<u>PADDING</u> CHARACTER IS ⎧data-name-1⎫
-                     ⎩literal-1  ⎭
+<pre style="line-height:1">
+╔                      ╭ data-name-1 ╮ ╗
+║ <u>PADDING</u> CHARACTER IS ┤             ├ ║
+╚                      ╰ literal-1   ╯ ╝
 </pre>
 
 ### 2.7.3 Syntax Rules
@@ -14755,8 +14733,8 @@ The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file
 
 ### 2.11.2 General Format
 
-<pre>
-<u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS  {file-name-1  [<u>POSITION</u> integer-1]} ...
+<pre style="line-height:1">
+║ <u>MULTIPLE</u> <u>FILE</u> TAPE CONTAINS { file-name-1 [ <u>POSITION</u> integer-1 ] } … ║
 </pre>
 
 ### 2.11.3 General Rules
@@ -14984,9 +14962,10 @@ The BLOCK CONTAINS clause specifies the size of a physical record.
 
 #### 3.3.2 General Format
 
-<pre>
-<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ⎧<u>RECORDS</u>   ⎫
-                                      ⎩CHARACTERS⎭
+<pre style="line-height:1">
+                                              ╭ <u>RECORDS</u>    ╮
+<u>BLOCK</u> CONTAINS ║ [ integer-1 <u>TO</u> ] ║ integer-2 ┤            ├
+                                              ╰ CHARACTERS ╯
 </pre>
 
 #### 3.3.3 General Rules
@@ -15123,12 +15102,14 @@ The LINAGE clause provides a means for specifying the depth of a logical page in
 
 ### 3.7.2 General Format
 
-<pre>
-<u>LINAGE</u> IS ⎧data-name-1⎫ LINES  ┌WITH <u>FOOTING</u> AT ⎧data-name-2⎫┐
-          ⎩integer-1  ⎭        └                ⎩integer-2  ⎭┘
-
-    ┌LINES AT <u>TOP</u> ⎧data-name-3⎫┐  ┌LINES AT <u>BOTTOM</u> ⎧data-name-4⎫┐
-    └             ⎩integer-3  ⎭┘  └                ⎩integer-4  ⎭┘
+<pre style="line-height:1">
+╔           ╭ data-name-1 ╮       ┌                 ╭ data-name-2 ╮ ┐  ╗
+║ <u>LINAGE</u> IS ┤             ├ LINES │ WITH <u>FOOTING</u> AT ┤             ├ │  ║
+║           ╰ integer-1   ╯       └                 ╰ integer-2   ╯ ┘  ║
+║                                                                      ║
+║ ┌              ╭ data-name-3 ╮ ┐ ┌                 ╭ data-name-4 ╮ ┐ ║
+║ │ LINES AT <u>TOP</u> ┤             ├ │ │ LINES AT <u>BOTTOM</u> ┤             ├ │ ║
+╚ └              ╰ integer-3   ╯ ┘ └                 ╰ integer-4   ╯ ┘ ╝
 </pre>
 
 ### 3.7.3 Syntax Rules
@@ -15229,10 +15210,9 @@ Format 1:
 
 Format 2:
 
-<pre>
-<u>RECORD</u> IS <u>VARYING</u> IN SIZE  [[FROM integer-2]  [<u>TO</u> integer-3]  CHARACTERS]
-
-   [<u>DEPENDING</u> ON data-name-1]
+<pre style="line-height:1">
+╔ <u>RECORD</u> IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] ╗
+╚ [ <u>DEPENDING</u> ON data-name-1 ]                                                 ╝
 </pre>
 
 Format 3:
@@ -15331,10 +15311,11 @@ The VALUE OF clause particularizes the description of an item in the label recor
 
 ## 3.9.2 General Format
 
-<pre>
-         ⎧                      ⎧data-name-1⎫⎫
-<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ...
-         ⎩                      ⎩literal-1  ⎭⎭
+<pre style="line-height:1">
+         ╭                       ╭ ║ data-name-1 ║ ╮
+<u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS │                 ├ ╮ …
+         │                       ┤                 │ ├
+         ╰                       ╰   literal-1     ╯ ╯
 </pre>
 
 ## 3.9.3 Syntax Rules
@@ -15748,14 +15729,11 @@ The READ statement makes available the next logical record from a file.
 
 ### 4.4.2 General Format
 
-<pre>
-<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD [<u>INTO</u> identifier-1]
-
-    [AT <u>END</u> imperative-statement-1]
-
-    [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-    [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-READ</u> ]
 </pre>
 
 ### 4.4.3 Syntax Rules
@@ -16000,20 +15978,27 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 ### 4.7.2 General Format
 
-<pre>
-<u>WRITE</u> record-name-1  [<u>FROM</u> identifier-1]
-   ┌                     ⎧ ⎧identifier-2⎫ ┌LINE ┐ ⎫ ┐
-   │ ⎧<u>BEFORE</u>⎫            ⎪ ⎩integer-1   ⎭ └LINES┘ ⎪ │
-   │ ⎨      ⎬ ADVANCING  ⎨                        ⎬ │
-   │ ⎩<u>AFTER</u> ⎭            ⎪ ⎧mnemonic-name-1⎫      ⎪ │
-   └                     ⎩ ⎩<u>PAGE</u>           ⎭      ⎭ ┘
-  ┌   ⎧<u>END-OF-PAGE</u>⎫                        ┐
-  │AT ⎨           ⎬ imperative-statement-1 │
-  └   ⎩<u>EOP</u>        ⎭                        ┘
-  ┌       ⎧<u>END-OF-PAGE</u>⎫                        ┐
-  │<u>NOT</u> AT ⎨           ⎬ imperative-statement-2 │
-  └       ⎩<u>EOP</u>        ⎭                        ┘
-  [<u>END-WRITE</u>]
+<pre style="line-height:1">
+<u>WRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+
+┌                      ╭ ╭   identifier-2 ╮ ┌ LINE  ┐ ╮ ┐
+│                      │ ┤                ├ │       │ │ │
+│ ╭ <u>BEFORE</u> ╮           │ ╰   integer-1    ╯ └ LINES ┘ │ │
+│ ┤        ├ ADVANCING │                              ├ │
+│ ╰ <u>AFTER</u>  ╯           ┤                              │ │
+│                      │ ╭ ║ mnemonic-name-1 ║ ╮      │ │
+│                      │ ┤                     ├      │ │
+└                      ╰ ╰   <u>PAGE</u>              ╯      ╯ ┘
+
+╔ ┌    ╭ <u>END-OF-PAGE</u> ╮                        ┐     ╗
+║ │ AT ┤             ├ imperative-statement-1 │     ║
+║ └    ╰ <u>EOP</u>         ╯                        ┘     ║
+║                                                   ║
+║ ┌        ╭ <u>END-OF-PAGE</u> ╮                        ┐ ║
+║ │ <u>NOT</u> AT ┤             ├ imperative-statement-2 │ ║
+╚ └        ╰ <u>EOP</u>         ╯                        ┘ ╝
+
+[ <u>END-WRITE</u> ]
 </pre>
 
 ### 4.7.3 Syntax Rules
@@ -16463,10 +16448,12 @@ The ACCESS MODE clause specifies the order in which records are to be accessed i
 
 ### 2.4.2 General Format
 
-<pre>
-               ⎧ <u>SEQUENTIAL</u>  [<u>RELATIVE</u> KEY IS data-name-1] ⎫
-<u>ACCESS</u> MODE IS ⎨ ⎧<u>RANDOM</u> ⎫    <u>RELATIVE</u> KEY IS data-name-1  ⎬
-               ⎩ ⎩<u>DYNAMIC</u>⎭                                 ⎭
+<pre style="line-height:1">
+               ╭ <u>SEQUENTIAL</u> [ <u>RELATIVE</u> KEY IS data-name-1 ] ╮
+<u>ACCESS</u> MODE IS │                                            │
+               ┤ ╭   <u>RANDOM</u>  ╮                              ├
+               │ ┤           ├ <u>RELATIVE</u> KEY IS data-name-1  │
+               ╰ ╰ ║ <u>DYNAMIC</u> ╯ ║                            ╯
 </pre>
 
 ### 2.4.3 Syntax Rules
@@ -16642,26 +16629,17 @@ Relative I-O - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE statement from the Relative I-O module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE statement is present.
 
-<pre>
- <u>PROCEDURE</u> <u>DIVISION</u>.
-
- <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u>.
+<u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 VIII-16
@@ -16678,8 +16656,8 @@ The CLOSE statement terminates the processing of files with optional lock.
 
 ### 4.2.2 General Format
 
-<pre>
-<u>CLOSE</u>  {file-name-1  [WITH <u>LOCK</u>] } ...
+<pre style="line-height:1">
+<u>CLOSE</u> { file-name-1 ║ [ WITH <u>LOCK</u> ] ║ } …
 </pre>
 
 ### 4.2.3 Syntax Rules
@@ -16955,14 +16933,11 @@ For sequential access, the READ statement makes available the next logical recor
 
 <u>Format 1</u>:
 
-<pre>
-<u>READ</u> file-name-1 [<u>NEXT</u>] RECORD  [<u>INTO</u> identifier-1]
-
-    [AT <u>END</u> imperative-statement-1]
-
-    [<u>NOT</u> AT <u>END</u> imperative-statement-2]
-
-    [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 ║ [ <u>NEXT</u> ] ║ RECORD [ <u>INTO</u> identifier-1 ]
+[ AT <u>END</u> imperative-statement-1 ]
+[ <u>NOT</u> AT <u>END</u> imperative-statement-2 ]
+[ <u>END-READ</u> ]
 </pre>
 
 <u>Format 2</u>:
@@ -17767,8 +17742,8 @@ The ALTERNATE RECORD KEY clause specifies an alternate record key access path to
 
 ### 2.5.2 General Format
 
-<pre>
-<u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1  [WITH <u>DUPLICATES</u>]
+<pre style="line-height:1">
+║ <u>ALTERNATE</u> <u>RECORD</u> KEY IS data-name-1 [ WITH <u>DUPLICATES</u> ] ║
 </pre>
 
 ### 2.5.3 Syntax Rules
@@ -17980,26 +17955,17 @@ Indexed I-O - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE statement from the Indexed I-O module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE statement is present.
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
 <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
+{ section-name <u>SECTION</u>.
+USE statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
 <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 IX-18
@@ -18312,16 +18278,12 @@ Format 1:
 
 Format 2:
 
-<pre>
-<u>READ</u> file-name-1 RECORD  [<u>INTO</u> identifier-1]
-
-   [<u>KEY</u> IS data-name-1]
-
-   [<u>INVALID</u> KEY imperative-statement-3]
-
-   [<u>NOT</u> <u>INVALID</u> KEY imperative-statement-4]
-
-   [<u>END-READ</u>]
+<pre style="line-height:1">
+<u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
+║ [ <u>KEY</u> IS data-name-1 ] ║
+  [ <u>INVALID</u> KEY imperative-statement-3 ]
+  [ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-4 ]
+  [ <u>END-READ</u> ]
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -19050,18 +19012,13 @@ The following gives the general format and order of presentation of the entries 
 
 #### 2.3.1 General Format
 
-<pre>
- identification-division
-
-[environment-division]
-
-[data-division]
-
-[procedure-division]
-
-[source-program] ...
-
-[end-program-header]
+<pre style="line-height:1">
+╔ identification-division  ╗
+║ [ environment-division ] ║
+║ [ data-division ]        ║
+║ [ procedure-division ]   ║
+║ [ source-program ] …     ║
+╚ [ end-program-header ]   ╝
 </pre>
 
 X-8
@@ -19178,10 +19135,10 @@ The PROGRAM-ID paragraph specifies the name by which a program is identified and
 
 ### 3.1.2 General Format
 
-<pre>
-                         ┌    ⎧│<u>COMMON</u> │⎫         ┐
-<u>PROGRAM-ID</u>. program-name │ IS ⎨│       │⎬ PROGRAM │ .
-                         └    ⎩│<u>INITIAL</u>│⎭         ┘
+<pre style="line-height:1">
+╔                          ┌    ╭ │ <u>COMMON</u>  │ ╮         ┐   ╗
+║ <u>PROGRAM-ID</u>. program-name │ IS ┤ │         │ ├ PROGRAM │ . ║
+╚                          └    ╰ │ <u>INITIAL</u> │ ╯         ┘   ╝
 </pre>
 
 ### 3.1.3 Syntax Rules
@@ -19631,8 +19588,8 @@ The EXTERNAL clause specifies that a data item or a file connector is external. 
 
 ### 4.5.2 General Format
 
-<pre>
-IS <u>EXTERNAL</u>
+<pre style="line-height:1">
+║ IS <u>EXTERNAL</u> ║
 </pre>
 
 ### 4.5.3 Syntax Rules
@@ -19877,9 +19834,10 @@ The CANCEL statement ensures that the next time the referenced program is called
 
 ### 5.3.2 General Format
 
-<pre>
-<u>CANCEL</u> ⎧identifier-1⎫ ...
-       ⎩literal-1   ⎭
+<pre style="line-height:1">
+╔        ╭ identifier-1 ╮   ╗
+║ <u>CANCEL</u> ┤              ├ … ║
+╚        ╰ literal-1    ╯   ╝
 </pre>
 
 ### 5.3.3 Syntax Rules
@@ -20000,8 +19958,8 @@ Within the Inter-Program Communication module, the USE BEFORE REPORTING statemen
 
 ### 5.6.2 General Format
 
-<pre>
-<u>USE</u> [<u>GLOBAL</u>] <u>BEFORE</u> <u>REPORTING</u> identifier-1
+<pre style="line-height:1">
+║ <u>USE</u> [ <u>GLOBAL</u> ] <u>BEFORE</u> <u>REPORTING</u> identifier-1 ║
 </pre>
 
 ### 5.6.3 Syntax Rules
@@ -21147,27 +21105,30 @@ The file description entry furnishes information concerning the physical structu
 
 #### 3.2.2 General Format
 
-<pre>
-<u>FD</u>  file-name-1
+<pre style="line-height:1">
+<u>FD</u> file-name-1
 
-    ┌<u>BLOCK</u> CONTAINS  [integer-1 <u>TO</u>]  integer-2 ⎧<u>RECORDS</u>   ⎫┐
-    └                                          ⎩<u>CHARACTERS</u>⎭┘
+┌                                           ╭ <u>RECORDS</u>    ╮ ┐
+│ <u>BLOCK</u> CONTAINS [ integer-1 <u>TO</u> ] integer-2 ┤            ├ │
+└                                           ╰ CHARACTERS ╯ ┘
 
-    ┌<u>RECORD</u> ⎧CONTAINS integer-3 CHARACTERS             ⎫┐
-    └       ⎩CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS⎭┘
+┌        ╭ CONTAINS integer-3 CHARACTERS              ╮ ┐
+│ <u>RECORD</u> ┤                                            ├ │
+└        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS ╯ ┘
 
-    ┌<u>LABEL</u> ⎧<u>RECORD</u> IS  ⎫ ⎧<u>STANDARD</u>⎫┐
-    └      ⎩<u>RECORDS</u> ARE⎭ ⎩<u>OMITTED</u> ⎭┘
+┌       ╭ <u>RECORD</u> IS   ╮ ╭ <u>STANDARD</u> ╮ ┐
+│ <u>LABEL</u> ┤             ├ ┤          ├ │
+└       ╰ <u>RECORDS</u> ARE ╯ ╰ <u>OMITTED</u>  ╯ ┘
 
-    ┌         ⎧                      ⎧data-name-1⎫⎫     ┐
-    │<u>VALUE</u> <u>OF</u> ⎨implementor-name-1 IS ⎨           ⎬⎬ ... │
-    └         ⎩                      ⎩literal-1  ⎭⎭     ┘
+┌          ╭                       ╭ data-name-1 ╮ ╮   ┐
+│ <u>VALUE</u> <u>OF</u> ┤ implementor-name-1 IS ┤             ├ ├ … │
+└          ╰                       ╰ literal-1   ╯ ╯   ┘
 
-    [<u>CODE-SET</u> IS alphabet-name-1]
+[ <u>CODE-SET</u> IS alphabet-name-1 ]
 
-    ⎧<u>REPORT</u> IS  ⎫
-    ⎨           ⎬ {report-name-1} ...   .
-    ⎩<u>REPORTS</u> ARE⎭
+╭ <u>REPORT</u> IS   ╮
+┤             ├ { report-name-1 } … .
+╰ <u>REPORTS</u> ARE ╯
 </pre>
 
 #### 3.2.3 Syntax Rules
@@ -21576,33 +21537,48 @@ The report group description entry specifies the characteristics of a report gro
 
 <u>Format 1</u>:
 
-<pre>
-01  [data-name-1]
+<pre style="line-height:1">
+01 [ data-name-1 ]
 
-    ┌                ⎧integer-1   [ON <u>NEXT</u> <u>PAGE</u>]⎫┐
-    │<u>LINE</u> NUMBER IS ⎨                           ⎬│
-    └                ⎩<u>PLUS</u> integer-2              ⎭┘
+┌                ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮ ┐
+│ <u>LINE</u> NUMBER IS ┤                            ├ │
+└                ╰ <u>PLUS</u> integer-2             ╯ ┘
 
-    ┌                ⎧integer-3      ⎫┐
-    │<u>NEXT</u> <u>GROUP</u> IS  ⎨<u>PLUS</u> integer-4 ⎬│
-    └                ⎩<u>NEXT</u> <u>PAGE</u>      ⎭┘
+┌               ╭ integer-3      ╮ ┐
+│               │                │ │
+│ <u>NEXT</u> <u>GROUP</u> IS ┤ <u>PLUS</u> integer-4 ├ │
+│               │                │ │
+└               ╰ <u>NEXT</u> <u>PAGE</u>      ╯ ┘
 
-            ⎧⎧<u>REPORT</u> <u>HEADING</u>⎫               ⎫
-            ⎪⎩<u>RH</u>            ⎭               ⎪
-            ⎪⎧<u>PAGE</u> <u>HEADING</u>⎫                 ⎪
-            ⎪⎩<u>PH</u>          ⎭                 ⎪
-            ⎪⎧<u>CONTROL</u> <u>HEADING</u>⎫ ⎧data-name-2⎫⎪
-            ⎪⎩<u>CH</u>             ⎭ ⎩<u>FINAL</u>      ⎭⎪
-    <u>TYPE</u> IS ⎨⎧<u>DETAIL</u>⎫                       ⎬
-            ⎪⎩<u>DE</u>    ⎭                       ⎪
-            ⎪⎧<u>CONTROL</u> <u>FOOTING</u>⎫ ⎧data-name-3⎫⎪
-            ⎪⎩<u>CF</u>             ⎭ ⎩<u>FINAL</u>      ⎭⎪
-            ⎪⎧<u>PAGE</u> <u>FOOTING</u>⎫                 ⎪
-            ⎪⎩<u>PF</u>          ⎭                 ⎪
-            ⎪⎧<u>REPORT</u> <u>FOOTING</u>⎫               ⎪
-            ⎩⎩<u>RF</u>            ⎭               ⎭
+        ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                  ╮
+        │ ┤                ├                  │
+        │ ╰ <u>RH</u>             ╯                  │
+        │                                     │
+        │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                    │
+        │ ┤              ├                    │
+        │ ╰ <u>PH</u>           ╯                    │
+        │                                     │
+        │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ╭ data-name-2 ╮ │
+        │ ┤                 ├ ┤             ├ │
+        │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │
+        │                                     │
+        ┤ ╭ <u>DETAIL</u> ╮                          │
+<u>TYPE</u> IS │ ┤        ├                          ├
+        │ ╰ <u>DE</u>     ╯                          │
+        │                                     │
+        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-3 ╮ │
+        │ ┤                 ├ ┤             ├ │
+        │ ╰ <u>CF</u>              ╯ ╰ <u>FINAL</u>       ╯ │
+        │                                     │
+        │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                    │
+        │ ┤              ├                    │
+        │ ╰ <u>PF</u>           ╯                    │
+        │                                     │
+        │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                  │
+        │ ┤                ├                  │
+        ╰ ╰ <u>RF</u>             ╯                  ╯
 
-    [[<u>USAGE</u> IS]  <u>DISPLAY</u>].
+[ [ <u>USAGE</u> IS ] <u>DISPLAY</u> ] .
 </pre>
 
 <u>Format 2</u>:
@@ -22834,27 +22810,21 @@ Report Writer - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE BEFORE REPORTING statement from the Report Writer module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE BEFORE REPORTING statement and/or USE AFTER STANDARD EXCEPTION PROCEDURE are present.
 
-<pre>
+<pre style="line-height:1">
 <u>PROCEDURE</u> <u>DIVISION</u>.
-
 <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
 
-{section-name <u>SECTION</u>.
+    ╭ AFTER STANDARD EXCEPTION PROCEDURE ╮
+USE ┤                                    ├ statement.
+    ╰ BEFORE REPORTING                   ╯
 
-    USE ⎧AFTER STANDARD EXCEPTION PROCEDURE⎫ statement.
-        ⎩BEFORE REPORTING                  ⎭
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
+[ paragraph-name.
+[ sentence ] … ] … } …
 <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 XIII-62
@@ -24013,10 +23983,12 @@ The DISABLE statement notifies the message control system (MCS) to inhibit data 
 
 ### 3.2.2 General Format
 
-<pre>
-          ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫              ┌          ⎧identifier-1⎫┐
-<u>DISABLE</u>   ⎨<u>I-O</u> <u>TERMINAL</u>    ⎬  cd-name-1   │WITH <u>KEY</u>  ⎨            ⎬│
-          ⎩<u>OUTPUT</u>          ⎭              └          ⎩literal-1   ⎭┘
+<pre style="line-height:1">
+╔         ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
+║         │                    │           ┌          ╭ identifier-1 ╮ ┐ ║
+║ <u>DISABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │ ║
+║         │                    │           └          ╰ literal-1    ╯ ┘ ║
+╚         ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
 ### 3.2.3 Syntax Rules
@@ -24073,10 +24045,12 @@ The ENABLE statement notifies the message control system (MCS) to allow data tra
 
 3.3.2 General Format
 
-<pre>
-       ⎧<u>INPUT</u> [<u>TERMINAL</u>]⎫               ┌             ⎧identifier-1⎫┐
-<u>ENABLE</u> ⎨<u>I-O</u> <u>TERMINAL</u>     ⎬  cd-name-1    │WITH <u>KEY</u>     ⎨            ⎬│
-       ⎩<u>OUTPUT</u>           ⎭               └             ⎩literal-1   ⎭┘
+<pre style="line-height:1">
+╔        ╭ <u>INPUT</u> [ <u>TERMINAL</u> ] ╮                                         ╗
+║        │                    │           ┌          ╭ identifier-1 ╮ ┐ ║
+║ <u>ENABLE</u> ┤ <u>I-O</u> <u>TERMINAL</u>       ├ cd-name-1 │ WITH <u>KEY</u> ┤              ├ │ ║
+║        │                    │           └          ╰ literal-1    ╯ ┘ ║
+╚        ╰ <u>OUTPUT</u>             ╯                                         ╝
 </pre>
 
 3.3.3 Syntax Rules
@@ -24155,15 +24129,13 @@ The RECEIVE statement makes available a message or a message segment and informa
 
 ### 3.5.2 General Format
 
-<pre>
-<u>RECEIVE</u> cd-name-1 ⎧ <u>MESSAGE</u> ⎫ <u>INTO</u> identifier-1
-                  ⎩ <u>SEGMENT</u> ⎭
-
-    [<u>NO</u> <u>DATA</u> imperative-statement-1]
-
-    [WITH <u>DATA</u> imperative-statement-2]
-
-    [<u>END-RECEIVE</u>]
+<pre style="line-height:1">
+                  ╭   <u>MESSAGE</u>   ╮
+<u>RECEIVE</u> cd-name-1 ┤             ├ <u>INTO</u> identifier-1
+                  ╰ ║ <u>SEGMENT</u> ║ ╯
+[ <u>NO</u> <u>DATA</u> imperative-statement-1 ]
+[ WITH <u>DATA</u> imperative-statement-2 ]
+[ <u>END-RECEIVE</u> ]
 </pre>
 
 ### 3.5.3 Syntax Rules
@@ -24244,8 +24216,8 @@ The SEND statement causes a message, a message segment, or a portion of a messag
 
 Format 1:
 
-<pre>
-<u>SEND</u> cd-name-1 <u>FROM</u> identifier-1
+<pre style="line-height:1">
+║ <u>SEND</u> cd-name-1 <u>FROM</u> identifier-1 ║
 </pre>
 
 Format 2:
@@ -24472,8 +24444,8 @@ The WITH DEBUGGING MODE clause indicates that all debugging sections are to be c
 
 #### 2.1.2 General Format
 
-<pre>
-<u>SOURCE-COMPUTER</u>.  [computer-name  [WITH <u>DEBUGGING</u> <u>MODE</u>].]
+<pre style="line-height:1">
+<u>SOURCE-COMPUTER</u>. [ computer-name [ WITH <u>DEBUGGING</u> <u>MODE</u> ] . ]
 </pre>
 
 #### 2.1.3 General Rules
@@ -24494,26 +24466,17 @@ Debug - Procedure Division
 
 The Procedure Division contains declarative procedures when the USE FOR DEBUGGING statement from the Debug module is present in a COBOL source program. Shown below is the general format of the Procedure Division when the USE FOR DEBUGGING statement is present.
 
-<pre>
- <u>PROCEDURE</u> <u>DIVISION</u>.
-
- <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-    USE FOR DEBUGGING statement.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
-
- <u>END</u> <u>DECLARATIVES</u>.
-
-{section-name <u>SECTION</u>.
-
-[paragraph-name.
-
-    [sentence] ... ] ... } ...
+<pre style="line-height:1">
+<u>PROCEDURE</u> <u>DIVISION</u>.
+<u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+USE FOR DEBUGGING statement.
+[ paragraph-name.
+[ sentence ] … ] … } …
+<u>END</u> <u>DECLARATIVES</u>.
+{ section-name <u>SECTION</u>.
+[ paragraph-name.
+[ sentence ] … ] … } …
 </pre>
 
 XV-4
@@ -24530,12 +24493,16 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
 
 ### 3.2.2 General Format
 
-<pre>
-                     ⎧ cd-name-1                        ⎫
-                     ⎪ [<u>ALL</u> REFERENCES OF] identifier-1 ⎪
-<u>USE</u> FOR <u>DEBUGGING</u> ON ⎨ file-name-1                      ⎬ ...
-                     ⎪ procedure-name-1                 ⎪
-                     ⎩ <u>ALL</u> <u>PROCEDURES</u>                   ⎭
+<pre style="line-height:1">
+                     ╭ ╔ cd-name-1                          ╗ ╮
+                     │ ║                                    ║ │
+                     │ ║ [ <u>ALL</u> REFERENCES OF ] identifier-1 ║ │
+                     │ ║                                    ║ │
+<u>USE</u> FOR <u>DEBUGGING</u> ON ┤ ╚ file-name-1                        ╝ ├ …
+                     │                                        │
+                     │   procedure-name-1                     │
+                     │                                        │
+                     ╰   <u>ALL</u> <u>PROCEDURES</u>                       ╯
 </pre>
 
 ### 3.2.3 Syntax Rules
@@ -24865,16 +24832,17 @@ The OBJECT-COMPUTER paragraph provides a means of describing the computer on whi
 
 #### 2.2.2 General Format
 
-<pre>
-<u>OBJECT-COMPUTER</u>.  [computer-name
-
-  ┌                       ⎧<u>WORDS</u>     ⎫┐
-  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│
-  └                       ⎩<u>MODULES</u>   ⎭┘
-
-  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1]
-
-  [<u>SEGMENT-LIMIT</u> IS segment-number].]
+<pre style="line-height:1">
+╔ <u>OBJECT-COMPUTER</u>. [ computer-name                  ╗
+║                                                   ║
+║ ┌                       ╭ <u>WORDS</u>      ╮ ┐          ║
+║ │                       │            │ │          ║
+║ │ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │          ║
+║ │                       │            │ │          ║
+║ └                       ╰ <u>MODULES</u>    ╯ ┘          ║
+║                                                   ║
+║ [ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] ║
+╚ [ <u>SEGMENT-LIMIT</u> IS segment-number ] . ]           ╝
 </pre>
 
 #### 2.2.3 Syntax Rules

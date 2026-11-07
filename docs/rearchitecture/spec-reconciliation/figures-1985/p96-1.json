@@ -1,0 +1,13 @@
+{
+ "page": 96,
+ "figure": 1,
+ "drawn_lines": [
+  "    02   TABLE-1.",
+  "         03   TABLE-ELEMENT   OCCURS 20 TIMES.",
+  "              04   DOG   OCCURS 5 TIMES.",
+  "                   05   EASY ...",
+  "                   05   FOX  ..."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page sets this block as a numbered example of COBOL source (data description entries under 'Example N:' in the table-handling concepts), not a general format."
+}

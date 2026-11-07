@@ -1,0 +1,12 @@
+{
+ "page": 539,
+ "figure": 0,
+ "drawn_lines": [
+  "IS <u>EXTERNAL</u>"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "║ IS <u>EXTERNAL</u> ║"
+ ],
+ "reason": "The printed page encloses the whole clause or statement, prose and general format, in one level-2 box (the page's outline), so the format lies inside a box as the regeneration draws it; the batch drawing lost the box and agrees with the regeneration on every word, grouping, bar, underline and alignment."
+}

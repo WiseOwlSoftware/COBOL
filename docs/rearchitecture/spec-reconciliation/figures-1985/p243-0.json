@@ -1,0 +1,26 @@
+{
+ "page": 243,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>OBJECT-COMPUTER</u>.  [computer-name",
+  "",
+  "  ┌                       ⎧<u>WORDS</u>     ⎫┐",
+  "  │<u>MEMORY</u> SIZE integer-1 ⎨<u>CHARACTERS</u>⎬│",
+  "  └                       ⎩<u>MODULES</u>   ⎭┘",
+  "",
+  "  [PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1].]"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "<u>OBJECT-COMPUTER</u>. [ computer-name",
+  "",
+  "┌                       ╭ <u>WORDS</u>      ╮ ┐",
+  "│                       │            │ │",
+  "│ <u>MEMORY</u> SIZE integer-1 ┤ <u>CHARACTERS</u> ├ │",
+  "│                       │            │ │",
+  "└                       ╰ <u>MODULES</u>    ╯ ┘",
+  "",
+  "[ PROGRAM COLLATING <u>SEQUENCE</u> IS alphabet-name-1 ] . ]"
+ ],
+ "reason": "The printed page bears out the regeneration's single brace (the batch's drawing reads as two), its words, underlines and level-2 box."
+}

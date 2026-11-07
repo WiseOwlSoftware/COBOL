@@ -1,0 +1,10 @@
+{
+ "page": 949,
+ "figure": 3,
+ "drawn_lines": [
+  "        MULTIPLY NUM-1 BY NUM-1",
+  "        MULTIPLY NUM-1 BY NUM-2"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the amendment's Description of Change (X3.23b-1993): the block is an example program fragment of COBOL source in plain type, illustrating a change, not a general format."
+}

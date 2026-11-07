@@ -1,0 +1,12 @@
+{
+ "page": 97,
+ "figure": 0,
+ "drawn_lines": [
+  "01  ABLE.",
+  "    02  BAKER ...",
+  "    02  CHARLIE  OCCURS 20 TIMES ...",
+  "    02  DOG ..."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page sets this block as a numbered example of COBOL source (data description entries under 'Example N:' in the table-handling concepts), not a general format."
+}

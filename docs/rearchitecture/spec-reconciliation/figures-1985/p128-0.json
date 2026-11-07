@@ -1,0 +1,12 @@
+{
+ "page": 128,
+ "figure": 0,
+ "drawn_lines": [
+  "IDENTIFICATION DIVISION.",
+  "ENVIRONMENT DIVISION.",
+  "DATA DIVISION.",
+  "PROCEDURE DIVISION [USING {data-name-1} ... ]."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the glossary: the block illustrates a glossary entry (Division Header, End Program Header) in plain type with no underlined words, not a general format."
+}

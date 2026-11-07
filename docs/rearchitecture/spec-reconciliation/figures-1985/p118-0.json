@@ -1,0 +1,26 @@
+{
+ "page": 118,
+ "figure": 0,
+ "drawn_lines": [
+  "QUEUE          ⎨                          A",
+  "                                          |",
+  "                          +---------------+---------------+",
+  "                          |                               |",
+  "SUB-QUEUE (1)  ⎨          B                               C",
+  "                          |                               |",
+  "                   +------+------+                 +------+------+",
+  "                   |             |                 |             |",
+  "SUB-QUEUE (2)  ⎨   D             E                 F             G",
+  "                   |             |                 |             |",
+  "                +--+--+       +--+--+          +---+---+     +---+---+",
+  "                |     |       |     |          |       |     |       |",
+  "SUB-QUEUE (3)  ⎨ H     I       J     K          L       M     N       O",
+  "",
+  "MESSAGE        ⎨ Z1    X3      X1    Z6         Y7      Y1    X6      Z2",
+  "                 X2    X4      Y3    Z7         Y8      Y2            Z3",
+  "                       X5      Y5    Y6                               Z4",
+  "                               Z5                                     Y4"
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page shows Figure 2, Hierarchy of Queues: a drawn tree of queues and messages, not a general format."
+}

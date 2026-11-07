@@ -1,0 +1,19 @@
+{
+ "page": 777,
+ "figure": 0,
+ "drawn_lines": [
+  "01  A  PIC X(30).",
+  "01  BB.",
+  "    02  PTR  PIC 99.",
+  "01  CC.",
+  "    02  C  PIC XX  OCCURS 10 TIMES.",
+  "01  D  PIC XX.",
+  "01  E  PIC X(30).",
+  "",
+  "PROCEDURE DIVISION.",
+  "    UNSTRING A DELIMITED BY C (PTR) INTO BB, E",
+  "        WITH POINTER PTR."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

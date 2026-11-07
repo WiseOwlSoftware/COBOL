@@ -1,0 +1,16 @@
+{
+ "page": 769,
+ "figure": 0,
+ "drawn_lines": [
+  "01  DD   PIC 99   VALUE IS 50.",
+  "01  DR   PIC 99   VALUE IS 2.",
+  "01  QU   PIC 99.",
+  "01  REMAIN.",
+  "    02   RM   PIC 99   OCCURS 100 TIMES.",
+  "",
+  "PROCEDURE DIVISION.",
+  "    DIVIDE DD BY DR GIVING QU REMAINDER RM (QU)."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

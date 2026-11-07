@@ -1,0 +1,15 @@
+{
+ "page": 397,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>BLOCK</u> CONTAINS [integer-1 <u>TO</u>] integer-2 ⎧<u>RECORDS</u>   ⎫",
+  "                                      ⎩CHARACTERS⎭"
+ ],
+ "decided": "generated",
+ "figure_lines": [
+  "                                              ╭ <u>RECORDS</u>    ╮",
+  "<u>BLOCK</u> CONTAINS ║ [ integer-1 <u>TO</u> ] ║ integer-2 ┤            ├",
+  "                                              ╰ CHARACTERS ╯"
+ ],
+ "reason": "The printed page bears out the regeneration's single brace (the batch's drawing reads as two), its words, underlines and level-2 box."
+}

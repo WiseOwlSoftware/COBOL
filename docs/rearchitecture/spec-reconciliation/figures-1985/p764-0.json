@@ -1,0 +1,21 @@
+{
+ "page": 764,
+ "figure": 0,
+ "drawn_lines": [
+  "FD  INPUT-FILE.",
+  "01  A.",
+  "    02  A-TABLE.",
+  "        03  A-ODO   PIC 99.",
+  "        03  A-ITEM   OCCURS 1 TO 10 TIMES  DEPENDING ON A-ODO.",
+  "    02  A-TRAILER  PIC XX.",
+  "",
+  "WORKING-STORAGE SECTION.",
+  "01  B.",
+  "    02  B-TABLE.",
+  "        03  B-ODO   PIC 99.",
+  "        03  B-ITEM   OCCURS 1 TO 10 TIMES  DEPENDING ON B-ODO.",
+  "    02  B-TRAILER  PIC XX."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is Appendix XVII (substantive changes potentially affecting existing programs): the block is an example program fragment or comparison of COBOL source in plain type, illustrating a change, not a general format."
+}

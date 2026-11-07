@@ -1,0 +1,9 @@
+{
+ "page": 128,
+ "figure": 1,
+ "drawn_lines": [
+  "END PROGRAM program-name."
+ ],
+ "decided": "not-a-format",
+ "reason": "The printed page is the glossary: the block illustrates a glossary entry (Division Header, End Program Header) in plain type with no underlined words, not a general format."
+}
