@@ -34,6 +34,7 @@ import difflib
 import pathlib
 import re
 import sys
+from typing import NamedTuple
 
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -354,16 +355,162 @@ def generated(doc, extract, classify_page, R):
     return out, failed
 
 
+class Drawn(NamedTuple):
+    """One general format as the transcription draws it: a `<pre>` block, lines[start] its opening tag and lines[end]
+    its closing one, on the page whose `## Page N` heading precedes it, under the nearest clause heading and label."""
+    page: int
+    start: int
+    end: int
+    rows: list
+    clause: str | None
+    label: str | None
+
+
+PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
+PRE_OPEN_LINE = re.compile(r"^\s*<pre(?:\s[^>]*)?>\s*$")
+CLAUSE_LINE = re.compile(r"^\s*#*\s*\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
+
+
+def drawn_figures(lines: list[str]) -> list[Drawn]:
+    """Every `<pre>` figure of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order."""
+    out, page, clause, label, start = [], None, None, None, None
+    for i, line in enumerate(lines):
+        if start is not None:
+            if line.lstrip().startswith("</pre>"):
+                out.append(Drawn(page, start, i, lines[start + 1:i], clause, label))
+                start = None
+            continue
+        if (m := PAGE_HEADING.match(line)):
+            page = int(m.group(1))
+        elif PRE_OPEN_LINE.match(line):
+            start = i
+        elif (m := CLAUSE_LINE.match(line)):
+            clause, label = f"{m.group(1)} {m.group(2)}", None
+        elif FORMAT_LABEL.match(re.sub(r"</?u>", "", line)):
+            label = re.sub(r"</?u>", "", line).strip()
+    return [d for d in out if d.page is not None]
+
+
+def regenerated(edition: int, doc, drawn: list[Drawn], R) -> list[tuple]:
+    """The RASTER arm (kb/Work PB4849): every drawn figure regenerated from its scanned page, as
+    [(figure, generated lines or None, pairing disagreements, measured boxes around it)] in `drawn`'s order.
+
+    A scan has no text layer to find a figure by, so the figure is found by its WORDS: the transcription's drawing
+    gives them, `figure_raster.measure_figures` places each figure on its page and pairs each word with the measured
+    ink, and `render_figure.build` draws the figure from the measurement, exactly as for a vector page. The words are
+    the drawing's; everything else (grouping, choice bars, underlines, alignment) is measured."""
+    import figure_raster as FR
+    import figure_reading
+    from figure_extract import page_extractor
+    from figure_geometry import page_classifier
+
+    extract, classify_page = page_extractor(edition), page_classifier(edition)
+    by_page = collections.defaultdict(list)
+    for d in drawn:
+        by_page[d.page].append(d)
+    out = {}
+    for pno, figs in by_page.items():
+        rp, bands = FR.measure_figures(edition, pno, [figure_reading.token_rows(d.rows) for d in figs], doc)
+        for k, (d, band) in enumerate(zip(figs, bands)):
+            bad = [x for x in rp.disagreements if x.get("figure") == k and x.get("reason") != FR.TRIM_NOTE]
+            body = None
+            if band is not None:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    try:
+                        grid, marks = R.build(rp, band[0], band[1], extract, classify_page)
+                        body = R.render(grid, marks, False) if grid else None
+                    except SystemExit as exc:
+                        bad.append({"reason": f"render_figure refused the figure: {exc}"})
+            boxes = [b for b in rp.boxes if band is not None and band[0] <= b["y0"] <= band[1]]
+            out[d.start] = (d, body, bad, boxes)
+    return [out[d.start] for d in drawn]
+
+
+def cross_check(edition: int, doc, lines: list[str], R, pages: tuple | None, limit: int, ledger: str | None) -> int:
+    """Regenerate every drawn figure of a raster edition and compare the two drawings on the four things a general
+    format carries (`figure_reading.compare`). A figure the two agree on is ACCEPTED; every other is listed with what
+    differs, for a refuter to decide against the printed page (kb/Work PB4849). Writes the result to `ledger` as JSON."""
+    import json
+    import figure_reading
+    drawn = [d for d in drawn_figures(lines) if pages is None or pages[0] <= d.page <= pages[1]]
+    results, stats = [], collections.Counter()
+    for d, body, bad, boxes in regenerated(edition, doc, drawn, R):
+        diff = figure_reading.compare(d.rows, body) if body is not None else None
+        things = [t for t in ("words",) + figure_reading.THINGS if diff and diff[t]]
+        verdict = ("unlocated" if body is None else "unpaired" if bad else "disagree" if things else "agree")
+        stats[verdict] += 1
+        for t in things:
+            stats[f"disagree on {t}"] += 1
+        stats["boxes measured"] += len(boxes)
+        results.append({"page": d.page, "lines": [d.start + 1, d.end + 1], "clause": d.clause, "label": d.label,
+                        "verdict": verdict, "differences": {t: diff[t] for t in things} if diff else {},
+                        "pairing": bad, "boxes": len(boxes), "generated": body})
+    print(f"drawn figures                    : {len(drawn)}")
+    for key in ("agree", "disagree", "unpaired", "unlocated"):
+        print(f"  {key:<31}: {stats[key]}")
+    for t in ("words",) + figure_reading.THINGS:
+        print(f"  disagree on {t:<19}: {stats[f'disagree on {t}']}")
+    print(f"  measured level-2 boxes         : {stats['boxes measured']}")
+    shown = [r for r in results if r["verdict"] != "agree"][:limit]
+    for r in shown:
+        print(f"\n  page {r['page']} lines {r['lines'][0]}-{r['lines'][1]} {r['clause'] or ''} {r['label'] or ''}: {r['verdict']}")
+        for t, items in r["differences"].items():
+            print(f"    {t}: {'; '.join(items[:3])}{' ...' if len(items) > 3 else ''}")
+        for p in r["pairing"][:3]:
+            print(f"    pairing: {p.get('reason')} {p.get('text', '')}")
+    if ledger:
+        pathlib.Path(ledger).write_text(json.dumps({"edition": edition, "figures": results}, indent=1, ensure_ascii=False),
+                                        encoding="utf-8", newline="\n")
+        print(f"\nwrote {ledger}")
+    return 0
+
+
+def self_test() -> int:
+    """`drawn_figures` on a planted page-by-page transcription (no PDF is read)."""
+    md = ["## Page 304", "", "### 6.6.2 General Format", "", "<u>Format 1</u>:", "", "<pre>", "<u>ADD</u> x", "</pre>", "",
+          "## Page 305", "", "<u>Format 2</u>:", "", '<pre style="line-height:1">', "ADD y", "", "    GIVING z",
+          "</pre>Numeric Literals", "", "6.7.2 General Format", "", "<pre>", "ALTER", "</pre>"]
+    got = drawn_figures(md)
+    want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:"),
+            Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:"),
+            Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None)]
+    ok = got == want
+    print(f"sweep_figures self-test: {int(ok)}/1 " + ("GREEN" if ok else "RED"))
+    if not ok:
+        for g in got:
+            print(f"  got {g}")
+    return 0 if ok else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--self-test", action="store_true", help="run the self-test (no PDF is read)")
     ap.add_argument("--report", action="store_true", help="show what would change; write nothing")
     ap.add_argument("--apply", action="store_true", help="rewrite the transcription in place")
     ap.add_argument("--check", action="store_true", help="regenerate and diff against the file (regression gate)")
+    ap.add_argument("--cross-check", action="store_true",
+                    help="a scanned edition: regenerate each drawn figure and compare the two drawings (kb/Work PB4849)")
+    ap.add_argument("--ledger", help="with --cross-check: write every figure's result to this JSON file")
+    ap.add_argument("--pages", nargs=2, type=int, metavar=("FROM", "TO"), help="with --cross-check: only these PDF pages")
     ap.add_argument("--clause", help="restrict to one clause number, e.g. 14.9.8.2")
     ap.add_argument("--limit", type=int, default=40, help="how many problems to list")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require_vector(args.edition, "sweep_figures.py")
+    if args.self_test:
+        return self_test()
+    if spec_pdf.geometry(args.edition) == "raster":
+        if not args.cross_check:
+            sys.exit(f"FATAL: the {args.edition} edition is a scan; its figures are cross-checked (--cross-check) before "
+                     "any is written, and --report, --apply and --check wait for the refuters' verdicts (kb/Work PB4849)")
+        import pymupdf
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import render_figure as R
+        doc = pymupdf.open(spec_pdf.require(args.edition))
+        lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
+        return cross_check(args.edition, doc, lines, R, tuple(args.pages) if args.pages else None, args.limit, args.ledger)
+    if args.cross_check:
+        sys.exit(f"FATAL: --cross-check compares a scanned edition's drawn figures with their regeneration; the "
+                 f"{args.edition} edition is vector, and --check regenerates it exactly")
     pdf = spec_pdf.require(args.edition)
     spec_md = spec_pdf.markdown(args.edition)
     furniture = page_furniture(args.edition)
@@ -372,10 +519,10 @@ def main() -> int:
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     import render_figure as R
-    from figure_extract import extract
+    from figure_extract import page_extractor
     from figure_geometry import page_classifier
 
-    classify_page = page_classifier(args.edition)
+    extract, classify_page = page_extractor(args.edition), page_classifier(args.edition)
     doc = pymupdf.open(pdf)
     lines = spec_md.read_text(encoding="utf-8").splitlines()
     index = md_index(lines)

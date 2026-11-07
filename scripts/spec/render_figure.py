@@ -1031,6 +1031,31 @@ def sheet(doc, pages, out_path, extract, classify_page, folio_offset):
     return len(parts)
 
 
+def raster_page(args, doc) -> int:
+    """A scanned edition's page: every figure the transcription draws on it, regenerated from the measured scan
+    (`sweep_figures.regenerated`, kb/Work PB4849), each followed by what the pairing of its words could not read."""
+    if args.band or args.sheet or args.bands_only:
+        sys.exit(f"FATAL: the {args.edition} edition is a scan: its figures are found by the transcription's words, so "
+                 "--band, --bands-only and --sheet do not apply; give the page alone")
+    import sweep_figures
+    lines = spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines()
+    drawn = [d for d in sweep_figures.drawn_figures(lines) if d.page == args.page]
+    if not drawn:
+        sys.exit(f"no figure is drawn on page {args.page} of {spec_pdf.markdown(args.edition).name}")
+    for n, (d, body, bad, _) in enumerate(sweep_figures.regenerated(args.edition, doc, drawn, sys.modules[__name__]), 1):
+        print(f"<!-- figure {n} of {len(drawn)}, {spec_pdf.markdown(args.edition).name} lines {d.start + 1}-{d.end + 1} -->")
+        if body is None:
+            print("<!-- not located on the page -->")
+            continue
+        print(PRE_OPEN)
+        for line in body if not args.plain else [re.sub(r"</?u>", "", b) for b in body]:
+            print(line)
+        print("</pre>")
+        for b in bad:
+            print(f"<!-- unread: {b.get('reason')} {b.get('text', '')} -->")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("page", type=int, help="PDF page number (printed folio + the edition's folio offset)")
@@ -1042,16 +1067,17 @@ def main() -> int:
     ap.add_argument("--also", nargs="*", type=int, default=[], help="further pages for --sheet")
     spec_pdf.add_edition_argument(ap)
     args = ap.parse_args()
-    spec_pdf.require_vector(args.edition, "render_figure.py")
     pdf = spec_pdf.require(args.edition)
     import pymupdf
 
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from figure_extract import extract
+    from figure_extract import page_extractor
     from figure_geometry import page_classifier
 
-    classify_page = page_classifier(args.edition)
+    extract, classify_page = page_extractor(args.edition), page_classifier(args.edition)
     doc = pymupdf.open(pdf)
+    if spec_pdf.geometry(args.edition) == "raster":
+        return raster_page(args, doc)
     page = doc[args.page - 1]
 
     if args.sheet:

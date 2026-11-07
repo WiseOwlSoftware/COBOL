@@ -197,7 +197,7 @@ def main() -> int:
           f"got {[w['underlined'] for w in first]}")
     total += 1
     check("a line of differing word count is reported, its words unread",
-          len(rp.disagreements) == 1 and rp.disagreements[0]["boxes"] == 2
+          len(rp.disagreements) == 1 and rp.disagreements[0]["reason"] == "no converted word pairs with this measured word"
           and all(w["text"] is None for w in rp.words if near(w["y0"], 40)), f"got {rp.disagreements}")
 
     # 2. SEND's ON EXCEPTION group: '[' two bars ']', each bar 0.70 pt clear of the bracket's foot.
@@ -347,6 +347,88 @@ def main() -> int:
           and near(rp.boxes[0]["x1"], 100, 1.0) and len(rp.boxes[0]["words"]) == 1, f"got {rp.boxes}")
     check("a box's rules are neither underlines nor choice bars", rp.rules == [] and all(s["kind"] != "bar" for s in R.classify_page(rp)),
           f"got {rp.rules} {R.classify_page(rp)}")
+
+    # 10. Reading the converted figure's words onto the scan (kb/Work PB4849).
+    def dot(img, x, y):
+        fill(img, x, y, x + 1.8, y + 1.6)
+
+    def delim(img, x, y):                                       # a typed one-line `[`: 9 pt tall, 2.5 pt wide
+        fill(img, x, y - 1.0, x + 2.5, y + 8.0)
+
+    # 10a. An i's dot joins its letter; an ellipsis's three dots are one word; a typed delimiter is a word of its own
+    #      although it is set hard against the word it encloses (`[ON`).
+    img = canvas()
+    for n in range(3):                                          # `iii`: stems with dots 0.6 pt above them
+        fill(img, 10 + n * 5.2, 22, 10 + n * 5.2 + 2, 27)
+        dot(img, 10 + n * 5.2, 19.8)
+    for n in range(3):
+        dot(img, 40 + n * 4.0, 25.4)
+    delim(img, 70, 20)
+    word(img, 73.7, 20, 2)
+    rp = R.measure_image(img, tokens=[["iii", "...", "[ON"]])
+    total += 4
+    texts = [w["text"] for w in rp.words]
+    check("an i's dot is part of its letter", any(len(b[4]) == 3 for b in rp.lines[0] if b[0] < 30), f"got {rp.lines}")
+    check("an ellipsis is one word", "..." in texts and texts.count("...") == 1, f"got {texts}")
+    check("a typed delimiter is a word of its own", texts == ["iii", "...", "[", "ON"], f"got {texts} {rp.disagreements}")
+    check("every word is paired", not rp.disagreements, f"got {rp.disagreements}")
+
+    # 10b. A brace's alternatives printed half a line above and below the word beside it, drawn on two rows: the
+    #      pairing is over the figure, not row by row, so each word finds its box (ADD Format 1, page 305).
+    img = canvas()
+    word(img, 10, 26, 3)                                        # ADD, on the brace's point
+    curly(img, 30, 18, 42, "L")
+    word(img, 36, 20, 6)                                        # identifier-1, half a line up
+    word(img, 36, 32, 4)                                        # literal-1, half a line down
+    curly(img, 72, 18, 42, "R")
+    word(img, 80, 26, 2)                                        # TO
+    rp = R.measure_image(img, tokens=[[("ADD", 0), ("IDENTI", 4), ("TO", 12)], [("LITE", 4)]])
+    total += 1
+    check("words printed half a line apart pair with the converted rows",
+          sorted(w["text"] for w in rp.words if w["text"]) == ["ADD", "IDENTI", "LITE", "TO"] and not rp.disagreements,
+          f"got {[(w['text'], w['y0']) for w in rp.words]} {rp.disagreements}")
+
+    # 10c. Two typed delimiters between the same two words are told apart by their ORDER only (`[ROUNDED]}`).
+    img = canvas()
+    delim(img, 10, 20)
+    word(img, 13.7, 20, 7)
+    delim(img, 13.7 + 7 * 5.2, 20)
+    delim(img, 13.7 + 7 * 5.2 + 4.2, 20)
+    word(img, 70, 20, 3)
+    rp = R.measure_image(img, tokens=[["[ROUNDED]}", "..."[:0] + "ABC"]])
+    total += 1
+    check("a run of typed delimiters keeps its converted order",
+          [w["text"] for w in rp.words] == ["[", "ROUNDED", "]", "}", "ABC"], f"got {[w['text'] for w in rp.words]} {rp.disagreements}")
+
+    # 10d. A typed line that runs uphill stays one line, and the alternative printed below its start stays apart.
+    img = canvas()
+    for n in range(6):
+        word(img, 10 + n * 30, 30 - n * 0.9, 4)                 # rises 4.5 pt across, as page 310's DISPLAY line
+    word(img, 40, 36.5, 4)                                      # half a line below the second word
+    rp = R.measure_image(img, skew=0.0)
+    total += 1
+    check("a sloping line is one line; the line below it is another",
+          sorted(len(ln) for ln in rp.lines) == [1, 6], f"got {[len(ln) for ln in rp.lines]}")
+
+    # 10f. The assignment is the cheapest one, rectangular either way round.
+    total += 2
+    square = np.array([[4.0, 1, 3], [2, 0, 5], [3, 2, 2]])
+    check("the cheapest pairing of a square cost", R.hungarian(square) == [(0, 1), (1, 0), (2, 2)], f"got {R.hungarian(square)}")
+    tall = np.array([[9.0, 1], [1, 9], [0, 0]])
+    check("more rows than columns leaves a row out, at the least cost", R.hungarian(tall) == [(0, 1), (2, 0)], f"got {R.hungarian(tall)}")
+
+    # 10e. Two figures that share words are placed TOGETHER, in order (ADD's formats share `[ON SIZE ERROR ...]`).
+    def hint(y, *words_):
+        return [(10 + 40 * k, y, 40 + 40 * k, y + 8, w) for k, w in enumerate(words_)]
+    hints = (hint(100, "Format", "1:") + hint(120, "ADD", "identifier-l", "TO") + hint(140, "[ON", "SIZE", "ERROR")
+             + hint(170, "Format", "2:") + hint(190, "ADD", "identifier-l", "GIVING") + hint(210, "[ON", "SIZE", "ERROR"))
+    one = [["ADD", "identifier-1", "TO"], ["[ON", "SIZE", "ERROR"]]
+    two = [["ADD", "identifier-1", "GIVING"], ["[ON", "SIZE", "ERROR"]]
+    bands = R.locate([one, two], hints)
+    total += 1
+    check("two figures sharing words are placed one after the other, apart",
+          bands[0] is not None and bands[1] is not None and bands[0][0] < 120 < 148 < bands[0][1] <= bands[1][0] < 190
+          and bands[1][1] > 218, f"got {bands}")
 
     # 9. REAL 1985 pages (kb/Work PB4848): twelve general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is

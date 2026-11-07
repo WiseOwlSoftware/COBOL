@@ -123,6 +123,16 @@ splitter fragmented single figures and merged neighbouring ones.
 
 Over the whole standard this locates **475 figures on 339 pages**, all laying out without a collision.
 
+**A scanned edition (1985) has no text layer to read the structure from** (kb/Work PB4849): its OCR layer misreads
+words inside a figure (`{iLEerT:` for `[END OF]`), and nothing on the page is bold. There the figure is located by
+its WORDS: the transcription's own drawing of each format (the `<pre>` blocks of a `## Page N` section) gives them,
+`figure_raster.locate` places the page's figures together, in order, as disjoint runs of printed lines whose OCR words
+match each figure's (the OCR text is a position hint only, never a word), and `figure_raster.align` pairs every word
+with its measured ink by one assignment over the figure. From there the figure is laid out exactly as a vector page's
+is, by the rules below. `sweep_figures.py --edition 1985 --cross-check` regenerates every drawn format this way and
+names, per format, which of the four carried things (grouping, choice bars, underlines, alignment;
+`figure_reading.compare`) the two drawings disagree on.
+
 ## Layout rules, for the generator
 
 ### A blank row between groups

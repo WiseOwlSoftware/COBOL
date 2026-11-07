@@ -78,12 +78,15 @@ def geometry(edition: int = DEFAULT_EDITION) -> str:
 
 
 def require_vector(edition: int, tool: str) -> None:
-    """Exit unless `edition`'s general formats are vector strokes. A tool that reads underlines from the PDF's drawings
-    (`figure_extract.extract`) finds none in a scan, and would report every word un-underlined as a clean result."""
+    """Exit unless `edition`'s general formats are vector strokes. A tool that reads underlines from a PDF page's drawings
+    (`figure_extract.extract`) finds none in a scan, and would report every word un-underlined as a clean result. A scan
+    is measured from pixels against the converted figures' words (`figure_raster.measure_figures`), which only the
+    tools that read those words do: `sweep_figures.py` and `render_figure.py` (kb/Work PB4849)."""
     if geometry(edition) != "vector":
-        sys.exit(f"FATAL: {tool} reads underlines from the PDF's vector drawings, and the {edition} PDF is a scan whose "
-                 "underlines are pixels. Its raster measurer is PB4817 (scripts/spec/figure_raster.py); until that wires "
-                 f"an underline arm into figure_extract this tool refuses the {edition} edition rather than report a clean page.")
+        sys.exit(f"FATAL: {tool} reads underlines from a PDF page's vector drawings, and the {edition} PDF is a scan whose "
+                 "underlines are pixels. A scan is measured by scripts/spec/figure_raster.py (PB4817) against the converted "
+                 "figures' words, which sweep_figures.py and render_figure.py read (PB4849); this tool has no raster arm "
+                 f"yet and refuses the {edition} edition rather than report a clean page.")
 
 
 def folio_offset(edition: int = DEFAULT_EDITION) -> int:

@@ -12,8 +12,8 @@ columns of nested braces. The words come from the model; the geometry comes from
 WHAT IT RETURNS. A `RasterPage` that `classify_page(rp)` and `extract(rp, band)` read in EXACTLY the shapes
 `figure_geometry.classify_page(page)` and `figure_extract.extract(page, band)` return, in PDF points, so
 `render_figure.py` and the audits take them as their `classify_page` / `extract` arguments unchanged (they are passed
-as callables). Which module measures an edition is PB4815's to decide (open: nothing dispatches to this one yet);
-this module is the raster one and never a second pipeline.
+as callables). `figure_extract.page_extractor` and `figure_geometry.page_classifier` dispatch an edition to this module
+by `spec_pdf.geometry` (PB4815, PB4849); it is the raster arm and never a second pipeline.
 
     stem   {"x", "y0", "y1", "h", "kind": "bracket"|"bar", "side": "L"|"R"|None}   (as figure_geometry)
            side "L" is an opening delimiter ('[' whose feet turn right)
@@ -38,11 +38,16 @@ HOW IT MEASURES (each step is a function below; every constant carries the PDF p
      departs from its shoulders at the middle by a point (`_classify_curly`); the side is the hooks' direction. The
      halves are NOT straight. A tall curved shape without a point (a parenthesis) is listed in `unclassified`.
   6. UNDERLINES that are components of their own: a thin bar that is no hyphen (`find_rules`, `is_hyphen`).
-  7. WORDS: the remaining components, grouped into lines and words by position. Their TEXT is never read from the
-     image and never from the PDF's OCR layer (which has errors: the permission sentence reads "OI" for "or"); the
-     caller passes the converted page's words per printed line (PB4816) and `align` pairs them with the boxes. A line
-     whose box count differs from its word count is a DISAGREEMENT, reported in `RasterPage.disagreements`, and its
-     words keep text None: the tool never picks silently. Each box lists the words it encloses.
+  7. WORDS: the remaining components, grouped into lines (by the letters nearest each glyph, so a line may run
+     uphill) and words by position (`find_words`: an i's dot joins its letter, an ellipsis's dots stay one word, a typed
+     one-line delimiter is a word of its own). Their TEXT is never read from the image and never from the PDF's OCR
+     layer (which has errors: the permission sentence reads "OI" for "or"); the caller passes the converted figure's
+     words (PB4816) and `align` pairs them with the boxes by ONE assignment over the figure (the converted rows are not
+     the printed lines: a brace's alternatives are printed half a line from the words beside them). The OCR words are
+     a POSITION hint only (`text_layer_hints`), and `locate` uses them to place each figure on its page (PB4849). A word
+     no box pairs with, a box no word pairs with, a pair too unlike, and a line paired out of order are each a
+     DISAGREEMENT in `RasterPage.disagreements`, and the word keeps text None: the tool never picks silently. Each box
+     lists the words it encloses.
 
 WHAT IT WAS CALIBRATED ON. Twelve general-format regions of the 1985 scan (PDF pages 196, 217, 252, 389, 396, 426, 444,
 493, 568, 684, 693, 845: the Environment, Nucleus, Sequential, Relative, Indexed, Sort-Merge and Communication modules,
@@ -59,7 +64,11 @@ for the MONOSPACED general-format band: on proportional prose (the amendments' T
 from __future__ import annotations
 
 import argparse
+import bisect
+import collections
+import difflib
 import math
+import re
 import pathlib
 import sys
 from dataclasses import dataclass, field
@@ -78,6 +87,7 @@ DPI = 400                      # the measurement resolution; below this a 0.5 pt
 MAX_SKEW_DEG = 1.5             # a scan is rotated by well under this; the search range
 SKEW_STEP_DEG = 0.05
 MIN_SKEW_FIX_DEG = 0.03        # a smaller estimate is noise, not rotation
+SKEW_BODY = (30.0, 760.0)      # a whole page's skew is measured between these heights, clear of the per-copy stamp's lines
 STEM_OVERLAP = 0.5             # adjacent pixel columns belong to one stem when their runs overlap this much
 STEM_FRACTION = 0.75           # a stem shorter than this share of its component is a section of a brace
 BRACE_MAX_W = 12.0             # a brace is narrower than this, in points
@@ -103,6 +113,27 @@ BOX_TILT = 3.0                 # a box's rule is level to within this many point
 BOX_RULE = 2.0                 # ... and is at most this thick
 BOX_SIDE = 0.6                 # ... and is inked along at least this share of the side (page 493's thin EXTEND box keeps 0.6 to 0.8; 0.9 lost it)
 DESCENDER_MAX_H = 5.0          # a descender's tail below an underline is no taller than this
+DOT_MAX = 2.5                  # a period, an i's dot or an ellipsis dot is no wider or taller than this (page 305: 1.4 to 2.0)
+LINE_REACH_PT = 15.0           # a glyph is set on a line by that line's letters within this distance of it (`find_words`)
+SLIVER_MAX = 0.6              # ink no taller than this is what an erased box rule leaves behind (page 305: 0.1 to 0.2)
+DOT_ABOVE = 1.5               # ... and an i's dot stands this far or less above its stem (page 305: 0.6)
+ELLIPSIS_GAP_PT = 5.0          # the dots of one ellipsis are this far apart or less (page 305: 3.9 to 4.1, one character)
+DELIM_MIN_H = 7.6              # a typed one-line delimiter is at least this tall (page 305: 8.8 to 9.2, page 196's `{` 7.9;
+                               # a capital is 7.0, a letter with a descender 7.2) ...
+DELIM_MAX_W = 4.0              # ... and no wider than this (page 305: 2.5 to 3.4)
+# Pairing the converted words with the measured boxes (`align`, `locate`; kb/Work PB4849). The weights make one glyph
+# of length difference, a whole figure's height and a quarter of its width cost about the same; a right pair on PDF
+# pages 196 and 305 costs under 1.3, a wrong one over 2.5.
+PAIR_W_LEN, PAIR_W_ROW, PAIR_W_COL, PAIR_W_HINT = 1.0, 4.0, 1.0, 2.0
+PAIR_ACCEPT = 2.5
+PITCH_BEARING = 0.2            # a word's ink is its letters' cells less one glyph's side bearings, in pitches (page 305)
+PAIR_W_NEIGHBOUR = 1.5         # a typed delimiter whose word beside it is not the converted word beside it
+HINT_DY = 5.0                  # an OCR word overlaps a box when their middles are this close in height
+HINT_LINE_DY = 3.0             # OCR words this close in height are one printed line
+LOCATE_MATCH = 0.7             # an OCR word matches a converted word this alike (`_similarity`)
+LOCATE_MIN_WORD = 3            # ... and an OCR word shorter than this is not counted (see `locate`)
+LOCATE_PAD = 8.0              # a located figure reaches this far beyond its first and last printed lines (a brace's hooks)
+OCR_FOLD = str.maketrans("l|io", "1110")       # the OCR layer's commonest confusions, after lower-casing (`file-name-l`)
 
 
 class Rect(NamedTuple):
@@ -137,7 +168,8 @@ class RasterPage:
     stems: list = field(default_factory=list)      # brackets and bars only, as figure_geometry returns them
     braces: list = field(default_factory=list)     # {"x", "y0", "y1", "side", "point"}; extract() draws them as glyphs
     rules: list = field(default_factory=list)      # Rect: the underlines
-    words: list = field(default_factory=list)      # extract()-shaped dicts, plus "y1"
+    lines: list = field(default_factory=list)      # find_words(): the measured word boxes per printed line
+    words: list = field(default_factory=list)      # extract()-shaped dicts, plus "y1", in `lines` order (`read`)
     boxes: list = field(default_factory=list)      # {"x0", "y0", "x1", "y1", "words": [indices into words]}
     disagreements: list = field(default_factory=list)
     unclassified: list = field(default_factory=list)
@@ -634,25 +666,96 @@ def find_rules(comps: list, stem_labels: set, scale: float) -> list:
     return out
 
 
+def _is_dot(c: Component, scale: float) -> bool:
+    """A speck of ink no bigger than a period: an i's dot, a period, one dot of an ellipsis (page 305: 1.4 to 2.0 pt)."""
+    return (c.x1 - c.x0) / scale <= DOT_MAX and (c.y1 - c.y0) / scale <= DOT_MAX
+
+
+def _is_delimiter_glyph(c: Component, scale: float) -> bool:
+    """A one-line delimiter TYPED as a character, `[`, `]`, `{`, `}`, `(`, `)`: taller than any letter (it reaches below
+    the baseline and above the capitals) and narrow (page 305: 8.8 to 9.2 pt tall, 2.5 to 3.4 pt wide; a capital is 7.0,
+    a descender letter 7.2)."""
+    return (c.y1 - c.y0) / scale >= DELIM_MIN_H and (c.x1 - c.x0) / scale <= DELIM_MAX_W
+
+
+def _dotted_letters(glyphs: list, scale: float) -> list:
+    """The glyphs with each i's and j's dot joined to the stem below it, so a letter is ONE component (page 305: the dot
+    of `identifier` stands 0.6 pt above its stem). A word's components then pair with its letters (`align`), and the dot
+    is never a word of its own."""
+    dots = [c for c in glyphs if _is_dot(c, scale)]
+    body = [c for c in glyphs if not _is_dot(c, scale)]
+    out, taken = list(body), set()
+    for d in dots:
+        mid = (d.x0 + d.x1) / 2
+        below = [i for i, c in enumerate(out) if c.x0 <= mid <= c.x1 and 0 <= c.y0 - d.y1 <= DOT_ABOVE * scale
+                 and not _is_dot(c, scale)]
+        if below:
+            i = min(below, key=lambda i: out[i].y0 - d.y1)
+            c = out[i]
+            out[i] = Component(min(c.x0, d.x0), d.y0, max(c.x1, d.x1), c.y1, c.area + d.area)
+            taken.add(id(d))
+    return out + [d for d in dots if id(d) not in taken]
+
+
 def find_words(comps: list, skip: set, scale: float) -> list:
-    """Word boxes in lines: [[(x0, y0, x1, y1, [component boxes])...] per printed line] in points."""
-    glyphs = [(k, c) for k, c in enumerate(comps, start=1) if k not in skip and c.area >= MIN_COMPONENT_PX]
-    glyphs.sort(key=lambda kc: (kc[1].y0 + kc[1].y1))
-    lines: list = []
-    for _, c in glyphs:
-        for line in lines:
-            ly0, ly1 = min(g.y0 for g in line), max(g.y1 for g in line)
-            if min(c.y1, ly1) - max(c.y0, ly0) >= 0.5 * min(c.y1 - c.y0, ly1 - ly0):
-                line.append(c)
-                break
-        else:
-            lines.append([c])
+    """Word boxes in lines: [[(x0, y0, x1, y1, [component boxes])...] per printed line] in points.
+
+    Three shapes are not split by spacing alone (kb/Work PB4849, measured on PDF page 305): an i's dot is joined to its
+    letter (`_dotted_letters`); the dots of an ellipsis, spaced a character apart, stay one word `...`; and a typed
+    delimiter (`_is_delimiter_glyph`) is a word of its own even when it is set hard against the word it encloses, as the
+    converted page writes `[ON` and `[ROUNDED]}`: the pairing splits the converted words at the same delimiters."""
+    glyphs = _dotted_letters([c for k, c in enumerate(comps, start=1) if k not in skip and c.area >= MIN_COMPONENT_PX],
+                             scale)
+    glyphs.sort(key=lambda c: (c.y0 + c.y1))
+    # The LETTERS set the lines; a dot, a hyphen and a typed delimiter then join the line whose letters they overlap
+    # most. Seeding a line from whatever came first let a speck above `[INPUT-OUTPUT` start a line the tall `[` then
+    # stretched over the hyphen and the period, splitting INPUT-OUTPUT across two lines (page 196).
+    def letter(c):                                     # a glyph no taller than a letter: a taller one (a typed
+        return DOT_MAX < (c.y1 - c.y0) / scale < DELIM_MIN_H   # delimiter, or letters fused to a rule, page 310's
+                                                       # `NO`) joins a line but never stretches it over the next one
+
+    # A glyph is measured against the line's letters NEAREST it, not against the whole line's extent: a typed line can
+    # run a little uphill (page 310 rises 4 pt across one format), and an extent stretched by that slope swallowed the
+    # brace alternative printed half a line below the line's start.
+    lines: list = []                                   # [[glyphs], [(x0, y0, y1) of its letters, sorted by x]]
+
+    def local(ln, c):
+        xs = ln[1]
+        at = bisect.bisect_left(xs, (c.x0,))
+        reach = LINE_REACH_PT * scale
+        near = [p for p in xs[max(at - 3, 0):at + 3] if abs(p[0] - c.x0) <= reach]
+        if not near:
+            near = [min(xs, key=lambda p: abs(p[0] - c.x0))]
+        return min(p[1] for p in near), max(p[2] for p in near)
+
+    def best_line(c):
+        fits = []
+        for ln in lines:
+            if not ln[1]:
+                continue
+            y0, y1 = local(ln, c)
+            o = min(c.y1, y1) - max(c.y0, y0)
+            if o >= 0.5 * min(c.y1 - c.y0, y1 - y0):
+                fits.append((o, ln))
+        return max(fits, key=lambda f: f[0])[1] if fits else None
+
+    for c in [g for g in glyphs if letter(g)] + [g for g in glyphs if not letter(g)]:
+        ln = best_line(c)
+        if ln is None:
+            ln = [[], []]
+            lines.append(ln)
+        ln[0].append(c)
+        if letter(c) or not ln[1]:
+            bisect.insort(ln[1], (c.x0, c.y0, c.y1))
+    lines = [ln[0] for ln in lines]
     out = []
     for line in sorted(lines, key=lambda ln: min(g.y0 for g in ln)):
         line.sort(key=lambda g: g.x0)
         words, cur = [], [line[0]]
         for g in line[1:]:
-            if (g.x0 - max(c.x1 for c in cur)) / scale > WORD_GAP_PT:
+            gap = (g.x0 - max(c.x1 for c in cur)) / scale
+            ellipsis = _is_dot(g, scale) and _is_dot(cur[-1], scale) and gap <= ELLIPSIS_GAP_PT
+            if (gap > WORD_GAP_PT and not ellipsis) or _is_delimiter_glyph(g, scale) or _is_delimiter_glyph(cur[-1], scale):
                 words.append(cur)
                 cur = []
             cur.append(g)
@@ -663,43 +766,375 @@ def find_words(comps: list, skip: set, scale: float) -> list:
     return out
 
 
-def align(boxes: list, tokens: list | None, rules: list):
-    """Pair the measured word boxes with the converted page's words and read each word's underline state.
+def split_token(text: str) -> list:
+    """A converted word split at its typed one-line delimiters, as `find_words` splits the measured word: `[ROUNDED]}`
+    is `[`, `ROUNDED`, `]`, `}`."""
+    return re.findall(r"[\[\]{}()]|[^\[\]{}()]+", text)
 
-    `tokens` is one list of words per printed line (PB4816's), top to bottom. The state is `figure_extract`'s own
-    (`is_underlined`, then `underline_runs` to trim, which can only remove characters). Returns (words,
-    disagreements); a line whose box count and word count differ gets text None for every box and is reported."""
-    words, bad = [], []
-    for i, line in enumerate(boxes):
-        want = tokens[i] if tokens is not None and i < len(tokens) else None
-        if tokens is not None and (want is None or len(want) != len(line)):
-            bad.append({"line": i, "boxes": len(line), "words": None if want is None else len(want),
-                        "tokens": want})
-            want = None
-        for j, (x0, y0, x1, y1, chars) in enumerate(line):
-            text = want[j] if want else None
-            state = FX.is_underlined((x0, y0, x1, y1), rules)
-            if state is True and text and len(text) > 1:
-                own = [r for r in rules if FX.MIN_ABOVE <= r.y0 - y1 <= FX.MAX_GAP
-                       and (min(x1, r.x1) - max(x0, r.x0)) / max(x1 - x0, 0.1) >= FX.MIN_COVER]
-                if len(chars) == len(text):
-                    state = FX.underline_runs(chars, own)
-                else:   # components do not pair with letters (fused or split glyphs): the rule is kept whole, reported
-                    bad.append({"line": i, "word": j, "text": text, "components": len(chars), "letters": len(text),
-                                "reason": "underlined word's components do not match its letters"})
-            words.append({"text": text, "x0": round(x0, 1), "y0": round(y0, 1), "x1": round(x1, 1),
-                          "y1": round(y1, 1), "underlined": state})
+
+def token_rows(rows: list) -> list:
+    """`[[(text, column), ...] per row]`: the converted words of one figure, each split by `split_token`. A row is a
+    list of words (a column is then the word's offset in the row joined by spaces) or of (word, column) pairs."""
+    out = []
+    for row in rows:
+        toks, col = [], 0
+        for t in row:
+            word, at = (t, col) if isinstance(t, str) else t
+            for piece in split_token(word):
+                toks.append((piece, at))
+                at += len(piece)
+            col = at + 1
+        out.append(toks)
+    return out
+
+
+def _similarity(a: str, b: str) -> float:
+    """How alike two spellings of one word are, 0 to 1, over the letters an OCR layer confuses (`l`/`1`, `O`/`0`)."""
+    def fold(t):
+        return t.lower().translate(OCR_FOLD)
+    return difflib.SequenceMatcher(None, fold(a), fold(b)).ratio()
+
+
+def _hint(box, hints: list) -> list:
+    """The text-layer words that overlap a measured word box: (x0, y0, x1, y1, text) in deskewed points."""
+    x0, y0, x1, y1 = box[:4]
+    mid = (y0 + y1) / 2
+    return [h[4] for h in hints if h[0] < x1 and h[2] > x0 and abs((h[1] + h[3]) / 2 - mid) <= HINT_DY]
+
+
+#: The one disagreement that is a NOTE, not a failure to read: the word is paired and underlined, and only the trim of
+#: `underline_runs` could not run, so the whole word keeps its rule.
+TRIM_NOTE = "underlined word's components do not match its letters"
+
+
+def _state(box, text, rules, where: dict, bad: list):
+    """A paired word's underline state, `figure_extract`'s own (`is_underlined`, then `underline_runs` to trim, which can
+    only remove characters). An underlined word whose components do not pair with its letters keeps its rule whole and
+    is reported."""
+    x0, y0, x1, y1, chars = box
+    state = FX.is_underlined((x0, y0, x1, y1), rules)
+    if state is True and text and len(text) > 1:
+        own = [r for r in rules if FX.MIN_ABOVE <= r.y0 - y1 <= FX.MAX_GAP
+               and (min(x1, r.x1) - max(x0, r.x0)) / max(x1 - x0, 0.1) >= FX.MIN_COVER]
+        if len(chars) == len(text):
+            state = FX.underline_runs(chars, own)
+        else:
+            bad.append(dict(where, text=text, components=len(chars), letters=len(text),
+                            reason=TRIM_NOTE))
+    return state
+
+
+DELIMS = frozenset("[]{}()")
+
+
+def _is_delimiter_box(box) -> bool:
+    """A measured word that is one typed delimiter glyph (`_is_delimiter_glyph`, in points)."""
+    x0, y0, x1, y1, _ = box
+    return y1 - y0 >= DELIM_MIN_H and x1 - x0 <= DELIM_MAX_W
+
+
+class _Frame:
+    """The figure's two coordinate frames for `_assign`: the measured boxes in points and the converted words in rows and
+    columns, each normalized to its own extent, and each side's word neighbours on its line or row."""
+
+    def __init__(self, flat: list, tops: list, toks: list, nrow: int):
+        self.flat, self.tops, self.toks, self.nrow = flat, tops, toks, nrow
+        self.ymin = min(tops)                         # a box's height is its LINE's (`_line_top`): an ellipsis's ink
+        self.yspan = max(max(tops) - self.ymin, 1.0)  # starts 4.5 pt below its line's, which is no row of its own
+        self.xmin = min(b[0] for _, _, b in flat)
+        self.xspan = max(max(b[2] for _, _, b in flat) - self.xmin, 1.0)
+        self.cmin = min((c for _, _, c in toks), default=0)
+        self.cspan = max(max((c + len(t) for t, _, c in toks), default=1) - self.cmin, 1)
+        # The typewriter's PITCH, so a word's length can be read from its width as well as from its glyph count: a scan
+        # fuses touching letters (ERROR's `RR`, page 305) and breaks thin ones, and either alone miscounts.
+        per = sorted((b[2] - b[0]) / len(b[4]) for _, _, b in flat if len(b[4]) >= 3)
+        self.pitch = per[len(per) // 2] if per else None
+        word_box = [k for k, (_, _, b) in enumerate(flat) if not (len(b[4]) == 1 and _is_delimiter_box(b))]
+        word_tok = [t for t, (w, _, _) in enumerate(toks) if w not in DELIMS]
+        self.box_side = {k: self._sides(k, [(flat[n][0], flat[n][2][0], n) for n in word_box], flat[k][0], flat[k][2][0])
+                         for k in range(len(flat))}
+        self.tok_side = {t: self._sides(t, [(toks[n][1], toks[n][2], n) for n in word_tok], toks[t][1], toks[t][2])
+                         for t in range(len(toks))}
+
+    @staticmethod
+    def _sides(me, words, line, at):
+        """The nearest word left and right of position `at` on `line`, as indices, or None."""
+        same = [(x, n) for ln, x, n in words if ln == line and n != me]
+        left = max((p for p in same if p[0] < at), default=None)
+        right = min((p for p in same if p[0] > at), default=None)
+        return (left[1] if left else None, right[1] if right else None)
+
+    def cost(self, t: int, k: int, near, words: dict | None) -> float:
+        word, r, c = self.toks[t]
+        box = self.flat[k][2]
+        miss = abs(len(box[4]) - len(word))
+        if self.pitch:
+            miss = min(miss, abs((box[2] - box[0]) / self.pitch + PITCH_BEARING - len(word)))
+        v = miss * PAIR_W_LEN
+        # Half a row either way is free: a brace's alternatives and the words beside it are printed half a line apart
+        # and drawn on whole rows (DISPLAY's `identifier-1` / `literal-1`, page 310).
+        v += max(abs(r / self.nrow - (self.tops[k] - self.ymin) / self.yspan) - 0.5 / self.nrow, 0.0) * PAIR_W_ROW
+        v += abs((c - self.cmin) / self.cspan - (box[0] - self.xmin) / self.xspan) * PAIR_W_COL
+        if near is not None:
+            said = near[k]
+            if not said:
+                v += PAIR_W_HINT / 2                  # the OCR layer drops punctuation and ellipses: no evidence either way
+            elif word in DELIMS:
+                v += 0.0 if any(word in h for h in said) else PAIR_W_HINT
+            else:
+                v += (1 - max(_similarity(h, word) for h in said)) * PAIR_W_HINT
+        if words is not None:                         # a delimiter: its neighbours must be the word's
+            for box_side, tok_side in zip(self.box_side[k], self.tok_side[t]):
+                got = words.get(box_side, (None,))[0] if box_side is not None else None
+                if got != tok_side:
+                    v += PAIR_W_NEIGHBOUR
+        return v
+
+
+def hungarian(cost: np.ndarray) -> list:
+    """The cheapest one-to-one pairing of the rows of `cost` with its columns, as [(row, column), ...]: min(rows,
+    columns) pairs. The Hungarian method with potentials, O(n^2 m), its inner loop over columns in numpy (numpy is the
+    measurer's one numeric dependency; CI's self-tests install it and nothing more)."""
+    if cost.shape[0] > cost.shape[1]:
+        return sorted((r, c) for c, r in hungarian(cost.T))
+    n, m = cost.shape
+    u, v = np.zeros(n + 1), np.zeros(m + 1)
+    p = np.zeros(m + 1, dtype=np.int64)              # p[j]: the row (1-based) holding column j; 0 is none
+    way = np.zeros(m + 1, dtype=np.int64)
+    for i in range(1, n + 1):
+        p[0], j0 = i, 0
+        minv = np.full(m + 1, np.inf)
+        used = np.zeros(m + 1, dtype=bool)
+        while True:
+            used[j0] = True
+            i0 = p[j0]
+            cur = cost[i0 - 1] - u[i0] - v[1:]
+            free = ~used[1:]
+            better = free & (cur < minv[1:])
+            minv[1:][better] = cur[better]
+            way[1:][better] = j0
+            j1 = int(np.argmin(np.where(free, minv[1:], np.inf))) + 1
+            delta = minv[j1]
+            u[p[used]] += delta
+            v[used] -= delta
+            minv[~used] -= delta
+            j0 = j1
+            if p[j0] == 0:
+                break
+        while j0:
+            j1 = way[j0]
+            p[j0] = p[j1]
+            j0 = j1
+    return sorted((int(p[j]) - 1, j - 1) for j in range(1, m + 1) if p[j])
+
+
+def _assign(frame: _Frame, toks: list, boxes: list, near, words: dict | None) -> dict:
+    """The cheapest one-to-one pairing of the converted words `toks` with the measured boxes `boxes` (indices into the
+    frame): {box: (word, cost)}."""
+    if not toks or not boxes:
+        return {}
+    cost = np.array([[frame.cost(t, k, near, words) for k in boxes] for t in toks])
+    return {boxes[c]: (toks[r], float(cost[r, c])) for r, c in hungarian(cost)}
+
+
+def align(lines: list, tokens: list | None, rules: list, hints: list | None = None):
+    """Pair the measured word boxes with the converted figure's words and read each word's underline state.
+
+    `lines` is `find_words`' result (printed lines, top to bottom). `tokens` is the converted figure's words as rows,
+    top to bottom (`token_rows`' input). The rows are the converted figure's, and they are NOT the printed lines: the
+    converted page sets a brace's alternatives, printed half a line apart, on one row (PDF page 196). So the pairing is
+    one ASSIGNMENT over the whole figure (`hungarian`), never row by row; the words first, then the typed delimiters by
+    the words beside them (`_Frame.cost`). A pair costs
+    - the difference between the word's letter count and the box's length, read as its glyph count (a glyph is a
+      letter once `_dotted_letters` joins the i's dot) or as its width over the typewriter's pitch, whichever is closer,
+    - the difference of their relative heights in the figure beyond half a row (the row, blank rows counted, against
+      the top of the box's printed line), and of their relative columns,
+    - and, when `hints` (`text_layer_hints`) are given, how unlike the word is to the OCR text that overlaps the box.
+    The OCR text is a HINT of position only: a word's text is always the converted word (PB4817: the OCR layer misreads
+    `or` as `OI`).
+
+    The tool never picks silently. Each of these is a DISAGREEMENT: a pair costing more than PAIR_ACCEPT (that box keeps
+    text None); a box no word pairs with (a speck or a sliver excepted: it is no word), or a line whose words are paired
+    out of their converted order (every box of that line keeps text None: its pairing is in doubt); a word no box pairs
+    with. Returns (words, disagreements), the words in `lines`' order."""
+    flat = [(i, j, box) for i, line in enumerate(lines) for j, box in enumerate(line)]
+    text = {}
+    bad: list = []
+    if tokens is not None and flat:
+        toks = [(t, r, c) for r, row in enumerate(token_rows(tokens)) for t, c in row]
+        frame = _Frame(flat, [_line_top(lines[i], b) for i, _, b in flat], toks, max(len(tokens) - 1, 1))
+        near = {k: _hint(box, hints) for k, (_, _, box) in enumerate(flat)} if hints is not None else None
+        is_delim = [len(b[4]) == 1 and _is_delimiter_box(b) for _, _, b in flat]
+        index = {(i, j): k for k, (i, j, _) in enumerate(flat)}
+        # Words first, then the typed delimiters by the words beside them: every `[` looks alike, so a bracket is
+        # placed by its neighbours, never by its shape alone (`[ROUNDED]` came out `] ROUNDED [`, page 305).
+        paired = _assign(frame, [t for t in range(len(toks)) if toks[t][0] not in DELIMS],
+                         [k for k in range(len(flat)) if not is_delim[k]], near, None)
+        paired.update(_assign(frame, [t for t in range(len(toks)) if toks[t][0] in DELIMS],
+                              [k for k in range(len(flat)) if is_delim[k]], near, paired))
+        spoiled = set()
+        for k, (i, j, box) in enumerate(flat):
+            got = paired.get(k)
+            if got is None:
+                if (len(box[4]) == 1 and (box[3] - box[1]) <= DOT_MAX) or (box[3] - box[1]) <= SLIVER_MAX:
+                    continue                                   # a speck, or a sliver a box's erased rule left: no word
+                bad.append({"line": i, "word": j, "reason": "no converted word pairs with this measured word",
+                            "box": [round(v, 1) for v in box[:4]]})
+                spoiled.add(i)
+            elif got[1] > PAIR_ACCEPT:
+                bad.append({"line": i, "word": j, "text": toks[got[0]][0], "cost": round(got[1], 2),
+                            "reason": "the closest converted word is too unlike this measured word"})
+            else:
+                text[(i, j)] = got[0]
+        for t_i in sorted(set(range(len(toks))) - {t for t, _ in paired.values()}):
+            bad.append({"row": toks[t_i][1], "text": toks[t_i][0], "reason": "no measured word pairs with this converted word"})
+        for i, line in enumerate(lines):                       # a line's words keep their converted order
+            # Words of one spelling from one row are interchangeable: the `]]]]` that closes page 196's last line is
+            # four equal words, and which `]` went to which box carries no information. They are dealt out in order.
+            # So are the typed delimiters of one run between two words: a scan cannot tell `]` from `}`, and in
+            # `[ROUNDED]}` (page 305) only their order says which is which.
+            same = collections.defaultdict(list)
+            run = 0
+            for j in range(len(line)):
+                delim = is_delim[index[(i, j)]]
+                run += not delim
+                if (i, j) in text:
+                    t = toks[text[(i, j)]]
+                    same[(t[1], "delims", run) if delim and t[0] in DELIMS else (t[1], t[0])].append(j)
+            for js in same.values():
+                for j, t_i in zip(js, sorted((text[(i, j)] for j in js), key=lambda t: toks[t][2])):
+                    text[(i, j)] = t_i
+            seq = [text[(i, j)] for j in range(len(line)) if (i, j) in text]
+            by_row = collections.defaultdict(list)
+            for t_i in seq:
+                by_row[toks[t_i][1]].append(toks[t_i][2])
+            if any(cols != sorted(cols) for cols in by_row.values()):
+                bad.append({"line": i, "reason": "words paired out of their converted order",
+                            "tokens": [toks[t_i][0] for t_i in seq]})
+                spoiled.add(i)
+        text = {key: toks[t_i][0] for key, t_i in text.items() if key[0] not in spoiled}
+    words = []
+    for i, j, box in flat:
+        t = text.get((i, j))
+        x0, _, x1, y1, _ = box
+        words.append({"text": t, "x0": round(x0, 1), "y0": round(_line_top(lines[i], box), 1), "x1": round(x1, 1),
+                      "y1": round(y1, 1), "underlined": _state(box, t, rules, {"line": i, "word": j}, bad)})
     return words, bad
+
+
+def _line_top(line: list, box) -> float:
+    """A word's top as `render_figure` reads it: the top of its printed LINE, as a text layer's word box is the font's,
+    not the top of its own ink. An ellipsis's ink starts 4.5 pt below its line's capitals and a typed bracket's above
+    them (page 305), and either read as its own top lands on a row of its own. A line of dots or brackets alone keeps
+    its own top."""
+    letters = [b[1] for b in line if not _is_delimiter_box(b) and (b[3] - b[1]) > DOT_MAX]
+    return min(letters) if letters else box[1]
+
+
+def text_layer_hints(page, skew_deg: float) -> list:
+    """The PDF's OCR words as position hints for `align`: (x0, y0, x1, y1, text) moved into the deskewed frame the
+    measurement is in (`deskew` moves the ink at x up by x * tan(skew))."""
+    tan = math.tan(math.radians(skew_deg)) if abs(skew_deg) >= MIN_SKEW_FIX_DEG else 0.0
+    out = []
+    for x0, y0, x1, y1, t, *_ in page.get_text("words"):
+        dy = -((x0 + x1) / 2) * tan
+        out.append((x0, y0 + dy, x1, y1 + dy, t))
+    return out
+
+
+def _hint_lines(hints: list) -> list:
+    """The hints grouped into printed lines, top to bottom."""
+    lines: list = []
+    for h in sorted(hints, key=lambda h: (h[1], h[0])):
+        if lines and abs(h[1] - lines[-1][0][1]) <= HINT_LINE_DY:
+            lines[-1].append(h)
+        else:
+            lines.append([h])
+    return lines
+
+
+def locate(figures: list, hints: list) -> list:
+    """Where each converted figure is printed on the page: [(y0, y1) or None per figure], in deskewed points.
+
+    The figures are in reading order and do not overlap, so they are placed TOGETHER, as disjoint runs of the page's
+    printed lines in that order, by dynamic programming: a run scores one for each OCR word that matches a still unused
+    word of its figure (`_similarity` >= LOCATE_MATCH) and loses one for each that does not. Placing each figure on its
+    own fails on the commonest page, a statement's formats: ADD's three formats share `[ON SIZE ERROR ...]`, and the
+    first format alone claims all three (PDF page 305). A figure no run scores above zero for is None: unlocated."""
+    lines = _hint_lines(hints)
+    n, f = len(lines), len(figures)
+    bags = [collections.Counter(p for row in token_rows(fig) for p, _ in row if not re.fullmatch(r"[\[\]{}()]", p))
+            for fig in figures]
+
+    # Each OCR word's closest word of each figure, once: (matched word or None) per figure, per line.
+    # A word shorter than LOCATE_MIN_WORD is not counted either way: `ON`, `TO` are in every figure, and the OCR layer
+    # reads a tall brace's pieces as two-letter garbage (`Am`, `Cm` beside ADD Format 3's brace, page 305).
+    said = [[w for h in line if len(w := h[4].strip("[]{}().,|")) >= LOCATE_MIN_WORD] for line in lines]
+    found = [[collections.Counter() for _ in range(n)] for _ in range(f)]
+    for k in range(f):
+        for li, words in enumerate(said):
+            for word in words:
+                best = max(bags[k], key=lambda w: _similarity(word, w), default=None)
+                if best is not None and _similarity(word, best) >= LOCATE_MATCH:
+                    found[k][li][best] += 1
+    table = {}                                 # (k, a, b) -> score of figure k on lines a..b
+    for k in range(f):
+        for a in range(n):
+            have, total = collections.Counter(), 0
+            for b in range(a, n):
+                have += found[k][b]
+                total += len(said[b])
+                matched = sum(min(c, bags[k][w]) for w, c in have.items())   # a word of the figure is used once
+                table[(k, a, b)] = matched - max(total - matched, 0)
+
+    neg = float("-inf")
+    best = [[0.0] * (n + 1)] + [[neg] * (n + 1) for _ in range(f)]
+    back: dict = {}
+    for k in range(f):
+        for j in range(1, n + 1):
+            if best[k + 1][j - 1] > best[k + 1][j]:
+                best[k + 1][j], back[(k + 1, j)] = best[k + 1][j - 1], None
+            for a in range(j):
+                if best[k][a] == neg:
+                    continue
+                v = best[k][a] + table[(k, a, j - 1)]
+                if v > best[k + 1][j]:
+                    best[k + 1][j], back[(k + 1, j)] = v, a
+    out: list = [None] * f
+    k, j = f, n
+    while k > 0 and j > 0:
+        if (k, j) not in back:
+            break
+        a = back[(k, j)]
+        if a is None:
+            j -= 1
+            continue
+        if table[(k - 1, a, j - 1)] > 0:
+            out[k - 1] = (min(h[1] for h in lines[a]) - LOCATE_PAD, max(h[3] for h in lines[j - 1]) + LOCATE_PAD)
+        k, j = k - 1, a
+    placed = [k for k, b in enumerate(out) if b is not None]
+    for k0, k1 in zip(placed, placed[1:]):            # two padded bands meet at their midpoint, never overlap
+        if out[k0][1] > out[k1][0]:
+            mid = (out[k0][1] + out[k1][0]) / 2
+            out[k0], out[k1] = (out[k0][0], mid), (mid, out[k1][1])
+    return out
 
 
 # ---------------------------------------------------------------- the entry points
 
-def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None, skew: float | None = None) -> RasterPage:
-    """Measure a grayscale page image. `tokens` as for `align`. `skew` is the page's rotation in degrees when the image
-    is only a CROP of it (the calibration fixtures): a crop holds too little ink to estimate the page's angle."""
+def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None, skew: float | None = None,
+                  hints: list | None = None) -> RasterPage:
+    """Measure a grayscale page image. `tokens` and `hints` as for `align`, the whole image being one figure (`read`
+    reads several). `skew` is the page's rotation in degrees when the image is only a CROP of it (the calibration
+    fixtures): a crop holds too little ink to estimate the page's angle."""
     scale = dpi / 72
     ink = binarize(gray)
-    skew = estimate_skew(ink) if skew is None else skew
+    if skew is None:
+        # The angle is the SCAN's, so only the scanned body is measured: the per-copy stamp printed into the page's top
+        # and bottom margins is level, and on a page of few lines it outweighed the text (page 310: 0.0 found, the text
+        # rising 4 pt across the format, so one printed line read as two).
+        top, bottom = int(SKEW_BODY[0] * scale), int(SKEW_BODY[1] * scale)
+        skew = estimate_skew(ink[top:bottom]) if ink.shape[0] > bottom else estimate_skew(ink)
     ink = _close(_close(deskew(ink, skew), 0), 1)
     labels, comps = label(ink)
     ink, boxes = find_boxes(ink, labels, comps, scale)
@@ -727,18 +1162,65 @@ def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None, 
         k for k, c in enumerate(comps, start=1)
         if (c.y1 - c.y0) / scale >= FG.MIN_VERT_H and (c.x1 - c.x0) / scale <= BRACE_MAX_W
     }   # tall narrow shapes are delimiters, never words
-    rp.words, rp.disagreements = align(find_words(comps, skip, scale), tokens, rp.rules)
-    for b in sorted(boxes, key=lambda r: (r.y0, r.x0)):
-        inside = [i for i, w in enumerate(rp.words)
-                  if b.x0 < (w["x0"] + w["x1"]) / 2 < b.x1 and b.y0 < (w["y0"] + w["y1"]) / 2 < b.y1]
-        rp.boxes.append({"x0": round(b.x0, 2), "y0": round(b.y0, 2), "x1": round(b.x1, 2), "y1": round(b.y1, 2),
-                         "words": inside})
+    rp.lines = find_words(comps, skip, scale)
+    rp.boxes = [{"x0": round(b.x0, 2), "y0": round(b.y0, 2), "x1": round(b.x1, 2), "y1": round(b.y1, 2), "words": []}
+                for b in sorted(boxes, key=lambda r: (r.y0, r.x0))]
+    read(rp, [(None, tokens)], hints)
     return rp
+
+
+def read(rp: RasterPage, figures: list, hints: list | None = None) -> None:
+    """Give the measured words their text: each `(band, tokens)` of `figures` pairs `tokens` (`align`) with the measured
+    lines whose words lie in `band` ((y0, y1) in points; None for the whole page). The other lines keep text None. Sets
+    `rp.words`, `rp.disagreements` (each carrying its figure's index) and each box's `words`."""
+    rp.words, rp.disagreements = [], []
+    claimed: dict = {}
+    for k, (band, tokens) in enumerate(figures):
+        for i, line in enumerate(rp.lines):
+            if i not in claimed and (band is None or all(band[0] <= w[1] <= band[1] for w in line)):
+                claimed[i] = k
+    by_figure = collections.defaultdict(list)
+    for i, k in claimed.items():
+        by_figure[k].append(i)
+    read_lines: dict = {}
+    for k, (band, tokens) in enumerate(figures):
+        idx = sorted(by_figure[k])
+        if tokens is not None and not idx:
+            rp.disagreements.append({"figure": k, "reason": "no measured line lies in the figure's band"})
+            continue
+        words, bad = align([rp.lines[i] for i in idx], tokens, rp.rules, hints)
+        rp.disagreements += [dict(d, figure=k, line=idx[d["line"]]) if "line" in d else dict(d, figure=k) for d in bad]
+        it = iter(words)
+        for i in idx:
+            read_lines[i] = [next(it) for _ in rp.lines[i]]
+    for i, line in enumerate(rp.lines):
+        rp.words += read_lines.get(i) or align([line], None, rp.rules)[0]
+    for b in rp.boxes:
+        b["words"] = [i for i, w in enumerate(rp.words)
+                      if b["x0"] < (w["x0"] + w["x1"]) / 2 < b["x1"] and b["y0"] < (w["y0"] + w["y1"]) / 2 < b["y1"]]
 
 
 def measure_page(edition: int, page: int, tokens: list | None = None, dpi: int = DPI) -> RasterPage:
     """Measure one page of an edition's scanned PDF (1-based `page`)."""
     return measure_image(render(edition, page, dpi), dpi, tokens)
+
+
+def measure_figures(edition: int, page: int, figures: list, doc=None, dpi: int = DPI) -> tuple:
+    """Measure one scanned page and read the converted figures printed on it: `figures` is each figure's words as rows
+    (`token_rows`' input), in reading order. Each figure is placed by `locate` and its words paired by `align`, both with
+    the PDF's OCR words as position hints. Returns (the RasterPage, [(y0, y1) or None per figure])."""
+    import pymupdf
+    doc = doc if doc is not None else pymupdf.open(spec_pdf.require(edition))
+    rp = measure_image(render(edition, page, dpi), dpi)
+    hints = text_layer_hints(doc[page - 1], rp.skew_deg)
+    bands = locate(figures, hints)
+    read(rp, [(b, t) for b, t in zip(bands, figures) if b is not None], hints)
+    index = [k for k, b in enumerate(bands) if b is not None]    # read()'s figure k is figures[index[k]]
+    for d in rp.disagreements:
+        d["figure"] = index[d["figure"]]
+    rp.disagreements += [{"figure": k, "reason": "the figure was not located on the page"}
+                         for k, b in enumerate(bands) if b is None]
+    return rp, bands
 
 
 def classify_page(rp: RasterPage) -> list:
@@ -759,9 +1241,10 @@ def brace_pieces(b: dict) -> list:
 
 
 def extract(rp: RasterPage, band=None) -> list:
-    """`figure_extract.extract`'s result for a raster page (the same sort order and keys)."""
+    """`figure_extract.extract`'s result for a raster page (the same sort order and keys). A word `read` gave no text
+    is left out: it is in `rp.disagreements` already, and the figure drawn without it fails the sweep's word gate."""
     out = [{k: w[k] for k in ("text", "x0", "y0", "x1", "underlined")} for w in rp.words
-           if not band or band[0] <= w["y0"] <= band[1]]
+           if w["text"] is not None and (not band or band[0] <= w["y0"] <= band[1])]
     out += [piece for b in rp.braces for piece in brace_pieces(b) if not band or band[0] <= piece["y0"] <= band[1]]
     return sorted(out, key=lambda w: (round(w["y0"], 0), w["x0"]))
 
