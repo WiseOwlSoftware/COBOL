@@ -135,6 +135,44 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
         DebugContents = Fit(contents, ContentsWidth, right: false);
     }
 
+    /// <summary>A program store into DEBUG-LINE (<c>MOVE ... TO DEBUG-LINE</c>): the image is fitted to the member's PICTURE X(6), left-justified.
+    /// The standard names only the facility's updates (X3.23-1985 USE FOR DEBUGGING general rule 11) and states no rule against a program's own
+    /// store, whose effect lasts until the facility updates the register again (the GnuCOBOL 3.2 behavior).</summary>
+    public void StoreLine(string image) => DebugLine = Fit(image, LineWidth, right: false);
+
+    /// <summary>A program store into DEBUG-NAME, as <see cref="StoreLine"/>.</summary>
+    public void StoreName(string image) => DebugName = Fit(image, NameWidth, right: false);
+
+    /// <summary>A program store into DEBUG-SUB-<paramref name="level"/> (1 to 3): the item's five-character image.</summary>
+    public void StoreSub(int level, string image)
+    {
+        var fitted = Fit(image, SubWidth, right: false);
+        switch (level)
+        {
+            case 1: DebugSub1 = fitted; break;
+            case 2: DebugSub2 = fitted; break;
+            default: DebugSub3 = fitted; break;
+        }
+    }
+
+    /// <summary>A program store into DEBUG-CONTENTS, as <see cref="StoreLine"/>.</summary>
+    public void StoreContents(string image) => DebugContents = Fit(image, ContentsWidth, right: false);
+
+    /// <summary>A program store into the whole DEBUG-ITEM group: the group image is distributed over the members at their offsets in the
+    /// implicit description (the FILLER positions are not stored).</summary>
+    public void StoreImage(string image)
+    {
+        var whole = Fit(image, GroupWidthFor(ContentsWidth), right: false);
+        int at = 0;
+        string Take(int width) { var part = whole.Substring(at, width); at += width + 1; return part; }
+        DebugLine = Take(LineWidth);
+        DebugName = Take(NameWidth);
+        DebugSub1 = Take(SubWidth);
+        DebugSub2 = Take(SubWidth);
+        DebugSub3 = Take(SubWidth);
+        DebugContents = Take(ContentsWidth);
+    }
+
     /// <summary>The image of occurrence number <paramref name="at"/>, or SPACES when the reference has no such level: the five characters of
     /// general rule 10's S9(4) SIGN LEADING SEPARATE item, the sign and then four digits. An occurrence number is positive; one past four
     /// digits keeps its low-order four, the size of the item.</summary>

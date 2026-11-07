@@ -2264,10 +2264,10 @@ public static class DiagnosticCatalog
         "ISO §13.18.63.3 SR4 (VCR row 34)");
     public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
         "COBOL1571", "debug-sub-facility-staged", EditionSeverity.Error,
-        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF) and "
-        + "cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; the file-name subject kind, "
-        + "a special register or report sum counter as a data-name target, and the SORT/MERGE INPUT/OUTPUT-procedure "
-        + "DEBUG-CONTENTS cause are staged — rejected loud rather than compiled with a missing/stale trigger.",
+        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF), "
+        + "file-name and cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; "
+        + "the LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER special registers as a data-name target, and the SORT/MERGE "
+        + "INPUT/OUTPUT-procedure DEBUG-CONTENTS cause are staged — rejected loud rather than compiled with a missing/stale trigger.",
         "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
     public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
         "COBOL1572", "merge-in-sort-merge-proc", EditionSeverity.Error,

@@ -122,6 +122,11 @@ WiseOwl.Cobol.Runtime.ConfigEntry.FamilyMember.init -> void
 WiseOwl.Cobol.Runtime.DebugItem.ContentsWidth.get -> int
 WiseOwl.Cobol.Runtime.DebugItem.DebugItem(int contentsWidth = 30) -> void
 WiseOwl.Cobol.Runtime.DebugItem.PopulateReference(int line, string! name, string! contents, params long[]! occurrences) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreContents(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreImage(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreLine(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreName(string! image) -> void
+WiseOwl.Cobol.Runtime.DebugItem.StoreSub(int level, string! image) -> void
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
@@ -895,9 +900,9 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.Max(params WiseOwl.Cobol.Runtime
 static WiseOwl.Cobol.Runtime.FunctionValueField.Median(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.MedianStandard(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.Min(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfBinary64(double value, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfDigits(WiseOwl.Cobol.Runtime.CobolDec value, int digits) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfExact(WiseOwl.Cobol.Runtime.CobolExact value) -> WiseOwl.Cobol.Runtime.FunctionValueField
-static WiseOwl.Cobol.Runtime.FunctionValueField.OfBinary64(double value, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, in WiseOwl.Cobol.Runtime.NumProfile item, string! image, int bytes) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item, int positions, int bytes) -> WiseOwl.Cobol.Runtime.FunctionValueField
