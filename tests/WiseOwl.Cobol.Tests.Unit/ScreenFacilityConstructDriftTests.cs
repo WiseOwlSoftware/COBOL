@@ -338,6 +338,80 @@ public sealed class ScreenFacilityConstructDriftTests
             + string.Join("\n", errors));
     }
 
+    /// <summary>Every §2023:8.9 word of the screen surface (the <see cref="ScreenSurfaceWords"/> members §2023:8.9 lists),
+    /// paired with each edition: the population of the screen entry-name theory below.</summary>
+    public static IEnumerable<object[]> ScreenEntryNameCases() =>
+        from word in ScreenSurfaceWords()
+        where ReservedWords.Find(word) is not null
+        from edition in new[] { 85, 2002, 2014, 2023 }
+        select new object[] { word, edition };
+
+    /// <summary>⛔ THE SCREEN ENTRY'S NAME SLOT IS THE DATA ENTRY'S (kb/Work PB4890). ISO §2023:13.17.2 prints
+    /// <c>level-number [ entry-name-clause ]</c>, and the entry-name clause is §2023:13.18.20, the rule the data and report
+    /// group description entries read too, so a word §2023:8.9 reserves draws the same COBOL0901 there as in WORKING-STORAGE
+    /// (§2023:8.3.2.1 1): "Reserved words shall not be used as user-defined words or system-names"). The screen arm had a
+    /// name rule of its own that admitted no reservation-gated word, so <c>01 SCREEN LINE 1.</c> left the section loop the
+    /// constant entry as its one surviving reading and drew COBOL5506 "expected CONSTANT". Where §2023:8.9 leaves the word
+    /// free (COBOL-85 for every member but COLUMN) it is the entry's name. ⚠ SCREEN at COBOL-85 names the item and the
+    /// reservation gate then retypes the SECTION header's SCREEN too, so that program draws COBOL0001 at the header; the
+    /// free arm therefore asserts the name slot's own verdicts only.</summary>
+    [Theory]
+    [MemberData(nameof(ScreenEntryNameCases))]
+    public void AReservedWordAsAScreenEntrysName_IsRefusedByName_AsInWorkingStorage(string word, int edition)
+    {
+        bool reserved = ReservedWords.Find(word)!.IsReservedAt(edition);
+        var (ok, errors) = Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCRN{new string(word.Where(char.IsLetterOrDigit).ToArray())}.
+            DATA DIVISION.
+            SCREEN SECTION.
+            01 {word} LINE 1.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """, edition);
+
+        Assert.False(ok, "the SCREEN SECTION is declined (Annex A.4.2), so the program is refused at every edition");
+        Assert.False(Has(errors, "COBOL5506"), $"'{word}' as the screen entry's name must never read as a missing "
+            + $"CONSTANT at COBOL-{edition}:\n{string.Join("\n", errors)}");
+        Assert.True(Has(errors, "COBOL0901") == reserved, $"§2023:8.9 {(reserved ? "reserves" : "leaves free")} '{word}' "
+            + $"at COBOL-{edition}, so its use as the screen entry's name {(reserved ? "draws" : "never draws")} "
+            + $"COBOL0901:\n{string.Join("\n", errors)}");
+    }
+
+    /// <summary>The complement of the theory above: the name slot YIELDS to the clause a reserved word begins
+    /// (entryNameHere, kb/Work PB845, PB4889, PB4890). §2023:13.17.3 SR1: "If the entry-name clause is not specified, it is as if
+    /// the FILLER format of the entry-name clause were specified", so <c>05 COLUMN 5 VALUE "A".</c> is an unnamed entry
+    /// with a COLUMN clause, and <c>05 NATIONAL PIC N(3) …</c> an unnamed entry with a USAGE clause where §2023:8.9
+    /// reserves NATIONAL. Read as the entry's name, the word would draw a COBOL0901 on conforming source.</summary>
+    [Theory]
+    [InlineData("COLUMN 5 VALUE \"A\"", "the COLUMN clause", 2002)]
+    [InlineData("COL 5 VALUE \"A\"", "the COLUMN clause", 2023)]
+    [InlineData("COLS 5 VALUE \"A\"", "the COLUMN clause", 2014)]
+    [InlineData("COLUMNS 5 VALUE \"A\"", "the COLUMN clause", 2023)]
+    [InlineData("COL 5 VALUE \"A\"", "the COLUMN clause", 85)]
+    [InlineData("NATIONAL PIC N(3) VALUE N\"ABC\"", "the USAGE clause", 2023)]
+    public void AClauseAReservedWordBegins_IsNotReadAsTheScreenEntrysName(string clauses, string clauseName, int edition)
+    {
+        var (ok, errors) = Compile($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCRNCL.
+            DATA DIVISION.
+            SCREEN SECTION.
+            01 SG.
+               05 {clauses}.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """, edition);
+
+        Assert.False(ok, "the SCREEN SECTION is declined (Annex A.4.2)");
+        Assert.True(Has(errors, clauseName), $"`05 {clauses}.` is an unnamed entry whose clause is refused by name at "
+            + $"COBOL-{edition}:\n{string.Join("\n", errors)}");
+        Assert.False(Has(errors, "COBOL0901"), $"`05 {clauses}.` names no item at COBOL-{edition}:\n"
+            + string.Join("\n", errors));
+    }
+
     /// <summary>⛔ THE DERIVATION'S OWN FAILING BRANCH. A scrape that returned nothing — a renamed rule, a
     /// changed token spelling, a moved file — would make the theory above vacuously green, and a nameSlot row
     /// missing for a NEW screen token is PB301's defect returning. Both are asserted here: the population's size

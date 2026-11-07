@@ -487,14 +487,13 @@ internal static class OoExpansion
         for (var p = w.Parent; p is not null && p is not Core.StatementContext; p = p.Parent)
             switch (p)
             {
-                case Core.DataNameContext: return "data-name";
+                case Core.DataNameContext d: return d.Parent is Core.ScreenDescriptionEntryContext ? "screen-name" : "data-name";
                 case Core.ConditionNameContext: return "condition-name";
                 case Core.ParagraphNameContext: return "paragraph-name";
                 case Core.SectionNameContext: return "section-name";
                 case Core.MethodNameContext: return "method-name";
                 case Core.FileNameContext: return "file-name";
                 case Core.ReportNameContext: return "report-name";
-                case Core.ScreenNameContext: return "screen-name";
                 case Core.PropertyNameContext: return "property-name";
                 case Core.DataReferenceContext or Core.ClassNameContext or Core.InterfaceNameContext
                     or Core.RepositoryEntryContext:

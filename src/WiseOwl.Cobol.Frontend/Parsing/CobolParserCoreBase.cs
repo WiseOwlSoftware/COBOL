@@ -453,9 +453,10 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501, PB4889) — the
     /// predicate on the optional entry-name of every entry whose name slot admits a reservation-gated word:
-    /// <c>dataDescriptionEntry</c>, and <c>reportGroupEntry</c>, whose §2023:13.15.2 format prints the same
-    /// <c>[ entry-name-clause ]</c> and <c>[ USAGE IS ] { DISPLAY | NATIONAL }</c>. Each entry passes the rule that reads the
-    /// rest of it as <paramref name="bodyRule"/> (<c>dataDescriptionBody</c>, <c>reportGroupBody</c>), a rule followed by
+    /// <c>dataDescriptionEntry</c>, <c>reportGroupEntry</c>, whose §2023:13.15.2 format prints the same
+    /// <c>[ entry-name-clause ]</c> and <c>[ USAGE IS ] { DISPLAY | NATIONAL }</c>, and <c>screenDescriptionEntry</c>
+    /// (§2023:13.17.2, kb/Work PB4890). Each entry passes the rule that reads the
+    /// rest of it as <paramref name="bodyRule"/> (<c>dataDescriptionBody</c>, <c>reportGroupBody</c>, <c>screenDescriptionBody</c>), a rule followed by
     /// the period alone (<c>ReadingParsesFollowDriftTests</c>). ISO §2023:13.16.3 SR4: "If no entry-name clause
     /// is specified, it is as though the filler format of the entry-name clause were specified"; §2023:13.18.60.2 prints
     /// <c>[ USAGE IS ]</c> as optional, so <c>05 NATIONAL PIC N(3).</c> is a conforming unnamed USAGE NATIONAL item
@@ -630,7 +631,7 @@ public abstract class CobolParserCoreBase : Parser
     /// follow the rule somewhere in the grammar (its context-free FOLLOW set, <see cref="FollowSet"/>, read off the
     /// generated ATN, so a construct the grammar gains is covered by construction). A reading that stops at any other
     /// token parsed only a prefix of what is written, and the token it stopped at is the one the outer parse would
-    /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c> or <c>reportGroupBody</c>,
+    /// refuse next. For the no-entry-name reading of <see cref="entryNameHere"/> (<c>dataDescriptionBody</c>, <c>reportGroupBody</c> or <c>screenDescriptionBody</c>,
     /// each followed by the period alone) that is every token up to the period; for one statement of a sentence
     /// (<see cref="ReadStatementAt"/>) it is the statement up to the next statement, a scope
     /// terminator, a phrase of the enclosing statement or the period. A speculative parse by a
