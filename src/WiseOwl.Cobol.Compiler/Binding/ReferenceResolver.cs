@@ -797,6 +797,10 @@ public sealed class ReferenceResolver(DataBinder data)
         && dref.dataReferenceSuffix().Length == 0
         && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), data.CobolWords);
 
+    /// <summary>The place of one entry of the X3.23-1985 DEBUG-ITEM group (kb/Work PB4903), reached by the entry the group lists
+    /// (MOVE CORRESPONDING's pair walk), or <see langword="null"/> for an item that is no register entry.</summary>
+    internal DebugRegisterPlace? DebugRegisterPlaceOf(DataItem entry) => data.State.Implicit.DebugPlaceOf(entry);
+
     /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every
     /// arm names the rule the reference breaks; none of them can be "not defined", because the name IS defined.

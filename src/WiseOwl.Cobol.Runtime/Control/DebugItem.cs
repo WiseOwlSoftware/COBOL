@@ -99,10 +99,15 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
     /// referenced item's content.</summary>
     public string DebugContents { get; private set; } = new string(' ', MinContentsWidth);
 
+    /// <summary>The single-character FILLER entries that follow DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1, DEBUG-SUB-2 and DEBUG-SUB-3
+    /// (general rule 10: <c>FILLER PIC X VALUE SPACE</c>). They are storage of the group like any other entry, so a store into the
+    /// whole group lands in them and the group image reads them back; the facility space-fills them with the rest of the register.</summary>
+    private readonly char[] _fillers = [' ', ' ', ' ', ' ', ' '];
+
     /// <summary>The whole DEBUG-ITEM group image (§2023:13.18 group MOVE reads this): the members concatenated with the
-    /// single-space FILLER positions between them.</summary>
+    /// FILLER entries between them.</summary>
     public string Image =>
-        DebugLine + " " + DebugName + " " + DebugSub1 + " " + DebugSub2 + " " + DebugSub3 + " " + DebugContents;
+        DebugLine + _fillers[0] + DebugName + _fillers[1] + DebugSub1 + _fillers[2] + DebugSub2 + _fillers[3] + DebugSub3 + _fillers[4] + DebugContents;
 
     /// <summary>Space-fill the whole register (X3.23-1985: DEBUG-ITEM is space-filled before each execution of a
     /// debugging declarative), then set DEBUG-LINE / DEBUG-NAME / DEBUG-CONTENTS for a procedure trigger. DEBUG-SUB-n
@@ -127,6 +132,7 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
 
     private void Set(int line, string name, string contents, ReadOnlySpan<long> occurrences)
     {
+        Array.Fill(_fillers, ' ');
         DebugLine = Fit(line >= 0 ? line.ToString(System.Globalization.CultureInfo.InvariantCulture) : "", LineWidth, right: true);
         DebugName = Fit(name, NameWidth, right: false);
         DebugSub1 = SubImage(occurrences, 0);
@@ -158,18 +164,24 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
     /// <summary>A program store into DEBUG-CONTENTS, as <see cref="StoreLine"/>.</summary>
     public void StoreContents(string image) => DebugContents = Fit(image, ContentsWidth, right: false);
 
-    /// <summary>A program store into the whole DEBUG-ITEM group: the group image is distributed over the members at their offsets in the
-    /// implicit description (the FILLER positions are not stored).</summary>
+    /// <summary>A program store into the whole DEBUG-ITEM group (a group MOVE, §2023:14.9.25.4 GR4): the group image is distributed over
+    /// every entry of the implicit description at its offset, the FILLER entries included (kb/Work PB4903).</summary>
     public void StoreImage(string image)
     {
         var whole = Fit(image, GroupWidthFor(ContentsWidth), right: false);
         int at = 0;
-        string Take(int width) { var part = whole.Substring(at, width); at += width + 1; return part; }
+        string Take(int width) { var part = whole.Substring(at, width); at += width; return part; }
+        void Gap(int index) => _fillers[index] = whole[at++];
         DebugLine = Take(LineWidth);
+        Gap(0);
         DebugName = Take(NameWidth);
+        Gap(1);
         DebugSub1 = Take(SubWidth);
+        Gap(2);
         DebugSub2 = Take(SubWidth);
+        Gap(3);
         DebugSub3 = Take(SubWidth);
+        Gap(4);
         DebugContents = Take(ContentsWidth);
     }
 

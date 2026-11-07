@@ -59,8 +59,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line($"private readonly DebugItem __dbgItem = new DebugItem({bound.DebugContentsWidth});   // X3.23-1985 DEBUG-ITEM register (VCR 7.17)");
             // DEBUG-SUB-1..3 are numeric items (general rule 10: PICTURE S9999 SIGN IS LEADING SEPARATE), image-carried: a numeric use
             // decodes their image through the profile of their description.
-            if (bound.DebugSubRegister is { Pic: { } subPic } sub)
-                w.Line($"private static readonly NumProfile {sub.ProfileName} = {subPic.ProfileInitializer(ctx.SignEncoding)};   // DEBUG-SUB-n");
+            foreach (var sub in bound.DebugSubRegisters ?? [])
+                w.Line($"private static readonly NumProfile {sub.ProfileName} = {sub.Pic!.ProfileInitializer(ctx.SignEncoding)};   // {sub.CobolName}");
             w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
             w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
             w.Line("private bool __dbgBusy;   // a debugging declarative is not itself debugged (re-entrancy guard)");

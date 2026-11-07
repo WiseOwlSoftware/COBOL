@@ -418,6 +418,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private readonly ReferenceResolver _refs;
         private bool _hoisted;
         private bool _isAlias;                 // a level-66 THROUGH alias: each member resolves on its own
+        private bool _isDebugRegister;         // the DEBUG-ITEM group: each member is the register member its entry names
         private AccessPath? _cell;             // the view group's scope cell (kb/Work PB1042)
         private Position? _dynOrdinal;         // the view group's component ordinal (kb/Work PB1042)
 
@@ -454,6 +455,11 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                 // by its own unsubscripted reference — there is nothing to anchor at statement start.
                 RenamesPlace n => new CorrAccess(hoists, local, group: null, viewOffset: null, isMember: false,
                     subscripted: false, backing: null, n.Item, refs) { _isAlias = true },
+                // The X3.23-1985 DEBUG-ITEM group (kb/Work PB4903): a VIEW over the program instance's register, whose
+                // members are the entries X3.23-1985 USE FOR DEBUGGING general rule 10 lists, each reached as the register
+                // member that entry is, not as a struct member path, and with nothing to anchor at statement start.
+                DebugRegisterPlace { Member: DebugRegisterMember.Item } d => new CorrAccess(hoists, local, group: null, viewOffset: null,
+                    isMember: false, subscripted: false, backing: null, d.Item, refs) { _isDebugRegister = true },
                 _ => null,
             };
 
@@ -464,6 +470,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             DataItem leaf = chain[^1];
             // An alias member is ELEMENTARY (GR2 includes no groups), so its chain is the member alone.
             if (_isAlias) return chain.Count == 1 ? _refs.Places.ResolveItem(leaf) : null;
+            // The DEBUG-ITEM entries are elementary and direct (general rule 10 has no subordinate group).
+            if (_isDebugRegister) return chain.Count == 1 ? _refs.DebugRegisterPlaceOf(leaf) : null;
             if (_isMember)
             {
                 if (chain.All(CorrPlainMember))
