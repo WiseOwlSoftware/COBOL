@@ -11,8 +11,7 @@
       *> that carries a phrase of each is in neither.
       *>   cite.py: OK  14.9.38.2  OK  5.2.1  (General)
       *> The grammar keeps the two tails optional in one rule, so before kb/Work PB4090 this compiled.
-      *> SEND is the declined asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1);
-      *> declining it declines its behaviour, not the syntax rules of its statements.
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4090N2.
        DATA DIVISION.

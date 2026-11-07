@@ -15,10 +15,10 @@
       *>        figurative constant (8.3.3.6.3 SR1, leg 6) and a function-identifier as identifier-1 (8.4.3.1.2 Format 1, leg 7).
       *>   leg 3  Format 2 with RAISING EXCEPTION exception-name-1, leg 4 with RAISING LAST.
       *>   cite.py: OK  14.9.38.3 1)  OK  14.9.38.3 3)  OK  14.9.38.3 4)  OK  14.9.38.2
-      *> SEND is the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1; Annex A.3 item
-      *> 4): the statement is accepted and performs no message I-O until the exchange is built (kb/Work PB4744), so the
-      *> program's output is its own DISPLAYs. EXPECTED VALUES, DERIVED: nothing is sent, so both tags stay NULL
-      *> (13.18.63.4 GR4; 14.9.38.4 GR6 sets MT only when a server run unit takes the message).
+      *> SEND is the asynchronous messaging facility (Annex A.3 item 4). No run unit serves the names sent to (leg 1, 2, 5, 6, 7:
+      *> EC-MCS-NO-SERVER, 14.9.38.4 GR5) and MT2 is NULL (legs 3, 4: EC-MCS-NO-REQUESTER, GR7), so every SEND is unsuccessful.
+      *> EXPECTED VALUES, DERIVED: both tags stay NULL (13.18.63.4 GR4; 14.9.38.4 GR6 sets MT only when a server run unit takes
+      *> the message).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743S1.
        DATA DIVISION.

@@ -7,8 +7,7 @@
       *> RECEIVE WS-MSG GIVING WS-MSG WS-LEN. Expected: COBOL6265 (data-name-1 is no message-tag item).
       *> ISO 14.9.31.3 SR1: "Data-name-1 shall be the name of a message-tag data item."
       *>   cite.py: OK  14.9.31.3 1)  (Syntax rules)
-      *> SEND and RECEIVE are the asynchronous messaging facility (COBOL1578, docs/CONFORMANCE.md section 4 item 1;
-      *> Annex A.3 item 4); the statement is accepted inert, but its syntax rules are asked (kb/Work PB4743).
+      *> SEND and RECEIVE are the asynchronous messaging facility (Annex A.3 item 4, docs/CONFORMANCE.md section 2): the statement binds, and every operand and syntax rule is asked at bind (kb/Work PB3568, PB4743).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4743N6.
        DATA DIVISION.

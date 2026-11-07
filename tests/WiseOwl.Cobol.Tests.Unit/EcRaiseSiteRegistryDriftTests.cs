@@ -126,8 +126,8 @@ public sealed class EcRaiseSiteRegistryDriftTests
             {
                 // A REFERENCE TO A CATALOG CONSTANT IS A RAISE SITE TOO (kb/Work PB4744): the message control protocol names the condition it ends a statement with
                 // as ExceptionCatalog.McsNoServer and its kin, so the spelling lives once, in the catalog, and AsyncMessaging sets what the protocol names.
-                if (token.Kind() == SyntaxKind.IdentifierToken && token.Parent is MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.Text: "ExceptionCatalog" } } access
-                    && access.Name.Identifier == token && CatalogConstants.Value.TryGetValue(token.Text, out string? constant)
+                if (token.IsKind(SyntaxKind.IdentifierToken) && token.Parent is IdentifierNameSyntax { Parent: MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.Text: "ExceptionCatalog" } } access } identifier
+                    && access.Name == identifier && CatalogConstants.Value.TryGetValue(token.Text, out string? constant)
                     && universe.Contains(constant) && !IsComparisonOperand(token))
                 {
                     found.Add(constant);
